@@ -51,14 +51,14 @@
     "@aurelia/plugin-conventions": "2.0.0-beta.24",
     "@aurelia/runtime": "2.0.0-beta.24",
     "@rollup/pluginutils": "5.0.2",
-    "vite": "^6.2.6",
+    "vite": "^7.0.2",
     "loader-utils": "^2.0.0"
   },
   "devDependencies": {
     "@types/loader-utils": "^2.0.3",
     "@types/node": "^20.16.10",
     "@types/webpack": "^4.41.30",
-    "typescript": "5.4.2"
+    "typescript": "5.8.3"
   },
   "engines": {
     "node": ">=20.16.0"

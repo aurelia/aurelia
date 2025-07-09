@@ -81,12 +81,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
-    // let result
     let result = astEvaluate(this.ast, this._scope!, this, null);
-    // try {
-    // } catch (ex) {
-    //   console.log(ex);
-    // }
 
     delete overrideContext.$event;
 
@@ -117,10 +112,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === scope) {
-      /* istanbul ignore next */
-        return;
-      }
+      if (this._scope === scope) return;
       this.unbind();
     }
     this._scope = scope;
@@ -133,10 +125,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
 
     astUnbind(this.ast, this._scope!, this);

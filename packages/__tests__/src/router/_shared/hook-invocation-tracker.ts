@@ -41,9 +41,9 @@ export class HookInvocationTracker {
     this._promise = new Promise(resolve => this.$resolve = resolve);
   }
 
-  public notify(componentName: string, step: string = ''): void {
+  public notify(componentName: string): void {
     this.notifyHistory.push(componentName);
-    this.aggregator.notify(componentName, step, this);
+    this.aggregator.notify(componentName, this);
   }
 
   public resolve(): void {
@@ -116,13 +116,9 @@ export class HookInvocationAggregator {
 
   public notify(
     componentName: string,
-    step: string,
     tracker: HookInvocationTracker,
   ): void {
-    let label = `${this.phase}:${componentName}.${tracker.methodName}`;
-    if (step) {
-      label += `.${step}`;
-    }
+    const label = `${this.phase}.${componentName}.${tracker.methodName}`;
     this.notifyHistory.push(label);
 
     if (this.config.resolveLabels.includes(label)) {

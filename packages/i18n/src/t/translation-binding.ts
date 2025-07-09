@@ -1,6 +1,5 @@
 import { camelCase, toArray } from '@aurelia/kernel';
 import {
-  AccessorType,
   connectable,
   astEvaluate,
   astUnbind,
@@ -10,6 +9,7 @@ import {
   type IObserverLocator,
   type IAccessor,
   type IObserverLocatorBasedConnectable,
+  queueTask,
 } from '@aurelia/runtime';
 import {
   CustomElement,
@@ -24,12 +24,11 @@ import {
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IsExpression, CustomExpression } from '@aurelia/expression-parser';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
-import { etInterpolation, etIsProperty, stateActivating } from '../utils';
+import { etInterpolation, etIsProperty } from '../utils';
 import { ErrorNames, createMappedError } from '../errors';
 
 interface TranslationBindingCreationContext {
@@ -56,9 +55,6 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 export interface TranslationBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 
 const forOpts = { optional: true } as const;
-const taskQueueOpts: QueueTaskOptions = {
-  preempt: true,
-};
 
 export class TranslationBinding implements IBinding {
 
@@ -113,7 +109,7 @@ export class TranslationBinding implements IBinding {
   public _scope!: Scope;
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _isQueued: boolean = false;
 
   /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
@@ -123,7 +119,6 @@ export class TranslationBinding implements IBinding {
   private readonly _platform: IPlatform;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
   private parameter: ParameterBinding | null = null;
 
   /** @internal */
@@ -155,7 +150,6 @@ export class TranslationBinding implements IBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this._taskQueue = platform.domQueue;
   }
 
   public bind(_scope: Scope): void {
@@ -185,10 +179,7 @@ export class TranslationBinding implements IBinding {
 
     this.parameter?.unbind();
     this._targetAccessors.clear();
-    if (this._task !== null) {
-      this._task.cancel();
-      this._task = null;
-    }
+    this._isQueued = false;
 
     this._scope = (void 0)!;
     this.obs.clearAll();
@@ -196,18 +187,36 @@ export class TranslationBinding implements IBinding {
   }
 
   public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
-    this.obs.version++;
-    this._keyExpression = astEvaluate(this.ast, this._scope, this, this) as string;
-    this.obs.clear();
-    this._ensureKeyExpression();
-    this.updateTranslations();
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      this._keyExpression = astEvaluate(this.ast, this._scope, this, this) as string;
+      this.obs.clear();
+      this._ensureKeyExpression();
+      this.updateTranslations();
+    });
   }
 
   public handleLocaleChange() {
-    // todo:
-    // no flag passed, so if a locale is updated during binding of a component
-    // and the author wants to signal that locale change fromBind, then it's a bug
-    this.updateTranslations();
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      // todo:
+      // no flag passed, so if a locale is updated during binding of a component
+      // and the author wants to signal that locale change fromBind, then it's a bug
+      this.updateTranslations();
+    });
   }
 
   public useParameter(expr: IsExpression) {
@@ -220,8 +229,6 @@ export class TranslationBinding implements IBinding {
   public updateTranslations() {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
-    const accessorUpdateTasks: AccessorUpdateTask[] = [];
-    const task = this._task;
     this._targetAccessors.clear();
 
     for (const item of results) {
@@ -235,37 +242,15 @@ export class TranslationBinding implements IBinding {
           const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, camelCase(attribute))
             : this.oL.getAccessor(this.target, attribute);
-          const shouldQueueUpdate = this._controller.state !== stateActivating && (accessor.type & AccessorType.Layout) > 0;
-          if (shouldQueueUpdate) {
-            accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, this.target, attribute));
-          } else {
-            accessor.setValue(value, this.target, attribute);
-          }
+          accessor.setValue(value, this.target, attribute);
           this._targetAccessors.add(accessor);
         }
       }
     }
 
-    let shouldQueueContent = false;
     if (Object.keys(content).length > 0) {
-      shouldQueueContent = this._controller.state !== stateActivating;
-      if (!shouldQueueContent) {
-        this._updateContent(content);
-      }
+      this._updateContent(content);
     }
-
-    if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
-      this._task = this._taskQueue.queueTask(() => {
-        this._task = null;
-        for (const updateTask of accessorUpdateTasks) {
-          updateTask.run();
-        }
-        if (shouldQueueContent) {
-          this._updateContent(content);
-        }
-      }, taskQueueOpts);
-    }
-    task?.cancel();
   }
 
   /** @internal */
@@ -359,19 +344,6 @@ connectable(TranslationBinding, null!);
 mixinAstEvaluator(TranslationBinding);
 mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
-class AccessorUpdateTask {
-  public constructor(
-    private readonly accessor: IAccessor,
-    private readonly v: unknown,
-    private readonly el: HTMLElement,
-    private readonly attr: string
-  ) {}
-
-  public run(): void {
-    this.accessor.setValue(this.v, this.el, this.attr);
-  }
-}
-
 interface ParameterBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 class ParameterBinding implements IBinding {
@@ -381,6 +353,10 @@ class ParameterBinding implements IBinding {
   }
 
   public isBound: boolean = false;
+
+  /** @internal */
+  private _isQueued: boolean = false;
+
   public value!: i18next.TOptions;
   /**
    * A semi-private property used by connectable mixin
@@ -411,13 +387,19 @@ class ParameterBinding implements IBinding {
   public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
     // todo(test): add an integration/e2e for this
     //             setup: put this inside an if and switch on/off that if
-    if (!this.isBound) {
-      return;
-    }
-    this.obs.version++;
-    this.value = astEvaluate(this.ast, this._scope, this, this) as i18next.TOptions;
-    this.obs.clear();
-    this.updater();
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      this.value = astEvaluate(this.ast, this._scope, this, this) as i18next.TOptions;
+      this.obs.clear();
+      this.updater();
+    });
   }
 
   public bind(_scope: Scope): void {

@@ -79,14 +79,36 @@ Aurelia
   .register(
     StateDefaultConfiguration.init(
       initialState,
-      [keywordsHandler]
+      keywordsHandler
     )
   )
   .app(MyApp)
   .start();
 ```
 
-The above imports the `StateDefaultConfiguration` object from the plugin and then calls `init`, passing the initial state object for your application.
+The above imports the `StateDefaultConfiguration` object from the plugin and then calls `init`, passing the initial state object and action handlers for your application.
+
+For advanced use cases with middleware, the second parameter can be an options object:
+
+```typescript
+import { MiddlewarePlacement } from '@aurelia/state';
+import { loggingMiddleware } from './middleware';
+
+Aurelia
+  .register(
+    StateDefaultConfiguration.init(
+      initialState,
+      {
+        middlewares: [
+          { middleware: loggingMiddleware, placement: MiddlewarePlacement.Before }
+        ]
+      },
+      keywordsHandler
+    )
+  )
+  .app(MyApp)
+  .start();
+```
 
 {% hint style="info" %}
 If you are familiar with Redux, you'll find this plugin familiar. The most obvious difference will be around the action handler (similar to reducer in Redux) function signature.
@@ -145,6 +167,51 @@ export class AutoSuggest {
 
 With the above, whenever the state changes, it will ensure the `keywords` property of the view model stays in sync with the `keywords` property on the global state.
 
+### Memoizing derived state
+
+Expensive computations in `@fromState` selectors will run on every state change by default. To avoid unnecessary work, the `createStateMemoizer` helper allows you to memoize derived values so they are recomputed only when their dependencies actually change.
+
+```ts
+import { fromState, createStateMemoizer } from '@aurelia/state';
+
+interface State { items: number[]; }
+
+const selectTotal = createStateMemoizer(
+  (s: State) => s.items,
+  items => items.reduce((a, b) => a + b, 0)
+);
+
+export class Summary {
+  @fromState(selectTotal)
+  total!: number;
+}
+```
+
+In the example above, the `selectTotal` function executes only when `items` changes by reference. Other state updates won't trigger a recalculation, keeping the component performant and giving derived logic a clear place to live.
+
+When you only need to read a value from state or perform a cheap calculation, passing a simple function directly to `@fromState` is usually adequate. The decorated property will update on every state change, which keeps things straightforward.
+
+`createStateMemoizer` shines when deriving data is expensive or shared across multiple components. Because the selector remembers its last inputs, recalculation happens only when those inputs change by reference. This reduces wasted work and centralizes complex logic.
+
+Here is another example using multiple selectors:
+
+```ts
+interface State { items: string[]; search: string; }
+
+const selectFiltered = createStateMemoizer(
+  (s: State) => s.items,
+  (s: State) => s.search,
+  (items, term) => items.filter(i => i.includes(term))
+);
+
+export class Results {
+  @fromState(selectFiltered)
+  results!: string[];
+}
+```
+
+In contrast, writing the filter inline like `@fromState(s => s.items.filter(i => i.includes(s.search)))` would rerun on every single state update, even when neither `items` nor `search` changed.
+
 ## Authoring action handlers
 
 As mentioned at the start of this guide, action handlers are the way to handle mutation of the global state. They are expected to return to a new state instead of mutating it. Even though normal mutation works, it may break future integration with devtool.
@@ -152,6 +219,362 @@ As mentioned at the start of this guide, action handlers are the way to handle m
 Action handlers can be either synchronous or asynchronous. An application may have one or more action handlers, and if one action handler is asynchronous, a promise will be returned for the `dispatch` call.
 
 An action handler should return the existing state (first parameters) if the action is unnecessary.
+
+## Middleware
+
+Middleware provides a way to intercept and process actions before or after they reach your action handlers. This is particularly useful for cross-cutting concerns such as logging, validation, authentication, error handling, and performance monitoring.
+
+### What is middleware?
+
+Middleware functions are executed before or after actions are processed by action handlers. Middleware can be either synchronous **or asynchronous**.  When a middleware returns a `Promise`, the store will *await* it and use the resolved value (if any) before continuing the dispatch pipeline. This makes it possible to perform tasks such as API calls, logging to remote endpoints, reading from IndexedDB, etc. without blocking the UI thread.
+
+Middleware can:
+
+- Log actions for debugging and auditing
+- Validate actions before processing
+- Transform or modify actions
+- Handle authentication and authorization
+- Monitor performance
+- Process state after action handlers complete
+
+### Creating middleware
+
+A middleware function has the following signature:
+
+```ts
+type IStateMiddleware<TState = any, TSettings = any> = (
+  state: TState,
+  action: unknown,
+  settings?: TSettings
+) => TState | undefined | false | void | Promise<TState | undefined | false | void>;
+```
+
+Here's a simple logging middleware example:
+
+```ts
+export const loggingMiddleware = (state, action, settings) => {
+  console.log('Action dispatched:', action);
+  console.log('Current state:', state);
+  return state; // Return the state unchanged
+};
+```
+
+And an example of an asynchronous middleware:
+
+```ts
+export const asyncLoggingMiddleware = async (state, action, settings) => {
+  await api.log(action);
+  return state; // Return the state unchanged
+};
+```
+
+### Middleware return values
+
+Middleware can return different values to control execution:
+
+- **Return state object**: Continue execution with the returned state
+- **Return `undefined` or `void`**: Continue with the current state unchanged
+- **Return `false`**: Block the action from proceeding further
+
+```ts
+export const validationMiddleware = (state, action) => {
+  if (!action.type) {
+    console.error('Action must have a type');
+    return false; // Block invalid actions
+  }
+  return state; // Continue with valid actions
+};
+```
+
+### Registering middleware
+
+Middleware is registered during state plugin configuration using the `MiddlewarePlacement` enum to specify when the middleware should run:
+
+```typescript
+import Aurelia from 'aurelia';
+import { StateDefaultConfiguration, MiddlewarePlacement } from '@aurelia/state';
+
+import { initialState } from './initialstate';
+import { keywordsHandler } from './action-handlers';
+import { loggingMiddleware, validationMiddleware } from './middleware';
+
+Aurelia
+  .register(
+    StateDefaultConfiguration.init(
+      initialState,
+      {
+        middlewares: [
+          { middleware: loggingMiddleware, placement: MiddlewarePlacement.Before },
+          { middleware: validationMiddleware, placement: MiddlewarePlacement.Before }
+        ]
+      },
+      keywordsHandler
+    )
+  )
+  .app(MyApp)
+  .start();
+```
+
+### Middleware placement
+
+Use `MiddlewarePlacement` to control when middleware executes:
+
+- **`MiddlewarePlacement.Before`**: Runs before action handlers
+- **`MiddlewarePlacement.After`**: Runs after action handlers
+
+```typescript
+// Before middleware - good for validation, logging incoming actions
+{ middleware: validationMiddleware, placement: MiddlewarePlacement.Before }
+
+// After middleware - good for logging final state, cleanup
+{ middleware: stateLoggerMiddleware, placement: MiddlewarePlacement.After }
+```
+
+### Middleware execution order
+
+Middleware functions are executed in the order they are registered within their placement group:
+
+```ts
+const firstMiddleware = (state, action) => {
+  console.log('First middleware');
+  return state;
+};
+
+const secondMiddleware = (state, action) => {
+  console.log('Second middleware');
+  return state;
+};
+
+// Registration order determines execution order
+middlewares: [
+  { middleware: firstMiddleware, placement: MiddlewarePlacement.Before },
+  { middleware: secondMiddleware, placement: MiddlewarePlacement.Before }
+]
+
+// Output:
+// First middleware
+// Second middleware
+// [Action handlers execute]
+```
+
+### Common middleware patterns
+
+#### 1. Validation middleware
+
+```ts
+export const validationMiddleware = (state, action) => {
+  // Validate action structure
+  if (!action.type) {
+    console.error('Action must have a type property');
+    return false; // Block invalid action
+  }
+
+  // Validate specific action types
+  if (action.type === 'updateUser' && !action.payload?.id) {
+    console.error('updateUser action must include user id');
+    return false;
+  }
+
+  return state; // Continue with valid action
+};
+```
+
+#### 2. Authentication middleware
+
+```ts
+export const authMiddleware = (state, action) => {
+  const protectedActions = ['deleteUser', 'updateSettings', 'createPost'];
+
+  if (protectedActions.includes(action.type) && !state.user?.isAuthenticated) {
+    console.error('Authentication required for this action');
+    return false; // Block unauthorized action
+  }
+
+  return state;
+};
+```
+
+#### 3. Action transformation middleware
+
+```ts
+export const transformMiddleware = (state, action) => {
+  // Add timestamp to all actions
+  const enhancedAction = {
+    ...action,
+    timestamp: Date.now()
+  };
+
+  // Note: This modifies the action object for subsequent middleware/handlers
+  Object.assign(action, enhancedAction);
+
+  return state;
+};
+```
+
+#### 4. Error handling middleware
+
+```ts
+export const errorHandlingMiddleware = (state, action) => {
+  try {
+    // Validate action payload
+    if (action.type === 'complexOperation' && !isValidPayload(action.payload)) {
+      throw new Error('Invalid payload for complexOperation');
+    }
+
+    return state;
+  } catch (error) {
+    console.error('Middleware error:', action.type, error);
+
+    // Return modified state with error information
+    return {
+      ...state,
+      error: {
+        message: error.message,
+        action: action.type,
+        timestamp: new Date().toISOString()
+      }
+    };
+  }
+};
+```
+
+#### 5. Performance monitoring middleware
+
+```ts
+export const performanceMiddleware = (state, action) => {
+  // Log slow action types (this is a simple example)
+  const slowActions = ['heavyComputation', 'dataProcessing'];
+
+  if (slowActions.includes(action.type)) {
+    console.time(`Action: ${action.type}`);
+    // Note: In a real scenario, you'd need after middleware to log completion
+  }
+
+  return state;
+};
+
+// Corresponding after middleware
+export const performanceAfterMiddleware = (state, action) => {
+  const slowActions = ['heavyComputation', 'dataProcessing'];
+
+  if (slowActions.includes(action.type)) {
+    console.timeEnd(`Action: ${action.type}`);
+  }
+
+  return state;
+};
+```
+
+### Middleware with settings
+
+Middleware can accept custom settings through the third parameter:
+
+```ts
+export const loggingMiddleware = (state, action, settings) => {
+  const { logLevel = 'info', prefix = '[STATE]' } = settings || {};
+
+  if (logLevel === 'debug') {
+    console.debug(`${prefix} Action:`, action);
+    console.debug(`${prefix} State:`, state);
+  } else {
+    console.log(`${prefix} ${action.type}`);
+  }
+
+  return state;
+};
+
+// Register with settings
+middlewares: [
+  {
+    middleware: loggingMiddleware,
+    placement: MiddlewarePlacement.Before,
+    settings: { logLevel: 'debug', prefix: '[APP]' }
+  }
+]
+```
+
+### Middleware factory pattern
+
+For more advanced scenarios, you can create factory functions that return middleware:
+
+```ts
+export const createLoggingMiddleware = (actionTypeFilter) => (state, action, settings) => {
+  const { logLevel = 'info', prefix = '[STATE]' } = settings || {};
+
+  if (!actionTypeFilter || action.type === actionTypeFilter) {
+    if (logLevel === 'debug') {
+      console.debug(`${prefix} Action:`, action);
+      console.debug(`${prefix} State:`, state);
+    } else {
+      console.log(`${prefix} ${action.type}`);
+    }
+  }
+
+  return state;
+};
+
+// Register factory-created middleware
+middlewares: [
+  {
+    middleware: createLoggingMiddleware('updateUser'),
+    placement: MiddlewarePlacement.Before,
+    settings: { logLevel: 'debug', prefix: '[APP]' }
+  }
+]
+```
+
+### Runtime middleware management
+
+You can add and remove middleware at runtime using the store instance:
+
+```ts
+import { resolve } from 'aurelia';
+import { IStore, MiddlewarePlacement } from '@aurelia/state';
+
+export class MyComponent {
+  private store: IStore = resolve(IStore);
+
+  addDebugMiddleware() {
+    const debugMiddleware = (state, action) => {
+      console.log('Debug:', action.type);
+      return state;
+    };
+
+    this.store.registerMiddleware(debugMiddleware, MiddlewarePlacement.Before);
+  }
+
+  removeDebugMiddleware() {
+    // Note: You need to keep a reference to the middleware function
+    this.store.unregisterMiddleware(this.debugMiddleware);
+  }
+}
+```
+
+### Best practices for middleware
+
+1. **Keep middleware focused**: Each middleware should have a single responsibility
+2. **Handle errors gracefully**: Use try-catch blocks and return appropriate values
+3. **Consider performance**: Avoid heavy computations in frequently executed middleware
+4. **Use TypeScript**: Leverage type safety for better development experience
+5. **Order matters**: Register middleware in the correct execution order for your use case
+6. **Return appropriate values**: Use `false` to block actions, return state to continue
+7. **Test thoroughly**: Write unit tests for your middleware functions
+8. **Consider async cost**: Async middleware is supported but will delay the completion of `dispatch` until the `Promise` settles.  Keep any network / long-running work minimal or move it off the critical path when possible.
+
+### Debugging middleware
+
+When troubleshooting middleware issues, you can add debug middleware to trace execution:
+
+```ts
+export const debugMiddleware = (state, action) => {
+  console.group(`Middleware Debug: ${action.type}`);
+  console.log('Current state:', state);
+  console.log('Action:', action);
+  console.groupEnd();
+
+  return state;
+};
+```
 
 ## Example of type declaration for application stores
 

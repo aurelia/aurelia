@@ -14,17 +14,30 @@ Custom attributes in Aurelia empower you to extend and decorate standard HTML el
 
 1. [Introduction](#introduction)
 2. [Creating a Basic Custom Attribute](#creating-a-basic-custom-attribute)
-3. [Explicit Custom Attributes](#explicit-custom-attributes)
+3. [Custom Attribute Definition Approaches](#custom-attribute-definition-approaches)
+   - [Convention-Based Approach](#convention-based-approach)
+   - [Decorator-Based Approach](#decorator-based-approach)
+   - [Static Definition Approach](#static-definition-approach)
+4. [Explicit Custom Attributes](#explicit-custom-attributes)
    - [Explicit Attribute Naming](#explicit-attribute-naming)
    - [Attribute Aliases](#attribute-aliases)
-4. [Single Value Binding](#single-value-binding)
-5. [Bindable Properties and Change Detection](#bindable-properties-and-change-detection)
-6. [Options Binding for Multiple Properties](#options-binding-for-multiple-properties)
-7. [Specifying a Primary Bindable Property](#specifying-a-primary-bindable-property)
-8. [Accessing the Host Element](#accessing-the-host-element)
-9. [Finding Related Custom Attributes](#finding-related-custom-attributes)
-10. [Lifecycle Hooks and Best Practices](#lifecycle-hooks-and-best-practices)
-11. [Integrating Third-Party Libraries](#integrating-third-party-libraries)
+5. [Single Value Binding](#single-value-binding)
+6. [Bindable Properties and Change Detection](#bindable-properties-and-change-detection)
+   - [Binding Modes](#binding-modes)
+   - [Primary Bindable Property](#primary-bindable-property)
+   - [Bindable Interceptors](#bindable-interceptors)
+   - [Custom Change Callbacks](#custom-change-callbacks)
+7. [Options Binding for Multiple Properties](#options-binding-for-multiple-properties)
+8. [Advanced Bindable Configuration](#advanced-bindable-configuration)
+9. [Lifecycle Hooks](#lifecycle-hooks)
+10. [Aggregated Change Callbacks](#aggregated-change-callbacks)
+11. [Accessing the Host Element](#accessing-the-host-element)
+12. [Finding Related Custom Attributes](#finding-related-custom-attributes)
+13. [Template Controller Custom Attributes](#template-controller-custom-attributes)
+14. [Advanced Configuration Options](#advanced-configuration-options)
+15. [Watch Integration](#watch-integration)
+16. [Integrating Third-Party Libraries](#integrating-third-party-libraries)
+17. [Best Practices](#best-practices)
 
 ---
 
@@ -34,6 +47,7 @@ Custom attributes are one of the core building blocks in Aurelia 2. Similar to c
 - Decorating elements with additional styling or behavior.
 - Wrapping third-party libraries that expect to control their own DOM structure.
 - Creating reusable logic that enhances multiple elements across your application.
+- Creating template controllers that control the rendering of content.
 
 ---
 
@@ -75,13 +89,85 @@ export class RedSquareCustomAttribute {
 <div red-square></div>
 ```
 
-The `<import>` tag ensures that Aurelia’s dependency injection is aware of your custom attribute. When applied, the `<div>` will render with the specified styles.
+The `<import>` tag ensures that Aurelia's dependency injection is aware of your custom attribute. When applied, the `<div>` will render with the specified styles.
+
+---
+
+## Custom Attribute Definition Approaches
+
+Aurelia 2 provides multiple approaches for defining custom attributes. For most user scenarios, you'll use either the convention-based or decorator-based approach:
+
+### Convention-Based Approach
+
+Classes ending with `CustomAttribute` are automatically recognized as custom attributes:
+
+```typescript
+import { INode, resolve } from 'aurelia';
+
+export class RedSquareCustomAttribute {
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+
+  constructor() {
+    this.element.style.width = this.element.style.height = '100px';
+    this.element.style.backgroundColor = 'red';
+  }
+}
+```
+
+The attribute name is derived from the class name (`red-square` in this case).
+
+### Decorator-Based Approach (Recommended)
+
+Use the `@customAttribute` decorator for explicit control and better IDE support:
+
+```typescript
+import { customAttribute, INode, resolve } from 'aurelia';
+
+@customAttribute({ name: 'red-square' })
+export class RedSquare {
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+
+  constructor() {
+    this.element.style.width = this.element.style.height = '100px';
+    this.element.style.backgroundColor = 'red';
+  }
+}
+```
+
+### Static Definition Approach (Framework Internal)
+
+For completeness, the framework also supports defining attributes using a static `$au` property. This approach is primarily used by the framework itself to avoid conventions and decorators, but is available if needed:
+
+```typescript
+import { INode, resolve, type CustomAttributeStaticAuDefinition } from 'aurelia';
+
+export class RedSquare {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'red-square'
+  };
+
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+
+  constructor() {
+    this.element.style.width = this.element.style.height = '100px';
+    this.element.style.backgroundColor = 'red';
+  }
+}
+```
+
+{% hint style="info" %}
+**When to use each approach:**
+- **Convention-based**: Quick prototyping, simple attributes where the class name matches desired attribute name
+- **Decorator-based**: Production code, when you need explicit control over naming, aliases, or other configuration
+- **Static definition**: Advanced scenarios, framework extensions, or when you need to avoid decorators for tooling reasons
+{% endhint %}
 
 ---
 
 ## Explicit Custom Attributes
 
-To gain finer control over your attribute’s name and configuration, Aurelia provides the @customAttribute decorator. This lets you explicitly define the attribute name and even set up aliases.
+To gain finer control over your attribute's name and configuration, Aurelia provides the `@customAttribute` decorator. This lets you explicitly define the attribute name and even set up aliases.
 
 ### Explicit Attribute Naming
 
@@ -183,82 +269,36 @@ export class RedSquareCustomAttribute {
 
 ## Bindable Properties and Change Detection
 
-Custom attributes often need to be configurable. Using the @bindable decorator, you can allow users to pass in parameters that change the behavior or style dynamically. In the following example, the background color is configurable:
+Custom attributes often need to be configurable. Using the @bindable decorator, you can allow users to pass in parameters that change the behavior or style dynamically.
+
+### Binding Modes
+
+Bindable properties support different binding modes that determine how data flows:
 
 ```typescript
-import { bindable, INode, resolve } from 'aurelia';
+import { bindable, INode, resolve, BindingMode } from 'aurelia';
 
-export class ColorSquareCustomAttribute {
-  @bindable() color: string = 'red';
+export class InputWrapperCustomAttribute {
+  @bindable({ mode: BindingMode.twoWay }) value: string = '';
+  @bindable({ mode: BindingMode.toView }) placeholder: string = '';
+  @bindable({ mode: BindingMode.fromView }) isValid: boolean = true;
+  @bindable({ mode: BindingMode.oneTime }) label: string = '';
 
-  constructor(private element: HTMLElement = resolve(INode)) {
-    this.element.style.width = this.element.style.height = '100px';
-    this.element.style.backgroundColor = this.color;
-  }
+  private element: HTMLElement = resolve(INode) as HTMLElement;
 
-  bound() {
-    // Ensure the element reflects the current color after binding
-    this.element.style.backgroundColor = this.color;
-  }
-
-  colorChanged(newColor: string, oldColor: string) {
-    // Update the background color dynamically when the property changes
-    this.element.style.backgroundColor = newColor;
-  }
+  // ... implementation
 }
 ```
 
-You can extend this to support multiple bindable properties. For example, to also allow a dynamic size:
+Available binding modes:
+- `BindingMode.toView` (default): Data flows from view model to view
+- `BindingMode.fromView`: Data flows from view to view model
+- `BindingMode.twoWay`: Data flows both ways
+- `BindingMode.oneTime`: Data is set once and never updated
 
-```typescript
-import { bindable, INode, resolve } from 'aurelia';
+### Primary Bindable Property
 
-export class ColorSquareCustomAttribute {
-  @bindable() color: string = 'red';
-  @bindable() size: string = '100px';
-
-  constructor(private element: HTMLElement = resolve(INode)) {
-    this.applyStyles();
-  }
-
-  bound() {
-    this.applyStyles();
-  }
-
-  colorChanged(newColor: string) {
-    this.element.style.backgroundColor = newColor;
-  }
-
-  sizeChanged(newSize: string) {
-    this.element.style.width = this.element.style.height = newSize;
-  }
-
-  private applyStyles() {
-    this.element.style.width = this.element.style.height = this.size;
-    this.element.style.backgroundColor = this.color;
-  }
-}
-```
-
----
-
-## Options Binding for Multiple Properties
-
-When you have more than one bindable property, you can use options binding syntax to bind multiple properties at once. Each bindable property in the view model corresponds to a dash-case attribute in the DOM. For instance:
-
-```html
-<import from="./color-square"></import>
-
-<div color-square="color.bind: myColor; size.bind: mySize;"></div>
-```
-
-The Aurelia binding engine converts the attribute names (e.g., `color-square`) to the corresponding properties in your class.
-
----
-
-## Specifying a Primary Bindable Property
-
-If one of your bindable properties is expected to be used more frequently, you can mark it as the primary property. This simplifies the syntax when binding:
+You can mark one property as primary, allowing simpler binding syntax:
 
 ```typescript
 import { bindable, INode, resolve } from 'aurelia';
@@ -304,6 +344,255 @@ With a primary property defined, you can bind directly:
 <div color-square.bind="myColour"></div>
 ```
 
+### Bindable Interceptors
+
+You can intercept and transform values being set on bindable properties:
+
+```typescript
+import { bindable, INode, resolve } from 'aurelia';
+
+export class ValidatedInputCustomAttribute {
+  @bindable({
+    set: (value: string) => value?.trim().toLowerCase()
+  }) email: string = '';
+
+  @bindable({
+    set: (value: number) => Math.max(0, Math.min(100, value))
+  }) progress: number = 0;
+
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+}
+```
+
+### Custom Change Callbacks
+
+You can specify custom callback names for change handlers:
+
+```typescript
+import { bindable } from 'aurelia';
+
+export class DataVisualizationCustomAttribute {
+  @bindable({ callback: 'onDataUpdate' }) dataset: any[] = [];
+  @bindable({ callback: 'onConfigChange' }) config: any = {};
+
+  onDataUpdate(newData: any[], oldData: any[]) {
+    // Handle data changes
+    this.redrawChart();
+  }
+
+  onConfigChange(newConfig: any, oldConfig: any) {
+    // Handle configuration changes
+    this.updateChartSettings();
+  }
+}
+```
+
+---
+
+## Options Binding for Multiple Properties
+
+When you have more than one bindable property, you can use options binding syntax to bind multiple properties at once. Each bindable property in the view model corresponds to a dash-case attribute in the DOM. For instance:
+
+```html
+<import from="./color-square"></import>
+
+<div color-square="color.bind: myColor; size.bind: mySize;"></div>
+```
+
+The Aurelia binding engine converts the attribute names (e.g., `color-square`) to the corresponding properties in your class.
+
+---
+
+## Advanced Bindable Configuration
+
+You can also define bindables in the static definition or decorator:
+
+```typescript
+import { customAttribute, INode, resolve, BindingMode } from 'aurelia';
+
+@customAttribute({
+  name: 'advanced-input',
+  bindables: {
+    value: { mode: BindingMode.twoWay, primary: true },
+    placeholder: { mode: BindingMode.toView },
+    validation: { callback: 'validateInput' }
+  }
+})
+export class AdvancedInputCustomAttribute {
+  value: string;
+  placeholder: string;
+  validation: any;
+
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+
+  validateInput(newValidation: any, oldValidation: any) {
+    // Handle validation changes
+  }
+}
+```
+
+Or using the static `$au` approach:
+
+```typescript
+import { INode, resolve, BindingMode, type CustomAttributeStaticAuDefinition } from 'aurelia';
+
+export class AdvancedInput {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'advanced-input',
+    bindables: {
+      value: { mode: BindingMode.twoWay, primary: true },
+      placeholder: { mode: BindingMode.toView },
+      validation: { callback: 'validateInput' }
+    }
+  };
+
+  value: string;
+  placeholder: string;
+  validation: any;
+
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+
+  validateInput(newValidation: any, oldValidation: any) {
+    // Handle validation changes
+  }
+}
+```
+
+---
+
+## Lifecycle Hooks
+
+Custom attributes support a comprehensive set of lifecycle hooks that allow you to run code at different stages of their existence:
+
+- `created(controller)`: Called after the attribute instance is created
+- `binding(initiator, parent)`: Called before data binding begins
+- `bind()`: Called when data binding begins (simplified version)
+- `bound(initiator, parent)`: Called after data binding is complete
+- `attaching(initiator, parent)`: Called before the element is attached to the DOM
+- `attached(initiator)`: Called after the element is attached to the DOM
+- `detaching(initiator, parent)`: Called before the element is detached from the DOM
+- `unbinding(initiator, parent)`: Called before data binding is removed
+- `unbind()`: Called when data binding is removed (simplified version)
+
+### Example: Using Lifecycle Hooks
+
+```typescript
+import { bindable, INode, resolve, customAttribute, ICustomAttributeController, IHydratedController } from 'aurelia';
+
+@customAttribute({ name: 'lifecycle-demo' })
+export class LifecycleDemoCustomAttribute {
+  @bindable() value: string = '';
+
+  private element: HTMLElement = resolve(INode) as HTMLElement;
+
+  created(controller: ICustomAttributeController) {
+    // Called when the attribute instance is created
+    console.log('Custom attribute created');
+  }
+
+  binding(initiator: IHydratedController, parent: IHydratedController) {
+    // Called before binding begins - good for setup
+    console.log('Starting to bind');
+  }
+
+  bind() {
+    // Simplified binding hook - most commonly used
+    this.applyInitialValue();
+  }
+
+  bound(initiator: IHydratedController, parent: IHydratedController) {
+    // Called after binding is complete
+    console.log('Binding complete');
+  }
+
+  attaching(initiator: IHydratedController, parent: IHydratedController) {
+    // Called before DOM attachment
+    console.log('About to attach to DOM');
+  }
+
+  attached(initiator: IHydratedController) {
+    // Called after DOM attachment - good for DOM manipulation
+    this.initializeThirdPartyLibrary();
+  }
+
+  valueChanged(newValue: string, oldValue: string) {
+    // Called whenever the value changes
+    this.updateDisplay();
+  }
+
+  detaching(initiator: IHydratedController, parent: IHydratedController) {
+    // Called before DOM detachment - good for cleanup
+    this.cleanupEventListeners();
+  }
+
+  unbinding(initiator: IHydratedController, parent: IHydratedController) {
+    // Called before unbinding
+    console.log('About to unbind');
+  }
+
+  unbind() {
+    // Simplified unbinding hook - good for final cleanup
+    this.finalCleanup();
+  }
+
+  private applyInitialValue() {
+    this.element.textContent = this.value;
+  }
+
+  private updateDisplay() {
+    this.element.textContent = this.value;
+  }
+
+  private initializeThirdPartyLibrary() {
+    // Initialize any third-party libraries that need DOM access
+  }
+
+  private cleanupEventListeners() {
+    // Remove event listeners to prevent memory leaks
+  }
+
+  private finalCleanup() {
+    // Final cleanup before the attribute is destroyed
+  }
+}
+```
+
+---
+
+## Aggregated Change Callbacks
+
+Custom attributes can implement aggregated change detection that batches multiple property changes:
+
+```typescript
+import { bindable, customAttribute } from 'aurelia';
+
+@customAttribute('batch-processor')
+export class BatchProcessorCustomAttribute {
+  @bindable() prop1: string;
+  @bindable() prop2: number;
+  @bindable() prop3: boolean;
+
+  // Called when any bindable property changes (batched until next microtask)
+  propertiesChanged(changes: Record<string, { newValue: unknown; oldValue: unknown }>) {
+    console.log('Properties changed:', changes);
+    // Example output: { prop1: { newValue: 'new', oldValue: 'old' } }
+
+    // Process all changes at once for better performance
+    this.processBatchedChanges(changes);
+  }
+
+  // Called for every property change (immediate)
+  propertyChanged(key: PropertyKey, newValue: unknown, oldValue: unknown) {
+    console.log(`Property ${String(key)} changed from ${oldValue} to ${newValue}`);
+  }
+
+  private processBatchedChanges(changes: Record<string, any>) {
+    // Efficiently handle multiple property changes
+  }
+}
+```
+
 ---
 
 ## Accessing the Host Element
@@ -337,7 +626,11 @@ In complex UIs, you might have multiple custom attributes working together (for 
 
 ```html
 <div foo="1">
-  <div bar="2"></div>
+  <center>
+    <div foo="3">
+      <div bar="2"></div>
+    </div>
+  </center>
 </div>
 ```
 
@@ -347,14 +640,20 @@ import { CustomAttribute, resolve, INode, customAttribute } from 'aurelia';
 @customAttribute('bar')
 export class Bar {
   host: HTMLElement = resolve(INode) as HTMLElement;
-  // Find the closest ancestor that has the 'foo' custom attribute
-  parent = CustomAttribute.closest(this.host, 'foo');
+
+  binding() {
+    // Find the closest ancestor that has the 'foo' custom attribute
+    const closestFoo = CustomAttribute.closest(this.host, 'foo');
+    if (closestFoo) {
+      console.log('Found foo attribute:', closestFoo.viewModel);
+    }
+  }
 }
 ```
 
 ### Example: Searching by Constructor
 
-If you want to search based on the attribute’s constructor (for stronger typing), you can do so:
+If you want to search based on the attribute's constructor (for stronger typing), you can do so:
 
 ```typescript
 import { CustomAttribute, resolve, INode, customAttribute } from 'aurelia';
@@ -363,75 +662,217 @@ import { Foo } from './foo';
 @customAttribute('bar')
 export class Bar {
   host: HTMLElement = resolve(INode) as HTMLElement;
-  // Find the closest ancestor that is an instance of the Foo custom attribute
-  parent = CustomAttribute.closest(this.host, Foo);
+
+  binding() {
+    // Find the closest ancestor that is an instance of the Foo custom attribute
+    const parentFoo = CustomAttribute.closest(this.host, Foo);
+    if (parentFoo) {
+      // parentFoo.viewModel is now strongly typed as Foo
+      parentFoo.viewModel.someMethod();
+    }
+  }
 }
 ```
 
 ---
 
-## Lifecycle Hooks and Best Practices
+## Template Controller Custom Attributes
 
-Custom attributes, like components, have lifecycle hooks that let you run code at different stages of their existence:
+Custom attributes can also function as template controllers, which control the rendering of content. Template controllers are similar to built-in directives like `if.bind` and `repeat.for`.
 
-- `bind() / unbind()`: Initialize or clean up data bindings.
-- `attached() / detached()`: Perform actions when the host element is attached to or removed from the DOM.
-
-### Example: Using Lifecycle Hooks
+### Creating a Template Controller
 
 ```typescript
-import { bindable, INode, resolve, customAttribute } from 'aurelia';
+import { templateController, IViewFactory, ISyntheticView, IRenderLocation, resolve, bindable, ICustomAttributeController } from 'aurelia';
 
-@customAttribute({ name: 'dynamic-style' })
-export class DynamicStyleCustomAttribute {
-  @bindable() color: string = 'red';
-  @bindable() size: string = '100px';
-  private element: HTMLElement = resolve(INode) as HTMLElement;
+@templateController('permission')
+export class PermissionTemplateController {
+  @bindable() userRole: string;
+  @bindable() requiredRole: string;
 
-  bind() {
-    // Initial setup or computation can go here
-    this.applyStyles();
+  public readonly $controller!: ICustomAttributeController<this>;
+
+  private view: ISyntheticView;
+  private readonly factory = resolve(IViewFactory);
+  private readonly location = resolve(IRenderLocation);
+
+  bound() {
+    this.updateView();
   }
 
-  attached() {
-    // For DOM-dependent initialization, e.g., third-party plugin initialization
+  userRoleChanged() {
+    if (this.$controller.isActive) {
+      this.updateView();
+    }
   }
 
-  colorChanged(newColor: string) {
-    this.element.style.backgroundColor = newColor;
+  requiredRoleChanged() {
+    if (this.$controller.isActive) {
+      this.updateView();
+    }
   }
 
-  sizeChanged(newSize: string) {
-    this.element.style.width = this.element.style.height = newSize;
-  }
+  private updateView() {
+    const hasPermission = this.userRole === this.requiredRole;
 
-  private applyStyles() {
-    this.element.style.width = this.element.style.height = this.size;
-    this.element.style.backgroundColor = this.color;
-  }
-
-  detached() {
-    // Clean up event listeners or other resources if needed
+    if (hasPermission) {
+      if (!this.view) {
+        this.view = this.factory.create().setLocation(this.location);
+      }
+      if (!this.view.isActive) {
+        this.view.activate(this.view, this.$controller, this.$controller.scope);
+      }
+    } else {
+      if (this.view?.isActive) {
+        this.view.deactivate(this.view, this.$controller);
+      }
+    }
   }
 
   unbind() {
-    // Clean up any remaining state
+    if (this.view?.isActive) {
+      this.view.deactivate(this.view, this.$controller);
+    }
   }
 }
 ```
 
-### Best Practices:
+Usage:
 
-- Separation of Concerns: Keep your custom attribute logic focused on enhancing the host element, and avoid heavy business logic.
-- Performance: Minimize DOM manipulations inside change handlers. If multiple properties change at once, consider batching style updates.
-- Testing: Write unit tests for your custom attributes to ensure that lifecycle hooks and bindings work as expected.
-- Documentation: Comment your code and document the expected behavior of your custom attributes, especially if you provide aliases or multiple bindable properties.
+```html
+<div permission="user-role.bind: currentUser.role; required-role: admin">
+  <h2>Admin Panel</h2>
+  <p>Only admins can see this content</p>
+</div>
+```
+
+You can also use the static definition approach:
+
+```typescript
+import { IViewFactory, ISyntheticView, IRenderLocation, resolve, type CustomAttributeStaticAuDefinition } from 'aurelia';
+
+export class PermissionTemplateController {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'permission',
+    isTemplateController: true,
+    bindables: ['userRole', 'requiredRole']
+  };
+
+  // ... implementation same as above
+}
+```
+
+---
+
+## Advanced Configuration Options
+
+Custom attributes support several advanced configuration options:
+
+### No Multi-Bindings
+
+By default, custom attributes support multiple bindings (`attr="prop1: value1; prop2: value2"`). You can disable this:
+
+```typescript
+import { customAttribute } from 'aurelia';
+
+@customAttribute({
+  name: 'simple-url',
+  noMultiBindings: true
+})
+export class SimpleUrlCustomAttribute {
+  value: string; // Will receive the entire attribute value as a string
+}
+```
+
+```html
+<!-- With noMultiBindings: true, this won't be parsed as bindings -->
+<a simple-url="https://example.com:8080/path">Link</a>
+```
+
+### Dependencies
+
+You can specify dependencies that should be registered when the attribute is used:
+
+```typescript
+import { customAttribute } from 'aurelia';
+import { SomeService } from './some-service';
+
+@customAttribute({
+  name: 'dependent-attr',
+  dependencies: [SomeService]
+})
+export class DependentAttributeCustomAttribute {
+  // SomeService will be registered when this attribute is used
+}
+```
+
+### Container Strategy (Template Controllers Only)
+
+For template controller custom attributes, you can specify the container strategy:
+
+```typescript
+import { templateController } from 'aurelia';
+
+@templateController({
+  name: 'isolated-scope',
+  containerStrategy: 'new' // Creates a new container for the view factory
+})
+export class IsolatedScopeTemplateController {
+  // Views created by this template controller will have their own container
+}
+```
+
+### Default Binding Mode
+
+You can set a default binding mode for all bindable properties:
+
+```typescript
+import { customAttribute, BindingMode } from 'aurelia';
+
+@customAttribute({
+  name: 'two-way-default',
+  defaultBindingMode: BindingMode.twoWay
+})
+export class TwoWayDefaultCustomAttribute {
+  @bindable() value1: string; // Will default to two-way binding
+  @bindable() value2: string; // Will default to two-way binding
+  @bindable({ mode: BindingMode.toView }) value3: string; // Explicitly one-way
+}
+```
+
+---
+
+## Watch Integration
+
+Custom attributes can integrate with Aurelia's `@watch` decorator for advanced property observation:
+
+```typescript
+import { bindable, customAttribute, watch } from 'aurelia';
+
+@customAttribute('data-processor')
+export class DataProcessorCustomAttribute {
+  @bindable() data: any[];
+  @bindable() config: any;
+
+  @watch('data', { immediate: true })
+  @watch('config')
+  onDataOrConfigChange(newValue: any, oldValue: any, propertyName: string) {
+    console.log(`${propertyName} changed from`, oldValue, 'to', newValue);
+    this.reprocessData();
+  }
+
+  private reprocessData() {
+    // Process data based on current data and config
+  }
+}
+```
 
 ---
 
 ## Integrating Third-Party Libraries
 
-Often, you’ll want to incorporate functionality from third-party libraries—such as sliders, date pickers, or custom UI components—into your Aurelia applications. Custom attributes provide an excellent way to encapsulate the integration logic, ensuring that the third-party library initializes, updates, and cleans up properly within Aurelia's lifecycle.
+Often, you'll want to incorporate functionality from third-party libraries—such as sliders, date pickers, or custom UI components—into your Aurelia applications. Custom attributes provide an excellent way to encapsulate the integration logic, ensuring that the third-party library initializes, updates, and cleans up properly within Aurelia's lifecycle.
 
 ### When to Use Custom Attributes for Integration
 
@@ -444,7 +885,7 @@ Often, you’ll want to incorporate functionality from third-party libraries—s
 Consider a third-party slider library called `AwesomeSlider` that initializes a slider on a given DOM element. Below is an example of how to wrap it in a custom attribute.
 
 ```typescript
-import { customAttribute, bindable, INode, resolve } from 'aurelia';
+import { customAttribute, bindable, INode, resolve, ILogger } from 'aurelia';
 // Import the third-party slider library (this is a hypothetical example)
 import AwesomeSlider from 'awesome-slider';
 
@@ -458,6 +899,7 @@ export class AwesomeSliderCustomAttribute {
 
   // Safely resolve the host element
   private element: HTMLElement = resolve(INode) as HTMLElement;
+  private logger = resolve(ILogger);
 
   attached() {
     // Initialize the slider when the element is attached to the DOM.
@@ -465,7 +907,7 @@ export class AwesomeSliderCustomAttribute {
     try {
       this.sliderInstance = new AwesomeSlider(this.element, this.options);
     } catch (error) {
-      console.error('Failed to initialize AwesomeSlider:', error);
+      this.logger.error('Failed to initialize AwesomeSlider:', error);
     }
   }
 
@@ -482,9 +924,55 @@ export class AwesomeSliderCustomAttribute {
     // This prevents memory leaks and removes event listeners.
     if (this.sliderInstance && typeof this.sliderInstance.destroy === 'function') {
       this.sliderInstance.destroy();
+      this.sliderInstance = null;
     }
   }
 }
 ```
 
 In place of our hypothetical `AwesomeSlider` library, you can use any third-party library that requires DOM manipulation such as jQuery plugins, D3.js, or even custom UI components.
+
+---
+
+## Best Practices
+
+### Separation of Concerns
+Keep your custom attribute logic focused on enhancing the host element, and avoid heavy business logic.
+
+### Performance
+- Minimize DOM manipulations inside change handlers
+- If multiple properties change at once, consider batching style updates using `propertiesChanged`
+- Use lifecycle hooks appropriately - prefer `attached()` for DOM-dependent initialization
+
+### Memory Management
+- Always clean up event listeners in `detached()` or `unbind()`
+- Dispose of third-party library instances properly
+- Remove references to prevent memory leaks
+
+### Testing
+Write unit tests for your custom attributes to ensure that lifecycle hooks and bindings work as expected.
+
+### Documentation
+Comment your code and document the expected behavior of your custom attributes, especially if you provide aliases or multiple bindable properties.
+
+### Type Safety
+- Use TypeScript interfaces for complex bindable properties
+- Provide proper typing for change callbacks
+- Use generic constraints where appropriate
+
+```typescript
+interface SliderOptions {
+  min: number;
+  max: number;
+  step: number;
+}
+
+@customAttribute('typed-slider')
+export class TypedSliderCustomAttribute {
+  @bindable() options: SliderOptions = { min: 0, max: 100, step: 1 };
+  @bindable() value: number = 0;
+
+  optionsChanged(newOptions: SliderOptions, oldOptions: SliderOptions) {
+    // Type-safe change handling
+  }
+}

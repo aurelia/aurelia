@@ -24,8 +24,8 @@
     "packages/ui-virtualization",
     "packages/web-components",
     "packages/route-recognizer",
-    "packages/router-lite",
     "packages/router",
+    "packages/router-direct",
     "packages/testing",
     "packages/addons",
     "packages/insights",
@@ -44,12 +44,12 @@
     "packages/__e2e__/2-hmr-vite",
     "packages/__e2e__/3-hmr-webpack",
     "packages/__e2e__/4-i18n",
-    "packages/__e2e__/5-router",
-    "packages/__e2e__/6-router-lite",
+    "packages/__e2e__/5-router-direct",
+    "packages/__e2e__/6-router",
     "packages/__e2e__/7-select-safari16",
     "packages/__e2e__/8-ui-virtualization",
     "packages/__e2e__/9-vite-wo-convention",
-    "packages/__e2e__/10-router-lite-none-history-with-hash",
+    "packages/__e2e__/10-router-none-history-with-hash",
     "packages/__e2e__/11-validation",
     "packages/__e2e__/12-type-check",
     "packages/__e2e__/13-hmr-convention-routing-memory-leak",
@@ -61,8 +61,8 @@
     "examples/rainbow-spiral",
     "examples/realworld",
     "examples/realworld-advanced",
-    "examples/router-animation",
-    "examples/router-hooks",
+    "examples/router-direct-animation",
+    "examples/router-direct-hooks",
     "examples/state-plugin",
     "examples/sierpinski-triangle"
   ],
@@ -104,7 +104,6 @@
     "pregenerate-tests:template-compiler.static": "tsc --resolveJsonModule --module commonjs --moduleResolution node --outDir scripts/dist scripts/generate-tests/template-compiler.static.ts",
     "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
-    "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts",
     "test": "cd packages/__tests__ && npm run test",
     "test:ci": "npm ci && npm run test",
     "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
@@ -123,7 +122,7 @@
     "@typescript-eslint/eslint-plugin": "6.10.0",
     "@typescript-eslint/parser": "6.10.0",
     "chalk": "4.1.2",
-    "chromedriver": "136.0.2",
+    "chromedriver": "137.0.4",
     "codecov": "^3.8.3",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
@@ -144,7 +143,7 @@
     "turbo": "2.3.3",
     "typescript": "5.7.2",
     "v8-to-istanbul": "9.3.0",
-    "vite": "6.0.7"
+    "vite": "^7.0.2"
   },
   "overrides": {
     "yargs": "17.7.2",
@@ -219,7 +218,7 @@
     }
   },
   "volta": {
-    "node": "20.16.0",
+    "node": "20.19.0",
     "npm": "8.19.2"
   }
 }

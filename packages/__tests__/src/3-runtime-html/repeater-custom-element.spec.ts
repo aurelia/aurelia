@@ -1,4 +1,5 @@
 import { Class } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import {
   BindingBehavior,
   customElement,
@@ -178,12 +179,12 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo text.bind="theText" repeat.for="i of count"></foo>`,
     };
 
-    $it('repeater with custom element + inner bindable with different name than outer property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with different name than outer property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      // await platform.domQueue.yield();
-      platform.domQueue.flush();
+      // await tasksSettled();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -201,11 +202,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo text.bind="text" repeat.for="i of count"></foo>`,
     };
 
-    $it('repeater with custom element + inner bindable with same name as outer property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with same name as outer property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -223,11 +224,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with different name than outer property, reversed - uninitialized property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with different name than outer property, reversed - uninitialized property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -245,11 +246,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count" text.bind="text"></foo>`,
     };
 
-    $it('repeater with custom element + inner bindable with same name as outer property, reversed - uninitialized property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with same name as outer property, reversed - uninitialized property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -266,8 +267,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with different name than outer property, reversed - initialized property', async function ({ platform, host }: TestExecutionContext<App>) {
-      await platform.domQueue.yield();
+    $it('repeater with custom element + inner bindable with different name than outer property, reversed - initialized property', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -284,8 +285,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with same name as outer property, reversed - initialized property', async function ({ platform, host }: TestExecutionContext<App>) {
-      await platform.domQueue.yield();
+    $it('repeater with custom element + inner bindable with same name as outer property, reversed - initialized property', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -466,10 +467,10 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed"></foo>`,
     };
-    $it('repeater with custom element', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -486,11 +487,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo text.bind="theText" repeat.for="i of count & keyed"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with different name than outer property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with different name than outer property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -507,11 +508,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo text.bind="text" repeat.for="i of count & keyed"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with same name as outer property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with same name as outer property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -528,11 +529,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with different name than outer property, reversed, uninitialized property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with different name than outer property, reversed, uninitialized property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -549,11 +550,11 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed" text.bind="text"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with same name as outer property, reversed, uninitialized property', async function ({ platform, host, app }: TestExecutionContext<App>) {
+    $it('repeater with custom element + inner bindable with same name as outer property, reversed, uninitialized property', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -570,8 +571,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with different name than outer property, reversed', async function ({ platform, host }: TestExecutionContext<App>) {
-      await platform.domQueue.yield();
+    $it('repeater with custom element + inner bindable with different name than outer property, reversed', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -588,8 +589,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed" text.bind="theText"></foo>`,
     };
-    $it('repeater with custom element + inner bindable with same name as outer property, reversed', async function ({ platform, host }: TestExecutionContext<App>) {
-      await platform.domQueue.yield();
+    $it('repeater with custom element + inner bindable with same name as outer property, reversed', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);

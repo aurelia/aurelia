@@ -114,4 +114,19 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     ConnectableSwitcher.exit(connectable);
     assert.strictEqual(count, 0);
   });
+
+  it('does not wrap non-configurable and non-writable properties', function () {
+    const obj = {};
+    Reflect.defineProperty(obj, 'prop', { value: { test: 1 } });
+    const proxied = ProxyObservable.wrap(obj);
+
+    const connectable = {
+      observe() {},
+    } as unknown as IConnectable;
+    ConnectableSwitcher.enter(connectable);
+    const proxiedValue = proxied['prop'];
+    ConnectableSwitcher.exit(connectable);
+
+    assert.strictEqual(proxiedValue, obj['prop']);
+  });
 });

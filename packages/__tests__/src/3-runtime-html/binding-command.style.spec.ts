@@ -1,5 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { StyleAttributePattern } from './attribute-pattern.js';
@@ -18,8 +19,8 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 
 // TemplateCompiler - Binding Commands integration
 describe('3-runtime-html/binding-command.style.spec.ts', function () {
-  it('updates style on collection change', function () {
-    const { component, flush, assertAttr } = createFixture
+  it('updates style on collection change', async function () {
+    const { component, assertAttr } = createFixture
       .component({ paddings: ['20px', '15px', '10px', '5px'] })
       .html`<div padding.style="paddings.join(' ')">`
       .build();
@@ -27,7 +28,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
     assertAttr('div', 'style', 'padding: 20px 15px 10px 5px;');
 
     component.paddings.splice(2);
-    flush();
+    runTasks();
     assertAttr('div', 'style', 'padding: 20px 15px;');
   });
 
@@ -75,7 +76,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = ruleValue;
 
-        platform.domQueue.flush();
+        runTasks();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -91,7 +92,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = '';
 
-        platform.domQueue.flush();
+        runTasks();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -107,7 +108,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = ruleValue;
 
-        platform.domQueue.flush();
+        runTasks();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -199,7 +200,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = '';
 
-          platform.domQueue.flush();
+          runTasks();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -215,7 +216,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = ruleValue;
 
-          platform.domQueue.flush();
+          runTasks();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -235,7 +236,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = '';
 
-          platform.domQueue.flush();
+          runTasks();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];

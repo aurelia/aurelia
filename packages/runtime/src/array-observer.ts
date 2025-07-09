@@ -364,7 +364,7 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     };
 
     for (const method of methods) {
-      rtDef(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+      rtDef(observe[method], 'observing', { value: true });
     }
   }
 

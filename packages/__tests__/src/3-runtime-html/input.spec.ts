@@ -1,10 +1,11 @@
 import { assert, createFixture } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 
 describe('3-runtime-html/input.spec.ts', function () {
   const isTestingInNode = isNode();
 
-  it('works: input[text] value.bind', function () {
+  it('works: input[text] value.bind', async function () {
     const { appHost, component, ctx } = createFixture(
       `<input value.bind="message">`,
       class App {
@@ -20,12 +21,12 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(input.value, 'hello world');
   });
 
   if (!isTestingInNode) {
-    it('works: input[number] + value-as-number.bind', function () {
+    it('works: input[number] + value-as-number.bind', async function () {
       const { appHost, component, ctx } = createFixture(
         `<input type=number value-as-number.bind="count">`,
         class App {
@@ -42,21 +43,21 @@ describe('3-runtime-html/input.spec.ts', function () {
       assert.strictEqual(component.count, 100);
     });
 
-    it('treats file input ".bind" to as ".from-view"', function () {
-      const { component, ctx } = createFixture(
+    it('treats file input ".bind" to as ".from-view"', async function () {
+      const { component } = createFixture(
         `<input type=file files.bind="file">`,
         class App {
           public file = '';
         }
       );
 
-      assert.doesNotThrow(() => {
+      await assert.doesNotReject(async () => {
         component.file = 'c:/my-file.txt';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
       });
     });
 
-    it('special property valueAsNumber on <input type=number> + bad value', function () {
+    it('special property valueAsNumber on <input type=number> + bad value', async function () {
       const { appHost: host, component: comp, ctx } = createFixture(
         `<input type=number value-as-number.bind="count">`,
         { count: 0 }
@@ -83,7 +84,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      ctx.platform.domQueue.flush();
+      await tasksSettled();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -94,7 +95,7 @@ describe('3-runtime-html/input.spec.ts', function () {
       assert.strictEqual(comp.count, 123);
     });
 
-    it('special property valueAsNumber on <input type=date>', function () {
+    it('special property valueAsNumber on <input type=date>', async function () {
       const { appHost: host, component: comp, ctx } = createFixture(
         `<input type=date value-as-number.bind="count">`,
         { count: undefined }
@@ -130,7 +131,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      ctx.platform.domQueue.flush();
+      await tasksSettled();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -138,7 +139,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     });
   }
 
-  it('works: textarea + value.bind', function () {
+  it('works: textarea + value.bind', async function () {
     const { appHost, component, ctx } = createFixture(
       `<textarea value.bind="message">`,
       class App {
@@ -154,11 +155,11 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(input.value, 'hello world');
   });
 
-  it('assigns removes attribute to "minLength", "maxLength" on null/undefined', function () {
+  it('assigns removes attribute to "minLength", "maxLength" on null/undefined', async function () {
     const { assertAttr } = createFixture
       .html`<input minlength.bind="null" maxlength.bind="undefined">`
       .build();
@@ -167,7 +168,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'maxlength', null);
   });
 
-  it('removes "placeholder" attr on null/undefined', function () {
+  it('removes "placeholder" attr on null/undefined', async function () {
     const { assertAttr } = createFixture
       .html`<input placeholder.bind="null">`
       .build();
@@ -175,7 +176,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'placeholder', null);
   });
 
-  it('assigns "size" attr correctly', function () {
+  it('assigns "size" attr correctly', async function () {
     const { assertAttr } = createFixture
       .html`<input size.bind="1">`
       .build();
@@ -183,7 +184,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'size', '1');
   });
 
-  it('removes "size" attr on null/undefined', function () {
+  it('removes "size" attr on null/undefined', async function () {
     const { assertAttr } = createFixture
       .html`<input size.bind="null">`
       .build();
@@ -191,7 +192,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'size', null);
   });
 
-  it('removes "pattern" attr on null/undefined', function () {
+  it('removes "pattern" attr on null/undefined', async function () {
     const { assertAttr } = createFixture
       .html`<input pattern.bind="null">`
       .build();
@@ -199,7 +200,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'pattern', null);
   });
 
-  it('removes "title" attr on null/undefined', function () {
+  it('removes "title" attr on null/undefined', async function () {
     const { assertAttr } = createFixture
       .html`<input title.bind="null">`
       .build();
@@ -207,7 +208,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'title', null);
   });
 
-  it('sets popover API attrs', function () {
+  it('sets popover API attrs', async function () {
     const { assertAttr } = createFixture
       .component({ target: 'a', toggle: 'auto' })
       // both button and input will be the same so it's fine
@@ -220,7 +221,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
   describe('gh issues', function () {
     it('selects radio when radios are rendered inside an [if]', async function () {
-      const { assertChecked, trigger, flush } = createFixture(
+      const { assertChecked, trigger } = createFixture(
         `
         <let show.bind="true" option.bind="'s'"></let>
         <input if.bind="show"  id="blue"  type="radio" name="r1" checked.bind="option" value="s" />
@@ -230,15 +231,15 @@ describe('3-runtime-html/input.spec.ts', function () {
       );
 
       trigger('button', 'click');
-      flush();
+      await tasksSettled();
       assertChecked('#green', true);
 
       trigger('button', 'click');
-      flush();
+      await tasksSettled();
       assertChecked('#blue', true);
 
       trigger('button', 'click');
-      flush();
+      await tasksSettled();
       assertChecked('#green', true);
     });
   });

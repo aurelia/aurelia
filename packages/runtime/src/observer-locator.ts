@@ -19,6 +19,7 @@ import type {
   CollectionObserver,
 } from './interfaces';
 import { ErrorNames, createMappedError } from './errors';
+import { computedPropInfo } from './object-property-info';
 
 const propertyAccessor = new PropertyAccessor();
 
@@ -62,7 +63,13 @@ export const IComputedObserverLocator = /*@__PURE__*/rtCreateInterface<IComputed
   'IComputedObserverLocator',
   x => x.singleton(class DefaultLocator implements IComputedObserverLocator {
     public getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver {
-      const observer = new ComputedObserver(obj, pd.get!, pd.set, requestor, true);
+      const observer = new ComputedObserver(
+        obj,
+        pd.get!,
+        pd.set,
+        requestor,
+        computedPropInfo._getFlush(obj, key)
+      );
       rtDef(obj, key, {
         enumerable: pd.enumerable,
         configurable: true,
@@ -104,7 +111,7 @@ export class ObserverLocator {
       return new PrimitiveObserver(obj as Primitive, isFunction(key) ? '' : key);
     }
     if (isFunction(key)) {
-      return new ComputedObserver(obj, key, void 0, this, true);
+      return new ComputedObserver(obj, key, void 0, this);
     }
     const lookup = getObserverLookup(obj);
     let observer = lookup[key];
@@ -262,10 +269,7 @@ const getOwnPropDesc = Object.getOwnPropertyDescriptor;
 export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
   let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
   if (lookup === void 0) {
-    rtDef(instance, '$observers', {
-      enumerable: false,
-      value: lookup = createLookup(),
-    });
+    rtDef(instance, '$observers', { value: lookup = createLookup() });
   }
   return lookup;
 };

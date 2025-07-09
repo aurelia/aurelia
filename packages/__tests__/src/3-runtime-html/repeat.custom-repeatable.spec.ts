@@ -3,8 +3,8 @@ import { ArrayLikeHandler, IRepeatableHandler } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
-  it('repeats an html collection', function () {
-    const { assertText } = createFixture(
+  it('repeats an html collection', async function () {
+    const { assertText } = await createFixture(
       '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
       class {
         items: any[];
@@ -24,13 +24,13 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
         static $au = { type: 'value-converter', name: 'nodeName' };
         toView = v => v.nodeName;
       }]
-    );
+    ).started;
 
     assertText('hey 0--#text');
   });
 
-  it('repeats an html collection using the default array like handler', function () {
-    const { assertText } = createFixture(
+  it('repeats an html collection using the default array like handler', async function () {
+    const { assertText } = await createFixture(
       '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
       class {
         items: any[];
@@ -43,12 +43,12 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
         static $au = { type: 'value-converter', name: 'nodeName' };
         toView = v => v.nodeName;
       }]
-    );
+    ).started;
 
     assertText('hey 0--#text');
   });
 
-  it('throws on unknown repetable value', function () {
+  it('throws on unknown repetable value', async function () {
     assert.throws(() => createFixture('<div repeat.for="i of {}">${$index}--${i | nodeName}</div>'));
   });
 });

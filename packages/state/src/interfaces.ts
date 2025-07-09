@@ -5,6 +5,15 @@ import { createInterface } from './state-utilities';
 export const IActionHandler = /*@__PURE__*/createInterface<IActionHandler>('IActionHandler');
 export type IActionHandler<T = any> = (state: T, action: unknown) => T | Promise<T>;
 
+export type IStateMiddleware<T = any, S = any> = (state: T, action: unknown, settings: S) => T | undefined | false | void | Promise<T | undefined | false | void>;
+
+export type MiddlewarePlacement = 'before' | 'after';
+
+export interface IMiddlewareSettings {
+  placement: MiddlewarePlacement;
+  settings?: unknown;
+}
+
 export const IStore = /*@__PURE__*/createInterface<IStore<object>>('IStore');
 export interface IStore<T extends object, TAction = unknown> {
   subscribe(subscriber: IStoreSubscriber<T>): void;
@@ -17,6 +26,20 @@ export interface IStore<T extends object, TAction = unknown> {
    * @param params - all the parameters to be called with the action
    */
   dispatch(action: TAction): void | Promise<void>;
+  /**
+   * Register middleware to intercept actions before or after they are processed
+   *
+   * @param middleware - the middleware function to register
+   * @param placement - whether to run the middleware before or after action handlers
+   * @param settings - optional settings to pass to the middleware
+   */
+  registerMiddleware<S = any>(middleware: IStateMiddleware<T, S>, placement: MiddlewarePlacement, settings?: S): void;
+  /**
+   * Unregister middleware from the store
+   *
+   * @param middleware - the middleware function to unregister
+   */
+  unregisterMiddleware(middleware: IStateMiddleware<T>): void;
   /**
    * For Devtools integration
    */

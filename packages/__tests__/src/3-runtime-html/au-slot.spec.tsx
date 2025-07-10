@@ -3,6 +3,7 @@ import { IContainer, inject, newInstanceForScope, resolve } from '@aurelia/kerne
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
+import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/au-slot.spec.tsx', function () {
   interface TestSetupContext {
@@ -250,12 +251,12 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           MyElement,
         ],
         { 'my-element': [`static default <div>p20</div><div>p21</div>`, new AuSlotsInfo(['s2', 's1'])] },
-        async function ({ host, platform }) {
+        async function ({ host }) {
           const el = host.querySelector('my-element');
           const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
 
           vm.showS1 = true;
-          platform.domQueue.flush();
+          runTasks();
 
           assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
@@ -278,7 +279,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           MyElement,
         ],
         { 'my-element': [`static default <div>p21</div>`, new AuSlotsInfo(['s2', 's1'])], 'my-element+my-element': [`static default <div>p12</div>`, new AuSlotsInfo(['s2', 's1'])] },
-        async function ({ host, platform }) {
+        async function ({ host }) {
           const el1 = host.querySelector('my-element');
           const el2 = host.querySelector('my-element+my-element');
           const vm1: MyElement = CustomElement.for<MyElement>(el1).viewModel;
@@ -286,7 +287,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
           vm1.showS1 = !vm1.showS1;
           vm2.showS1 = !vm2.showS1;
-          platform.domQueue.flush();
+          runTasks();
 
           assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
           assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
@@ -467,9 +468,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           MyElement,
         ],
         { 'my-element': [`<h4>First Name</h4><h4>Last Name</h4> <div>John</div><div>Doe</div> <div>Max</div><div>Mustermann</div>`, new AuSlotsInfo([])] },
-        async function ({ app, host, platform }) {
+        async function ({ app, host }) {
           app.people.push(new Person('Jane', 'Doe', []));
-          platform.domQueue.flush();
+          runTasks();
           assert.html.innerEqual(
             'my-element',
             `<h4>First Name</h4><h4>Last Name</h4> <div>John</div><div>Doe</div> <div>Max</div><div>Mustermann</div> <div>Jane</div><div>Doe</div>`,
@@ -1559,7 +1560,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           `<parent></parent><parent></parent>`,
           [MyTab, TabBar, Parent],
           {},
-          async ({ host, platform }) => {
+          async ({ host }) => {
             const myTabs = Array.from(host.querySelectorAll('button'));
             assert.strictEqual(myTabs.length, 4, 'there should be 4 tabs');
             const [tab1, tab2, tab3, tab4] = myTabs;
@@ -1568,7 +1569,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             assert.contains(tab3.classList, 'active');
 
             tab2.click();
-            platform.domQueue.flush();
+            runTasks();
             assert.notContains(tab1.classList, 'active');
             assert.contains(tab2.classList, 'active');
             assert.contains(tab3.classList, 'active');
@@ -1592,14 +1593,14 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       </my-element>`,
         [CustomElement.define({ name: 'my-element', template: `<au-slot></au-slot>` }, MyElement)],
         { 'my-element': ['<input type="text">', new AuSlotsInfo(['default'])] },
-        async function ({ host, platform }) {
+        async function ({ host }) {
           const el = host.querySelector('my-element');
           const vm = CustomElement.for(el).viewModel as any;
           const input = el.querySelector('input');
           assert.strictEqual(input.value, "foo");
 
           vm.foo = "bar";
-          platform.domQueue.flush();
+          runTasks();
           assert.strictEqual(input.value, "bar");
         }
       );
@@ -1611,13 +1612,13 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       </my-element>`,
       [createMyElement(`<au-slot></au-slot>`)],
       { 'my-element': ['<input type="text">', new AuSlotsInfo(['default'])] },
-      async function ({ app, host, platform }) {
+      async function ({ app, host }) {
         const el = host.querySelector('my-element');
         const input = el.querySelector('input');
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(input.value, "Jane");
       }
     );
@@ -1637,8 +1638,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, createMyElement('<au-slot></au-slot>')],
         {},
-        async function ({ host, platform }) {
-          platform.domQueue.flush();
+        async function ({ host }) {
+          runTasks();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1669,8 +1670,8 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         '<my-element-user></my-element-user>',
         [MyElementUser, MyElement],
         {},
-        async function ({ host, platform }) {
-          platform.domQueue.flush();
+        async function ({ host }) {
+          runTasks();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1806,7 +1807,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const input = host.querySelector('input');
           input.value = 'hello';
           input.dispatchEvent(new platform.CustomEvent('change'));
-          platform.domQueue.flush();
+          runTasks();
           assert.strictEqual(host.querySelector('div').textContent, 'hello');
         }
       );
@@ -1822,7 +1823,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const input = host.querySelector('input');
           input.value = 'hello';
           input.dispatchEvent(new platform.CustomEvent('change'));
-          platform.domQueue.flush();
+          runTasks();
           assert.strictEqual(host.querySelector('my-element').textContent, 'hello');
         }
       );
@@ -1841,9 +1842,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         {
           'mdc-tab': ['<button>0Tab</button>', undefined]
         },
-        function ({ host, platform }) {
+        function ({ host }) {
           host.querySelector<HTMLElement>('mdc-tab').click();
-          platform.domQueue.flush();
+          runTasks();
           assert.html.innerEqual(host.querySelector('mdc-tab'), '<button>1Tab</button>');
         }
       );
@@ -1875,14 +1876,14 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           '#mdc-0': ['<button>0Tab</button>', undefined],
           '#mdc-1': ['<button>0Tab</button>', undefined]
         },
-        function ({ host, platform }) {
+        function ({ host }) {
           host.querySelector<HTMLElement>('#mdc-0').click();
-          platform.domQueue.flush();
+          runTasks();
           assert.html.innerEqual(host.querySelector('#mdc-0'), '<button>1Tab</button>');
           assert.html.innerEqual(host.querySelector('#mdc-1'), '<button>0Tab</button>');
 
           host.querySelector<HTMLElement>('#mdc-1').click();
-          platform.domQueue.flush();
+          runTasks();
           assert.html.innerEqual(host.querySelector('#mdc-0'), '<button>1Tab</button>');
           assert.html.innerEqual(host.querySelector('#mdc-1'), '<button>1Tab</button>');
         },
@@ -1918,11 +1919,11 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           '#mdc-1-1': ['<button>1Tab</button>', undefined],
           '#mdc-1-2': ['<button>2Tab</button>', undefined],
         },
-        function ({ host, platform }) {
+        function ({ host }) {
           const [tab00, tab01, tab02, tab10, tab11, tab12] = Array.from(host.querySelectorAll<HTMLElement>('mdc-tab'));
 
           tab00.click();
-          platform.domQueue.flush();
+          runTasks();
           assert.html.innerEqual(tab00, '<button>1Tab</button>');
           assert.html.innerEqual(tab01, '<button>2Tab</button>');
           assert.html.innerEqual(tab02, '<button>3Tab</button>');
@@ -1931,7 +1932,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           assert.html.innerEqual(tab12, '<button>2Tab</button>');
 
           tab10.click();
-          platform.domQueue.flush();
+          runTasks();
           assert.html.innerEqual(tab00, '<button>1Tab</button>');
           assert.html.innerEqual(tab01, '<button>2Tab</button>');
           assert.html.innerEqual(tab02, '<button>3Tab</button>');
@@ -2014,33 +2015,33 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       }
 
       $it('w/o projection',
-        async function ({ host, platform, app }) {
+        async function ({ host, app }) {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          platform.domQueue.flush();
+          runTasks();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
         { template: `<my-element></my-element>`, registrations: [MyElement] });
 
       $it('with projection - with $host',
-        async function ({ host, platform, app }) {
+        async function ({ host, app }) {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          platform.domQueue.flush();
+          runTasks();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
         { template: `<my-element><button au-slot="default" click.${listener}="$host.fn()">Click</button></my-element>`, registrations: [MyElement] });
 
       $it('with projection - w/o $host',
-        async function ({ host, platform, app }) {
+        async function ({ host, app }) {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          platform.domQueue.flush();
+          runTasks();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 0);
           assert.equal(app.callCount, 1);
         },

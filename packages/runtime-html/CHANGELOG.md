@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Features:
+
+* **runtime-html:** add value converter context (#2159) ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **runtime-html:** add value converter context ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** adds au-slot context tests for value converters ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **errors:** additional errors from aur0652 to 0757 ([9889291](https://github.com/aurelia/aurelia/commit/9889291))
+* **docs:** additional runtime-html error pages ([9889291](https://github.com/aurelia/aurelia/commit/9889291))
+* **errors:** even more runtime-html error pages ([9889291](https://github.com/aurelia/aurelia/commit/9889291))
+
+
+### Bug Fixes:
+
+* **au-compose:** dont re-compose when detached (#2203) ([94b62ac](https://github.com/aurelia/aurelia/commit/94b62ac))
+* **binding:** interpolation correctly react to array mutation (#2202) ([15fa2a6](https://github.com/aurelia/aurelia/commit/15fa2a6))
+* **interpolation-binding:** property cache & evaluate value ([15fa2a6](https://github.com/aurelia/aurelia/commit/15fa2a6))
+* **binding:** don't update source when unbound (#2201) ([dc019f8](https://github.com/aurelia/aurelia/commit/dc019f8))
+* **queue:** prevent task cancellation from triggering unhandledRejection (#2192) ([aac94fd](https://github.com/aurelia/aurelia/commit/aac94fd))
+* **runtime-html:** prevent unnecessary DOM manipulation in repeater (#2183) ([1fd536b](https://github.com/aurelia/aurelia/commit/1fd536b))
+* ***:** update chromedriver ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+
+
+### Refactorings:
+
+* ***:** async timing for computed observers (#2188) ([f874ccc](https://github.com/aurelia/aurelia/commit/f874ccc))
+* **binding:** value converter context resolution ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** value converter caller context ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** check controller is an instance of controller ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** caller context retrieval ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** contextualise value converter caller ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** rename contextual vc caller properties ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** refine value converter caller context ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** add additional tests for args and context ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** simplify value converter execution ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** value converter context handling ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** remove stop call from fixture usage in context tests ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** positive checks first ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+* **binding:** remove withcontext from decorator definition ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

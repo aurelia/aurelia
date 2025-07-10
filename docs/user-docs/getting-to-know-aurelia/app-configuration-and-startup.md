@@ -9,7 +9,7 @@ Aurelia allows you to configure the application startup in a couple of different
 The quick startup approach is what most developers will choose.
 
 ```typescript
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import Aurelia, { StyleConfiguration } from 'aurelia';
 
 import { MyRootComponent } from './my-root-component';

@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Features:
+
+* **state:** add middleware support (#2181) ([2c98a2e](https://github.com/aurelia/aurelia/commit/2c98a2e))
+* **state:** adds memoized selector creator (#2193) ([f6b42af](https://github.com/aurelia/aurelia/commit/f6b42af))
+
+
+### Refactorings:
+
+* ***:** async timing for computed observers (#2188) ([f874ccc](https://github.com/aurelia/aurelia/commit/f874ccc))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

@@ -14,10 +14,15 @@ export type IWatcherCallback<TType extends object, TValue = unknown>
 export interface IWatchDefinition<T extends object = object> {
   expression: PropertyKey | IDepCollectionFn<T>;
   callback: keyof T | IWatcherCallback<T>;
+  flush: 'async' | 'sync';
 }
 
+export type IWatchOptions = {
+  flush?: 'async' | 'sync';
+};
+
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;
-type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K, context: ClassDecoratorContext<K>) => void;
+type WatchClassDecorator<T extends object> = (target: Constructable<T>, context: ClassDecoratorContext<Constructable<T>>) => void;
 type WatchMethodDecorator<T, TV extends AnyMethod> = (target: TV, context: ClassMethodDecoratorContext<T, TV>) => void;
 type MethodsOf<Type> = {
   [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never
@@ -36,11 +41,13 @@ type MethodsOf<Type> = {
 export function watch<T extends object, D = unknown>(
   expressionOrPropertyAccessFn: PropertyKey,
   changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>,
+  options?: IWatchOptions,
 ): WatchClassDecorator<T>;
 
 export function watch<T extends object, D = unknown>(
   expressionOrPropertyAccessFn: IDepCollectionFn<T, D>,
   changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>,
+  options?: IWatchOptions,
 ): WatchClassDecorator<T>;
 
 // for
@@ -51,35 +58,54 @@ export function watch<T extends object, D = unknown>(
 //    method() {...}
 // }
 export function watch<T extends object = object, D = unknown, TV extends AnyMethod = AnyMethod>(
-  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>
+  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>,
+  options?: IWatchOptions,
 ): WatchMethodDecorator<T, TV>;
 
 export function watch<T extends object = object, TV extends AnyMethod = AnyMethod>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<object>,
-  changeHandlerOrCallback?: PropertyKey | IWatcherCallback<T>,
+  changeHandlerOrCallbackOrOptions?: PropertyKey | IWatcherCallback<T> | IWatchOptions,
+  optionsOrUndefined?: IWatchOptions,
 ): WatchClassDecorator<T> | WatchMethodDecorator<T, TV> {
   if (expressionOrPropertyAccessFn == null) {
     throw createMappedError(ErrorNames.watch_null_config);
   }
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  return function decorator(target: Function | IWatcherCallback<T>, context: ClassDecoratorContext<Constructable<T>> | ClassMethodDecoratorContext<T>): void {
+  return function decorator(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    target: Function | IWatcherCallback<T>,
+    context: ClassDecoratorContext<Constructable<T>> | ClassMethodDecoratorContext<T>
+  ): void {
     const isClassDecorator = context.kind === 'class';
+    let options: IWatchOptions | undefined;
+    let changeHandler: IWatcherCallback<T>;
 
     // basic validation
     if (isClassDecorator) {
-      if (!isFunction(changeHandlerOrCallback)
-        && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in target.prototype))
+      if (!isFunction(changeHandlerOrCallbackOrOptions)
+        && (changeHandlerOrCallbackOrOptions == null
+          || !(changeHandlerOrCallbackOrOptions as PropertyKey in target.prototype)
+        )
       ) {
-        throw createMappedError(ErrorNames.watch_invalid_change_handler, `${safeString(changeHandlerOrCallback)}@${target.name}}`);
+        throw createMappedError(
+          ErrorNames.watch_invalid_change_handler,
+          `${safeString(changeHandlerOrCallbackOrOptions)}@${target.name}}`
+        );
       }
-    } else if (!isFunction(target) || context.static) {
-      throw createMappedError(ErrorNames.watch_non_method_decorator_usage, context.name);
+      changeHandler = changeHandlerOrCallbackOrOptions as IWatcherCallback<T>;
+      options = optionsOrUndefined ?? {};
+    } else {
+      if (!isFunction(target) || context.static) {
+        throw createMappedError(ErrorNames.watch_non_method_decorator_usage, context.name);
+      }
+      changeHandler = target as IWatcherCallback<T>;
+      options = changeHandlerOrCallbackOrOptions as IWatchOptions ?? {};
     }
 
     const watchDef = new WatchDefinition<T>(
       expressionOrPropertyAccessFn,
-      (isClassDecorator ? changeHandlerOrCallback : target) as IWatcherCallback<T>
+      changeHandler,
+      options.flush,
     );
 
     if (isClassDecorator) {
@@ -122,6 +148,7 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
   public constructor(
     public expression: PropertyKey | IDepCollectionFn<T>,
     public callback: IWatcherCallback<T>,
+    public flush: 'async' | 'sync' = 'async',
   ) {}
 }
 
@@ -140,3 +167,37 @@ export const Watch = /*@__PURE__*/(() => {
     }
   });
 })();
+
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-unsafe-member-access */
+function testWatchDeco() {
+  @watch('some.property', (_, __, vm) => vm.prop, { flush: 'sync' })
+  @watch('some.property', (_, __, vm) => vm.prop, { flush: 'async' })
+  // @ts-expect-error - typo
+  @watch('some.property', (_, __, vm) => vm.prop, { flush: 'asyn' })
+  @watch('some.property', (_, __, vm) => vm.prop)
+  @watch(vm => vm.prop, (_, __, vm) => vm.prop)
+  @watch(vm => vm.prop, (_, __, vm) => vm.prop, { flush: 'sync' })
+  @watch(vm => vm.prop, (_, __, vm) => vm.prop, { flush: 'async' })
+  // @ts-expect-error - typo
+  @watch(vm => vm.prop, (_, __, vm) => vm.prop, { flush: 'asyn' })
+  class MyClass {
+    public prop = 1;
+
+    @watch('some.property')
+    @watch('some.property', { flush: 'sync' })
+    @watch('some.property', { flush: 'async' })
+    // @ts-expect-error - typo
+    @watch('some.property', { flush: 'asyn' })
+    public myMethod() {/*  */}
+
+    @watch((vm) => vm.prop)
+    public myMethod2() {/*  */}
+
+    @watch((vm) => vm.prop, {  })
+    @watch((vm) => vm.prop, { flush: 'sync' })
+    @watch((vm) => vm.prop, { flush: 'async' })
+    // @ts-expect-error - type
+    @watch((vm) => vm.prop, { flush: 'asyn' })
+    public myMethod3() {/*  */}
+  }
+}

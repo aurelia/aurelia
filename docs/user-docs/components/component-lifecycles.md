@@ -1,187 +1,214 @@
 # Component lifecycles
 
-Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times.
-
-For example, you may want to execute some code as soon as your component properties are bound but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document.
+Aurelia components offer a rich **lifecycle** that lets you hook into specific moments of a component's existence—from construction, through activation, to eventual disposal. Understanding the order and intent of each hook will help you write components that are predictable, testable, and memory-leak-free.
 
 {% hint style="info" %}
-Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs (`binding/unbinding`, `attaching/detaching`) to clean up any resources you have allocated.
-{% endhint %}
-
-{% hint style="warning" %}
-If you register a listener or subscriber in one callback, remember to remove it in the opposite callback. For example, a native event listener registered in `attached` should be removed in `detached`
+All lifecycle callbacks are **optional**. Implement only what you need. Hooks such as `binding`/`unbinding` or `attaching`/`detaching` are often implemented in pairs so you can clean up resources you set up in the first hook.
 {% endhint %}
 
 {% hint style="info" %}
-All arguments on these callback lifecycle methods are optional and, in most cases, will not be needed.
+Lifecycle hooks apply to **custom elements** and **custom attributes**. Synthetic views (created by template controllers like `if`, `repeat`) do not have lifecycle hooks, but their child components do.
 {% endhint %}
 
-## Constructor
+## Quick reference
 
-When the framework instantiates a component, it calls your class's constructor, just like any JavaScript class. This is the best place to put your basic initialization code that is not dependent on bindable properties.
+```mermaid
+flowchart LR
+  ctor["Constructor"] --> define --> hydrating --> hydrated --> created --> binding --> bound --> attaching --> attached --> detaching --> unbinding --> dispose
+```
 
-Furthermore, the constructor is where you handle the injection of dependencies using dependency injection. You will learn about DI in the [dependency injection section](../getting-to-know-aurelia/dependency-injection-di/), but here is a basic example of where the constructor is used.
+| Phase | Hook | Runs | Child-parent order | Async? |
+| ----- | ---- | ---- | ------------------ | ------ |
+| Construction | `constructor` | once | – | – |
+|  | `define` | once | **top ➞ down** | no |
+|  | `hydrating` | once | **top ➞ down** | no |
+|  | `hydrated` | once | **top ➞ down** | no |
+|  | `created` | once | **bottom ➞ up** | no |
+| Activation | `binding` | every activation | **top ➞ down** | yes (blocks children) |
+|  | `bound` | every activation | **bottom ➞ up** | yes (awaits) |
+|  | `attaching` | every activation | **top ➞ down** | yes (awaits before `attached`) |
+|  | `attached` | every activation | **bottom ➞ up** | yes (awaits) |
+| Deactivation | `detaching` | every deactivation | **bottom ➞ up** | yes (awaits before DOM removal) |
+|  | `unbinding` | every deactivation | **bottom ➞ up** | yes (awaits) |
+| Cleanup | `dispose` | when permanently discarded | – | – |
+
+Legend
+* **top ➞ down** – parent executes before its children
+* **bottom ➞ up** – children execute before their parent
+
+## Detailed walkthrough
+
+### 1. Constructor
+
+Executed when the instance is created. Inject services here and perform work that **does not** depend on bindable values.
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter } from '@aurelia/router-lite';
+import { IRouter } from '@aurelia/router';
 
 export class MyComponent {
-    readonly router: IRouter = resolve(IRouter);
+  readonly router = resolve(IRouter);
 }
 ```
 
-## Hydrating
-
-The "hydrating" hook allows you to add contextual DI registrations (to `controller.container`) to influence which resources are resolved when the template is compiled. It is still considered part of "construction".
+### 2. Define
 
 ```typescript
-export class MyComponent {
-    hydrating(controller: IContextualCustomElementController<this>) {
-
-    }
-}
+define(
+  controller: IDryCustomElementController<this>,
+  hydrationContext: IHydrationContext | null,
+  definition: CustomElementDefinition
+): PartialCustomElementDefinition | void {}
 ```
 
-## Hydrated
+* Opportunity to **modify the component definition** before hydration begins.
+* Can return a partial definition to override aspects of the component's behavior.
+* Runs **synchronously**, parent before children.
 
-The "hydrated" hook is a good place to influence how child components are constructed and rendered contextually. It runs synchronously after the definition is compiled (which happens synchronously after `hydrating`) and, like `hydrating`, can still be considered part of "construction".
-
-{% hint style="info" %}
-This is the last opportunity to add DI registrations specifically for child components in this container or any other way, affecting what is rendered and how it is rendered.
-{% endhint %}
+### 3. Hydrating
 
 ```typescript
-export class MyComponent {
-    hydrated(controller: IContextualCustomElementController<this>) {
-
-    }
-}
+hydrating(controller: IContextualCustomElementController<this>): void {}
 ```
 
-## Created
+* Opportunity to **register dependencies** in `controller.container` that are needed while **compiling** the view template.
+* Runs **synchronously**, parent before children.
 
-The "created" hook is the last hook that can be considered part of "construction". It is called (synchronously) after this component is hydrated, which includes resolving, compiling and hydrating child components. In terms of the component hierarchy, the created hooks execute bottom-up, from child to parent (whereas `hydrating` and `hydrated` are all top-down). This is also the last hook that runs only once per instance.
-
-Here you can perform any last-minute work that requires having all child components hydrated, which might affect the `bind` and `attach` lifecycles.
+### 4. Hydrated
 
 ```typescript
-export class MyComponent {
-    created(controller: IContextualCustomElementController<this>) {
-
-    }
-}
+hydrated(controller: ICompiledCustomElementController<this>): void {}
 ```
 
-## Binding
+* View template has been compiled, child components are **not** yet created.
+* Last chance to influence how the soon-to-be-created child components resolve their dependencies.
 
-If your component has a method named "binding", then the framework will invoke it after the bindable properties of your component are assigned. In terms of the component hierarchy, the binding hooks execute top-down, from parent to child, so your bindables will have their values set by the owning components, but the bindings in your view are not yet set.
-
-{% hint style="info" %}
-This is a good place to perform any work or change anything your view would depend on because data still flows down synchronously. This is the best time to do anything that might affect children. We prefer using this hook over `bound`, unless you specifically need `bound` for a situation when `binding` is too early.
-{% endhint %}
-
-You can optionally return a `Promise` either making the method asynchronous or creating a promise object. If you do so, it will suspend the binding and attaching of the children until the promise is resolved. This is useful for fetching/save of data before rendering.
+### 5. Created
 
 ```typescript
-export class MyComponent {
-    binding(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-
-    }
-}
+created(controller: ICustomElementController<this> | ICustomAttributeController<this>): void {}
 ```
 
-## Bound
+* All child components are now constructed and hydrated.
+* Executes **once** per instance, **children before parent**.
+* Great for logic that must run after the whole subtree is constructed but **before binding**.
 
-If your component has a method named "bound", then the framework will invoke it when the bindings between your component and its view have been set. This is the best place to do anything that requires the values from `let`, `from-view` or `ref` bindings to be set.
+### 6. Binding
 
 ```typescript
-export class MyComponent {
-    bound(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
+// Custom Elements
+binding(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {}
 
-    }
-}
+// Custom Attributes
+binding(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {}
 ```
 
-## Attaching
+* Bindable properties have been set but **bindings in the view are not yet connected**.
+* Runs **parent ➞ child**.
+* Return a `Promise` (or mark the method `async`) to **block** binding/attaching of children until resolved.
 
-If your component has a method named "attaching, " the framework will invoke it when it has attached the component's HTML element. You can queue animations and/or initialize certain 3rd party libraries.
-
-{% hint style="info" %}
-If you return a `Promise` from this method, it will not suspend the binding/attaching of child components, but it will be awaited before the `attached` hook is invoked.
-{% endhint %}
+### 7. Bound
 
 ```typescript
-export class MyComponent {
-    attaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
+// Custom Elements
+bound(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {}
 
-    }
-}
+// Custom Attributes
+bound(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {}
 ```
 
-## Attached
+* View-to-view-model bindings are active; `ref`, `let`, and `from-view` values are available.
+* Executes **child ➞ parent**.
 
-If your component has a method named "attached", the framework will invoke it when it has attached the current component and all of its children. In terms of the component hierarchy, the attached hooks execute bottom-up.
-
-{% hint style="info" %}
-This is the best time to invoke code that requires measuring of elements or integrating a 3rd party JavaScript library that requires the whole component subtree to be mounted to the DOM.
-{% endhint %}
+### 8. Attaching
 
 ```typescript
-export class MyComponent {
-    attached(initiator: IHydratedController, flags: LifecycleFlags) {
+// Custom Elements
+attaching(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {}
 
-    }
-}
+// Custom Attributes
+attaching(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {}
 ```
 
-## Detaching
+* The component's host element is now in the DOM but **child components may still be attaching**.
+* Queue animations or setup 3rd-party libraries here.
+* A returned `Promise` is awaited **before** `attached` is invoked on this component **but does not block children**.
 
-If your component has a method named "detaching", then the framework will invoke it when removing your HTML element from the document. In terms of the component hierarchy, the detaching hooks execute bottom-up.
-
-{% hint style="info" %}
-If you return a `Promise` (for example, from an outgoing animation), it will be awaited before the element is detached. It will run in parallel with promises returned from the `detaching` hooks of siblings/parents.
-{% endhint %}
+### 9. Attached
 
 ```typescript
-export class MyComponent {
-    detaching(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
-
-    }
-}
+attached(initiator: IHydratedController): void | Promise<void> {}
 ```
 
-## Unbinding
+* The entire component subtree is mounted; safe to measure elements or call libraries that need actual layout information.
+* Executes **child ➞ parent**.
+* Note: Only receives the `initiator` parameter, **not** the parent.
 
-If your component has a method named "unbinding, " the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the `unbinding` hooks execute bottom-up.
+### 10. Detaching
 
 ```typescript
-export class MyComponent {
-    unbinding(initiator: IHydratedController, parent: IHydratedController, flags: LifecycleFlags) {
+// Custom Elements
+detaching(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {}
 
-    }
-}
+// Custom Attributes
+detaching(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {}
 ```
 
-## Dispose
+* Called when the framework removes the component's element from the DOM.
+* Executes **child ➞ parent**. Any returned `Promise` (e.g., an outgoing animation) is awaited **in parallel** with sibling promises.
 
-If your component has a method named "dispose", then the framework will invoke it when the component is to be cleared from memory completely. It may be called, for example, when a component is in a repeater, and some items are removed that are not returned to the cache.
-
-{% hint style="warning" %}
-**This is an advanced hook** mostly useful for cleaning up resources and references that might cause memory leaks if never explicitly dereferenced.
-{% endhint %}
+### 11. Unbinding
 
 ```typescript
-export class MyComponent {
-    dispose() {
-    }
+// Custom Elements
+unbinding(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {}
+
+// Custom Attributes
+unbinding(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {}
+```
+
+* Runs after `detaching` finishes and bindings have been disconnected.
+* Executes **child ➞ parent**.
+
+### 12. Dispose
+
+```typescript
+dispose(): void {}
+```
+
+* Invoked when the instance is **permanently discarded**—typically when removed from a repeater and the view cache is full, or when the application shuts down.
+* Use to tear down long-lived resources, subscriptions, or manual observers to prevent memory leaks.
+
+## Lifecycle hooks decorator (`@lifecycleHooks`)
+
+For **cross-cutting concerns** like logging, analytics, or debugging, implement lifecycle hooks in a separate class using the `@lifecycleHooks` decorator. This keeps your component code focused while adding shared behavior.
+
+```typescript
+import { lifecycleHooks, ILifecycleHooks, ICustomElementController, IHydratedController } from 'aurelia';
+
+@lifecycleHooks()
+export class ComponentLogger implements ILifecycleHooks<MyComponent> {
+  bound(vm: MyComponent, initiator: IHydratedController, parent: IHydratedController | null) {
+    console.log(`${vm.constructor.name} bound with data:`, vm.someProperty);
+  }
+
+  detaching(vm: MyComponent, initiator: IHydratedController, parent: IHydratedController | null) {
+    console.log(`${vm.constructor.name} detaching`);
+  }
 }
 ```
 
-## Lifecycle Hooks
+Multiple lifecycle hook classes can be registered; the framework executes them **in registration order** alongside the component's own lifecycle methods.
 
-The lifecycle hooks API supports all of the above lifecycle methods. Using the `lifecycleHooks` decorator, you can perform actions at various points of the component lifecycle. Because the router uses lifecycle hooks, they are documented [here](component-lifecycles.md#lifecycle-hooks) in the router section, but do not require the use of the router to use (except for router-specific hooks).
+## Special cases
 
-## Others
+* **`<au-compose>`** components additionally support `activate` / `deactivate` hooks—see the [dynamic composition guide](../getting-to-know-aurelia/dynamic-composition.md).
+* **Router hooks** such as `canLoad`, `loading`, `canUnload`, `unloading`, etc., are documented in the [routing lifecycle section](../router/routing-lifecycle.md) and are available even if you do not use the router.
 
-**For `<au-compose>`**, there are extra lifecycle hooks that are `activate`/`deactivate`. Refers to [dynamic composition doc](../getting-to-know-aurelia/dynamic-composition.md) for more details.
+## Best practices
+
+1. **Prefer early exits**—perform checks at the start of hooks and `return` early to minimise nesting.
+2. **Clean up** observers, timeouts, event listeners, or 3rd-party widgets **in the opposite hook** (`unbinding`/`detaching` or `dispose`).
+3. **Avoid heavy work in the constructor.** Move anything needing bindables or DOM to later hooks.
+4. **Mark hooks `async`** and `await` your operations instead of manually creating Promises for clarity.
+5. **Keep hooks fast**—expensive work can block the component hierarchy.

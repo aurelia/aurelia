@@ -1,6 +1,7 @@
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { BindingMode, customElement, bindable, Aurelia, ISignaler } from '@aurelia/runtime-html';
 import { delegateSyntax } from '@aurelia/compat-v1';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 
 async function wait(ms: number): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, ms));
@@ -63,7 +64,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(30)');
     //   ctx.platform.domQueue.flush();
-    //   assert.strictEqual(receiver.value, '2', 'target value #2 + wait(30) + flush()');
+    //   assert.strictEqual(receiver.value, '2', 'target value #2 + wait(30) + runTasks()');
 
     //   component.value = '3';
 
@@ -123,38 +124,39 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { au, host, ctx } = $createFixture();
+      const { au, host } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
       await au.start();
 
+      runTasks();
       const receiver = component.receiver;
       component.value = '1';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #1');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.value, '0', 'target value #1');
 
       component.value = '2';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #2');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.value, '0', 'target value #2');
 
-      await ctx.platform.taskQueue.yield();
+      await tasksSettled();
       assert.strictEqual(receiver.value, '2', 'target value #2 + yield');
 
       component.value = '3';
 
       assert.strictEqual(receiver.value, '2', 'target value pre #3');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.value, '2', 'target value #3');
 
       await wait(50);
 
       assert.strictEqual(receiver.value, '3', 'target value pre #4');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.value, '3', 'target value #4');
 
       await au.stop();
@@ -172,7 +174,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLDivElement;
       }
 
-      const { au, host, ctx } = $createFixture();
+      const { au, host } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -182,37 +184,37 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = 1;
 
       assert.strictEqual(receiver.className, '', 'target value pre #1');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.className, '', 'target value #1');
 
       component.value = false;
 
       assert.strictEqual(receiver.className, '', 'target value pre #2');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.className, '', 'target value #2');
 
       component.value = true;
 
       assert.strictEqual(receiver.className, '', 'target value pre #3');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.className, '', 'target value #3');
 
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.className, '', 'target value #4');
 
-      await ctx.platform.taskQueue.yield();
+      await tasksSettled();
       assert.strictEqual(receiver.className, 'selected', 'target value pre #5');
 
       component.value = false;
       assert.strictEqual(receiver.className, 'selected', 'target value pre #5');
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.className, 'selected', 'target value #5');
 
-      ctx.platform.domQueue.flush();
+      runTasks();
       assert.strictEqual(receiver.className, 'selected', 'target value #6');
 
-      ctx.platform.domQueue.flush();
-      await ctx.platform.taskQueue.yield();
+      runTasks();
+      await tasksSettled();
       assert.strictEqual(receiver.className, '', 'target value #6');
 
       await au.stop();
@@ -240,7 +242,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: Receiver;
       }
 
-      const { au, host, ctx } = $createFixture();
+      const { au, host } = $createFixture();
 
       const component = new App();
       au.app({ component, host });
@@ -261,7 +263,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(component.value, '3');
       assert.strictEqual(receiver.value, '1.5');
 
-      await ctx.platform.taskQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(receiver.value, '3');
 
@@ -384,7 +386,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
         assert.strictEqual(component.events.length, 0, `event 3 not yet propagated, event 2 is discarded because of debounce`);
 
-        await ctx.platform.taskQueue.yield();
+        await tasksSettled();
 
         assert.strictEqual(component.events.length, 1, `event 3 propagated`);
         assert.strictEqual(component.events[0], event3, `event 3 is the specific event that propagated`);
@@ -400,7 +402,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
     it('works with let binding', async function () {
       let a = void 0;
       let aCount = 0;
-      const { ctx, component } = createFixture(
+      const { component } = createFixture(
         '<let to-binding-context a.bind="b & debounce: 25">',
         class {
           set a(v: unknown) {
@@ -423,13 +425,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(a, 1, 'debounce holds 3 from propagating');
       assert.strictEqual(aCount, 1);
 
-      await ctx.platform.taskQueue.yield();
+      await tasksSettled();
 
       assert.strictEqual(a, 3);
       assert.strictEqual(aCount, 2);
     });
 
-    it('updates let on flush signals', async function () {
+    it('updates let on runTasks signals', async function () {
       let a = void 0;
       let aCount = 0;
       const { ctx, component } = createFixture(
@@ -461,7 +463,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(aCount, 2);
     });
 
-    it('updates let on flush multiple signals', async function () {
+    it('updates let on runTasks multiple signals', async function () {
       let a = void 0;
       let aCount = 0;
       const { ctx, component } = createFixture(
@@ -509,29 +511,29 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { component, flush } = createFixture('<input ref="receiver" value.to-view="value & throttle:25">', App);
+      const { component } = createFixture('<input ref="receiver" value.to-view="value & throttle:25">', App);
 
       const receiver = component.receiver;
       component.value = '1';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #1');
-      flush();
+      runTasks();
       assert.strictEqual(receiver.value, '1', 'target value #1');
 
       component.value = '2';
 
       assert.strictEqual(receiver.value, '1', 'target value pre #2');
-      flush();
+      runTasks();
       assert.strictEqual(receiver.value, '1', 'target value #2');
       await wait(20);
       assert.strictEqual(receiver.value, '1', 'target value pre #2 + wait(20)');
-      flush();
+      runTasks();
       assert.strictEqual(receiver.value, '1', 'target value #2 + wait(20)');
 
       component.value = '3';
 
       assert.strictEqual(receiver.value, '1', 'target value pre #3');
-      flush();
+      runTasks();
       assert.strictEqual(receiver.value, '1', 'target value #3');
 
       await wait(10);
@@ -628,19 +630,19 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { ctx, component, flush } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:`hurry`">', App);
+      const { ctx, component } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:`hurry`">', App);
       const receiver = component.receiver;
       const signaler = ctx.container.get(ISignaler);
 
       component.value = '1';
-      // this flush hasn't set a time for throttle yet, since it' only the first run of throttle
-      flush();
+      // this runTasks hasn't set a time for throttle yet, since it' only the first run of throttle
+      runTasks();
       assert.strictEqual(receiver.value, '1');
 
       component.value = '2';
       assert.strictEqual(receiver.value, '1');
-      // this flush is gonna call a throttled updateTarget, since we just called in in the flush above
-      flush();
+      // this runTasks is gonna call a throttled updateTarget, since we just called in in the runTasks above
+      runTasks();
       assert.strictEqual(receiver.value, '1');
 
       signaler.dispatchSignal('hurry');
@@ -653,19 +655,19 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { ctx, component, flush } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:[`now`, `hurry`]">', App);
+      const { ctx, component } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:[`now`, `hurry`]">', App);
       const receiver = component.receiver;
       const signaler = ctx.container.get(ISignaler);
 
       component.value = '1';
-      // this flush hasn't set a time for throttle yet, since it' only the first run of throttle
-      flush();
+      // this runTasks hasn't set a time for throttle yet, since it' only the first run of throttle
+      runTasks();
       assert.strictEqual(receiver.value, '1');
 
       component.value = '2';
       assert.strictEqual(receiver.value, '1');
-      // this flush is gonna call a throttled updateTarget, since we just called in in the flush above
-      flush();
+      // this runTasks is gonna call a throttled updateTarget, since we just called in in the runTasks above
+      runTasks();
       assert.strictEqual(receiver.value, '1');
 
       signaler.dispatchSignal('hurry');

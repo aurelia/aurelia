@@ -15,13 +15,13 @@ export default defineConfig({
     alias: {
       ...[
         'fetch-client',
-        'router-lite',
+        'router',
         'kernel',
         'expression-parser',
         'runtime',
         'template-compiler',
         'runtime-html',
-        'router-lite',
+        'router-direct',
       ].reduce((map, pkg) => {
         const name = `@aurelia/${pkg}`;
         map[name] = resolve(__dirname, `../../../node_modules/${name}/dist/esm/index.dev.mjs`);

@@ -1,5 +1,5 @@
 import { customElement } from '@aurelia/runtime-html';
-import { RouterStartEvent, RouterStopEvent, RouterNavigationStartEvent, RouterNavigationEndEvent, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationErrorEvent, RouterConfiguration, IRouter, } from '@aurelia/router';
+import { RouterStartEvent, RouterStopEvent, RouterNavigationStartEvent, RouterNavigationEndEvent, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationErrorEvent, RouterConfiguration, IRouter, } from '@aurelia/router-direct';
 import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
 
 import { Slow } from './slow';

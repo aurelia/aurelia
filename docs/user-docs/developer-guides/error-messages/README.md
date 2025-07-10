@@ -62,43 +62,23 @@ Whenever there's a request to retrieve `dist/esm/index.mjs`, you can redirect it
 
 The section below will list errors by their prefix, and code and give a corresponding explanation, and a way to fix them.
 
-### Aurelia Kernel Errors (from 0001 to 0023)
+### @aurelia/kernel Errors (from 0001 to 0023)
 
 Aurelia Kernel errors can be found [here](0001-to-0023/).
 
-### Template Compiler Errors (From 0088 to 0723)
+### @aurelia/template-compiler Errors (From 0088 to 0723)
 
-Template Compiler errors can be found [here](0088-to-0723/).                                                              |
+Template Compiler errors can be found [here](0088-to-0723/).
+
+### @aurelia/runtime-html Errors (From 750-800)
+
+Runtime HTML errors can be found [here](runtime-html/).
 
 ### Templating Errors (From 750-800)
 
-| Error Code | Description                                                                                                                                                                  |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AUR0750    | This happens when there is a binding that looks like this `view.ref="..."`. This likely comes from a v1 template migration.                                                  |
-| AUR0751    | This happens when there is a `ref` binding in the template that does not have matching target. Most likely a custom attribute reference                                      |
-| AUR0752    | This happens when a controller renders a custom element instruction that it doesn't have a registration. Normally happens in hand-crafted definition                         |
-| AUR0753    | This happens when a controller renders a custom attribute instruction that it doesn't have a registration. Normally happens in hand-crafted definition                       |
-| AUR0754    | This happens when a controller renders a template controller instruction that it doesn't have a registration. Normally happens in hand-crafted definition                    |
-| AUR0755    | This happens when a view factory provider tries to resolve but does not have a view factory associated                                                                       |
-| AUR0756    | This happens when a view factory provider tries to resolve but the view factory associated does not have a valid name                                                        |
-| AUR0757    | This happens when `IRendering.render` is called with different number of targets and instructions                                                                            |
-| AUR0758    | This happens when `BindingCommand.getDefinition` is called on a class/object without any binding command metadata associated                                                 |
-| AUR0759    | This happens when `CustomAttribute.getDefinition` is called on a class/object without any custom attribute metadata associated                                               |
-| AUR0760    | This happens when `CustomElement.getDefinition` is called on a class/object without any custom element metadata associated                                                   |
-| AUR0761    | This happens when `CustomElementDefinition.create` is called with a string as first parameter                                                                                |
-| AUR0762    | This happens when `CustomElement.for` is called on an element that does not have any custom element with a given name, without searching in ancestor elements                |
-| AUR0763    | This happens when `CustomElement.for` is called and Aurelia isn't able to find any custom element with the given name in the given element, or its ancestors                 |
-| AUR0764    | This happens when `CustomElement.for` is called on an element with a given name, and Aurelia is unable to find any custom element in the given the element, or its ancestors |
-| AUR0765    | This happens when `CustomElement.for` is called on an element without a given name, and Aurelia is unable to find any custom element in the given element, or its ancestors  |
-| AUR0766    | This happens when `@processContent` is called with a string as its first parameter, and Aurelia couldn't find the method on the decorated class                              |
-| AUR0767    | This happens when `root` property on an `Aurelia` instance is access before at least one application has been started with this `Aurelia` instance                           |
-| AUR0768    | This happens when a new `Aurelia` is created with a predefined container that already has `IAurelia` registration in it, or its ancestors                                    |
-| AUR0769    | This happens when an `Aurelia` application is started with a document fragment before it's adopted by a document                                                             |
-| AUR0770    | This happens when `Aurelia.prototype.start` is called with a `null`/`undefined` value as the first parameter                                                                 |
-| AUR0771    | This happens when `Aurelia.prototype.dispose` is called before the instance is stopped                                                                                       |
-| AUR0772    | This happens when the `@watch` decorator is used without a valid first parameter                                                                                             |
-| AUR0773    | This happens when the `@watch` decorator is used and Aurelia is not able to resolve the first parameter to a function                                                        |
-| AUR0774    | This happens when the `@watch` decorator is used on a class property instead of a method                                                                                     |
+### Router Errors (From 2000 to 2018)
+
+Router errors can be found [here](router/).
 
 ### HTML observation errors
 

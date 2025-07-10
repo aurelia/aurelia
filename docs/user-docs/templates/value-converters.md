@@ -79,6 +79,86 @@ Pass parameters using a colon (`:`). Parameters can be:
 
 In both `toView` and `fromView`, the second parameter will be the passed configuration.
 
+## Receiving the Caller Context
+
+By default, value converters receive only the value to transform and any configuration parameters. In some advanced scenarios, you may need to know more about the *binding* or *calling context* that invoked the converter—for example, to adjust the transformation based on the host element, attributes, or other binding-specific state.
+
+Aurelia 2 provides an **opt-in** mechanism to receive the binding instance itself as an additional parameter. To enable this feature:
+
+1.  Add `withContext: true` to your value converter class:
+    ```typescript
+    import { valueConverter } from 'aurelia';
+
+    @valueConverter({ name: 'myConverter' })
+    export class MyConverter {
+      public readonly withContext = true;
+
+      public toView(value, caller, ...args) {
+        // `caller` is an object with:
+        // - `source`: The closest custom element view-model, if any.
+        // - `binding`: The binding instance (e.g., PropertyBinding, InterpolationPartBinding).
+        console.log('Converter called by binding:', caller.binding);
+        console.log('Source/Component VM:', caller.source);
+
+        // Use binding-specific state if needed, then return transformed value
+        return /* your transformation logic */;
+      }
+
+      public fromView?(value, caller, ...args) {
+        // For two-way binding scenarios, you can similarly access the caller properties
+        return /* reverse transformation logic */;
+      }
+    }
+    ```
+
+Then use your converter in templates as usual:
+
+```html
+<import from="./my-converter"></import>
+<p>${ someValue | myConverter }</p>
+```
+
+At runtime, Aurelia will detect `withContext: true` in the value converter and pass the binding instance as the second parameter. Depending on how the converter is used:
+
+- **Property Binding** (`foo.bind` or `attr.bind`): the caller is a `PropertyBinding` instance
+- **Interpolation** (`${ }` with converters): the caller is an `InterpolationPartBinding` instance
+- **Other Bindings**: the caller corresponds to the specific binding type in use
+
+### Common Use Cases
+
+- Logging or debugging which binding invoked the converter
+- Applying different formatting based on binding context
+- Accessing binding metadata or context not available through standard converter parameters
+
+Use this feature sparingly, only when you truly need insights into the calling context. For most formatting scenarios, simple converter parameters and camelCase converter names are sufficient.
+
+### Inspecting the Caller
+
+Once `withContext: true` is enabled and a converter receives the `caller` parameter (an object with `source` and `binding` properties), you have several ways to learn more about the binding and component that invoked it:
+
+- **Binding Instance (`caller.binding`)**: Access the binding instance directly. You can check its class to know which binding type triggered it.
+  ```typescript
+  console.log(caller.binding.constructor.name); // e.g. 'PropertyBinding' or 'InterpolationPartBinding'
+  ```
+- **Component/View Model (`caller.source`)**: If the converter is used inside a component's binding, `caller.source` provides the component instance (view-model).
+  ```typescript
+  // caller.source is the closest custom element view-model (if any)
+  const vm = caller.source as MyComponent;
+  if (vm) {
+    // Use the component instance
+  }
+  ```
+
+- **Relationship between `source` and `binding`**:
+  - **Property & Attribute Binding** (e.g., `value.bind="expr | myConverter"` on `<input>`, or `custom-attr.bind="expr | myConverter"`):
+    - `caller.binding`: The `PropertyBinding` instance.
+    - `caller.source`: The view-model of the closest custom element containing this binding, if applicable.
+  - **Custom Element Interpolation** (e.g., `<my-element> ${ value | myConverter } </my-element>`):
+    - `caller.binding`: The `InterpolationPartBinding` instance.
+    - `caller.source`: The view-model of `my-element` (or the closest custom element containing the interpolation).
+
+By combining these properties, your converter can adapt its logic based on exactly which binding and component invoked it.
+
 ## Creating Custom Value Converters
 
 A converter is a simple class. Always reference it in camelCase within templates.

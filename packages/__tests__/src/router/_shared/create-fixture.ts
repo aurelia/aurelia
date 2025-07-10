@@ -1,74 +1,13 @@
-import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, ConsoleSink } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink, IContainer, Resolved, IPlatform, Class } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
-import { RouterConfiguration, IRouter, IRouterOptions, NavigationState } from '@aurelia/router';
+import { IRouterOptions, RouterConfiguration, IRouter, HistoryStrategy } from '@aurelia/router';
 import { TestContext } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { TestRouterConfiguration } from './configuration.js';
-import { startTickLogging } from './tick-logger.js';
-
-export interface IRouterOptionsSpec {
-  resolutionMode?: ResolutionMode;
-  deferUntil?: DeferralJuncture;
-  swapStrategy?: SwapStrategy;
-  routingMode?: 'configured-first' | 'configured-only' | 'direct-only';
-  toString(): string;
-}
-
-export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
-export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
-
-export type ResolutionMode = 'dynamic' | 'static';
-
-export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouterOptions {
-  let swap;
-  switch (routerOptionsSpec.swapStrategy) {
-    case 'sequential-add-first':
-      swap = 'attach-next-detach-current';
-      break;
-    case 'sequential-remove-first':
-      swap = 'detach-current-attach-next';
-      break;
-    case 'parallel-remove-first':
-      swap = 'detach-attach-simultaneously';
-      break;
-    default:
-      swap = 'attach-next-detach-current';
-      break;
-  }
-  const syncStates = ['guardedUnload', 'swapped', 'completed'] as NavigationState[];
-  if (routerOptionsSpec.resolutionMode != null) {
-    switch (routerOptionsSpec.resolutionMode) {
-      case 'static':
-        syncStates.push('guardedLoad', 'guarded', 'loaded', 'unloaded', 'routed');
-        break;
-      case 'dynamic':
-        break;
-    }
-  } else {
-    switch (routerOptionsSpec.deferUntil) {
-      case 'load-hooks':
-        syncStates.push('loaded', 'unloaded', 'routed');
-      case 'guard-hooks':
-        syncStates.push('guardedLoad', 'guarded');
-    }
-  }
-
-  // const integration = routerOptionsSpec.resolutionStrategy === 'static' ||
-  //   routerOptionsSpec.lifecycleStrategy === 'phased'
-  //   ? 'separate'
-  //   : 'integrated';
-  // console.log('SyncStates', syncStates.toString());
-  return {
-    completeStateNavigations: true,
-    swapOrder: swap,
-    navigationSyncStates: syncStates,
-    // routingHookIntegration: integration,
-  };
-}
 
 export const IActivityTracker = /*@__PURE__*/DI.createInterface<IActivityTracker>('IActivityTracker', x => x.singleton(ActivityTracker));
-export interface IActivityTracker extends ActivityTracker { }
+export interface IActivityTracker extends ActivityTracker {}
 export class ActivityTracker {
   public readonly activeVMs: string[] = [];
 
@@ -79,24 +18,36 @@ export class ActivityTracker {
     this.activeVMs.splice(this.activeVMs.indexOf(vm), 1);
   }
 }
+
 export async function createFixture<T extends Constructable>(
   Component: T,
-  deps: Constructable[] = [],
-  createHIAConfig: () => IHIAConfig = null,
-  createRouterOptions: () => IRouterOptions = null,
-  level: LogLevel = LogLevel.warn,
-) {
-  const hiaConfig = createHIAConfig != null ? createHIAConfig() : null;
-  const routerOptions = createRouterOptions != null ? createRouterOptions() : null;
+  deps: Constructable[],
+  createHIAConfig: () => IHIAConfig,
+  createRouterOptions?: () => IRouterOptions,
+  level: LogLevel = LogLevel.fatal,
+): Promise<{
+  ctx: TestContext;
+  container: IContainer;
+  au: Aurelia;
+  host: HTMLElement;
+  hia: IHookInvocationAggregator;
+  component: Resolved<T>;
+  platform: IPlatform;
+  router: IRouter;
+  activityTracker: IActivityTracker;
+  startTracing(): void;
+  stopTracing(): void;
+  tearDown(): Promise<void>;
+}> {
+  const hiaConfig = createHIAConfig();
+  const routerOptions = createRouterOptions?.();
   const ctx = TestContext.create();
   const { container, platform } = ctx;
 
-  // clearBrowserState(platform);
-
   container.register(Registration.instance(IHIAConfig, hiaConfig));
-  container.register(TestRouterConfiguration.for(ctx, level));
+  container.register(TestRouterConfiguration.for(level));
   container.register(RouterConfiguration.customize(routerOptions));
-  container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.warn }));
+  container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.fatal }));
   container.register(...deps);
 
   const activityTracker = container.get(IActivityTracker);
@@ -134,31 +85,36 @@ export async function createFixture<T extends Constructable>(
     async tearDown() {
       hia.setPhase('stop');
 
-      RouterConfiguration.customize();
-
       await au.stop(true);
-
-      au.dispose();
     },
-    logTicks(callback: (tick: number) => void): () => void {
-      return startTickLogging(window, callback);
-    }
   };
 }
 
-export async function clearBrowserState(platform: any, router: IRouter | null = null): Promise<void> {
-  const { href } = platform.window.location;
-  const index = href.indexOf('#');
-  if (index >= 0) {
-    if (router?.viewer?.replaceNavigatorState == null) {
-      platform.window.history.replaceState({}, '', href.slice(0, index));
-      await Promise.resolve();
-    } else {
-      await router.viewer.replaceNavigatorState({}, '', href.slice(0, index));
-    }
-  }
-}
+type RouterTestStartOptions<TAppRoot> = {
+  appRoot: Class<TAppRoot>;
+  useHash?: boolean;
+  registrations?: any[];
+  historyStrategy?: HistoryStrategy;
+  activeClass?: string | null;
+};
 
-export async function wait(milliseconds: number): Promise<void> {
-  return new Promise(res => { setTimeout(res, milliseconds); });
+/**
+ * Simpler fixture creation.
+ */
+export async function start<TAppRoot>({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace', activeClass }: RouterTestStartOptions<TAppRoot>) {
+  const ctx = TestContext.create();
+  const { container } = ctx;
+
+  container.register(
+    TestRouterConfiguration.for(LogLevel.warn),
+    RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy, activeClass }),
+    ...registrations,
+  );
+
+  const au = new Aurelia(container);
+  const host = ctx.createElement('div');
+
+  await au.app({ component: appRoot, host }).start();
+  const rootVm = au.root.controller.viewModel as TAppRoot;
+  return { host, au, container, rootVm };
 }

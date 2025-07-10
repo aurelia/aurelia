@@ -20,6 +20,7 @@ import type {
 import type { IObserverLocatorBasedConnectable } from './connectable';
 import type { IObserverLocator } from './observer-locator';
 import { ErrorNames, createMappedError } from './errors';
+import { queueTask } from './queue';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;
@@ -46,11 +47,12 @@ export class ComputedObserver<T extends object> implements
   /** @internal */
   private _value: unknown = void 0;
 
+  /** @internal */
   private _notified = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
   /** @internal */
-  private _isRunning: boolean = false;
+  private _isQueued: boolean = false;
 
   /** @internal */
   private _isDirty: boolean = false;
@@ -69,6 +71,9 @@ export class ComputedObserver<T extends object> implements
 
   /** @internal */
   private _coercionConfig?: ICoercionConfiguration = void 0;
+
+  /** @internal */
+  private readonly _flush: 'sync' | 'async';
 
   /**
    * The getter this observer is wrapping
@@ -90,13 +95,14 @@ export class ComputedObserver<T extends object> implements
     get: ComputedGetterFn<T>,
     set: undefined | ((v: unknown) => void),
     observerLocator: IObserverLocator,
-    useProxy: boolean,
+    flush: 'sync' | 'async' = 'async',
   ) {
     this._obj = obj;
-    this._wrapped = useProxy ? wrap(obj) : obj;
+    this._wrapped = wrap(obj);
     this.$get = get;
     this.$set = set;
     this.oL = observerLocator;
+    this._flush = flush;
   }
 
   public init(value: unknown) {
@@ -123,11 +129,7 @@ export class ComputedObserver<T extends object> implements
         v = this._coercer.call(null, v, this._coercionConfig);
       }
       if (!areEqual(v, this._value)) {
-        // setting running true as a form of batching
-        this._isRunning = true;
         this.$set.call(this._obj, v);
-        this._isRunning = false;
-
         this.run();
       }
     } else {
@@ -189,15 +191,28 @@ export class ComputedObserver<T extends object> implements
   }
 
   private run(): void {
-    if (this._isRunning) {
+    if (this._flush === 'sync') {
+      this._run();
       return;
     }
 
-    const currValue = this._value;
-    const oldValue = this._oldValue;
-    const newValue = this.compute();
+    if (this._isQueued) {
+      return;
+    }
+    this._isQueued = true;
+    queueTask(() => {
+      this._isQueued = false;
+      this._run();
+    });
+  }
 
-    this._isDirty = false;
+  /** @internal */
+  private _run() {
+      const currValue = this._value;
+      const oldValue = this._oldValue;
+      const newValue = this.compute();
+
+      this._isDirty = false;
 
     // there's case where the _value property was updated without notifying subscribers
     // such is the case when this computed observer value was requested
@@ -206,23 +221,24 @@ export class ComputedObserver<T extends object> implements
     // if we are to notify whenever we are computing new value, it'd cause a depth first & potentially circular update
     // (subscriber of this observer requests value -> this observer re-computes -> subscribers gets updated)
     // so we are only notifying subscribers when it's the actual notify phase
-    if (!this._notified || !areEqual(newValue, currValue)) {
-      this._callback?.(newValue, oldValue);
-      this.subs.notify(newValue, oldValue);
-      this._oldValue = this._value = newValue;
-      this._notified = true;
-    }
+
+      if (!this._notified || !areEqual(newValue, currValue)) {
+        // todo: wrong timing, this should be after notify
+        this._callback?.(newValue, oldValue);
+        this.subs.notify(newValue, oldValue);
+        this._oldValue = this._value = newValue;
+        this._notified = true;
+      }
+
   }
 
   private compute(): unknown {
-    this._isRunning = true;
     this.obs.version++;
     try {
       enterConnectable(this);
       return this._value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
     } finally {
       this.obs.clear();
-      this._isRunning = false;
       exitConnectable(this);
     }
   }

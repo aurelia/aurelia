@@ -18,6 +18,7 @@ import {
 import { LocalizedValidationController, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nConfiguration } from '@aurelia/validation-i18n';
 import { Spy } from '../Spy.js';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('validation-i18n/localization.spec.ts', function () {
   describe('validation-i18n', function () {
@@ -183,6 +184,7 @@ describe('validation-i18n/localization.spec.ts', function () {
               }
             };
             options.initOptions.fallbackLng = false;
+            if (defaultNS != null) options.initOptions.fallbackNS = false;
           }),
           toCustomize
             ? ValidationI18nConfiguration
@@ -231,7 +233,7 @@ describe('validation-i18n/localization.spec.ts', function () {
     async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {
       controllerSpy.clearCallRecords();
       target.dispatchEvent(new ctx.Event(event));
-      await platform.domQueue.yield();
+      await tasksSettled();
       controllerSpy.methodCalledTimes('validateBinding', callCount);
       controllerSpy.methodCalledTimes('validate', callCount);
     }
@@ -239,7 +241,7 @@ describe('validation-i18n/localization.spec.ts', function () {
     async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy, locale: string = 'de') {
       const i18n = container.get(I18N);
       await i18n.setLocale(locale);
-      await platform.domQueue.yield();
+      await tasksSettled();
       controllerSpy.methodCalledTimes('validate', 1);
     }
 

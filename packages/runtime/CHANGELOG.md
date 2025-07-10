@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Features:
+
+* **queue:** impl queueRecurringTask (#2195) ([ea874a1](https://github.com/aurelia/aurelia/commit/ea874a1))
+
+
+### Bug Fixes:
+
+* **binding:** don't update source when unbound (#2201) ([dc019f8](https://github.com/aurelia/aurelia/commit/dc019f8))
+* **vite:** detect production build mode better (#2194) ([e483a92](https://github.com/aurelia/aurelia/commit/e483a92))
+* **queue:** prevent task cancellation from triggering unhandledRejection (#2192) ([aac94fd](https://github.com/aurelia/aurelia/commit/aac94fd))
+* **runtime:** don't wrap non-configurable and non-writable object properties (#2191) ([bb03139](https://github.com/aurelia/aurelia/commit/bb03139))
+
+
+### Refactorings:
+
+* ***:** async timing for computed observers (#2188) ([f874ccc](https://github.com/aurelia/aurelia/commit/f874ccc))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

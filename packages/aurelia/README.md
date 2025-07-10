@@ -10,7 +10,7 @@ This is the umbrella package for Aurelia 2. It re-exports selected internals fro
 @aurelia/fetch-client
 @aurelia/jit
 @aurelia/kernel
-@aurelia/router
+@aurelia/router-direct
 @aurelia/runtime
 @aurelia/runtime-html
 @aurelia/runtime-html-browser

@@ -5,6 +5,7 @@ import {
   ConnectableSwitcher,
   ProxyObservable,
   astEvaluate,
+  queueTask,
 } from '@aurelia/runtime';
 import { mixinAstEvaluator } from '../binding/binding-utils';
 
@@ -35,14 +36,20 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
 
   public isBound: boolean = false;
 
-  // todo: maybe use a counter allow recursive call to a certain level
-  private running: boolean = false;
+  /** @internal */
+  private _isQueued: boolean = false;
+
+  /** @internal */
+  private _computeDepth: number = 0;
 
   /** @internal */
   private _value: unknown = void 0;
   public get value(): unknown {
     return this._value;
   }
+
+  /** @internal */
+  public readonly _flush: 'async' | 'sync';
   /**
    * A semi-private property used by connectable mixin
    *
@@ -58,10 +65,11 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     observerLocator: IObserverLocator,
     public readonly $get: (obj: object, watcher: IConnectable) => unknown,
     cb: IWatcherCallback<object>,
-    public readonly useProxy: boolean,
+    flush: 'async' | 'sync' = 'async',
   ) {
     this._callback = cb;
     this.oL = observerLocator;
+    this._flush = flush;
   }
 
   public handleChange(): void {
@@ -73,44 +81,60 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public bind(): void {
-    if (this.isBound) {
-      return;
-    }
+    if (this.isBound) return;
     this.compute();
     this.isBound = true;
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     this.obs.clearAll();
   }
 
   private run(): void {
-    if (!this.isBound || this.running) {
+    if (!this.isBound) return;
+    if (this._flush === 'sync') {
+      this._run();
       return;
     }
+
+    if (this._isQueued) return;
+    this._isQueued = true;
+    queueTask(() => {
+      this._isQueued = false;
+      this._run();
+    });
+  }
+
+  /** @internal */
+  private _run() {
+    if (!this.isBound) return;
+
     const obj = this.obj;
     const oldValue = this._value;
+    if (++this._computeDepth > 100) {
+      // todo: error code
+      throw new Error(`AURXXXX: Possible infinitely recursive side-effect detected in a watcher.`);
+    }
+
     const newValue = this.compute();
 
     if (!areEqual(newValue, oldValue)) {
-      // should optionally queue
       this._callback.call(obj, newValue, oldValue, obj);
+    }
+    if (!this._isQueued) {
+      this._computeDepth = 0;
     }
   }
 
   private compute(): unknown {
-    this.running = true;
     this.obs.version++;
     try {
       enter(this);
-      return this._value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
+      return this._value = unwrap(this.$get.call(void 0, wrap(this.obj), this));
     } finally {
       this.obs.clear();
-      this.running = false;
       exit(this);
     }
   }
@@ -125,6 +149,10 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   }
 
   public isBound: boolean = false;
+
+  /** @internal */
+  private _isQueued: boolean = false;
+
   /**
    * @internal
    */
@@ -141,6 +169,9 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   public readonly boundFn = false;
 
   /** @internal */
+  private readonly _flush: 'async' | 'sync';
+
+  /** @internal */
   private readonly _expression: IsBindingBehavior;
 
   /** @internal */
@@ -152,33 +183,56 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
     public oL: IObserverLocator,
     expression: IsBindingBehavior,
     callback: IWatcherCallback<object>,
+    flush: 'async' | 'sync' = 'async',
   ) {
     this.obj = scope.bindingContext;
     this._expression = expression;
     this._callback = callback;
+    this._flush = flush;
   }
 
-  public handleChange(value: unknown): void {
+  public handleChange(): void {
+    this.run();
+  }
+
+  public handleCollectionChange(): void {
+    this.run();
+  }
+
+  private run() {
+    if (!this.isBound) return;
+
+    if (this._flush === 'sync') {
+      this._run();
+      return;
+    }
+
+    if (this._isQueued) return;
+    this._isQueued = true;
+    queueTask(() => {
+      this._isQueued = false;
+      this._run();
+    });
+  }
+
+  /** @internal */
+  private _run() {
+    if (!this.isBound) return;
+
     const expr = this._expression;
     const obj = this.obj;
     const oldValue = this._value;
-    const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
-    if (!canOptimize) {
-      this.obs.version++;
-      value = astEvaluate(expr, this.scope, this, this);
-      this.obs.clear();
-    }
+    this.obs.version++;
+    const value = astEvaluate(expr, this.scope, this, this);
+    this.obs.clear();
     if (!areEqual(value, oldValue)) {
       this._value = value;
-      // should optionally queue for batch synchronous
       this._callback.call(obj, value, oldValue, obj);
     }
   }
 
   public bind(): void {
-    if (this.isBound) {
-      return;
-    }
+    if (this.isBound) return;
     this.obs.version++;
     this._value = astEvaluate(this._expression, this.scope, this, this);
     this.obs.clear();
@@ -186,9 +240,7 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     this.obs.clearAll();
     this._value = void 0;

@@ -5,12 +5,11 @@ import {
   astEvaluate,
   astUnbind,
   IAstEvaluator,
+  queueTask,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
   IAccessor,
@@ -20,13 +19,10 @@ import type {
   ISubscriber,
   Scope,
 } from '@aurelia/runtime';
-import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-
-const queueTaskOptions: QueueTaskOptions = {
-  preempt: true,
-};
+import { activating } from '../templating/controller';
+import { atLayout } from '../utilities';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -41,13 +37,13 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   /** @internal */
   public _scope?: Scope = void 0;
 
+  /** @internal */
+  private _isQueued: boolean = false;
+
   public partBindings: InterpolationPartBinding[];
 
   /** @internal */
-  private _targetObserver: AccessorOrObserver;
-
-  /** @internal */
-  private _task: ITask | null = null;
+  public _targetObserver: AccessorOrObserver;
 
   /**
    * A semi-private property used by connectable mixin
@@ -57,16 +53,12 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
-  /** @internal */
   private readonly _controller: IBindingController;
 
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
@@ -75,7 +67,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   ) {
     this._controller = controller;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
     this._targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = ast.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
@@ -88,72 +79,67 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 
   /** @internal */
   public _handlePartChange() {
-    this.updateTarget();
+    if (!this.isBound) return;
+
+    const shouldQueue = this._controller.state !== activating && (this._targetObserver.type & atLayout) > 0;
+
+    if (shouldQueue) {
+      if (this._isQueued) return;
+      this._isQueued = true;
+
+      queueTask(() => {
+        this._isQueued = false;
+        if (!this.isBound) return;
+
+        this.updateTarget();
+      });
+    } else {
+      this.updateTarget();
+    }
   }
 
   public updateTarget(): void {
     const partBindings = this.partBindings;
-    const staticParts = this.ast.parts;
+    const ast = this.ast;
+    const target = this.target;
+    const targetProperty = this.targetProperty;
+    const staticParts = ast.parts;
     const ii = partBindings.length;
     let result = '';
     let i = 0;
     if (ii === 1) {
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      result = staticParts[0] + partBindings[0]._value + staticParts[1];
+      result = staticParts[0] + partBindings[0]._evaluate() + staticParts[1];
     } else {
       result = staticParts[0];
       for (; ii > i; ++i) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        result += partBindings[i]._value + staticParts[i + 1];
+        result += partBindings[i]._evaluate() + staticParts[i + 1];
       }
     }
 
-    const targetObserver = this._targetObserver;
-    // Alpha: during bind a simple strategy for bind is always flush immediately
-    // todo:
-    //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== activating && (targetObserver.type & atLayout) > 0;
-    let task: ITask | null;
-    if (shouldQueueFlush) {
-      // Queue the new one before canceling the old one, to prevent early yield
-      task = this._task;
-      this._task = this._taskQueue.queueTask(() => {
-        this._task = null;
-        targetObserver.setValue(result, this.target, this.targetProperty);
-      }, queueTaskOptions);
-      task?.cancel();
-      task = null;
-    } else {
-      targetObserver.setValue(result, this.target, this.targetProperty);
-    }
+    this._targetObserver.setValue(result, target, targetProperty);
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
-        /* istanbul-ignore-next */
-        return;
-      }
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].bind(_scope);
+      partBindings[i].bind(scope);
     }
     this.updateTarget();
     this.isBound = true;
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-        /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     this._scope = void 0;
     const partBindings = this.partBindings;
@@ -162,8 +148,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     for (; ii > i; ++i) {
       partBindings[i].unbind();
     }
-    this._task?.cancel();
-    this._task = null;
   }
 
   /**
@@ -191,7 +175,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = toView;
   public _scope?: Scope;
-  public task: ITask | null = null;
   public isBound: boolean = false;
 
   /** @internal */
@@ -208,6 +191,9 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
+
+  /** @internal */
+  private _isDirty = false;
 
   public constructor(
     public readonly ast: IsExpression,
@@ -227,65 +213,58 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-        /* istanbul-ignore-next */
-      return;
-    }
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-    // todo(!=): maybe should do strict comparison?
-    // eslint-disable-next-line eqeqeq
-    if (newValue != this._value) {
-      this._value = newValue;
-      if (isArray(newValue)) {
-        this.observeCollection(newValue);
-      }
-      this.updateTarget();
-    }
+    if (!this.isBound) return;
+    this._isDirty = true;
+    this.updateTarget();
   }
 
   public handleCollectionChange(): void {
+    if (!this.isBound) return;
+    this._isDirty = true;
     this.updateTarget();
+  }
+
+  /** @internal */
+  public _evaluate() {
+    if (!this._isDirty) return this._value;
+
+    this.obs.version++;
+    const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+    this.obs.clear();
+
+    // unlike handleChange, this is always called
+    this._value = newValue;
+    if (isArray(newValue)) {
+      this.observeCollection(newValue);
+    }
+
+    this._isDirty = false;
+    return this._value;
   }
 
   public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === scope) {
-        /* istanbul-ignore-next */
-        return;
-      }
+      if (this._scope === scope) return;
       this.unbind();
     }
     this._scope = scope;
 
     astBind(this.ast, scope, this);
 
-    this._value = astEvaluate(
-      this.ast,
-      this._scope,
-      this,
-      (this.mode & toView) > 0 ?  this : null,
-    );
+    this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ?  this : null);
     if (isArray(this._value)) {
       this.observeCollection(this._value);
     }
 
+    this._isDirty = false;
     this.isBound = true;
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-        /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
+    this._value = void 0;
+    this._isDirty = false;
 
     astUnbind(this.ast, this._scope!, this);
 

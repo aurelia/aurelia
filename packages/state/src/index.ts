@@ -1,12 +1,14 @@
+export { Store } from './store';
+
 export {
   StateDefaultConfiguration,
   type IStateConfigurationOptions,
   type IConfigurationInit,
   type IStateConfiguration,
+  type IMiddlewareRegistration,
 } from './configuration';
-export {
-  ActionHandler,
-} from './action-handler';
+
+export { ActionHandler } from './action-handler';
 
 export {
   IState,
@@ -14,6 +16,9 @@ export {
   type IStoreSubscriber,
   IActionHandler,
   type IRegistrableAction,
+  type IStateMiddleware,
+  type MiddlewarePlacement,
+  type IMiddlewareSettings,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';

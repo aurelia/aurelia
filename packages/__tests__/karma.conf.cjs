@@ -36,7 +36,7 @@ module.exports =
   const testFilePatterns = cliArgs.length > 0
     ? cliArgs.flatMap(arg => [
         `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
-        `${baseUrl}/**/${arg}/**/*.spec.js`,
+        `${baseUrl}/**/*${arg}*/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
   const circleCiParallelismGlob = fs.existsSync('./tests.txt')

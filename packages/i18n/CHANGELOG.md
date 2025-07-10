@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Bug Fixes:
+
+* **i18n:** Add isBound check in TranslationBinding.handleChange to prevent AUR0203 (#2171) ([2dd7323](https://github.com/aurelia/aurelia/commit/2dd7323))
+* **i18n:** add isBound check in TranslationBinding.handleChange to prevent AUR0203 error ([2dd7323](https://github.com/aurelia/aurelia/commit/2dd7323))
+
+
+### Refactorings:
+
+* ***:** async timing for computed observers (#2188) ([f874ccc](https://github.com/aurelia/aurelia/commit/f874ccc))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

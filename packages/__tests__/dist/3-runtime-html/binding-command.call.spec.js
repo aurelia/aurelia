@@ -1,5 +1,6 @@
 import { callSyntax } from '@aurelia/compat-v1';
 import { CustomAttribute, CustomElement } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/binding-command.call.spec.ts', function () {
     const testCases = [
@@ -11,9 +12,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
                     this.a = 5;
                 }
             },
-            assertFn: ({ ctx, appHost }) => {
+            assertFn: ({ appHost }) => {
                 appHost.querySelector('div').click();
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.visibleTextEqual(appHost.querySelector('div'), '6');
             },
         },
@@ -25,9 +26,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
                     this.a = 5;
                 }
             },
-            assertFn: ({ ctx, appHost }) => {
+            assertFn: ({ appHost }) => {
                 appHost.querySelector('div').onBla();
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.visibleTextEqual(appHost.querySelector('div'), '6');
             },
         },
@@ -46,9 +47,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
                 }, class {
                 })
             ],
-            assertFn: ({ ctx, appHost, component }) => {
+            assertFn: ({ appHost, component }) => {
                 component.attr.value(6);
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.visibleTextEqual(appHost.querySelector('div'), '6');
             },
         },
@@ -67,9 +68,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
                 }, class {
                 })
             ],
-            assertFn: ({ ctx, appHost, component }) => {
+            assertFn: ({ appHost, component }) => {
                 component.attr.value(6);
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.visibleTextEqual(appHost.querySelector('div'), '6');
             },
         },
@@ -84,7 +85,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
         });
     }
     it('sets property on custom element bindable', async function () {
-        const { trigger, flush, assertText } = await createFixture
+        const { trigger, assertText } = await createFixture
             .component(class {
             constructor() {
                 this.a = 5;
@@ -103,11 +104,11 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
             .build().started;
         assertText('5 click me');
         trigger.click('button');
-        flush();
+        runTasks();
         assertText('1 click me');
     });
     it('sets property on custom element surrogate from bindable', async function () {
-        const { trigger, flush, assertText } = await createFixture
+        const { trigger, assertText } = await createFixture
             .component(class {
             constructor() {
                 this.a = 5;
@@ -126,7 +127,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
             .build().started;
         assertText('5');
         trigger.click('el');
-        flush();
+        runTasks();
         assertText('1');
     });
 });

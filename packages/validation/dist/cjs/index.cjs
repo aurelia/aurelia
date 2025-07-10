@@ -50,13 +50,13 @@ const m = Object.freeze({
         const r = i ? u(this.aliasKey, t) : void 0;
         if (r !== void 0) {
             const t = {
-                ...Object.fromEntries(r.map((({name: e, defaultMessage: t}) => [ e, t ]))),
-                ...Object.fromEntries(s.map((({name: e, defaultMessage: t}) => [ e, t ])))
+                ...Object.fromEntries(r.map(({name: e, defaultMessage: t}) => [ e, t ])),
+                ...Object.fromEntries(s.map(({name: e, defaultMessage: t}) => [ e, t ]))
             };
-            s = e.toArray(Object.entries(t)).map((([e, t]) => ({
+            s = e.toArray(Object.entries(t)).map(([e, t]) => ({
                 name: e,
                 defaultMessage: t
-            })));
+            }));
         }
         o(s, t, this.aliasKey);
     },
@@ -69,9 +69,9 @@ const m = Object.freeze({
 
 function validationRule(e) {
     return function(t, s) {
-        s.addInitializer((function() {
+        s.addInitializer(function() {
             m.define(this, e, false);
-        }));
+        });
         return t;
     };
 }
@@ -220,10 +220,10 @@ class StateRule extends BaseValidationRule {
         }, false);
     }
     execute(t, s) {
-        return e.onResolve(this.stateFunction(t, s), (e => {
+        return e.onResolve(this.stateFunction(t, s), e => {
             this.t = e;
             return e === this.validState;
-        }));
+        });
     }
     accept(e) {}
 }
@@ -345,7 +345,7 @@ const f = Object.freeze({
     },
     isValidationRulesSet(e) {
         const t = u(this.allRulesAnnotations, e);
-        return t !== void 0 && t.some((e => e.startsWith(f.name)));
+        return t !== void 0 && t.some(e => e.startsWith(f.name));
     }
 });
 
@@ -425,7 +425,7 @@ class PropertyRule {
             e.push(...s);
             return e;
         };
-        return this.$rules.reduce((async (e, t) => e.then((async e => a ? accumulateResult(e, t) : Promise.resolve(e)))), Promise.resolve([]));
+        return this.$rules.reduce(async (e, t) => e.then(async e => a ? accumulateResult(e, t) : Promise.resolve(e)), Promise.resolve([]));
     }
     then() {
         this.$rules.push([]);
@@ -563,7 +563,7 @@ class ValidationRules {
     }
     ensure(e) {
         const [t, s] = parsePropertyName(e, this.parser);
-        let i = this.rules.find((e => e.property.name == t));
+        let i = this.rules.find(e => e.property.name == t);
         if (i === void 0) {
             i = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty(s, t));
             this.rules.push(i);
@@ -679,7 +679,7 @@ class ValidationMessageProvider {
         if (n === 1 && t === void 0) {
             r = i[0].defaultMessage;
         } else {
-            r = i.find((e => e.name === t))?.defaultMessage;
+            r = i.find(e => e.name === t)?.defaultMessage;
         }
         if (!r) {
             r = m.getDefaultMessages(BaseValidationRule)[0].defaultMessage;
@@ -1186,7 +1186,7 @@ class ValidationSerializer {
         return e === Number.POSITIVE_INFINITY || e === Number.NEGATIVE_INFINITY ? null : e.toString();
     }
     serializeRules(e) {
-        return `[${e.map((e => `[${e.map((e => e.accept(this))).join(",")}]`)).join(",")}]`;
+        return `[${e.map(e => `[${e.map(e => e.accept(this)).join(",")}]`).join(",")}]`;
     }
 }
 
@@ -1290,7 +1290,7 @@ class ValidationDeserializer {
           case PropertyRule.$TYPE:
             {
                 const s = e;
-                return new PropertyRule(this.locator, t, this.messageProvider, this.hydrate(s.property, t), s.$rules.map((e => e.map((e => this.hydrate(e, t))))));
+                return new PropertyRule(this.locator, t, this.messageProvider, this.hydrate(s.property, t), s.$rules.map(e => e.map(e => this.hydrate(e, t))));
             }
         }
     }
@@ -1298,7 +1298,7 @@ class ValidationDeserializer {
         if (!Array.isArray(e)) {
             throw createMappedError(4104);
         }
-        return e.map((e => this.hydrate(e, t)));
+        return e.map(e => this.hydrate(e, t));
     }
 }
 
@@ -1317,7 +1317,7 @@ class ModelValidationExpressionHydrator {
         const iterate = (e, i = []) => {
             for (const [r, n] of e) {
                 if (this.isModelPropertyRule(n)) {
-                    const e = n.rules.map((e => Object.entries(e).map((([e, t]) => this.hydrateRule(e, t)))));
+                    const e = n.rules.map(e => Object.entries(e).map(([e, t]) => this.hydrateRule(e, t)));
                     const a = i.join(".");
                     const u = this.hydrateRuleProperty({
                         name: a !== "" ? `${a}.${r}` : r,
@@ -1472,14 +1472,14 @@ class StandardValidator {
             [x]: t
         });
         if (i !== void 0) {
-            let e = n.find((e => e.property.name === i));
+            let e = n.find(e => e.property.name === i);
             if (e == null && typeof i === "string" && i.startsWith("[") && i.endsWith("]")) {
                 i = i.replaceAll("][", ".").slice(1, -1);
-                e = n.find((e => e.property.name === i));
+                e = n.find(e => e.property.name === i);
             }
             return await (e?.validate(t, r, a)) ?? [];
         }
-        return (await Promise.all(n.map((async e => e.validate(t, r, a))))).flat();
+        return (await Promise.all(n.map(async e => e.validate(t, r, a)))).flat();
     }
 }
 

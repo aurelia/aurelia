@@ -4,7 +4,7 @@ var t = require("@aurelia/kernel");
 
 var e = require("@aurelia/runtime-html");
 
-const s = /*@__PURE__*/ t.DI.createInterface((t => t.singleton(WcCustomElementRegistry)));
+const s = /*@__PURE__*/ t.DI.createInterface(t => t.singleton(WcCustomElementRegistry));
 
 class WcCustomElementRegistry {
     constructor() {

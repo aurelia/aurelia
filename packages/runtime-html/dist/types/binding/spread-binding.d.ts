@@ -1,6 +1,5 @@
 import { IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { type IServiceLocator, type Key } from '@aurelia/kernel';
-import { TaskQueue } from '@aurelia/platform';
 import { type IObserverLocator, type IObserverLocatorBasedConnectable, Scope, type IAstEvaluator } from '@aurelia/runtime';
 import { ITemplateCompiler } from '@aurelia/template-compiler';
 import { IPlatform } from '../platform';
@@ -48,7 +47,7 @@ export declare class SpreadValueBinding implements IBinding {
     ast: IsBindingBehavior;
     strict: boolean;
     isBound: boolean;
-    constructor(controller: IBindingController, target: object, targetKeys: string[], ast: IsBindingBehavior, ol: IObserverLocator, l: IServiceLocator, taskQueue: TaskQueue, strict: boolean);
+    constructor(controller: IBindingController, target: object, targetKeys: string[], ast: IsBindingBehavior, ol: IObserverLocator, l: IServiceLocator, strict: boolean);
     updateTarget(): void;
     handleChange(): void;
     handleCollectionChange(): void;

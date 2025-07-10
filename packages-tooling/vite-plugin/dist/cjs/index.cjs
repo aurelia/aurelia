@@ -28,7 +28,6 @@ function au(options = {}) {
                 'platform-browser',
                 'aurelia',
                 'fetch-client',
-                'router-lite',
                 'router',
                 'kernel',
                 'metadata',
@@ -41,7 +40,7 @@ function au(options = {}) {
                 'runtime',
                 'template-compiler',
                 'runtime-html',
-                'router-lite',
+                'router-direct',
             ].reduce((aliases, pkg) => {
                 const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
                 try {
@@ -53,9 +52,13 @@ function au(options = {}) {
             }, ((_b = (_c = ((_a = config.resolve) !== null && _a !== void 0 ? _a : (config.resolve = {}))).alias) !== null && _b !== void 0 ? _b : (_c.alias = {})));
         },
     };
+    let $config;
     const auPlugin = {
         name: 'au2',
         enforce: pre ? 'pre' : 'post',
+        configResolved(config) {
+            $config = config;
+        },
         async transform(code, id) {
             if (!filter(id))
                 return;
@@ -68,9 +71,9 @@ function au(options = {}) {
                 hmrModule: 'import.meta',
                 getHmrCode,
                 transformHtmlImportSpecifier: (s) => {
-                    return this.meta.watchMode
-                        ? s
-                        : s.replace(/\.html$/, '.$au.ts');
+                    return $config.mode === 'production'
+                        ? s.replace(/\.html$/, '.$au.ts')
+                        : s;
                 },
                 stringModuleWrap: (id) => `${id}?inline`,
                 ...additionalOptions

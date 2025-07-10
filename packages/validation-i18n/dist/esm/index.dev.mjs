@@ -1,15 +1,15 @@
 import { I18N, Signals } from '@aurelia/i18n';
 import { DI, resolve, IEventAggregator, Registration, noop } from '@aurelia/kernel';
-import { IPlatform } from '@aurelia/runtime-html';
 import { ValidationMessageProvider, ValidationRuleAliasMessage } from '@aurelia/validation';
 import { ValidationController, ValidationControllerFactory, getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '@aurelia/validation-html';
+import { queueAsyncTask } from '@aurelia/runtime';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 const I18nKeyConfiguration = /*@__PURE__*/ DI.createInterface('I18nKeyConfiguration');
 class LocalizedValidationController extends ValidationController {
-    constructor(ea = resolve(IEventAggregator), platform = resolve(IPlatform)) {
+    constructor(ea = resolve(IEventAggregator)) {
         super();
-        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { platform.domQueue.queueTask(async () => { await this.revalidateErrors(); }); });
+        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { queueAsyncTask(async () => { await this.revalidateErrors(); }); });
     }
 }
 class LocalizedValidationControllerFactory extends ValidationControllerFactory {

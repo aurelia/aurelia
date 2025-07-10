@@ -36,17 +36,23 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
-import { observable, SetterObserver, IObserverLocator } from '@aurelia/runtime';
+import { observable, SetterObserver, IObserverLocator, tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 import { noop, resolve } from '@aurelia/kernel';
 import { ValueConverter, customElement, watch } from '@aurelia/runtime-html';
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
+    beforeEach(async function () {
+        assert.strictEqual(await tasksSettled(), false, `queue should be empty prior to each test`);
+    });
+    afterEach(async function () {
+        assert.strictEqual(await tasksSettled(), false, `queue should be empty after each test`);
+    });
     const oldValue = 'old';
     const newValue = 'new';
     // [UNIT] tests needed:         change handler, symbol key, symbol change handler
     // todo: define the spec how it should behave for:
     // [INTEGRATION] tests needed:  <select 2 way /> <radio 2 way />
-    it('initializes with TS', function () {
+    it('initializes with TS', async function () {
         let callCount = 0;
         let Test = (() => {
             var _a;
@@ -79,7 +85,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
         assert.strictEqual(callCount, 1);
         assert.strictEqual(instance.value, newValue);
     });
-    it('should not call valueChanged when property is assigned the same value', function () {
+    it('should not call valueChanged when property is assigned the same value', async function () {
         let callCount = 0;
         let Test = (() => {
             var _a;
@@ -108,7 +114,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
         instance.value = oldValue;
         assert.strictEqual(callCount, 0);
     });
-    it('initialize with Babel property decorator', function () {
+    it('initialize with Babel property decorator', async function () {
         let callCount = 0;
         class Test {
             constructor() {
@@ -152,7 +158,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
         instance.value = newValue;
         assert.strictEqual(callCount, 1);
     });
-    it('should call customHandler when changing the property', function () {
+    it('should call customHandler when changing the property', async function () {
         let callCount = 0;
         let Test = (() => {
             var _a;
@@ -211,12 +217,11 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     })(),
                     _a;
             })();
-            const { component, platform, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
-            await startPromise;
+            const { component, testHost, tearDown } = await createFixture(`<div ref="div"></div>\${div.tagName}`, App).started;
             assert.notDeepStrictEqual($div, noValue);
             assert.strictEqual(testHost.textContent, 'DIV');
             component.div = { tagName: 'hello' };
-            platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(testHost.textContent, 'hello');
             await tearDown();
         });
@@ -244,17 +249,15 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     })(),
                     _a;
             })();
-            const { ctx, component, platform, testHost, tearDown, startPromise } = createFixture('<input value.bind="v">', App);
-            await startPromise;
+            const { ctx, component, testHost, tearDown } = await createFixture('<input value.bind="v">', App).started;
             const input = testHost.querySelector('input');
             assert.strictEqual(input.value, '');
             component.v = 'v';
-            assert.strictEqual(changeCount, 1);
-            assert.strictEqual(input.value, '');
-            platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(changeCount, 1);
             assert.strictEqual(input.value, 'v');
             input.value = 'vv';
+            await tasksSettled();
             input.dispatchEvent(new ctx.CustomEvent('input'));
             assert.strictEqual(component.v, 'vv');
             assert.strictEqual(changeCount, 2);
@@ -289,23 +292,20 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     })(),
                     _a;
             })();
-            const { ctx, component, platform, testHost, tearDown, startPromise } = createFixture('<input value.bind="v">', App);
-            await startPromise;
+            const { ctx, component, testHost, tearDown } = await createFixture('<input value.bind="v">', App).started;
             const input = testHost.querySelector('input');
             assert.strictEqual(input.value, '', 'err1');
             component.v = 'v';
+            await tasksSettled();
             assert.strictEqual(component.v, 0, 'err2');
             assert.strictEqual(changeCount, 1, 'err3');
-            assert.strictEqual(input.value, '', 'err4');
-            platform.domQueue.flush();
-            assert.strictEqual(changeCount, 1, 'err5');
-            assert.strictEqual(input.value, '0', 'err6');
+            assert.strictEqual(input.value, '0', 'err4');
             input.value = 'vv';
             input.dispatchEvent(new ctx.CustomEvent('input'));
             assert.strictEqual(component.v, 0, 'err7');
             assert.strictEqual(changeCount, 1, 'err8');
             assert.strictEqual(input.value, 'vv', 'err9');
-            platform.domQueue.flush();
+            await tasksSettled();
             // for this assignment, the component.v still 0
             // so there was no change, and it's not propagated back to the input
             assert.strictEqual(input.value, 'vv', 'err10');
@@ -314,7 +314,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             assert.strictEqual(component.v, 0, 'err12');
             assert.strictEqual(changeCount, 1, 'err13');
             assert.strictEqual(input.value, 'vv', 'err14');
-            platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(input.value, 'vv', 'err15');
             assert.strictEqual(component.v, 0, 'err16');
             // real valid input assertion
@@ -322,7 +322,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             input.dispatchEvent(new ctx.CustomEvent('input'));
             assert.strictEqual(component.v, 1, 'err17');
             assert.strictEqual(changeCount, 2, 'err18');
-            platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(input.value, '1', 'err19');
             await tearDown();
         });
@@ -352,7 +352,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     })(),
                     _a;
             })();
-            const { ctx, component, platform, testHost, tearDown, startPromise } = createFixture('<input value.bind="v | two">', App, [ValueConverter.define('two', class {
+            const { ctx, component, testHost, tearDown, } = await createFixture('<input value.bind="v | two">', App, [ValueConverter.define('two', class {
                     fromView(v) {
                         // converting back and forth with number
                         // so prefixing with '0' to avoid infinite loop
@@ -361,23 +361,20 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     toView(v) {
                         return v;
                     }
-                })]);
-            await startPromise;
+                })]).started;
             const input = testHost.querySelector('input');
             assert.strictEqual(input.value, '', 'err1');
             component.v = 'v';
+            await tasksSettled();
             assert.strictEqual(component.v, 0, 'err2');
             assert.strictEqual(changeCount, 1, 'err3');
-            assert.strictEqual(input.value, '', 'err4');
-            platform.domQueue.flush();
-            assert.strictEqual(changeCount, 1, 'err5');
-            assert.strictEqual(input.value, '0', 'err6');
+            assert.strictEqual(input.value, '0', 'err4');
             input.value = 'vv';
             input.dispatchEvent(new ctx.CustomEvent('input'));
             assert.strictEqual(component.v, 0, 'err7');
             assert.strictEqual(changeCount, 1, 'err8');
             assert.strictEqual(input.value, 'vv', 'err9');
-            platform.domQueue.flush();
+            await tasksSettled();
             // for this assignment, the component.v still 0
             // so there was no change, and it's not propagated back to the input
             assert.strictEqual(input.value, 'vv', 'err10');
@@ -386,7 +383,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             assert.strictEqual(component.v, 0, 'err12');
             assert.strictEqual(changeCount, 1, 'err13');
             assert.strictEqual(input.value, 'vv', 'err14');
-            platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(input.value, 'vv', 'err15');
             assert.strictEqual(component.v, 0, 'err16');
             // real valid input assertion
@@ -394,12 +391,12 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             input.dispatchEvent(new ctx.CustomEvent('input'));
             assert.strictEqual(component.v, 1, 'err17');
             assert.strictEqual(changeCount, 2, 'err18');
-            platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(input.value, '1', 'err19');
             await tearDown();
         });
     });
-    it('handle recursive changes', function () {
+    it('handle recursive changes', async function () {
         let MyApp = (() => {
             let _classDecorators = [customElement('')];
             let _classDescriptor;
@@ -495,7 +492,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
         void stop(true);
     });
     // https://github.com/aurelia/aurelia/issues/2022
-    it('calls change handler callback after propagating changes', function () {
+    it('calls change handler callback after propagating changes', async function () {
         const logs = [];
         createFixture('<outer-component>', (() => {
             var _a;
@@ -515,16 +512,31 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     }
                     // trigger point here
                     attached() {
+                        logs.push(`attached`);
+                        logs.push(`prop1: ${this.prop1}`);
+                        logs.push(`prop2: ${this.prop2}`);
+                        logs.push(`prop3: ${this.prop3}`);
                         this.prop1 = 2;
                     }
                     prop1Changed() {
+                        logs.push(`prop1Changed`);
+                        logs.push(`prop1: ${this.prop1}`);
+                        logs.push(`prop2: ${this.prop2}`);
+                        logs.push(`prop3: ${this.prop3}`);
                         this.prop2 = 2;
                     }
                     prop2Changed() {
+                        logs.push(`prop2Changed`);
+                        logs.push(`prop1: ${this.prop1}`);
+                        logs.push(`prop2: ${this.prop2}`);
                         logs.push(`prop3: ${this.prop3}`);
                     }
                     handleProp1Changed() {
+                        logs.push(`handleProp1Changed`);
                         this.prop3 = 3;
+                        logs.push(`prop1: ${this.prop1}`);
+                        logs.push(`prop2: ${this.prop2}`);
+                        logs.push(`prop3: ${this.prop3}`);
                     }
                 },
                 (() => {
@@ -539,7 +551,25 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                 })(),
                 _a;
         })());
-        assert.deepStrictEqual(logs, ['prop3: 3']);
+        await tasksSettled();
+        assert.deepStrictEqual(logs, [
+            'attached',
+            'prop1: 1',
+            'prop2: 1',
+            'prop3: 0',
+            'prop1Changed',
+            'prop1: 2',
+            'prop2: 1',
+            'prop3: 0',
+            'prop2Changed',
+            'prop1: 2',
+            'prop2: 2',
+            'prop3: 0',
+            'handleProp1Changed',
+            'prop1: 2',
+            'prop2: 2',
+            'prop3: 3',
+        ]);
     });
 });
 //# sourceMappingURL=decorator-observable.spec.js.map

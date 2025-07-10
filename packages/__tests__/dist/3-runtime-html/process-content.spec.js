@@ -37,6 +37,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
 import { noop, toArray } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import { Aurelia, BindingMode, bindable, CustomElement, customElement, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction } from '../util.js';
@@ -604,7 +605,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
             return Tabs = _classThis;
         })();
         $it('semi-real-life example with tabs', async function (ctx) {
-            const platform = ctx.platform;
             const host = ctx.host;
             const tabs = host.querySelector('tabs');
             const headers = tabs.querySelectorAll('div.header button');
@@ -617,7 +617,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
                 assert.html.textContent(header, expectedHeaders[i], `header#${i} content`);
                 // assert the bound trigger
                 header.click();
-                platform.domQueue.flush();
+                await tasksSettled();
                 for (let j = numTabs - 1; j > -1; j--) {
                     assert.strictEqual(headers[j].classList.contains('active'), i === j, `header#${j} class`);
                     assert.html.innerEqual(tabs.querySelector('div.content div'), expectedContents[i], `content#${i} content`);

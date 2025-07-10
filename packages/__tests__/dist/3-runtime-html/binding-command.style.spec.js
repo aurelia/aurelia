@@ -1,4 +1,5 @@
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { StyleAttributePattern } from './attribute-pattern.js';
@@ -15,14 +16,14 @@ function getNormalizedStyle(el, ruleName) {
 }
 // TemplateCompiler - Binding Commands integration
 describe('3-runtime-html/binding-command.style.spec.ts', function () {
-    it('updates style on collection change', function () {
-        const { component, flush, assertAttr } = createFixture
+    it('updates style on collection change', async function () {
+        const { component, assertAttr } = createFixture
             .component({ paddings: ['20px', '15px', '10px', '5px'] })
             .html `<div padding.style="paddings.join(' ')">`
             .build();
         assertAttr('div', 'style', 'padding: 20px 15px 10px 5px;');
         component.paddings.splice(2);
-        flush();
+        runTasks();
         assertAttr('div', 'style', 'padding: 20px 15px;');
     });
     /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
@@ -62,7 +63,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
                 const ruleValueNoPriority = hasImportant ? ruleValue.replace('!important', '') : ruleValue;
                 assert.strictEqual(childEls.length, 6, `childEls.length`);
                 component.value = ruleValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0, ii = childEls.length; ii > i; ++i) {
                     const child = childEls[i];
                     assert.strictEqual(getNormalizedStyle(child, ruleName), isInvalid ? valueOnInvalid : ruleValueNoPriority, `[${ruleName}]component.value="${ruleValue}" 1`);
@@ -71,7 +72,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
                     }
                 }
                 component.value = '';
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0, ii = childEls.length; ii > i; ++i) {
                     const child = childEls[i];
                     assert.strictEqual(getNormalizedStyle(child, ruleName), ruleDefaultValue, `[${ruleName}]component.value="" 1`);
@@ -80,7 +81,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
                     }
                 }
                 component.value = ruleValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0, ii = childEls.length; ii > i; ++i) {
                     const child = childEls[i];
                     assert.strictEqual(getNormalizedStyle(child, ruleName), isInvalid ? valueOnInvalid : ruleValueNoPriority, `[${ruleName}]component.value="${ruleValue}" 2`);
@@ -144,7 +145,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
                     }
                 }
                 component.value = '';
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0; ii > i; ++i) {
                     const el = els[i];
                     assert.strictEqual(getNormalizedStyle(el, ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 2`);
@@ -153,7 +154,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
                     }
                 }
                 component.value = ruleValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0; ii > i; ++i) {
                     const el = els[i];
                     assert.strictEqual(getNormalizedStyle(el, ruleName), isInvalid ? valueOnInvalid : ruleValueNoPriority, `[${ruleName}]vm.value="${ruleValue}" 3`);
@@ -162,7 +163,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
                     }
                 }
                 component.value = '';
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0; ii > i; ++i) {
                     const el = els[i];
                     assert.strictEqual(getNormalizedStyle(el, ruleName), ruleDefaultValue, `[${ruleName}]vm.value="" 4`);

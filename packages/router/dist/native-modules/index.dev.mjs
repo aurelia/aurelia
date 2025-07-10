@@ -1,8825 +1,5315 @@
-import { onResolve, getResourceKeyFor, resolve, IEventAggregator, IContainer, Protocol, DI, ILogger, Registration } from '../../../kernel/dist/native-modules/index.mjs';
-import { CustomElement, isCustomElementViewModel, IPlatform, registerHostNode, Controller, IWindow, IHistory, ILocation, IAppRoot, CustomAttribute, BindingMode, INode, IController, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { isArray, DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, isObjectOrFunction, IContainer, Registration, isArrayIndex, InstanceProvider, IModuleLoader, noop } from '../../../kernel/dist/native-modules/index.mjs';
+import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, CustomElementDefinition, Controller, IPlatform, MountTarget, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, refs, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { RESIDUE, RecognizedRoute, Endpoint, ConfigurableRoute, RouteRecognizer } from '../../../route-recognizer/dist/native-modules/index.mjs';
 import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
-import { RouteRecognizer as RouteRecognizer$1, ConfigurableRoute as ConfigurableRoute$1, RecognizedRoute as RecognizedRoute$1, Endpoint as Endpoint$2 } from '../../../route-recognizer/dist/native-modules/index.mjs';
-import { IInstruction } from '../../../template-compiler/dist/native-modules/index.mjs';
+import { batch } from '../../../runtime/dist/native-modules/index.mjs';
 
-let Endpoint$1 = class Endpoint {
-    constructor(router, 
-    /**
-     * The endpoint name
-     */
-    name, 
-    /**
-     * The custom element connected to this endpoint
-     */
-    connectedCE, options = {}) {
-        this.router = router;
-        this.name = name;
-        this.connectedCE = connectedCE;
-        this.options = options;
-        /**
-         * The contents of the endpoint. New contents are pushed to this, making
-         * the last one the active one.
-         */
-        this.contents = [];
-        /**
-         * The action (to be) performed by the transition
-         */
-        this.transitionAction = '';
-        /**
-         * The configured route path to this endpoint
-         */
-        this.path = null;
-    }
-    /**
-     * The current content of the endpoint
-     */
-    getContent() {
-        return this.contents[0];
-    }
-    /**
-     * The next, to be transitioned in, content of the endpoint
-     */
-    getNextContent() {
-        return this.contents.length > 1 ? this.contents[this.contents.length - 1] : null;
-    }
-    /**
-     * The content of the endpoint from a specific time (index)
-     */
-    getTimeContent(_timestamp = Infinity) {
-        return this.getContent();
-    }
-    /**
-     * The content for a specific navigation (or coordinator)
-     */
-    getNavigationContent(navigation) {
-        if (navigation instanceof NavigationCoordinator) {
-            navigation = navigation.navigation;
-        }
-        if (navigation instanceof Navigation) {
-            return this.contents.find(content => content.navigation === navigation) ?? null;
-        }
-        return null;
-    }
-    /**
-     * The active content, next or current.
-     */
-    get activeContent() {
-        return this.getNextContent() ?? this.getContent();
-    }
-    /**
-     * The routing scope that's currently, based on content, connected
-     * to the endpoint. This is always the actually connected scope.
-     */
-    get connectedScope() {
-        return this.activeContent?.connectedScope;
-    }
-    /**
-     * The current, based on content, routing scope for the endpoint.
-     * The scope used when finding next scope endpoints and configured routes.
-     */
-    get scope() {
-        return this.connectedScope.scope;
-    }
-    /**
-     * The routing scope that currently, based on content, owns the viewport.
-     */
-    get owningScope() {
-        return this.connectedScope.owningScope;
-    }
-    /**
-     * The connected custom element's controller.
-     */
-    get connectedController() {
-        return this.connectedCE?.$controller ?? null;
-    }
-    /**
-     * Whether the endpoint is a Viewport.
-     */
-    get isViewport() {
-        return this instanceof Viewport;
-    }
-    /**
-     * Whether the endpoint is a ViewportScope.
-     */
-    get isViewportScope() {
-        return this instanceof ViewportScope;
-    }
-    /**
-     * Whether the endpoint is empty. Overloaded with proper check
-     * by Viewport and ViewportScope.
-     */
-    get isEmpty() {
-        return false;
-    }
-    /**
-     * For debug purposes.
-     */
-    get pathname() {
-        return this.connectedScope.pathname;
-    }
-    /**
-     * For debug purposes.
-     */
-    toString() {
-        throw new Error(`Method 'toString' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Set the next content for the endpoint. Returns the action that the endpoint
-     * will take when the navigation coordinator starts the transition.
-     *
-     * @param _instruction - The routing instruction describing the next content
-     * @param _navigation - The navigation that requests the content change
-     */
-    setNextContent(_instruction, _navigation) {
-        throw new Error(`Method 'setNextContent' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Connect an endpoint CustomElement to this endpoint, applying options
-     * while doing so.
-     *
-     * @param _connectedCE - The custom element to connect
-     * @param _options - The options to apply
-     */
-    setConnectedCE(_connectedCE, _options) {
-        throw new Error(`Method 'setConnectedCE' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Transition from current content to the next.
-     *
-     * @param _coordinator - The coordinator of the navigation
-     */
-    transition(_coordinator) {
-        throw new Error(`Method 'transition' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Finalize the change of content by making the next content the current
-     * content. The previously current content is deleted.
-     */
-    finalizeContentChange(_coordinator, _step) {
-        throw new Error(`Method 'finalizeContentChange' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Abort the change of content. The next content is freed/discarded.
-     *
-     * @param _step - The previous step in this transition Run
-     */
-    cancelContentChange(_coordinator, _noExitStep = null) {
-        throw new Error(`Method 'cancelContentChange' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Get any configured routes in the relevant content's component type.
-     */
-    getRoutes() {
-        throw new Error(`Method 'getRoutes' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Get the title for the content.
-     *
-     * @param navigation - The navigation that requests the content change
-     */
-    getTitle(_navigation) {
-        throw new Error(`Method 'getTitle' needs to be implemented in all endpoints!`);
-    }
-    /**
-     * Remove the endpoint, deleting its contents.
-     *
-     * @param _step - The previous step in this transition Run
-     * @param _connectedCE - The custom element that's being removed
-     */
-    removeEndpoint(_step, _connectedCE) {
-        this.contents.forEach(content => content.delete());
-        return true;
-    }
-    /**
-     * Check if the next content can be unloaded.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    canUnload(_coordinator, _step) {
-        return true;
-    }
-    /**
-     * Check if the next content can be loaded.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    canLoad(_coordinator, _step) {
-        return true;
-    }
-    /**
-     * Unload the next content.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    unload(_coordinator, _step) {
-        return;
-    }
-    /**
-     * Load the next content.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    load(_coordinator, _step) {
-        return;
-    }
+/**
+ * Ranges
+ * - viewport        : 3000 - 3049
+ * - component agent : 3050 - 3099
+ * - location manager: 3100 - 3149
+ * - route-context   : 3150 - 3199
+ * - router-events   : 3200 - 3249
+ * - router          : 3250 - 3299
+ * - viewport agent  : 3300 - 3400
+ * - instruction     : 3400 - 3449
+ * - navigation model: 3450 - 3499
+ * - expression      : 3500 - 3549
+ * - route           : 3550 - 3599
+ */
+
+const eventMessageMap = {
+    // #region viewport
+    [3000 /* Events.vpHydrated */]: 'hydrated',
+    [3001 /* Events.vpAttaching */]: 'attaching',
+    [3002 /* Events.vpDetaching */]: 'detaching',
+    [3003 /* Events.vpDispose */]: 'dispose',
+    // #endregion
+    // #region component agent
+    [3050 /* Events.caCreated */]: 'created',
+    [3051 /* Events.caActivateSelf */]: 'activating - self',
+    [3052 /* Events.caActivateInitiator */]: 'activating - via initiator',
+    [3053 /* Events.caDeactivateSelf */]: 'deactivating - self',
+    [3054 /* Events.caDeactivateInitiator */]: 'deactivating - via initiator',
+    [3055 /* Events.caDispose */]: 'disposing',
+    [3056 /* Events.caCanUnload */]: 'canUnload(next:%s) - invoking %s hooks',
+    [3057 /* Events.caCanLoad */]: 'canLoad(next:%s) - invoking %s hooks',
+    [3058 /* Events.caUnloading */]: 'unloading(next:%s) - invoking %s hooks',
+    [3059 /* Events.caLoading */]: 'loading(next:%s) - invoking %s hooks',
+    // #endregion
+    // #region location manager
+    [3100 /* Events.lmBaseHref */]: 'baseHref set to path: %s',
+    [3101 /* Events.lmStartListening */]: 'starting listening to %s',
+    [3102 /* Events.lmStopListening */]: 'stopping listening to %s',
+    [3103 /* Events.lmPushState */]: 'pushing to history state: %s (title: \'%s\', url: \'%s\')',
+    [3104 /* Events.lmReplaceState */]: 'replacing history state: %s (title: \'%s\', url: \'%s\')',
+    [3105 /* Events.lmPushStateNonSerializable */]: 'pushing to history state: NOT_SERIALIZABLE (title: \'%s\', url: \'%s\')',
+    [3106 /* Events.lmReplaceStateNonSerializable */]: 'replacing history state: NOT_SERIALIZABLE (title: \'%s\', url: \'%s\')',
+    // #endregion
+    // #region route context
+    [3150 /* Events.rcCreated */]: 'created',
+    [3151 /* Events.rcNodeChanged */]: 'Node changed from %s to %s',
+    [3152 /* Events.rcResolveNullishContext */]: 'The given context is nullish (%s); resolving to root RouteContext',
+    [3153 /* Events.rcResolveInstance */]: 'The given context (%s) is an instance of RouteContext; resolving to it',
+    [3154 /* Events.rcResolveNode */]: 'The given context is a node (nodeName:%s); resolving RouteContext from controller\'s RenderContext',
+    [3155 /* Events.rcResolveNodeFailed */]: 'Failed to resolve RouteContext from node %s; error: %s',
+    [3156 /* Events.rcResolveCe */]: 'The given context is a custom element viewmodel (name:%s); resolving RouteContext from controller\'s RenderContext',
+    [3157 /* Events.rcResolveCtrl */]: 'The given context is a custom element controller (name:%s); resolving RouteContext from controller\'s RenderContext',
+    [3158 /* Events.rcResolveVpa */]: 'Resolving viewport agent for the request: %s',
+    [3159 /* Events.rcCreateCa */]: 'Creating component agent for the node: %s',
+    [3160 /* Events.rcRegisterVp */]: 'Registering viewport: %s',
+    [3161 /* Events.rcRegisterVpSkip */]: 'Skipping registering viewport: %s; it is already registered',
+    [3162 /* Events.rcUnregisterVp */]: 'Unregistering viewport: %s',
+    [3163 /* Events.rcUnregisterVpSkip */]: 'Skipping unregistering viewport: %s; it is not registered',
+    [3164 /* Events.rcRecognizePath */]: 'Recognizing path: %s',
+    [3165 /* Events.rcAddRoute */]: 'Adding route: %s',
+    [3166 /* Events.rcEagerPathGenerationFailed */]: 'Unable to eagerly generate path for %s; reasons: %s',
+    [3167 /* Events.rcNoAppRoot */]: 'The provided container has no registered IAppRoot. RouteContext.setRoot can only be used after Aurelia.app was called, on a container that is within that app\'s component tree.',
+    [3168 /* Events.rcHasRootContext */]: 'A root RouteContext is already registered. A possible cause is the RouterConfiguration being registered more than once in the same container tree. If you have a multi-rooted app, make sure you register RouterConfiguration only in the "forked" containers and not in the common root.',
+    [3169 /* Events.rcNoRootCtrl */]: 'The provided IAppRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called',
+    [3170 /* Events.rcResolveInvalidCtxType */]: 'Invalid context type: %s',
+    [3171 /* Events.rcNoNode */]: 'Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: %s',
+    [3172 /* Events.rcNoVpa */]: 'RouteContext has no ViewportAgent: %s',
+    [3173 /* Events.rcNoPathLazyImport */]: 'Invalid route config. When the component property is a lazy import, the path must be specified.',
+    [3174 /* Events.rcNoAvailableVpa */]: 'Failed to resolve %s at:\n%s',
+    [3175 /* Events.rcInvalidLazyImport */]: '%s does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.',
+    // #endregion
+    // #region router events
+    [3200 /* Events.rePublishingEvent */]: 'Publishing event: %s',
+    [3201 /* Events.reInvokingSubscriber */]: 'Invoking subscriber #%s (event: %s)',
+    // #endregion
+    // #region router
+    [3250 /* Events.rtrLoading */]: 'Loading instruction: %s',
+    [3251 /* Events.rtrIsActive */]: 'Checking if the route %s is active in context %s',
+    [3252 /* Events.rtrResolvingRcExisting */]: 'Resolving existing RouteContext for %s',
+    [3253 /* Events.rtrResolvingRcNew */]: 'Creating new RouteContext for %s',
+    [3254 /* Events.rtrIgnoringIdenticalNav */]: 'Ignoring navigation triggered by \'%s\' because it is the same URL as the previous navigation which was triggered by \'api\'.',
+    [3255 /* Events.rtrReusingPromise */]: 'Reusing promise/resolve/reject from the previously failed transition %s',
+    [3256 /* Events.rtrSchedulingTr */]: 'Scheduling transition: %s',
+    [3257 /* Events.rtrTrSucceeded */]: 'Transition succeeded: %s',
+    [3258 /* Events.rtrRunBegin */]: 'Running transition: %s',
+    [3259 /* Events.rtrRunCancelled */]: 'Aborting transition %s because a new transition was queued in response to the NavigationStartEvent',
+    [3260 /* Events.rtrRunVitCompile */]: 'Compiling viewport instructions tree %s',
+    [3261 /* Events.rtrRunCanUnload */]: 'invoking canUnload on %s nodes',
+    [3262 /* Events.rtrRunCanLoad */]: 'invoking canLoad on %s nodes',
+    [3263 /* Events.rtrRunUnloading */]: 'invoking unloading on %s nodes',
+    [3264 /* Events.rtrRunLoading */]: 'invoking loading on %s nodes',
+    [3265 /* Events.rtrRunSwapping */]: 'invoking swapping on %s nodes',
+    [3266 /* Events.rtrRunFinalizing */]: 'finalizing transition',
+    [3267 /* Events.rtrCancelNavigationStart */]: 'navigation %s',
+    [3268 /* Events.rtrCancelNavigationCompleted */]: 'navigation %s; finished.',
+    [3269 /* Events.rtrNextTr */]: 'scheduling next transition: %s',
+    [3270 /* Events.rtrTrFailed */]: 'Transition %s failed with error: %s',
+    [3271 /* Events.rtrNoCtx */]: 'Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?',
+    // #endregion
+    // #region viewport agent
+    [3300 /* Events.vpaCreated */]: 'created',
+    [3301 /* Events.vpaActivateFromVpNone */]: 'Nothing to activate at %s',
+    [3302 /* Events.vpaActivateFromVpExisting */]: 'Activating existing component agent at %s',
+    [3303 /* Events.vpaActivateFromVpNext */]: 'Activating next component agent at %s',
+    [3304 /* Events.vpaDeactivateFromVpNone */]: 'Nothing to deactivate at %s',
+    [3305 /* Events.vpaDeactivateFromVpExisting */]: 'Deactivating existing component agent at %s',
+    [3306 /* Events.vpaDeactivationFromVpRunning */]: 'Already deactivating at %s',
+    [3307 /* Events.vpaDeactivateFromVpCurrent */]: 'Deactivating current component agent at %s',
+    [3308 /* Events.vpaHandlesVpMismatch */]: 'Cannot handle the request %s due to viewport name mismatch %s',
+    [3309 /* Events.vpaHandlesUsedByMismatch */]: 'Cannot handle the request %s as componentName not included in usedBy %s',
+    [3310 /* Events.vpaHandles */]: 'Viewport %s can handle the request %s',
+    [3311 /* Events.vpaIsAvailableInactive */]: 'Viewport is not available as it is inactive',
+    [3312 /* Events.vpaIsAvailableScheduled */]: 'Viewport is not available as an update is scheduled for %s',
+    [3313 /* Events.vpaCanUnloadChildren */]: 'Invoking on children at %s',
+    [3314 /* Events.vpaCanUnloadExisting */]: 'Invoking on existing component at %s',
+    [3315 /* Events.vpaCanUnloadSelf */]: 'Finished invoking on children, now invoking on own component at %s',
+    [3316 /* Events.vpaCanUnloadFinished */]: 'Finished at %s',
+    [3317 /* Events.vpaCanUnloadNone */]: 'Nothing to unload at %s',
+    [3318 /* Events.vpaCanLoadNext */]: 'Invoking on next component at %s',
+    [3319 /* Events.vpaCanLoadNone */]: 'Nothing to load at %s',
+    [3320 /* Events.vpaCanLoadResidue */]: 'Compiling residue for %s; plan is set to %s',
+    [3321 /* Events.vpaCanLoadResidueDelay */]: 'Delaying residue compilation for %s until activate',
+    [3322 /* Events.vpaCanLoadChildren */]: 'Finished own component; invoking on children at %s',
+    [3323 /* Events.vpaCanLoadFinished */]: 'Finished at %s',
+    [3324 /* Events.vpaUnloadingChildren */]: 'Invoking on children at %s',
+    [3325 /* Events.vpaUnloadingExisting */]: 'Invoking on existing component at %s',
+    [3326 /* Events.vpaUnloadingSelf */]: 'Finished invoking on children, now invoking on own component at %s',
+    [3327 /* Events.vpaUnloadingFinished */]: 'Finished at %s',
+    [3328 /* Events.vpaUnloadingNone */]: 'Nothing to unload at %s',
+    [3329 /* Events.vpaLoadingNext */]: 'Invoking on next component at %s',
+    [3330 /* Events.vpaLoadingNone */]: 'Nothing to load at %s',
+    [3331 /* Events.vpaLoadingChildren */]: 'Finished own component; invoking on children at %s',
+    [3332 /* Events.vpaLoadingFinished */]: 'Finished at %s',
+    [3333 /* Events.vpaDeactivateCurrent */]: 'Invoking on the current component at %s',
+    [3334 /* Events.vpaDeactivateNone */]: 'Nothing to deactivate at %s',
+    [3335 /* Events.vpaDeactivationRunning */]: 'Already deactivating at %s',
+    [3336 /* Events.vpaActivateNextScheduled */]: 'Invoking canLoad(), loading() and activate() on the next component at %s',
+    [3337 /* Events.vpaActivateNext */]: 'Invoking on the next component at %s',
+    [3338 /* Events.vpaActivateNone */]: 'Nothing to activate at %s',
+    [3339 /* Events.vpaSwapEmptyCurr */]: 'Running activate on next instead, because there is nothing to deactivate at %s',
+    [3340 /* Events.vpaSwapEmptyNext */]: 'Running deactivate on current instead, because there is nothing to activate at %s',
+    [3341 /* Events.vpaSwapSkipToChildren */]: 'Skipping this level and swapping children instead at %s',
+    [3342 /* Events.vpaSwap */]: 'Swapping current and next at %s',
+    [3343 /* Events.vpaProcessDynamicChildren */]: 'Processing dynamic children at %s',
+    [3344 /* Events.vpaScheduleUpdate */]: 'Scheduling update for %s; plan is set to %s',
+    [3345 /* Events.vpaCancelUpdate */]: 'Cancelling update for %s',
+    [3346 /* Events.vpaEndTransitionEmptyCurr */]: 'setting currState to State.currIsEmpty at %s',
+    [3347 /* Events.vpaEndTransitionActiveCurrLifecycle */]: 'setting currState to State.currIsActive at %s',
+    [3348 /* Events.vpaEndTransitionActiveCurrReplace */]: 'setting currState to State.currIsActive and reassigning curCA at %s',
+    [3349 /* Events.vpaDispose */]: 'disposing at %s',
+    [3350 /* Events.vpaUnexpectedActivation */]: 'Unexpected viewport activation outside of a transition context at %s',
+    [3351 /* Events.vpaUnexpectedDeactivation */]: 'Unexpected viewport deactivation outside of a transition context at %s',
+    [3352 /* Events.vpaUnexpectedState */]: 'Unexpected state at %s of %s',
+    [3353 /* Events.vpaUnexpectedGuardsResult */]: 'Unexpected guardsResult %s at %s',
+    [3354 /* Events.vpaCanLoadGuardsResult */]: 'canLoad returned redirect result %s by the component agent %s',
+    // #endregion
+    // #region instruction
+    [3400 /* Events.instrInvalid */]: 'Invalid component %s: must be either a class, a custom element ViewModel, or a (partial) custom element definition',
+    [3401 /* Events.instrNoFallback */]: 'Neither the route \'%s\' matched any configured route at \'%s\' nor a fallback is configured for the viewport \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
+    [3402 /* Events.instrUnknownRedirect */]: '\'%s\' did not match any configured route or registered component name at \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
+    [3403 /* Events.instrInvalidUrlComponentOperation */]: 'Invalid instruction type %s for "toUrlComponent" operation. If you are seeing this error, then it is probably because of an internal bug. Please report it.',
+    [3404 /* Events.instrIncompatiblePathGenerationInstr */]: 'The given instruction is not compatible for eagerly generating path: %s',
+    // #endregion
+    // #region navigation model
+    [3450 /* Events.nmNoEndpoint */]: 'No endpoint found for path \'%s\'',
+    // #endregion
+    // #region expression
+    [3500 /* Events.exprUnexpectedSegment */]: 'Expected %s at index %s of \'%s\', but got: \'%s\' (rest=\'%s\')',
+    [3501 /* Events.exprNotDone */]: 'Unexpected \'%s\' at index %s of \'%s\'',
+    [3502 /* Events.exprUnexpectedKind */]: 'Unexpected expression kind %s',
+    // #endregion
+    // #region route
+    [3550 /* Events.rtConfigFromHookApplied */]: 'Invalid operation, the configuration from the get hook is already applied.',
+    [3551 /* Events.rtNoCtxStrComponent */]: 'When retrieving the RouteConfig for a component name, a RouteContext (that can resolve it) must be provided',
+    [3552 /* Events.rtNoComponent */]: 'Could not find a CustomElement named \'%s\' in the current container scope of %s. This means the component is neither registered at Aurelia startup nor via the \'dependencies\' decorator or static property.',
+    [3553 /* Events.rtNoCtxLazyImport */]: 'RouteContext must be provided when resolving an imported module',
+    [3554 /* Events.rtInvalidConfigProperty */]: 'Invalid route config property: "%s". Expected %s, but got %s.',
+    [3555 /* Events.rtInvalidConfig */]: 'Invalid route config: expected an object or string, but got: %s',
+    [3556 /* Events.rtUnknownConfigProperty */]: 'Unknown route config property: "%s.%s". Please specify known properties only.',
+    [3557 /* Events.rtUnknownRedirectConfigProperty */]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.',
+    [3558 /* Events.rtInvalidOperationNavigationStrategyComponent */]: 'Invalid operation, the component is not yet resolved for the navigation strategy (id: %s).',
+    // #endregion
 };
-
 /**
- * The endpoint content encapsulates the content of an endpoint.
- *
- * Endpoint contents are used to represent the full endpoint state
- * and can be used for caching.
- */
-class EndpointContent {
-    constructor(router, 
-    /**
-     * The endpoint the endpoint content belongs to
-     */
-    endpoint, 
-    /**
-     * The routing scope the endpoint content belongs to/is owned by
-     */
-    owningScope, 
-    /**
-     * Whether the endpoint has its own routing scope, containing
-     * endpoints it owns
-     */
-    hasScope, 
-    /**
-     * The routing instruction that has created the content
-     */
-    instruction = RoutingInstruction.create(''), 
-    /**
-     * The navigation that created the endpoint content
-     */
-    navigation = Navigation.create({
-        instruction: '',
-        fullStateInstruction: '',
-    })) {
-        this.router = router;
-        this.endpoint = endpoint;
-        this.instruction = instruction;
-        this.navigation = navigation;
-        /**
-         * Whether the content has completed its navigation
-         */
-        this.completed = false;
-        this.connectedScope = new RoutingScope(router, hasScope, owningScope, this);
-        // Skip if no root scope (meaning we ARE the root scope!)
-        if (this.router.rootScope !== null) {
-            (this.endpoint.connectedScope?.parent ?? this.router.rootScope.scope).addChild(this.connectedScope);
-        }
-    }
-    /**
-     * Whether the endpoint content is the active one within its endpoint
-     */
-    get isActive() {
-        return this.endpoint.activeContent === this;
-    }
-    /**
-     * Delete the endpoint content and its routing scope
-     */
-    delete() {
-        this.connectedScope.parent?.removeChild(this.connectedScope);
-    }
-}
-
-/**
- * Used when founding route/instructions
+ * Only happens in DEV mode.
  *
  * @internal
  */
-class FoundRoute {
-    constructor(match = null, matching = '', instructions = [], remaining = '', 
-    // public remaining: string | null = null,
-    params = {}) {
-        this.match = match;
-        this.matching = matching;
-        this.instructions = instructions;
-        this.remaining = remaining;
-        this.params = params;
-    }
-    get foundConfiguration() {
-        return this.match !== null;
-    }
-    get foundInstructions() {
-        return this.instructions.some(instruction => !instruction.component.none);
-    }
-    get hasRemaining() {
-        return this.instructions.some(instruction => instruction.hasNextScopeInstructions);
-    }
-}
-
-class InstructionParser {
-    static parse(seps, instructions, grouped, topScope) {
-        if (!instructions) {
-            return { instructions: [], remaining: '' };
-        }
-        if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(seps, instructions)) {
-            throw new Error(`Instruction parser error: Unnecessary siblings separator ${seps.sibling} in beginning of instruction part "${instructions}".`);
-        }
-        const routingInstructions = [];
-        let guard = 1000;
-        while (instructions.length && guard) {
-            guard--;
-            if (instructions.startsWith(seps.scope)) {
-                if (routingInstructions.length === 0) {
-                    throw new Error(`Instruction parser error: Children without parent in instruction part "(${instructions}" is not allowed.`);
-                }
-                topScope = false;
-                instructions = instructions.slice(seps.scope.length);
-                const groupStart = instructions.startsWith(seps.groupStart);
-                if (groupStart) {
-                    instructions = instructions.slice(seps.groupStart.length);
-                    grouped = true;
-                }
-                const { instructions: found, remaining } = InstructionParser.parse(seps, instructions, groupStart, false);
-                routingInstructions[routingInstructions.length - 1].nextScopeInstructions = found;
-                instructions = remaining;
-            }
-            else if (instructions.startsWith(seps.groupStart)) {
-                instructions = instructions.slice(seps.groupStart.length);
-                const { instructions: found, remaining } = InstructionParser.parse(seps, instructions, true, topScope);
-                routingInstructions.push(...found);
-                instructions = remaining;
-            }
-            else if (instructions.startsWith(seps.groupEnd)) {
-                if (grouped) {
-                    instructions = instructions.slice(seps.groupEnd.length);
-                }
-                let i = 0;
-                const ii = instructions.length;
-                for (; i < ii; i++) {
-                    if (instructions.slice(i, i + seps.sibling.length) === seps.sibling) {
-                        return { instructions: routingInstructions, remaining: instructions };
-                    }
-                    if (instructions.slice(i, i + seps.groupEnd.length) !== seps.groupEnd) {
-                        if (routingInstructions.length > 1) {
-                            throw new Error(`Instruction parser error: Children below scope ${seps.groupStart}${seps.groupEnd} in instruction part "(${instructions}" is not allowed.`);
-                        }
-                        else {
-                            instructions = instructions.slice(i);
-                            break;
-                        }
-                    }
-                }
-                if (i >= ii) {
-                    return { instructions: routingInstructions, remaining: instructions };
-                }
-            }
-            else if (instructions.startsWith(seps.sibling) && !InstructionParser.isAdd(seps, instructions)) {
-                if (!grouped) {
-                    return { instructions: routingInstructions, remaining: instructions };
-                }
-                instructions = instructions.slice(seps.sibling.length);
-            }
-            else {
-                const { instruction: routingInstruction, remaining } = InstructionParser.parseOne(seps, instructions);
-                routingInstructions.push(routingInstruction);
-                instructions = remaining;
-            }
-        }
-        return { instructions: routingInstructions, remaining: instructions };
-    }
-    static isAdd(seps, instruction) {
-        return (instruction === seps.add || instruction.startsWith(`${seps.add}${seps.viewport}`));
-    }
-    static parseOne(seps, instruction) {
-        const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.groupEnd, seps.scope, seps.sibling];
-        let component = void 0;
-        let parametersString = void 0;
-        let viewport = void 0;
-        let scope = true;
-        let token;
-        let pos;
-        const unparsed = instruction;
-        const specials = [seps.add, seps.clear];
-        for (const special of specials) {
-            if (instruction === special) {
-                component = instruction;
-                instruction = '';
-                tokens.shift(); // parameters
-                tokens.shift(); // viewport
-                token = seps.viewport;
-                break;
-            }
-        }
-        if (component === void 0) {
-            for (const special of specials) {
-                if (instruction.startsWith(`${special}${seps.viewport}`)) {
-                    component = special;
-                    instruction = instruction.slice(`${special}${seps.viewport}`.length);
-                    tokens.shift(); // parameters
-                    tokens.shift(); // viewport
-                    token = seps.viewport;
-                    break;
-                }
-            }
-        }
-        if (component === void 0) {
-            ({ token, pos } = InstructionParser.findNextToken(instruction, tokens));
-            component = pos !== -1 ? instruction.slice(0, pos) : instruction;
-            instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
-            tokens.shift(); // parameters
-            if (token === seps.parameters) {
-                ({ token, pos } = InstructionParser.findNextToken(instruction, [seps.parametersEnd]));
-                parametersString = instruction.slice(0, pos);
-                instruction = instruction.slice(pos + token.length);
-                ({ token } = InstructionParser.findNextToken(instruction, tokens));
-                instruction = instruction.slice(token.length);
-            }
-            tokens.shift(); // viewport
-        }
-        if (token === seps.viewport) {
-            ({ token, pos } = InstructionParser.findNextToken(instruction, tokens));
-            viewport = pos !== -1 ? instruction.slice(0, pos) : instruction;
-            instruction = pos !== -1 ? instruction.slice(pos + token.length) : '';
-        }
-        tokens.shift(); // noScope
-        if (token === seps.noScope) {
-            scope = false;
-        }
-        // Restore token that belongs to next instruction
-        if (token === seps.groupEnd || token === seps.scope || token === seps.sibling) {
-            instruction = `${token}${instruction}`;
-        }
-        if ((component ?? '') === '') {
-            throw new Error(`Instruction parser error: No component specified in instruction part "${instruction}".`);
-        }
-        const routingInstruction = RoutingInstruction.create(component, viewport, parametersString, scope);
-        routingInstruction.unparsed = unparsed;
-        return { instruction: routingInstruction, remaining: instruction };
-    }
-    static findNextToken(instruction, tokens) {
-        const matches = {};
-        // Tokens can have length > 1
-        for (const token of tokens) {
-            const tokenPos = instruction.indexOf(token);
-            if (tokenPos > -1) {
-                matches[token] = instruction.indexOf(token);
-            }
-        }
-        const pos = Math.min(...Object.values(matches));
-        for (const token in matches) {
-            if (matches[token] === pos) {
-                return { token, pos };
-            }
-        }
-        return { token: '', pos: -1 };
-    }
-}
-
-/**
- * The router's title configuration
- */
-class TitleOptions {
-    constructor(
-    /**
-     * The full application title. Can use placeholders `${componentTitles}`
-     * and `${appTitleSeparator} for joined component titles and a separator
-     * between the component titles and the application name.
-     * Default: '${componentTitles}\${appTitleSeparator}Aurelia'
-     */
-    // eslint-disable-next-line no-useless-escape
-    appTitle = '${componentTitles}\${appTitleSeparator}Aurelia', 
-    /**
-     * The separator between the joined component titles and application name.
-     * Default: ' | '
-     */
-    appTitleSeparator = ' | ', 
-    /**
-     * In what order component titles are joined into `${componentTitles}`.
-     * Default: 'top-down'
-     */
-    componentTitleOrder = 'top-down', 
-    /**
-     * The separator between the component titles. Default: ' > '
-     */
-    componentTitleSeparator = ' > ', 
-    /**
-     * Whether components' names should be used sa titles for components
-     * that doesn't specify a title. Default: true
-     */
-    useComponentNames = true, 
-    /**
-     * Prefixes that are removed from components' names before they are
-     * used as titles. Default: 'app-'
-     */
-    componentPrefix = 'app-', 
-    /**
-     * Function that is called for each component/route title. The
-     * returned value is used instead as title. Default: undefined
-     */
-    transformTitle) {
-        this.appTitle = appTitle;
-        this.appTitleSeparator = appTitleSeparator;
-        this.componentTitleOrder = componentTitleOrder;
-        this.componentTitleSeparator = componentTitleSeparator;
-        this.useComponentNames = useComponentNames;
-        this.componentPrefix = componentPrefix;
-        this.transformTitle = transformTitle;
-    }
-    static create(input = {}) {
-        input = typeof input === 'string' ? { appTitle: input } : input;
-        return new TitleOptions(input.appTitle, input.appTitleSeparator, input.componentTitleOrder, input.componentTitleSeparator, input.useComponentNames, input.componentPrefix, input.transformTitle);
-    }
-    static for(context) {
-        return RouterOptions.for(context).title;
-    }
-    apply(input = {}) {
-        input = typeof input === 'string' ? { appTitle: input } : input;
-        this.appTitle = input.appTitle ?? this.appTitle;
-        this.appTitleSeparator = input.appTitleSeparator ?? this.appTitleSeparator;
-        this.componentTitleOrder = input.componentTitleOrder ?? this.componentTitleOrder;
-        this.componentTitleSeparator = input.componentTitleSeparator ?? this.componentTitleSeparator;
-        this.useComponentNames = input.useComponentNames ?? this.useComponentNames;
-        this.componentPrefix = input.componentPrefix ?? this.componentPrefix;
-        this.transformTitle = 'transformTitle' in input ? input.transformTitle : this.transformTitle;
-    }
+function trace(logger, event, ...optionalParameters) {
+    const message = eventMessageMap[event] ?? 'Unknown event';
+    logger.trace(`AUR${event}: ${message}`, ...optionalParameters);
 }
 /**
- * The separators used in the direct routing syntax
- */
-class Separators {
-    constructor(
-    /**
-     * The character(s) that denotes the start of viewport name
-     */
-    viewport = '@', // ':',
-    /**
-     * The character(s) that separates siblings
-     */
-    sibling = '+', // '/',
-    /**
-     * The character(s) that denotes the start of a new scope
-     */
-    scope = '/', // '+',
-    /**
-     * The character(s) to indicate the start of a grou
-     */
-    groupStart = '(', // ''
-    /**
-     * The character(s) to indicate the end of a group
-     */
-    groupEnd = ')', // ''
-    /**
-     * The character(s) to indicate that the viewport doesn't have
-     * a routing scope
-     */
-    noScope = '!', 
-    /**
-     * The character(s) that denotes the start of component parameters
-     */
-    parameters = '(', // '='
-    /**
-     * The character(s) that denotes the end of component parameters
-     */
-    parametersEnd = ')', // ''
-    /**
-     * The character(s) that separates component parameters
-     */
-    parameterSeparator = ',', // '&'
-    /**
-     * The character(s) that separates a component parameter's key and value
-     */
-    parameterKeySeparator = '=', 
-    /**
-     * The character(s) that denotes that the instructions are additive/not
-     * full viewport state
-     */
-    add = '+', 
-    /**
-     * The character(s) that denotes that a viewport or routing scope should
-     * be cleared/emptied
-     */
-    clear = '-', 
-    /**
-     * The character(s) that denotes the start of a component method (not yet
-     * implemented)
-     */
-    action = '.') {
-        this.viewport = viewport;
-        this.sibling = sibling;
-        this.scope = scope;
-        this.groupStart = groupStart;
-        this.groupEnd = groupEnd;
-        this.noScope = noScope;
-        this.parameters = parameters;
-        this.parametersEnd = parametersEnd;
-        this.parameterSeparator = parameterSeparator;
-        this.parameterKeySeparator = parameterKeySeparator;
-        this.add = add;
-        this.clear = clear;
-        this.action = action;
-    }
-    static create(input = {}) {
-        return new Separators(input.viewport, input.sibling, input.scope, input.groupStart, input.groupEnd, input.noScope, input.parameters, input.parametersEnd, input.parameterSeparator, input.parameterKeySeparator, input.add, input.clear, input.action);
-    }
-    static for(context) {
-        return RouterOptions.for(context).separators;
-    }
-    apply(input = {}) {
-        this.viewport = input.viewport ?? this.viewport;
-        this.sibling = input.sibling ?? this.sibling;
-        this.scope = input.scope ?? this.scope;
-        this.groupStart = input.groupStart ?? this.groupStart;
-        this.groupEnd = input.groupEnd ?? this.groupEnd;
-        this.noScope = input.noScope ?? this.noScope;
-        this.parameters = input.parameters ?? this.parameters;
-        this.parametersEnd = input.parametersEnd ?? this.parametersEnd;
-        this.parameterSeparator = input.parameterSeparator ?? this.parameterSeparator;
-        this.parameterKeySeparator = input.parameterKeySeparator ?? this.parameterKeySeparator;
-        this.add = input.add ?? this.add;
-        this.clear = input.clear ?? this.clear;
-        this.action = input.action ?? this.action;
-    }
-}
-/**
- * The indicators used to mark different states
- */
-class Indicators {
-    constructor(
-    /**
-     * The name of the class indicating that the load link is active
-     */
-    loadActive = 'active', 
-    /**
-     * The name of the class indicating that the viewport is navigating.
-     * The different types of navigation -- first, new, back, forward and
-     * refresh -- will be added as well with this class as prefix, for
-     * example 'navigating-back'.
-     */
-    viewportNavigating = 'navigating') {
-        this.loadActive = loadActive;
-        this.viewportNavigating = viewportNavigating;
-    }
-    static create(input = {}) {
-        return new Indicators(input.loadActive, input.viewportNavigating);
-    }
-    static for(context) {
-        return RouterOptions.for(context).indicators;
-    }
-    apply(input = {}) {
-        this.loadActive = input.loadActive ?? this.loadActive;
-        this.viewportNavigating = input.viewportNavigating ?? this.viewportNavigating;
-    }
-}
-class RouterOptions {
-    constructor(
-    /**
-     * The separators used in the direct routing syntax
-     */
-    separators = Separators.create(), 
-    /**
-     * The indicators used to mark different states
-     */
-    indicators = Indicators.create(), 
-    /**
-     * Whether the fragment should be used for the url/path
-     */
-    useUrlFragmentHash = true, 
-    /**
-     * The base path (base element href) for the app. If set to
-     * - a string that string is used as base path,
-     * - null the value is read from base element's href attribute (default).
-     * The base path is removed or added to the Location url as
-     * needed.
-     */
-    basePath = null, 
-    /**
-     * Whether the `href` html attribute can be used like the `load` custom attribute
-     */
-    useHref = true, 
-    /**
-     * The amount of navigation history entries that are stateful. Default: 0
-     */
-    statefulHistoryLength = 0, 
-    /**
-     * Whether direct routing should be used. Default: true
-     */
-    useDirectRouting = true, 
-    /**
-     * Whether configured routes should be used. Default: true
-     */
-    useConfiguredRoutes = true, 
-    /**
-     * Whether a load instruction by default is a complete state navigation,
-     * for all viewports, or a partial state navigation that is only specifying
-     * the change of the new state of specified viewports. Default: false
-     */
-    completeStateNavigations = false, 
-    /**
-     * The router's title configuration
-     */
-    title = TitleOptions.create(), 
-    /**
-     * The navigation states that are synced meaning that sibling viewports
-     * will wait for all other siblings to reach the navigation state before
-     * continuing with the next steps in the transition. For example, the
-     * `guardedUnload` sync state means that no sibling will continue with
-     * the `canLoad` hook before all siblings have completed the `canUnload`
-     * hooks. To get v1 routing hook behavior, where all routing hooks are
-     * synced,`guardedLoad`, `unload` and `load` should be added to default.
-     * Default: `guardedUnload`, `swapped`, `completed`
-     */
-    navigationSyncStates = ['guardedUnload', 'swapped', 'completed'], 
-    /**
-     * How contents are swapped in a viewport when transitioning. Default: `attach-next-detach-current`
-     */
-    swapOrder = 'attach-next-detach-current', 
-    /**
-     * The component to be loaded if a specified can't be loaded.
-     * The unloadable component is passed as a parameter to the fallback.
-     */
-    fallback = '', 
-    /**
-     * Whether the fallback action is to load the fallback component in
-     * place of the unloadable component and continue with any child
-     * instructions or if the fallback is to be called and the processing
-     * of the children to be aborted.
-     */
-    fallbackAction = 'abort') {
-        this.separators = separators;
-        this.indicators = indicators;
-        this.useUrlFragmentHash = useUrlFragmentHash;
-        this.basePath = basePath;
-        this.useHref = useHref;
-        this.statefulHistoryLength = statefulHistoryLength;
-        this.useDirectRouting = useDirectRouting;
-        this.useConfiguredRoutes = useConfiguredRoutes;
-        this.completeStateNavigations = completeStateNavigations;
-        this.title = title;
-        this.navigationSyncStates = navigationSyncStates;
-        this.swapOrder = swapOrder;
-        this.fallback = fallback;
-        this.fallbackAction = fallbackAction;
-        /**
-         * Any routing hooks that were set during registration with
-         * RouterConfiguration.customize are temporarily stored here
-         * so that they can be set once properly instantiated.
-         */
-        this.registrationHooks = [];
-    }
-    static create(input = {}) {
-        return new RouterOptions(Separators.create(input.separators), Indicators.create(input.indicators), input.useUrlFragmentHash, input.basePath, input.useHref, input.statefulHistoryLength, input.useDirectRouting, input.useConfiguredRoutes, input.completeStateNavigations, TitleOptions.create(input.title), input.navigationSyncStates, input.swapOrder, input.fallback, input.fallbackAction);
-    }
-    static for(context) {
-        if (context instanceof RouterConfiguration) {
-            return context.options;
-        }
-        if (context instanceof Router) {
-            context = context.configuration;
-        }
-        else {
-            context = context.get(IRouterConfiguration);
-        }
-        return context.options;
-    }
-    /**
-     * Apply router options.
-     *
-     * @param options - The options to apply
-     */
-    apply(options) {
-        options = options ?? {};
-        this.separators.apply(options.separators);
-        this.indicators.apply(options.indicators);
-        this.useUrlFragmentHash = options.useUrlFragmentHash ?? this.useUrlFragmentHash;
-        this.basePath = options.basePath ?? this.basePath;
-        this.useHref = options.useHref ?? this.useHref;
-        this.statefulHistoryLength = options.statefulHistoryLength ?? this.statefulHistoryLength;
-        this.useDirectRouting = options.useDirectRouting ?? this.useDirectRouting;
-        this.useConfiguredRoutes = options.useConfiguredRoutes ?? this.useConfiguredRoutes;
-        this.completeStateNavigations = options.completeStateNavigations ?? this.completeStateNavigations;
-        this.title.apply(options.title);
-        this.navigationSyncStates = options.navigationSyncStates ?? this.navigationSyncStates;
-        this.swapOrder = options.swapOrder ?? this.swapOrder;
-        this.fallback = options.fallback ?? this.fallback;
-        this.fallbackAction = options.fallbackAction ?? this.fallbackAction;
-        // TODO: Fix RoutingHooks!
-        if (Array.isArray(options.hooks)) {
-            if (this.routerConfiguration !== void 0) {
-                options.hooks.forEach(hook => this.routerConfiguration.addHook(hook.hook, hook.options));
-            }
-            else {
-                this.registrationHooks = options.hooks;
-            }
-        }
-    }
-    setRouterConfiguration(routerConfiguration) {
-        this.routerConfiguration = routerConfiguration;
-        // Set previously configured routing hooks
-        // TODO: Fix RoutingHooks!
-        this.registrationHooks.forEach(hook => this.routerConfiguration.addHook(hook.hook, hook.options));
-        this.registrationHooks.length = 0;
-    }
-}
-
-class InstructionParameters {
-    constructor() {
-        this.parametersString = null;
-        this.parametersRecord = null;
-        this.parametersList = null;
-        this.parametersType = 'none';
-    }
-    get none() {
-        return this.parametersType === 'none';
-    }
-    // Static methods
-    static create(componentParameters) {
-        const parameters = new InstructionParameters();
-        parameters.set(componentParameters);
-        return parameters;
-    }
-    // TODO: Deal with separators in data and complex types
-    static parse(context, parameters, uriComponent = false) {
-        if (parameters == null || parameters.length === 0) {
-            return [];
-        }
-        const seps = Separators.for(context);
-        const parameterSeparator = seps.parameterSeparator;
-        const parameterKeySeparator = seps.parameterKeySeparator;
-        if (typeof parameters === 'string') {
-            const list = [];
-            const params = parameters.split(parameterSeparator);
-            for (const param of params) {
-                let key;
-                let value;
-                [key, value] = param.split(parameterKeySeparator);
-                if (value === void 0) {
-                    value = uriComponent ? decodeURIComponent(key) : key;
-                    key = void 0;
-                }
-                else if (uriComponent) {
-                    key = decodeURIComponent(key);
-                    value = decodeURIComponent(value);
-                }
-                list.push({ key, value });
-            }
-            return list;
-        }
-        if (Array.isArray(parameters)) {
-            return parameters.map(param => ({ key: void 0, value: param }));
-        }
-        const keys = Object.keys(parameters);
-        keys.sort();
-        return keys.map(key => ({ key, value: parameters[key] }));
-    }
-    get typedParameters() {
-        switch (this.parametersType) {
-            case 'string':
-                return this.parametersString;
-            case 'array':
-                return this.parametersList;
-            case 'object':
-                return this.parametersRecord;
-            default:
-                return null;
-        }
-    }
-    // TODO: Deal with separators in data and complex types
-    static stringify(context, parameters, uriComponent = false) {
-        if (!Array.isArray(parameters) || parameters.length === 0) {
-            return '';
-        }
-        const seps = Separators.for(context);
-        return parameters
-            .map(param => {
-            const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
-            const value = uriComponent ? encodeURIComponent(param.value) : param.value;
-            return key !== void 0 && key !== value ? key + seps.parameterKeySeparator + value : value;
-        })
-            .join(seps.parameterSeparator);
-    }
-    /**
-     * Whether a record of instruction parameters contains another record of
-     * instruction parameters.
-     *
-     * @param parametersToSearch - Parameters that should contain (superset)
-     * @param parametersToFind - Parameters that should be contained (subset)
-     */
-    static contains(parametersToSearch, parametersToFind) {
-        // All parameters to find need to exist in parameters to search
-        return Object.keys(parametersToFind).every(key => parametersToFind[key] === parametersToSearch[key]);
-    }
-    // Instance methods
-    parameters(context) {
-        return InstructionParameters.parse(context, this.typedParameters);
-    }
-    set(parameters) {
-        this.parametersString = null;
-        this.parametersList = null;
-        this.parametersRecord = null;
-        if (parameters == null || parameters === '') {
-            this.parametersType = 'none';
-            parameters = null;
-        }
-        else if (typeof parameters === 'string') {
-            this.parametersType = 'string';
-            this.parametersString = parameters;
-        }
-        else if (Array.isArray(parameters)) {
-            this.parametersType = 'array';
-            this.parametersList = parameters;
-        }
-        else {
-            this.parametersType = 'object';
-            this.parametersRecord = parameters;
-        }
-    }
-    get(context, name) {
-        if (name === void 0) {
-            // TODO: Turn this into a parameters object instead
-            return this.parameters(context);
-        }
-        const params = this.parameters(context).filter(p => p.key === name).map(p => p.value);
-        if (params.length === 0) {
-            return;
-        }
-        return params.length === 1 ? params[0] : params;
-    }
-    // This only works with objects added to objects!
-    addParameters(parameters) {
-        if (this.parametersType === 'none') {
-            return this.set(parameters);
-        }
-        if (this.parametersType !== 'object') {
-            throw new Error('Can\'t add object parameters to existing non-object parameters!');
-        }
-        this.set({ ...this.parametersRecord, ...parameters });
-    }
-    toSpecifiedParameters(context, specifications) {
-        specifications = specifications ?? [];
-        const parameters = this.parameters(context);
-        const specified = {};
-        for (const spec of specifications) {
-            // First get named if it exists
-            let index = parameters.findIndex(param => param.key === spec);
-            if (index >= 0) {
-                const [parameter] = parameters.splice(index, 1);
-                specified[spec] = parameter.value;
-            }
-            else {
-                // Otherwise get first unnamed
-                index = parameters.findIndex(param => param.key === void 0);
-                if (index >= 0) {
-                    const [parameter] = parameters.splice(index, 1);
-                    specified[spec] = parameter.value;
-                }
-            }
-        }
-        // Add all remaining named
-        for (const parameter of parameters.filter(param => param.key !== void 0)) {
-            specified[parameter.key] = parameter.value;
-        }
-        let index = specifications.length;
-        // Add all remaining unnamed...
-        for (const parameter of parameters.filter(param => param.key === void 0)) {
-            // ..with an index
-            specified[index++] = parameter.value;
-        }
-        return specified;
-    }
-    toSortedParameters(context, specifications) {
-        specifications = specifications || [];
-        const parameters = this.parameters(context);
-        const sorted = [];
-        for (const spec of specifications) {
-            // First get named if it exists
-            let index = parameters.findIndex(param => param.key === spec);
-            if (index >= 0) {
-                const parameter = { ...parameters.splice(index, 1)[0] };
-                parameter.key = void 0;
-                sorted.push(parameter);
-            }
-            else {
-                // Otherwise get first unnamed
-                index = parameters.findIndex(param => param.key === void 0);
-                if (index >= 0) {
-                    const parameter = { ...parameters.splice(index, 1)[0] };
-                    sorted.push(parameter);
-                }
-                else {
-                    // Or an empty
-                    sorted.push({ value: void 0 });
-                }
-            }
-        }
-        // Add all remaining named
-        const params = parameters.filter(param => param.key !== void 0);
-        params.sort((a, b) => (a.key || '') < (b.key || '') ? 1 : (b.key || '') < (a.key || '') ? -1 : 0);
-        sorted.push(...params);
-        // Add all remaining unnamed...
-        sorted.push(...parameters.filter(param => param.key === void 0));
-        return sorted;
-    }
-    // TODO: Somewhere we need to check for format such as spaces etc
-    same(context, other, componentType) {
-        const typeParameters = componentType !== null ? componentType.parameters : [];
-        const mine = this.toSpecifiedParameters(context, typeParameters);
-        const others = other.toSpecifiedParameters(context, typeParameters);
-        return Object.keys(mine).every(key => mine[key] === others[key])
-            && Object.keys(others).every(key => others[key] === mine[key]);
-    }
-}
-
-class InstructionComponent {
-    constructor() {
-        /**
-         * The name of the component.
-         */
-        this.name = null;
-        /**
-         * The (custom element) type of the component.
-         */
-        this.type = null;
-        /**
-         * The (custom element) instance of the component.
-         */
-        this.instance = null;
-        /**
-         * A promise that will resolve into a component name, type,
-         * instance or definition.
-         */
-        this.promise = null;
-        /**
-         * A function that should result in a component name, type,
-         * instance, definition or promise to any of these at the time
-         * of route invocation.
-         */
-        this.func = null;
-    }
-    /**
-     * Create a new instruction component.
-     *
-     * @param component - The component
-     */
-    static create(componentAppelation) {
-        const component = new InstructionComponent();
-        component.set(componentAppelation);
-        return component;
-    }
-    static isName(component) {
-        return typeof component === 'string';
-    }
-    static isDefinition(component) {
-        return CustomElement.isType(component.Type);
-    }
-    static isType(component) {
-        return CustomElement.isType(component);
-    }
-    static isInstance(component) {
-        return isCustomElementViewModel(component);
-    }
-    static isAppelation(component) {
-        return InstructionComponent.isName(component)
-            || InstructionComponent.isType(component)
-            || InstructionComponent.isInstance(component);
-    }
-    static getName(component) {
-        if (InstructionComponent.isName(component)) {
-            return component;
-        }
-        else if (InstructionComponent.isType(component)) {
-            return CustomElement.getDefinition(component).name;
-        }
-        else {
-            return InstructionComponent.getName(component.constructor);
-        }
-    }
-    static getType(component) {
-        if (InstructionComponent.isName(component)) {
-            return null;
-        }
-        else if (InstructionComponent.isType(component)) {
-            return component;
-        }
-        else {
-            return component.constructor;
-        }
-    }
-    static getInstance(component) {
-        if (InstructionComponent.isName(component) || InstructionComponent.isType(component)) {
-            return null;
-        }
-        else {
-            return component;
-        }
-    }
-    // Instance methods
-    set(component) {
-        let name = null;
-        let type = null;
-        let instance = null;
-        let promise = null;
-        let func = null;
-        if (component instanceof Promise) {
-            promise = component;
-        }
-        else if (InstructionComponent.isName(component)) {
-            name = InstructionComponent.getName(component);
-        }
-        else if (InstructionComponent.isType(component)) {
-            name = this.getNewName(component);
-            type = InstructionComponent.getType(component);
-        }
-        else if (InstructionComponent.isInstance(component)) {
-            name = this.getNewName(InstructionComponent.getType(component));
-            type = InstructionComponent.getType(component);
-            instance = InstructionComponent.getInstance(component);
-        }
-        else if (typeof component === 'function') {
-            func = component;
-        }
-        this.name = name;
-        this.type = type;
-        this.instance = instance;
-        this.promise = promise;
-        this.func = func;
-    }
-    resolve(instruction) {
-        if (this.func !== null) {
-            this.set(this.func(instruction));
-        }
-        if (!(this.promise instanceof Promise)) {
-            return;
-        }
-        return this.promise.then((component) => {
-            // TODO(alpha): Fix the issues with import/module here
-            if (InstructionComponent.isAppelation(component)) {
-                this.set(component);
-                return;
-            }
-            if (component.default != null) {
-                this.set(component.default);
-                return;
-            }
-            const keys = Object.keys(component).filter(key => !key.startsWith('__'));
-            if (keys.length === 0) {
-                throw new Error(`Failed to load component Type from resolved Promise since no export was specified.`);
-            }
-            if (keys.length > 1) {
-                throw new Error(`Failed to load component Type from resolved Promise since no 'default' export was specified when having multiple exports.`);
-            }
-            const key = keys[0];
-            // TODO(alpha): Fix type here
-            // eslint-disable-next-line
-            this.set(component[key]);
-        });
-    }
-    get none() {
-        return !this.isName() && !this.isType() && !this.isInstance() && !this.isFunction() && !this.isPromise();
-    }
-    isName() {
-        return this.name != null && this.name !== '' && !this.isType() && !this.isInstance();
-    }
-    isType() {
-        return this.type !== null && !this.isInstance();
-    }
-    isInstance() {
-        return this.instance !== null;
-    }
-    isPromise() {
-        return this.promise !== null;
-    }
-    isFunction() {
-        return this.func !== null;
-    }
-    toType(container, instruction) {
-        // TODO: Allow instantiation from a promise here, by awaiting resolve (?)
-        void this.resolve(instruction);
-        if (this.type !== null) {
-            return this.type;
-        }
-        if (this.name !== null
-            && typeof this.name === 'string') {
-            if (container === null) {
-                throw new Error(`No container available when trying to resolve component '${this.name}'!`);
-            }
-            if (container.has(CustomElement.keyFrom(this.name), true)) {
-                const resolver = container.getResolver(CustomElement.keyFrom(this.name));
-                if (resolver !== null && resolver.getFactory !== void 0) {
-                    const factory = resolver.getFactory(container);
-                    if (factory) {
-                        return factory.Type;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-    /**
-     * Returns the component instance of this instruction.
-     *
-     * Throws instantiation error if there was an error during instantiation.
-     */
-    toInstance(parentContainer, parentController, parentElement, instruction) {
-        return onResolve(this.resolve(instruction), () => {
-            if (this.instance !== null) {
-                return this.instance;
-            }
-            if (parentContainer == null) {
-                return null;
-            }
-            return this._createInstance(parentContainer, parentController, parentElement, instruction);
-        });
-    }
-    same(other, compareType = false) {
-        return compareType ? this.type === other.type : this.name === other.name;
-    }
-    getNewName(type) {
-        if (this.name === null) {
-            return InstructionComponent.getName(type);
-        }
-        return this.name;
-    }
-    /** @internal */
-    /**
-     * Creates the component instance for this instruction.
-     *
-     * Throws instantiation error if there was an error during instantiation.
-     */
-    _createInstance(parentContainer, parentController, parentElement, instruction) {
-        const container = parentContainer.createChild();
-        const Type = this.isType()
-            ? this.type
-            : container.getResolver(CustomElement.keyFrom(this.name)).getFactory(container).Type;
-        const host = parentElement.appendChild(container.get(IPlatform).document.createElement(CustomElement.getDefinition(Type).name));
-        registerHostNode(container, host);
-        const instance = container.invoke(Type);
-        // TODO: Investigate this!
-        // const instance: IRouteableComponent = this.isType()
-        //   ? container.invoke(this.type!)
-        //   : container.get(routerComponentResolver(this.name!));
-        // TODO: Implement non-traversing lookup (below) based on router configuration
-        // let instance;
-        // if (this.isType()) {
-        //   instance = ownContainer.invoke(this.type!);
-        // } else {
-        //   const def = CustomElement.find(ownContainer, this.name!);
-        //   if (def != null) {
-        //     instance = ownContainer.invoke(def.Type);
-        //   }
-        // }
-        if (instance == null) {
-            {
-                // eslint-disable-next-line no-console
-                console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
-            }
-            throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
-        }
-        const controller = Controller.$el(container, instance, host, null);
-        // TODO: Investigate if this is really necessary
-        controller.parent = parentController;
-        return instance;
-    }
-}
-// TODO: Investigate this (should possibly be added back)
-// function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
-//   const key = CustomElement.keyFrom(name);
-//   return {
-//     $isResolver: true,
-//     resolve(_, requestor) {
-//       // const container = requestor.get(IHydrationContext).parent!.controller.container;
-//       if (requestor.has(key, false)) {
-//         return requestor.get(key);
-//       }
-//       if (requestor.root.has(key, false)) {
-//         return requestor.root.get(key);
-//       }
-//       // it's not always correct to consider this resolution as a traversal
-//       // since sometimes it could be the work of trying a fallback configuration as component
-//       // todo: cleanup the paths so that it's clearer when a fallback is being tried vs when an actual component name configuration
-//       //
-//       // console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
-//       //   + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
-//       return requestor.get(key);
-//     }
-//   };
-// }
-
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
-/**
- * Shouldn't be used directly
+ * Only happens in DEV mode.
  *
  * @internal
  */
-function arrayRemove(arr, func) {
-    const removed = [];
-    let arrIndex = arr.findIndex(func);
-    while (arrIndex >= 0) {
-        removed.push(arr.splice(arrIndex, 1)[0]);
-        arrIndex = arr.findIndex(func);
-    }
-    return removed;
+function debug(logger, event, ...optionalParameters) {
+    const message = eventMessageMap[event] ?? 'Unknown event';
+    logger.debug(`AUR${event}: ${message}`, ...optionalParameters);
 }
-/**
- * @internal
- */
-function arrayAddUnique(arr, values) {
-    if (!Array.isArray(values)) {
-        values = [values];
+/** @internal */
+function warn(logger, event, ...optionalParameters) {
+    {
+        const message = eventMessageMap[event];
+        logger.warn(`AUR${event}: ${message}`, ...optionalParameters);
     }
-    for (const value of values) {
-        if (!arr.includes(value)) {
-            arr.push(value);
+}
+/** @internal */
+function error(logger, event, ...optionalParameters) {
+    {
+        const message = eventMessageMap[event];
+        logger.error(`AUR${event}: ${message}`, ...optionalParameters);
+    }
+}
+/** @internal */
+function getMessage(event, ...optionalParameters) {
+    {
+        let message = eventMessageMap[event];
+        let offset = 0;
+        while (message.includes('%s') || offset < optionalParameters.length) {
+            message = message.replace('%s', String(optionalParameters[offset++]));
         }
+        return `AUR${event}: ${message}`;
     }
-    return arr;
 }
-/**
- * @internal
- */
-function arrayUnique(arr, includeNullish = false) {
-    return arr.filter((item, i, arrAgain) => (includeNullish || item != null) && arrAgain.indexOf(item) === i);
+function logAndThrow(err, logger) {
+    logger.error(err);
+    throw err;
 }
 
-/**
- * The OpenPromise provides an open API to a promise.
- */
-class OpenPromise {
-    constructor(description = '') {
-        this.description = description;
-        /**
-         * Whether the promise is still pending (not settled)
-         */
-        this.isPending = true;
-        this.promise = new Promise((resolve, reject) => {
-            this._resolve = resolve;
-            this._reject = reject;
-            OpenPromise.promises.push(this);
-        });
+/** @internal */
+class Batch {
+    constructor(_stack, _cb, head) {
+        this._stack = _stack;
+        this._cb = _cb;
+        this._done = false;
+        this._next = null;
+        this._head = head ?? this;
     }
-    /**
-     * Resolve the (open) promise.
-     *
-     * @param value - The value to resolve with
-     */
-    resolve(value) {
-        this._resolve(value);
-        this.isPending = false;
-        OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
+    static _start(cb) {
+        return new Batch(0, cb, null);
     }
-    /**
-     * Reject the (open) promise.
-     *
-     * @param reason - The reason the promise is rejected
-     */
-    reject(reason) {
-        this._reject(reason);
-        this.isPending = false;
-        OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
-    }
-}
-OpenPromise.promises = [];
-
-/**
- * Class for running a sequence of steps with values,
- * functions and promises. Stays sync if possible.
- *
- * Usage:
- *
- * ```ts
- * const promise = Runner.run(null,
- *   'one',
- *   step => `${step.previousValue}, two`,
- *   step => createPromise(step.previousValue), // creates a promise that resolves to `${value}, three`
- * );
- *
- * // Run can be cancelled with Runner.cancel(promise);
- *
- * const stepsRunner = Runner.runner(promise);
- * const result = await promise;
- * if (stepsRunner?.isResolved) { // Make sure promise wasn't rejected
- *   // result === 'one, two, three'
- * }
- * ```
- */
-class Runner {
-    constructor() {
-        this.isDone = false;
-        this.isCancelled = false;
-        this.isResolved = false;
-        this.isRejected = false;
-        this.isAsync = false;
-    }
-    /**
-     * Runs a set of steps and retuns the last value
-     *
-     * Steps are processed in sequence and can be either a
-     *
-     * - value - which is then propagated as input into the next step
-     * - function - which is executed in time. The result is replacing the step which is then reprocessed
-     * - promise - which is awaited
-     *
-     * ```ts
-     * result = await Runner.run(null,
-     *   'one',
-     *   step => `${step.previousValue}, two`,
-     *   step => createPromise(step.previousValue), // creates a promise that resolves to `${value}, three`
-     * ); // result === 'one, two, three'
-     * ```
-     *
-     * Returns the result as a promise or a value.
-     *
-     * If first parameter is an existing Step, the additional steps will be added to run after it. In this
-     * case, the return value will be the first new step and not the result (since it doesn't exist yet).
-     */
-    static run(predecessor, ...steps) {
-        if (steps.length === 0) {
-            return void 0;
-        }
-        let newRoot = false;
-        // No predecessor, so create a new root and add steps as children to it
-        if (predecessor === null || typeof predecessor === 'string') {
-            predecessor = new Step(predecessor);
-            newRoot = true;
-        }
-        // First new step
-        const start = new Step(steps.shift());
-        // If the predecessor is new root or parallel the start needs to be a child of the predecessor
-        Runner.connect(predecessor, start, (predecessor?.runParallel ?? false) || newRoot);
-        if (steps.length > 0) {
-            Runner.add(start, false, ...steps);
-        }
-        // If we've added a new root, run and return the result
-        if (newRoot) {
-            Runner.process(predecessor);
-            if (predecessor.result instanceof Promise) {
-                this.runners.set(predecessor.result, predecessor);
-            }
-            return predecessor.result;
-        }
-        return start;
-    }
-    /**
-     * Runs a set of steps and retuns a list with their results
-     *
-     * Steps are processed in parallel and can be either a
-     *
-     * - value - which is then propagated as input into the next step
-     * - function - which is executed in time. The result is replacing the step which is then reprocessed
-     * - promise - which is awaited
-     *
-     * ```ts
-     * result = await Runner.runParallel(null,
-     *   'one',
-     *   step => `${step.previousValue}, two`,
-     *   step => createPromise(step.previousValue), // creates a promise that resolves to `${value}, three`
-     * ); // result === ['one', 'one, two', 'one, two, three']
-     * ```
-     *
-     * Returns the result as a promise or a list of values.
-     *
-     * If first parameter is an existing Step, the additional steps will be added to run after it. In this
-     * case, the return value will be the first new step and not the result (since it doesn't exist yet).
-     */
-    static runParallel(parent, ...steps) {
-        if ((steps?.length ?? 0) === 0) {
-            return [];
-        }
-        let newRoot = false;
-        // No parent, so parallel from a new root
-        if (parent === null) {
-            parent = new Step();
-            newRoot = true;
-        }
-        else { // Need to inject a step under the parent to put the parallel steps under
-            parent = Runner.connect(parent, new Step(), true);
-        }
-        Runner.add(parent, true, ...steps);
-        if (newRoot) {
-            Runner.process(parent);
-        }
-        if (parent.result instanceof Promise) {
-            this.runners.set(parent.result, parent);
-        }
-        return newRoot ? (parent.result ?? []) : parent;
-    }
-    /**
-     * Gets the starting step for a promise returned by Runner.run
-     *
-     * The step can be used to check status and outcome of
-     * the run as well as cancel it
-     *
-     */
-    static step(value) {
-        if (value instanceof Promise) {
-            return Runner.runners.get(value);
-        }
-    }
-    /**
-     * Cancels the remaining steps for a step or promise returned by Runner.run
-     *
-     * Once a starting step has been cancelled, it's no longer possible
-     * to retrieve it from the promise
-     *
-     */
-    static cancel(value) {
-        const step = Runner.step(value);
-        if (step !== void 0) {
-            step.cancel();
-        }
-    }
-    static add(predecessorOrParent, parallel, ...steps) {
-        let step = new Step(steps.shift(), parallel);
-        // Connect to predecessor or parent if there is one
-        if (predecessorOrParent !== null) {
-            // Connect first step either after or below depending on parallel
-            step = Runner.connect(predecessorOrParent, step, parallel);
-        }
-        const start = step;
-        while (steps.length > 0) {
-            // Connect subsequent steps after
-            step = Runner.connect(step, new Step(steps.shift(), parallel), false);
-        }
-        return start;
-    }
-    static connect(predecessorOrParent, step, asChild) {
-        if (!asChild) {
-            // Can have a pre-existing next
-            const next = predecessorOrParent.next;
-            predecessorOrParent.next = step;
-            step.previous = predecessorOrParent;
-            step.next = next;
-            if (next !== null) {
-                next.previous = step;
-                next.parent = null;
-            }
-        }
-        else {
-            // Shouldn't really have a pre-existing child, but just to be sure
-            const child = predecessorOrParent.child;
-            predecessorOrParent.child = step;
-            step.parent = predecessorOrParent;
-            step.next = child;
-            if (child !== null) {
-                child.parent = null;
-                child.previous = step;
-            }
-        }
-        return step;
-    }
-    // Always set and resolve root OpenPromise as soon as there's a promise somewhere
-    // Subsequent calls work on the origin promise(s)
-    // root is the top root of the connected steps
-    // step.promise holds promise that resolves
-    // step.value holds value that's resolved
-    static process(step) {
-        const root = step.root;
-        while (step !== null && !step.isDoing && !step.isDone) {
-            root.current = step;
-            if (step.isParallelParent) {
-                step.isDone = true;
-                let child = step.child;
-                while (child !== null) {
-                    Runner.process(child);
-                    child = child.next;
-                }
-            }
-            else {
-                step.isDoing = true;
-                step.value = step.step;
-                // Iteratively resolve Functions (until value or Promise)
-                // Called method can stop iteration by setting isDone on the step
-                while (step.value instanceof Function && !step.isCancelled && !step.isExited && !step.isDone) {
-                    step.value = (step.value)(step);
-                }
-                if (!step.isCancelled) {
-                    // If we've got a Promise, run the remaining
-                    if (step.value instanceof Promise) {
-                        // Store promise since propagateResult can change it for OpenPromise
-                        const promise = step.value;
-                        Runner.ensurePromise(root);
-                        // TODO: Possibly also ensure promise in origin
-                        (($step, $promise) => {
-                            $promise.then(result => {
-                                $step.value = result;
-                                // Only if there's a "public" promise to resolve
-                                Runner.settlePromise($step);
-                                $step.isDone = true;
-                                $step.isDoing = false;
-                                const next = $step.nextToDo();
-                                if (next !== null && !$step.isExited) {
-                                    Runner.process(next);
-                                }
-                                else {
-                                    if ($step.root.doneAll || $step.isExited) {
-                                        Runner.settlePromise($step.root);
-                                    }
-                                }
-                            }).catch(err => { throw err; });
-                        })(step, promise);
-                    }
-                    else {
-                        step.isDone = true;
-                        step.isDoing = false;
-                        if (!step.isExited) {
-                            step = step.nextToDo();
-                        }
-                        else {
-                            step = null;
-                        }
-                    }
-                }
-            }
-        }
-        // Keep this, good for debugging unresolved steps
-        // Runner.roots[root.id] = root.doneAll ? true : root.step;
-        // console.log(root.doneAll, root.report, Runner.roots);
-        // console.log(root.doneAll, root.report);
-        if (root.isCancelled) {
-            Runner.settlePromise(root, 'reject');
-        }
-        else if (root.doneAll || root.isExited) {
-            Runner.settlePromise(root);
-        }
-    }
-    static ensurePromise(step) {
-        if (step.finally === null) {
-            step.finally = new OpenPromise(`Runner: ${step.name}, ${step.previousValue}, ${step.value}, ${step.root.report}`);
-            step.promise = step.finally.promise;
-            return true;
-        }
-        return false;
-    }
-    static settlePromise(step, outcome = 'resolve') {
-        if (step.finally?.isPending ?? false) {
-            step.promise = null;
-            // TODO: Should it also iteratively resolve functions and promises?
-            switch (outcome) {
-                case 'resolve':
-                    step.finally?.resolve(step.result);
-                    break;
-                case 'reject':
-                    step.finally?.reject(step.result);
-                    break;
-            }
-        }
-    }
-}
-Runner.runners = new WeakMap();
-Runner.roots = {};
-class Step {
-    constructor(step = void 0, runParallel = false) {
-        this.step = step;
-        this.runParallel = runParallel;
-        this.promise = null;
-        this.previous = null;
-        this.next = null;
-        this.parent = null;
-        this.child = null;
-        this.current = null;
-        this.finally = null;
-        this.isDoing = false;
-        this.isDone = false;
-        this.isCancelled = false;
-        this.isExited = false;
-        this.exited = null;
-        this.id = '-1';
-        this.id = `${Step.id++}`;
-        if (typeof step === 'string') {
-            this.id += ` ${step}`;
-        }
-    }
-    get isParallelParent() {
-        return this.child?.runParallel ?? false;
-    }
-    get result() {
-        // TODO: Possibly check done and create a promise if necessary
-        // If we've got a promise, we're not done so return the promise
-        if (this.promise !== null) {
-            return this.promise;
-        }
-        // Parents (including root) return the results of their children
-        if (this.child !== null) {
-            // If it's a parallel parent, return all child results...
-            if (this.isParallelParent) {
-                const results = [];
-                let child = this.child;
-                while (child !== null) {
-                    results.push(child.result);
-                    child = child.next;
-                }
-                return results;
-            }
-            else { // ...otherwise return the one that exited/the last one.
-                return this === this.root && this.exited !== null ? this.exited.result : this.child?.tail?.result;
-            }
-        }
-        // If none of the above, return the value
-        let value = this.value;
-        while (value instanceof Step) {
-            value = value.result;
-        }
-        return value;
-    }
-    get asValue() {
-        // TODO: This should check done and create a promise if necessary
-        return this.result;
-    }
-    get previousValue() {
-        return this.runParallel
-            ? this.head.parent?.parent?.previous?.result
-            : this.previous?.result;
-    }
-    get name() {
-        let name = `${this.id}`;
-        if (this.runParallel) {
-            name = `:${name}`;
-        }
-        if (this.value instanceof Promise || this.promise instanceof Promise) {
-            name = `${name}*`;
-        }
-        if (this.finally !== null) {
-            name = `${name}*`;
-        }
-        if (this.child !== null) {
-            name = `${name}>`;
-        }
-        if (this.isDone) {
-            name = `(${name})`;
-        }
-        return name;
-    }
-    get root() {
-        let root = this.head;
-        while (root.parent !== null) {
-            root = root.parent.head;
-        }
-        return root;
-    }
-    get head() {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let step = this;
-        while (step.previous !== null) {
-            step = step.previous;
-        }
-        return step;
-    }
-    get tail() {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        let step = this;
-        while (step.next !== null) {
-            step = step.next;
-        }
-        return step;
-    }
-    get done() {
-        if (!this.isDone) {
-            return false;
-        }
-        let step = this.child;
-        while (step !== null) {
-            if (!step.done) {
-                return false;
-            }
-            step = step.next;
-        }
-        return true;
-    }
-    get doneAll() {
-        if (!this.isDone
-            || ((this.child !== null) && !this.child.doneAll)
-            || ((this.next !== null) && !this.next.doneAll)) {
-            return false;
-        }
-        return true;
-    }
-    cancel(all = true) {
-        if (all) {
-            return this.root.cancel(false);
-        }
-        if (this.isCancelled) {
-            return false;
-        }
-        this.isCancelled = true;
-        this.child?.cancel(false);
-        this.next?.cancel(false);
-        return true;
-    }
-    exit(all = true) {
-        if (all) {
-            this.root.exited = this;
-            return this.root.exit(false);
-        }
-        if (this.isExited) {
-            return false;
-        }
-        this.isExited = true;
-        this.child?.exit(false);
-        this.next?.exit(false);
-        return true;
-    }
-    nextToDo() {
-        // First step into if possible
-        if (this.child !== null && !this.child.isDoing && !this.child.isDone) {
-            return this.child;
-        }
-        // Parallels can only continue if they are the last one finished
-        if (this.runParallel && !this.head.parent.done) {
-            return null;
-        }
-        return this.nextOrUp();
-    }
-    nextOrUp() {
-        // Take next if possible
-        let next = this.next;
-        while (next !== null) {
-            if (!next.isDoing && !next.isDone) {
-                return next;
-            }
-            next = next.next;
-        }
-        // Need to back out/up
-        const parent = this.head.parent ?? null;
-        if (parent === null || !parent.done) {
-            return null;
-        }
-        // And try again from parent
-        return parent.nextOrUp();
-    }
-    // Method is purely for debugging
-    get path() {
-        return `${this.head.parent?.path ?? ''}/${this.name}`;
-    }
-    // Method is purely for debugging
-    get tree() {
-        let result = '';
-        let step = this.head;
-        let parent = step.parent;
-        let path = '';
-        while (parent !== null) {
-            path = `${parent.path}${path}`;
-            parent = parent.head.parent;
-        }
+    _push() {
+        let cur = this;
         do {
-            result += `${path}/${step.name}\n`;
-            if (step === this) {
-                break;
+            ++cur._stack;
+            cur = cur._next;
+        } while (cur !== null);
+    }
+    _pop() {
+        let cur = this;
+        do {
+            if (--cur._stack === 0) {
+                cur._invoke();
             }
-            step = step.next;
-        } while (step !== null);
-        return result;
+            cur = cur._next;
+        } while (cur !== null);
     }
-    // Method is purely for debugging
-    get report() {
-        let result = `${this.path}\n`;
-        result += this.child?.report ?? '';
-        result += this.next?.report ?? '';
-        return result;
-    }
-}
-Step.id = 0;
-
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable prefer-template */
-/** @internal */
-const createMappedError = (code, ...details) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
-    ;
-
-const errorsMap = {
-    [99 /* ErrorNames.method_not_implemented */]: 'Method {{0}} not implemented',
-    [2000 /* ErrorNames.router_started */]: `Router.start() called while the it has already been started.`,
-    [2001 /* ErrorNames.router_not_started */]: 'Router.stop() has been called while it has not been started',
-    [2002 /* ErrorNames.router_remove_endpoint_failure */]: "Router failed to remove endpoint: {{0}}",
-    [2003 /* ErrorNames.router_check_activate_string_error */]: `Parameter instructions to checkActivate can not be a string ('{{0}}')!`,
-    [2004 /* ErrorNames.router_failed_appending_routing_instructions */]: 'Router failed to append routing instructions to coordinator',
-    [2005 /* ErrorNames.router_failed_finding_viewport_when_updating_viewer_path */]: 'Router failed to find viewport when updating viewer paths.',
-    [2006 /* ErrorNames.router_infinite_instruction */]: `{{0}} remaining instructions after 100 iterations; there is likely an infinite loop.`,
-    [2007 /* ErrorNames.browser_viewer_store_already_started */]: 'Browser navigation has already been started',
-    [2008 /* ErrorNames.browser_viewer_store_not_started */]: 'Browser navigation has not been started',
-    [2009 /* ErrorNames.browser_viewer_store_state_serialization_failed */]: `Failed to "{{0}}" state, probably due to unserializable data and/or parameters:` +
-        `\nSerialization error: {{1}}` +
-        `\nOriginal error: {originalError}`,
-    [2010 /* ErrorNames.navigator_already_started */]: 'Navigator has already been started',
-    [2011 /* ErrorNames.navigator_not_started */]: 'Navigator has not been started',
-    [2012 /* ErrorNames.route_no_component_as_config */]: `Invalid route configuration: A component ` +
-        `can't be specified in a component route configuration.`,
-    [2013 /* ErrorNames.route_no_both_component_and_instructions */]: `Invalid route configuration: The 'component' and 'instructions' properties ` +
-        `can't be specified in a component route configuration.`,
-    [2014 /* ErrorNames.route_nullish_config */]: `Invalid route configuration: expected an object but got null/undefined.`,
-    [2015 /* ErrorNames.route_instructions_existed */]: `Invalid route configuration: the 'instructions' property can't be used together with ` +
-        `the 'component', 'viewport', 'parameters' or 'children' properties.`,
-    [2016 /* ErrorNames.route_invalid_config */]: `Invalid route configuration: either 'redirectTo' or 'instructions' need to be specified.`,
-    [2017 /* ErrorNames.endpoint_instantiation_error */]: `There was an error durating the instantiation of "{{0}}".`
-        + ` "{{0}}" did not match any configured route or registered component name`
-        + ` - did you forget to add the component "{{0}}" to the dependencies or to register it as a global dependency?\n`
-        + `{{1:innerError}}`,
-    [2018 /* ErrorNames.element_name_not_found */]: `Cannot find an element with the name "{{0}}", did you register it via "dependencies" option or <import> with convention?.\n`,
-    [2019 /* ErrorNames.router_error_3 */]: `-- placeholder --`,
-    [2020 /* ErrorNames.router_error_4 */]: `-- placeholder --`,
-    [2021 /* ErrorNames.router_error_5 */]: `-- placeholder --`,
-    [2022 /* ErrorNames.router_error_6 */]: `-- placeholder --`,
-    [2023 /* ErrorNames.router_error_7 */]: `-- placeholder --`,
-    [2024 /* ErrorNames.router_error_8 */]: `-- placeholder --`,
-    [2025 /* ErrorNames.router_error_9 */]: `-- placeholder --`,
-    [2026 /* ErrorNames.router_error_10 */]: `-- placeholder --`,
-};
-const getMessageByCode = (name, ...details) => {
-    let cooked = errorsMap[name];
-    for (let i = 0; i < details.length; ++i) {
-        const regex = new RegExp(`{{${i}(:.*)?}}`, 'g');
-        let matches = regex.exec(cooked);
-        while (matches != null) {
-            const method = matches[1]?.slice(1);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let value = details[i];
-            if (value != null) {
-                switch (method) {
-                    case 'nodeName':
-                        value = value.nodeName.toLowerCase();
-                        break;
-                    case 'name':
-                        value = value.name;
-                        break;
-                    case 'typeof':
-                        value = typeof value;
-                        break;
-                    case 'ctor':
-                        value = value.constructor.name;
-                        break;
-                    case 'toString':
-                        value = Object.prototype.toString.call(value);
-                        break;
-                    case 'join(!=)':
-                        value = value.join('!=');
-                        break;
-                    case 'element':
-                        value = value === '*' ? 'all elements' : `<${value} />`;
-                        break;
-                    case 'innerError':
-                        value = `\nDetails:\n${value}\n${(value instanceof Error) && value.cause != null ? `${String(value.cause)}\n` : ''}`;
-                        break;
-                    default: {
-                        // property access
-                        if (method?.startsWith('.')) {
-                            const paths = method.slice(1).split('.');
-                            for (let j = 0; j < paths.length && value != null; ++j) {
-                                value = value[paths[j]];
-                            }
-                        }
-                    }
-                }
-            }
-            cooked = cooked.slice(0, matches.index) + String(value) + cooked.slice(regex.lastIndex);
-            matches = regex.exec(cooked);
+    _invoke() {
+        const cb = this._cb;
+        if (cb !== null) {
+            this._cb = null;
+            cb(this);
+            this._done = true;
         }
     }
-    return cooked;
-};
-
-class Route {
-    constructor(
-    /**
-     * The path to match against the url.
-     */
-    path, 
-    /**
-     * The id for this route, which can be used in the view for generating hrefs.
-     *
-     * (TODO: decide on, and provide more details about, whether this can be specified without specifying path, and what happens in different combinations of situations)
-     */
-    id, 
-    /**
-     * The path to which to redirect when the url matches the path in this config.
-     *
-     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
-     */
-    redirectTo, 
-    /**
-     * The instructions that should be loaded when this route is matched.
-     */
-    instructions, 
-    /**
-     * Whether the `path` should be case sensitive.
-     */
-    caseSensitive, 
-    /**
-     * Title string or function to be used when setting title for the route.
-     */
-    // TODO(jurgen): Specify type!
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    title, 
-    /**
-     * The reload behavior of the components in the route, as in how they behave
-     * when the route is loaded again.
-     *
-     * TODO(alpha): Add support for function in value
-     */
-    reloadBehavior, 
-    /**
-     * Any custom data that should be accessible to matched components or hooks.
-     */
-    data) {
-        this.path = path;
-        this.id = id;
-        this.redirectTo = redirectTo;
-        this.instructions = instructions;
-        this.caseSensitive = caseSensitive;
-        this.title = title;
-        this.reloadBehavior = reloadBehavior;
-        this.data = data;
-    }
-    /**
-     * Apply the specified configuration to the specified type, overwriting any existing configuration.
-     */
-    static configure(configOrPath, Type) {
-        const config = Route.create(configOrPath, Type);
-        Metadata.define(config, Type, Route.resourceKey);
-        return Type;
-    }
-    /**
-     * Get the `Route` configured with the specified type or null if there's nothing configured.
-     */
-    static getConfiguration(Type) {
-        const config = Metadata.get(Route.resourceKey, Type) ?? {};
-        if (Array.isArray(Type.parameters)) {
-            config.parameters = Type.parameters;
-        }
-        if ('title' in Type) {
-            config.title = Type.title;
-        }
-        return config instanceof Route ? config : Route.create(config, Type);
-    }
-    /**
-     * Create a valid Route or throw if it can't.
-     *
-     * @param configOrType - Configuration or type the route is created from.
-     * @param Type - If specified, the Route is routing to Type, regardless of what config says, as with `@route` decorator.
-     */
-    static create(configOrType, Type = null) {
-        // If a fixed type is specified, component is fixed to that type and
-        // configOrType is set to a config with that.
-        // This also clones the route (not deep)
-        if (Type !== null) {
-            configOrType = Route.transferTypeToComponent(configOrType, Type);
-        }
-        // Another component queries our route configuration
-        if (CustomElement.isType(configOrType)) {
-            configOrType = Route.getConfiguration(configOrType);
-        }
-        else if (Type === null) { // We need to clone the route (not deep)
-            configOrType = { ...configOrType };
-        }
-        const config = Route.transferIndividualIntoInstructions(configOrType);
-        Route.validateRouteConfiguration(config);
-        let pathId = config.path;
-        if (Array.isArray(pathId)) {
-            pathId = pathId.join(',');
-        }
-        return new Route(config.path ?? '', config.id ?? pathId ?? null, config.redirectTo ?? null, config.instructions ?? null, config.caseSensitive ?? false, config.title ?? null, config.reloadBehavior ?? null, config.data ?? null);
-    }
-    /**
-     * Transfers the (only allowed) Type for the Route to the `component` property, creating
-     * a new configuration if necessary.
-     *
-     * It also validates that that the `component` and `instructions` are not used.
-     */
-    static transferTypeToComponent(configOrType, Type) {
-        if (CustomElement.isType(configOrType)) {
-            throw createMappedError(2012 /* ErrorNames.route_no_component_as_config */);
-        }
-        // Clone it so that original route isn't affected
-        // NOTE that it's not a deep clone (yet)
-        const config = { ...configOrType };
-        if ('component' in config || 'instructions' in config) {
-            throw createMappedError(2013 /* ErrorNames.route_no_both_component_and_instructions */);
-        }
-        if (!('redirectTo' in config)) {
-            config.component = Type;
-        }
-        if (!('path' in config) && !('redirectTo' in config)) {
-            config.path = CustomElement.getDefinition(Type).name;
-        }
-        return config;
-    }
-    /**
-     * Transfers individual load instruction properties into the `instructions` property.
-     *
-     * It also validates that not both individual load instruction parts and the `instructions`
-     * is used.
-     */
-    static transferIndividualIntoInstructions(config) {
-        if (config == null) {
-            throw createMappedError(2014 /* ErrorNames.route_nullish_config */);
-        }
-        if (config.component != null
-            || config.viewport != null
-            || config.parameters != null
-            || config.children != null) {
-            if (config.instructions != null) {
-                throw createMappedError(2015 /* ErrorNames.route_instructions_existed */);
-            }
-            config.instructions = [{
-                    component: config.component,
-                    viewport: config.viewport,
-                    parameters: config.parameters,
-                    children: config.children,
-                }];
-        }
-        return config;
-    }
-    /**
-     * Validate a `Route`.
-     */
-    static validateRouteConfiguration(config) {
-        if (config.redirectTo === null && config.instructions === null) {
-            throw createMappedError(2016 /* ErrorNames.route_invalid_config */);
-        }
-        // TODO: Add validations for remaining properties and each index of 'instructions'
-    }
-}
-/**
- * The metadata resource key for a configured route.
- */
-Route.resourceKey = getResourceKeyFor('route');
-
-const Routes = {
-    name: /*@__PURE__*/ getResourceKeyFor('routes'),
-    /**
-     * Returns `true` if the specified type has any static routes configuration (either via static properties or a &#64;route decorator)
-     */
-    isConfigured(Type) {
-        return Metadata.has(Routes.name, Type) || 'routes' in Type;
-    },
-    /**
-     * Apply the specified configuration to the specified type, overwriting any existing configuration.
-     */
-    configure(configurationsOrTypes, Type) {
-        const configurations = configurationsOrTypes.map(configOrType => Route.create(configOrType));
-        Metadata.define(configurations, Type, Routes.name);
-        return Type;
-    },
-    /**
-     * Get the `RouteConfiguration`s associated with the specified type.
-     */
-    getConfiguration(Type) {
-        const type = Type;
-        const routes = [];
-        const metadata = Metadata.get(Routes.name, Type);
-        // TODO: Check if they are indeed to be concatenated (and what that means
-        // for match order) or if one should replace the other
-        if (Array.isArray(metadata)) {
-            routes.push(...metadata);
-        }
-        if (Array.isArray(type.routes)) {
-            routes.push(...type.routes);
-        }
-        return routes.map(route => route instanceof Route ? route : Route.create(route));
-    },
-};
-function routes(configurationsOrTypes) {
-    return function (target, context) {
-        context.addInitializer(function () {
-            Routes.configure(configurationsOrTypes, this);
-        });
-        return target;
-    };
-}
-
-/**
- * The viewport scope content represents the content of a viewport scope
- * and whether it's active or not.
- *
- * During a transition, a viewport scope has two viewport scope contents,
- * the current and the next, which is turned back into one when the
- * transition is either finalized or aborted.
- *
- * Viewport scope contents are used to represent the full state and can
- * be used for caching
- */
-class ViewportScopeContent extends EndpointContent {
-}
-
-class ViewportScope extends Endpoint$1 {
-    constructor(router, name, connectedCE, owningScope, scope, rootComponentType = null, // temporary. Metadata will probably eliminate it
-    options = {
-        catches: [],
-        source: null,
-    }) {
-        super(router, name, connectedCE);
-        this.rootComponentType = rootComponentType;
-        this.options = options;
-        this.instruction = null;
-        this.available = true;
-        this.sourceItem = null;
-        this.sourceItemIndex = -1;
-        this.remove = false;
-        this.add = false;
-        this.contents.push(new ViewportScopeContent(router, this, owningScope, scope));
-        if (this.catches.length > 0) {
-            this.instruction = RoutingInstruction.create(this.catches[0], this.name);
-        }
-    }
-    get isEmpty() {
-        return this.instruction === null;
-    }
-    get passThroughScope() {
-        return this.rootComponentType === null && this.catches.length === 0;
-    }
-    get siblings() {
-        const parent = this.connectedScope.parent;
-        if (parent === null) {
-            return [this];
-        }
-        return parent.enabledChildren
-            .filter(child => child.isViewportScope && child.endpoint.name === this.name)
-            .map(child => child.endpoint);
-    }
-    get source() {
-        return this.options.source ?? null;
-    }
-    get catches() {
-        let catches = this.options.catches ?? [];
-        if (typeof catches === 'string') {
-            catches = catches.split(',');
-        }
-        return catches;
-    }
-    get default() {
-        if (this.catches.length > 0) {
-            return this.catches[0];
-        }
-    }
-    toString() {
-        const contentName = this.instruction?.component.name ?? '';
-        const nextContentName = this.getNextContent()?.instruction.component.name ?? '';
-        return `vs:${this.name}[${contentName}->${nextContentName}]`;
-    }
-    setNextContent(instruction, navigation) {
-        instruction.endpoint.set(this);
-        this.remove = instruction.isClear(this.router) || instruction.isClearAll(this.router);
-        this.add = instruction.isAdd(this.router) && Array.isArray(this.source);
-        if (this.add) {
-            instruction.component.name = null;
-        }
-        if (this.default !== void 0 && instruction.component.name === null) {
-            instruction.component.name = this.default;
-        }
-        this.contents.push(new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope, instruction, navigation));
-        return 'swap';
-    }
-    transition(coordinator) {
-        Runner.run('viewport-scope.transition', (step) => coordinator.setEndpointStep(this, step.root), () => coordinator.addEndpointState(this, 'guardedUnload'), () => coordinator.addEndpointState(this, 'guardedLoad'), () => coordinator.addEndpointState(this, 'guarded'), () => coordinator.addEndpointState(this, 'loaded'), () => coordinator.addEndpointState(this, 'unloaded'), () => coordinator.addEndpointState(this, 'routed'), () => coordinator.addEndpointState(this, 'swapped'), () => coordinator.addEndpointState(this, 'completed'));
-    }
-    finalizeContentChange(coordinator, _step) {
-        const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
-        let nextContent = this.contents[nextContentIndex];
-        if (this.remove) {
-            const emptyContent = new ViewportScopeContent(this.router, this, this.owningScope, this.scope.hasScope);
-            this.contents.splice(nextContentIndex, 1, emptyContent);
-            nextContent.delete();
-            nextContent = emptyContent;
-        }
-        nextContent.completed = true;
-        let removeable = 0;
-        for (let i = 0, ii = nextContentIndex; i < ii; i++) {
-            if (!(this.contents[0].navigation.completed ?? false)) {
-                break;
-            }
-            removeable++;
-        }
-        this.contents.splice(0, removeable);
-        if (this.remove && Array.isArray(this.source)) {
-            this.removeSourceItem();
-        }
-    }
-    cancelContentChange(coordinator, noExitStep = null) {
-        // First cancel content change in all children
-        [...new Set(this.scope.children.map(scope => scope.endpoint))].forEach(child => child.cancelContentChange(coordinator, noExitStep));
-        const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
-        if (nextContentIndex < 0) {
-            return;
-        }
-        this.contents.splice(nextContentIndex, 1);
-        if (this.add) {
-            const index = this.source.indexOf(this.sourceItem);
-            this.source.splice(index, 1);
-            this.sourceItem = null;
-        }
-    }
-    acceptSegment(segment) {
-        if (segment === null && segment === void 0 || segment.length === 0) {
-            return true;
-        }
-        if (segment === RoutingInstruction.clear(this.router)
-            || segment === RoutingInstruction.add(this.router)
-            || segment === this.name) {
-            return true;
-        }
-        if (this.catches.length === 0) {
-            return true;
-        }
-        if (this.catches.includes(segment)) {
-            return true;
-        }
-        if (this.catches.filter((value) => value.includes('*')).length) {
-            return true;
-        }
-        return false;
-    }
-    binding() {
-        const source = this.source || [];
-        if (source.length > 0 && this.sourceItem === null) {
-            this.sourceItem = this.getAvailableSourceItem();
-        }
-    }
-    unbinding() {
-        if (this.sourceItem !== null && this.source !== null) {
-            arrayRemove(this.source, (item) => item === this.sourceItem);
-        }
-        this.sourceItem = null;
-    }
-    getAvailableSourceItem() {
-        if (this.source === null) {
-            return null;
-        }
-        const siblings = this.siblings;
-        for (const item of this.source) {
-            if (siblings.every(sibling => sibling.sourceItem !== item)) {
-                return item;
-            }
-        }
-        return null;
-    }
-    addSourceItem() {
-        const item = {};
-        this.source.push(item);
-        return item;
-    }
-    removeSourceItem() {
-        this.sourceItemIndex = this.source.indexOf(this.sourceItem);
-        if (this.sourceItemIndex >= 0) {
-            this.source.splice(this.sourceItemIndex, 1);
-        }
-    }
-    getRoutes() {
-        const routes = [];
-        if (this.rootComponentType !== null) {
-            // TODO: Fix it so that this isn't necessary!
-            const Type = this.rootComponentType.constructor === this.rootComponentType.constructor.constructor
-                ? this.rootComponentType
-                : this.rootComponentType.constructor;
-            routes.push(...(Routes.getConfiguration(Type) ?? []));
-        }
-        return routes;
-    }
-}
-
-/**
- * The stored navigation holds the part of a navigation that's stored
- * in history. Note that the data might not be json serializable and
- * therefore might not be able to be stored as-is.
- */
-class StoredNavigation {
-    constructor(entry = {
-        instruction: '',
-        fullStateInstruction: '',
-    }) {
-        this.instruction = entry.instruction;
-        this.fullStateInstruction = entry.fullStateInstruction;
-        this.scope = entry.scope;
-        this.index = entry.index;
-        this.firstEntry = entry.firstEntry;
-        this.path = entry.path;
-        this.title = entry.title;
-        this.query = entry.query;
-        this.fragment = entry.fragment;
-        this.parameters = entry.parameters;
-        this.data = entry.data;
-    }
-    toStoredNavigation() {
-        return {
-            instruction: this.instruction,
-            fullStateInstruction: this.fullStateInstruction,
-            scope: this.scope,
-            index: this.index,
-            firstEntry: this.firstEntry,
-            path: this.path,
-            title: this.title,
-            query: this.query,
-            fragment: this.fragment,
-            parameters: this.parameters,
-            data: this.data,
-        };
-    }
-}
-class NavigationFlags {
-    constructor() {
-        this.first = false;
-        this.new = false;
-        this.refresh = false;
-        this.forward = false;
-        this.back = false;
-        this.replace = false;
-    }
-}
-/**
- * The navigation
- */
-class Navigation extends StoredNavigation {
-    constructor(entry = {
-        instruction: '',
-        fullStateInstruction: '',
-    }) {
-        super(entry);
-        /**
-         * The navigation in a historical context (back, forward, etc)
-         */
-        this.navigation = new NavigationFlags();
-        /**
-         * Whether this is a repeating navigation, in other words the same navigation run again
-         */
-        this.repeating = false;
-        /**
-         * The previous navigation
-         */
-        this.previous = null;
-        /**
-         * Whether the navigation originates from a browser action (back, forward)
-         */
-        this.fromBrowser = false;
-        /**
-         * The origin of the navigation, a view model or element
-         */
-        this.origin = null;
-        /**
-         * Whether this navigation is fully replacing a previous one
-         */
-        this.replacing = false;
-        /**
-         * Whether this navigation is a refresh/reload with the same parameters
-         */
-        this.refreshing = false;
-        /**
-         * Whether this navigation is untracked and shouldn't be added to history
-         */
-        this.untracked = false;
-        /**
-         * The process of the navigation, to be resolved or rejected
-         */
-        this.process = null;
-        /**
-         * Whether the navigation is completed
-         */
-        this.completed = true;
-        this.fromBrowser = entry.fromBrowser ?? this.fromBrowser;
-        this.origin = entry.origin ?? this.origin;
-        this.replacing = entry.replacing ?? this.replacing;
-        this.refreshing = entry.refreshing ?? this.refreshing;
-        this.untracked = entry.untracked ?? this.untracked;
-        this.historyMovement = entry.historyMovement ?? this.historyMovement;
-        this.process = null;
-        this.timestamp = Date.now();
-    }
-    get useFullStateInstruction() {
-        return (this.navigation.back ?? false) ||
-            (this.navigation.forward ?? false) ||
-            (this.navigation.refresh ?? false);
-    }
-    static create(entry = {
-        instruction: '',
-        fullStateInstruction: '',
-    }) {
-        return new Navigation(entry);
-    }
-}
-
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
-class AwaitableMap {
-    constructor() {
-        this.map = new Map();
-    }
-    set(key, value) {
-        const openPromise = this.map.get(key);
-        if (openPromise instanceof OpenPromise) {
-            openPromise.resolve(value);
-            // openPromise.isPending = false;
-        }
-        this.map.set(key, value);
-    }
-    delete(key) {
-        const current = this.map.get(key);
-        if (current instanceof OpenPromise) {
-            current.reject();
-            // current.isPending = false;
-        }
-        this.map.delete(key);
-    }
-    await(key) {
-        if (!this.map.has(key)) {
-            const openPromise = new OpenPromise(`AwaitableMap: ${key}`);
-            this.map.set(key, openPromise);
-            return openPromise.promise;
-        }
-        const current = this.map.get(key);
-        if (current instanceof OpenPromise) {
-            return current.promise;
-        }
-        return current;
-    }
-    has(key) {
-        return this.map.has(key) && !(this.map.get(key) instanceof OpenPromise);
-    }
-    clone() {
-        const clone = new AwaitableMap();
-        clone.map = new Map(this.map);
-        return clone;
-    }
-}
-
-/**
- * @internal
- */
-class ViewportContent extends EndpointContent {
-    constructor(router, 
-    /**
-     * The viewport the viewport content belongs to
-     */
-    viewport, 
-    /**
-     * The routing scope the viewport content belongs to/is owned by
-     */
-    owningScope, 
-    /**
-     * Whether the viewport has its own routing scope, containing
-     * endpoints it owns
-     */
-    hasScope, 
-    /**
-     * The routing instruction that created the viewport content
-     */
-    instruction = RoutingInstruction.create(''), 
-    /**
-     * The navigation that created the viewport content
-     */
-    navigation = Navigation.create({
-        instruction: '',
-        fullStateInstruction: '',
-    }), 
-    /**
-     * The connected viewport custom element
-     */
-    connectedCE = null) {
-        super(router, viewport, owningScope, hasScope, instruction, navigation);
-        this.router = router;
-        this.instruction = instruction;
-        this.navigation = navigation;
-        /**
-         * The current content states
-         */
-        this.contentStates = new AwaitableMap();
-        /**
-         * Whether the viewport content is from the endpoint cache
-         */
-        this.fromCache = false;
-        /**
-         * Whether the viewport content is from the history cache
-         */
-        this.fromHistory = false;
-        /**
-         * Whether content is currently being reloaded
-         */
-        this.reload = false;
-        /**
-         * Resolved when content is activated (and can be deactivated)
-         */
-        this.activatedResolve = null;
-        // If we've got a container, we're good to resolve type
-        if (!this.instruction.component.isType() && connectedCE?.container != null) {
-            this.instruction.component.type = this.toComponentType(connectedCE.container);
-        }
-    }
-    /**
-     * The viewport content's component instance
-     */
-    get componentInstance() {
-        return this.instruction.component.instance;
-    }
-    /**
-     * The viewport content's reload behavior, as in how it behaves
-     * when the content is loaded again.
-     */
-    get reloadBehavior() {
-        if (this.instruction.route instanceof FoundRoute
-            && this.instruction.route.match?.reloadBehavior !== null) {
-            return this.instruction.route.match?.reloadBehavior;
-        }
-        return (this.instruction.component.instance !== null &&
-            'reloadBehavior' in this.instruction.component.instance &&
-            this.instruction.component.instance.reloadBehavior !== void 0)
-            ? this.instruction.component.instance.reloadBehavior
-            : 'default';
-    }
-    /**
-     * Get the controller of the component in the viewport content.
-     */
-    get controller() {
-        return this.instruction.component.instance?.$controller;
-    }
-    /**
-     * Whether the viewport content's component is equal to that of
-     * another viewport content.
-     *
-     * @param other - The viewport content to compare with
-     */
-    equalComponent(other) {
-        return this.instruction.sameComponent(this.router, other.instruction);
-    }
-    /**
-     * Whether the viewport content's parameters is equal to that of
-     * another viewport content.
-     *
-     * @param other - The viewport content to compare with
-     */
-    equalParameters(other) {
-        return this.instruction.sameComponent(this.router, other.instruction, true) &&
-            // TODO: Review whether query is enough or if parameters need
-            // to be checked as well depending on when query is updated.
-            // Should probably be able to compare parameters vs query as well.
-            (this.navigation.query ?? '') === (other.navigation.query ?? '');
-    }
-    /**
-     * Whether the viewport content is equal from a caching perspective to
-     * that of another viewport content.
-     *
-     * @param other - The viewport content to compare with
-     */
-    isCacheEqual(other) {
-        return this.instruction.sameComponent(this.router, other.instruction, true);
-    }
-    /**
-     * Create the component for the viewport content (based on the instruction)
-     *
-     * @param connectedCE - The custom element connected to the viewport
-     * @param fallback - A (possible) fallback component to create if the
-     * instruction component can't be created. The name of the failing
-     * component is passed as parameter `id` to the fallback component
-     * @param fallbackAction - Whether the children of an unloadable component
-     * will be processed under the fallback component or if the child
-     * instructions will be aborted.
-     */
-    createComponent(coordinator, connectedCE, fallback, fallbackAction) {
-        // Can be called at multiple times, only process the first
-        if (this.contentStates.has('created')) {
-            return;
-        }
-        // Don't load cached content or instantiated history content
-        if (!this.fromCache && !this.fromHistory) {
-            try {
-                return onResolve(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element), (component) => {
-                    this.instruction.component.set(component);
-                    this.contentStates.set('created', void 0);
-                });
-            }
-            catch (e) {
-                this._assertInstantiationError(e);
-                // If there's a fallback component...
-                if ((fallback ?? '') !== '') {
-                    if (fallbackAction === 'process-children') {
-                        // ...set the failed component as the first parameter (0)...
-                        this.instruction.parameters.set([this.instruction.component.name]);
-                    }
-                    else { // 'abort'
-                        // ...set the unparsed string of the failed component as the first parameter (0)...
-                        this.instruction.parameters.set([this.instruction.unparsed ?? this.instruction.component.name]);
-                        // ...if the instruction has children...
-                        if (this.instruction.hasNextScopeInstructions) {
-                            // ...remove the children from the coordinator
-                            coordinator.removeInstructions(this.instruction.nextScopeInstructions);
-                            // ...and prevent processing of the child instructions.
-                            this.instruction.nextScopeInstructions = null;
-                        }
-                    }
-                    // ...fallback is the new component...
-                    this.instruction.component.set(fallback);
-                    // ...and try again.
-                    try {
-                        return onResolve(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element), (fallbackComponent) => {
-                            this.instruction.component.set(fallbackComponent);
-                            this.contentStates.set('created', void 0);
-                        });
-                    }
-                    catch (ee) {
-                        this._assertInstantiationError(ee);
-                        throw createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, this.instruction.component.name, ee);
-                    }
-                }
-                else {
-                    throw createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, this.instruction.component.name);
-                }
-            }
-        }
-        this.contentStates.set('created', void 0);
-    }
-    /**
-     * Check if the viewport content's component can be loaded.
-     */
-    canLoad() {
-        // Since canLoad is called from more than one place multiple calls can happen (and is fine)
-        if (!this.contentStates.has('created') || (this.contentStates.has('checkedLoad') && !this.reload)) {
-            // If we got here, an earlier check has already stated it can be loaded
-            return true;
-        }
-        const instance = this.instruction.component.instance;
-        if (instance == null) {
-            return true;
-        }
-        this.contentStates.set('checkedLoad', void 0);
-        // Propagate parent parameters
-        // TODO: Do we really want this?
-        const parentParameters = this.endpoint
-            .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
-        const parameters = this.instruction.typeParameters(this.router);
-        const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
-        const hooks = this._getLifecycleHooks(instance, 'canLoad')
-            .map(hook => ((innerStep) => {
-            if (innerStep?.previousValue != null && innerStep.previousValue !== true) {
-                innerStep.exit(); // To prevent more calls down the pipeline
-                return innerStep.previousValue ?? false;
-            }
-            // TODO: If requested, pass previous value into hook
-            return hook(instance, merged, this.instruction, this.navigation);
-        }));
-        if (instance.canLoad != null) {
-            hooks.push((innerStep) => {
-                if ((innerStep?.previousValue ?? true) === false) {
-                    return false;
-                }
-                // TODO: If requested, pass previous value into hook
-                return instance.canLoad(merged, this.instruction, this.navigation);
-            });
-        }
-        if (hooks.length === 0) {
-            return true;
-        }
-        if (hooks.length === 1) {
-            return hooks[0](null);
-        }
-        return Runner.run('canLoad', ...hooks);
-    }
-    /**
-     * Check if the viewport content's component can be unloaded.
-     *
-     * @param navigation - The navigation that causes the content change
-     */
-    canUnload(navigation) {
-        // Since canUnload is called recursively multiple calls can happen (and is fine)
-        if (this.contentStates.has('checkedUnload') && !this.reload) {
-            // If we got here, an earlier check has already stated it can be unloaded
-            return true;
-        }
-        this.contentStates.set('checkedUnload', void 0);
-        // If content hasn't loaded a component, we're done
-        if (!this.contentStates.has('loaded')) {
-            return true;
-        }
-        const instance = this.instruction.component.instance;
-        // If it's an unload without a navigation, such as custom element simply
-        // being removed, create an empty navigation for canUnload hook
-        if (navigation === null) {
-            navigation = Navigation.create({
-                instruction: '',
-                fullStateInstruction: '',
-                previous: this.navigation,
-            });
-        }
-        const hooks = this._getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep) => {
-            if ((innerStep?.previousValue ?? true) === false) {
-                return false;
-            }
-            return hook(instance, this.instruction, navigation);
-        }));
-        if (instance.canUnload != null) {
-            hooks.push((innerStep) => {
-                if ((innerStep?.previousValue ?? true) === false) {
-                    return false;
-                }
-                // TODO: If requested, pass previous value into hook
-                return instance.canUnload?.(this.instruction, navigation);
-            });
-        }
-        if (hooks.length === 0) {
-            return true;
-        }
-        if (hooks.length === 1) {
-            return hooks[0](null);
-        }
-        return Runner.run('canUnload', ...hooks);
-    }
-    /**
-     * Load the viewport content's content.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    load(step) {
-        return Runner.run(step, () => this.contentStates.await('checkedLoad'), () => {
-            // Since load is called from more than one place multiple calls can happen (and is fine)
-            if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reload)) {
-                // If we got here, it's already loaded
-                return;
-            }
-            this.reload = false;
-            this.contentStates.set('loaded', void 0);
-            const instance = this.instruction.component.instance;
-            // Propagate parent parameters
-            // TODO: Do we really want this?
-            const parentParameters = this.endpoint
-                .parentViewport?.getTimeContent(this.navigation.timestamp)?.instruction?.typeParameters(this.router);
-            const parameters = this.instruction.typeParameters(this.router);
-            const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
-            const hooks = this._getLifecycleHooks(instance, 'loading').map(hook => () => hook(instance, merged, this.instruction, this.navigation));
-            hooks.push(...this._getLifecycleHooks(instance, 'load').map(hook => () => {
-                // eslint-disable-next-line no-console
-                console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
-                return hook(instance, merged, this.instruction, this.navigation);
-            }));
-            if (hooks.length !== 0) {
-                // Add hook in component
-                if (typeof instance.loading === 'function') {
-                    hooks.push(() => instance.loading(merged, this.instruction, this.navigation));
-                }
-                if (hasVmHook(instance, 'load')) {
-                    // eslint-disable-next-line no-console
-                    console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
-                    hooks.push(() => instance.load(merged, this.instruction, this.navigation));
-                }
-                return Runner.run('load', ...hooks);
-            }
-            // Skip if there's no hook in component
-            if (hasVmHook(instance, 'loading')) {
-                return instance.loading(merged, this.instruction, this.navigation);
-            }
-            // Skip if there's no hook in component
-            if (hasVmHook(instance, 'load')) {
-                // eslint-disable-next-line no-console
-                console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
-                return instance.load(merged, this.instruction, this.navigation);
-            }
-        });
-    }
-    /**
-     * Unload the viewport content's content.
-     *
-     * @param navigation - The navigation that causes the content change
-     */
-    unload(navigation) {
-        // Since load is called from more than one place multiple calls can happen (and is fine)
-        if (!this.contentStates.has('loaded')) {
-            // If we got here, it's already unloaded (or wasn't loaded in the first place)
-            return;
-        }
-        this.contentStates.delete('loaded');
-        const instance = this.instruction.component.instance;
-        if (navigation === null) {
-            navigation = Navigation.create({
-                instruction: '',
-                fullStateInstruction: '',
-                previous: this.navigation,
-            });
-        }
-        const hooks = this._getLifecycleHooks(instance, 'unloading').map(hook => () => hook(instance, this.instruction, navigation));
-        hooks.push(...this._getLifecycleHooks(instance, 'unload').map(hook => () => {
-            // eslint-disable-next-line no-console
-            console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
-            return hook(instance, this.instruction, navigation);
-        }));
-        if (hooks.length !== 0) {
-            // Add hook in component
-            if (hasVmHook(instance, 'unloading')) {
-                hooks.push(() => instance.unloading(this.instruction, navigation));
-            }
-            if (hasVmHook(instance, 'unload')) {
-                // eslint-disable-next-line no-console
-                console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
-                hooks.push(() => instance.unload(this.instruction, navigation));
-            }
-            return Runner.run('unload', ...hooks);
-        }
-        // Skip if there's no hook in component
-        if (hasVmHook(instance, 'unloading')) {
-            return instance.unloading(this.instruction, navigation);
-        }
-        if (hasVmHook(instance, 'unload')) {
-            // eslint-disable-next-line no-console
-            console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
-            return instance.unload(this.instruction, navigation);
-        }
-    }
-    /**
-     * Activate (bind and attach) the content's component.
-     *
-     * @param step - The previous step in this transition Run
-     * @param initiator - The controller initiating the activation
-     * @param parent - The parent controller for the content's component controller
-     * @param flags - The lifecycle flags
-     * @param connectedCE - The viewport's connectd custom element
-     * @param boundCallback - A callback that's called when the content's component has been bound
-     * @param attachPromise - A promise that th content's component controller will await before attaching
-     */
-    activateComponent(step, initiator, parent, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    connectedCE, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    boundCallback, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    attachPromise) {
-        return Runner.run(step, () => this.contentStates.await('loaded'), () => this.waitForParent(parent), // TODO: It might be possible to refactor this away
-        () => {
-            if (this.contentStates.has('activating') || this.contentStates.has('activated')) {
-                return;
-            }
-            this.contentStates.set('activating', void 0);
-            return this.controller?.activate(initiator ?? this.controller, parent, void 0 /* , boundCallback, this.instruction.topInstruction ? attachPromise : void 0 */);
-        }, () => {
-            this.contentStates.set('activated', void 0);
-        });
-    }
-    /**
-     * Deactivate (detach and unbind) the content's component.
-     *
-     * @param step - The previous step in this transition Run
-     * @param initiator - The controller initiating the activation
-     * @param parent - The parent controller for the content's component controller
-     * @param flags - The lifecycle flags
-     * @param connectedCE - The viewport's connectd custom element
-     * @param stateful - Whether the content's component is stateful and shouldn't be disposed
-     */
-    deactivateComponent(step, initiator, parent, connectedCE, stateful = false) {
-        if (!this.contentStates.has('activated') && !this.contentStates.has('activating')) {
-            return;
-        }
-        return Runner.run(step, 
-        // TODO: Revisit once it's possible to abort within lifecycle hooks
-        // () => {
-        //   if (!this.contentStates.has('activated')) {
-        //     const elements = Array.from(connectedCE.element.children);
-        //     for (const el of elements) {
-        //       (el as HTMLElement).style.display = 'none';
-        //     }
-        //     return this.contentStates.await('activated');
-        //   }
-        // },
-        // () => this.waitForActivated(this.controller, connectedCE),
-        () => {
-            if (stateful && connectedCE.element !== null) {
-                const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
-                for (const el of elements) {
-                    if (el.scrollTop > 0 || el.scrollLeft) {
-                        el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
-                    }
-                }
-            }
-            this.contentStates.delete('activated');
-            this.contentStates.delete('activating');
-            return this.controller?.deactivate(initiator ?? this.controller, parent);
-        });
-    }
-    /**
-     * Dispose the content's component.
-     *
-     * @param connectedCE - The viewport's connectd custom element
-     * @param cache - The cache to push the viewport content to if stateful
-     * @param stateful - Whether the content's component is stateful and shouldn't be disposed
-     */
-    disposeComponent(connectedCE, cache, stateful = false) {
-        if (!this.contentStates.has('created') || this.instruction.component.instance == null) {
-            return;
-        }
-        // Don't unload components when stateful
-        // TODO: We're missing stuff here
-        if (!stateful) {
-            this.contentStates.delete('created');
-            return this.controller?.dispose();
+    _continueWith(cb) {
+        if (this._next === null) {
+            return this._next = new Batch(this._stack, cb, this._head);
         }
         else {
-            cache.push(this);
+            return this._next._continueWith(cb);
         }
     }
-    /**
-     * Free the content's content.
-     *
-     * @param step - The previous step in this transition Run
-     * @param connectedCE - The viewport's connectd custom element
-     * @param navigation - The navigation causing the content to be freed
-     * @param cache - The cache to push the viewport content to if stateful
-     * @param stateful - Whether the content's component is stateful and shouldn't be disposed
-     */
-    freeContent(step, connectedCE, navigation, cache, stateful = false) {
-        return Runner.run(step, () => this.unload(navigation), (innerStep) => this.deactivateComponent(innerStep, null, connectedCE.controller, connectedCE, stateful), () => this.disposeComponent(connectedCE, cache, stateful));
-    }
-    /**
-     * Get the content's component name (if any).
-     */
-    toComponentName() {
-        return this.instruction.component.name;
-    }
-    /**
-     * Get the content's component type (if any).
-     */
-    toComponentType(container) {
-        if (this.instruction.component.none) {
-            return null;
-        }
-        return this.instruction.component.toType(container, this.instruction);
-    }
-    /**
-     * Get the content's component instance (if any).
-     */
-    toComponentInstance(parentContainer, parentController, parentElement) {
-        if (this.instruction.component.none) {
-            return null;
-        }
-        return this.instruction.component.toInstance(parentContainer, parentController, parentElement, this.instruction);
-    }
-    /**
-     * Wait for the viewport's parent to be active.
-     *
-     * @param parent - The parent controller to the viewport's controller
-     */
-    waitForParent(parent) {
-        if (parent === null) {
-            return;
-        }
-        if (!parent.isActive) {
-            return new Promise((resolve) => {
-                this.endpoint.activeResolve = resolve;
-            });
-        }
-    }
-    /**
-     * Assert that the error is an instantiation error. If it's not, throw
-     * the error. If it is, log a warning in development mode.
-     *
-     * @param e - The error to assert
-     */
-    _assertInstantiationError(e) {
-        if (!e.message.startsWith('AUR0009:')) {
-            throw e;
-        }
-        {
-            const componentName = this.instruction.component.name;
-            // eslint-disable-next-line no-console
-            console.warn(createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, componentName, e));
-        }
-    }
-    _getLifecycleHooks(instance, name) {
-        const hooks = instance.$controller.lifecycleHooks[name] ?? [];
-        return hooks.map(hook => (hook.instance[name]).bind(hook.instance));
+    _start() {
+        this._head._push();
+        this._head._pop();
+        return this;
     }
 }
-function hasVmHook(instance, lifecycle) {
-    return typeof instance[lifecycle] === 'function';
-}
-
-class ViewportOptions {
-    constructor(
-    /**
-     * Whether the viewport has its own scope (owns other endpoints)
-     */
-    scope = true, 
-    /**
-     * A list of components that is using the viewport. These components
-     * can only be loaded into this viewport and this viewport can't
-     * load any other components.
-     */
-    usedBy = [], 
-    /**
-     * The default component that's loaded if the viewport is created
-     * without having a component specified (in that navigation).
-     */
-    // eslint-disable-next-line default-param-last
-    _default = '', 
-    /**
-     * The component loaded if the viewport can't load the specified
-     * component. The component is passed as a parameter to the fallback.
-     */
-    fallback = '', 
-    /**
-     * Whether the fallback action is to load the fallback component in
-     * place of the unloadable component and continue with any child
-     * instructions or if the fallback is to be called and the processing
-     * of the children to be aborted.
-     */
-    fallbackAction = '', 
-    /**
-     * The viewport doesn't add its content to the Location URL.
-     */
-    noLink = false, 
-    /**
-     * The viewport doesn't add a title to the browser window title.
-     */
-    noTitle = false, 
-    /**
-     * The viewport's content is stateful.
-     */
-    stateful = false, 
-    /**
-     * The viewport is always added to the routing instruction.
-     */
-    forceDescription = false, 
-    /**
-     * The transitions in the endpoint shouldn't be added to the navigation history
-     */
-    noHistory = false) {
-        this.scope = scope;
-        this.usedBy = usedBy;
-        this.fallback = fallback;
-        this.fallbackAction = fallbackAction;
-        this.noLink = noLink;
-        this.noTitle = noTitle;
-        this.stateful = stateful;
-        this.forceDescription = forceDescription;
-        this.noHistory = noHistory;
-        /**
-         * The default component that's loaded if the viewport is created
-         * without having a component specified (in that navigation).
-         * (Declared here because of name conflict.)
-         */
-        this.default = undefined;
-        this.default = _default;
-    }
-    static create(options) {
-        const created = new ViewportOptions();
-        if (options !== void 0) {
-            created.apply(options);
+function mergeDistinct(prev, next) {
+    prev = prev.slice();
+    next = next.slice();
+    const merged = [];
+    while (prev.length > 0) {
+        const p = prev.shift();
+        const prevVpa = p.context.vpa;
+        if (merged.every(m => m.context.vpa !== prevVpa)) {
+            const i = next.findIndex(n => n.context.vpa === prevVpa);
+            if (i >= 0) {
+                merged.push(...next.splice(0, i + 1));
+            }
+            else {
+                merged.push(p);
+            }
         }
-        return created;
     }
-    apply(options) {
-        this.scope = options.scope ?? this.scope;
-        this.usedBy = (typeof options.usedBy === 'string'
-            ? options.usedBy.split(',').filter(str => str.length > 0)
-            : options.usedBy)
-            ?? this.usedBy;
-        this.default = options.default ?? this.default;
-        this.fallback = options.fallback ?? this.fallback;
-        this.fallbackAction = options.fallbackAction ?? this.fallbackAction;
-        this.noLink = options.noLink ?? this.noLink;
-        this.noTitle = options.noTitle ?? this.noTitle;
-        this.stateful = options.stateful ?? this.stateful;
-        this.forceDescription = options.forceDescription ?? this.forceDescription;
-        this.noHistory = options.noHistory ?? this.noHistory;
+    merged.push(...next);
+    return merged;
+}
+function tryStringify(value) {
+    try {
+        return JSON.stringify(value);
+    }
+    catch {
+        return Object.prototype.toString.call(value);
     }
 }
+function ensureArrayOfStrings(value) {
+    return typeof value === 'string' ? [value] : value;
+}
+function ensureString(value) {
+    return typeof value === 'string' ? value : value[0];
+}
+function mergeURLSearchParams(source, other, clone) {
+    const query = clone ? new URLSearchParams(source) : source;
+    if (other == null)
+        return query;
+    for (const [key, value] of Object.entries(other)) {
+        if (value == null)
+            continue;
+        if (isArray(value)) {
+            for (const v of value) {
+                query.append(key, v);
+            }
+            continue;
+        }
+        query.append(key, value);
+    }
+    return query;
+}
+function mergeQueryParams(source, other) {
+    if (other == null)
+        return source;
+    for (const [key, value] of Object.entries(other)) {
+        if (value == null)
+            continue;
+        if (source[key] == null) {
+            source[key] = value;
+        }
+        else {
+            const values = source[key];
+            source[key] = [...(isArray(values) ? values : [values]), ...(isArray(value) ? value : [value])];
+        }
+    }
+    return source;
+}
+/** @internal */ const bmToView = BindingMode.toView;
+/** @internal */ const bmFromView = BindingMode.fromView;
 
 /**
- * The viewport is an endpoint that encapsulates an au-viewport custom element
- * instance. It always has at least one viewport content -- the current and also
- * the next when the viewport is in a transition -- even though the viewport
- * content can be empty.
- *
- * If a routing instruction is matched to a viewport during a navigation, the
- * router will ask the viewport if the navigation is approved (based on the state
- * of the current content, next content authorization and so on) and if it is,
- * instruct the navigation coordinator to start the viewport's transition when
- * appropriate. The viewport will then orchestrate, with coordination help from
- * the navigation coordinator, the transition between the current content and
- * the next, including calling relevant routing and lifecycle hooks.
- *
- * In addition to the above, the viewport also serves as the router's interface
- * to the loaded content/component and its configuration such as title and
- * configured routes.
+ * @returns `true` if the given `value` is an non-null, non-undefined, and non-CustomElement object.
  */
-class Viewport extends Endpoint$1 {
-    constructor(router, 
-    /**
-     * The name of the viewport
-     */
-    name, 
-    /**
-     * The connected ViewportCustomElement (if any)
-     */
-    connectedCE, 
-    /**
-     * The routing scope the viewport belongs to/is owned by
-     */
-    owningScope, 
-    /**
-     * Whether the viewport has its own routing scope, containing
-     * endpoints it owns
-     */
-    hasScope, 
-    /**
-     * The viewport options.
-     */
-    options) {
-        super(router, name, connectedCE);
-        /**
-         * The contents of the viewport. New contents are pushed to this, making
-         * the last one the active one. It always holds at least one content, so
-         * that there's always a current content.
-         */
-        this.contents = [];
-        /**
-         * Whether the viewport content should be cleared and removed,
-         * regardless of statefulness (and hooks).
-         */
-        this.forceRemove = false;
-        /**
-         * The viewport options.
-         */
-        this.options = new ViewportOptions();
-        /**
-         * If set by viewport content, it's resolved when viewport has
-         * been actived/started binding.
-         */
-        this.activeResolve = null;
-        /**
-         * If set, it's resolved when viewport custom element has been
-         * connected to the viewport endpoint/router.
-         */
-        this.connectionResolve = null;
-        /**
-         * Whether the viewport is being cleared in the transaction.
-         */
-        this.clear = false;
-        /**
-         * The coordinators that have transitions on the viewport.
-         * Wheneve a new coordinator is pushed, any previous are
-         * considered inactive and skips actual transition activities.
-         */
-        this.coordinators = [];
-        /**
-         * Stores the current state before navigation starts so that it can be restored
-         * if navigation is cancelled/interrupted.
-         * TODO(post-alpha): Look into using viewport content fully for this
-         */
-        this.previousViewportState = null;
-        /**
-         * The viewport content cache used for statefulness.
-         */
-        this.cache = [];
-        /**
-         * The viewport content cache used for history statefulness.
-         */
-        this.historyCache = [];
-        this.contents.push(new ViewportContent(router, this, owningScope, hasScope));
-        this.contents[0].completed = true;
-        if (options !== void 0) {
-            this.options.apply(options);
-        }
-    }
-    /**
-     * The current content of the endpoint
-     */
-    getContent() {
-        // If there's only one content, it's always content
-        if (this.contents.length === 1) {
-            return this.contents[0];
-        }
-        let content;
-        // Go through all contents looking for last completed
-        for (let i = 0, ii = this.contents.length; i < ii; i++) {
-            if (this.contents[i].completed ?? false) {
-                content = this.contents[i];
-            }
-            else {
+function isNotNullishOrTypeOrViewModel(value) {
+    return (typeof value === 'object' &&
+        value !== null &&
+        !isCustomElementViewModel(value));
+}
+function isPartialCustomElementDefinition(value) {
+    // 'name' is the only mandatory property of a CustomElementDefinition.
+    // It overlaps with RouteType and may overlap with CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
+    return (isNotNullishOrTypeOrViewModel(value) &&
+        Object.prototype.hasOwnProperty.call(value, 'name') === true);
+}
+function isPartialChildRouteConfig(value) {
+    // 'component' is the only mandatory property of a ChildRouteConfig
+    // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
+    return (isNotNullishOrTypeOrViewModel(value) &&
+        Object.prototype.hasOwnProperty.call(value, 'component') === true);
+}
+function isPartialRedirectRouteConfig(value) {
+    // 'redirectTo' and 'path' are mandatory properties of a RedirectRouteConfig
+    // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
+    return (isNotNullishOrTypeOrViewModel(value) &&
+        Object.prototype.hasOwnProperty.call(value, 'redirectTo') === true);
+}
+// Yes, `isPartialChildRouteConfig` and `isPartialViewportInstruction` have identical logic but since that is coincidental,
+// and the two are intended to be used in specific contexts, we keep these as two separate functions for now.
+function isPartialViewportInstruction(value) {
+    // 'component' is the only mandatory property of a INavigationInstruction
+    // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
+    return (isNotNullishOrTypeOrViewModel(value) &&
+        Object.prototype.hasOwnProperty.call(value, 'component') === true);
+}
+function expectType(expected, prop, value) {
+    throw new Error(getMessage(3554 /* Events.rtInvalidConfigProperty */, prop, expected, tryStringify(value)));
+}
+/**
+ * Validate a `IRouteConfig` or `IChildRouteConfig`.
+ *
+ * The validation of these types is the same, except that `component` is a mandatory property of `IChildRouteConfig`.
+ * This property is checked for in `validateComponent`.
+ */
+function validateRouteConfig(config, parentPath) {
+    if (config == null)
+        throw new Error(getMessage(3555 /* Events.rtInvalidConfig */, config));
+    const keys = Object.keys(config);
+    for (const key of keys) {
+        const value = config[key];
+        const path = [parentPath, key].join('.');
+        switch (key) {
+            case 'id':
+            case 'viewport':
+            case 'redirectTo':
+                if (typeof value !== 'string') {
+                    expectType('string', path, value);
+                }
                 break;
-            }
-        }
-        return content;
-    }
-    /**
-     * The next, to be transitioned in, content of the endpoint
-     */
-    getNextContent() {
-        // If there's only one content, it's always content
-        if (this.contents.length === 1) {
-            return null;
-        }
-        const lastCompleted = this.contents.indexOf(this.getContent());
-        return this.contents.length > lastCompleted ? this.contents[lastCompleted + 1] : null;
-    }
-    /**
-     * The content of the viewport at a specific timestamp.
-     *
-     * @param timestamp - The timestamp
-     */
-    getTimeContent(timestamp) {
-        let content = null;
-        // Go through all contents looking for last completed
-        for (let i = 0, ii = this.contents.length; i < ii; i++) {
-            if (this.contents[i].navigation.timestamp > timestamp) {
+            case 'caseSensitive':
+            case 'nav':
+                if (typeof value !== 'boolean') {
+                    expectType('boolean', path, value);
+                }
                 break;
-            }
-            content = this.contents[i];
-        }
-        return content;
-    }
-    /**
-     * The content for a specific navigation (or coordinator)
-     */
-    getNavigationContent(navigation) {
-        return super.getNavigationContent(navigation);
-    }
-    /**
-     * The parent viewport.
-     */
-    get parentViewport() {
-        let scope = this.connectedScope;
-        while (scope?.parent != null) {
-            scope = scope.parent;
-            if (scope.endpoint.isViewport) {
-                return scope.endpoint;
-            }
-        }
-        return null;
-    }
-    /**
-     * Whether the viewport (content) is empty.
-     */
-    get isEmpty() {
-        return this.getContent().componentInstance === null;
-    }
-    /**
-     * Whether the viewport content should be cleared and removed,
-     * regardless of statefulness (and hooks). If a parent should
-     * be removed, the viewport should as well.
-     */
-    get doForceRemove() {
-        let scope = this.connectedScope;
-        while (scope !== null) {
-            if (scope.isViewport && scope.endpoint.forceRemove) {
-                return true;
-            }
-            scope = scope.parent;
-        }
-        return false;
-    }
-    /**
-     * Whether a coordinator handles the active navigation.
-     *
-     * @param coordinator - The coordinator to check
-     */
-    isActiveNavigation(coordinator) {
-        return this.coordinators[this.coordinators.length - 1] === coordinator;
-    }
-    /**
-     * For debug purposes.
-     */
-    toString() {
-        const contentName = this.getContent()?.instruction.component.name ?? '';
-        const nextContentName = this.getNextContent()?.instruction.component.name ?? '';
-        return `v:${this.name}[${contentName}->${nextContentName}]`;
-    }
-    /**
-     * Set the next content for the viewport. Returns the action that the viewport
-     * will take when the navigation coordinator starts the transition. Note that a
-     * swap isn't guaranteed, current component configuration can result in a skipped
-     * transition.
-     *
-     * @param instruction - The routing instruction describing the next content
-     * @param navigation - The navigation that requests the content change
-     */
-    setNextContent(instruction, navigation) {
-        instruction.endpoint.set(this);
-        this.clear = instruction.isClear(this.router);
-        const content = this.getContent();
-        // Can have a (resolved) type or a string (to be resolved later)
-        const nextContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
-        this.contents.push(nextContent);
-        nextContent.fromHistory = nextContent.componentInstance !== null && navigation.navigation != null
-            ? !!navigation.navigation.back || !!navigation.navigation.forward
-            : false;
-        if (this.options.stateful) {
-            // TODO: Add a parameter here to decide required equality
-            const cached = this.cache.find((item) => nextContent.isCacheEqual(item));
-            if (cached !== void 0) {
-                this.contents.splice(this.contents.indexOf(nextContent), 1, cached);
-                nextContent.fromCache = true;
-            }
-            else {
-                this.cache.push(nextContent);
-            }
-        }
-        // If we get the same _instance_, don't do anything (happens with cached and history)
-        if (nextContent.componentInstance !== null && content.componentInstance === nextContent.componentInstance) {
-            nextContent.delete();
-            this.contents.splice(this.contents.indexOf(nextContent), 1);
-            return this.transitionAction = 'skip';
-        }
-        if (!content.equalComponent(nextContent) ||
-            navigation.navigation.refresh || // Navigation 'refresh' performed
-            content.reloadBehavior === 'refresh' // ReloadBehavior 'refresh' takes precedence
-        ) {
-            return this.transitionAction = 'swap';
-        }
-        // If we got here, component is the same name/type
-        // Explicitly don't allow navigation back to the same component again
-        if (content.reloadBehavior === 'disallow') {
-            nextContent.delete();
-            this.contents.splice(this.contents.indexOf(nextContent), 1);
-            return this.transitionAction = 'skip';
-        }
-        // Explicitly re-load same component again
-        // TODO(alpha): NEED TO CHECK THIS TOWARDS activeContent REGARDING scope
-        if (content.reloadBehavior === 'reload') {
-            content.reload = true;
-            nextContent.instruction.component.set(content.componentInstance);
-            nextContent.contentStates = content.contentStates.clone();
-            nextContent.reload = content.reload;
-            return this.transitionAction = 'reload';
-        }
-        // ReloadBehavior is now 'default'
-        // Requires updated parameters if viewport stateful
-        if (this.options.stateful && content.equalParameters(nextContent)) {
-            nextContent.delete();
-            this.contents.splice(this.contents.indexOf(nextContent), 1);
-            return this.transitionAction = 'skip';
-        }
-        if (!content.equalParameters(nextContent)) {
-            // TODO: Fix a config option for this
-            // eslint-disable-next-line no-constant-condition
-            { // Perform a full swap
-                return this.transitionAction = 'swap';
-            }
-        }
-        // Default is to do nothing
-        nextContent.delete();
-        this.contents.splice(this.contents.indexOf(nextContent), 1);
-        return this.transitionAction = 'skip';
-    }
-    /**
-     * Connect a ViewportCustomElement to this viewport endpoint, applying options
-     * while doing so.
-     *
-     * @param connectedCE - The custom element to connect
-     * @param options - The options to apply
-     */
-    setConnectedCE(connectedCE, options) {
-        options = options ?? {};
-        if (this.connectedCE !== connectedCE) {
-            // TODO: Restore this state on navigation cancel
-            this.previousViewportState = { ...this };
-            this.clearState();
-            this.connectedCE = connectedCE;
-            this.options.apply(options);
-            this.connectionResolve?.();
-        }
-        const parentDefaultRoute = (this.scope.parent?.endpoint.getRoutes() ?? [])
-            .filter(route => (Array.isArray(route.path) ? route.path : [route.path]).includes(''))
-            .length > 0;
-        if (this.getContent().componentInstance === null
-            && this.getNextContent()?.componentInstance == null
-            && (this.options.default || parentDefaultRoute)) {
-            const instructions = RoutingInstruction.parse(this.router, this.options.default ?? '');
-            if (instructions.length === 0 && parentDefaultRoute) {
-                const foundRoute = this.scope.parent?.findInstructions([RoutingInstruction.create('')], false, this.router.configuration.options.useConfiguredRoutes);
-                if (foundRoute?.foundConfiguration) {
-                    instructions.push(...foundRoute.instructions);
+            case 'data':
+                if (typeof value !== 'object' || value === null) {
+                    expectType('object', path, value);
                 }
-            }
-            for (const instruction of instructions) {
-                // Set to name to be delayed one turn (refactor: not sure why, so changed it)
-                instruction.endpoint.set(this);
-                instruction.scope = this.owningScope;
-                instruction.default = true;
-            }
-            this.router.load(instructions, { append: true }).catch(error => { throw error; });
-        }
-    }
-    // TODO(alpha): Look into this!
-    remove(step, connectedCE) {
-        // TODO: Review this: should it go from promise to value somewhere?
-        if (this.connectedCE === connectedCE) {
-            return Runner.run(step, (innerStep) => {
-                if (this.getContent().componentInstance !== null) {
-                    return this.getContent().freeContent(innerStep, this.connectedCE, (this.getNextContent()?.navigation ?? null), this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful); // .catch(error => { throw error; });
+                break;
+            case 'title':
+                switch (typeof value) {
+                    case 'string':
+                    case 'function':
+                        break;
+                    default:
+                        expectType('string or function', path, value);
                 }
-            }, (innerStep) => {
-                if (this.doForceRemove) {
-                    const removes = [];
-                    for (const content of this.historyCache) {
-                        removes.push((innerInnerStep) => content.freeContent(innerInnerStep, null, null, this.historyCache, false));
-                    }
-                    removes.push(() => { this.historyCache = []; });
-                    return Runner.run(innerStep, ...removes);
-                }
-                return true;
-            });
-        }
-        return false;
-    }
-    /**
-     * Transition from current content to the next.
-     *
-     * @param coordinator - The coordinator of the navigation
-     */
-    async transition(coordinator) {
-        const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
-        this.coordinators.push(coordinator);
-        // If this isn't the first coordinator, a navigation is already in process...
-        while (this.coordinators[0] !== coordinator) {
-            // ...so first wait for it to finish.
-            await this.coordinators[0].waitForSyncState('completed');
-        }
-        // Get the parent viewport...
-        let actingParentViewport = this.parentViewport;
-        // ...but not if it's not acting (reloading or swapping)
-        if (actingParentViewport !== null
-            && actingParentViewport.transitionAction !== 'reload'
-            && actingParentViewport.transitionAction !== 'swap') {
-            actingParentViewport = null;
-        }
-        // If actingParentViewport has a value, that viewport's routing
-        // hooks needs to be awaited before starting this viewport's
-        // corresponding routing hook.
-        // First create a list with the steps that should run in the order
-        // they should run and then, at the end, run them. Each hook step
-        // registers its completeness with the navigation coordinator, which
-        // keeps track of entity/endpoint transition states and restrictions
-        // as well as pausing continuation if needed.
-        // The transition guard hooks, canUnload and canLoad, both of which
-        // can cancel the entire navigation
-        const guardSteps = [
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    return this.canUnload(coordinator, step);
-                }
-            },
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    if ((step.previousValue ?? true) === false) { // canUnloadResult: boolean
-                        // step.cancel();
-                        coordinator.cancel();
-                    }
-                }
-            },
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    return RoutingInstruction.resolve([this.getNavigationContent(coordinator).instruction]);
-                }
-            },
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
-                        const routerOptions = this.router.configuration.options;
-                        return this.getNavigationContent(coordinator).createComponent(coordinator, this.connectedCE, this.options.fallback || routerOptions.fallback, this.options.fallbackAction || routerOptions.fallbackAction);
-                    }
-                }
-            },
-            () => coordinator.addEndpointState(this, 'guardedUnload'),
-            () => coordinator.waitForSyncState('guardedUnload', this), // Awaits all `canUnload` hooks
-            () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    return this.canLoad(coordinator, step);
-                }
-            },
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    let canLoadResult = (step.previousValue ?? true);
-                    if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
-                        if (!canLoadResult) {
-                            // step.cancel();
-                            coordinator.cancel();
-                            const instruction = this.getNavigationContent(coordinator).instruction;
-                            coordinator.removeInstructions(instruction.dynasty);
-                            instruction.nextScopeInstructions = null;
-                            return;
+                break;
+            case 'path':
+                if (value instanceof Array) {
+                    for (let i = 0; i < value.length; ++i) {
+                        if (typeof value[i] !== 'string') {
+                            expectType('string', `${path}[${i}]`, value[i]);
                         }
                     }
-                    else { // Denied and (probably) redirected
-                        const instruction = this.getNavigationContent(coordinator).instruction;
-                        coordinator.removeInstructions(instruction.dynasty);
-                        instruction.nextScopeInstructions = null;
-                        if (typeof canLoadResult === 'string') {
-                            const scope = this.scope;
-                            const options = this.router.configuration.options;
-                            let instructions = RoutingInstruction.parse(this.router, canLoadResult);
-                            const foundRoute = scope.parent?.findInstructions(instructions, options.useDirectRouting, options.useConfiguredRoutes);
-                            if (foundRoute?.foundConfiguration || foundRoute?.foundInstructions) {
-                                instructions = foundRoute.instructions;
-                            }
-                            for (const instruction of instructions) {
-                                instruction.endpoint.set(this);
-                                instruction.scope = scope.owningScope;
-                            }
-                            canLoadResult = instructions;
+                }
+                else if (typeof value !== 'string') {
+                    expectType('string or Array of strings', path, value);
+                }
+                break;
+            case 'component':
+                validateComponent(value, path, 'component');
+                break;
+            case 'routes': {
+                if (!(value instanceof Array)) {
+                    expectType('Array', path, value);
+                }
+                for (const route of value) {
+                    const childPath = `${path}[${value.indexOf(route)}]`;
+                    validateComponent(route, childPath, 'component');
+                }
+                break;
+            }
+            case 'transitionPlan':
+                switch (typeof value) {
+                    case 'string':
+                        switch (value) {
+                            case 'none':
+                            case 'replace':
+                            case 'invoke-lifecycles':
+                                break;
+                            default:
+                                expectType('string(\'none\'|\'replace\'|\'invoke-lifecycles\') or function', path, value);
                         }
-                        return Runner.run(step, () => {
-                            void this.router.load(canLoadResult, { append: coordinator });
-                        }, (innerStep) => this.cancelContentChange(coordinator, innerStep), () => RoutingInstruction.resolve(canLoadResult), (innerStep) => {
-                            return innerStep.exit();
-                        });
+                        break;
+                    case 'function':
+                        break;
+                    default:
+                        expectType('string(\'none\'|\'replace\'|\'invoke-lifecycles\') or function', path, value);
+                }
+                break;
+            case 'fallback':
+                validateComponent(value, path, 'fallback');
+                break;
+            default:
+                // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
+                throw new Error(getMessage(3556 /* Events.rtUnknownConfigProperty */, parentPath, key));
+        }
+    }
+}
+function validateRedirectRouteConfig(config, parentPath) {
+    if (config == null)
+        throw new Error(getMessage(3555 /* Events.rtInvalidConfig */, config));
+    const keys = Object.keys(config);
+    for (const key of keys) {
+        const value = config[key];
+        const path = [parentPath, key].join('.');
+        switch (key) {
+            case 'path':
+                if (value instanceof Array) {
+                    for (let i = 0; i < value.length; ++i) {
+                        if (typeof value[i] !== 'string') {
+                            expectType('string', `${path}[${i}]`, value[i]);
+                        }
                     }
                 }
-                coordinator.addEndpointState(this, 'guardedLoad');
-                coordinator.addEndpointState(this, 'guarded');
-            },
-        ];
-        // The transition routing hooks, unloading and loading
-        const routingSteps = [
-            () => coordinator.waitForSyncState('guarded', this),
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    return this.unload(coordinator, step);
+                else if (typeof value !== 'string') {
+                    expectType('string or Array of strings', path, value);
                 }
-            },
-            () => coordinator.addEndpointState(this, 'unloaded'),
-            () => coordinator.waitForSyncState('unloaded', this),
-            () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'loaded') : void 0,
-            (step) => {
-                if (this.isActiveNavigation(coordinator)) {
-                    return this.load(coordinator, step);
+                break;
+            case 'redirectTo':
+                if (typeof value !== 'string') {
+                    expectType('string', path, value);
                 }
-            },
-            () => coordinator.addEndpointState(this, 'loaded'),
-            () => coordinator.addEndpointState(this, 'routed'),
-        ];
-        // The lifecycle hooks, with order and parallelism based on configuration
-        const lifecycleSteps = [
-            () => coordinator.waitForSyncState('routed', this),
-            () => coordinator.waitForEndpointState(this, 'routed'),
-        ];
-        const swapOrder = this.router.configuration.options.swapOrder;
-        switch (swapOrder) {
-            case 'detach-current-attach-next':
-                lifecycleSteps.push((step) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.removeContent(step, coordinator);
-                } }, (step) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.addContent(step, coordinator);
-                } });
                 break;
-            case 'attach-next-detach-current':
-                lifecycleSteps.push((step) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.addContent(step, coordinator);
-                } }, (step) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.removeContent(step, coordinator);
-                } });
-                break;
-            case 'detach-attach-simultaneously':
-                lifecycleSteps.push((step) => Runner.runParallel(step, (innerStep) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.removeContent(innerStep, coordinator);
-                } }, (innerStep) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.addContent(innerStep, coordinator);
-                } }));
-                break;
-            case 'attach-detach-simultaneously':
-                lifecycleSteps.push((step) => Runner.runParallel(step, (innerStep) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.addContent(innerStep, coordinator);
-                } }, (innerStep) => { if (this.isActiveNavigation(coordinator)) {
-                    return this.removeContent(innerStep, coordinator);
-                } }));
-                break;
-        }
-        lifecycleSteps.push(() => coordinator.addEndpointState(this, 'swapped'));
-        // Set activity indicator (class) on the connected custom element
-        this.connectedCE?.setActivity?.(navigatingPrefix, true);
-        this.connectedCE?.setActivity?.(coordinator.navigation.navigation, true);
-        // Run the steps and do the transition
-        const result = Runner.run('transition', (step) => coordinator.setEndpointStep(this, step.root), ...guardSteps, ...routingSteps, ...lifecycleSteps, () => coordinator.addEndpointState(this, 'completed'), () => coordinator.waitForSyncState('bound'), () => {
-            this.connectedCE?.setActivity?.(navigatingPrefix, false);
-            this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
-        });
-        if (result instanceof Promise) {
-            result.catch(_err => { });
+            default:
+                // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
+                throw new Error(getMessage(3557 /* Events.rtUnknownRedirectConfigProperty */, parentPath, key));
         }
     }
-    /**
-     * Check if the current content can be unloaded.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    canUnload(coordinator, step) {
-        return Runner.run(step, (innerStep) => {
-            return this.getContent().connectedScope.canUnload(coordinator, innerStep);
-        }, (innerStep) => {
-            if ((innerStep.previousValue ?? true) === false) { // canUnloadChildren
-                return false;
+}
+function validateComponent(component, parentPath, property) {
+    switch (typeof component) {
+        case 'function':
+            break;
+        case 'object':
+            if (component instanceof Promise || component instanceof NavigationStrategy) {
+                break;
             }
-            return this.getContent().canUnload(coordinator.navigation);
-        });
+            if (isPartialRedirectRouteConfig(component)) {
+                validateRedirectRouteConfig(component, parentPath);
+                break;
+            }
+            if (isPartialChildRouteConfig(component)) {
+                validateRouteConfig(component, parentPath);
+                break;
+            }
+            if (!isCustomElementViewModel(component) &&
+                !isPartialCustomElementDefinition(component)) {
+                expectType(`an object with at least a '${property}' property (see Routeable)`, parentPath, component);
+            }
+            break;
+        case 'string':
+            break;
+        default:
+            expectType('function, object or string (see Routeable)', parentPath, component);
     }
-    /**
-     * Check if the next content can be loaded.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    canLoad(coordinator, step) {
-        if (this.clear) {
-            return true;
+}
+// This function is intentionally restricted to Params type as it is used only for Params.
+// Feel free to extends the typings as per need.
+function shallowEquals(a, b) {
+    if (a === b) {
+        return true;
+    }
+    if (typeof a !== typeof b) {
+        return false;
+    }
+    if (a === null || b === null) {
+        return false;
+    }
+    if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) {
+        return false;
+    }
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) {
+        return false;
+    }
+    for (let i = 0, ii = aKeys.length; i < ii; ++i) {
+        const key = aKeys[i];
+        if (key !== bKeys[i]) {
+            return false;
         }
-        return Runner.run(step, () => this.waitForConnected(), () => {
-            const routerOptions = this.router.configuration.options;
-            const navigationContent = this.getNavigationContent(coordinator);
-            return navigationContent.createComponent(coordinator, this.connectedCE, this.options.fallback || routerOptions.fallback, this.options.fallbackAction || routerOptions.fallbackAction);
-        }, () => this.getNavigationContent(coordinator).canLoad());
-    }
-    /**
-     * Load the next content.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    load(coordinator, step) {
-        if (this.clear) {
-            return;
-        }
-        return this.getNavigationContent(coordinator).load(step);
-    }
-    /**
-     * Add (activate) the next content.
-     *
-     * @param step - The previous step in this transition Run
-     * @param coordinator - The navigation coordinator
-     */
-    addContent(step, coordinator) {
-        return this.activate(step, null, this.connectedController, coordinator);
-    }
-    /**
-     * Remove (deactivate) the current content.
-     *
-     * @param step - The previous step in this transition Run
-     * @param coordinator - The navigation coordinator
-     */
-    removeContent(step, coordinator) {
-        if (this.isEmpty) {
-            return;
-        }
-        const manualDispose = this.router.statefulHistory || (this.options.stateful ?? false);
-        return Runner.run(step, 
-        // TODO: This also needs to be added when coordinator isn't active (and
-        // this method isn't called)
-        () => coordinator.addEndpointState(this, 'bound'), () => coordinator.waitForSyncState('bound'), (innerStep) => this.deactivate(innerStep, null, this.connectedController), () => manualDispose ? this.dispose() : void 0);
-    }
-    /**
-     * Activate the next content component, running `load` first. (But it only
-     * runs if it's not already run.) Called both when transitioning and when
-     * the custom element triggers it.
-     *
-     * @param step - The previous step in this transition Run
-     * @param initiator - The controller that initiates the activate
-     * @param parent - The parent controller
-     * @param flags - The lifecycle flags for `activate`
-     * @param coordinator - The navigation coordinator
-     */
-    activate(step, initiator, parent, coordinator) {
-        if (this.activeContent.componentInstance !== null) {
-            return Runner.run(step, () => this.activeContent.canLoad(), // Only acts if not already checked
-            (innerStep) => this.activeContent.load(innerStep), // Only acts if not already loaded
-            (innerStep) => this.activeContent.activateComponent(innerStep, initiator, parent, this.connectedCE, 
-            // TODO: This also needs to be added when coordinator isn't active (and
-            // this method isn't called)
-            () => coordinator?.addEndpointState(this, 'bound'), coordinator?.waitForSyncState('bound')));
+        if (a[key] !== b[key]) {
+            return false;
         }
     }
+    return true;
+}
+
+const AuNavId = 'au-nav-id';
+class Subscription {
+    constructor(
+    /** @internal */ _events, 
     /**
-     * Deactivate the current content component. Called both when
-     * transitioning and when the custom element triggers it.
+     * A unique serial number that makes individual subscribers more easily distinguishable in chronological order.
      *
-     * @param initiator - The controller that initiates the deactivate
-     * @param parent - The parent controller
-     * @param flags - The lifecycle flags for `deactivate`
+     * Mainly for debugging purposes.
      */
-    deactivate(step, initiator, parent) {
-        const content = this.getContent();
-        if (content?.componentInstance != null &&
-            !content.reload &&
-            content.componentInstance !== this.getNextContent()?.componentInstance) {
-            return content.deactivateComponent(step, initiator, parent, this.connectedCE, this.router.statefulHistory || this.options.stateful);
-        }
+    /** @internal */ _serial, 
+    /** @internal */ _inner) {
+        this._events = _events;
+        this._serial = _serial;
+        this._inner = _inner;
+        /** @internal */ this._disposed = false;
     }
-    /**
-     * Unload the current content.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    unload(coordinator, step) {
-        return Runner.run(step, (unloadStep) => this.getContent().connectedScope.unload(coordinator, unloadStep), () => this.getContent().componentInstance != null ? this.getContent().unload(coordinator.navigation ?? null) : void 0);
-    }
-    /**
-     * Dispose the current content.
-     */
     dispose() {
-        if (this.getContent().componentInstance !== null &&
-            !this.getContent().reload &&
-            this.getContent().componentInstance !== this.getNextContent()?.componentInstance) {
-            this.getContent().disposeComponent(this.connectedCE, this.historyCache, this.router.statefulHistory || this.options.stateful);
-        }
-    }
-    /**
-     * Finalize the change of content by making the next content the current
-     * content. The previously current content is deleted.
-     */
-    finalizeContentChange(coordinator, step) {
-        const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
-        let nextContent = this.contents[nextContentIndex];
-        const previousContent = this.contents[nextContentIndex - 1];
-        // const previousContents = this.contents.slice(0, nextContentIndex);
-        if (this.clear) {
-            const emptyContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, void 0, nextContent.navigation);
-            this.contents.splice(nextContentIndex, 1, emptyContent);
-            nextContent.delete();
-            nextContent = emptyContent;
-        }
-        else {
-            nextContent.reload = false;
-        }
-        previousContent.delete();
-        // TODO: Fix this so that multiple removes work!
-        // const freeSteps = [];
-        // for (const previousContent of previousContents) {
-        //   freeSteps.push(
-        //     (innerStep: Step<void>) => {
-        //       // return previousContent.freeContent(
-        //       //   innerStep,
-        //       //   this.connectedCE,
-        //       //   previousContent.navigation,
-        //       //   this.historyCache,
-        //       //   this.router.statefulHistory || this.options.stateful)
-        //     },
-        //     () => previousContent.delete(),
-        //   );
-        // }
-        // return Runner.run(step,
-        //   ...freeSteps,
-        //   () => {
-        // if (nextContent !== null) {
-        nextContent.completed = true;
-        // }
-        this.transitionAction = '';
-        nextContent.contentStates.delete('checkedUnload');
-        nextContent.contentStates.delete('checkedLoad');
-        this.previousViewportState = null;
-        const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
-        this.connectedCE?.setActivity?.(navigatingPrefix, false);
-        this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
-        let removeable = 0;
-        for (let i = 0, ii = nextContentIndex; i < ii; i++) {
-            if (!(this.contents[0].navigation.completed ?? false)) {
-                break;
-            }
-            removeable++;
-        }
-        this.contents.splice(0, removeable);
-        arrayRemove(this.coordinators, (coord => coord === coordinator));
-        //   }
-        // ) as Step<void>;
-    }
-    /**
-     * Cancel the change of content. The next content is freed/discarded.
-     *
-     * @param step - The previous step in this transition Run
-     */
-    cancelContentChange(coordinator, noExitStep = null) {
-        // First cancel content change in all children
-        [...new Set(this.scope.children.map(scope => scope.endpoint))].forEach(child => child.cancelContentChange(coordinator, noExitStep));
-        const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
-        if (nextContentIndex < 0) {
-            return;
-        }
-        const step = coordinator.getEndpointStep(this)?.current ?? null;
-        const nextContent = this.contents[nextContentIndex];
-        const previousContent = this.contents[nextContentIndex - 1];
-        nextContent.instruction.cancelled = true;
-        return Runner.run(step, (innerStep) => {
-            return nextContent.freeContent(innerStep, this.connectedCE, nextContent.navigation, this.historyCache, this.router.statefulHistory || this.options.stateful);
-        }, () => {
-            if (this.previousViewportState) {
-                Object.assign(this, this.previousViewportState);
-            }
-            nextContent?.delete();
-            if (nextContent !== null) {
-                this.contents.splice(this.contents.indexOf(nextContent), 1);
-            }
-            this.transitionAction = '';
-            previousContent?.contentStates.delete('checkedUnload');
-            previousContent?.contentStates.delete('checkedLoad');
-            const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
-            this.connectedCE?.setActivity?.(navigatingPrefix, false);
-            this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
-            coordinator.removeEndpoint(this);
-            arrayRemove(this.coordinators, (coord => coord === coordinator));
-        }, () => {
-            if (step !== noExitStep) {
-                return step?.exit();
-            }
-        });
-    }
-    /**
-     * Whether the viewport wants a specific component. Used when
-     * matching routing instructions to viewports.
-     *
-     * @param component - The component to check
-     *
-     * TODO: Deal with non-string components
-     */
-    wantComponent(component) {
-        return this.options.usedBy.includes(component);
-    }
-    /**
-     * Whether the viewport accepts a specific component. Used when
-     * matching routing instructions to viewports.
-     *
-     * @param component - The component to check
-     *
-     * TODO: Deal with non-string components
-     */
-    acceptComponent(component) {
-        if (component === '-' || component === null) {
-            return true;
-        }
-        const usedBy = this.options.usedBy;
-        if (usedBy.length === 0) {
-            return true;
-        }
-        if (usedBy.includes(component)) {
-            return true;
-        }
-        if (usedBy.filter((value) => value.includes('*')).length) {
-            return true;
-        }
-        return false;
-    }
-    /**
-     * Free/discard a history cached content containing a specific component.
-     *
-     * @param step - The previous step in this transition Run
-     * @param component - The component to look for
-     *
-     * TODO: Deal with multiple contents containing the component
-     */
-    freeContent(step, component) {
-        const content = this.historyCache.find(cached => cached.componentInstance === component);
-        if (content !== void 0) {
-            return Runner.run(step, (innerStep) => {
-                this.forceRemove = true;
-                return content.freeContent(innerStep, null, null, this.historyCache, false);
-            }, () => {
-                this.forceRemove = false;
-                arrayRemove(this.historyCache, (cached => cached === content));
-            });
-        }
-    }
-    /**
-     * Get any configured routes in the relevant content's component type.
-     */
-    getRoutes() {
-        const routes = [];
-        let componentType = this.getComponentType();
-        if (componentType != null) {
-            componentType = componentType.constructor === componentType.constructor.constructor
-                ? componentType
-                : componentType.constructor;
-            routes.push(...(Routes.getConfiguration(componentType) ?? []));
-        }
-        return routes;
-    }
-    /**
-     * Get the title for the content.
-     *
-     * @param navigation - The navigation that requests the content change
-     */
-    getTitle(navigation) {
-        if (this.options.noTitle) {
-            return '';
-        }
-        const componentType = this.getComponentType();
-        if (componentType === null) {
-            return '';
-        }
-        let title = '';
-        const typeTitle = componentType.title;
-        if (typeTitle !== void 0) {
-            if (typeof typeTitle === 'string') {
-                title = typeTitle;
-            }
-            else {
-                const component = this.getComponentInstance();
-                title = typeTitle.call(component, component, navigation);
-            }
-        }
-        else if (this.router.configuration.options.title.useComponentNames) {
-            let name = this.getContentInstruction().component.name ?? '';
-            // TODO(alpha): Allow list of component prefixes
-            const prefix = (this.router.configuration.options.title.componentPrefix ?? '');
-            if (name.startsWith(prefix)) {
-                name = name.slice(prefix.length);
-            }
-            name = name.replace('-', ' ');
-            title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
-        }
-        return title;
-    }
-    /**
-     * Get component type of the relevant, current or next, content.
-     */
-    getComponentType() {
-        let componentType = this.getContentInstruction().component.type ?? null;
-        if (componentType === null) {
-            const controller = CustomElement.for(this.connectedCE.element);
-            componentType = controller.container
-                .componentType;
-        }
-        return componentType ?? null;
-    }
-    /**
-     * Get component instance of the relevant, current or next, content.
-     */
-    getComponentInstance() {
-        return this.getContentInstruction().component.instance ?? null;
-    }
-    /**
-     * Get routing instruction of the relevant, current or next, content.
-     */
-    getContentInstruction() {
-        return this.getNextContent()?.instruction ?? this.getContent().instruction ?? null;
-    }
-    /**
-     * Clear the viewport state.
-     *
-     * TODO: Investigate the need.
-     */
-    clearState() {
-        this.options = ViewportOptions.create();
-        const owningScope = this.owningScope;
-        const hasScope = this.scope.hasScope;
-        this.getContent().delete();
-        this.contents.shift();
-        if (this.contents.length < 1) {
-            throw new Error('no content!');
-        }
-        this.contents.push(new ViewportContent(this.router, this, owningScope, hasScope));
-        this.cache = [];
-    }
-    /**
-     * If necessary, get a promise to await until a custom element connects.
-     */
-    waitForConnected() {
-        if (this.connectedCE === null) {
-            return new Promise((resolve) => {
-                this.connectionResolve = resolve;
-            });
+        if (!this._disposed) {
+            this._disposed = true;
+            this._inner.dispose();
+            const subscriptions = this._events['_subscriptions'];
+            subscriptions.splice(subscriptions.indexOf(this), 1);
         }
     }
 }
-
-class InstructionEndpoint {
+const IRouterEvents = /*@__PURE__*/ DI.createInterface('IRouterEvents', x => x.singleton(RouterEvents));
+class RouterEvents {
     constructor() {
-        this.name = null;
-        this.instance = null;
-        this.scope = null;
+        /** @internal */ this._subscriptionSerial = 0;
+        /** @internal */ this._subscriptions = [];
+        /** @internal */ this._ea = resolve(IEventAggregator);
+        /** @internal */ this._logger = resolve(ILogger).scopeTo('RouterEvents');
     }
-    get none() {
-        return this.name === null && this.instance === null;
+    publish(event) {
+        trace(this._logger, 3200 /* Events.rePublishingEvent */, event);
+        this._ea.publish(event.name, event);
     }
-    get endpointType() {
-        if (this.instance instanceof Viewport) {
-            return 'Viewport';
-        }
-        if (this.instance instanceof ViewportScope) {
-            return 'ViewportScope';
-        }
-        return null;
-    }
-    static create(endpointHandle) {
-        const endpoint = new InstructionEndpoint();
-        endpoint.set(endpointHandle);
-        return endpoint;
-    }
-    static isName(endpoint) {
-        return typeof endpoint === 'string';
-    }
-    static isInstance(endpoint) {
-        return endpoint instanceof Endpoint$1;
-    }
-    static getName(endpoint) {
-        if (InstructionEndpoint.isName(endpoint)) {
-            return endpoint;
-        }
-        else {
-            return endpoint ? (endpoint).name : null;
-        }
-    }
-    static getInstance(endpoint) {
-        if (InstructionEndpoint.isName(endpoint)) {
-            return null;
-        }
-        else {
-            return endpoint;
-        }
-    }
-    set(endpoint) {
-        if (endpoint === undefined || endpoint === '') {
-            endpoint = null;
-        }
-        if (typeof endpoint === 'string') {
-            this.name = endpoint;
-            this.instance = null;
-        }
-        else {
-            this.instance = endpoint;
-            if (endpoint !== null) {
-                this.name = endpoint.name;
-                this.scope = endpoint.owningScope;
-            }
-        }
-    }
-    toInstance(router) {
-        if (this.instance !== null) {
-            return this.instance;
-        }
-        return router.getEndpoint(this.endpointType, this.name);
-    }
-    same(other, compareScope) {
-        if (this.instance !== null && other.instance !== null) {
-            return this.instance === other.instance;
-        }
-        return (this.endpointType !== null &&
-            other.endpointType !== null &&
-            this.endpointType === other.endpointType) &&
-            (!compareScope || this.scope === other.scope) &&
-            (this.instance !== null ? this.instance.name : this.name) ===
-                (other.instance !== null ? other.instance.name : other.name);
+    subscribe(event, callback) {
+        const subscription = new Subscription(this, ++this._subscriptionSerial, this._ea.subscribe(event, (message) => {
+            trace(this._logger, 3201 /* Events.reInvokingSubscriber */, subscription._serial, event);
+            callback(message);
+        }));
+        this._subscriptions.push(subscription);
+        return subscription;
     }
 }
-
-const RoutingInstructionStringifyOptionsDefaults = {
-    excludeEndpoint: false,
-    endpointContext: false,
-    fullState: false,
-};
-/**
- * The routing instructions are the core of the router's navigations. All
- * navigation instructions to the router are translated to a set of
- * routing instructions. The routing instructions are resolved "non-early"
- * to support dynamic, local resolutions.
- *
- * Routing instructions are used to represent the full navigation state
- * and is serialized when storing and restoring the navigation state. (But
- * not full component state with component instance state. ViewportContent
- * is used for that.)
- */
-class RoutingInstruction {
-    constructor(component, endpoint, parameters) {
-        /**
-         * Whether the routing instruction owns its scope.
-         */
-        this.ownsScope = true;
-        /**
-         * The routing instructions in the next scope ("children").
-         */
-        this.nextScopeInstructions = null;
-        /**
-         * The scope the the routing instruction belongs to.
-         */
-        this.scope = null;
-        /**
-         * The scope modifier of the routing instruction.
-         */
-        this.scopeModifier = '';
-        /**
-         * Whether the routing instruction can be resolved within the scope without having
-         * endpoint specified. Used when creating string instructions/links/url.
-         */
-        this.needsEndpointDescribed = false;
-        /**
-         * The configured route, if any, that the routing instruction is part of.
-         */
-        this.route = null;
-        /**
-         * The instruction is the start/first instruction of a configured route.
-         */
-        this.routeStart = false;
-        /**
-         * Whether the routing instruction is the result of a (viewport) default (meaning it
-         * has lower priority when processing instructions).
-         */
-        this.default = false;
-        /**
-         * Whether the routing instruction is the top instruction in its routing instruction
-         * hierarchy. Used when syncing swap of all (top) instructions.
-         */
-        this.topInstruction = false;
-        /**
-         * The string, if any, that was used to parse the instruction. Includes anything
-         * in the string after the actual part for the instruction itself.
-         */
-        this.unparsed = null;
-        /**
-         * Whether the routing instruction has been cancelled (aborted) for some reason
-         */
-        this.cancelled = false;
-        this.component = InstructionComponent.create(component);
-        this.endpoint = InstructionEndpoint.create(endpoint);
-        this.parameters = InstructionParameters.create(parameters);
-    }
-    /**
-     * Create a new routing instruction.
-     *
-     * @param component - The component (appelation) part of the instruction. Can be a promise
-     * @param endpoint - The endpoint (handle) part of the instruction
-     * @param parameters - The parameters part of the instruction
-     * @param ownScope - Whether the routing instruction owns its scope
-     * @param nextScopeInstructions - The routing instructions in the next scope ("children")
-     */
-    static create(component, endpoint, parameters, ownsScope = true, nextScopeInstructions = null) {
-        const instruction = new RoutingInstruction(component, endpoint, parameters);
-        instruction.ownsScope = ownsScope;
-        instruction.nextScopeInstructions = nextScopeInstructions;
-        return instruction;
-    }
-    /**
-     * Create a clear endpoint routing instruction.
-     *
-     * @param endpoint - The endpoint to create the clear instruction for
-     */
-    static createClear(context, endpoint) {
-        const instruction = RoutingInstruction.create(RoutingInstruction.clear(context), endpoint);
-        // Clear instructions should have the scope of the endpoint
-        instruction.scope = endpoint.scope;
-        return instruction;
-    }
-    /**
-     * Get routing instructions based on load instructions.
-     *
-     * @param context - The context (used for syntax) within to parse the instructions
-     * @param loadInstructions - The load instructions to get the routing
-     * instructions from.
-     */
-    static from(context, loadInstructions) {
-        if (!Array.isArray(loadInstructions)) {
-            loadInstructions = [loadInstructions];
-        }
-        const instructions = [];
-        for (const instruction of loadInstructions) {
-            if (typeof instruction === 'string') {
-                instructions.push(...RoutingInstruction.parse(context, instruction));
-            }
-            else if (instruction instanceof RoutingInstruction) {
-                instructions.push(instruction);
-            }
-            else if (instruction instanceof Promise) {
-                instructions.push(RoutingInstruction.create(instruction));
-            }
-            else if (InstructionComponent.isAppelation(instruction)) {
-                instructions.push(RoutingInstruction.create(instruction));
-            }
-            else if (InstructionComponent.isDefinition(instruction)) {
-                instructions.push(RoutingInstruction.create(instruction.Type));
-            }
-            else if ('component' in instruction || 'id' in instruction) {
-                const viewportComponent = instruction;
-                const newInstruction = RoutingInstruction.create(viewportComponent.component, viewportComponent.viewport, viewportComponent.parameters);
-                newInstruction.route = instruction.id ?? null;
-                if (viewportComponent.children !== void 0 && viewportComponent.children !== null) {
-                    newInstruction.nextScopeInstructions = RoutingInstruction.from(context, viewportComponent.children);
-                }
-                instructions.push(newInstruction);
-            }
-            else if (typeof instruction === 'object' && instruction !== null) {
-                const type = CustomElement.define(instruction);
-                instructions.push(RoutingInstruction.create(type));
-            }
-            else {
-                instructions.push(RoutingInstruction.create(instruction));
-            }
-        }
-        return instructions;
-    }
-    /**
-     * The routing instruction component that represents "clear".
-     */
-    static clear(context) {
-        return Separators.for(context).clear;
-    }
-    /**
-     * The routing instruction component that represents "add".
-     */
-    static add(context) {
-        return Separators.for(context).add;
-    }
-    /**
-     * Parse an instruction string into a list of routing instructions.
-     *
-     * @param context - The context (used for syntax) within to parse the instructions
-     * @param instructions - The instruction string to parse
-     */
-    static parse(context, instructions) {
-        const seps = Separators.for(context);
-        let scopeModifier = '';
-        // Scope modifier is a start with .. or / and any combination thereof
-        const match = /^[./]+/.exec(instructions);
-        // If it starts with a scope modifier...
-        if (Array.isArray(match) && match.length > 0) {
-            // ...save and...
-            scopeModifier = match[0];
-            // ...extract it.
-            instructions = instructions.slice(scopeModifier.length);
-        }
-        // Parse the instructions...
-        const parsedInstructions = InstructionParser.parse(seps, instructions, true, true).instructions;
-        for (const instruction of parsedInstructions) {
-            // ...and set the scope modifier on each of them.
-            instruction.scopeModifier = scopeModifier;
-        }
-        return parsedInstructions;
-    }
-    /**
-     * Stringify a list of routing instructions, recursively down next scope/child instructions.
-     *
-     * @param context - The context (used for syntax) within to stringify the instructions
-     * @param instructions - The instructions to stringify
-     * @param options - The options for stringifying the instructions
-     * @param endpointContext - Whether to include endpoint context in the string. [Deprecated] Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
-     */
-    static stringify(context, instructions, options = {}, endpointContext = false) {
-        if (typeof options === 'boolean') {
-            // eslint-disable-next-line no-console
-            console.warn(`[Deprecated] Boolean passed to RoutingInstruction.stringify. Please use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }`);
-            options = { excludeEndpoint: options, endpointContext };
-        }
-        options = { ...RoutingInstructionStringifyOptionsDefaults, ...options };
-        return typeof (instructions) === 'string'
-            ? instructions
-            : instructions
-                .map(instruction => instruction.stringify(context, options))
-                .filter(instruction => instruction.length > 0)
-                .join(Separators.for(context).sibling);
-    }
-    /**
-     * Resolve a list of routing instructions, returning a promise that should be awaited if needed.
-     *
-     * @param instructions - The instructions to resolve
-     */
-    static resolve(instructions) {
-        const resolvePromises = instructions
-            .filter(instr => instr.isUnresolved)
-            .map(instr => instr.resolve())
-            .filter(result => result instanceof Promise);
-        if (resolvePromises.length > 0) {
-            return Promise.all(resolvePromises);
-        }
-    }
-    /**
-     * Whether the instructions, on any level, contains siblings
-     *
-     * @param instructions - The instructions to check
-     */
-    static containsSiblings(context, instructions) {
-        if (instructions === null) {
-            return false;
-        }
-        if (instructions
-            .filter(instruction => !instruction.isClear(context) && !instruction.isClearAll(context))
-            .length > 1) {
-            return true;
-        }
-        return instructions.some(instruction => RoutingInstruction.containsSiblings(context, instruction.nextScopeInstructions));
-    }
-    /**
-     * Get all routing instructions, recursively down next scope/child instructions, as
-     * a "flat" list.
-     *
-     * @param instructions - The instructions to flatten
-     */
-    static flat(instructions) {
-        const flat = [];
-        for (const instruction of instructions) {
-            flat.push(instruction);
-            if (instruction.hasNextScopeInstructions) {
-                flat.push(...RoutingInstruction.flat(instruction.nextScopeInstructions));
-            }
-        }
-        return flat;
-    }
-    /**
-     * Clone a list of routing instructions.
-     *
-     * @param instructions - The instructions to clone
-     * @param keepInstances - Whether actual instances should be transfered
-     * @param scopeModifier - Whether the scope modifier should be transfered
-     */
-    static clone(instructions, keepInstances = false, scopeModifier = false) {
-        return instructions.map(instruction => instruction.clone(keepInstances, scopeModifier));
-    }
-    /**
-     * Whether a list of routing instructions contains another list of routing
-     * instructions. If deep, all next scope instructions needs to be contained
-     * in containing next scope instructions as well.
-     *
-     * @param context - The context (used for parameter syntax) to compare within
-     * @param instructionsToSearch - Instructions that should contain (superset)
-     * @param instructionsToFind - Instructions that should be contained (subset)
-     * @param deep - Whether next scope instructions also need to be contained (recursively)
-     */
-    static contains(context, instructionsToSearch, instructionsToFind, deep) {
-        // All instructions to find need to exist in instructions to search
-        return instructionsToFind.every(find => find.isIn(context, instructionsToSearch, deep));
-    }
-    /**
-     * The endpoint of the routing instruction if it's a viewport OR if
-     * it can't be decided (no instance, just a name).
-     */
-    get viewport() {
-        return this.endpoint.instance instanceof Viewport ||
-            this.endpoint.endpointType === null
-            ? this.endpoint
-            : null;
-    }
-    /**
-     * The endpoint of the routing instruction if it's a viewport scope OR if
-     * it can't be decided (no instance, just a name).
-     */
-    get viewportScope() {
-        return this.endpoint.instance instanceof ViewportScope ||
-            this.endpoint.endpointType === null
-            ? this.endpoint
-            : null;
-    }
-    /**
-     * The previous instruction for the specific endpoint. This can only evaluate
-     * to a value when the instruction has an assigned endpoint. This is a
-     * convenience property in the API.
-     */
-    get previous() {
-        return this.endpoint.instance?.getContent()?.instruction;
-    }
-    /**
-     * Whether the routing instruction is an "add" instruction.
-     */
-    isAdd(context) {
-        return this.component.name === Separators.for(context).add;
-    }
-    /**
-     * Whether the routing instruction is a "clear" instruction.
-     */
-    isClear(context) {
-        return this.component.name === Separators.for(context).clear;
-    }
-    /**
-     * Whether the routing instruction is an "add all" instruction.
-     */
-    isAddAll(context) {
-        return this.isAdd(context) && ((this.endpoint.name?.length ?? 0) === 0);
-    }
-    /**
-     * Whether the routing instruction is an "clear all" instruction.
-     */
-    isClearAll(context) {
-        return this.isClear(context) && ((this.endpoint.name?.length ?? 0) === 0);
-    }
-    /**
-     * Whether the routing instruction has next scope/"children" instructions.
-     */
-    get hasNextScopeInstructions() {
-        return (this.nextScopeInstructions?.length ?? 0) > 0;
-    }
-    /**
-     * Get the dynasty of the routing instruction. The dynasty is the instruction
-     * itself and all its descendants (next scope instructions iteratively).
-     */
-    get dynasty() {
-        const dynasty = [this];
-        if (this.hasNextScopeInstructions) {
-            dynasty.push(...this.nextScopeInstructions.map(instruction => instruction.dynasty).flat());
-        }
-        return dynasty;
-    }
-    /**
-     * Whether the routing instruction is unresolved.
-     */
-    get isUnresolved() {
-        return this.component.isFunction() || this.component.isPromise();
-    }
-    /**
-     * Resolve the routing instruction.
-     */
-    resolve() {
-        return this.component.resolve(this);
-    }
-    /**
-     * Get the instruction parameters with type specification applied.
-     */
-    typeParameters(context) {
-        return this.parameters.toSpecifiedParameters(context, this.component.type?.parameters ?? []);
-    }
-    /**
-     * Compare the routing instruction's route with the route of another routing
-     * instruction.
-     *
-     * @param other - The routing instruction to compare to
-     */
-    sameRoute(other) {
-        const thisRoute = this.route?.match;
-        const otherRoute = other.route?.match;
-        if (thisRoute == null || otherRoute == null) {
-            return false;
-        }
-        if (typeof thisRoute === 'string' || typeof otherRoute === 'string') {
-            return thisRoute === otherRoute;
-        }
-        return thisRoute.id === otherRoute.id;
-    }
-    /**
-     * Compare the routing instruction's component with the component of another routing
-     * instruction. Compares on name unless `compareType` is `true`.
-     *
-     * @param context - The context (used for parameter syntax) to compare within
-     * @param other - The routing instruction to compare to
-     * @param compareParameters - Whether parameters should also be compared
-     * @param compareType - Whether comparision should be made on type only (and not name)
-     */
-    sameComponent(context, other, compareParameters = false, compareType = false) {
-        if (compareParameters && !this.sameParameters(context, other, compareType)) {
-            return false;
-        }
-        return this.component.same(other.component, compareType);
-    }
-    /**
-     * Compare the routing instruction's endpoint with the endpoint of another routing
-     * instruction. Compares on endpoint instance if possible, otherwise name.
-     *
-     * @param other - The routing instruction to compare to
-     * @param compareScope - Whether comparision should be made on scope as well (and not
-     * only instance/name)
-     */
-    sameEndpoint(other, compareScope) {
-        return this.endpoint.same(other.endpoint, compareScope);
-    }
-    /**
-     * Compare the routing instruction's parameters with the parameters of another routing
-     * instruction. Compares on actual values.
-     *
-     * @param other - The routing instruction to compare to
-     * @param compareType - Whether comparision should be made on type as well
-     */
-    sameParameters(context, other, compareType = false) {
-        // TODO: Somewhere we need to check for format such as spaces etc
-        if (!this.component.same(other.component, compareType)) {
-            return false;
-        }
-        return this.parameters.same(context, other.parameters, this.component.type);
-    }
-    /**
-     * Stringify the routing instruction, recursively down next scope/child instructions.
-     *
-     * @param context - The context (used for syntax) within to stringify the instructions
-     * @param options - The options for stringifying the instructions
-     * @param endpointContext - Whether to include endpoint context in the string.
-     * [Deprecated] Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
-     * @param shallow - Whether to stringify next scope instructions
-     */
-    stringify(context, options = {}, endpointContextOrShallow = false, shallow = false) {
-        if (typeof options === 'boolean') {
-            // eslint-disable-next-line no-console
-            console.warn(`[Deprecated] Boolean passed to RoutingInstruction.stringify. Please use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }`);
-            options = { excludeEndpoint: options, endpointContext: endpointContextOrShallow };
-        }
-        else {
-            shallow = endpointContextOrShallow;
-        }
-        options = { ...RoutingInstructionStringifyOptionsDefaults, ...options };
-        const seps = Separators.for(context);
-        let excludeCurrentEndpoint = options.excludeEndpoint;
-        let excludeCurrentComponent = false;
-        // If viewport context is specified...
-        if (options.endpointContext) {
-            const viewport = this.viewport?.instance ?? null;
-            // (...it's still skipped if no link option is set on viewport)
-            if (viewport?.options.noLink ?? false) {
-                return '';
-            }
-            // ...viewport can still be excluded if it's not necessary...
-            if (!this.needsEndpointDescribed &&
-                (!(viewport?.options.forceDescription ?? false) // ...and not forced...
-                    || (this.viewportScope?.instance != null)) // ...or it has a viewport scope
-            ) {
-                excludeCurrentEndpoint = true;
-            }
-            // ...or if it's the fallback component...
-            if (viewport?.options.fallback === this.component.name) {
-                excludeCurrentComponent = true;
-            }
-            // ...or the default component /* without next scope instructions/children */.
-            if (viewport?.options.default === this.component.name /* && !this.hasNextScopeInstructions */) {
-                excludeCurrentComponent = true;
-            }
-        }
-        const nextInstructions = this.nextScopeInstructions;
-        // Start with the scope modifier (if any)
-        let stringified = this.scopeModifier;
-        // It's a configured route that's already added as part of a configuration, so skip to next scope!
-        if (this.route instanceof FoundRoute && !this.routeStart) {
-            return !shallow && Array.isArray(nextInstructions)
-                ? RoutingInstruction.stringify(context, nextInstructions, options)
-                : '';
-        }
-        const path = this.stringifyShallow(context, excludeCurrentEndpoint, excludeCurrentComponent, options.fullState);
-        stringified += path.endsWith(seps.scope) ? path.slice(0, -seps.scope.length) : path;
-        // If any next scope/child instructions...
-        if (!shallow && Array.isArray(nextInstructions) && nextInstructions.length > 0) {
-            // ...get them as string...
-            const nextStringified = RoutingInstruction.stringify(context, nextInstructions, options);
-            if (nextStringified.length > 0) {
-                // ...and add with scope separator and...
-                stringified += seps.scope;
-                // ...check if scope grouping separators are needed:
-                stringified += nextInstructions.length === 1 // TODO: This should really also check that the instructions have value
-                    // only one child, add as-is
-                    ? nextStringified
-                    // more than one child, add within scope (between () )
-                    : `${seps.groupStart}${nextStringified}${seps.groupEnd}`;
-            }
-        }
-        return stringified;
-    }
-    /**
-     * Clone the routing instruction.
-     *
-     * @param keepInstances - Whether actual instances should be transfered
-     * @param scopeModifier - Whether the scope modifier should be transfered
-     * @param shallow - Whether it should be a shallow clone only
-     */
-    clone(keepInstances = false, scopeModifier = false, shallow = false) {
-        // Create a clone without instances...
-        const clone = RoutingInstruction.create(this.component.func ?? this.component.promise ?? this.component.type ?? this.component.name, this.endpoint.name, this.parameters.typedParameters ?? void 0);
-        // ...and then set them if they should be transfered.
-        if (keepInstances) {
-            clone.component.set(this.component.instance ?? this.component.type ?? this.component.name);
-            clone.endpoint.set(this.endpoint.instance ?? this.endpoint.name);
-        }
-        // And transfer the component name afterwards to make sure aliases are kept
-        clone.component.name = this.component.name;
-        clone.needsEndpointDescribed = this.needsEndpointDescribed;
-        clone.route = this.route;
-        clone.routeStart = this.routeStart;
-        clone.default = this.default;
-        // Only transfer scope modifier if specified
-        if (scopeModifier) {
-            clone.scopeModifier = this.scopeModifier;
-        }
-        clone.scope = keepInstances ? this.scope : null;
-        // Clone all next scope/child instructions
-        if (this.hasNextScopeInstructions && !shallow) {
-            clone.nextScopeInstructions = RoutingInstruction.clone(this.nextScopeInstructions, keepInstances, scopeModifier);
-        }
-        return clone;
-    }
-    /**
-     * Whether the routing instruction is in a list of routing instructions. If
-     * deep, all next scope instructions needs to be contained in containing
-     * next scope instructions as well.
-     *
-     * @param context - The context (used for parameter syntax) to compare within
-     * @param searchIn - Instructions that should contain (superset)
-     * @param deep - Whether next scope instructions also need to be contained (recursively)
-     */
-    isIn(context, searchIn, deep) {
-        // Get all instructions with matching component.
-        const matching = searchIn.filter(instruction => {
-            // Match either routes...
-            if (this.route != null || instruction.route != null) {
-                if (!instruction.sameRoute(this)) {
-                    return false;
-                }
-            }
-            else {
-                // ... or components
-                if (!instruction.sameComponent(context, this)) {
-                    return false;
-                }
-            }
-            // Use own type if we have it, the other's type if not
-            const instructionType = instruction.component.type ?? this.component.type;
-            const thisType = this.component.type ?? instruction.component.type;
-            const instructionParameters = instruction.parameters.toSpecifiedParameters(context, instructionType?.parameters);
-            const thisParameters = this.parameters.toSpecifiedParameters(context, thisType?.parameters);
-            if (!InstructionParameters.contains(instructionParameters, thisParameters)) {
-                return false;
-            }
-            return (this.endpoint.none || instruction.sameEndpoint(this, false));
-        });
-        // If no one matches, it's a failure.
-        if (matching.length === 0) {
-            return false;
-        }
-        // If no deep match or no next scope instructions...
-        if (!deep || !this.hasNextScopeInstructions) {
-            // ...it's a successful match.
-            return true;
-        }
-        // Match the next scope instructions to the next scope instructions of each
-        // of the matching instructions and if at least one match (recursively)...
-        if (matching.some(matched => RoutingInstruction.contains(context, matched.nextScopeInstructions ?? [], this.nextScopeInstructions, deep))) {
-            // ...it's a success...
-            return true;
-        }
-        // ...otherwise it's a failure to match.
-        return false;
-    }
-    /**
-     * Get the title for the routing instruction.
-     *
-     * @param navigation - The navigation that requests the content change
-     */
-    getTitle(navigation) {
-        // If it's a configured route...
-        if (this.route instanceof FoundRoute) {
-            // ...get the configured route title.
-            const routeTitle = this.route.match?.title;
-            // If there's a configured title, use it. Otherwise fallback to
-            // titles based on endpoint's component.
-            if (routeTitle != null) {
-                // Only add the title (once) if it's the first instruction
-                if (this.routeStart) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    return typeof routeTitle === 'string' ? routeTitle : routeTitle(this, navigation);
-                }
-                else {
-                    return '';
-                }
-            }
-        }
-        return this.endpoint.instance.getTitle(navigation);
-    }
-    toJSON() {
-        return {
-            component: this.component.name ?? undefined,
-            viewport: this.endpoint.name ?? undefined,
-            parameters: this.parameters.parametersRecord ?? undefined,
-            children: this.hasNextScopeInstructions
-                ? this.nextScopeInstructions
-                : undefined,
-        };
-    }
-    /**
-     * Stringify the routing instruction shallowly, NOT recursively down next scope/child instructions.
-     *
-     * @param context - The context (used for syntax) within to stringify the instructions
-     * @param excludeEndpoint - Whether to exclude endpoint names in the string
-     * @param excludeComponent - Whether to exclude component names in the string
-     */
-    stringifyShallow(context, excludeEndpoint = false, excludeComponent = false, fullState = false) {
-        if (!fullState && this.route != null) {
-            const path = this.route instanceof FoundRoute ? this.route.matching : this.route;
-            return path
-                .split('/')
-                .map(part => part.startsWith(':')
-                ? this.parameters.get(context, part.slice(1))
-                : part)
-                .join('/');
-        }
-        const seps = Separators.for(context);
-        // Start with component (unless excluded)
-        let instructionString = !excludeComponent || fullState ? this.component.name ?? '' : '';
-        // Get parameters specification (names, sort order) from component type
-        // TODO(alpha): Use Metadata!
-        const specification = this.component.type ? this.component.type.parameters : null;
-        // Get parameters according to specification
-        const parameters = InstructionParameters.stringify(context, this.parameters.toSortedParameters(context, specification));
-        if (parameters.length > 0) {
-            // Add to component or use standalone
-            instructionString += !excludeComponent || fullState
-                ? `${seps.parameters}${parameters}${seps.parametersEnd}`
-                : parameters;
-        }
-        // Add endpoint name (unless excluded)
-        if (this.endpoint.name != null && (!excludeEndpoint || fullState)) {
-            instructionString += `${seps.viewport}${this.endpoint.name}`;
-        }
-        // And add no (owned) scope indicator
-        if (!this.ownsScope) {
-            instructionString += seps.noScope;
-        }
-        return instructionString || '';
-    }
-}
-
-class NavigatorNavigateEvent {
-    constructor(eventName, navigation) {
-        this.eventName = eventName;
-        this.navigation = navigation;
-    }
-    static create(navigation) {
-        return new NavigatorNavigateEvent(NavigatorNavigateEvent.eventName, navigation);
-    }
-}
-NavigatorNavigateEvent.eventName = 'au:router:navigation-navigate';
-/**
- * @internal
- */
-class Navigator {
-    constructor() {
-        /**
-         * The index of the last _finished_ navigation.
-         */
-        this.lastNavigationIndex = -1;
-        /**
-         * All navigations, historical and current/last
-         */
-        this.navigations = [];
-        /**
-         * Navigator options
-         */
-        this.options = {
-            /**
-             * How many historical navigations that should be kept stateful,
-             * default 0 means none.
-             */
-            statefulHistoryLength: 0,
-        };
-        /**
-         * Whether the navigator is started
-         */
-        this.isActive = false;
-        /**
-         * An uninitialized navigation that's used before the
-         * navigator is started and before first navigation is made
-         */
-        this.uninitializedNavigation = Navigation.create({
-            instruction: 'NAVIGATOR UNINITIALIZED',
-            fullStateInstruction: '',
-            index: 0,
-            completed: true,
-        });
-        this.ea = resolve(IEventAggregator);
-        this.container = resolve(IContainer);
-    }
-    start(options) {
-        if (this.isActive) {
-            throw createMappedError(2010 /* ErrorNames.navigator_already_started */);
-        }
-        this.isActive = true;
-        this.options = { ...options };
-    }
-    stop() {
-        if (!this.isActive) {
-            throw createMappedError(2011 /* ErrorNames.navigator_not_started */);
-        }
-        this.isActive = false;
-    }
-    /**
-     * Perform a navigation. The navigation is enriched with historical
-     * navigation data and passed to the router.
-     *
-     * @param navigation - The navigation to perform
-     */
-    navigate(navigation) {
-        if (!(navigation instanceof Navigation)) {
-            navigation = Navigation.create(navigation);
-        }
-        const navigationFlags = new NavigationFlags();
-        // If no proper last navigation, no navigation has been processed this session, meaning
-        // that this one is either a first navigation or a refresh (repeat navigation).
-        if (this.lastNavigationIndex === -1) {
-            // Load the navigation state from the store (mutating `navigations` and
-            // `lastNavigationIndex`) and then set appropriate flags...
-            this.loadState();
-            if (this.lastNavigationIndex !== -1) {
-                navigationFlags.refresh = true;
-            }
-            else {
-                navigationFlags.first = true;
-                navigationFlags.new = true;
-                // ...and create the first navigation.
-                // TODO: Should this really be created here? Shouldn't it be in the viewer?
-                this.lastNavigationIndex = 0;
-                this.navigations = [Navigation.create({
-                        index: 0,
-                        instruction: '',
-                        fullStateInstruction: '',
-                        // path: this.options.viewer.getPath(true),
-                        // fromBrowser: null,
-                    })];
-            }
-        }
-        // If navigation has an index and isn't replacing or refreshing, it's a historical
-        // navigation...
-        if (navigation.index !== void 0 && !(navigation.replacing ?? false) && !(navigation.refreshing ?? false)) {
-            // ...set the movement size...
-            navigation.historyMovement = navigation.index - Math.max(this.lastNavigationIndex, 0);
-            // ...and set the navigation instruction.
-            navigation.instruction = this.navigations[navigation.index] != null ? this.navigations[navigation.index].fullStateInstruction : navigation.fullStateInstruction;
-            // Set appropriate navigation flags.
-            navigation.replacing = true;
-            if (navigation.historyMovement > 0) {
-                navigationFlags.forward = true;
-            }
-            else if (navigation.historyMovement < 0) {
-                navigationFlags.back = true;
-            }
-        }
-        else if ((navigation.refreshing ?? false) || navigationFlags.refresh) { // If the navigation is a refresh...
-            // ...just reuse the navigation.
-            // navigation.index = this.lastNavigationIndex;
-            navigation = this.navigations[this.lastNavigationIndex];
-            navigation.replacing = true;
-            navigation.refreshing = true;
-        }
-        else if (navigation.replacing ?? false) { // If the navigation is replacing...
-            // ...set appropriate flags...
-            navigationFlags.replace = true;
-            navigationFlags.new = true;
-            // ...and reuse last index.
-            navigation.index = this.lastNavigationIndex;
-        }
-        else { // If the navigation is a new navigation...
-            // ...set navigation flag...
-            navigationFlags.new = true;
-            // ...and create a new index.
-            navigation.index = this.lastNavigationIndex + 1;
-            this.navigations[navigation.index] = navigation;
-        }
-        // Set the appropriate flags.
-        navigation.navigation = navigationFlags;
-        // Set the previous navigation.
-        navigation.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
-        // Create a process with an awaitable promise.
-        navigation.process = new OpenPromise(`navigation: ${navigation.path}`);
-        // Set the last navigated index to the navigation index
-        this.lastNavigationIndex = navigation.index;
-        this.notifySubscribers(navigation);
-        return navigation.process.promise;
-    }
-    /**
-     * Finalize a navigation and make it the last navigation.
-     *
-     * @param navigation - The navigation to finalize
-     */
-    async finalize(navigation, isLast) {
-        // If this navigation shouldn't be added to history...
-        if (navigation.untracked ?? false) {
-            // ...and it's a navigation from the browser (back, forward, url)...
-            if ((navigation.fromBrowser ?? false) && this.options.store != null) {
-                // ...pop it from browser's history and...
-                await this.options.store.popNavigatorState();
-            }
-            // ...restore the previous last navigation (and no need to save).
-        }
-        else if (navigation.replacing ?? false) { // If this isn't creating a new navigation...
-            if ((navigation.historyMovement ?? 0) === 0) { // ...and it's not a navigation in the history...
-                // ...use last navigation index.
-                this.navigations[navigation.previous.index] = navigation;
-            }
-            await this.saveState(navigation.index, false);
-        }
-        else { // New navigation
-            const index = navigation.index;
-            // Discard anything after the new navigation so that it becomes the last.
-            if (isLast) {
-                this.navigations = this.navigations.slice(0, index);
-            }
-            this.navigations[index] = navigation;
-            // Need to make sure components in discarded routing instructions are
-            // disposed if stateful history is used...
-            if ((this.options.statefulHistoryLength ?? 0) > 0) {
-                // ...but not the ones that should be preserved, so keep...
-                const indexPreserve = this.navigations.length - (this.options.statefulHistoryLength ?? 0);
-                // ...the last ones as is.
-                for (const navig of this.navigations.slice(index)) {
-                    // Only non-string instructions has components to dispose.
-                    if (typeof navig.instruction !== 'string' || typeof navig.fullStateInstruction !== 'string') {
-                        // Use serialize to dispose routing instruction components
-                        // since the end result is the same. Pass the navigations
-                        // that should be preserved so that components in them aren't
-                        // disposed if they also exist in discarded routing instructions.
-                        await this.serializeNavigation(navig, this.navigations.slice(indexPreserve, index));
-                    }
-                }
-            }
-            // If it's a navigation from the browser (back, forward, url) we replace the state
-            await this.saveState(navigation.index, !(navigation.fromBrowser ?? false));
-        }
-    }
-    /**
-     * Cancel a navigation and move to last finalized navigation.
-     *
-     * @param navigation - The navigation to cancel
-     */
-    async cancel(navigation) {
-        if (this.options.store != null) {
-            // If it's a new navigation...
-            if (navigation.navigation?.new) {
-                // ...from the browser (url)...
-                if (navigation.fromBrowser ?? false) {
-                    // ...pop it from the browser's History.
-                    await this.options.store.popNavigatorState();
-                }
-                // Undo the history movement back to previous last navigation
-            }
-            else if ((navigation.historyMovement ?? 0) !== 0) {
-                await this.options.store.go(-navigation.historyMovement, true);
-            }
-        }
-    }
-    /**
-     * Go to an earlier or later navigation in navigation history.
-     *
-     * @param movement - Amount of steps to move, positive or negative
-     */
-    async go(movement) {
-        let newIndex = this.lastNavigationIndex + movement;
-        // Stop going past last navigation
-        newIndex = Math.min(newIndex, this.navigations.length - 1);
-        // Move the store's history (but suppress the event so it's
-        // a noop as far as the router is concerned)
-        await this.options.store.go(movement, true);
-        // Get the appropriate navigation...
-        const navigation = this.navigations[newIndex];
-        // ...and enqueue it again.
-        return this.navigate(navigation);
-    }
-    /**
-     * Get the stored navigator state (json okay) as well as the last
-     * navigation and all historical navigations from the store.
-     */
-    getState() {
-        // Get the stored state and...
-        const state = this.options.store != null ? { ...this.options.store.state } : {};
-        // ...separate the historical navigations...
-        const navigations = (state?.navigations ?? []);
-        // ...and the last state.
-        const navigationIndex = state?.navigationIndex ?? -1;
-        return { navigations, navigationIndex };
-    }
-    /**
-     * Load the state stored in the store into the navigator's last and
-     * historical states.
-     */
-    loadState() {
-        // Get the stored navigations (json)...
-        const { navigations, navigationIndex } = this.getState();
-        // ...and create the historical Navigations...
-        this.navigations = navigations.map(navigation => Navigation.create(navigation));
-        // ...and the last navigation index.
-        this.lastNavigationIndex = navigationIndex;
-    }
-    /**
-     * Save the last state to history and save the history to the store,
-     * converting to json when necessary.
-     *
-     * @param index - The index of the last navigation
-     * @param push - Whether the last state should be pushed as a new entry
-     * in the history or replace the last position.
-     */
-    async saveState(index, push) {
-        // Make sure all navigations are clean of non-persisting data
-        for (let i = 0; i < this.navigations.length; i++) {
-            this.navigations[i] = Navigation.create(this.navigations[i].toStoredNavigation());
-        }
-        // If preserving history, serialize navigations that aren't preserved:
-        // Should preserve...
-        if ((this.options.statefulHistoryLength ?? 0) > 0) {
-            // ...from 'index' and to the end.
-            const index = this.navigations.length - (this.options.statefulHistoryLength ?? 0);
-            // Work from beginning to the index that should be preserved...
-            for (let i = 0; i < index; i++) {
-                const navigation = this.navigations[i];
-                // ...and serialize the navigation if necessary. (Serializing will free
-                // components that are no longer used.)
-                if (typeof navigation.instruction !== 'string' || typeof navigation.fullStateInstruction !== 'string') {
-                    await this.serializeNavigation(navigation, this.navigations.slice(index));
-                }
-            }
-        }
-        // If there's a store...
-        if (this.options.store == null) {
-            return Promise.resolve();
-        }
-        // ...prepare the state...
-        const state = {
-            navigations: (this.navigations ?? []).map((navigation) => this.toStoreableNavigation(navigation)),
-            navigationIndex: index,
-        };
-        // ...and save it in the right place.
-        if (push) {
-            return this.options?.store?.pushNavigatorState(state);
-        }
-        else {
-            return this.options.store.replaceNavigatorState(state);
-        }
-    }
-    /**
-     * Refresh (reload) the last navigation.
-     */
-    async refresh() {
-        // Don't refresh if there's been no navigation before
-        if (this.lastNavigationIndex === -1) {
-            return Promise.reject();
-        }
-        const navigation = this.navigations[this.lastNavigationIndex];
-        // Set navigation flags...
-        navigation.replacing = true;
-        navigation.refreshing = true;
-        // ...and enqueue the navigation again.
-        return this.navigate(navigation);
-    }
-    /**
-     * Notifies subscribers that a navigation has been dequeued for processing.
-     *
-     * @param navigation - The Navigation to process
-     */
-    notifySubscribers(navigation) {
-        this.ea.publish(NavigatorNavigateEvent.eventName, NavigatorNavigateEvent.create(navigation));
-    }
-    /**
-     * Make a Navigation storeable/json safe.
-     *
-     * @param navigation - The navigation to make storeable
-     */
-    toStoreableNavigation(navigation) {
-        // Get a navigation with only the properties that are stored
-        const storeable = navigation instanceof Navigation ? navigation.toStoredNavigation() : navigation;
-        // Make sure instruction is a string
-        storeable.instruction = RoutingInstruction.stringify(this.container, storeable.instruction);
-        // Make sure full state instruction is a string
-        storeable.fullStateInstruction = RoutingInstruction.stringify(this.container, storeable.fullStateInstruction, { endpointContext: true, fullState: true });
-        // Only string scopes can be stored
-        if (typeof storeable.scope !== 'string') {
-            storeable.scope = null;
-        }
-        // TODO: Filter out non-json compatible data and parameters!
-        return storeable;
-    }
-    /**
-     * Serialize a navigation to string(s), freeing/disposing all components in it.
-     * (Only components that doesn't exist in a preserved navigation will be disposed.)
-     *
-     * @param navigation - The navigation to serialize
-     * @param preservedNavigations - Navigations that should be preserved, meaning
-     * that any component used in them should not be disposed
-     */
-    async serializeNavigation(navigation, preservedNavigations) {
-        let excludeComponents = [];
-        // Components in preserved navigations should not be serialized/freed
-        for (const preservedNavigation of preservedNavigations) {
-            // Get components from instruction...
-            if (typeof preservedNavigation.instruction !== 'string') {
-                excludeComponents.push(...RoutingInstruction.flat(preservedNavigation.instruction)
-                    .filter(instruction => instruction.endpoint.instance !== null) // Both endpoint instance and...
-                    .map(instruction => instruction.component.instance)); // ...component instance should be set
-            }
-            // ...and full state instruction
-            if (typeof preservedNavigation.fullStateInstruction !== 'string') {
-                excludeComponents.push(...RoutingInstruction.flat(preservedNavigation.fullStateInstruction)
-                    .filter(instruction => instruction.endpoint.instance !== null) // Both endpoint instance and...
-                    .map(instruction => instruction.component.instance)); // ...component instance should be set
-            }
-        }
-        // Make excluded components unique
-        excludeComponents = arrayUnique(excludeComponents);
-        let instructions = [];
-        // The instructions, one or two, with possible components to free
-        if (typeof navigation.fullStateInstruction !== 'string') {
-            // Save the instruction
-            instructions.push(...navigation.fullStateInstruction);
-            navigation.fullStateInstruction = RoutingInstruction.stringify(this.container, navigation.fullStateInstruction, { endpointContext: true, fullState: true });
-        }
-        if (typeof navigation.instruction !== 'string') {
-            // Save the instruction
-            instructions.push(...navigation.instruction);
-            navigation.instruction = RoutingInstruction.stringify(this.container, navigation.instruction);
-        }
-        // Process only the instructions with instances and make them unique
-        instructions = instructions.filter((instruction, i, arr) => instruction.component.instance != null
-            && arr.indexOf(instruction) === i);
-        // Already freed components (updated when component is freed)
-        const alreadyDone = [];
-        for (const instruction of instructions) {
-            // Free (and dispose) instruction components except excluded and already done
-            await this.freeInstructionComponents(instruction, excludeComponents, alreadyDone);
-        }
-    }
-    /**
-     * Free (and dispose) components in a routing instruction unless the components
-     * should be excluded (due to also being in non-freed instructions) or have already
-     * been freed/disposed.
-     *
-     * @param instruction - Routing instruction to free components in
-     * @param excludeComponents - Components to exclude
-     * @param alreadyDone - Components that's already been freed/disposed
-     */
-    freeInstructionComponents(instruction, excludeComponents, alreadyDone) {
-        const component = instruction.component.instance;
-        const viewport = instruction.viewport?.instance ?? null;
-        // Both viewport and component instance should be set in order to free/dispose
-        if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
-            return;
-        }
-        if (!excludeComponents.some(exclude => exclude === component)) {
-            return Runner.run('freeInstructionComponents', (step) => viewport.freeContent(step, component), () => {
-                alreadyDone.push(component);
-            });
-        }
-        // If there are any next scope/child instructions...
-        if (instruction.hasNextScopeInstructions) {
-            for (const nextInstruction of instruction.nextScopeInstructions) {
-                // ...try freeing/disposing them as well.
-                return this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone);
-            }
-        }
-    }
-}
-
-const RouteRecognizer = RouteRecognizer$1;
-const ConfigurableRoute = ConfigurableRoute$1;
-const RecognizedRoute = RecognizedRoute$1;
-const Endpoint = Endpoint$2;
-
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
-/**
- * @internal - Helper class
- */
-class Collection extends Array {
-    constructor() {
-        super(...arguments);
-        this.currentIndex = -1;
-    }
-    next() {
-        if (this.length > this.currentIndex + 1) {
-            return this[++this.currentIndex];
-        }
-        else {
-            this.currentIndex = -1;
-            return null;
-        }
-    }
-    removeCurrent() {
-        this.splice(this.currentIndex--, 1);
-    }
-    remove(instruction) {
-        arrayRemove(this, value => value === instruction);
-    }
-}
-
-class EndpointMatcher {
-    // TODO: In addition to check whether the viewport is configured for components, check if
-    // the components are configured for viewports.
-    // TODO: When matching/checking on component and viewport, match on ComponentAppelation
-    // and ViewportHandle.
-    /**
-     * Finds endpoints, viewports and viewport scopes, that matches routing instructions' criteria.
-     * See comment at the top of the file for more details.
-     *
-     * @param instructions - The routing instructions to find matches for
-     * @param routingScope - The routing scope where to find the matching endpoints
-     * @param alreadyMatched - Already matched routing instructions whose endpoints are no longer available
-     * @param disregardViewports - Ignore already existing matchin endpoints on the routing instructions
-     */
-    // Note: This can't change state other than the instructions!
-    static matchEndpoints(routingScope, instructions, alreadyMatched, disregardViewports = false) {
-        const matchedInstructions = [];
-        // Get all the routing scopes owned by this scope
-        // TODO: Investigate if Infinity needs to be a timestamp
-        const ownedScopes = routingScope.getOwnedRoutingScopes(Infinity);
-        // Get a shallow copy of all available endpoints
-        const endpoints = ownedScopes.map(scope => scope.endpoint);
-        const availableEndpoints = endpoints
-            .filter(endpoint => endpoint !== null
-            && !alreadyMatched.some(found => endpoint === found.endpoint.instance && !found.cancelled && !found.isClear(routingScope.router)));
-        const routingInstructions = new Collection(...instructions.slice());
-        let instruction = null;
-        // First, match instructions with already known viewport scopes...
-        // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-        // and sets viewport/viewport scope and scope in actual RoutingInstruction
-        // Pass in `false` to `doesntNeedViewportDescribed` even though it doesn't really apply for ViewportScope
-        EndpointMatcher.matchKnownEndpoints(routingScope.router, 'ViewportScope', routingInstructions, availableEndpoints, matchedInstructions, false);
-        // ...and instructions with already known viewports (unless we're disregarding already known viewports when matching).
-        if (!disregardViewports) {
-            // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-            // and sets viewport/viewport scope and scope in actual RoutingInstruction
-            // Pass in `false` to `doesntNeedViewportDescribed` since we can't know for sure whether viewport is necessary or not
-            EndpointMatcher.matchKnownEndpoints(routingScope.router, 'Viewport', routingInstructions, availableEndpoints, matchedInstructions, false);
-        }
-        // Then match viewport scopes that accepts the component (name) as segment.
-        // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-        // and sets viewport scope and scope in actual RoutingInstruction
-        EndpointMatcher.matchViewportScopeSegment(routingScope.router, routingScope, routingInstructions, availableEndpoints, matchedInstructions);
-        // All instructions not yet matched need viewport described in some way unless
-        // specifically specified as not needing it (parameter to `foundEndpoint`)
-        while ((instruction = routingInstructions.next()) !== null) {
-            instruction.needsEndpointDescribed = true;
-        }
-        // Match viewports with configuration (for example `used-by` attribute) that matches instruction components.
-        // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-        // and sets viewport scope and scope in actual RoutingInstruction
-        EndpointMatcher.matchViewportConfiguration(routingInstructions, availableEndpoints, matchedInstructions);
-        // Next in line is specified viewport (but not if we're disregarding viewports)
-        if (!disregardViewports) {
-            // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-            // and sets viewport scope and scope in actual RoutingInstruction.
-            // Pass in `false` to `doesntNeedViewportDescribed` since we can't know for sure whether viewport is necessary or not
-            EndpointMatcher.matchSpecifiedViewport(routingInstructions, availableEndpoints, matchedInstructions, false);
-        }
-        // Finally, only one available and accepting viewport remaining?
-        // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-        // and sets viewport scope and scope in actual RoutingInstruction
-        EndpointMatcher.matchLastViewport(routingInstructions, availableEndpoints, matchedInstructions);
-        // If we're ignoring viewports, we now match them anyway
-        if (disregardViewports) {
-            // Removes entries from routingInstructions collection and availableEndpoints, adds entries to matchedInstructions
-            // and sets viewport scope and scope in actual RoutingInstruction.
-            // Pass in `false` to `doesntNeedViewportDescribed` since we do need the viewport if we got here
-            EndpointMatcher.matchSpecifiedViewport(routingInstructions, availableEndpoints, matchedInstructions, false);
-        }
-        return {
-            matchedInstructions,
-            remainingInstructions: [...routingInstructions],
-        };
-    }
-    static matchKnownEndpoints(router, type, routingInstructions, availableEndpoints, matchedInstructions, doesntNeedViewportDescribed = false) {
-        let instruction;
-        while ((instruction = routingInstructions.next()) !== null) {
-            if (
-            // The endpoint is already known and it's not an add instruction...
-            instruction.endpoint.instance !== null && !instruction.isAdd(router) &&
-                // ...(and of the type we're currently checking)...
-                instruction.endpoint.endpointType === type) {
-                // ...match the endpoint, updating the instruction!, and set the scope
-                // for the next scope instructions ("children") to the endpoint's scope...
-                EndpointMatcher.matchEndpoint(instruction, instruction.endpoint.instance, doesntNeedViewportDescribed);
-                // ...add the matched instruction as a matched instruction...
-                matchedInstructions.push(instruction);
-                // ...remove the endpoint as available...
-                arrayRemove(availableEndpoints, available => available === instruction.endpoint.instance);
-                // ...and finally delete the routing instructions to prevent further processing of it.
-                routingInstructions.removeCurrent();
-            }
-        }
-    }
-    static matchViewportScopeSegment(router, routingScope, routingInstructions, availableEndpoints, matchedInstructions) {
-        let instruction;
-        while ((instruction = routingInstructions.next()) !== null) {
-            for (let endpoint of availableEndpoints) {
-                if (!(endpoint instanceof ViewportScope)) {
-                    continue;
-                }
-                // Check if viewport scope accepts (wants) the path/route segment
-                if (endpoint.acceptSegment(instruction.component.name)) {
-                    // If the viewport scope is a list of viewport scopes...
-                    if (Array.isArray(endpoint.source)) { // TODO(alpha): Remove this functionality temporarily for alpha
-                        // ...see if there's any already existing list entry that's available...
-                        let available = availableEndpoints.find(available => available instanceof ViewportScope && available.name === endpoint.name);
-                        // ...otherwise create one (adding it to the list) and...
-                        if (available === void 0 || instruction.isAdd(router)) {
-                            const item = endpoint.addSourceItem();
-                            available = routingScope.getOwnedScopes()
-                                .filter(scope => scope.isViewportScope)
-                                .map(scope => scope.endpoint)
-                                .find(viewportScope => viewportScope.sourceItem === item);
-                        }
-                        // ...use the available one as endpoint.
-                        endpoint = available;
-                    }
-                    // Match the instruction with the endpoint and add its next scope instructions ("children")
-                    // to be processed in the call to `matchEndpoints` for the next scope.
-                    // Parameter `doesntNeedViewportDescribed` is set to false since described
-                    // viewports isn applicable on viewport scopes.
-                    EndpointMatcher.matchEndpoint(instruction, endpoint, false);
-                    // Add the matched instruction to the result
-                    matchedInstructions.push(instruction);
-                    // Remove the endpoint from available endpoints
-                    arrayRemove(availableEndpoints, available => available === instruction.endpoint.instance);
-                    // Remove the matched instruction from the currently processed instruction
-                    routingInstructions.removeCurrent();
-                    break;
-                }
-            }
-        }
-    }
-    static matchViewportConfiguration(routingInstructions, availableEndpoints, matchedInstructions) {
-        let instruction;
-        while ((instruction = routingInstructions.next()) !== null) {
-            for (const endpoint of availableEndpoints) {
-                if (!(endpoint instanceof Viewport)) {
-                    continue;
-                }
-                // Check if a viewport has "ownership"/is the only target of a component
-                if (endpoint?.wantComponent(instruction.component.name)) {
-                    // Match the instruction with the endpoint and add its next scope instructions ("children")
-                    // to be processed in the call to `matchEndpoints` for the next scope.
-                    // Parameter `doesntNeedViewportDescribed` is set to true since it's the
-                    // configuration on the viewport that matches the instruction.
-                    EndpointMatcher.matchEndpoint(instruction, endpoint, true);
-                    // Add the matched instruction to the result
-                    matchedInstructions.push(instruction);
-                    // Remove the endpoint from available endpoints
-                    arrayRemove(availableEndpoints, available => available === instruction.endpoint.instance);
-                    // Remove the matched instruction from the currently processed instruction
-                    routingInstructions.removeCurrent();
-                    break;
-                }
-            }
-        }
-    }
-    static matchSpecifiedViewport(routingInstructions, availableEndpoints, matchedInstructions, disregardViewports) {
-        let instruction;
-        while ((instruction = routingInstructions.next()) !== null) {
-            let viewport = instruction.endpoint.instance;
-            // If instruction don't have a viewport instance...
-            if (viewport == null) {
-                const name = instruction.endpoint.name;
-                // ...but a viewport name...
-                if ((name?.length ?? 0) === 0) {
-                    continue;
-                }
-                // TODO(alpha): No longer pre-creating viewports here. Evaluate!
-                // const newScope = instruction.ownsScope;
-                // ...look through all available endpoints...
-                for (const endpoint of availableEndpoints) {
-                    if (!(endpoint instanceof Viewport)) {
-                        continue;
-                    }
-                    // ...and use the one with the matching name.
-                    if (name === endpoint.name) {
-                        viewport = endpoint;
-                        break;
-                    }
-                    // TODO(alpha): No longer pre-creating viewports here. Evaluate!
-                    // routingScope.addViewport(name!, null, { scope: newScope, forceDescription: true });
-                    // availableViewports[name!] = routingScope.getEnabledViewports(ownedScopes)[name!];
-                }
-            }
-            // Check if the matching viewport accepts this component.
-            if (viewport?.acceptComponent(instruction.component.name)) {
-                // Match the instruction with the endpoint and add its next scope instructions ("children")
-                // to be processed in the call to `matchEndpoints` for the next scope.
-                // Parameter `doesntNeedViewportDescribed` is set to `disregardViewports` since the time of
-                // invocation and whether viewport is part of that decides if it's needed.
-                EndpointMatcher.matchEndpoint(instruction, viewport, disregardViewports);
-                // Add the matched instruction to the result
-                matchedInstructions.push(instruction);
-                // Remove the endpoint from available endpoints
-                arrayRemove(availableEndpoints, available => available === instruction.endpoint.instance);
-                // Remove the matched instruction from the currently processed instruction
-                routingInstructions.removeCurrent();
-            }
-        }
-    }
-    static matchLastViewport(routingInstructions, availableEndpoints, matchedInstructions) {
-        let instruction;
-        while ((instruction = routingInstructions.next()) !== null) {
-            // All remaining available viewports...
-            const availableViewports = [];
-            for (const endpoint of availableEndpoints) {
-                if (!(endpoint instanceof Viewport)) {
-                    continue;
-                }
-                // ...that accepts the instruction.
-                if (endpoint.acceptComponent(instruction.component.name)) {
-                    availableViewports.push(endpoint);
-                }
-            }
-            if (availableViewports.length === 1) {
-                const viewport = availableViewports[0];
-                // Match the instruction with the endpoint and add its next scope instructions ("children")
-                // to be processed in the call to `matchEndpoints` for the next scope.
-                // Parameter `doesntNeedViewportDescribed` is set to `true` since the viewport is the only
-                // available option.
-                EndpointMatcher.matchEndpoint(instruction, viewport, true);
-                // Add the matched instruction to the result
-                matchedInstructions.push(instruction);
-                // Remove the endpoint from available endpoints
-                arrayRemove(availableEndpoints, available => available === instruction.endpoint.instance);
-                // Remove the matched instruction from the currently processed instruction
-                routingInstructions.removeCurrent();
-            }
-        }
-    }
-    static matchEndpoint(instruction, endpoint, doesntNeedViewportDescribed) {
-        instruction.endpoint.set(endpoint);
-        if (doesntNeedViewportDescribed) {
-            instruction.needsEndpointDescribed = false;
-        }
-        // Get all the next scope instructions...
-        if (instruction.hasNextScopeInstructions) {
-            instruction.nextScopeInstructions.forEach(next => {
-                if (next.scope === null) {
-                    // ...and set the endpoint's routing scope as their scope
-                    next.scope = endpoint instanceof Viewport ? endpoint.scope : endpoint.scope.scope;
-                }
-            });
-        }
-    }
-}
-
-/**
- * The router uses routing scopes to organize all endpoints (viewports and viewport
- * scopes) into two hierarchical structures. Each routing scope belongs to a parent/child
- * hierarchy, that follows the DOM and is used when routing scopes are added and removed,
- * and an owner/owning hierarchy that's used when finding endpoints. Every routing scope
- * has a routing scope that owns it (except the root) and can in turn have several
- * routing scopes that it owns. A routing scope always has a connected endpoint content
- * and an endpoint content always has a connected routing scope.
- *
- * Every navigtion/load instruction that the router processes is first tied to a
- * routing scope, either a specified scope or the root scope. That routing scope is
- * then asked to
- * 1a) find routes (and their routing instructions) in the load instruction based on
- * the endpoint and its content (configured routes), and/or
- * 1b) find (direct) routing instructions in the load instruction.
- *
- * After that, the routing scope is used to
- * 2) match each of its routing instructions to an endpoint (viewport or viewport scope), and
- * 3) set the scope of the instruction to the next routing scopes ("children") and pass
- * the instructions on for matching in their new routing scopes.
- *
- * Once (component) transitions start in endpoints, the routing scopes assist by
- * 4) propagating routing hooks vertically through the hierarchy and disabling and
- * enabling endpoint contents and their routing data (routes) during transitions.
- *
- * Finally, when a navigation is complete, the routing scopes helps
- * 5) structure all existing routing instructions into a description of the complete
- * state of all the current endpoints and their contents.
- *
- * The hierarchy of the owner/owning routing scopes often follows the parent/child DOM
- * hierarchy, but it's not a necessity; it's possible to have routing scopes that doesn't
- * create their own "owning capable scope", and thus placing all their "children" under the
- * same "parent" as themselves or for a routing scope to hoist itself up or down in the
- * hierarchy and, for example, place itself as a "child" to a DOM sibling endpoint.
- * (Scope self-hoisting will not be available for early-on alpha.)
- */
-class RoutingScope {
-    constructor(router, 
-    /**
-     * Whether the routing scope has a scope and can own other scopes
-     */
-    hasScope, 
-    /**
-     * The routing scope that owns this routing scope (owner/owning hierarchy)
-     */
-    owningScope, 
-    /**
-     * The endpoint content the routing scope is connected to
-     */
-    endpointContent) {
-        this.id = ++RoutingScope.lastId;
-        /**
-         * The parent of the routing scope (parent/child hierarchy)
-         */
-        this.parent = null;
-        /**
-         * The children of the routing scope (parent/child hierarchy)
-         */
-        this.children = [];
-        this.router = router;
-        this.hasScope = hasScope;
-        this.owningScope = owningScope ?? this;
-        this.endpointContent = endpointContent;
-    }
-    static for(origin, instruction) {
-        if (origin == null) {
-            return { scope: null, instruction };
-        }
-        if (origin instanceof RoutingScope || origin instanceof Viewport || origin instanceof ViewportScope) {
-            return { scope: origin.scope, instruction };
-        }
-        // return this.getClosestScope(origin) || this.rootScope!.scope;
-        let container;
-        // res is a private prop of IContainer impl
-        // TODO: should use a different way to detect if something is a container
-        // or move this to the bottom if this else-if
-        if ('res' in origin) {
-            container = origin;
-        }
-        else {
-            if ('container' in origin) {
-                container = origin.container;
-            }
-            else if ('$controller' in origin) {
-                container = origin.$controller.container;
-            }
-            else {
-                const controller = CustomElement.for(origin, { searchParents: true });
-                container = controller?.container;
-            }
-        }
-        if (container == null) {
-            {
-                // eslint-disable-next-line no-console
-                console.warn("RoutingScope failed to find a container for provided origin", origin);
-            }
-            return { scope: null, instruction };
-        }
-        const closestEndpoint = (container.has(Router.closestEndpointKey, true)
-            ? container.get(Router.closestEndpointKey)
-            : null);
-        let scope = closestEndpoint?.scope ?? null;
-        if (scope === null || instruction === undefined) {
-            const safeInstruction = instruction ?? '';
-            return { scope, instruction: safeInstruction.startsWith('/') ? safeInstruction.slice(1) : instruction };
-        }
-        // Instruction specifies from root scope
-        if (instruction.startsWith('/')) {
-            return { scope: null, instruction: instruction.slice(1) };
-        }
-        // Instruction specifies scope traversals
-        while (instruction.startsWith('.')) {
-            // The same as no scope modification
-            if (instruction.startsWith('./')) {
-                instruction = instruction.slice(2);
-            }
-            else if (instruction.startsWith('../')) { // Traverse upwards
-                scope = scope.parent ?? scope;
-                instruction = instruction.slice(3);
-            }
-            else { // Bad traverse instruction
-                break;
-            }
-        }
-        // Testing without this since it seems to be removed
-        // if (scope?.path != null) {
-        //   instruction = `${scope.path}/${instruction}`;
-        //   scope = null; // scope.root;
-        // }
-        return { scope, instruction };
-    }
-    /**
-     * The routing scope children to this scope are added to. If this routing
-     * scope has scope, this scope property equals this scope itself. If it
-     * doesn't have scope this property equals the owning scope. Using this
-     * ensures that routing scopes that don't have a their own scope aren't
-     * part of the owner/owning hierarchy.
-     */
-    get scope() {
-        return this.hasScope ? this : this.owningScope.scope;
-    }
-    get endpoint() {
-        return this.endpointContent.endpoint;
-    }
-    get isViewport() {
-        return this.endpoint instanceof Viewport;
-    }
-    get isViewportScope() {
-        return this.endpoint instanceof ViewportScope;
-    }
-    get type() {
-        return this.isViewport ? 'Viewport' : 'ViewportScope';
-    }
-    get enabled() {
-        return this.endpointContent.isActive;
-    }
-    get passThroughScope() {
-        return this.isViewportScope && this.endpoint.passThroughScope;
-    }
-    get pathname() {
-        return `${this.owningScope !== this ? this.owningScope.pathname : ''}/${this.endpoint.name}`;
-    }
-    get path() {
-        const parentPath = this.parent?.path ?? '';
-        const path = this.routingInstruction?.stringify(this.router, { endpointContext: true }, true) ?? '';
-        const sep = this.routingInstruction ? Separators.for(this.router).scope : '';
-        return `${parentPath}${path}${sep}`;
-    }
-    toString(recurse = false) {
-        return `${this.owningScope !== this ? this.owningScope.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
-            `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
-    }
-    toStringOwning(recurse = false) {
-        return `${this.owningScope !== this ? this.owningScope.toString() : ''}/${!this.enabled ? '(' : ''}${this.endpoint.toString()}#${this.id}${!this.enabled ? ')' : ''}` +
-            `${recurse ? `\n` + this.ownedScopes.map(child => child.toStringOwning(true)).join('') : ''}`;
-    }
-    get enabledChildren() {
-        return this.children.filter(scope => scope.enabled);
-    }
-    get hoistedChildren() {
-        const scopes = this.enabledChildren;
-        while (scopes.some(scope => scope.passThroughScope)) {
-            for (const scope of scopes.slice()) {
-                if (scope.passThroughScope) {
-                    const index = scopes.indexOf(scope);
-                    scopes.splice(index, 1, ...scope.enabledChildren);
-                }
-            }
-        }
-        return scopes;
-    }
-    get ownedScopes() {
-        return this.getOwnedScopes();
-    }
-    get routingInstruction() {
-        if (this.endpoint.isViewportScope) {
-            return this.endpoint.instruction;
-        }
-        if (this.isViewport) {
-            return this.endpoint.activeContent.instruction;
-        }
-        return null;
-    }
-    getOwnedScopes(includeDisabled = false) {
-        const scopes = this.allScopes(includeDisabled).filter(scope => scope.owningScope === this);
-        // Hoist children to pass through scopes
-        for (const scope of scopes.slice()) {
-            if (scope.passThroughScope) {
-                const index = scopes.indexOf(scope);
-                scopes.splice(index, 1, ...scope.getOwnedScopes());
-            }
-        }
-        return scopes;
-    }
-    findInstructions(instructions, useDirectRouting, useConfiguredRoutes) {
-        const router = this.router;
-        let route = new FoundRoute();
-        if (useConfiguredRoutes && !RoutingInstruction.containsSiblings(router, instructions)) {
-            let clearInstructions = instructions.filter(instruction => instruction.isClear(router) || instruction.isClearAll(router));
-            const nonClearInstructions = instructions.filter(instruction => !instruction.isClear(router) && !instruction.isClearAll(router));
-            // As long as the sibling constraint (above) is in, this will only be at most one instruction
-            if (nonClearInstructions.length > 0) {
-                for (const instruction of nonClearInstructions) {
-                    const idOrPath = typeof instruction.route === 'string'
-                        ? instruction.route
-                        : instruction.unparsed ?? RoutingInstruction.stringify(router, [instruction]);
-                    const foundRoute = this.findMatchingRoute(idOrPath, instruction.parameters.parametersRecord ?? {});
-                    if (foundRoute.foundConfiguration) {
-                        route = foundRoute;
-                        route.instructions = [...clearInstructions, ...route.instructions];
-                        clearInstructions = [];
-                    }
-                    else if (useDirectRouting) {
-                        route.instructions = [...clearInstructions, ...route.instructions, instruction];
-                        clearInstructions = [];
-                        route.remaining = RoutingInstruction.stringify(router, instruction.nextScopeInstructions ?? []);
-                    }
-                    else {
-                        throw new Error(`No route found for: ${RoutingInstruction.stringify(router, instructions)}!`);
-                    }
-                }
-            }
-            else {
-                route.instructions = [...clearInstructions];
-            }
-        }
-        else if (useDirectRouting) {
-            route.instructions.push(...instructions);
-        }
-        else {
-            throw new Error(`No way to process sibling viewport routes with direct routing disabled: ${RoutingInstruction.stringify(router, instructions)}!`);
-        }
-        // Remove empty instructions so that default can be used
-        route.instructions = route.instructions.filter(instr => instr.component.name !== '');
-        for (const instruction of route.instructions) {
-            if (instruction.scope === null) {
-                instruction.scope = this;
-            }
-        }
-        return route;
-    }
-    // Note: This can't change state other than the instructions!
-    /**
-     * Match the instructions to available endpoints within, and with the help of, their scope.
-     *
-     * @param instructions - The instructions to matched
-     * @param alreadyFound - The already found matches
-     * @param disregardViewports - Whether viewports should be ignored when matching
-     */
-    matchEndpoints(instructions, alreadyFound, disregardViewports = false) {
-        const allMatchedInstructions = [];
-        const scopeInstructions = instructions.filter(instruction => (instruction.scope ?? this) === this);
-        const allRemainingInstructions = instructions.filter(instruction => (instruction.scope ?? this) !== this);
-        const { matchedInstructions, remainingInstructions } = EndpointMatcher.matchEndpoints(this, scopeInstructions, alreadyFound, disregardViewports);
-        allMatchedInstructions.push(...matchedInstructions);
-        allRemainingInstructions.push(...remainingInstructions);
-        return { matchedInstructions: allMatchedInstructions, remainingInstructions: allRemainingInstructions };
-    }
-    addEndpoint(type, name, connectedCE, options = {}) {
-        let endpoint = this.getOwnedScopes()
-            .find(scope => scope.type === type &&
-            scope.endpoint.name === name)?.endpoint ?? null;
-        // Each endpoint element has its own Endpoint
-        if (connectedCE != null && endpoint?.connectedCE != null && endpoint.connectedCE !== connectedCE) {
-            endpoint = this.getOwnedScopes(true)
-                .find(scope => scope.type === type &&
-                scope.endpoint.name === name &&
-                scope.endpoint.connectedCE === connectedCE)?.endpoint
-                ?? null;
-        }
-        if (endpoint == null) {
-            endpoint = type === 'Viewport'
-                ? new Viewport(this.router, name, connectedCE, this.scope, !!options.scope, options)
-                : new ViewportScope(this.router, name, connectedCE, this.scope, true, null, options);
-            this.addChild(endpoint.connectedScope);
-        }
-        if (connectedCE != null) {
-            endpoint.setConnectedCE(connectedCE, options);
-        }
-        return endpoint;
-    }
-    removeEndpoint(step, endpoint, connectedCE) {
-        if (((connectedCE ?? null) !== null) || endpoint.removeEndpoint(step, connectedCE)) {
-            this.removeChild(endpoint.connectedScope);
-            return true;
-        }
-        return false;
-    }
-    addChild(scope) {
-        if (!this.children.some(vp => vp === scope)) {
-            if (scope.parent !== null) {
-                scope.parent.removeChild(scope);
-            }
-            this.children.push(scope);
-            scope.parent = this;
-        }
-    }
-    removeChild(scope) {
-        const index = this.children.indexOf(scope);
-        if (index >= 0) {
-            this.children.splice(index, 1);
-            scope.parent = null;
-        }
-    }
-    allScopes(includeDisabled = false) {
-        const scopes = includeDisabled ? this.children.slice() : this.enabledChildren;
-        for (const scope of scopes.slice()) {
-            scopes.push(...scope.allScopes(includeDisabled));
-        }
-        return scopes;
-    }
-    reparentRoutingInstructions() {
-        const scopes = this.hoistedChildren
-            .filter(scope => scope.routingInstruction !== null && scope.routingInstruction.component.name);
-        if (!scopes.length) {
-            return null;
-        }
-        for (const scope of scopes) {
-            const childInstructions = scope.reparentRoutingInstructions();
-            scope.routingInstruction.nextScopeInstructions =
-                childInstructions !== null && childInstructions.length > 0 ? childInstructions : null;
-        }
-        return scopes.map(scope => scope.routingInstruction);
-    }
-    getChildren(timestamp) {
-        const contents = this.children
-            .map(scope => scope.endpoint.getTimeContent(timestamp))
-            .filter(content => content !== null);
-        return contents.map(content => content.connectedScope);
-    }
-    getAllRoutingScopes(timestamp) {
-        const scopes = this.getChildren(timestamp);
-        for (const scope of scopes.slice()) {
-            scopes.push(...scope.getAllRoutingScopes(timestamp));
-        }
-        return scopes;
-    }
-    getOwnedRoutingScopes(timestamp) {
-        const scopes = this.getAllRoutingScopes(timestamp)
-            .filter(scope => scope.owningScope === this);
-        // Hoist children to pass through scopes
-        for (const scope of scopes.slice()) {
-            if (scope.passThroughScope) {
-                const passThrough = scopes.indexOf(scope);
-                scopes.splice(passThrough, 1, ...scope.getOwnedRoutingScopes(timestamp));
-            }
-        }
-        return arrayUnique(scopes);
-    }
-    getRoutingInstructions(timestamp) {
-        const contents = arrayUnique(this.getOwnedRoutingScopes(timestamp) // hoistedChildren
-            .map(scope => scope.endpoint))
-            .map(endpoint => endpoint.getTimeContent(timestamp))
-            .filter(content => content !== null);
-        const instructions = [];
-        for (const content of contents) {
-            const instruction = content.instruction.clone(true, false, false);
-            if ((instruction.component.name ?? '') !== '') {
-                instruction.nextScopeInstructions = content.connectedScope.getRoutingInstructions(timestamp);
-                instructions.push(instruction);
-            }
-        }
-        return instructions;
-    }
-    canUnload(coordinator, step) {
-        return Runner.run(step, (stepParallel) => {
-            return Runner.runParallel(stepParallel, ...this.children.map(child => child.endpoint !== null
-                ? (childStep) => child.endpoint.canUnload(coordinator, childStep)
-                : (childStep) => child.canUnload(coordinator, childStep)));
-        }, (step) => step.previousValue.every(result => result ?? true));
-    }
-    unload(coordinator, step) {
-        return Runner.runParallel(step, ...this.children.map(child => child.endpoint !== null
-            ? (childStep) => child.endpoint.unload(coordinator, childStep)
-            : (childStep) => child.unload(coordinator, childStep)));
-    }
-    matchScope(instructions, deep = false) {
-        const matching = [];
-        for (const instruction of instructions) {
-            if (instruction.scope === this) {
-                matching.push(instruction);
-            }
-            else if (deep && instruction.hasNextScopeInstructions) {
-                matching.push(...this.matchScope(instruction.nextScopeInstructions, deep));
-            }
-        }
-        return matching;
-    }
-    findMatchingRoute(path, parameters) {
-        let found = new FoundRoute();
-        if (this.isViewportScope && !this.passThroughScope) {
-            found = this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes(), parameters);
-        }
-        else if (this.isViewport) {
-            found = this.findMatchingRouteInRoutes(path, this.endpoint.getRoutes(), parameters);
-        }
-        else {
-            for (const child of this.enabledChildren) {
-                found = child.findMatchingRoute(path, parameters);
-                if (found.foundConfiguration) {
-                    break;
-                }
-            }
-        }
-        if (found.foundConfiguration) {
-            return found;
-        }
-        if (this.parent != null) {
-            return this.parent.findMatchingRoute(path, parameters);
-        }
-        return found;
-    }
-    findMatchingRouteInRoutes(path, routes, parameters) {
-        const found = new FoundRoute();
-        if (routes.length === 0) {
-            return found;
-        }
-        routes = routes.map(route => this.ensureProperRoute(route));
-        const cRoutes = [];
-        for (const route of routes) {
-            const paths = (Array.isArray(route.path) ? route.path : [route.path]);
-            for (const path of paths) {
-                cRoutes.push({
-                    ...route,
-                    path,
-                    handler: route,
-                });
-                if (path !== '') {
-                    cRoutes.push({
-                        ...route,
-                        path: `${path}/*remainingPath`,
-                        handler: route,
-                    });
-                }
-            }
-        }
-        if (path.startsWith('/') || path.startsWith('+')) {
-            path = path.slice(1);
-        }
-        const idRoute = routes.find(route => route.id === path);
-        let result = { params: {}, endpoint: {} };
-        if (idRoute != null) {
-            result.endpoint = { route: { handler: idRoute } };
-            path = Array.isArray(idRoute.path) ? idRoute.path[0] : idRoute.path;
-            const segments = path.split('/').map(segment => {
-                if (segment.startsWith(':')) {
-                    const name = segment.slice(1).replace(/\?$/, '');
-                    const param = parameters[name];
-                    result.params[name] = param;
-                    return param;
-                }
-                else {
-                    return segment;
-                }
-            });
-            path = segments.join('/');
-        }
-        else {
-            const recognizer = new RouteRecognizer();
-            recognizer.add(cRoutes);
-            result = recognizer.recognize(path);
-        }
-        if (result != null) {
-            found.match = result.endpoint.route.handler;
-            found.matching = path;
-            const $params = { ...result.params };
-            if ($params.remainingPath != null) {
-                found.remaining = $params.remainingPath;
-                Reflect.deleteProperty($params, 'remainingPath');
-                found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
-            }
-            found.params = $params;
-            if (found.match?.redirectTo != null) {
-                let redirectedTo = found.match?.redirectTo;
-                if ((found.remaining ?? '').length > 0) {
-                    redirectedTo += `/${found.remaining}`;
-                }
-                return this.findMatchingRouteInRoutes(redirectedTo, routes, parameters);
-            }
-        }
-        if (found.foundConfiguration) {
-            // clone it so config doesn't get modified
-            found.instructions = RoutingInstruction.clone(found.match.instructions, false, true);
-            const instructions = found.instructions.slice();
-            while (instructions.length > 0) {
-                const instruction = instructions.shift();
-                instruction.parameters.addParameters(found.params);
-                instruction.route = found;
-                if (instruction.hasNextScopeInstructions) {
-                    instructions.unshift(...instruction.nextScopeInstructions);
-                }
-            }
-            if (found.instructions.length > 0) {
-                found.instructions[0].routeStart = true;
-            }
-            const remaining = RoutingInstruction.parse(this.router, found.remaining);
-            if (remaining.length > 0) {
-                let lastInstruction = found.instructions[0];
-                while (lastInstruction.hasNextScopeInstructions) {
-                    lastInstruction = lastInstruction.nextScopeInstructions[0];
-                }
-                lastInstruction.nextScopeInstructions = remaining;
-            }
-        }
-        return found;
-    }
-    ensureProperRoute(route) {
-        if (route.id === void 0) {
-            route.id = Array.isArray(route.path) ? route.path.join(',') : route.path;
-        }
-        if (route.instructions === void 0) {
-            route.instructions = [{
-                    component: route.component,
-                    viewport: route.viewport,
-                    parameters: route.parameters,
-                    children: route.children,
-                }];
-        }
-        if (route.redirectTo === null) {
-            route.instructions = RoutingInstruction.from(this.router, route.instructions);
-        }
-        return route;
-    }
-}
-/** @internal */
-RoutingScope.lastId = 0;
-
-/**
- * @internal - Shouldn't be used directly
- */
-class QueueTask {
-    constructor(taskQueue, item, cost = 0) {
-        this.taskQueue = taskQueue;
-        this.item = item;
-        this.cost = cost;
-        this.done = false;
-        this.promise = new Promise((resolve, reject) => {
-            this.resolve = () => {
-                this.taskQueue.resolve(this, resolve);
-            };
-            this.reject = (reason) => {
-                this.taskQueue.reject(this, reject, reason);
-            };
-        });
-    }
-    async execute() {
-        if ('execute' in this.item) {
-            await this.item.execute(this);
-        }
-        else {
-            await this.item(this);
-        }
-    }
-    wait() {
-        return this.promise;
-    }
-}
-/**
- * A first-in-first-out task queue that only processes the next queued item
- * when the current one has been resolved or rejected. If a callback function
- * is specified, it receives the queued items as tasks one at a time. If no
- * callback is specified, the tasks themselves are either executed (if a
- * function) or the execute method in them are run. The executed function
- * should resolve or reject the task when processing is done.
- * Enqueued items' tasks can be awaited. Enqueued items can specify an
- * (arbitrary) execution cost and the queue can be set up (started) to
- * only process a specific amount of execution cost per RAF/tick.
- *
- * @internal - Shouldn't be used directly.
- */
-class TaskQueue {
-    get isActive() {
-        return this.task !== null;
-    }
-    constructor(callback) {
-        this.callback = callback;
-        this.pending = [];
-        this.processing = null;
-        this.allowedExecutionCostWithinTick = null;
-        this.currentExecutionCostInCurrentTick = 0;
-        this.platform = null;
-        this.task = null;
-        this.dequeue = (delta) => {
-            if (this.processing !== null) {
-                return;
-            }
-            if (delta !== undefined) {
-                this.currentExecutionCostInCurrentTick = 0;
-            }
-            if (this.pending.length === 0) {
-                return;
-            }
-            if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
-                return;
-            }
-            this.processing = this.pending.shift() || null;
-            if (this.processing) {
-                this.currentExecutionCostInCurrentTick += this.processing.cost ?? 0;
-                if (this.callback !== void 0) {
-                    this.callback(this.processing);
-                }
-                else {
-                    // Don't need to await this since next task won't be dequeued until
-                    // executed function is resolved
-                    this.processing.execute().catch(error => { throw error; });
-                }
-            }
-        };
-    }
-    get length() {
-        return this.pending.length;
-    }
-    start(options) {
-        this.platform = options.platform;
-        this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-        this.task = this.platform.domQueue.queueTask(this.dequeue, { persistent: true });
-    }
-    stop() {
-        this.task.cancel();
-        this.task = null;
-        this.allowedExecutionCostWithinTick = null;
-        this.clear();
-    }
-    enqueue(itemOrItems, costOrCosts) {
-        const list = Array.isArray(itemOrItems);
-        const items = (list ? itemOrItems : [itemOrItems]);
-        const costs = items
-            .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
-            .map((value) => value !== undefined ? value : 1);
-        const tasks = [];
-        for (const item of items) {
-            tasks.push(item instanceof QueueTask
-                ? item
-                : this.createQueueTask(item, costs.shift())); // TODO: Get cancellable in as well
-        }
-        this.pending.push(...tasks);
-        this.dequeue();
-        return list ? tasks : tasks[0];
-    }
-    createQueueTask(item, cost) {
-        return new QueueTask(this, item, cost);
-    }
-    clear() {
-        this.pending.length = 0;
-    }
-    /**
-     * @internal
-     */
-    resolve(_task, resolve) {
-        resolve();
-        this.processing = null;
-        this.dequeue();
-    }
-    /**
-     * @internal
-     */
-    reject(_task, reject, reason) {
-        reject(reason);
-        this.processing = null;
-        this.dequeue();
-    }
-}
-
-/**
- * Viewer and store layers on top of the browser. The viewer part is for getting
- * and setting a state (location) indicator and the store part is for storing
- * and retrieving historical states (locations). In the browser, the Location
- * is the viewer and the History API provides the store.
- *
- * All mutating actions towards the viewer and store are added as awaitable tasks
- * in a queue.
- *
- * Events are fired when the current state (location) changes, either through
- * direct change (manually altering the Location) or movement to a historical
- * state.
- *
- * All interaction with the browser's Location and History is performed through
- * these layers.
- *
- * @internal
- */
-class BrowserViewerStore {
-    constructor() {
-        /**
-         * Limit the number of executed actions within the same RAF (due to browser limitation).
-         */
-        this.allowedExecutionCostWithinTick = 2;
-        /**
-         * State changes that have been triggered but not yet processed.
-         */
-        this.pendingCalls = new TaskQueue();
-        /**
-         * Whether the BrowserViewerStore is started or not.
-         */
-        this.isActive = false;
-        this.options = {
-            useUrlFragmentHash: true,
-        };
-        /**
-         * A "forwarded state" that's used to decide whether the browser's popstate
-         * event should fire a change state event or not. Used by 'go' method and
-         * its 'suppressEvent' option.
-         */
-        this.forwardedState = { eventTask: null, suppressPopstate: false };
-        this.platform = resolve(IPlatform);
-        this.window = resolve(IWindow);
-        this.history = resolve(IHistory);
-        this.location = resolve(ILocation);
-        this.ea = resolve(IEventAggregator);
-    }
-    start(options) {
-        if (this.isActive) {
-            throw createMappedError(2007 /* ErrorNames.browser_viewer_store_already_started */);
-        }
-        this.isActive = true;
-        if (options.useUrlFragmentHash != void 0) {
-            this.options.useUrlFragmentHash = options.useUrlFragmentHash;
-        }
-        this.pendingCalls.start({ platform: this.platform, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
-        this.window.addEventListener('popstate', this);
-    }
-    stop() {
-        if (!this.isActive) {
-            throw createMappedError(2008 /* ErrorNames.browser_viewer_store_not_started */);
-        }
-        this.window.removeEventListener('popstate', this);
-        this.pendingCalls.stop();
-        this.options = { useUrlFragmentHash: true };
-        this.isActive = false;
-    }
-    get length() {
-        return this.history.length;
-    }
-    /**
-     * The stored state for the current state/location.
-     */
-    get state() {
-        return this.history.state;
-    }
-    /**
-     * Get the viewer's (browser Location) current state/location (URL).
-     */
-    get viewerState() {
-        const { pathname, search, hash } = this.location;
-        const instruction = (this.options.useUrlFragmentHash ?? false)
-            ? hash.slice(1)
-            : `${pathname}${search}`;
-        const fragment = (this.options.useUrlFragmentHash ?? false)
-            ? (hash.slice(1).includes('#') ? hash.slice(hash.slice(1).indexOf('#', 1)) : '')
-            : hash.slice(1);
-        return new NavigatorViewerState(pathname, search.slice(1), fragment, instruction);
-    }
-    /**
-     * Enqueue an awaitable 'go' task that navigates delta amount of steps
-     * back or forward in the states history.
-     *
-     * @param delta - The amount of steps, positive or negative, to move in the states history
-     * @param suppressEvent - If true, no state change event is fired when the go task is executed
-     */
-    async go(delta, suppressEvent = false) {
-        const doneTask = this.pendingCalls.createQueueTask((task) => task.resolve(), 1);
-        this.pendingCalls.enqueue([
-            (task) => {
-                const eventTask = doneTask;
-                const suppressPopstate = suppressEvent;
-                // Set the "forwarded state" that decides whether the browser's popstate event
-                // should fire a change state event or not
-                this.forwardState({ eventTask, suppressPopstate });
-                task.resolve();
-            },
-            (task) => {
-                const history = this.history;
-                const steps = delta;
-                history.go(steps);
-                task.resolve();
-            },
-        ], [0, 1]);
-        return doneTask.wait();
-    }
-    /**
-     * Enqueue an awaitable 'push state' task that pushes a state after the current
-     * historical state. Any pre-existing historical states after the current are
-     * discarded before the push.
-     *
-     * @param state - The state to push
-     */
-    async pushNavigatorState(state) {
-        const { title, path } = state.navigations[state.navigationIndex];
-        const fragment = this.options.useUrlFragmentHash ? '#/' : '';
-        return this.pendingCalls.enqueue((task) => {
-            const history = this.history;
-            const data = state;
-            const titleOrEmpty = title || '';
-            const url = `${fragment}${path}`;
-            try {
-                history.pushState(data, titleOrEmpty, url);
-                this.setTitle(titleOrEmpty);
-            }
-            catch (err) {
-                const clean = this.tryCleanState(data, 'push', err);
-                history.pushState(clean, titleOrEmpty, url);
-                this.setTitle(titleOrEmpty);
-            }
-            task.resolve();
-        }, 1).wait();
-    }
-    /**
-     * Enqueue an awaitable 'replace state' task that replace the current historical
-     * state with the provided  state.
-     *
-     * @param state - The state to replace with
-     */
-    async replaceNavigatorState(state, title, path) {
-        // const { title, path } = state.currentEntry;
-        const lastNavigation = state.navigations[state.navigationIndex];
-        title ??= lastNavigation.title;
-        path ??= lastNavigation.path;
-        const fragment = this.options.useUrlFragmentHash ? '#/' : '';
-        return this.pendingCalls.enqueue((task) => {
-            const history = this.history;
-            const data = state;
-            const titleOrEmpty = title || '';
-            const url = `${fragment}${path}`;
-            try {
-                history.replaceState(data, titleOrEmpty, url);
-                this.setTitle(titleOrEmpty);
-            }
-            catch (err) {
-                const clean = this.tryCleanState(data, 'replace', err);
-                history.replaceState(clean, titleOrEmpty, url);
-                this.setTitle(titleOrEmpty);
-            }
-            task.resolve();
-        }, 1).wait();
-    }
-    /**
-     * Enqueue an awaitable 'pop state' task that pops the last of the historical states.
-     */
-    async popNavigatorState() {
-        const doneTask = this.pendingCalls.createQueueTask((task) => task.resolve(), 1);
-        this.pendingCalls.enqueue(async (task) => {
-            const eventTask = doneTask;
-            await this.popState(eventTask);
-            task.resolve();
-        }, 1);
-        return doneTask.wait();
-    }
-    setTitle(title) {
-        this.window.document.title = title;
-    }
-    /**
-     * Handle the browsers PopStateEvent
-     *
-     * @param event - The browser's PopStateEvent
-     */
-    handleEvent(e) {
-        this.handlePopStateEvent(e);
-    }
-    /**
-     * Enqueue an awaitable 'pop state' task when the viewer's state (browser's
-     * Location) changes.
-     *
-     * @param event - The browser's PopStateEvent
-     */
-    handlePopStateEvent(event) {
-        const { eventTask, suppressPopstate } = this.forwardedState;
-        this.forwardedState = { eventTask: null, suppressPopstate: false };
-        this.pendingCalls.enqueue(async (task) => {
-            if (!suppressPopstate) {
-                this.notifySubscribers(event);
-            }
-            if (eventTask !== null) {
-                await eventTask.execute();
-            }
-            task.resolve();
-        }, 1);
-    }
-    /**
-     * Notifies subscribers that the state has changed
-     *
-     * @param ev - The browser's popstate event
-     */
-    notifySubscribers(ev) {
-        this.ea.publish(NavigatorStateChangeEvent.eventName, NavigatorStateChangeEvent.create(this.viewerState, ev, this.history.state));
-    }
-    /**
-     * Pop the last historical state by re-pushing the second to last
-     * historical state (since browser History doesn't have a popState).
-     *
-     * @param doneTask - Task to execute once pop is done
-     */
-    async popState(doneTask) {
-        await this.go(-1, true);
-        const state = this.history.state;
-        // TODO: Fix browser forward bug after pop on first entry
-        const lastNavigation = state?.navigations?.[state?.navigationIndex ?? 0];
-        if (lastNavigation != null && !lastNavigation.firstEntry) {
-            await this.go(-1, true);
-            await this.pushNavigatorState(state);
-        }
-        await doneTask.execute();
-    }
-    /**
-     * Set the "forwarded state" that decides whether the browser's popstate event
-     * should fire a change state event or not.
-     *
-     * @param state - The forwarded state
-     */
-    forwardState(state) {
-        this.forwardedState = state;
-    }
-    /**
-     * Tries to clean up the state for pushing or replacing to browser History.
-     *
-     * @param data - The state to attempt to clean
-     * @param type - The type of action, push or replace, that failed
-     * @param originalError - The origial error when trying to push or replace
-     */
-    tryCleanState(data, type, originalError) {
-        try {
-            return JSON.parse(JSON.stringify(data));
-        }
-        catch (err) {
-            throw createMappedError(2009 /* ErrorNames.browser_viewer_store_state_serialization_failed */, type, err, originalError);
-        }
-    }
-}
-/**
- * The state used when communicating with the navigator viewer.
- */
-/**
- * @internal
- */
-class NavigatorViewerState {
-    constructor(
-    /**
-     * The URL (Location) path
-     */
-    path, 
-    /**
-     * The URL (Location) query
-     */
-    query, 
-    /**
-     * The URL (Location) hash
-     */
-    hash, 
-    /**
-     * The navigation instruction
-     */
-    instruction) {
-        this.path = path;
-        this.query = query;
-        this.hash = hash;
-        this.instruction = instruction;
-    }
-}
-class NavigatorStateChangeEvent {
-    constructor(eventName, viewerState, event, state) {
-        this.eventName = eventName;
-        this.viewerState = viewerState;
-        this.event = event;
+class LocationChangeEvent {
+    get name() { return 'au:router:location-change'; }
+    constructor(id, url, trigger, state) {
+        this.id = id;
+        this.url = url;
+        this.trigger = trigger;
         this.state = state;
     }
-    static create(viewerState, ev, navigatorState) {
-        return new NavigatorStateChangeEvent(NavigatorStateChangeEvent.eventName, viewerState, ev, navigatorState);
+    toString() {
+        return `LocationChangeEvent(id:${this.id},url:'${this.url}',trigger:'${this.trigger}')`
+            ;
     }
 }
-NavigatorStateChangeEvent.eventName = 'au:router:navigation-state-change';
-
-/**
- * The entity used to keep track of the endpoint and its states.
- */
-class Entity {
-    constructor(
-    /**
-     * The endpoint for the entity
-     */
-    endpoint) {
-        this.endpoint = endpoint;
-        /**
-         * Whether the entity's transition has started.
-         */
-        this.running = false;
-        /**
-         * The navigation states the entity has reached.
-         */
-        this.states = new Map();
-        /**
-         * The navigation states the entity has checked (and therefore reached).
-         */
-        this.checkedStates = [];
-        /**
-         * The navigation state the entity is currently syncing/waiting on.
-         */
-        this.syncingState = null;
-        /**
-         * The (open) promise to resolve when the entity has reached its sync state.
-         */
-        this.syncPromise = null;
-        /**
-         * The Runner step that's controlling the transition in the entity.
-         */
-        this.step = null;
-    }
-    /**
-     * Whether the entity has reached a specific state.
-     *
-     * @param state - The state to check
-     */
-    hasReachedState(state) {
-        return this.states.has(state) && this.states.get(state) === null;
-    }
-}
-class NavigationCoordinator {
-    constructor(router, 
-    /**
-     * The navigation that created the coordinator.
-     */
-    navigation) {
-        this.router = router;
-        this.navigation = navigation;
-        this.instructions = [];
-        this.matchedInstructions = [];
-        this.processedInstructions = [];
-        this.changedEndpoints = [];
-        /**
-         * Whether the coordinator is running/has started entity transitions.
-         */
-        this.running = false;
-        /**
-         * Whether the coordinator's run is completed.
-         */
-        this.completed = false;
-        /**
-         * Whether the coordinator's run is cancelled.
-         */
-        this.cancelled = false;
-        /**
-         * Whether the coordinator has got all endpoints added.
-         */
-        this.hasAllEndpoints = false;
-        /**
-         * Instructions that should be appended to the navigation
-         */
-        this.appendedInstructions = [];
-        /**
-         * Whether the coordinator is closed for new appended instructions.
-         */
-        this.closed = false;
-        /**
-         * The entities the coordinator is coordinating.
-         */
-        this.entities = [];
-        /**
-         * The sync states the coordinator is coordinating.
-         */
-        this.syncStates = new Map();
-        /**
-         * The sync states that's been checked (by any entity).
-         */
-        this.checkedSyncStates = new Set();
-    }
-    /**
-     * Create a navigation coordinator.
-     *
-     * @param router - The router
-     * @param navigation - The navigation that creates the coordinator
-     * @param options - The navigation coordinator options
-     */
-    static create(router, navigation, options) {
-        const coordinator = new NavigationCoordinator(router, navigation);
-        // TODO: Set flow options from router
-        options.syncStates.forEach((state) => coordinator.addSyncState(state));
-        return coordinator;
-    }
-    /**
-     * Append instructions to the current process.
-     *
-     * @param instructions - The instructions to append
-     */
-    appendInstructions(instructions) {
-        this.instructions.push(...instructions);
-        this.manageDefaults();
-    }
-    /**
-     * Remove instructions from the current process.
-     *
-     * @param instructions - The instructions to remove
-     */
-    removeInstructions(instructions) {
-        this.instructions = this.instructions.filter(instr => !instructions.includes(instr));
-        this.matchedInstructions = this.matchedInstructions.filter(instr => !instructions.includes(instr));
-    }
-    manageDefaults() {
-        const router = this.router;
-        // Process non-defaults first
-        this.instructions = [...this.instructions.filter(instr => !instr.default), ...this.instructions.filter(instr => instr.default)];
-        // Make sure all appended instructions have the correct scope
-        this.instructions.forEach(instruction => {
-            if (instruction.scope == null) {
-                instruction.scope = this.navigation.scope ?? this.router.rootScope?.scope ?? null;
-            }
-        });
-        const instructions = this.instructions.filter(instr => !instr.isClear(router));
-        while (instructions.length > 0) {
-            const instruction = instructions.shift();
-            // Already processed an instruction for this endpoint
-            const foundProcessed = this.processedInstructions.some(instr => !instr.isClear(router) && !instr.cancelled && instr.sameEndpoint(instruction, true));
-            // An already matched (but not processed) instruction for this endpoint
-            const existingMatched = this.matchedInstructions.find(instr => !instr.isClear(router) && instr.sameEndpoint(instruction, true));
-            // An already existing (but not matched or processed) instruction for this endpoint
-            const existingInstruction = this.instructions.find(instr => !instr.isClear(router) && instr.sameEndpoint(instruction, true) && instr !== instruction);
-            // If it's a default instruction that's already got a non-default in some way, remove it
-            if (instruction.default &&
-                (foundProcessed ||
-                    (existingMatched !== void 0 && !existingMatched.default) ||
-                    (existingInstruction !== void 0 && !existingInstruction.default))) {
-                arrayRemove(this.instructions, value => value === instruction);
-                continue;
-            }
-            // There's already a matched instruction, but it's default (or appended instruction isn't) so it should be removed
-            if (existingMatched !== void 0) {
-                arrayRemove(this.matchedInstructions, value => value === existingMatched);
-                continue;
-            }
-            // There's already an existing instruction, but it's default (or appended instruction isn't) so it should be removed
-            if (existingInstruction !== void 0) {
-                arrayRemove(this.instructions, value => value === existingInstruction);
-            }
-        }
-    }
-    /**
-     * Process the appended instructions, moving them to matched or remaining.
-     */
-    async processInstructions() {
-        const changedEndpoints = [];
-        let guard = 100;
-        while (this.instructions.length > 0) {
-            if (!guard--) { // Guard against endless loop
-                console.error('processInstructions endless loop', this.navigation, this.instructions);
-                throw new Error('Endless loop');
-            }
-            // Process non-defaults first (by separating and adding back)
-            this.instructions = [...this.instructions.filter(instr => !instr.default), ...this.instructions.filter(instr => instr.default)];
-            const scope = this.instructions[0].scope;
-            if (scope == null) {
-                throw new Error('No scope for instruction');
-            }
-            // eslint-disable-next-line no-await-in-loop
-            changedEndpoints.push(...await this.processInstructionsForScope(scope));
-        }
-        return changedEndpoints;
-    }
-    async processInstructionsForScope(scope) {
-        const router = this.router;
-        const options = router.configuration.options;
-        // Get all endpoints affected by any clear all routing instructions and then remove those
-        // routing instructions.
-        const clearEndpoints = this.getClearAllEndpoints(scope);
-        // If there are instructions for this scope that aren't part of an already found configured route...
-        const nonRouteInstructions = this.getInstructionsForScope(scope).filter(instr => !(instr.route instanceof Route));
-        if (nonRouteInstructions.length > 0) {
-            // ...find the routing instructions for them. The result will be either that there's a configured
-            // route (which in turn contains routing instructions) or a list of routing instructions
-            // TODO(return): This needs to be updated
-            const foundRoute = scope.findInstructions(nonRouteInstructions, options.useDirectRouting, options.useConfiguredRoutes);
-            // Make sure we got routing instructions...
-            if (nonRouteInstructions.some(instr => !instr.component.none || instr.route != null)
-                && !foundRoute.foundConfiguration
-                && !foundRoute.foundInstructions) {
-                // ...call unknownRoute hook if we didn't...
-                // TODO: Add unknownRoute hook here and put possible result in instructions
-                throw this.createUnknownRouteError(nonRouteInstructions);
-            }
-            // ...and replace the non-route instructions with the found routing instructions.
-            this.instructions.splice(this.instructions.indexOf(nonRouteInstructions[0]), nonRouteInstructions.length, ...foundRoute.instructions);
-            // // ...and use any already found and the newly found routing instructions.
-        }
-        // If there are any unresolved components (functions or promises), resolve into components
-        const unresolvedPromise = RoutingInstruction.resolve(this.getInstructionsForScope(scope));
-        if (unresolvedPromise instanceof Promise) {
-            await unresolvedPromise;
-        }
-        // Make sure "add all" instructions have the correct name and scope
-        for (const addInstruction of this.getInstructionsForScope(scope).filter(instr => instr.isAddAll(router))) {
-            addInstruction.endpoint.set(addInstruction.scope.endpoint.name);
-            addInstruction.scope = addInstruction.scope.owningScope;
-        }
-        let guard = 100;
-        do {
-            // Match the instructions to available endpoints within, and with the help of, their scope
-            // TODO(return): This needs to be updated
-            this.matchEndpoints(scope);
-            if (!guard--) { // Guard against endless loop
-                router.unresolvedInstructionsError(this.navigation, this.instructions);
-            }
-            const changedEndpoints = [];
-            // Get all the endpoints of matched instructions...
-            const matchedEndpoints = this.matchedInstructions.map(instr => instr.endpoint.instance);
-            // ...and create and add clear instructions for all endpoints that
-            // aren't already in an instruction.
-            this.matchedInstructions.push(...clearEndpoints
-                .filter(endpoint => !matchedEndpoints.includes(endpoint))
-                .map(endpoint => RoutingInstruction.createClear(router, endpoint)));
-            // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
-            // eslint-disable-next-line no-await-in-loop
-            const hooked = await RoutingHook.invokeBeforeNavigation(this.matchedInstructions, this.navigation);
-            if (hooked === false) {
-                router.cancelNavigation(this.navigation, this);
-                return [];
-            }
-            else if (hooked !== true && hooked !== this.matchedInstructions) {
-                // TODO(return): Do a full findInstructions again with a new FoundRoute so that this
-                // hook can return other values as well
-                this.matchedInstructions = hooked;
-            }
-            for (const matchedInstruction of this.matchedInstructions) {
-                const endpoint = matchedInstruction.endpoint.instance;
-                if (endpoint !== null) {
-                    // Set endpoint path to the configured route path so that it knows it's part
-                    // of a configured route.
-                    // Inform endpoint of new content and retrieve the action it'll take
-                    const action = endpoint.setNextContent(matchedInstruction, this.navigation);
-                    if (action !== 'skip') {
-                        // Add endpoint to changed endpoints this iteration and to the coordinator's purview
-                        changedEndpoints.push(endpoint);
-                        this.addEndpoint(endpoint);
-                    }
-                    // We're doing something, so don't clear this endpoint...
-                    const dontClear = [endpoint];
-                    if (action === 'swap') {
-                        // ...and none of it's _current_ children if we're swapping them out.
-                        dontClear.push(...endpoint.getContent().connectedScope.allScopes(true).map(scope => scope.endpoint));
-                    }
-                    // Exclude the endpoints to not clear from the ones to be cleared...
-                    arrayRemove(clearEndpoints, clear => dontClear.includes(clear));
-                    // ...as well as already matched clear instructions (but not itself).
-                    arrayRemove(this.matchedInstructions, matched => matched !== matchedInstruction
-                        && matched.isClear(router) && dontClear.includes(matched.endpoint.instance));
-                    // TODO: Does the below ever happen?! Parent is never in clearEndpoints, right?
-                    // And also exclude the routing instruction's parent viewport scope...
-                    if (!matchedInstruction.isClear(router) && matchedInstruction.scope?.parent?.isViewportScope) {
-                        // ...from clears...
-                        arrayRemove(clearEndpoints, clear => clear === matchedInstruction.scope.parent.endpoint);
-                        // ...and already matched clears.
-                        arrayRemove(this.matchedInstructions, matched => matched !== matchedInstruction
-                            && matched.isClear(router) && matched.endpoint.instance === matchedInstruction.scope.parent.endpoint);
-                    }
-                    // If the instruction has a next scope instructions, add them to the instructions
-                    // to be processed next...
-                    if (matchedInstruction.hasNextScopeInstructions) {
-                        this.instructions.push(...matchedInstruction.nextScopeInstructions);
-                        // ...and if the endpoint has been changed/swapped, move the next scope instructions
-                        // into the new endpoint content scope and clear the endpoint instance.
-                        if (action !== 'skip') {
-                            for (const nextScopeInstruction of matchedInstruction.nextScopeInstructions) {
-                                nextScopeInstruction.scope = endpoint.scope;
-                                nextScopeInstruction.endpoint.instance = null;
-                            }
-                        }
-                    }
-                    else {
-                        // If there are no next scope instructions the endpoint's scope (its children)
-                        // needs to be cleared
-                        clearEndpoints.push(...matchedInstruction.endpoint.instance.scope.children.map(s => s.endpoint));
-                    }
-                }
-            }
-            // In order to make sure all relevant canUnload are run on the first run iteration
-            // we only run once all (top) instructions are doing something/there are no skip
-            // action instructions.
-            // If all first iteration instructions now do something the transitions can start
-            const skipping = this.matchedInstructions.filter(instr => instr.endpoint.instance?.transitionAction === 'skip');
-            const skippingWithMore = skipping.filter(instr => instr.hasNextScopeInstructions);
-            if (skipping.length === 0 || (skippingWithMore.length === 0)) { // TODO: !!!!!!  && !foundRoute.hasRemaining)) {
-                // If navigation is unrestricted (no other syncing done than on canUnload) we can
-                // instruct endpoints to transition
-                if (!router.isRestrictedNavigation) {
-                    this.finalEndpoint();
-                }
-                this.run();
-                // Wait for ("blocking") canUnload to finish
-                if (this.hasAllEndpoints) {
-                    const guardedUnload = this.waitForSyncState('guardedUnload');
-                    if (guardedUnload instanceof Promise) {
-                        // eslint-disable-next-line no-await-in-loop
-                        await guardedUnload;
-                    }
-                }
-            }
-            // If, for whatever reason, this navigation got cancelled, stop processing
-            if (this.cancelled) {
-                router.cancelNavigation(this.navigation, this);
-                return [];
-            }
-            // Add this iteration's changed endpoints (inside the loop) to the total of all
-            // updated endpoints (outside the loop)
-            arrayAddUnique(this.changedEndpoints, changedEndpoints);
-            // Make sure these endpoints in these instructions stays unavailable
-            this.processedInstructions.push(...this.matchedInstructions.splice(0));
-            // If this isn't a restricted ("static") navigation everything will run as soon as possible
-            // and then we need to wait for new viewports to be loaded before continuing here (but of
-            // course only if we're running)
-            // TODO: Use a better solution here (by checking and waiting for relevant viewports)
-            if (!router.isRestrictedNavigation &&
-                (this.matchedInstructions.length > 0 || this.instructions.length > 0) && this.running) {
-                const waitForSwapped = this.waitForSyncState('swapped');
-                if (waitForSwapped instanceof Promise) {
-                    // eslint-disable-next-line no-await-in-loop
-                    await waitForSwapped;
-                }
-            }
-            this.instructions.push(...clearEndpoints.map(endpoint => RoutingInstruction.createClear(router, endpoint)));
-            // If there are any unresolved components (functions or promises) to be appended, resolve them
-            const unresolvedPromise = RoutingInstruction.resolve(this.matchedInstructions);
-            if (unresolvedPromise instanceof Promise) {
-                // eslint-disable-next-line no-await-in-loop
-                await unresolvedPromise;
-            }
-            // Remove cancelled endpoints from changed endpoints (last instruction is cancelled)
-            this.changedEndpoints = this.changedEndpoints.filter(endpoint => !([...this.processedInstructions]
-                .reverse()
-                .find(instruction => instruction.endpoint.instance === endpoint)
-                ?.cancelled ?? false));
-        } while (this.matchedInstructions.length > 0 || this.getInstructionsForScope(scope).length > 0);
-        return this.changedEndpoints;
-    }
-    /**
-     * Get all instructions for a specific scope
-     */
-    getInstructionsForScope(scope) {
-        // Make sure instruction defaults are removed if there are non-defaults
-        this.manageDefaults();
-        // Always process all non-default instructions first
-        const instructions = this.instructions.filter(instr => instr.scope === scope && !instr.default);
-        if (instructions.length > 0) {
-            return instructions;
-        }
-        // If there are no non-default instructions, process all default instructions
-        return this.instructions.filter(instr => instr.scope === scope);
-    }
-    /**
-     * Ensure that there's a clear all instruction present in instructions for a scope.
-     */
-    ensureClearStateInstruction(scope) {
-        const router = this.router;
-        if (!this.instructions.some(instr => instr.scope === scope && instr.isClearAll(router))) {
-            const clearAll = RoutingInstruction.create(RoutingInstruction.clear(router));
-            clearAll.scope = scope;
-            this.instructions.unshift(clearAll);
-        }
-    }
-    /**
-     * Match the instructions to available endpoints within, and with the help of, their scope.
-     *
-     * @param scope - The scope to match the instructions within
-     * @param instructions - The instructions to matched
-     * @param alreadyFound - The already found matches
-     * @param disregardViewports - Whether viewports should be ignored when matching
-     */
-    matchEndpoints(scope, disregardViewports = false) {
-        const scopeInstructions = this.getInstructionsForScope(scope);
-        const matchedInstructions = EndpointMatcher.matchEndpoints(scope, scopeInstructions, [...this.processedInstructions, ...this.matchedInstructions], disregardViewports).matchedInstructions;
-        this.matchedInstructions.push(...matchedInstructions);
-        this.instructions = this.instructions.filter(instr => !matchedInstructions.includes(instr));
-    }
-    /**
-     * Run the navigation coordination, transitioning all entities/endpoints
-     */
-    run() {
-        if (!this.running) {
-            this.running = true;
-            for (const entity of this.entities) {
-                if (!entity.running) {
-                    entity.running = true;
-                    entity.endpoint.transition(this);
-                }
-            }
-        }
-    }
-    /**
-     * Add a navigation state to be synchronized.
-     *
-     * @param state - The state to add
-     */
-    addSyncState(state) {
-        const openPromise = new OpenPromise(`addSyncState: ${state}`);
-        this.syncStates.set(state, openPromise);
-    }
-    /**
-     * Add an endpoint to be synchronized.
-     *
-     * @param endpoint - The endpoint to add
-     */
-    addEndpoint(endpoint) {
-        const entity = new Entity(endpoint);
-        this.entities.push(entity);
-        // A new entity might invalidate earlier reached states, so reset
-        this.recheckSyncStates();
-        if (this.running) {
-            // If we're running transitions, start the transition
-            entity.endpoint.transition(this);
-        }
-        return entity;
-    }
-    /**
-     * Remove an endpoint from synchronization.
-     *
-     * @param endpoint - The endpoint to remove
-     */
-    removeEndpoint(endpoint) {
-        const endpoints = this.entities.map(e => e.endpoint);
-        const removes = [endpoint];
-        let children = [endpoint];
-        // Recursively find all children of the endpoint
-        while (children.length > 0) {
-            children = endpoints.filter(e => e?.parentViewport != null && children.includes(e.parentViewport));
-            removes.push(...children);
-        }
-        // Remove the entities for the endpoint and all its children
-        for (const remove of removes) {
-            // Find the entity...
-            const entity = this.entities.find(e => e.endpoint === remove);
-            if (entity !== void 0) {
-                // ...and remove it.
-                arrayRemove(this.entities, ent => ent === entity);
-            }
-        }
-        // Removing an entity might take us further along the overall process, so check ALL states
-        this.checkSyncState();
-    }
-    /**
-     * Set the Runner step controlling the transition for an endpoint.
-     *
-     * @param endpoint - The endpoint that gets the step set
-     * @param step - The step that's controlling the transition
-     */
-    setEndpointStep(endpoint, step) {
-        // Find the entity for the endpoint...
-        let entity = this.entities.find(e => e.endpoint === endpoint);
-        if (entity === void 0) {
-            // ...adding it if it doesn't exist.
-            entity = this.addEndpoint(endpoint);
-        }
-        entity.step = step;
-    }
-    /**
-     * Get the Runner step controlling the transition for an endpoint.
-     *
-     * @param endpoint - The endpoint to get the step for
-     */
-    getEndpointStep(endpoint) {
-        // Find the entity for the endpoint...
-        const entity = this.entities.find(e => e.endpoint === endpoint);
-        return entity?.step ?? null;
-    }
-    /**
-     * Add a (reached) navigation state for an endpoint.
-     *
-     * @param endpoint - The endpoint that's reached a state
-     * @param state - The state that's been reached
-     */
-    addEndpointState(endpoint, state) {
-        // Find the entity for the endpoint...
-        let entity = this.entities.find(e => e.endpoint === endpoint);
-        if (entity === void 0) {
-            // ...adding it if it doesn't exist.
-            entity = this.addEndpoint(endpoint);
-        }
-        // Something is waiting for this specific entity/endpoint to reach the state...
-        const openPromise = entity.states.get(state);
-        if (openPromise instanceof OpenPromise) {
-            // ...so resolve it.
-            openPromise.resolve();
-        }
-        entity.states.set(state, null);
-        // Check if this was the last entity/endpoint needed to resolve the state
-        this.checkSyncState(state);
-    }
-    /**
-     * Wait for a navigation state to be reached. If endpoint is specified, it
-     * will be marked as waiting for the state notified when it is reached (if
-     * waiting is necessary).
-     *
-     * @param state - The state to wait for
-     * @param endpoint - The specific endpoint to wait for
-     */
-    waitForSyncState(state, endpoint = null) {
-        if (this.entities.length === 0) {
-            return;
-        }
-        // Get the promise, if any, indicating that we're synchronizing this state...
-        const openPromise = this.syncStates.get(state);
-        if (openPromise === void 0) {
-            // ...and return void (nothing to wait for) if it's not synchronized.
-            return;
-        }
-        // If a specified endpoing is waiting for a state...
-        if (endpoint !== null) {
-            const entity = this.entities.find(e => e.endpoint === endpoint);
-            // ...and it's got an entity without existing promise (and the state
-            // is still pending)...
-            if (entity?.syncPromise === null && openPromise.isPending) {
-                // ...mark the entity as waiting for the state.
-                entity.syncingState = state;
-                entity.syncPromise = new OpenPromise(`waitForSyncState: ${state}`);
-                // Also add the state as checked for the entity...
-                entity.checkedStates.push(state);
-                // ...and over all.
-                this.checkedSyncStates.add(state);
-                Promise.resolve().then(() => {
-                    // Check if this has resolved anything waiting
-                    this.checkSyncState(state);
-                }).catch(err => { throw err; });
-                // Return the promise to await
-                return entity.syncPromise.promise;
-            }
-        }
-        // Return the promise to await if it's still pending
-        return openPromise.isPending ? openPromise.promise : void 0;
-    }
-    /**
-     * Wait (if necessary) for an endpoint to reach a specific state.
-     *
-     * @param endpoint - The endpoint to wait for
-     * @param state - The state to wait for
-     */
-    waitForEndpointState(endpoint, state) {
-        if (!this.syncStates.has(state)) {
-            return;
-        }
-        // Find the entity...
-        let entity = this.entities.find(e => e.endpoint === endpoint);
-        // ...adding it if it doesn't exist.
-        if (entity == null) {
-            entity = this.addEndpoint(endpoint);
-        }
-        // If we've already reached, return (no wait)
-        if (entity.hasReachedState(state)) {
-            return;
-        }
-        // Get open promise...
-        let openPromise = entity.states.get(state);
-        // ...creating a new one if necessary.
-        if (openPromise == null) {
-            openPromise = new OpenPromise(`waitForEndpointState: ${state}`);
-            entity.states.set(state, openPromise);
-        }
-        // Return the promise to await
-        return openPromise.promise;
-    }
-    /**
-     * Notify that all endpoints has been added to the coordinator.
-     */
-    finalEndpoint() {
-        this.hasAllEndpoints = true;
-        // Check all synchronized states to see which has been reached
-        this.syncStates.forEach((_promise, state) => this.checkSyncState(state));
-    }
-    /**
-     * Finalize the navigation, calling finalizeContentChange in all endpoints.
-     */
-    finalize() {
-        this.entities.forEach(entity => entity.endpoint.finalizeContentChange(this, null));
-        this.completed = true;
-        this.navigation.completed = true;
-        this.syncStates.clear();
-    }
-    /**
-     * Cancel the navigation, calling cancelContentChange in all endpoints and
-     * cancelling the navigation itself.
-     */
-    cancel() {
-        this.cancelled = true;
-        this.instructions = [];
-        this.matchedInstructions = [];
-        // TODO: Take care of disabling viewports when cancelling and stateful!
-        this.entities.forEach(entity => {
-            const abort = entity.endpoint.cancelContentChange(this);
-            if (abort instanceof Promise) {
-                abort.catch(error => { throw error; });
-            }
-        });
-        // TODO: Review this since it probably should happen in turn
-        this.router.navigator.cancel(this.navigation)
-            .then(() => {
-            this.navigation.process?.resolve(false);
-        })
-            .catch(error => { throw error; });
-        this.completed = true;
-        this.navigation.completed = true;
-        // Resolve awaiting processes
-        [...this.syncStates.values()].forEach(promise => {
-            if (promise.isPending) {
-                promise.resolve();
-            }
-        });
-        this.syncStates.clear();
-    }
-    /**
-     * Check if a navigation state has been reached, notifying waiting
-     * endpoints if so.
-     *
-     * @param state - The state to check
-     */
-    checkSyncState(state) {
-        if (state === void 0) {
-            // Check all synchronized states to see which has been reached
-            this.syncStates.forEach((_promise, state) => this.checkSyncState(state));
-            return;
-        }
-        // Get the promise, if any, indicating that we're synchronizing this state...
-        const openPromise = this.syncStates.get(state);
-        if (openPromise === void 0) {
-            // ...and return void (nothing to wait for) if it's not synchronized.
-            return;
-        }
-        // States aren't reached until all endpoints have been added (but the
-        // router can tell the coordinator that all endpoints have been added
-        // even though they haven't, to get the states reached)
-        if (this.hasAllEndpoints &&
-            openPromise.isPending &&
-            // Check that this state has been done by all state entities and if so resolve the promise
-            this.entities.every(ent => ent.hasReachedState(state)) &&
-            // Check that this state has been checked (reached) by all state entities and if so resolve the promise
-            (!this.checkedSyncStates.has(state) || this.entities.every(ent => ent.checkedStates.includes(state)))) {
-            for (const entity of this.entities) {
-                if (entity.syncingState === state) {
-                    entity.syncPromise?.resolve();
-                    entity.syncPromise = null;
-                    entity.syncingState = null;
-                }
-            }
-            openPromise.resolve();
-        }
-    }
-    /**
-     * Re-check the sync states (since a new endpoint has been added) and add
-     * now unresolved ones back.
-     */
-    recheckSyncStates() {
-        this.syncStates.forEach((promise, state) => {
-            if (!promise.isPending && !this.entities.every(ent => ent.hasReachedState(state))) {
-                this.addSyncState(state);
-            }
-        });
-    }
-    /**
-     * Get all endpoints affected by any clear all routing instructions and then remove those
-     * routing instructions.
-     *
-     * @param instructions - The instructions to process
-     */
-    getClearAllEndpoints(scope) {
-        const router = this.router;
-        let clearEndpoints = [];
-        // If there's any clear all routing instruction...
-        if (this.instructions.some(instr => (instr.scope ?? scope) === scope && instr.isClearAll(router))) {
-            // ...get all the endpoints to be cleared...
-            clearEndpoints = scope.enabledChildren // TODO(alpha): Verify the need for rootScope check below
-                .filter(sc => !sc.endpoint.isEmpty) // && sc !== this.router.rootScope?.connectedScope)
-                .map(sc => sc.endpoint);
-            // ...and remove the clear all instructions
-            this.instructions = this.instructions.filter(instr => !((instr.scope ?? scope) === scope && instr.isClearAll(router)));
-        }
-        return clearEndpoints;
-    }
-    /**
-     * Deal with/throw an unknown route error.
-     *
-     * @param instructions - The failing instructions
-     */
-    createUnknownRouteError(instructions) {
-        const options = this.router.configuration.options;
-        const route = RoutingInstruction.stringify(this.router, instructions);
-        // TODO: Add missing/unknown route handling
-        if (instructions[0].route != null) {
-            if (!options.useConfiguredRoutes) {
-                return new Error(`Can not match '${route}' since the router is configured to not use configured routes.`);
-            }
-            else {
-                return new Error(`No matching configured route found for '${route}'.`);
-            }
-        }
-        else if (options.useConfiguredRoutes && options.useDirectRouting) {
-            return new Error(`No matching configured route or component found for '${route}'.`);
-        }
-        else if (options.useConfiguredRoutes) {
-            return new Error(`No matching configured route found for '${route}'.`);
-        }
-        else {
-            return new Error(`No matching route/component found for '${route}'.`);
-        }
-    }
-}
-
-/**
- * @internal - Shouldn't be used directly
- */
-class RoutingHook {
-    constructor(hook, options, id) {
-        this.hook = hook;
+class NavigationStartEvent {
+    get name() { return 'au:router:navigation-start'; }
+    constructor(id, instructions, trigger, managedState) {
         this.id = id;
-        this.type = 'beforeNavigation';
-        this.includeTargets = [];
-        this.excludeTargets = [];
-        if (options.type !== void 0) {
-            this.type = options.type;
-        }
-        for (const target of options.include ?? []) {
-            this.includeTargets.push(new Target(target));
-        }
-        for (const target of options.exclude ?? []) {
-            this.excludeTargets.push(new Target(target));
-        }
+        this.instructions = instructions;
+        this.trigger = trigger;
+        this.managedState = managedState;
     }
-    static add(hookFunction, options) {
-        const hook = new RoutingHook(hookFunction, options ?? {}, ++this.lastIdentity);
-        this.hooks[hook.type].push(hook);
-        return this.lastIdentity;
-    }
-    static remove(id) {
-        for (const type in this.hooks) {
-            if (Object.prototype.hasOwnProperty.call(this.hooks, type)) {
-                const index = this.hooks[type].findIndex(hook => hook.id === id);
-                if (index >= 0) {
-                    this.hooks[type].splice(index, 1);
-                }
-            }
-        }
-    }
-    static removeAll() {
-        for (const type in this.hooks) {
-            this.hooks[type] = [];
-        }
-    }
-    static async invokeBeforeNavigation(routingInstructions, navigationInstruction) {
-        return this.invoke('beforeNavigation', navigationInstruction, routingInstructions);
-    }
-    static async invokeTransformFromUrl(url, navigationInstruction) {
-        return this.invoke('transformFromUrl', navigationInstruction, url);
-    }
-    static async invokeTransformToUrl(state, navigationInstruction) {
-        return this.invoke('transformToUrl', navigationInstruction, state);
-    }
-    static async invokeTransformTitle(title, navigationInstruction) {
-        return this.invoke('transformTitle', navigationInstruction, title);
-    }
-    static async invoke(type, navigationInstruction, arg) {
-        let outcome = arg;
-        for (const hook of this.hooks[type]) {
-            if (!hook.wantsMatch || hook.matches(arg)) {
-                outcome = await hook.invoke(navigationInstruction, arg);
-                if (typeof outcome === 'boolean') {
-                    if (!outcome) {
-                        return false;
-                    }
-                }
-                else {
-                    arg = outcome;
-                }
-            }
-        }
-        return outcome;
-    }
-    get wantsMatch() {
-        return this.includeTargets.length > 0 || this.excludeTargets.length > 0;
-    }
-    matches(routingInstructions) {
-        if (this.includeTargets.length && !this.includeTargets.some(target => target.matches(routingInstructions))) {
-            return false;
-        }
-        if (this.excludeTargets.length && this.excludeTargets.some(target => target.matches(routingInstructions))) {
-            return false;
-        }
-        return true;
-    }
-    invoke(navigationInstruction, arg) {
-        // TODO: Fix the type here
-        return this.hook(arg, navigationInstruction);
+    toString() {
+        return `NavigationStartEvent(id:${this.id},instructions:'${this.instructions}',trigger:'${this.trigger}')`
+            ;
     }
 }
-RoutingHook.hooks = {
-    beforeNavigation: [],
-    transformFromUrl: [],
-    transformToUrl: [],
-    transformTitle: [],
-};
-RoutingHook.lastIdentity = 0;
-class Target {
-    constructor(target) {
-        this.componentType = null;
-        this.componentName = null;
-        this.viewport = null;
-        this.viewportName = null;
-        if (typeof target === 'string') {
-            this.componentName = target;
+class NavigationEndEvent {
+    get name() { return 'au:router:navigation-end'; }
+    constructor(id, instructions, finalInstructions) {
+        this.id = id;
+        this.instructions = instructions;
+        this.finalInstructions = finalInstructions;
+    }
+    toString() {
+        return `NavigationEndEvent(id:${this.id},instructions:'${this.instructions}',finalInstructions:'${this.finalInstructions}')`
+            ;
+    }
+}
+class NavigationCancelEvent {
+    get name() { return 'au:router:navigation-cancel'; }
+    constructor(id, instructions, reason) {
+        this.id = id;
+        this.instructions = instructions;
+        this.reason = reason;
+    }
+    toString() {
+        return `NavigationCancelEvent(id:${this.id},instructions:'${this.instructions}',reason:${String(this.reason)})`
+            ;
+    }
+}
+class NavigationErrorEvent {
+    get name() { return 'au:router:navigation-error'; }
+    constructor(id, instructions, error) {
+        this.id = id;
+        this.instructions = instructions;
+        this.error = error;
+    }
+    toString() {
+        return `NavigationErrorEvent(id:${this.id},instructions:'${this.instructions}',error:${String(this.error)})`
+            ;
+    }
+}
+
+const IBaseHref = /*@__PURE__*/ DI.createInterface('IBaseHref');
+const ILocationManager = /*@__PURE__*/ DI.createInterface('ILocationManager', x => x.singleton(BrowserLocationManager));
+/**
+ * Default browser location manager.
+ *
+ * Encapsulates all DOM interactions (`window`, `location` and `history` apis) and exposes them in an environment-agnostic manner.
+ *
+ * This is internal API for the moment. The shape of this API (as well as in which package it resides) is also likely temporary.
+ */
+class BrowserLocationManager {
+    constructor() {
+        /** @internal */ this._eventId = 0;
+        /** @internal */ this._logger = resolve(ILogger).root.scopeTo('LocationManager');
+        /** @internal */ this._events = resolve(IRouterEvents);
+        /** @internal */ this._history = resolve(IHistory);
+        /** @internal */ this._location = resolve(ILocation);
+        /** @internal */ this._window = resolve(IWindow);
+        /** @internal */ this._baseHref = resolve(IBaseHref);
+        /** @internal */ this._event = resolve(IRouterOptions).useUrlFragmentHash ? 'hashchange' : 'popstate';
+        debug(this._logger, 3100 /* Events.lmBaseHref */, this._baseHref.href);
+    }
+    startListening() {
+        trace(this._logger, 3101 /* Events.lmStartListening */, this._event);
+        this._window.addEventListener(this._event, this, false);
+    }
+    stopListening() {
+        trace(this._logger, 3102 /* Events.lmStopListening */, this._event);
+        this._window.removeEventListener(this._event, this, false);
+    }
+    handleEvent(event) {
+        this._events.publish(new LocationChangeEvent(++this._eventId, this.getPath(), this._event, 'state' in event ? event.state : null));
+    }
+    pushState(state, title, url) {
+        url = this.addBaseHref(url);
+        {
+            try {
+                const stateString = JSON.stringify(state);
+                trace(this._logger, 3103 /* Events.lmPushState */, stateString, title, url);
+            }
+            catch (_err) {
+                warn(this._logger, 3105 /* Events.lmPushStateNonSerializable */, title, url);
+            }
         }
-        else if (InstructionComponent.isType(target)) {
-            this.componentType = target;
-            this.componentName = InstructionComponent.getName(target);
+        this._history.pushState(state, title, url);
+    }
+    replaceState(state, title, url) {
+        url = this.addBaseHref(url);
+        {
+            try {
+                const stateString = JSON.stringify(state);
+                trace(this._logger, 3104 /* Events.lmReplaceState */, stateString, title, url);
+            }
+            catch (err) {
+                warn(this._logger, 3106 /* Events.lmReplaceStateNonSerializable */, title, url);
+            }
+        }
+        this._history.replaceState(state, title, url);
+    }
+    getPath() {
+        const { pathname, search, hash } = this._location;
+        return this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
+    }
+    addBaseHref(path) {
+        let fullPath;
+        let base = this._baseHref.href;
+        if (base.endsWith('/')) {
+            base = base.slice(0, -1);
+        }
+        if (base.length === 0) {
+            fullPath = path;
         }
         else {
-            const cvTarget = target;
-            if (cvTarget.component != null) {
-                this.componentType = InstructionComponent.isType(cvTarget.component)
-                    ? InstructionComponent.getType(cvTarget.component)
-                    : null;
-                this.componentName = InstructionComponent.getName(cvTarget.component);
+            if (path.startsWith('/')) {
+                path = path.slice(1);
             }
-            if (cvTarget.viewport != null) {
-                this.viewport = InstructionEndpoint.isInstance(cvTarget.viewport) ? cvTarget.viewport : null;
-                this.viewportName = InstructionEndpoint.getName(cvTarget.viewport);
-            }
+            fullPath = `${base}/${path}`;
         }
+        return fullPath;
     }
-    matches(routingInstructions) {
-        const instructions = routingInstructions.slice();
-        if (!instructions.length) {
-            // instructions.push(new RoutingInstruction(''));
-            instructions.push(RoutingInstruction.create(''));
+    removeBaseHref(path) {
+        const basePath = this._baseHref.pathname;
+        if (path.startsWith(basePath)) {
+            path = path.slice(basePath.length);
         }
-        for (const instruction of instructions) {
-            if ((this.componentName !== null && this.componentName === instruction.component.name) ||
-                (this.componentType !== null && this.componentType === instruction.component.type) ||
-                (this.viewportName !== null && this.viewportName === instruction.endpoint.name) ||
-                (this.viewport !== null && this.viewport === instruction.endpoint.instance)) {
-                return true;
-            }
-        }
-        return false;
+        return normalizePath(path);
     }
 }
-
-class Title {
-    static async getTitle(instructions, navigation, titleOptions) {
-        // First invoke with viewport instructions
-        let title = await RoutingHook.invokeTransformTitle(instructions, navigation);
-        if (typeof title !== 'string') {
-            // Hook didn't return a title, so run title logic
-            const componentTitles = Title.stringifyTitles(title, navigation, titleOptions);
-            title = titleOptions.appTitle;
-            title = title.replace(/\${componentTitles}/g, componentTitles);
-            title = title.replace(/\${appTitleSeparator}/g, componentTitles !== '' ? titleOptions.appTitleSeparator : '');
-        }
-        // Invoke again with complete string
-        title = await RoutingHook.invokeTransformTitle(title, navigation);
-        return title;
-    }
-    static stringifyTitles(instructions, navigation, titleOptions) {
-        const titles = instructions
-            .map(instruction => Title.stringifyTitle(instruction, navigation, titleOptions))
-            .filter(instruction => (instruction?.length ?? 0) > 0);
-        return titles.join(' + ');
-    }
-    static stringifyTitle(instruction, navigation, titleOptions) {
-        const nextInstructions = instruction.nextScopeInstructions;
-        let stringified = Title.resolveTitle(instruction, navigation, titleOptions);
-        if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
-            let nextStringified = Title.stringifyTitles(nextInstructions, navigation, titleOptions);
-            if (nextStringified.length > 0) {
-                if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
-                    nextStringified = `[ ${nextStringified} ]`;
-                }
-                if (stringified.length > 0) {
-                    stringified = titleOptions.componentTitleOrder === 'top-down'
-                        ? stringified + titleOptions.componentTitleSeparator + nextStringified
-                        : nextStringified + titleOptions.componentTitleSeparator + stringified;
-                }
-                else {
-                    stringified = nextStringified;
-                }
-            }
-        }
-        return stringified;
-    }
-    static resolveTitle(instruction, navigation, titleOptions) {
-        let title = instruction.getTitle(navigation);
-        if (titleOptions.transformTitle != null) {
-            title = titleOptions.transformTitle(title, instruction, navigation);
-        }
-        return title;
-    }
-}
-
-/* eslint-disable prefer-template */
 /**
+ * Strip trailing `/index.html` and trailing `/` from the path, if present.
  *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
+ * @internal
  */
-const IRouter = /*@__PURE__*/ DI.createInterface('IRouter', x => x.singleton(Router));
-class Router {
-    constructor() {
-        /**
-         * The root viewport scope.
-         */
-        this.rootScope = null;
-        /**
-         * The active routing instructions.
-         */
-        this.activeComponents = [];
-        /**
-         * Instructions that are appended between navigations and should be appended
-         * to next navigation. (This occurs during startup, when there's no navigation
-         * to append viewport default instructions to.)
-         */
-        this.appendedInstructions = [];
-        /**
-         * Whether the router is active/started
-         */
-        this.isActive = false;
-        /**
-         * The currently active coordinators (navigations)
-         */
-        this.coordinators = [];
-        /**
-         * Whether the first load has happened
-         */
-        this.loadedFirst = false;
-        /**
-         * Is processing navigation
-         *
-         * @internal
-         */
-        this._isProcessingNav = false;
+function normalizePath(path) {
+    let start;
+    let end;
+    let index;
+    if ((index = path.indexOf('?')) >= 0 || (index = path.indexOf('#')) >= 0) {
+        start = path.slice(0, index);
+        end = path.slice(index);
+    }
+    else {
+        start = path;
+        end = '';
+    }
+    if (start.endsWith('/')) {
+        start = start.slice(0, -1);
+    }
+    else if (start.endsWith('/index.html')) {
+        start = start.slice(0, -11 /* '/index.html'.length */);
+    }
+    return `${start}${end}`;
+}
+function normalizeQuery(query) {
+    return query.length > 0 && !query.startsWith('?') ? `?${query}` : query;
+}
+
+const noRoutes = emptyArray;
+// Every kind of route configurations are normalized to this `RouteConfig` class.
+class RouteConfig {
+    get path() {
+        const path = this._path;
+        if (path.length > 0)
+            return path;
+        const ceDfn = CustomElement.getDefinition(this._component);
+        return this._path = [ceDfn.name, ...ceDfn.aliases];
+    }
+    get component() { return this._getComponent(); }
+    constructor(id, 
+    /** @internal */
+    _path, title, redirectTo, caseSensitive, transitionPlan, viewport, data, routes, fallback, component, nav) {
+        this.id = id;
+        this._path = _path;
+        this.title = title;
+        this.redirectTo = redirectTo;
+        this.caseSensitive = caseSensitive;
+        this.transitionPlan = transitionPlan;
+        this.viewport = viewport;
+        this.data = data;
+        this.routes = routes;
+        this.fallback = fallback;
+        this.nav = nav;
         /** @internal */
-        this._logger = resolve(ILogger);
-        /**
-         * @internal
-         */
-        this.container = resolve(IContainer);
-        this.ea = resolve(IEventAggregator);
-        /**
-         * The navigator that manages navigation queue and history
-         *
-         * @internal
-         */
-        this.navigator = resolve(Navigator);
-        /**
-         * The viewer (browser) that displays url, navigation buttons
-         */
-        this.viewer = resolve(BrowserViewerStore);
-        /**
-         * The store (browser) that stores navigations
-         */
-        this.store = resolve(BrowserViewerStore);
-        /**
-         * The router configuration
-         */
-        this.configuration = resolve(IRouterConfiguration);
-        /**
-         * Handle the navigator's navigate event.
-         *
-         * @param event - The event to handle
-         *
-         * @internal
-         */
-        this.handleNavigatorNavigateEvent = (event) => {
-            void this._doHandleNavigatorNavigateEvent(event);
-        };
-        /**
-         * Handle the navigator's state change event.
-         *
-         * @param event - The event to handle
-         *
-         * @internal
-         */
-        this.handleNavigatorStateChangeEvent = (event) => {
-            // It's already a proper navigation (browser history or cache), go
-            // directly to navigate
-            if (event.state?.navigationIndex != null) {
-                const entry = Navigation.create(event.state.navigations[event.state.navigationIndex]);
-                entry.instruction = event.viewerState.instruction;
-                entry.fromBrowser = true;
-                this.navigator.navigate(entry).catch(error => { throw error; });
-            }
-            else {
-                this.load(event.viewerState.instruction, { fromBrowser: true }).catch(error => { throw error; });
-            }
-        };
-        /**
-         * Processes the route/instructions in a (queued) navigation.
-         *
-         * @param evNavigation - The navigation to process
-         *
-         * @internal
-         */
-        this.processNavigation = async (navigation) => {
-            // To avoid race condition double triggering at refresh
-            this.loadedFirst = true;
-            const options = this.configuration.options;
-            // Get and initialize a navigation coordinator that will keep track of all endpoint's progresses
-            // and make sure they're in sync when they are supposed to be (no `canLoad` before all `canUnload`
-            // and so on).
-            const coordinator = NavigationCoordinator.create(this, navigation, { syncStates: this.configuration.options.navigationSyncStates });
-            this.coordinators.push(coordinator);
-            // If there are instructions appended between/before any navigation,
-            // append them to this navigation. (This happens with viewport defaults
-            // during startup.)
-            coordinator.appendInstructions(this.appendedInstructions.splice(0));
-            this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
-            // Invoke the transformFromUrl hook if it exists
-            let transformedInstruction;
-            // If we're using full state instruction, use that...
-            if (navigation.useFullStateInstruction) {
-                // ...and extract query and fragment from it
-                transformedInstruction = navigation.fullStateInstruction;
-                let options = {};
-                ({ instructions: transformedInstruction, options } = this._extractFragmentAndQuery(transformedInstruction, options));
-                navigation.fragment = options.fragment ?? navigation.fragment;
-                navigation.query = options.query ?? navigation.query;
-                navigation.parameters = options.parameters ?? navigation.parameters;
-            }
-            else {
-                // If we're not using full state instruction, transform the instruction, invoking
-                // the transformFromUrl hook if it exists
-                transformedInstruction = typeof navigation.instruction === 'string'
-                    ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-                    : navigation.instruction;
-            }
-            // If app uses a base path remove it if present (unless we're using fragment hash)
-            const basePath = options.basePath;
-            if (basePath !== null &&
-                typeof transformedInstruction === 'string' && transformedInstruction.startsWith(basePath) &&
-                !options.useUrlFragmentHash) {
-                transformedInstruction = transformedInstruction.slice(basePath.length);
-            }
-            // TODO: Review this
-            if (transformedInstruction === '/') {
-                transformedInstruction = '';
-            }
-            if (typeof transformedInstruction === 'string') {
-                if (transformedInstruction === '') {
-                    transformedInstruction = [new RoutingInstruction('')]; // Make sure empty route is also processed
-                    transformedInstruction[0].default = true;
-                }
-                else if (transformedInstruction === '-') {
-                    transformedInstruction = [new RoutingInstruction('-'), new RoutingInstruction('')]; // Make sure clean all plus empty route is also processed
-                    transformedInstruction[1].default = true;
-                }
-                else {
-                    transformedInstruction = RoutingInstruction.parse(this, transformedInstruction);
-                }
-            }
-            // The instruction should have a scope so use rootScope if it doesn't
-            navigation.scope ??= this.rootScope.scope;
-            // TODO(return): Only use navigation.scope for string and instructions without their own scope
-            coordinator.appendInstructions(transformedInstruction);
-            // If router options defaults to navigations being complete state navigation (containing the
-            // complete set of routing instructions rather than just the ones that change), ensure
-            // that there's an instruction to clear all non-specified viewports in all the scopes of
-            // the top instructions. With viewports left and right containing components Alpha and Beta
-            // respectively, doing 'gamma@left' as a complete state navigation would load Gamma in left and
-            // unload Beta in right. In a partial navigation, Gamme would still be loaded but right would
-            // be left as is.
-            if (options.completeStateNavigations) {
-                arrayUnique(transformedInstruction, false)
-                    .map(instr => instr.scope)
-                    .forEach(scope => coordinator.ensureClearStateInstruction(scope));
-            }
-            let guard = 100;
-            do {
-                if (!guard--) { // Guard against endless loop
-                    this.unresolvedInstructionsError(navigation, coordinator.instructions);
-                }
-                // eslint-disable-next-line no-await-in-loop
-                await coordinator.processInstructions();
-            } while (coordinator.instructions.length > 0);
-            // TODO: Look into adding everything above as well
-            return Runner.run('processNavigation', () => {
-                // console.log('### processNavigation DONE', coordinator.navigation.instruction, coordinator.navigation, coordinator);
-                coordinator.closed = true;
-                coordinator.finalEndpoint();
-                return coordinator.waitForSyncState('completed');
-            }, () => {
-                coordinator.finalize();
-                return this.updateNavigation(navigation);
-            }, () => {
-                // Remove history entry if no history endpoint updated
-                if (navigation.navigation.new && !navigation.navigation.first && !navigation.repeating && coordinator.changedEndpoints.every(endpoint => endpoint.options.noHistory)) {
-                    navigation.untracked = true;
-                }
-                // TODO: Review this when adding noHistory back
-                // return this.navigator.finalize(navigation, this.coordinators.length === 1);
-            }, async () => {
-                while (this.coordinators.length > 0 && this.coordinators[0].completed) {
-                    const coord = this.coordinators.shift();
-                    // await this.updateNavigation(coord.navigation);
-                    // eslint-disable-next-line no-await-in-loop
-                    await this.navigator.finalize(coord.navigation, false /* this.coordinators.length === 0 */);
-                    this.ea.publish(RouterNavigationCompleteEvent.eventName, RouterNavigationCompleteEvent.create(coord.navigation));
-                    this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(coord.navigation));
-                    coord.navigation.process?.resolve(true);
-                }
-            });
-        };
-    }
-    /**
-     * Whether the router is currently navigating.
-     */
-    get isNavigating() {
-        return this.coordinators.length > 0;
-    }
-    /**
-     * Whether the router has a navigation that's open for more
-     * instructions to be appended.
-     */
-    get hasOpenNavigation() {
-        return this.coordinators.filter(coordinator => !coordinator.closed).length > 0;
-    }
-    /**
-     * Whether navigations are restricted/synchronized beyond the minimum.
-     */
-    get isRestrictedNavigation() {
-        const syncStates = this.configuration.options.navigationSyncStates;
-        return syncStates.includes('guardedLoad') ||
-            syncStates.includes('unloaded') ||
-            syncStates.includes('loaded') ||
-            syncStates.includes('guarded') ||
-            syncStates.includes('routed');
-    }
-    /**
-     * Whether navigation history is stateful
-     *
-     * @internal
-     */
-    get statefulHistory() {
-        return this.configuration.options.statefulHistoryLength !== void 0 && this.configuration.options.statefulHistoryLength > 0;
-    }
-    /**
-     * Start the router, activing the event listeners.
-     */
-    start() {
-        if (this.isActive) {
-            throw createMappedError(2000 /* ErrorNames.router_started */);
-        }
-        this.isActive = true;
-        const root = this.container.get(IAppRoot);
-        // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-        this.rootScope = new ViewportScope(this, 'rootScope', root.controller.viewModel, null, true, root.config.component);
-        const options = this.configuration.options;
-        // If base path isn't configured...
-        if (options.basePath === null) {
-            // ...get it from baseURI (base element href)
-            const url = new URL(root.host.baseURI);
-            options.basePath = url.pathname;
-        }
-        // Base path shouldn't end with '/' (to differentiate absolutes from relative)
-        if (options.basePath.endsWith('/')) {
-            options.basePath = options.basePath.slice(0, -1);
-        }
-        this.navigator.start({
-            store: this.store,
-            viewer: this.viewer,
-            statefulHistoryLength: this.configuration.options.statefulHistoryLength,
-        });
-        this._navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
-        this._navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
-        this.viewer.start({ useUrlFragmentHash: this.configuration.options.useUrlFragmentHash });
-        this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.create());
-    }
-    /**
-     * Stop the router.
-     */
-    stop() {
-        if (!this.isActive) {
-            throw createMappedError(2001 /* ErrorNames.router_not_started */);
-        }
-        this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.create());
-        this.navigator.stop();
-        this.viewer.stop();
-        this._navigatorStateChangeEventSubscription.dispose();
-        this._navigatorNavigateEventSubscription.dispose();
-    }
-    /**
-     * Perform the initial load, using the current url.
-     *
-     * @internal
-     */
-    async initialLoad() {
-        const { instruction, hash } = this.viewer.viewerState;
-        const result = this.load(instruction, {
-            fragment: hash,
-            replacing: true,
-            fromBrowser: false
-        });
-        this.loadedFirst = true;
-        return result;
+        this._configurationFromHookApplied = false;
+        /** @internal */ this._currentComponent = null;
+        this._component = component;
+        this._isNavigationStrategy = component instanceof NavigationStrategy;
     }
     /** @internal */
-    async _doHandleNavigatorNavigateEvent(event) {
-        // TODO: Fix the fast-switch multiple navigations issue without this throttle
-        if (this._isProcessingNav) {
-            // We prevent multiple navigation at the same time, but we store the last navigation requested.
-            if (this._pendingNavigation) {
-                // This pending navigation is cancelled
-                this._pendingNavigation.navigation.process?.resolve(false);
-            }
-            this._pendingNavigation = event;
-            return;
+    static _create(configOrPath, Type) {
+        if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
+            const path = ensureArrayOfStrings(configOrPath);
+            const redirectTo = Type?.redirectTo ?? null;
+            const caseSensitive = Type?.caseSensitive ?? false;
+            const id = ensureString(Type?.id ?? (path instanceof Array ? path[0] : path));
+            const title = Type?.title ?? null;
+            const reentryBehavior = Type?.transitionPlan ?? null;
+            const viewport = Type?.viewport ?? defaultViewportName;
+            const data = Type?.data ?? {};
+            const children = Type?.routes ?? noRoutes;
+            return new RouteConfig(id, path, title, redirectTo, caseSensitive, reentryBehavior, viewport, data, children, Type?.fallback ?? null, Type, Type?.nav ?? true);
         }
-        this._isProcessingNav = true;
-        try {
-            await this.processNavigation(event.navigation);
-        }
-        catch (error) {
-            event.navigation.process?.reject(error);
-        }
-        finally {
-            this._isProcessingNav = false;
-        }
-        if (this._pendingNavigation) {
-            const pending = this._pendingNavigation;
-            this._pendingNavigation = undefined;
-            await this._doHandleNavigatorNavigateEvent(pending);
-        }
-    }
-    /**
-     * Is processing navigation
-     *
-     * @internal
-     */
-    get isProcessingNav() {
-        return this._isProcessingNav || this._pendingNavigation != null;
-    }
-    /**
-     * Get a named endpoint of a specific type.
-     *
-     * @param type - The type of endpoint to get
-     * @param name - The name of the endpoint to get
-     */
-    getEndpoint(type, name) {
-        return this.allEndpoints(type).find(endpoint => endpoint.name === name) ?? null;
-    }
-    /**
-     * Get all endpoints of a specific type.
-     *
-     * @param type - The type of the endpoints to get
-     * @param includeDisabled - Whether disabled/non-active endpoints should be included
-     * @param includeReplaced - Whether replaced endpoints should be included
-     */
-    allEndpoints(type, includeDisabled = false) {
-        return this.rootScope.scope
-            .allScopes(includeDisabled)
-            .filter(scope => type === null || scope.type === type)
-            .map(scope => scope.endpoint);
-    }
-    /**
-     * Public API (not yet implemented)
-     */
-    addEndpoint(_type, ..._args) {
-        throw createMappedError(99 /* ErrorNames.method_not_implemented */, 'addEndPoint');
-    }
-    /**
-     * Connect an endpoint custom element to an endpoint. Called from the custom
-     * elements of endopints.
-     *
-     * @param endpoint - An already connected endpoint
-     * @param type - The type of the endpoint
-     * @param connectedCE - The endpoint custom element
-     * @param name - The name of the endpoint
-     * @param options - The custom element options
-     *
-     * @internal
-     */
-    connectEndpoint(endpoint, type, connectedCE, name, options) {
-        const container = connectedCE.container;
-        const closestEndpoint = container.has(Router.closestEndpointKey, true)
-            ? container.get(Router.closestEndpointKey)
-            : this.rootScope;
-        const parentScope = closestEndpoint.connectedScope;
-        if (endpoint === null) {
-            endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
-            Registration.instance(Router.closestEndpointKey, endpoint).register(container);
-        }
-        return endpoint;
-    }
-    /**
-     * Disconnect an custom element endpoint from an endpoint. Called from the
-     * custom elements of endpoints.
-     *
-     * @param step - The previous step in this transition Run
-     * @param endpoint - The endpoint to disconnect from
-     * @param connectedCE - The custom element to disconnect
-     */
-    disconnectEndpoint(step, endpoint, connectedCE) {
-        if (!endpoint.connectedScope.parent.removeEndpoint(step, endpoint, connectedCE)) {
-            throw createMappedError(2002 /* ErrorNames.router_remove_endpoint_failure */, endpoint.name);
-        }
-    }
-    /**
-     * Load navigation instructions.
-     *
-     * @param instructions - The instructions to load
-     * @param options - The options to use when loading the instructions
-     */
-    async load(instructions, options) {
-        ({ instructions, options } = this._extractFragmentAndQuery(instructions, options ?? {}));
-        let scope = null;
-        ({ instructions, scope } = this.applyLoadOptions(instructions, options));
-        const append = options.append ?? false;
-        if (append !== false) {
-            if (append instanceof NavigationCoordinator) {
-                if (!append.closed) {
-                    instructions = RoutingInstruction.from(this, instructions);
-                    this.appendInstructions(instructions, scope, append);
-                    // Can't return current navigation promise since it can lead to deadlock in load
-                    return Promise.resolve();
-                }
-            }
-            else {
-                if (!this.loadedFirst || this.hasOpenNavigation) {
-                    instructions = RoutingInstruction.from(this, instructions);
-                    this.appendInstructions(instructions, scope);
-                    // Can't return current navigation promise since it can lead to deadlock in load
-                    return Promise.resolve();
-                }
-            }
-        }
-        const entry = Navigation.create({
-            instruction: instructions,
-            fullStateInstruction: '',
-            scope: scope,
-            title: options.title,
-            data: options.data,
-            query: options.query,
-            fragment: options.fragment,
-            parameters: options.parameters,
-            replacing: (options.replacing ?? false) || options.replace,
-            repeating: (options.append ?? false) !== false,
-            fromBrowser: options.fromBrowser ?? false,
-            origin: options.origin,
-            completed: false,
-        });
-        return this.navigator.navigate(entry);
-    }
-    /**
-     * Apply the load options on the instructions.
-     *
-     * @param loadInstructions - The instructions to load
-     * @param options - The load options to apply when loading the instructions
-     * @param keepString - Whether the load instructions should remain as a string (if it's a string)
-     *
-     */
-    applyLoadOptions(loadInstructions, options, keepString = true) {
-        options = options ?? {};
-        if ('origin' in options && !('context' in options)) {
-            options.context = options.origin;
-        }
-        const { scope, instruction } = RoutingScope.for(options.context ?? null, typeof loadInstructions === 'string' ? loadInstructions : undefined);
-        if (typeof loadInstructions === 'string') {
-            if (!keepString) {
-                loadInstructions = RoutingInstruction.from(this, instruction);
-                for (const loadInstruction of loadInstructions) {
-                    if (loadInstruction.scope === null) {
-                        loadInstruction.scope = scope;
-                    }
-                }
-            }
-            else {
-                loadInstructions = instruction;
-            }
+        else if (typeof configOrPath === 'object') {
+            const config = configOrPath;
+            validateRouteConfig(config, '');
+            const path = ensureArrayOfStrings(config.path ?? Type?.path ?? emptyArray);
+            const title = config.title ?? Type?.title ?? null;
+            const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
+            const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
+            const id = config.id ?? Type?.id ?? (path instanceof Array ? path[0] : path);
+            const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? null;
+            const viewport = config.viewport ?? Type?.viewport ?? defaultViewportName;
+            const data = {
+                ...Type?.data,
+                ...config.data,
+            };
+            const children = [
+                ...(config.routes ?? noRoutes),
+                ...(Type?.routes ?? noRoutes),
+            ];
+            return new RouteConfig(id, path, title, redirectTo, caseSensitive, reentryBehavior, viewport, data, children, config.fallback ?? Type?.fallback ?? null, config.component ?? Type ?? null, config.nav ?? true);
         }
         else {
-            loadInstructions = RoutingInstruction.from(this, loadInstructions);
-            for (const loadInstruction of loadInstructions) {
-                if (loadInstruction.scope === null) {
-                    loadInstruction.scope = scope;
-                }
-            }
+            expectType('string, function/class or object', '', configOrPath);
         }
-        return {
-            instructions: loadInstructions,
-            scope,
-        };
     }
     /**
-     * Refresh/reload the current navigation
-     */
-    refresh() {
-        return this.navigator.refresh();
-    }
-    /**
-     * Go one step back in navigation history.
-     */
-    back() {
-        return this.navigator.go(-1);
-    }
-    /**
-     * Go one step forward in navigation history.
-     */
-    forward() {
-        return this.navigator.go(1);
-    }
-    /**
-     * Go a specified amount of steps back or forward in navigation history.
-     *
-     * @param delta - The amount of steps to go. A positive number goes
-     * forward, a negative goes backwards.
-     */
-    go(delta) {
-        return this.navigator.go(delta);
-    }
-    /**
-     * Check whether a set of instructions are active. All instructions need
-     * to be active for the condition to be true.
-     *
-     * @param instructions - The instructions to check
-     * @param options - The load options to apply to the instructions to check
-     */
-    checkActive(instructions, options) {
-        // TODO: Look into allowing strings/routes as well
-        if (typeof instructions === 'string') {
-            throw createMappedError(2003 /* ErrorNames.router_check_activate_string_error */, instructions);
-        }
-        options = options ?? {};
-        // Make sure we have proper routing instructions
-        ({ instructions } = this.applyLoadOptions(instructions, options));
-        // If no scope is set, use the root scope
-        instructions.forEach((instruction) => instruction.scope ??= this.rootScope.scope);
-        // Get all unique involved scopes.
-        const scopes = arrayUnique(instructions.map(instruction => instruction.scope));
-        // Go through all the scopes and for each scope...
-        for (const scope of scopes) {
-            // ...get the matching (top/entry level) instructions...
-            const scopeInstructions = scope.matchScope(instructions, false);
-            // ...and active instructions (on any level) and...
-            const scopeActives = scope.matchScope(this.activeComponents, true);
-            // ...if any instruction, including next scope instructions, isn't found...
-            if (!RoutingInstruction.contains(this, scopeActives, scopeInstructions, true)) {
-                // ...the instructions are not considered active.
-                return false;
-            }
-        }
-        return true;
-    }
-    /**
-     * Deal with/throw an unresolved instructions error.
-     *
-     * @param navigation - The failed navigation
-     * @param instructions - The unresovled instructions
-     */
-    unresolvedInstructionsError(navigation, instructions) {
-        this.ea.publish(RouterNavigationErrorEvent.eventName, RouterNavigationErrorEvent.create(navigation));
-        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
-        throw createUnresolvedinstructionsError(instructions, this._logger);
-    }
-    /**
-     * Cancel a navigation (without it being an error).
-     *
-     * @param navigation - The navigation to cancel
-     * @param coordinator - The coordinator for the navigation
-     */
-    cancelNavigation(navigation, coordinator) {
-        coordinator.cancel();
-        this.ea.publish(RouterNavigationCancelEvent.eventName, RouterNavigationCancelEvent.create(navigation));
-        this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
-    }
-    /**
-     * Append instructions to the current navigation.
-     *
-     * @param instructions - The instructions to append
-     * @param scope - The scope of the instructions
-     */
-    appendInstructions(instructions, scope = null, coordinator = null) {
-        if (scope === null) {
-            scope = this.rootScope.scope;
-        }
-        for (const instruction of instructions) {
-            if (instruction.scope === null) {
-                instruction.scope = scope;
-            }
-        }
-        if (coordinator === null) {
-            for (let i = this.coordinators.length - 1; i >= 0; i--) {
-                if (!this.coordinators[i].closed) {
-                    coordinator = this.coordinators[i];
-                    break;
-                }
-            }
-        }
-        if (coordinator === null) {
-            // If we haven't loaded the first instruction, the append is from
-            // viewport defaults so we add them to router's appendInstructions
-            // so they are added to the first navigation.
-            if (!this.loadedFirst) {
-                this.appendedInstructions.push(...instructions);
-            }
-            else {
-                throw createMappedError(2004 /* ErrorNames.router_failed_appending_routing_instructions */);
-            }
-        }
-        coordinator?.appendInstructions(instructions);
-    }
-    /**
-     * Update the navigation with full state, url, query string and title. The
-     * appropriate hooks are called. The `activeComponents` are also set.
-     *
-     * @param navigation - The navigation to update
-     */
-    async updateNavigation(navigation) {
-        // Make sure instructions added not from root scope are properly parented
-        // up to root scope
-        this.rootScope.scope.reparentRoutingInstructions();
-        const instructions = this.rootScope.scope.getRoutingInstructions(navigation.timestamp);
-        // The following makes sure right viewport/viewport scopes are set and update
-        // whether viewport name is necessary or not
-        let { matchedInstructions } = this.rootScope.scope.matchEndpoints(instructions, [], true);
-        let guard = 100;
-        while (matchedInstructions.length > 0) {
-            // Guard against endless loop
-            if (guard-- === 0) {
-                throw createMappedError(2005 /* ErrorNames.router_failed_finding_viewport_when_updating_viewer_path */);
-            }
-            matchedInstructions = matchedInstructions.map(instruction => {
-                const { matchedInstructions } = instruction.endpoint.instance.scope.matchEndpoints(instruction.nextScopeInstructions ?? [], [], true);
-                return matchedInstructions;
-            }).flat();
-        }
-        if (navigation.timestamp >= (this.activeNavigation?.timestamp ?? 0)) {
-            this.activeNavigation = navigation;
-            this.activeComponents = instructions;
-        }
-        // const fullViewportStates: RoutingInstruction[] = [];
-        // // Handle default / root page, because "-" + "" = "-" (so just a "clear")
-        // const targetRoute = instructions.length === 1 ? instructions[0].route : null;
-        // if (!(targetRoute != null && ((typeof targetRoute === 'string' && targetRoute === '') || ((targetRoute as FoundRoute).matching === '')))) {
-        //   fullViewportStates.push(RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction);
-        // }
-        // fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
-        // navigation.fullStateInstruction = fullViewportStates;
-        // First invoke with viewport instructions (should it perhaps get full state?)
-        let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);
-        if (typeof state !== 'string') {
-            // Convert to string if necessary
-            state = RoutingInstruction.stringify(this, state, { endpointContext: true });
-        }
-        // Invoke again with string
-        state = await RoutingHook.invokeTransformToUrl(state, navigation);
-        // Specified query has precedence over parameters
-        if (navigation.query == null && navigation.parameters != null) {
-            const search = new URLSearchParams();
-            for (let [key, values] of Object.entries(navigation.parameters)) {
-                key = encodeURIComponent(key);
-                if (!Array.isArray(values)) {
-                    values = [values];
-                }
-                for (const value of values) {
-                    search.append(key, encodeURIComponent(value));
-                }
-            }
-            navigation.query = search.toString();
-        }
-        // Add base path...
-        let basePath = `${this.configuration.options.basePath}/`;
-        // ...unless it's not set or we've got an absolute state/path (or we're using fragment hash)
-        if (basePath === null || (state !== '' && state[0] === '/') ||
-            this.configuration.options.useUrlFragmentHash) {
-            basePath = '';
-        }
-        const query = ((navigation.query?.length ?? 0) > 0 ? "?" + navigation.query : '');
-        const fragment = ((navigation.fragment?.length ?? 0) > 0 ? "#" + navigation.fragment : '');
-        navigation.path = basePath + state + query + fragment;
-        const path = navigation.path.slice(basePath.length);
-        navigation.fullStateInstruction = RoutingInstruction.clear(this) + (path.length > 0 ? Separators.for(this).sibling : '') + path;
-        if ((navigation.title ?? null) === null) {
-            const title = await Title.getTitle(instructions, navigation, this.configuration.options.title);
-            if (title !== null) {
-                // eslint-disable-next-line require-atomic-updates
-                navigation.title = title;
-            }
-        }
-        return Promise.resolve();
-    }
-    /**
-     * Extract and setup the fragment and query from instructions or options.
-     *
-     * @param instructions - The string instructions to extract from
-     * @param options - The options containing the fragment and query
-     *
-     * TODO: Review query extraction; different pos for path and fragment
+     * Invoked when this component is used as a child under another parent.
+     * Creates a new route config applying the child route config.
+     * Note that the current rote config is not mutated.
      *
      * @internal
      */
-    _extractFragmentAndQuery(instructions, options) {
-        options = { ...options };
-        // If instructions is a string and contains a fragment, extract it
-        if (typeof instructions === 'string' && options.fragment == null) {
-            const [path, fragment] = instructions.split('#');
-            instructions = path;
-            options.fragment = fragment;
+    _applyChildRouteConfig(config, parentConfig) {
+        validateRouteConfig(config, this.path[0] ?? '');
+        const path = ensureArrayOfStrings(config.path ?? this.path);
+        return new RouteConfig(ensureString(config.id ?? this.id ?? path), path, config.title ?? this.title, config.redirectTo ?? this.redirectTo, config.caseSensitive ?? this.caseSensitive, config.transitionPlan ?? this.transitionPlan ?? parentConfig?.transitionPlan ?? null, config.viewport ?? this.viewport, config.data ?? this.data, config.routes ?? this.routes, config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null, this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
+        config.nav ?? this.nav);
+    }
+    /** @internal */
+    _getTransitionPlan(cur, next, overridingTransitionPlan) {
+        if (hasSamePath(cur, next) && shallowEquals(cur.params, next.params))
+            return 'none';
+        if (overridingTransitionPlan != null)
+            return overridingTransitionPlan;
+        const plan = this.transitionPlan ?? 'replace';
+        return typeof plan === 'function' ? plan(cur, next) : plan;
+        function cleanPath(path) { return path.replace(`/*${RESIDUE}`, ''); }
+        function hasSamePath(nodeA, nodeB) {
+            const pathA = nodeA.finalPath;
+            const pathB = nodeB.finalPath;
+            // As this function is invoked when the components are same, we are giving a benefit of doubt for empty paths.
+            // It is seems like a sensible assumption that a transition from '' to '/p1' (assuming p1 is same as the empty path) does not require a non-none transition.
+            return pathA.length === 0 || pathB.length === 0 || cleanPath(pathA) === cleanPath(pathB);
         }
-        // If instructions is a string and contains a query string, extract it
-        if (typeof instructions === 'string' && options.query == null) {
-            const [path, search] = instructions.split('?');
-            instructions = path;
-            options.query = search;
-        }
-        // If parameters is a string, it's really a query string so move it
-        if (typeof options.parameters === 'string' && options.query == null) {
-            options.query = options.parameters;
-            options.parameters = void 0;
-        }
-        if (typeof (options.query) === 'string' && options.query.length > 0) {
-            options.parameters ??= {};
-            const searchParams = new URLSearchParams(options.query);
-            searchParams.forEach((value, key) => {
-                key = decodeURIComponent(key);
-                value = decodeURIComponent(value);
-                if (key in options.parameters) {
-                    if (!Array.isArray(options.parameters[key])) {
-                        options.parameters[key] = [options.parameters[key]];
-                    }
-                    options.parameters[key].push(value);
-                }
-                else {
-                    options.parameters[key] = value;
-                }
-            });
-        }
-        return { instructions, options };
     }
-}
-Router.closestEndpointKey = Protocol.annotation.keyFor('closest-endpoint');
-function createUnresolvedinstructionsError(remainingInstructions, logger) {
-    // TODO: Improve error message, including suggesting solutions
-    const error = createMappedError(2006 /* ErrorNames.router_infinite_instruction */, remainingInstructions.length);
-    error.remainingInstructions = remainingInstructions;
-    logger.warn(error, error.remainingInstructions);
-    {
-        // eslint-disable-next-line no-console
-        console.log(error, error.remainingInstructions);
-    }
-    return error;
-}
-class RouterEvent {
-    constructor(eventName) {
-        this.eventName = eventName;
-    }
-}
-class RouterStartEvent extends RouterEvent {
-    static create() {
-        return new RouterStartEvent(this.eventName);
-    }
-}
-RouterStartEvent.eventName = 'au:router:router-start';
-class RouterStopEvent extends RouterEvent {
-    static create() {
-        return new RouterStopEvent(this.eventName);
-    }
-}
-RouterStopEvent.eventName = 'au:router:router-stop';
-class RouterNavigationEvent {
-    constructor(eventName, navigation) {
-        this.eventName = eventName;
-        this.navigation = navigation;
-    }
-}
-class RouterNavigationStartEvent extends RouterNavigationEvent {
-    static create(navigation) {
-        return new RouterNavigationStartEvent(this.eventName, navigation);
-    }
-}
-RouterNavigationStartEvent.eventName = 'au:router:navigation-start';
-class RouterNavigationEndEvent extends RouterNavigationEvent {
-    static create(navigation) {
-        return new RouterNavigationEndEvent(this.eventName, navigation);
-    }
-}
-RouterNavigationEndEvent.eventName = 'au:router:navigation-end';
-class RouterNavigationCancelEvent extends RouterNavigationEvent {
-    static create(navigation) {
-        return new RouterNavigationCancelEvent(this.eventName, navigation);
-    }
-}
-RouterNavigationCancelEvent.eventName = 'au:router:navigation-cancel';
-class RouterNavigationCompleteEvent extends RouterNavigationEvent {
-    static create(navigation) {
-        return new RouterNavigationCompleteEvent(this.eventName, navigation);
-    }
-}
-RouterNavigationCompleteEvent.eventName = 'au:router:navigation-complete';
-class RouterNavigationErrorEvent extends RouterNavigationEvent {
-    static create(navigation) {
-        return new RouterNavigationErrorEvent(this.eventName, navigation);
-    }
-}
-RouterNavigationErrorEvent.eventName = 'au:router:navigation-error';
-
-const ILinkHandler = /*@__PURE__*/ DI.createInterface('ILinkHandler', x => x.singleton(LinkHandler));
-/**
- * Class responsible for handling interactions that should trigger navigation.
- */
-class LinkHandler {
-    constructor() {
-        this.window = resolve(IWindow);
-        this.router = resolve(IRouter);
-    }
-    handleEvent(e) {
-        this.handleClick(e);
-    }
-    handleClick(event) {
-        // Only process clean left click
-        if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+    /** @internal */
+    _applyFromConfigurationHook(instance, parent, routeNode) {
+        // start strict
+        if (this._configurationFromHookApplied)
+            throw new Error(getMessage(3550 /* Events.rtConfigFromHookApplied */));
+        if (typeof instance.getRouteConfig !== 'function')
             return;
-        }
-        const target = event.currentTarget;
-        // Ignore links with the `external` attribute
-        if (target.hasAttribute('external')) {
-            return;
-        }
-        // Only process links into this window
-        const targetWindow = target.getAttribute('target') ?? '';
-        if (targetWindow.length > 0 && targetWindow !== this.window.name && targetWindow !== '_self') {
-            return;
-        }
-        const loadAttr = CustomAttribute.for(target, 'load');
-        const load = loadAttr !== void 0 ? loadAttr.viewModel.value : null;
-        const href = this.router.configuration.options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-        // Ignore empty links
-        if ((load === null || load.length === 0) && (href === null || href.length === 0)) {
-            return;
-        }
-        // This link is for us, so prevent default behaviour
-        event.preventDefault();
-        let instruction = load ?? href ?? '';
-        if (typeof instruction === 'string' && instruction.startsWith('#')) {
-            instruction = instruction.slice(1);
-            // '#' === '/' === '#/'
-            // TODO: Investigate if this is still valid (don't think so)
-            if (!instruction.startsWith('/')) {
-                instruction = `/${instruction}`;
+        return onResolve(instance.getRouteConfig(parent, routeNode), value => {
+            this._configurationFromHookApplied = true;
+            if (value == null)
+                return;
+            let parentPath = parent?.path ?? '';
+            if (typeof parentPath !== 'string') {
+                parentPath = parentPath[0];
             }
+            validateRouteConfig(value, parentPath);
+            // the value from the hook takes precedence
+            this.id = value.id ?? this.id;
+            this._path = ensureArrayOfStrings(value.path ?? this.path);
+            this.title = value.title ?? this.title;
+            this.redirectTo = value.redirectTo ?? this.redirectTo;
+            this.caseSensitive = value.caseSensitive ?? this.caseSensitive;
+            this.transitionPlan = value.transitionPlan ?? this.transitionPlan;
+            this.viewport = value.viewport ?? this.viewport;
+            this.data = value.data ?? this.data;
+            this.routes = value.routes ?? this.routes;
+            this.fallback = value.fallback ?? this.fallback;
+            this.nav = value.nav ?? this.nav;
+        });
+    }
+    /** @internal */
+    _clone() {
+        return new RouteConfig(this.id, this.path, this.title, this.redirectTo, this.caseSensitive, this.transitionPlan, this.viewport, this.data, this.routes, this.fallback, this._component, this.nav);
+    }
+    /** @internal */
+    _getFallback(viewportInstruction, routeNode, context) {
+        const fallback = this.fallback;
+        return typeof fallback === 'function'
+            && !CustomElement.isType(fallback)
+            ? fallback(viewportInstruction, routeNode, context)
+            : fallback;
+    }
+    /** @internal */
+    _getComponentName() {
+        try {
+            return this._getComponent().name;
         }
-        this.router.load(instruction, { origin: target }).catch(error => { throw error; });
+        catch {
+            // TODO(Sayan): Convert all Errors in router lite to instances of RouterError
+            return 'UNRESOLVED-NAVIGATION-STRATEGY';
+        }
+    }
+    _getComponent(vi, ctx, node, route) {
+        if (vi == null) {
+            if (this._currentComponent != null)
+                return this._currentComponent;
+            if (this._isNavigationStrategy)
+                throw new Error(getMessage(3558 /* Events.rtInvalidOperationNavigationStrategyComponent */, this.id));
+            return this._currentComponent = this._component;
+        }
+        return this._currentComponent ??= this._isNavigationStrategy ? this._component.getComponent(vi, ctx, node, route) : this._component;
+    }
+    /** @internal */
+    _handleNavigationStart() {
+        if (!this._isNavigationStrategy)
+            return;
+        this._currentComponent = null;
+    }
+    toString() {
+        let value = `RConf(id: ${this.id}, isNavigationStrategy: ${this._isNavigationStrategy}`;
+        value += `, path: [${this.path.join(',')}]`;
+        if (this.redirectTo)
+            value += `, redirectTo: ${this.redirectTo}`;
+        if (this.caseSensitive)
+            value += `, caseSensitive: ${this.caseSensitive}`;
+        if (this.transitionPlan != null)
+            value += `, transitionPlan: ${this.transitionPlan}`;
+        value += `, viewport: ${this.viewport}`;
+        if (this._currentComponent != null)
+            value += `, component: ${this._currentComponent.name}`;
+        return `${value})`;
     }
 }
-
+const Route = {
+    name: /*@__PURE__*/ getResourceKeyFor('route-configuration'),
+    /**
+     * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
+     */
+    isConfigured(Type) {
+        return Metadata.has(Route.name, Type);
+    },
+    /**
+     * Apply the specified configuration to the specified type, overwriting any existing configuration.
+     */
+    configure(configOrPath, Type) {
+        const config = RouteConfig._create(configOrPath, Type);
+        Metadata.define(config, Type, Route.name);
+        return Type;
+    },
+    /**
+     * Get the `RouteConfig` associated with the specified type, creating a new one if it does not yet exist.
+     */
+    getConfig(Type) {
+        if (!Route.isConfigured(Type)) {
+            // This means there was no @route decorator on the class.
+            // However there might still be static properties, and this API provides a unified way of accessing those.
+            Route.configure({}, Type);
+        }
+        return Metadata.get(Route.name, Type);
+    },
+};
 function route(configOrPath) {
     return function (target, context) {
         context.addInitializer(function () {
-            Route.configure(configOrPath, target);
+            Route.configure(configOrPath, this);
         });
         return target;
     };
 }
-
-/**
- * Get either a provided value or the value of an html attribute,
- * depending on `useValue`. If `doExistCheck` is `true` the
- * existence of the html attribute is returned, regardless of
- * `useValue` (or `value`).
- *
- * @param name - Attribute name
- * @param value - The value that's used if `useValue` or if
- * the attribute doesn't exist on the element (so it's also default)
- * @param useValue - Whether the value should be used (unless check exists)
- * @param element - The element with the attributes
- * @param doExistCheck - Whether only the existence of the html attribute
- * should be checked and returned as a boolean
- */
-function getValueOrAttribute(name, value, useValue, element, doExistCheck = false) {
-    // If an attribute exist check is requested, Aurelia sets the value to ""
-    if (doExistCheck) {
-        return value === "";
-        // return element.hasAttribute(name);
-    }
-    if (useValue) {
-        return value;
-    }
-    const attribute = element.getAttribute(name) ?? '';
-    // If no or empty attribute, the provided value serves as default
-    return attribute.length > 0 ? attribute : value;
-}
-/**
- * Make it possible to wait for router start by subscribing to the
- * router start event and return a promise that's resolved when
- * the router start event fires.
- */
-function waitForRouterStart(router, ea) {
-    if (router.isActive) {
-        return;
-    }
-    return new Promise((resolve) => {
-        const subscription = ea.subscribe(RouterStartEvent.eventName, () => {
-            resolve();
-            subscription.dispose();
-        });
+/** @internal */
+function resolveRouteConfiguration(routeable, isChild, parent, routeNode, context) {
+    if (isPartialRedirectRouteConfig(routeable))
+        return RouteConfig._create(routeable, null);
+    const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
+    if (instruction.type === 5 /* NavigationInstructionType.NavigationStrategy */)
+        return RouteConfig._create({ ...routeable, nav: false }, null);
+    return onResolve(ceDef, $ceDef => {
+        const type = $ceDef.Type;
+        const routeConfig = Route.getConfig(type);
+        // If the component is used as a child, then apply the child configuration (coming from parent) and return a new RouteConfig with the configuration applied.
+        if (isPartialChildRouteConfig(routeable))
+            return routeConfig._applyChildRouteConfig(routeable, parent);
+        // If the component is used as a child, then return a clone.
+        // Rationale: as this component can be used multiple times as child (either under same parent or different parents), we don't want to mutate the original route config for the type.
+        if (isChild)
+            return routeConfig._clone();
+        if (!routeConfig._configurationFromHookApplied
+            && instruction.type === 4 /* NavigationInstructionType.IRouteViewModel */
+            && typeof routeable.getRouteConfig === 'function') {
+            return onResolve(routeConfig._applyFromConfigurationHook(routeable, parent, routeNode), () => routeConfig);
+        }
+        return routeConfig;
     });
 }
-function getConsideredActiveInstructions(router, controller, element, value) {
-    let activeInstructions = CustomAttribute
-        .for(element, 'considered-active')?.viewModel?.value;
-    if (activeInstructions === void 0) {
-        activeInstructions = value;
-    }
-    const created = router.applyLoadOptions(activeInstructions, { context: controller });
-    const instructions = RoutingInstruction.from(router, created.instructions);
-    for (const instruction of instructions) {
-        if (instruction.scope === null) {
-            instruction.scope = created.scope;
-        }
-    }
-    return instructions;
-}
-function getLoadIndicator(element) {
-    let indicator = element.parentElement;
-    while (indicator != null) {
-        if (indicator.tagName === 'AU-VIEWPORT') {
-            indicator = null;
+/** @internal */
+function resolveCustomElementDefinition(routeable, context) {
+    const instruction = createNavigationInstruction(routeable);
+    let ceDef;
+    switch (instruction.type) {
+        case 5 /* NavigationInstructionType.NavigationStrategy */: return [instruction, null];
+        case 0 /* NavigationInstructionType.string */: {
+            if (context == null)
+                throw new Error(getMessage(3551 /* Events.rtNoCtxStrComponent */));
+            const dependencies = context.component.dependencies;
+            let component = dependencies.find(d => isPartialCustomElementDefinition(d) && d.name === instruction.value)
+                ?? CustomElement.find(context.container, instruction.value);
+            if (component === null)
+                throw new Error(getMessage(3552 /* Events.rtNoComponent */, instruction.value, context));
+            if (!(component instanceof CustomElementDefinition)) {
+                component = CustomElementDefinition.create(component);
+                CustomElement.define(component);
+            }
+            ceDef = component;
             break;
         }
-        if (indicator.hasAttribute('load-active')) {
+        case 2 /* NavigationInstructionType.CustomElementDefinition */:
+            ceDef = instruction.value;
             break;
-        }
-        indicator = indicator.parentElement;
+        case 4 /* NavigationInstructionType.IRouteViewModel */:
+            // Get the class from the constructor property. There might be static properties on it.
+            ceDef = CustomElement.getDefinition(instruction.value.constructor);
+            break;
+        case 3 /* NavigationInstructionType.Promise */:
+            if (context == null)
+                throw new Error(getMessage(3553 /* Events.rtNoCtxLazyImport */));
+            ceDef = context._resolveLazy(instruction.value);
+            break;
     }
-    indicator ??= element;
-    return indicator;
+    return [instruction, ceDef];
 }
-/** @internal */ const bmToView = BindingMode.toView;
+function createNavigationInstruction(routeable) {
+    return isPartialChildRouteConfig(routeable)
+        ? createNavigationInstruction(routeable.component)
+        : TypedNavigationInstruction.create(routeable);
+}
 
-const ParentViewport = CustomElement.createInjectable();
-class ViewportCustomElement {
-    constructor() {
-        /**
-         * The name of the viewport. Should be unique within the routing scope.
-         */
-        this.name = 'default';
-        /**
-         * A list of components that is using the viewport. These components
-         * can only be loaded into this viewport and this viewport can't
-         * load any other components.
-         */
-        this.usedBy = '';
-        /**
-         * The default component that's loaded if the viewport is created
-         * without having a component specified (in that navigation).
-         */
-        this.default = '';
-        /**
-         * The component loaded if the viewport can't load the specified
-         * component. The component is passed as a parameter to the fallback.
-         */
-        this.fallback = '';
-        /**
-         * Whether the fallback action is to load the fallback component in
-         * place of the unloadable component and continue with any child
-         * instructions or if the fallback is to be called and the processing
-         * of the children to be aborted.
-         */
-        this.fallbackAction = '';
-        /**
-         * Indicates that the viewport has no scope.
-         */
-        this.noScope = false;
-        /**
-         * Indicates that the viewport doesn't add a content link to
-         * the Location URL.
-         */
-        this.noLink = false;
-        /**
-         * Indicates that the viewport doesn't add a title to the browser
-         * window title.
-         */
-        this.noTitle = false;
-        /**
-         * Indicates that the viewport doesn't add history content to
-         * the History API.
-         */
-        this.noHistory = false;
-        /**
-         * Whether the components of the viewport are stateful or not.
-         */
-        this.stateful = false;
-        /**
-         * The connected Viewport.
-         */
-        this.endpoint = null;
-        /**
-         * Child viewports waiting to be connected.
-         */
-        this.pendingChildren = [];
-        /**
-         * Promise to await while children are waiting to be connected.
-         */
-        this.pendingPromise = null;
-        /**
-         * Whether the viewport is bound or not.
-         */
-        this.isBound = false;
-        this.router = resolve(IRouter);
-        this.element = resolve(INode);
-        this.container = resolve(IContainer);
-        this.ea = resolve(IEventAggregator);
-        this.parentViewport = resolve(ParentViewport);
-        this.instruction = resolve(IInstruction);
+// The commented-out terminal symbols below are for reference / potential future need (should there be use cases to loosen up the syntax)
+// These symbols are basically the minimum necessary terminals.
+// const viewportTerminal = ['?', '#', '/', '+', ')', '!'];
+// const actionTerminal = [...componentTerminal, '@', '('];
+// const componentTerminal = [...actionTerminal];
+// const paramTerminal = ['=', ',', ')'];
+// These are the currently used terminal symbols.
+// We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
+// so as to make the syntax maximally restrictive for consistency and to minimize the risk of us having to introduce breaking changes in the future.
+const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
+/** @internal */
+class ParserState {
+    get _done() {
+        return this._rest.length === 0;
     }
-    hydrated(controller) {
-        this.controller = controller;
-        // TODO: Below was here for a reason, investigate if no longer necessary
-        // this.container = controller.container;
-        // eslint-disable-next-line
-        const hasDefault = this.instruction.props.filter((instr) => instr.to === 'default').length > 0;
-        if (hasDefault && this.parentViewport != null) {
-            this.parentViewport.pendingChildren.push(this);
-            if (this.parentViewport.pendingPromise === null) {
-                this.parentViewport.pendingPromise = new OpenPromise(`hydrated: ViewportCustomElement`);
-            }
-        }
-        Runner.run(null, 
-        // The first viewport(s) might be hydrated before the router is started
-        () => waitForRouterStart(this.router, this.ea), () => {
-            // Only call connect this early if we need to
-            if (this.router.isRestrictedNavigation) {
-                this.connect();
-            }
+    constructor(_input) {
+        this._input = _input;
+        this._buffers = [];
+        this._bufferIndex = 0;
+        this._index = 0;
+        this._rest = _input;
+    }
+    _startsWith(...values) {
+        const rest = this._rest;
+        return values.some(function (value) {
+            return rest.startsWith(value);
         });
     }
-    binding(initiator, _parent) {
-        this.isBound = true;
-        return Runner.run('binding', 
-        // The first viewport(s) might be bound before the router is started
-        () => waitForRouterStart(this.router, this.ea), () => {
-            // Prefer to connect here since we've got bound data in component
-            if (!this.router.isRestrictedNavigation) {
-                this.connect();
-            }
-        }, () => {
-            // TODO(post-alpha): Consider using an event instead (not a priority)
-            // If a content is waiting for us to be connected...
-            if (this.endpoint?.activeResolve != null) {
-                // ...resolve the promise
-                this.endpoint.activeResolve();
-                this.endpoint.activeResolve = null;
-            }
-        }, () => {
-            if (this.endpoint !== null && this.endpoint.getNextContent() === null) {
-                return this.endpoint.activate(null, initiator, this.controller, /* true, */ void 0)?.asValue;
-                // TODO: Restore scroll state (in attaching/attached)
-            }
-        });
+    _consumeOptional(str) {
+        if (this._startsWith(str)) {
+            this._rest = this._rest.slice(str.length);
+            this._index += str.length;
+            this._append(str);
+            return true;
+        }
+        return false;
     }
-    detaching(initiator, parent) {
-        if (this.endpoint !== null) {
-            // TODO: Save scroll state before detach
-            this.isBound = false;
-            return this.endpoint.deactivate(null, initiator, parent);
+    _consume(str) {
+        if (!this._consumeOptional(str)) {
+            this._expect(`'${str}'`);
         }
     }
-    unbinding(_initiator, _parent) {
-        if (this.endpoint !== null) {
-            // TODO: Don't unload when stateful, instead save to cache. Something like
-            // this.viewport.cacheContent();
-            // Disconnect doesn't destroy anything, just disconnects it
-            return this.disconnect(null);
+    _expect(msg) {
+        throw new Error(getMessage(3500 /* Events.exprUnexpectedSegment */, msg, this._index, this._input, this._rest, this._rest));
+    }
+    _ensureDone() {
+        if (!this._done) {
+            throw new Error(getMessage(3501 /* Events.exprNotDone */, this._rest, this._index, this._input));
         }
     }
-    dispose() {
-        this.endpoint?.dispose();
-        this.endpoint = null;
+    _advance() {
+        const char = this._rest[0];
+        this._rest = this._rest.slice(1);
+        ++this._index;
+        this._append(char);
     }
-    /**
-     * Connect this custom element to a router endpoint (Viewport).
-     */
-    connect() {
-        const { isBound, element } = this;
-        // Collect custom element options from either properties (if the custom
-        // element has been bound) or from html attributes (booleans are always
-        // set based on whether html attribute exists)
-        const name = getValueOrAttribute('name', this.name, isBound, element);
-        const options = {};
-        // Endpoint property is `scope` but html attribute is `no-scope` so negate it
-        options.scope = !getValueOrAttribute('no-scope', this.noScope, false, element, true);
-        options.usedBy = getValueOrAttribute('used-by', this.usedBy, isBound, element);
-        options.default = getValueOrAttribute('default', this.default, isBound, element);
-        options.fallback = getValueOrAttribute('fallback', this.fallback, isBound, element);
-        options.fallbackAction = getValueOrAttribute('fallback-action', this.fallbackAction, isBound, element);
-        options.noLink = getValueOrAttribute('no-link', this.noLink, isBound, element, true);
-        options.noTitle = getValueOrAttribute('no-title', this.noTitle, isBound, element, true);
-        options.noHistory = getValueOrAttribute('no-history', this.noHistory, isBound, element, true);
-        options.stateful = getValueOrAttribute('stateful', this.stateful, isBound, element, true);
-        Object
-            .keys(options)
-            .forEach(key => {
-            if (options[key] === undefined) {
-                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-                delete options[key];
+    _record() {
+        this._buffers[this._bufferIndex++] = '';
+    }
+    _playback() {
+        const bufferIndex = --this._bufferIndex;
+        const buffers = this._buffers;
+        const buffer = buffers[bufferIndex];
+        buffers[bufferIndex] = '';
+        return buffer;
+    }
+    _discard() {
+        this._buffers[--this._bufferIndex] = '';
+    }
+    _append(str) {
+        const bufferIndex = this._bufferIndex;
+        const buffers = this._buffers;
+        for (let i = 0; i < bufferIndex; ++i) {
+            buffers[i] += str;
+        }
+    }
+}
+const cache = new Map();
+class RouteExpression {
+    get kind() { return 'Route'; }
+    constructor(isAbsolute, root, queryParams, fragment) {
+        this.isAbsolute = isAbsolute;
+        this.root = root;
+        this.queryParams = queryParams;
+        this.fragment = fragment;
+    }
+    static parse(value) {
+        const key = value.toString();
+        let result = cache.get(key);
+        if (result === void 0) {
+            cache.set(key, result = RouteExpression._$parse(value));
+        }
+        return result;
+    }
+    /** @internal */
+    static _$parse(value) {
+        const path = value.path;
+        if (path === '') {
+            return new RouteExpression(false, SegmentExpression.Empty, value.query, value.fragment);
+        }
+        /*
+         * Now parse the actual route
+         *
+         * Notes:
+         * A NT-Name as per DOM level 2: https://www.w3.org/TR/1998/REC-xml-19980210#NT-Name
+         *  [4]  NameChar ::= Letter | Digit | '.' | '-' | '_' | ':' | CombiningChar | Extender
+         *  [5]  Name     ::= (Letter | '_' | ':') (NameChar)*
+         *
+         * As per https://url.spec.whatwg.org/#url-code-points - URL code points (from the ASCII range) are:
+         * a-zA-Z0-9!$&'()*+,-./:;=?@_~
+         * The other valid option is a % followed by two ASCII hex digits
+         * Anything else is invalid.
+         */
+        const state = new ParserState(path);
+        state._record();
+        const isAbsolute = state._consumeOptional('/');
+        const root = CompositeSegmentExpression._parse(state);
+        state._ensureDone();
+        state._discard();
+        return new RouteExpression(isAbsolute, root, value.query, value.fragment);
+    }
+    toInstructionTree(options) {
+        return new ViewportInstructionTree(options, this.isAbsolute, this.root._toInstructions(0, 0), mergeURLSearchParams(this.queryParams, options.queryParams, true), this.fragment ?? options.fragment);
+    }
+}
+/**
+ * A single 'traditional' (slash-separated) segment consisting of one or more sibling segments.
+ *
+ * ### Variations:
+ *
+ * 1: `a+b`
+ * - siblings: [`a`, `b`]
+ * - append: `false`
+ *
+ * 2: `+a`
+ * - siblings: [`a`]
+ * - append: `true`
+ *
+ * 3: `+a+a`
+ * - siblings: [`a`, `b`]
+ * - append: `true`
+ *
+ * Where
+ * - a = `CompositeSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression | CompositeSegmentExpression`)
+ * - b = `CompositeSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression | CompositeSegmentExpression`)
+ */
+class CompositeSegmentExpression {
+    get kind() { return 'CompositeSegment'; }
+    constructor(siblings) {
+        this.siblings = siblings;
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        // If a segment starts with '+', e.g. '/+a' / '/+a@vp' / '/a/+b' / '/+a+b' etc, then its siblings
+        // are considered to be "append"
+        const append = state._consumeOptional('+');
+        const siblings = [];
+        do {
+            siblings.push(ScopedSegmentExpression._parse(state));
+        } while (state._consumeOptional('+'));
+        if (!append && siblings.length === 1) {
+            state._discard();
+            return siblings[0];
+        }
+        state._discard();
+        return new CompositeSegmentExpression(siblings);
+    }
+    /** @internal */
+    _toInstructions(open, close) {
+        switch (this.siblings.length) {
+            case 0:
+                return [];
+            case 1:
+                return this.siblings[0]._toInstructions(open, close);
+            case 2:
+                return [
+                    ...this.siblings[0]._toInstructions(open, 0),
+                    ...this.siblings[1]._toInstructions(0, close),
+                ];
+            default:
+                return [
+                    ...this.siblings[0]._toInstructions(open, 0),
+                    ...this.siblings.slice(1, -1).flatMap(function (x) {
+                        return x._toInstructions(0, 0);
+                    }),
+                    ...this.siblings[this.siblings.length - 1]._toInstructions(0, close),
+                ];
+        }
+    }
+}
+/**
+ * The (single) left-hand side and the (one or more) right-hand side of a slash-separated segment.
+ *
+ * Variations:
+ *
+ * 1: `a/b`
+ * - left: `a`
+ * - right: `b`
+ *
+ * Where
+ * - a = `SegmentGroupExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression`)
+ * - b = `ScopedSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression`)
+ */
+class ScopedSegmentExpression {
+    get kind() { return 'ScopedSegment'; }
+    constructor(left, right) {
+        this.left = left;
+        this.right = right;
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        const left = SegmentGroupExpression._parse(state);
+        if (state._consumeOptional('/')) {
+            const right = ScopedSegmentExpression._parse(state);
+            state._discard();
+            return new ScopedSegmentExpression(left, right);
+        }
+        state._discard();
+        return left;
+    }
+    /** @internal */
+    _toInstructions(open, close) {
+        const leftInstructions = this.left._toInstructions(open, 0);
+        const rightInstructions = this.right._toInstructions(0, close);
+        let cur = leftInstructions[leftInstructions.length - 1];
+        while (cur.children.length > 0) {
+            cur = cur.children[cur.children.length - 1];
+        }
+        cur.children.push(...rightInstructions);
+        return leftInstructions;
+    }
+}
+/**
+ * Any kind of segment wrapped in parentheses, increasing its precedence.
+ * Specifically, the parentheses are needed to deeply specify scoped siblings.
+ * The precedence is intentionally similar to the familiar mathematical `/` and `+` operators.
+ *
+ * For example, consider this viewport structure:
+ * - viewport-a
+ * - - viewport-a1
+ * - - viewport-a2
+ * - viewport-b
+ * - - viewport-b1
+ *
+ * This can only be deeply specified by using the grouping operator: `a/(a1+a2)+b/b1`
+ *
+ * Because `a/a1+a2+b/b1` would be interpreted differently:
+ * - viewport-a
+ * - - viewport-a1
+ * - viewport-a2
+ * - viewport-b
+ * - - viewport-b1
+ *
+ * ### Variations:
+ *
+ * 1: `(a)`
+ * - expression: `a`
+ *
+ * Where
+ * - a = `CompositeSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression | CompositeSegmentExpression`)
+ */
+class SegmentGroupExpression {
+    get kind() { return 'SegmentGroup'; }
+    constructor(expression) {
+        this.expression = expression;
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        if (state._consumeOptional('(')) {
+            const expression = CompositeSegmentExpression._parse(state);
+            state._consume(')');
+            state._discard();
+            return new SegmentGroupExpression(expression);
+        }
+        state._discard();
+        return SegmentExpression._parse(state);
+    }
+    /** @internal */
+    _toInstructions(open, close) {
+        return this.expression._toInstructions(open + 1, close + 1);
+    }
+}
+/**
+ * A (non-composite) segment specifying a single component and (optional) viewport / action.
+ */
+class SegmentExpression {
+    get kind() { return 'Segment'; }
+    static get Empty() { return new SegmentExpression(ComponentExpression.Empty, ViewportExpression.Empty, true); }
+    constructor(component, viewport, scoped) {
+        this.component = component;
+        this.viewport = viewport;
+        this.scoped = scoped;
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        const component = ComponentExpression._parse(state);
+        const viewport = ViewportExpression._parse(state);
+        const scoped = !state._consumeOptional('!');
+        state._discard();
+        return new SegmentExpression(component, viewport, scoped);
+    }
+    /** @internal */
+    _toInstructions(open, close) {
+        return [
+            ViewportInstruction.create({
+                component: this.component.name,
+                params: this.component.parameterList._toObject(),
+                viewport: this.viewport.name,
+                open,
+                close,
+            }),
+        ];
+    }
+}
+class ComponentExpression {
+    get kind() { return 'Component'; }
+    static get Empty() { return new ComponentExpression('', ParameterListExpression.Empty); }
+    constructor(name, parameterList) {
+        this.name = name;
+        this.parameterList = parameterList;
+        switch (name.charAt(0)) {
+            case ':':
+                this.isParameter = true;
+                this.isStar = false;
+                this.isDynamic = true;
+                this.parameterName = name.slice(1);
+                break;
+            case '*':
+                this.isParameter = false;
+                this.isStar = true;
+                this.isDynamic = true;
+                this.parameterName = name.slice(1);
+                break;
+            default:
+                this.isParameter = false;
+                this.isStar = false;
+                this.isDynamic = false;
+                this.parameterName = name;
+                break;
+        }
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        state._record();
+        if (!state._done) {
+            if (state._startsWith('./')) {
+                state._advance();
             }
-        });
-        this.endpoint = this.router.connectEndpoint(this.endpoint, 'Viewport', this, name, options);
-        const parentViewport = this.parentViewport;
-        if (parentViewport != null) {
-            arrayRemove(parentViewport.pendingChildren, child => child === this);
-            if (parentViewport.pendingChildren.length === 0 && parentViewport.pendingPromise !== null) {
-                parentViewport.pendingPromise.resolve();
-                parentViewport.pendingPromise = null;
+            else if (state._startsWith('../')) {
+                state._advance();
+                state._advance();
+            }
+            else {
+                while (!state._done && !state._startsWith(...terminal)) {
+                    state._advance();
+                }
             }
         }
-    }
-    /**
-     * Disconnect this custom element from its router endpoint (Viewport).
-     */
-    disconnect(step) {
-        if (this.endpoint !== null) {
-            this.router.disconnectEndpoint(step, this.endpoint, this);
+        const name = state._playback();
+        if (name.length === 0) {
+            state._expect('component name');
         }
+        const parameterList = ParameterListExpression._parse(state);
+        state._discard();
+        return new ComponentExpression(name, parameterList);
     }
-    /**
-     * Set whether the viewport is currently active or not. Adds or removes
-     * activity classes to the custom element
-     *
-     * @param active - Whether the viewport is active or not
-     */
-    setActivity(state, active) {
-        const prefix = this.router.configuration.options.indicators.viewportNavigating;
-        if (typeof state === 'string') {
-            this.element.classList.toggle(state, active);
+}
+class ViewportExpression {
+    get kind() { return 'Viewport'; }
+    static get Empty() { return new ViewportExpression(''); }
+    constructor(name) {
+        this.name = name;
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        let name = null;
+        if (state._consumeOptional('@')) {
+            state._record();
+            while (!state._done && !state._startsWith(...terminal)) {
+                state._advance();
+            }
+            name = decodeURIComponent(state._playback());
+            if (name.length === 0) {
+                state._expect('viewport name');
+            }
+        }
+        state._discard();
+        return new ViewportExpression(name);
+    }
+}
+class ParameterListExpression {
+    get kind() { return 'ParameterList'; }
+    static get Empty() { return new ParameterListExpression([]); }
+    constructor(expressions) {
+        this.expressions = expressions;
+    }
+    /** @internal */
+    static _parse(state) {
+        state._record();
+        const expressions = [];
+        if (state._consumeOptional('(')) {
+            do {
+                expressions.push(ParameterExpression._parse(state, expressions.length));
+                if (!state._consumeOptional(',')) {
+                    break;
+                }
+            } while (!state._done && !state._startsWith(')'));
+            state._consume(')');
+        }
+        state._discard();
+        return new ParameterListExpression(expressions);
+    }
+    /** @internal */
+    _toObject() {
+        const params = {};
+        for (const expr of this.expressions) {
+            params[expr.key] = expr.value;
+        }
+        return params;
+    }
+}
+class ParameterExpression {
+    get kind() { return 'Parameter'; }
+    static get Empty() { return new ParameterExpression('', ''); }
+    constructor(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    /** @internal */
+    static _parse(state, index) {
+        state._record();
+        state._record();
+        while (!state._done && !state._startsWith(...terminal)) {
+            state._advance();
+        }
+        let key = state._playback();
+        if (key.length === 0) {
+            state._expect('parameter key');
+        }
+        let value;
+        if (state._consumeOptional('=')) {
+            state._record();
+            while (!state._done && !state._startsWith(...terminal)) {
+                state._advance();
+            }
+            value = decodeURIComponent(state._playback());
+            if (value.length === 0) {
+                state._expect('parameter value');
+            }
         }
         else {
-            for (const key in state) {
-                this.element.classList.toggle(`${prefix}-${key}`, active && state[key]);
+            value = key;
+            key = index.toString();
+        }
+        state._discard();
+        return new ParameterExpression(key, value);
+    }
+}
+const AST = Object.freeze({
+    RouteExpression,
+    CompositeSegmentExpression,
+    ScopedSegmentExpression,
+    SegmentGroupExpression,
+    SegmentExpression,
+    ComponentExpression,
+    ViewportExpression,
+    ParameterListExpression,
+    ParameterExpression,
+});
+
+// No-fallthrough disabled due to large numbers of false positives
+/* eslint-disable no-fallthrough */
+class ViewportRequest {
+    constructor(viewportName, componentName) {
+        this.viewportName = viewportName;
+        this.componentName = componentName;
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        return `VR(viewport:'${this.viewportName}',component:'${this.componentName}')`;
+    }
+}
+const viewportAgentLookup = new WeakMap();
+class ViewportAgent {
+    /** @internal */ get _currState() { return this._state & 16256 /* State.curr */; }
+    /** @internal */ set _currState(state) { this._state = (this._state & 127 /* State.next */) | state; }
+    /** @internal */ get _nextState() { return this._state & 127 /* State.next */; }
+    /** @internal */ set _nextState(state) { this._state = (this._state & 16256 /* State.curr */) | state; }
+    constructor(viewport, hostController, ctx) {
+        this.viewport = viewport;
+        this.hostController = hostController;
+        /** @internal */ this._isActive = false;
+        /** @internal */ this._curCA = null;
+        /** @internal */ this._nextCA = null;
+        /** @internal */ this._state = 8256 /* State.bothAreEmpty */;
+        /** @internal */ this._$plan = 'replace';
+        /** @internal */ this._currNode = null;
+        /** @internal */ this._nextNode = null;
+        /** @internal */ this._currTransition = null;
+        /** @internal */ this._cancellationPromise = null;
+        this._logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx.routeConfigContext._friendlyPath}>`);
+        trace(this._logger, 3300 /* Events.vpaCreated */);
+    }
+    static for(viewport, ctx) {
+        let viewportAgent = viewportAgentLookup.get(viewport);
+        if (viewportAgent === void 0) {
+            const controller = Controller.getCachedOrThrow(viewport);
+            viewportAgentLookup.set(viewport, viewportAgent = new ViewportAgent(viewport, controller, ctx));
+        }
+        return viewportAgent;
+    }
+    /** @internal */
+    _activateFromViewport(initiator, parent) {
+        const tr = this._currTransition;
+        if (tr !== null) {
+            ensureTransitionHasNotErrored(tr);
+        }
+        this._isActive = true;
+        const logger = /*@__PURE__*/ this._logger.scopeTo('activateFromViewport()');
+        switch (this._nextState) {
+            case 64 /* State.nextIsEmpty */:
+                switch (this._currState) {
+                    case 8192 /* State.currIsEmpty */:
+                        trace(logger, 3301 /* Events.vpaActivateFromVpNone */, this);
+                        return;
+                    case 4096 /* State.currIsActive */:
+                        trace(logger, 3302 /* Events.vpaActivateFromVpExisting */, this);
+                        return this._curCA._activate(initiator, parent);
+                    default:
+                        this._unexpectedState('activateFromViewport 1');
+                }
+            case 2 /* State.nextLoadDone */: {
+                if (this._currTransition === null)
+                    throw new Error(getMessage(3350 /* Events.vpaUnexpectedActivation */, this));
+                trace(logger, 3303 /* Events.vpaActivateFromVpNext */, this);
+                const b = Batch._start(b1 => { this._activate(initiator, this._currTransition, b1); });
+                const p = new Promise(resolve => { b._continueWith(() => { resolve(); }); });
+                return b._start()._done ? void 0 : p;
+            }
+            default:
+                this._unexpectedState('activateFromViewport 2');
+        }
+    }
+    /** @internal */
+    _deactivateFromViewport(initiator, parent) {
+        const tr = this._currTransition;
+        if (tr !== null) {
+            ensureTransitionHasNotErrored(tr);
+        }
+        this._isActive = false;
+        const logger = /*@__PURE__*/ this._logger.scopeTo('deactivateFromViewport()');
+        switch (this._currState) {
+            case 8192 /* State.currIsEmpty */:
+                trace(logger, 3304 /* Events.vpaDeactivateFromVpNone */, this);
+                return;
+            case 4096 /* State.currIsActive */:
+                trace(logger, 3305 /* Events.vpaDeactivateFromVpExisting */, this);
+                return this._curCA._deactivate(initiator, parent);
+            case 128 /* State.currDeactivate */:
+                // This will happen with bottom-up deactivation because the child is already deactivated, the parent
+                // again tries to deactivate the child (that would be this viewport) but the router hasn't finalized the transition yet.
+                // Since this is viewport was already deactivated, and we know the precise circumstance under which that happens, we can safely ignore the call.
+                trace(logger, 3306 /* Events.vpaDeactivationFromVpRunning */, this);
+                return;
+            default: {
+                if (this._currTransition === null)
+                    throw new Error(getMessage(3351 /* Events.vpaUnexpectedDeactivation */, this));
+                trace(logger, 3307 /* Events.vpaDeactivateFromVpCurrent */, this);
+                const b = Batch._start(b1 => { this._deactivate(initiator, this._currTransition, b1); });
+                const p = new Promise(resolve => { b._continueWith(() => { resolve(); }); });
+                return b._start()._done ? void 0 : p;
             }
         }
+    }
+    /** @internal */
+    _handles(req) {
+        if (!this._isAvailable()) {
+            return false;
+        }
+        const $vp = this.viewport;
+        const reqVp = req.viewportName;
+        const vp = $vp.name;
+        const logger = /*@__PURE__*/ this._logger.scopeTo('handles()');
+        /*
+                         Name from viewport request
+    
+                         D (default)         N (Non-default)
+    
+              Name from  +-------------------------------------------+
+         viewport agent  |                   |                       |
+                         |        DD         |          DN           |
+                         |    can handle     |      can't handle     |
+              D (default)|                   |                       |
+                         |                   |                       |
+                         +-------------------------------------------+
+                         |                   |                       |
+         N (Non-default) |        DD         |          DD           |
+                         |    can handle     |   can handle only     |
+                         |                   |   if the names match  |
+                         |                   |                       |
+                         +-------------------------------------------+
+        */
+        if (reqVp !== defaultViewportName && vp !== reqVp) {
+            trace(logger, 3308 /* Events.vpaHandlesVpMismatch */, req, vp);
+            return false;
+        }
+        const usedBy = $vp.usedBy;
+        if (usedBy.length > 0 && !usedBy.split(',').includes(req.componentName)) {
+            trace(logger, 3309 /* Events.vpaHandlesUsedByMismatch */, req, usedBy);
+            return false;
+        }
+        trace(logger, 3310 /* Events.vpaHandles */, vp, req);
+        return true;
+    }
+    /** @internal */
+    _isAvailable() {
+        const logger = /*@__PURE__*/ this._logger.scopeTo('isAvailable()');
+        if (!this._isActive) {
+            trace(logger, 3311 /* Events.vpaIsAvailableInactive */);
+            return false;
+        }
+        if (this._nextState !== 64 /* State.nextIsEmpty */) {
+            trace(logger, 3312 /* Events.vpaIsAvailableScheduled */, this._nextNode);
+            return false;
+        }
+        return true;
+    }
+    /** @internal */
+    _canUnload(tr, b) {
+        if (this._currTransition === null) {
+            this._currTransition = tr;
+        }
+        ensureTransitionHasNotErrored(tr);
+        if (tr.guardsResult !== true) {
+            return;
+        }
+        b._push();
+        const logger = /*@__PURE__*/ this._logger.scopeTo('canUnload()');
+        void onResolve(this._cancellationPromise, () => {
+            // run canUnload bottom-up
+            Batch._start(b1 => {
+                trace(logger, 3313 /* Events.vpaCanUnloadChildren */, this);
+                for (const node of this._currNode.children) {
+                    node.context.vpa._canUnload(tr, b1);
+                }
+            })._continueWith(b1 => {
+                switch (this._currState) {
+                    case 4096 /* State.currIsActive */:
+                        trace(logger, 3314 /* Events.vpaCanUnloadExisting */, this);
+                        switch (this._$plan) {
+                            case 'none':
+                                this._currState = 1024 /* State.currCanUnloadDone */;
+                                return;
+                            case 'invoke-lifecycles':
+                            case 'replace':
+                                this._currState = 2048 /* State.currCanUnload */;
+                                b1._push();
+                                Batch._start(b2 => {
+                                    trace(logger, 3315 /* Events.vpaCanUnloadSelf */, this);
+                                    this._curCA._canUnload(tr, this._nextNode, b2);
+                                })._continueWith(() => {
+                                    trace(logger, 3316 /* Events.vpaCanUnloadFinished */, this);
+                                    this._currState = 1024 /* State.currCanUnloadDone */;
+                                    b1._pop();
+                                })._start();
+                                return;
+                        }
+                    case 8192 /* State.currIsEmpty */:
+                        trace(logger, 3317 /* Events.vpaCanUnloadNone */, this);
+                        return;
+                    default:
+                        tr._handleError(new Error(`Unexpected state at canUnload of ${this}`));
+                }
+            })._continueWith(() => {
+                b._pop();
+            })._start();
+        });
+    }
+    /** @internal */
+    _canLoad(tr, b) {
+        if (this._currTransition === null) {
+            this._currTransition = tr;
+        }
+        ensureTransitionHasNotErrored(tr);
+        if (tr.guardsResult !== true) {
+            return;
+        }
+        b._push();
+        const logger = /*@__PURE__*/ this._logger.scopeTo('canLoad()');
+        // run canLoad top-down
+        Batch._start(b1 => {
+            switch (this._nextState) {
+                case 32 /* State.nextIsScheduled */:
+                    trace(logger, 3318 /* Events.vpaCanLoadNext */, this);
+                    this._nextState = 16 /* State.nextCanLoad */;
+                    switch (this._$plan) {
+                        case 'none':
+                            return;
+                        case 'invoke-lifecycles':
+                            return this._curCA._canLoad(tr, this._nextNode, b1);
+                        case 'replace':
+                            b1._push();
+                            void onResolve(this._nextNode.context._createComponentAgent(this.hostController, this._nextNode), ca => {
+                                (this._nextCA = ca)._canLoad(tr, this._nextNode, b1);
+                                b1._pop();
+                            });
+                    }
+                case 64 /* State.nextIsEmpty */:
+                    trace(logger, 3319 /* Events.vpaCanLoadNone */, this);
+                    return;
+                default:
+                    this._unexpectedState('canLoad');
+            }
+        })._continueWith(b1 => {
+            if (tr.guardsResult !== true) {
+                trace(logger, 3354 /* Events.vpaCanLoadGuardsResult */, tr.guardsResult, this._nextCA);
+                return;
+            }
+            const next = this._nextNode;
+            switch (this._$plan) {
+                case 'none':
+                case 'invoke-lifecycles': {
+                    trace(logger, 3320 /* Events.vpaCanLoadResidue */, next, this._$plan);
+                    // These plans can only occur if there is already a current component active in this viewport,
+                    // and it is the same component as `next`.
+                    // This means the RouteContext of `next` was created during a previous transition and might contain
+                    // already-active children. If that is the case, we want to eagerly call the router hooks on them during the
+                    // first pass of activation, instead of lazily in a later pass after `processResidue`.
+                    // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
+                    // their target viewports have the appropriate updates scheduled.
+                    b1._push();
+                    const ctx = next.context;
+                    void onResolve(ctx.routeConfigContext.allResolved, () => onResolve(onResolve(onResolveAll(...next.residue.splice(0).map(vi => createAndAppendNodes(this._logger, next, vi))), () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+                        const vp = vpa.viewport;
+                        const component = vp.default;
+                        if (component === null)
+                            return acc;
+                        acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                        return acc;
+                    }, []))), () => { b1._pop(); }));
+                    return;
+                }
+                case 'replace':
+                    trace(logger, 3321 /* Events.vpaCanLoadResidueDelay */, next);
+                    return;
+            }
+        })._continueWith(b1 => {
+            switch (this._nextState) {
+                case 16 /* State.nextCanLoad */:
+                    trace(logger, 3322 /* Events.vpaCanLoadChildren */, this);
+                    this._nextState = 8 /* State.nextCanLoadDone */;
+                    for (const node of this._nextNode.children) {
+                        node.context.vpa._canLoad(tr, b1);
+                    }
+                    return;
+                case 64 /* State.nextIsEmpty */:
+                    return;
+                default:
+                    this._unexpectedState('canLoad');
+            }
+        })._continueWith(() => {
+            trace(logger, 3323 /* Events.vpaCanLoadFinished */, this);
+            b._pop();
+        })._start();
+    }
+    /** @internal */
+    _unloading(tr, b) {
+        ensureTransitionHasNotErrored(tr);
+        ensureGuardsResultIsTrue(this, tr);
+        b._push();
+        const logger = /*@__PURE__*/ this._logger.scopeTo('unloading()');
+        // run unloading bottom-up
+        Batch._start(b1 => {
+            trace(logger, 3324 /* Events.vpaUnloadingChildren */, this);
+            for (const node of this._currNode.children) {
+                node.context.vpa._unloading(tr, b1);
+            }
+        })._continueWith(b1 => {
+            switch (this._currState) {
+                case 1024 /* State.currCanUnloadDone */:
+                    trace(logger, 3325 /* Events.vpaUnloadingExisting */, this);
+                    switch (this._$plan) {
+                        case 'none':
+                            this._currState = 256 /* State.currUnloadDone */;
+                            return;
+                        case 'invoke-lifecycles':
+                        case 'replace':
+                            this._currState = 512 /* State.currUnload */;
+                            b1._push();
+                            Batch._start(b2 => {
+                                trace(logger, 3326 /* Events.vpaUnloadingSelf */, this);
+                                this._curCA._unloading(tr, this._nextNode, b2);
+                            })._continueWith(() => {
+                                trace(logger, 3327 /* Events.vpaUnloadingFinished */, this);
+                                this._currState = 256 /* State.currUnloadDone */;
+                                b1._pop();
+                            })._start();
+                            return;
+                    }
+                case 8192 /* State.currIsEmpty */:
+                    trace(logger, 3328 /* Events.vpaUnloadingNone */, this);
+                    for (const node of this._currNode.children) {
+                        node.context.vpa._unloading(tr, b);
+                    }
+                    return;
+                default:
+                    this._unexpectedState('unloading');
+            }
+        })._continueWith(() => {
+            b._pop();
+        })._start();
+    }
+    /** @internal */
+    _loading(tr, b) {
+        ensureTransitionHasNotErrored(tr);
+        ensureGuardsResultIsTrue(this, tr);
+        b._push();
+        const logger = /*@__PURE__*/ this._logger.scopeTo('loading()');
+        // run load top-down
+        Batch._start(b1 => {
+            switch (this._nextState) {
+                case 8 /* State.nextCanLoadDone */: {
+                    trace(logger, 3329 /* Events.vpaLoadingNext */, this);
+                    this._nextState = 4 /* State.nextLoad */;
+                    switch (this._$plan) {
+                        case 'none':
+                            return;
+                        case 'invoke-lifecycles':
+                            return this._curCA._loading(tr, this._nextNode, b1);
+                        case 'replace':
+                            return this._nextCA._loading(tr, this._nextNode, b1);
+                    }
+                }
+                case 64 /* State.nextIsEmpty */:
+                    trace(logger, 3330 /* Events.vpaLoadingNone */, this);
+                    return;
+                default:
+                    this._unexpectedState('loading');
+            }
+        })._continueWith(b1 => {
+            switch (this._nextState) {
+                case 4 /* State.nextLoad */:
+                    trace(logger, 3331 /* Events.vpaLoadingChildren */, this);
+                    this._nextState = 2 /* State.nextLoadDone */;
+                    for (const node of this._nextNode.children) {
+                        node.context.vpa._loading(tr, b1);
+                    }
+                    return;
+                case 64 /* State.nextIsEmpty */:
+                    return;
+                default:
+                    this._unexpectedState('loading');
+            }
+        })._continueWith(() => {
+            trace(logger, 3332 /* Events.vpaLoadingFinished */, this);
+            b._pop();
+        })._start();
+    }
+    /** @internal */
+    _deactivate(initiator, tr, b) {
+        ensureTransitionHasNotErrored(tr);
+        ensureGuardsResultIsTrue(this, tr);
+        b._push();
+        const logger = /*@__PURE__*/ this._logger.scopeTo('deactivate()');
+        switch (this._currState) {
+            case 256 /* State.currUnloadDone */:
+                trace(logger, 3333 /* Events.vpaDeactivateCurrent */, this);
+                this._currState = 128 /* State.currDeactivate */;
+                switch (this._$plan) {
+                    case 'none':
+                    case 'invoke-lifecycles':
+                        b._pop();
+                        return;
+                    case 'replace': {
+                        const controller = this.hostController;
+                        const curCa = this._curCA;
+                        tr._run(() => {
+                            return onResolve(curCa._deactivate(initiator, controller), () => {
+                                // Call dispose if initiator is null. If there is an initiator present, then the curCa will be disposed when the initiator is disposed.
+                                if (initiator === null) {
+                                    curCa._dispose();
+                                }
+                            });
+                        }, () => {
+                            b._pop();
+                        });
+                    }
+                }
+                return;
+            case 8192 /* State.currIsEmpty */:
+                trace(logger, 3334 /* Events.vpaDeactivateNone */, this);
+                b._pop();
+                return;
+            case 128 /* State.currDeactivate */:
+                trace(logger, 3335 /* Events.vpaDeactivationRunning */, this);
+                b._pop();
+                return;
+            default:
+                this._unexpectedState('deactivate');
+        }
+    }
+    /** @internal */
+    _activate(initiator, tr, b) {
+        ensureTransitionHasNotErrored(tr);
+        ensureGuardsResultIsTrue(this, tr);
+        b._push();
+        const logger = /*@__PURE__*/ this._logger.scopeTo('activate()');
+        if (this._nextState === 32 /* State.nextIsScheduled */) {
+            trace(logger, 3336 /* Events.vpaActivateNextScheduled */, this);
+            // This is the default v2 mode "lazy loading" situation
+            Batch._start(b1 => {
+                this._canLoad(tr, b1);
+            })._continueWith(b1 => {
+                this._loading(tr, b1);
+            })._continueWith(b1 => {
+                this._activate(initiator, tr, b1);
+            })._continueWith(() => {
+                b._pop();
+            })._start();
+            return;
+        }
+        switch (this._nextState) {
+            case 2 /* State.nextLoadDone */:
+                trace(logger, 3337 /* Events.vpaActivateNext */, this);
+                this._nextState = 1 /* State.nextActivate */;
+                // run activate top-down
+                Batch._start(b1 => {
+                    switch (this._$plan) {
+                        case 'none':
+                        case 'invoke-lifecycles':
+                            return;
+                        case 'replace': {
+                            const controller = this.hostController;
+                            tr._run(() => {
+                                b1._push();
+                                return this._nextCA._activate(initiator, controller);
+                            }, () => {
+                                b1._pop();
+                            });
+                        }
+                    }
+                })._continueWith(b1 => {
+                    this._processDynamicChildren(tr, b1);
+                })._continueWith(() => {
+                    b._pop();
+                })._start();
+                return;
+            case 64 /* State.nextIsEmpty */:
+                trace(logger, 3338 /* Events.vpaActivateNone */, this);
+                b._pop();
+                return;
+            default:
+                this._unexpectedState('activate');
+        }
+    }
+    /** @internal */
+    _swap(tr, b) {
+        const logger = /*@__PURE__*/ this._logger.scopeTo('swap()');
+        if (this._currState === 8192 /* State.currIsEmpty */) {
+            trace(logger, 3339 /* Events.vpaSwapEmptyCurr */, this);
+            this._activate(null, tr, b);
+            return;
+        }
+        if (this._nextState === 64 /* State.nextIsEmpty */) {
+            trace(logger, 3340 /* Events.vpaSwapEmptyNext */, this);
+            this._deactivate(null, tr, b);
+            return;
+        }
+        ensureTransitionHasNotErrored(tr);
+        ensureGuardsResultIsTrue(this, tr);
+        if (!(this._currState === 256 /* State.currUnloadDone */ &&
+            this._nextState === 2 /* State.nextLoadDone */)) {
+            this._unexpectedState('swap');
+        }
+        this._currState = 128 /* State.currDeactivate */;
+        this._nextState = 1 /* State.nextActivate */;
+        switch (this._$plan) {
+            case 'none':
+            case 'invoke-lifecycles': {
+                trace(logger, 3341 /* Events.vpaSwapSkipToChildren */, this);
+                const nodes = mergeDistinct(this._nextNode.children, this._currNode.children);
+                for (const node of nodes) {
+                    node.context.vpa._swap(tr, b);
+                }
+                return;
+            }
+            case 'replace': {
+                trace(logger, 3342 /* Events.vpaSwap */, this);
+                const controller = this.hostController;
+                const curCA = this._curCA;
+                const nextCA = this._nextCA;
+                b._push();
+                Batch._start(b1 => {
+                    tr._run(() => {
+                        b1._push();
+                        return onResolve(curCA._deactivate(null, controller), () => curCA._dispose());
+                    }, () => {
+                        b1._pop();
+                    });
+                })._continueWith(b1 => {
+                    tr._run(() => {
+                        b1._push();
+                        return nextCA._activate(null, controller);
+                    }, () => {
+                        b1._pop();
+                    });
+                })._continueWith(b1 => {
+                    this._processDynamicChildren(tr, b1);
+                })._continueWith(() => {
+                    b._pop();
+                })._start();
+                return;
+            }
+        }
+    }
+    /** @internal */
+    _processDynamicChildren(tr, b) {
+        trace(this._logger, 3343 /* Events.vpaProcessDynamicChildren */, this);
+        const next = this._nextNode;
+        tr._run(() => {
+            b._push();
+            const ctx = next.context;
+            return onResolve(ctx.routeConfigContext.allResolved, () => {
+                const existingChildren = next.children.slice();
+                return onResolve(onResolveAll(...next
+                    .residue
+                    .splice(0)
+                    .map(vi => createAndAppendNodes(this._logger, next, vi))), () => onResolve(onResolveAll(...ctx
+                    .getAvailableViewportAgents()
+                    .reduce((acc, vpa) => {
+                    const vp = vpa.viewport;
+                    const component = vp.default;
+                    if (component === null)
+                        return acc;
+                    acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                    return acc;
+                }, [])), () => next.children.filter(x => !existingChildren.includes(x))));
+            });
+        }, newChildren => {
+            Batch._start(b1 => {
+                for (const node of newChildren) {
+                    tr._run(() => {
+                        b1._push();
+                        return node.context.vpa._canLoad(tr, b1);
+                    }, () => {
+                        b1._pop();
+                    });
+                }
+            })._continueWith(b1 => {
+                if (tr.guardsResult !== true)
+                    return;
+                for (const node of newChildren) {
+                    tr._run(() => {
+                        b1._push();
+                        return node.context.vpa._loading(tr, b1);
+                    }, () => {
+                        b1._pop();
+                    });
+                }
+            })._continueWith(b1 => {
+                if (tr.guardsResult !== true)
+                    return;
+                for (const node of newChildren) {
+                    tr._run(() => {
+                        b1._push();
+                        return node.context.vpa._activate(null, tr, b1);
+                    }, () => {
+                        b1._pop();
+                    });
+                }
+            })._continueWith(() => {
+                b._pop();
+            })._start();
+        });
+    }
+    /** @internal */
+    _scheduleUpdate(options, next) {
+        switch (this._nextState) {
+            case 64 /* State.nextIsEmpty */:
+                this._nextNode = next;
+                this._nextState = 32 /* State.nextIsScheduled */;
+                break;
+            default:
+                this._unexpectedState('scheduleUpdate 1');
+        }
+        switch (this._currState) {
+            case 8192 /* State.currIsEmpty */:
+            case 4096 /* State.currIsActive */:
+            case 1024 /* State.currCanUnloadDone */:
+                break;
+            default:
+                this._unexpectedState('scheduleUpdate 2');
+        }
+        const cur = this._curCA?._routeNode ?? null;
+        if (cur === null || cur.component !== next.component) {
+            // Component changed (or is cleared), so set to 'replace'
+            this._$plan = 'replace';
+        }
+        else {
+            // Component is the same, so determine plan based on config and/or convention
+            this._$plan = next.context.routeConfigContext.config._getTransitionPlan(cur, next, options.transitionPlan);
+        }
+        trace(this._logger, 3344 /* Events.vpaScheduleUpdate */, this);
+    }
+    /** @internal */
+    _cancelUpdate() {
+        if (this._currNode !== null) {
+            this._currNode.children.forEach(function (node) {
+                node.context.vpa._cancelUpdate();
+            });
+        }
+        if (this._nextNode !== null) {
+            this._nextNode.children.forEach(function (node) {
+                node.context.vpa._cancelUpdate();
+            });
+        }
+        trace(this._logger, 3345 /* Events.vpaCancelUpdate */, this._nextNode);
+        let currentDeactivationPromise = null;
+        let nextDeactivationPromise = null;
+        switch (this._currState) {
+            case 8192 /* State.currIsEmpty */:
+            case 4096 /* State.currIsActive */:
+                this._currTransition = null;
+                break;
+            case 2048 /* State.currCanUnload */:
+            case 1024 /* State.currCanUnloadDone */:
+                this._currState = 4096 /* State.currIsActive */;
+                this._currTransition = null;
+                break;
+            case 512 /* State.currUnload */:
+            case 256 /* State.currUnloadDone */:
+            case 128 /* State.currDeactivate */:
+                currentDeactivationPromise = onResolve(this._curCA?._deactivate(null, this.hostController), () => {
+                    this._curCA?._dispose();
+                    this._currState = 8192 /* State.currIsEmpty */;
+                    this._curCA = null;
+                });
+                break;
+        }
+        switch (this._nextState) {
+            case 64 /* State.nextIsEmpty */:
+            case 32 /* State.nextIsScheduled */:
+            case 16 /* State.nextCanLoad */:
+            case 8 /* State.nextCanLoadDone */:
+                this._nextNode = null;
+                this._nextState = 64 /* State.nextIsEmpty */;
+                break;
+            case 4 /* State.nextLoad */:
+            case 2 /* State.nextLoadDone */:
+            case 1 /* State.nextActivate */: {
+                nextDeactivationPromise = onResolve(this._nextCA?._deactivate(null, this.hostController), () => {
+                    this._nextCA?._dispose();
+                    this._$plan = 'replace';
+                    this._nextState = 64 /* State.nextIsEmpty */;
+                    this._nextCA = null;
+                    this._nextNode = null;
+                });
+                break;
+            }
+        }
+        if (currentDeactivationPromise !== null && nextDeactivationPromise !== null) {
+            this._cancellationPromise = onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
+                this._currTransition = null;
+                this._cancellationPromise = null;
+            });
+        }
+    }
+    /** @internal */
+    _endTransition() {
+        if (this._currNode !== null) {
+            this._currNode.children.forEach(function (node) {
+                node.context.vpa._endTransition();
+            });
+        }
+        if (this._nextNode !== null) {
+            this._nextNode.children.forEach(function (node) {
+                node.context.vpa._endTransition();
+            });
+        }
+        if (this._currTransition !== null) {
+            const logger = /*@__PURE__*/ this._logger.scopeTo('endTransition()');
+            ensureTransitionHasNotErrored(this._currTransition);
+            switch (this._nextState) {
+                case 64 /* State.nextIsEmpty */:
+                    switch (this._currState) {
+                        case 8192 /* State.currIsEmpty */:
+                        case 128 /* State.currDeactivate */:
+                            trace(logger, 3346 /* Events.vpaEndTransitionEmptyCurr */, this);
+                            this._currState = 8192 /* State.currIsEmpty */;
+                            this._curCA = null;
+                            break;
+                        default:
+                            this._unexpectedState('endTransition 1');
+                    }
+                    break;
+                case 1 /* State.nextActivate */:
+                    switch (this._currState) {
+                        case 8192 /* State.currIsEmpty */:
+                        case 128 /* State.currDeactivate */:
+                            switch (this._$plan) {
+                                case 'none':
+                                    trace(logger, 3347 /* Events.vpaEndTransitionActiveCurrLifecycle */, this);
+                                    this._currState = 4096 /* State.currIsActive */;
+                                    break;
+                                case 'invoke-lifecycles':
+                                    trace(logger, 3347 /* Events.vpaEndTransitionActiveCurrLifecycle */, this);
+                                    this._currState = 4096 /* State.currIsActive */;
+                                    this._curCA._routeNode = this._nextNode;
+                                    break;
+                                case 'replace':
+                                    trace(logger, 3348 /* Events.vpaEndTransitionActiveCurrReplace */, this);
+                                    this._currState = 4096 /* State.currIsActive */;
+                                    this._curCA = this._nextCA;
+                                    break;
+                            }
+                            this._currNode = this._nextNode;
+                            break;
+                        default:
+                            this._unexpectedState('endTransition 2');
+                    }
+                    break;
+                default:
+                    this._unexpectedState('endTransition 3');
+            }
+            this._$plan = 'replace';
+            this._nextState = 64 /* State.nextIsEmpty */;
+            this._nextNode = null;
+            this._nextCA = null;
+            this._currTransition = null;
+        }
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        return `VPA(state:${$state(this._state)},plan:'${this._$plan}',n:${this._nextNode},c:${this._currNode},viewport:${this.viewport})`;
+    }
+    /** @internal */
+    _dispose() {
+        trace(this._logger, 3349 /* Events.vpaDispose */, this);
+        this._curCA?._dispose();
+    }
+    /** @internal */
+    _unexpectedState(label) {
+        throw new Error(getMessage(3352 /* Events.vpaUnexpectedState */, label, this));
+    }
+}
+function ensureGuardsResultIsTrue(vpa, tr) {
+    if (tr.guardsResult !== true)
+        throw new Error(getMessage(3353 /* Events.vpaUnexpectedGuardsResult */, tr.guardsResult, vpa));
+}
+function ensureTransitionHasNotErrored(tr) {
+    if (tr.error !== void 0 && !tr.erredWithUnknownRoute)
+        throw tr.error;
+}
+
+// Stringifying uses arrays and does not have a negligible cost, so cache the results to not let trace logging
+// in and of its own slow things down too much.
+const $stateCache = new Map();
+function $state(state) {
+    let str = $stateCache.get(state);
+    if (str === void 0) {
+        $stateCache.set(state, str = stringifyState(state));
+    }
+    return str;
+}
+function stringifyState(state) {
+    const flags = [];
+    if ((state & 8192 /* State.currIsEmpty */) === 8192 /* State.currIsEmpty */) {
+        flags.push('currIsEmpty');
+    }
+    if ((state & 4096 /* State.currIsActive */) === 4096 /* State.currIsActive */) {
+        flags.push('currIsActive');
+    }
+    if ((state & 2048 /* State.currCanUnload */) === 2048 /* State.currCanUnload */) {
+        flags.push('currCanUnload');
+    }
+    if ((state & 1024 /* State.currCanUnloadDone */) === 1024 /* State.currCanUnloadDone */) {
+        flags.push('currCanUnloadDone');
+    }
+    if ((state & 512 /* State.currUnload */) === 512 /* State.currUnload */) {
+        flags.push('currUnload');
+    }
+    if ((state & 256 /* State.currUnloadDone */) === 256 /* State.currUnloadDone */) {
+        flags.push('currUnloadDone');
+    }
+    if ((state & 128 /* State.currDeactivate */) === 128 /* State.currDeactivate */) {
+        flags.push('currDeactivate');
+    }
+    if ((state & 64 /* State.nextIsEmpty */) === 64 /* State.nextIsEmpty */) {
+        flags.push('nextIsEmpty');
+    }
+    if ((state & 32 /* State.nextIsScheduled */) === 32 /* State.nextIsScheduled */) {
+        flags.push('nextIsScheduled');
+    }
+    if ((state & 16 /* State.nextCanLoad */) === 16 /* State.nextCanLoad */) {
+        flags.push('nextCanLoad');
+    }
+    if ((state & 8 /* State.nextCanLoadDone */) === 8 /* State.nextCanLoadDone */) {
+        flags.push('nextCanLoadDone');
+    }
+    if ((state & 4 /* State.nextLoad */) === 4 /* State.nextLoad */) {
+        flags.push('nextLoad');
+    }
+    if ((state & 2 /* State.nextLoadDone */) === 2 /* State.nextLoadDone */) {
+        flags.push('nextLoadDone');
+    }
+    if ((state & 1 /* State.nextActivate */) === 1 /* State.nextActivate */) {
+        flags.push('nextActivate');
+    }
+    return flags.join('|');
+}
+
+class RouteNode {
+    get root() {
+        return this._tree.root;
+    }
+    get isInstructionsFinalized() { return this._isInstructionsFinalized; }
+    constructor(
+    /**
+     * The original configured path pattern that was matched.
+     */
+    path, 
+    /**
+     * If one or more redirects have occurred, then this is the final path match, in all other cases this is identical to `path`
+     */
+    finalPath, 
+    /**
+     * The `RouteContext` associated with this route.
+     *
+     * Child route components will be created by this context.
+     *
+     * Viewports that live underneath the component associated with this route, will be registered to this context.
+     */
+    context, 
+    /** @internal */
+    _originalInstruction, 
+    /** Can only be `null` for the composition root */
+    instruction, params, queryParams, fragment, data, 
+    /**
+     * The viewport is always `null` for the root `RouteNode`.
+     *
+     * NOTE: It might make sense to have a `null` viewport mean other things as well (such as, don't load this component)
+     * but that is currently not a deliberately implemented feature and we might want to explicitly validate against it
+     * if we decide not to implement that.
+     *
+     * This is used simply on metadata level. Hence hiding it from the public API.
+     * If need be, we can expose it later.
+     *
+     * @internal
+     */
+    _viewport, title, component, 
+    /**
+     * Not-yet-resolved viewport instructions.
+     *
+     * Instructions need an `IRouteContext` to be resolved into complete `RouteNode`s.
+     *
+     * Resolved instructions are removed from this array, such that a `RouteNode` can be considered
+     * "fully resolved" when it has `residue.length === 0` and `children.length >= 0`
+     */
+    residue) {
+        this.path = path;
+        this.finalPath = finalPath;
+        this.context = context;
+        this._originalInstruction = _originalInstruction;
+        this.instruction = instruction;
+        this.params = params;
+        this.queryParams = queryParams;
+        this.fragment = fragment;
+        this.data = data;
+        this._viewport = _viewport;
+        this.title = title;
+        this.component = component;
+        this.residue = residue;
+        /** @internal */ this._version = 1;
+        /** @internal */
+        this._isInstructionsFinalized = false;
+        this.children = [];
+        this._originalInstruction ??= instruction;
+    }
+    static create(input) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [RESIDUE]: _, ...params } = input.params ?? {};
+        return new RouteNode(
+        /*        path */ input.path, 
+        /*   finalPath */ input.finalPath, 
+        /*     context */ input.context, 
+        /* originalIns */ input.originalInstruction ?? input.instruction, 
+        /* instruction */ input.instruction, 
+        /*      params */ Object.freeze(params), 
+        /* queryParams */ input.queryParams ?? emptyQuery, 
+        /*    fragment */ input.fragment ?? null, 
+        /*        data */ Object.freeze(input.data ?? emptyObject), 
+        /*    viewport */ input._viewport ?? null, 
+        /*       title */ input.title ?? null, 
+        /*   component */ input.component, 
+        /*     residue */ input.residue ?? []);
+    }
+    contains(instructions, matchEndpoint = false) {
+        if (this.context.routeConfigContext === instructions.options.context.routeConfigContext) {
+            const nodeChildren = this.children;
+            const instructionChildren = instructions.children;
+            for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
+                for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
+                    const instructionChild = instructionChildren[j];
+                    const instructionEndpoint = matchEndpoint ? instructionChild.recognizedRoute?.route.endpoint : null;
+                    const nodeChild = nodeChildren[i + j] ?? null;
+                    const instruction = nodeChild !== null
+                        ? nodeChild.isInstructionsFinalized ? nodeChild.instruction : nodeChild._originalInstruction
+                        : null;
+                    const childEndpoint = instruction?.recognizedRoute?.route.endpoint;
+                    if (i + j < ii
+                        && ((instructionEndpoint?.equalsOrResidual(childEndpoint) ?? false)
+                            || (instruction?.contains(instructionChild) ?? false))) {
+                        if (j + 1 === jj) {
+                            return true;
+                        }
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+        }
+        return this.children.some(function (x) {
+            return x.contains(instructions, matchEndpoint);
+        });
+    }
+    /** @internal */
+    _appendChild(child) {
+        this.children.push(child);
+        child._setTree(this._tree);
+    }
+    /** @internal */
+    _clearChildren() {
+        for (const c of this.children) {
+            c._clearChildren();
+            c.context.vpa._cancelUpdate();
+        }
+        this.children.length = 0;
+    }
+    getTitle(separator) {
+        const titleParts = [
+            ...this.children.map(x => x.getTitle(separator)),
+            typeof this.title === 'function' ? this.title.call(void 0, this) : this.title,
+        ].filter(x => x !== null);
+        return titleParts.length === 0 ? null : titleParts.join(separator);
+    }
+    computeAbsolutePath() {
+        if (this.context.routeConfigContext.isRoot) {
+            return '';
+        }
+        const parentPath = this.context.parent.node.computeAbsolutePath();
+        const thisPath = this.instruction.toUrlComponent(false);
+        return parentPath.length > 0
+            ? thisPath.length > 0
+                ? `${parentPath}/${thisPath}`
+                : parentPath
+            : thisPath;
+    }
+    /** @internal */
+    _setTree(tree) {
+        this._tree = tree;
+        for (const child of this.children) {
+            child._setTree(tree);
+        }
+    }
+    /** @internal */
+    _finalizeInstruction() {
+        this._isInstructionsFinalized = true;
+        const children = this.children.map(x => x._finalizeInstruction());
+        const instruction = this.instruction._clone();
+        instruction.children.splice(0, instruction.children.length, ...children);
+        return this.instruction = instruction;
+    }
+    /** @internal */
+    _clone() {
+        const clone = new RouteNode(this.path, this.finalPath, this.context, this._originalInstruction, this.instruction, this.params, // as this is frozen, it's safe to share
+        this.queryParams, // as this is frozen, it's safe to share
+        this.fragment, this.data, // as this is frozen, it's safe to share
+        this._viewport, this.title, this.component, [...this.residue]);
+        const children = this.children;
+        const len = children.length;
+        for (let i = 0; i < len; ++i) {
+            clone.children.push(children[i]._clone());
+        }
+        clone._version = this._version + 1;
+        if (clone.context.node === this) {
+            clone.context.node = clone;
+        }
+        return clone;
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        const props = [];
+        const component = this.context?.routeConfigContext.config._getComponentName() ?? '';
+        if (component.length > 0) {
+            props.push(`c:'${component}'`);
+        }
+        const path = this.context?.routeConfigContext.config.path ?? '';
+        if (path.length > 0) {
+            props.push(`path:'${path}'`);
+        }
+        if (this.children.length > 0) {
+            props.push(`children:[${this.children.map(String).join(',')}]`);
+        }
+        if (this.residue.length > 0) {
+            props.push(`residue:${this.residue.map(function (r) {
+                if (typeof r === 'string') {
+                    return `'${r}'`;
+                }
+                return String(r);
+            }).join(',')}`);
+        }
+        return `RN(ctx:'${this.context?.routeConfigContext._friendlyPath}',${props.join(',')})`;
+    }
+}
+class RouteTree {
+    constructor(options, queryParams, fragment, root) {
+        this.options = options;
+        this.queryParams = queryParams;
+        this.fragment = fragment;
+        this.root = root;
+    }
+    contains(instructions, matchEndpoint = false) {
+        return this.root.contains(instructions, matchEndpoint);
+    }
+    /** @internal */
+    _clone() {
+        const clone = new RouteTree(this.options._clone(), this.queryParams, // as this is frozen, it's safe to share
+        this.fragment, this.root._clone());
+        clone.root._setTree(this);
+        return clone;
+    }
+    /** @internal */
+    _finalizeInstructions() {
+        return new ViewportInstructionTree(this.options, true, this.root.children.map(x => x._finalizeInstruction()), this.queryParams, this.fragment);
+    }
+    /** @internal */
+    _mergeQuery(other) {
+        this.queryParams = Object.freeze(mergeURLSearchParams(this.queryParams, other, true));
+    }
+    toString() {
+        return this.root.toString();
+    }
+}
+function createAndAppendNodes(log, node, vi) {
+    log.trace(`createAndAppendNodes(node:%s,vi:%s`, node, vi);
+    switch (vi.component.type) {
+        case 0 /* NavigationInstructionType.string */:
+            switch (vi.component.value) {
+                case '..':
+                    // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
+                    node = node.context.parent?.node ?? node;
+                    node._clearChildren();
+                // falls through
+                case '.':
+                    return onResolveAll(...vi.children.map(childVI => {
+                        return createAndAppendNodes(log, node, childVI);
+                    }));
+                default: {
+                    log.trace(`createAndAppendNodes invoking createNode`);
+                    const ctx = node.context;
+                    const originalInstruction = vi._clone();
+                    let rr = vi.recognizedRoute;
+                    // early return; we already have a recognized route, don't bother with the rest.
+                    if (rr !== null)
+                        return appendNode(log, node, createConfiguredNode(log, node, vi, rr, originalInstruction));
+                    // if there are children, then then it might be the case that the parameters are put in the children, and that case it is best to go the default flow.
+                    // However, when that's not the case, then we perhaps try to lookup the route-id.
+                    // This is another early termination.
+                    if (vi.children.length === 0) {
+                        const result = ctx.routeConfigContext._generateViewportInstruction(vi);
+                        if (result !== null) {
+                            node._tree._mergeQuery(result.query);
+                            const newVi = result.vi;
+                            newVi.children.push(...vi.children);
+                            return appendNode(log, node, createConfiguredNode(log, node, newVi, newVi.recognizedRoute, vi));
+                        }
+                    }
+                    let collapse = 0;
+                    let path = vi.component.value;
+                    let cur = vi;
+                    while (cur.children.length === 1) {
+                        cur = cur.children[0];
+                        if (cur.component.type === 0 /* NavigationInstructionType.string */) {
+                            ++collapse;
+                            path = `${path}/${cur.component.value}`;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    rr = ctx.routeConfigContext.recognize(path);
+                    log.trace('createNode recognized route: %s', rr);
+                    const residue = rr?.residue ?? null;
+                    log.trace('createNode residue:', residue);
+                    const noResidue = residue === null;
+                    // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
+                    // Therefore the path matches the configured empty route and puts the whole path into residue.
+                    if (rr === null || residue === path) {
+                        // check if a route-id is used
+                        const eagerResult = ctx.routeConfigContext._generateViewportInstruction({
+                            component: vi.component.value,
+                            params: vi.params ?? emptyObject,
+                            open: vi.open,
+                            close: vi.close,
+                            viewport: vi.viewport,
+                            children: vi.children,
+                        });
+                        if (eagerResult !== null) {
+                            node._tree._mergeQuery(eagerResult.query);
+                            return appendNode(log, node, createConfiguredNode(log, node, eagerResult.vi, eagerResult.vi.recognizedRoute, vi));
+                        }
+                        // fallback
+                        const name = vi.component.value;
+                        if (name === '')
+                            return;
+                        let vp = vi.viewport;
+                        if (vp === null || vp.length === 0)
+                            vp = defaultViewportName;
+                        const vpa = ctx.getFallbackViewportAgent(vp);
+                        const fallback = vpa !== null
+                            ? vpa.viewport._getFallback(vi, node, ctx)
+                            : ctx.routeConfigContext.config._getFallback(vi, node, ctx);
+                        if (fallback === null)
+                            throw new UnknownRouteError(getMessage(3401 /* Events.instrNoFallback */, name, ctx.routeConfigContext._friendlyPath, vp, name, ctx.routeConfigContext.component.name));
+                        if (typeof fallback === 'string') {
+                            // fallback: id -> route -> CEDefn (Route configuration)
+                            // look for a route first
+                            log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
+                            const rd = ctx.routeConfigContext.childRoutes.find(x => x.id === fallback);
+                            if (rd !== void 0)
+                                return appendNode(log, node, createFallbackNode(log, rd, node, vi));
+                            log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
+                            const rr = ctx.routeConfigContext.recognize(fallback, true);
+                            if (rr !== null && rr.residue !== fallback)
+                                return appendNode(log, node, createConfiguredNode(log, node, vi, rr, null));
+                        }
+                        // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
+                        log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
+                        return onResolve(resolveRouteConfiguration(fallback, false, ctx.routeConfigContext.config, null, ctx.routeConfigContext), rc => appendNode(log, node, createFallbackNode(log, rc, node, vi)));
+                    }
+                    // readjust the children wrt. the residue
+                    rr.residue = null;
+                    vi.component.value = noResidue
+                        ? path
+                        : path.slice(0, -(residue.length + 1));
+                    let addResidue = !noResidue;
+                    for (let i = 0; i < collapse; ++i) {
+                        const child = vi.children[0];
+                        if (residue?.startsWith(child.component.value) ?? false) {
+                            addResidue = false;
+                            break;
+                        }
+                        vi.viewport = child.viewport;
+                        vi.children = child.children;
+                    }
+                    if (addResidue) {
+                        vi.children.unshift(ViewportInstruction.create(residue));
+                    }
+                    vi.recognizedRoute = rr;
+                    log.trace('createNode after adjustment vi:%s', vi);
+                    return appendNode(log, node, createConfiguredNode(log, node, vi, rr, originalInstruction));
+                }
+            }
+        case 3 /* NavigationInstructionType.Promise */:
+        case 4 /* NavigationInstructionType.IRouteViewModel */:
+        case 2 /* NavigationInstructionType.CustomElementDefinition */: {
+            const rc = node.context;
+            return onResolve(resolveCustomElementDefinition(vi.component.value, rc.routeConfigContext)[1], ced => {
+                const { vi: newVi, query } = rc.routeConfigContext._generateViewportInstruction({
+                    component: ced,
+                    params: vi.params ?? emptyObject,
+                    open: vi.open,
+                    close: vi.close,
+                    viewport: vi.viewport,
+                    children: vi.children,
+                });
+                node._tree._mergeQuery(query);
+                return appendNode(log, node, createConfiguredNode(log, node, newVi, newVi.recognizedRoute, vi));
+            });
+        }
+    }
+}
+function createConfiguredNode(log, node, vi, rr, originalVi, route = rr.route.endpoint.route) {
+    const ctx = node.context;
+    const rt = node._tree;
+    return onResolve(route.handler, $handler => {
+        route.handler = $handler;
+        log.trace(`creatingConfiguredNode(rdc:%s, vi:%s)`, $handler, vi);
+        if ($handler.redirectTo === null) {
+            const viWithVp = (vi.viewport?.length ?? 0) > 0;
+            const vpName = (viWithVp ? vi.viewport : $handler.viewport);
+            return onResolve(resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx.routeConfigContext)[1], ced => {
+                const vpa = ctx._resolveViewportAgent(new ViewportRequest(vpName, ced.name));
+                if (!viWithVp) {
+                    vi.viewport = vpa.viewport.name;
+                }
+                const router = ctx.container.get(IRouter);
+                return onResolve(router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.routeConfigContext.config, ctx, $handler), childCtx => {
+                    log.trace('createConfiguredNode setting the context node');
+                    const $node = childCtx.node = RouteNode.create({
+                        path: rr.route.endpoint.route.path,
+                        finalPath: route.path,
+                        context: childCtx,
+                        instruction: vi,
+                        originalInstruction: originalVi,
+                        params: rr.route.params,
+                        queryParams: rt.queryParams,
+                        fragment: rt.fragment,
+                        data: $handler.data,
+                        _viewport: vpName,
+                        component: ced,
+                        title: $handler.title,
+                        // Note: at this point, the residue from the recognized route should be converted to VI children. Hence the residues are not added back to the RouteNode.
+                        residue: vi.children.slice(),
+                    });
+                    $node._setTree(node._tree);
+                    log.trace(`createConfiguredNode(vi:%s) -> %s`, vi, $node);
+                    return $node;
+                });
+            });
+        }
+        // Migrate parameters to the redirect
+        const origPath = RouteExpression.parse(pathUrlParser.parse(route.path));
+        const redirPath = RouteExpression.parse(pathUrlParser.parse($handler.redirectTo));
+        let origCur;
+        let redirCur;
+        const newSegs = [];
+        switch (origPath.root.kind) {
+            case 'ScopedSegment':
+            case 'Segment':
+                origCur = origPath.root;
+                break;
+            default:
+                throw new Error(getMessage(3502 /* Events.exprUnexpectedKind */, origPath.root.kind));
+        }
+        switch (redirPath.root.kind) {
+            case 'ScopedSegment':
+            case 'Segment':
+                redirCur = redirPath.root;
+                break;
+            default:
+                throw new Error(getMessage(3502 /* Events.exprUnexpectedKind */, redirPath.root.kind));
+        }
+        let origSeg;
+        let redirSeg;
+        let origDone = false;
+        let redirDone = false;
+        while (!(origDone && redirDone)) {
+            if (origDone) {
+                origSeg = null;
+            }
+            else if (origCur.kind === 'Segment') {
+                origSeg = origCur;
+                origDone = true;
+            }
+            else if (origCur.left.kind === 'Segment') {
+                origSeg = origCur.left;
+                switch (origCur.right.kind) {
+                    case 'ScopedSegment':
+                    case 'Segment':
+                        origCur = origCur.right;
+                        break;
+                    default:
+                        throw new Error(getMessage(3502 /* Events.exprUnexpectedKind */, origCur.right.kind));
+                }
+            }
+            else {
+                throw new Error(getMessage(3502 /* Events.exprUnexpectedKind */, origCur.left.kind));
+            }
+            if (redirDone) {
+                redirSeg = null;
+            }
+            else if (redirCur.kind === 'Segment') {
+                redirSeg = redirCur;
+                redirDone = true;
+            }
+            else if (redirCur.left.kind === 'Segment') {
+                redirSeg = redirCur.left;
+                switch (redirCur.right.kind) {
+                    case 'ScopedSegment':
+                    case 'Segment':
+                        redirCur = redirCur.right;
+                        break;
+                    default:
+                        throw new Error(getMessage(3502 /* Events.exprUnexpectedKind */, redirCur.right.kind));
+                }
+            }
+            else {
+                throw new Error(getMessage(3502 /* Events.exprUnexpectedKind */, redirCur.left.kind));
+            }
+            if (redirSeg !== null) {
+                if (redirSeg.component.isDynamic && (origSeg?.component.isDynamic ?? false)) {
+                    newSegs.push(rr.route.params[redirSeg.component.parameterName]);
+                }
+                else {
+                    newSegs.push(redirSeg.component.name);
+                }
+            }
+        }
+        const newPath = newSegs.filter(Boolean).join('/');
+        const redirRR = ctx.routeConfigContext.recognize(newPath);
+        if (redirRR === null)
+            throw new UnknownRouteError(getMessage(3402 /* Events.instrUnknownRedirect */, newPath, ctx.routeConfigContext._friendlyPath, newPath, ctx.routeConfigContext.component.name));
+        return createConfiguredNode(log, node, ViewportInstruction.create({
+            recognizedRoute: redirRR,
+            component: newPath,
+            children: vi.children,
+            viewport: vi.viewport,
+            open: vi.open,
+            close: vi.close,
+        }), redirRR, originalVi);
+    });
+}
+function appendNode(log, node, childNode) {
+    return onResolve(childNode, $childNode => {
+        log.trace(`appendNode($childNode:%s)`, $childNode);
+        node._appendChild($childNode);
+        return $childNode.context.vpa._scheduleUpdate(node._tree.options, $childNode);
+    });
+}
+/**
+ * Creates route node from the given RouteConfig `rc` for a unknown path (non-configured route).
+ */
+function createFallbackNode(log, rc, node, vi) {
+    // we aren't migrating the parameters for missing route
+    const rr = new $RecognizedRoute(new RecognizedRoute(new Endpoint(new ConfigurableRoute(rc.path[0], rc.caseSensitive, rc), []), emptyObject), null);
+    // Do not pass on any residue. That is if the current path is unconfigured/what/ever ignore the rest after we hit an unconfigured route.
+    // If need be later a special parameter can be created for this.
+    vi.children.length = 0;
+    return createConfiguredNode(log, node, vi, rr, null);
+}
+
+/** @internal */
+const emptyQuery = Object.freeze(new URLSearchParams());
+function isManagedState(state) {
+    return isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
+}
+function toManagedState(state, navId) {
+    return { ...state, [AuNavId]: navId };
+}
+/** @internal */
+class UnknownRouteError extends Error {
+}
+class Transition {
+    get erredWithUnknownRoute() { return this._erredWithUnknownRoute; }
+    constructor(id, prevInstructions, instructions, finalInstructions, instructionsChanged, trigger, options, managedState, previousRouteTree, routeTree, promise, resolve, reject, guardsResult, error) {
+        this.id = id;
+        this.prevInstructions = prevInstructions;
+        this.instructions = instructions;
+        this.finalInstructions = finalInstructions;
+        this.instructionsChanged = instructionsChanged;
+        this.trigger = trigger;
+        this.options = options;
+        this.managedState = managedState;
+        this.previousRouteTree = previousRouteTree;
+        this.routeTree = routeTree;
+        this.promise = promise;
+        this.resolve = resolve;
+        this.reject = reject;
+        this.guardsResult = guardsResult;
+        this.error = error;
+        /** @internal */
+        this._erredWithUnknownRoute = false;
+    }
+    /** @internal */
+    static _create(input) {
+        return new Transition(input.id, input.prevInstructions, input.instructions, input.finalInstructions, input.instructionsChanged, input.trigger, input.options, input.managedState, input.previousRouteTree, input.routeTree, input.promise, input.resolve, input.reject, input.guardsResult, void 0);
+    }
+    /** @internal */
+    _run(cb, next) {
+        if (this.guardsResult !== true) {
+            return;
+        }
+        try {
+            const ret = cb();
+            if (ret instanceof Promise) {
+                ret.then(next).catch(err => {
+                    this._handleError(err);
+                });
+            }
+            else {
+                next(ret);
+            }
+        }
+        catch (err) {
+            this._handleError(err);
+        }
+    }
+    /** @internal */
+    _handleError(err) {
+        this._erredWithUnknownRoute = err instanceof UnknownRouteError;
+        this.reject(this.error = err);
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        return `T(id:${this.id},trigger:'${this.trigger}',instructions:${this.instructions})`;
+    }
+}
+const IRouter = /*@__PURE__*/ DI.createInterface('IRouter', x => x.singleton(Router));
+class Router {
+    /** @internal */
+    get _ctx() {
+        const ctx = this._$ctx;
+        if (ctx !== null)
+            return ctx;
+        if (!this._container.has(IRouteContext, true))
+            throw new Error(getMessage(3271 /* Events.rtrNoCtx */));
+        return this._$ctx = this._container.get(IRouteContext);
+    }
+    get routeTree() {
+        let routeTree = this._routeTree;
+        if (routeTree === null) {
+            // Lazy instantiation for only the very first (synthetic) tree.
+            // Doing it here instead of in the constructor to delay it until we have the context.
+            const ctx = this._ctx;
+            routeTree = this._routeTree = new RouteTree(NavigationOptions.create(this.options, {}), emptyQuery, null, RouteNode.create({
+                path: '',
+                finalPath: '',
+                context: ctx,
+                instruction: null,
+                component: CustomElement.getDefinition(ctx.routeConfigContext.config.component),
+                title: ctx.routeConfigContext.config.title,
+            }));
+        }
+        return routeTree;
+    }
+    get currentTr() {
+        return this._currentTr ??= Transition._create({
+            id: 0,
+            prevInstructions: this._instructions,
+            instructions: this._instructions,
+            finalInstructions: this._instructions,
+            instructionsChanged: true,
+            trigger: 'api',
+            options: NavigationOptions.create(this.options, {}),
+            managedState: null,
+            previousRouteTree: this.routeTree._clone(),
+            routeTree: this.routeTree,
+            resolve: null,
+            reject: null,
+            promise: null,
+            guardsResult: true,
+            error: void 0,
+        });
+    }
+    /** @internal */
+    set currentTr(value) {
+        this._currentTr = value;
+    }
+    get isNavigating() {
+        return this._isNavigating;
+    }
+    constructor() {
+        /** @internal */ this._$ctx = null;
+        /** @internal */
+        this._routeTree = null;
+        /** @internal */
+        this._currentTr = null;
+        /** @internal */ this._navigated = false;
+        /** @internal */ this._navigationId = 0;
+        /** @internal */ this._nextTr = null;
+        /** @internal */ this._locationChangeSubscription = null;
+        /** @internal */ this._hasTitleBuilder = false;
+        /** @internal */ this._activeContexts = [];
+        /** @internal */ this._isNavigating = false;
+        /** @internal */ this._container = resolve(IContainer);
+        /** @internal */ this._p = resolve(IPlatform);
+        /** @internal */ this._logger = resolve(ILogger).root.scopeTo('Router');
+        /** @internal */ this._events = resolve(IRouterEvents);
+        /** @internal */ this._locationMgr = resolve(ILocationManager);
+        this.options = resolve(IRouterOptions);
+        this._routeConfigLookup = new WeakMap();
+        this._vpaLookup = new Map();
+        this._instructions = ViewportInstructionTree.create('', this.options, null, null);
+        this._container.registerResolver(Router, Registration.instance(Router, this));
+    }
+    /**
+     * Get the closest RouteContext relative to the provided component, controller or node.
+     *
+     * @param context - The object from which to resolve the closest RouteContext.
+     *
+     * @returns when the value is:
+     * - `null`: the root
+     * - `IRouteContext`: the provided value (no-op)
+     * - `HTMLElement`: the context of the routeable component (page) that directly or indirectly contains this element.
+     * - `ICustomElementViewModel` (the `this` object when working from inside a view model): the context of this component (if it was loaded as a route), or the routeable component (page) directly or indirectly containing it.
+     * - `ICustomElementController`: same as `ICustomElementViewModel`, but using the controller object instead of the view model object (advanced users).
+     *
+     * @internal
+     */
+    _resolveContext(context) {
+        return RouteContext.resolve(this._ctx, context);
+    }
+    start(performInitialNavigation) {
+        this._hasTitleBuilder = typeof this.options.buildTitle === 'function';
+        this._locationMgr.startListening();
+        this._locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
+            // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
+            // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
+            // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
+            // If the throttle limit is hit, then add a throttle config.
+            this._p.taskQueue.queueTask(() => {
+                // Don't try to restore state that might not have anything to do with the Aurelia app
+                const state = isManagedState(e.state) ? e.state : null;
+                const routerOptions = this.options;
+                const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
+                const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
+                // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
+                // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
+                // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
+                // So we do want to solve this at some point.
+                // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                this._enqueue(instructions, e.trigger, state, null);
+            });
+        });
+        if (!this._navigated && performInitialNavigation) {
+            return this.load(this._locationMgr.getPath(), { historyStrategy: this.options.historyStrategy !== 'none' ? 'replace' : 'none' });
+        }
+    }
+    stop() {
+        this._locationMgr.stopListening();
+        this._locationChangeSubscription?.dispose();
+    }
+    load(instructionOrInstructions, options) {
+        return onResolve(this.createViewportInstructions(instructionOrInstructions, options ?? null), instructions => {
+            trace(this._logger, 3250 /* Events.rtrLoading */, instructions);
+            return this._enqueue(instructions, 'api', null, null);
+        });
+    }
+    isActive(instructionOrInstructions, context) {
+        const ctx = this._resolveContext(context);
+        const instructions = instructionOrInstructions instanceof ViewportInstructionTree
+            ? instructionOrInstructions
+            : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy });
+        trace(this._logger, 3251 /* Events.rtrIsActive */, instructions, ctx);
+        return this.routeTree.contains(instructions, false);
+    }
+    /**
+     * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
+     *
+     * The customElement metadata is lazily associated with a type via the RouteContext the first time `getOrCreate` is called.
+     *
+     * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component+viewport combination already exists, the ViewportAgent will be updated in case it changed.
+     * @param componentDefinition - The custom element definition.
+     * @param container - The `controller.container` of the component hosting the viewport that the route will be loaded into.
+     *
+     */
+    getRouteContext(viewportAgent, componentDefinition, componentInstance, container, parentRouteConfig, parentContext, $rdConfig) {
+        const logger = /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
+        return onResolve(this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, container, parentRouteConfig, parentContext?.routeConfigContext ?? null), rdConfigContext => {
+            let routeConfigLookup = this._vpaLookup.get(viewportAgent);
+            if (routeConfigLookup === void 0) {
+                this._vpaLookup.set(viewportAgent, routeConfigLookup = new WeakMap());
+            }
+            let routeContext = routeConfigLookup.get(rdConfigContext);
+            if (routeContext !== void 0) {
+                trace(logger, 3252 /* Events.rtrResolvingRcExisting */, rdConfigContext);
+                return routeContext;
+            }
+            trace(logger, 3253 /* Events.rtrResolvingRcNew */, rdConfigContext);
+            const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
+            routeConfigLookup.set(rdConfigContext, routeContext = new RouteContext(viewportAgent, parent, container, this, rdConfigContext, this._locationMgr));
+            return routeContext;
+        });
+    }
+    getRouteConfigContext($rdConfig, componentDefinition, componentInstance, container, parentRouteConfig, parentRouteConfigContext) {
+        return onResolve(
+        // In case of navigation strategy, get the route config for the resolved component directly.
+        // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
+        // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+        $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
+            ? $rdConfig
+            : resolveRouteConfiguration(
+            // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+            typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, false, parentRouteConfig, null, parentRouteConfigContext), rdConfig => {
+            let routeConfigContext = this._routeConfigLookup.get(rdConfig);
+            if (routeConfigContext != null)
+                return routeConfigContext;
+            routeConfigContext = new RouteConfigContext(parentRouteConfigContext, componentDefinition, rdConfig, container, this);
+            this._routeConfigLookup.set(rdConfig, routeConfigContext);
+            return routeConfigContext;
+        });
+    }
+    /**
+     * Generate a path from the provided instructions.
+     *
+     * @param instructionOrInstructions - The navigation instruction(s) to generate the path for.
+     * @param context - The context to use for relative navigation. If not provided, the root context is used.
+     */
+    generatePath(instructionOrInstructions, context) {
+        return onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true), vit => vit.toUrl(true, this.options._urlParser));
+    }
+    createViewportInstructions(instructionOrInstructions, options, traverseChildren) {
+        if (instructionOrInstructions instanceof ViewportInstructionTree)
+            return instructionOrInstructions;
+        let context = (options?.context ?? null);
+        if (context !== null)
+            context = options.context = this._resolveContext(context);
+        return (context ?? this._$ctx).createViewportInstructions(instructionOrInstructions, options, traverseChildren);
+    }
+    /**
+     * Enqueue an instruction tree to be processed as soon as possible.
+     *
+     * Will wait for any existing in-flight transition to finish, otherwise starts immediately.
+     *
+     * @param instructions - The instruction tree that determines the transition
+     * @param trigger - `'popstate'` or `'hashchange'` if initiated by a browser event, or `'api'` for manually initiated transitions via the `load` api.
+     * @param state - The state to restore, if any.
+     * @param failedTr - If this is a redirect / fallback from a failed transition, the previous transition is passed forward to ensure the original promise resolves with the latest result.
+     *
+     * @internal
+     */
+    _enqueue(instructions, trigger, state, failedTr) {
+        const lastTr = this.currentTr;
+        const logger = this._logger;
+        if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
+            // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
+            debug(logger, 3254 /* Events.rtrIgnoringIdenticalNav */, trigger);
+            return true;
+        }
+        let resolve = (void 0); // Need this initializer because TS doesn't know the promise executor will run synchronously
+        let reject = (void 0);
+        let promise;
+        const restorePrevRT = this.options.restorePreviousRouteTreeOnError;
+        if (failedTr === null || failedTr.erredWithUnknownRoute || (failedTr.error != null && restorePrevRT)) {
+            promise = new Promise(function ($resolve, $reject) { resolve = $resolve; reject = $reject; });
+        }
+        else {
+            // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
+            // any previously failed transition that caused a recovering backwards navigation.
+            debug(logger, 3255 /* Events.rtrReusingPromise */, failedTr);
+            promise = failedTr.promise;
+            resolve = failedTr.resolve;
+            reject = failedTr.reject;
+        }
+        // This is an intentional overwrite: if a new transition is scheduled while the currently scheduled transition hasn't even started yet,
+        // then the currently scheduled transition is effectively canceled/ignored.
+        // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
+        const nextTr = this._nextTr = Transition._create({
+            id: ++this._navigationId,
+            trigger,
+            managedState: state,
+            prevInstructions: lastTr.finalInstructions,
+            finalInstructions: instructions,
+            instructionsChanged: !lastTr.finalInstructions.equals(instructions),
+            instructions,
+            options: instructions.options,
+            promise,
+            resolve,
+            reject,
+            previousRouteTree: this.routeTree,
+            routeTree: this._routeTree = this.routeTree._clone(),
+            guardsResult: true,
+            error: void 0,
+        });
+        debug(logger, 3256 /* Events.rtrSchedulingTr */, nextTr);
+        if (!this._isNavigating) {
+            // Catch any errors that might be thrown by `run` and reject the original promise which is awaited down below
+            try {
+                this._run(nextTr);
+            }
+            catch (err) {
+                nextTr._handleError(err);
+            }
+        }
+        return nextTr.promise.then(ret => {
+            debug(logger, 3257 /* Events.rtrTrSucceeded */, nextTr);
+            return ret;
+        }).catch(err => {
+            error(logger, 3270 /* Events.rtrTrFailed */, nextTr, err);
+            if (nextTr.erredWithUnknownRoute) {
+                this._cancelNavigation(nextTr);
+            }
+            else {
+                this._isNavigating = false;
+                this._events.publish(new NavigationErrorEvent(nextTr.id, nextTr.instructions, err));
+                if (restorePrevRT) {
+                    this._cancelNavigation(nextTr);
+                }
+                else {
+                    const $nextTr = this._nextTr;
+                    // because the navigation failed it makes sense to restore the previous route-tree so that with next navigation, lifecycle hooks are correctly invoked.
+                    if ($nextTr !== null) {
+                        $nextTr.previousRouteTree = nextTr.previousRouteTree;
+                    }
+                    else {
+                        this._routeTree = nextTr.previousRouteTree;
+                    }
+                }
+            }
+            throw err;
+        });
+    }
+    /** @internal */
+    _run(tr) {
+        this.currentTr = tr;
+        this._nextTr = null;
+        /**
+         * Future optimization scope:
+         * Can we devise a plan to ignore a transition?
+         * The idea is to deterministically identify that the given transition is already active.
+         * In that case, we only choose to execute the transition if the transitionPlan is set to replace. (this check is currently done in the viewport agent).
+         *
+         * Solution idea:
+         * The root RouteNode needs to be consistently updated, even when children nodes are lazily added.
+         * When done, the instruction can be compared starting with the root node.
+         */
+        this._isNavigating = true;
+        for (const ctx of this._activeContexts) {
+            ctx.routeConfigContext._handleNavigationStart();
+        }
+        let navigationContext = this._resolveContext(tr.options.context);
+        const logger = /*@__PURE__*/ this._logger.scopeTo('run()');
+        trace(logger, 3258 /* Events.rtrRunBegin */, tr);
+        this._events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
+        // If user triggered a new transition in response to the NavigationStartEvent
+        // (in which case `this.nextTransition` will NOT be null), we short-circuit here and go straight to processing the next one.
+        if (this._nextTr !== null) {
+            debug(logger, 3259 /* Events.rtrRunCancelled */, tr);
+            return this._run(this._nextTr);
+        }
+        tr._run(() => {
+            const vit = tr.finalInstructions;
+            trace(logger, 3260 /* Events.rtrRunVitCompile */, vit);
+            /**
+             * Updating route tree:
+             * Returns a stateful `RouteTree` based on the provided context and transition.
+             *
+             * This process will always start from the root context and build a new complete tree, up until (and including)
+             * the context that was passed-in.
+             *
+             * If there are any additional child navigations to be resolved lazily, those will be added to the leaf
+             * `RouteNode`s `residue` property which is then resolved by the router after the leaf node is loaded.
+             *
+             * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
+             */
+            // The root of the routing tree is always the CompositionRoot of the Aurelia app.
+            // From a routing perspective it's simply a "marker": it does not need to be loaded,
+            // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
+            // other than by reading (deps, optional route config, owned viewports) from it.
+            const rootCtx = this._ctx;
+            const rt = tr.routeTree;
+            rt.options = vit.options;
+            rt.queryParams = rootCtx.node._tree.queryParams = vit.queryParams;
+            rt.fragment = rootCtx.node._tree.fragment = vit.fragment;
+            const log = /*@__PURE__*/ navigationContext.container.get(ILogger).scopeTo('RouteTree');
+            if (vit.isAbsolute) {
+                navigationContext = rootCtx;
+            }
+            if (navigationContext === rootCtx) {
+                rt.root._setTree(rt);
+                rootCtx.node = rt.root;
+            }
+            const suffix = navigationContext.routeConfigContext.allResolved instanceof Promise ? ' - awaiting promise' : '';
+            log.trace(`updateRouteTree(rootCtx:%s,rt:%s,vit:%s)${suffix}`, rootCtx, rt, vit);
+            // Wait till the promises to resolve the child routes are resolved.
+            // Note that a route configuration can be a promise.
+            return onResolve(navigationContext.routeConfigContext.allResolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
+        }, () => {
+            const prev = tr.previousRouteTree.root.children;
+            const next = tr.routeTree.root.children;
+            const all = mergeDistinct(prev, next);
+            Batch._start(b => {
+                trace(logger, 3261 /* Events.rtrRunCanUnload */, prev.length);
+                for (const node of prev) {
+                    node.context.vpa._canUnload(tr, b);
+                }
+            })._continueWith(b => {
+                if (tr.guardsResult !== true) {
+                    b._push(); // prevent the next step in the batch from running
+                    this._cancelNavigation(tr);
+                }
+            })._continueWith(b => {
+                trace(logger, 3262 /* Events.rtrRunCanLoad */, next.length);
+                for (const node of next) {
+                    node.context.vpa._canLoad(tr, b);
+                }
+            })._continueWith(b => {
+                if (tr.guardsResult !== true) {
+                    b._push();
+                    this._cancelNavigation(tr);
+                }
+            })._continueWith(b => {
+                trace(logger, 3263 /* Events.rtrRunUnloading */, prev.length);
+                for (const node of prev) {
+                    node.context.vpa._unloading(tr, b);
+                }
+            })._continueWith(b => {
+                trace(logger, 3264 /* Events.rtrRunLoading */, next.length);
+                for (const node of next) {
+                    node.context.vpa._loading(tr, b);
+                }
+            })._continueWith(b => {
+                trace(logger, 3265 /* Events.rtrRunSwapping */, all.length);
+                for (const node of all) {
+                    node.context.vpa._swap(tr, b);
+                }
+            })._continueWith(b => {
+                // it is possible that some of the child routes are cancelling the navigation
+                if (tr.guardsResult !== true) {
+                    b._push();
+                    this._cancelNavigation(tr);
+                }
+            })._continueWith(() => {
+                trace(logger, 3266 /* Events.rtrRunFinalizing */);
+                // order doesn't matter for this operation
+                all.forEach(function (node) {
+                    node.context.vpa._endTransition();
+                });
+                this._navigated = true;
+                this._instructions = tr.finalInstructions = tr.routeTree._finalizeInstructions();
+                this._isNavigating = false;
+                // apply history state
+                const newUrl = tr.finalInstructions.toUrl(true, this.options._urlParser);
+                switch (tr.options._getHistoryStrategy(this._instructions)) {
+                    case 'none':
+                        // do nothing
+                        break;
+                    case 'push':
+                        this._locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+                        break;
+                    case 'replace':
+                        this._locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+                        break;
+                }
+                this._events.publish(new NavigationEndEvent(tr.id, tr.instructions, this._instructions));
+                tr.resolve(true);
+                this._runNextTransition();
+            })._start();
+        });
+    }
+    updateTitle(tr = this.currentTr) {
+        const title = this._getTitle(tr);
+        if (title.length > 0) {
+            this._p.document.title = title;
+        }
+        return this._p.document.title;
+    }
+    /** @internal */
+    _getTitle(tr = this.currentTr) {
+        let title;
+        if (this._hasTitleBuilder) {
+            title = this.options.buildTitle(tr) ?? '';
+        }
+        else {
+            switch (typeof tr.options.title) {
+                case 'function':
+                    title = tr.options.title.call(void 0, tr.routeTree.root) ?? '';
+                    break;
+                case 'string':
+                    title = tr.options.title;
+                    break;
+                default:
+                    title = tr.routeTree.root.getTitle(tr.options.titleSeparator) ?? '';
+                    break;
+            }
+        }
+        return title;
+    }
+    /** @internal */
+    _subscribeNavigationStart(ctx) {
+        this._activeContexts.push(ctx);
+    }
+    /** @internal */
+    _unsubscribeNavigationStart(ctx) {
+        const idx = this._activeContexts.indexOf(ctx);
+        if (idx > -1) {
+            this._activeContexts.splice(idx, 1);
+        }
+    }
+    /** @internal */
+    _cancelNavigation(tr) {
+        const logger = /*@__PURE__*/ this._logger.scopeTo('cancelNavigation()');
+        trace(logger, 3267 /* Events.rtrCancelNavigationStart */, tr);
+        const prev = tr.previousRouteTree.root.children;
+        const next = tr.routeTree.root.children;
+        const all = mergeDistinct(prev, next);
+        // order doesn't matter for this operation
+        all.forEach(function (node) {
+            node.context.vpa._cancelUpdate();
+        });
+        this._instructions = tr.prevInstructions;
+        this._routeTree = tr.previousRouteTree;
+        this._isNavigating = false;
+        const guardsResult = tr.guardsResult;
+        this._events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
+        if (guardsResult === false) {
+            tr.resolve(false);
+            // In case a new navigation was requested in the meantime, immediately start processing it
+            this._runNextTransition();
+        }
+        else {
+            let instructions;
+            if (this._navigated && (tr.erredWithUnknownRoute || (tr.error != null && this.options.restorePreviousRouteTreeOnError)))
+                instructions = tr.prevInstructions;
+            else if (guardsResult === true)
+                return;
+            else
+                instructions = guardsResult;
+            void onResolve(this._enqueue(instructions, 'api', tr.managedState, tr), () => {
+                trace(this._logger, 3268 /* Events.rtrCancelNavigationCompleted */, tr);
+            });
+        }
+    }
+    /** @internal */
+    _runNextTransition() {
+        if (this._nextTr === null)
+            return;
+        trace(this._logger, 3269 /* Events.rtrNextTr */, this._nextTr);
+        this._p.taskQueue.queueTask(() => {
+            // nextTransition is allowed to change up until the point when it's actually time to process it,
+            // so we need to check it for null again when the scheduled task runs.
+            const nextTr = this._nextTr;
+            if (nextTr === null)
+                return;
+            try {
+                this._run(nextTr);
+            }
+            catch (err) {
+                nextTr._handleError(err);
+            }
+        });
+    }
+}
+function updateNode(log, vit, ctx, node) {
+    log.trace(`updateNode(ctx:%s,node:%s)`, ctx, node);
+    node.queryParams = vit.queryParams;
+    node.fragment = vit.fragment;
+    if (!node.context.routeConfigContext.isRoot) {
+        node.context.vpa._scheduleUpdate(node._tree.options, node);
+    }
+    if (node.context === ctx) {
+        // Do an in-place update (remove children and re-add them by compiling the instructions into nodes)
+        node._clearChildren();
+        // - first append the nodes as children, compiling the viewport instructions.
+        // - if afterward, any viewports are still available
+        //   - look at the default value of those viewports
+        //   - create instructions, and
+        //   - add the compiled nodes from those to children of the node.
+        return onResolve(onResolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))), () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
+            const vp = vpa.viewport;
+            const component = vp.default;
+            if (component === null)
+                return acc;
+            acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+            return acc;
+        }, [])));
+    }
+    // Drill down until we're at the node whose context matches the provided navigation context
+    return onResolveAll(...node.children.map(child => {
+        return updateNode(log, vit, ctx, child);
+    }));
+}
+
+class ParsedUrl {
+    constructor(path, query, fragment) {
+        this.path = path;
+        this.query = query;
+        this.fragment = fragment;
+        this.id = `${path}?${query?.toString() ?? ''}#${fragment ?? ''}`;
+    }
+    toString() {
+        return this.id;
+    }
+    /** @internal */
+    static _create(value) {
+        /**
+         * Look for the fragment first and strip it away.
+         * Next, look for the query string and strip it away.
+         * The remaining value is the path.
+         */
+        let fragment = null;
+        const fragmentStart = value.indexOf('#');
+        if (fragmentStart >= 0) {
+            const rawFragment = value.slice(fragmentStart + 1);
+            fragment = decodeURIComponent(rawFragment);
+            value = value.slice(0, fragmentStart);
+        }
+        let queryParams = null;
+        const queryStart = value.indexOf('?');
+        if (queryStart >= 0) {
+            const queryString = value.slice(queryStart + 1);
+            value = value.slice(0, queryStart);
+            queryParams = Object.freeze(new URLSearchParams(queryString));
+        }
+        return new ParsedUrl(value, queryParams ?? emptyQuery, fragment);
+    }
+}
+function stringify(pathOrParsedUrl, query, fragment) {
+    // normalize the input
+    let path;
+    if (typeof pathOrParsedUrl === 'string') {
+        path = pathOrParsedUrl;
+    }
+    else {
+        path = pathOrParsedUrl.path;
+        query = pathOrParsedUrl.query;
+        fragment = pathOrParsedUrl.fragment;
+    }
+    query ??= emptyQuery;
+    // compose the path, query and fragment to compose the serialized URL
+    let queryString = query.toString();
+    queryString = queryString === '' ? '' : `?${queryString}`;
+    const hash = fragment != null && fragment.length > 0 ? `#${encodeURIComponent(fragment)}` : '';
+    return `${path}${queryString}${hash}`;
+}
+const pathUrlParser = Object.freeze({
+    parse(value) {
+        return ParsedUrl._create(value);
+    },
+    stringify(pathOrParsedUrl, query, fragment) {
+        return stringify(pathOrParsedUrl, query, fragment);
+    }
+});
+const fragmentUrlParser = Object.freeze({
+    parse(value) {
+        /**
+         * Look for the fragment; if found then take it and discard the rest.
+         * Otherwise, the entire value is the fragment.
+         * Next, look for the query string and strip it away.
+         * Construct the serialized URL, with the fragment as path, the query and null fragment.
+         */
+        const start = value.indexOf('#');
+        if (start >= 0) {
+            const rawFragment = value.slice(start + 1);
+            value = decodeURIComponent(rawFragment);
+        }
+        return ParsedUrl._create(value);
+    },
+    stringify(pathOrParsedUrl, query, fragment) {
+        return `/#/${stringify(pathOrParsedUrl, query, fragment)}`;
+    }
+});
+
+function valueOrFuncToValue(instructions, valueOrFunc) {
+    if (typeof valueOrFunc === 'function') {
+        return valueOrFunc(instructions);
+    }
+    return valueOrFunc;
+}
+const IRouterOptions = /*@__PURE__*/ DI.createInterface('RouterOptions');
+class RouterOptions {
+    constructor(useUrlFragmentHash, useHref, 
+    /**
+     * The strategy to use for interacting with the browser's `history` object (if applicable).
+     *
+     * - `none`: do not interact with the `history` object at all.
+     * - `replace`: replace the current state in history
+     * - `push`: push a new state onto the history (default)
+     * - A function that returns one of the 3 above values based on the navigation.
+     *
+     * Default: `push`
+     */
+    historyStrategy, 
+    /**
+     * An optional handler to build the title.
+     * When configured, the work of building the title string is completely handed over to this function.
+     * If this function returns `null`, the title is not updated.
+     */
+    buildTitle, 
+    /**
+     * When set to `false`, the navigation model won't be generated.
+     * The default value is `true`.
+     */
+    useNavigationModel, 
+    /**
+     * The class that is added to the element by the `load` custom attribute, if the associated instruction is active.
+     * If no value is provided while configuring router, no class will be added.
+     * The default value is `null`.
+     */
+    activeClass, 
+    /**
+     * When set to `true`, the router will try to restore previous route tree, when a routing instruction errs.
+     * Set this to `false`, if a stricter behavior is desired. However, in that case, you need to ensure the avoidance of errors.
+     * The default value is `true`.
+     */
+    restorePreviousRouteTreeOnError) {
+        this.useUrlFragmentHash = useUrlFragmentHash;
+        this.useHref = useHref;
+        this.historyStrategy = historyStrategy;
+        this.buildTitle = buildTitle;
+        this.useNavigationModel = useNavigationModel;
+        this.activeClass = activeClass;
+        this.restorePreviousRouteTreeOnError = restorePreviousRouteTreeOnError;
+        this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
+    }
+    static create(input) {
+        return new RouterOptions(input.useUrlFragmentHash ?? false, input.useHref ?? true, input.historyStrategy ?? 'push', input.buildTitle ?? null, input.useNavigationModel ?? true, input.activeClass ?? null, input.restorePreviousRouteTreeOnError ?? true);
+    }
+    toString() {
+        return `RO(${[
+            ['historyStrategy', 'history'],
+        ].map(([key, name]) => {
+            const value = this[key];
+            return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
+        }).join(',')})`;
+    }
+}
+class NavigationOptions {
+    constructor(
+    /**
+     * Same as `RouterOptions#historyStrategy`.
+     */
+    historyStrategy, title, titleSeparator, 
+    /**
+     * Specify a context to use for relative navigation.
+     *
+     * - `null` (or empty): navigate relative to the root (absolute navigation)
+     * - `IRouteContext`: navigate relative to specifically this RouteContext (advanced users).
+     * - `HTMLElement`: navigate relative to the routeable component (page) that directly or indirectly contains this element.
+     * - `ICustomElementViewModel` (the `this` object when working from inside a view model): navigate relative to this component (if it was loaded as a route), or the routeable component (page) directly or indirectly containing it.
+     * - `ICustomElementController`: same as `ICustomElementViewModel`, but using the controller object instead of the view model object (advanced users).
+     */
+    context, 
+    /**
+     * Specify an object to be serialized to a query string, and then set to the query string of the new URL.
+     */
+    queryParams, 
+    /**
+     * Specify the hash fragment for the new URL.
+     */
+    fragment, 
+    /**
+     * Specify any kind of state to be stored together with the history entry for this navigation.
+     */
+    state, transitionPlan) {
+        this.historyStrategy = historyStrategy;
+        this.title = title;
+        this.titleSeparator = titleSeparator;
+        this.context = context;
+        this.queryParams = queryParams;
+        this.fragment = fragment;
+        this.state = state;
+        this.transitionPlan = transitionPlan;
+    }
+    static create(routerOptions, input) {
+        return new NavigationOptions(input.historyStrategy ?? routerOptions.historyStrategy, input.title ?? null, input.titleSeparator ?? ' | ', input.context ?? null, input.queryParams ?? null, input.fragment ?? '', input.state ?? null, input.transitionPlan ?? null);
+    }
+    /** @internal */
+    _clone() {
+        return new NavigationOptions(this.historyStrategy, this.title, this.titleSeparator, this.context, { ...this.queryParams }, this.fragment, this.state === null ? null : { ...this.state }, this.transitionPlan);
+    }
+    /** @internal */
+    _getHistoryStrategy(instructions) {
+        return valueOrFuncToValue(instructions, this.historyStrategy);
+    }
+}
+
+const defaultViewportName = 'default';
+class ViewportInstruction {
+    constructor(open, close, recognizedRoute, component, viewport, params, children) {
+        this.open = open;
+        this.close = close;
+        this.recognizedRoute = recognizedRoute;
+        this.component = component;
+        this.viewport = viewport;
+        this.params = params;
+        this.children = children;
+    }
+    static create(instruction) {
+        if (instruction instanceof ViewportInstruction)
+            return instruction; // eslint is being really weird here
+        if (isPartialViewportInstruction(instruction)) {
+            const component = TypedNavigationInstruction.create(instruction.component);
+            const children = instruction.children?.map(ViewportInstruction.create) ?? [];
+            return new ViewportInstruction(instruction.open ?? 0, instruction.close ?? 0, instruction.recognizedRoute ?? null, component, instruction.viewport ?? null, Object.freeze(instruction.params ?? null), children);
+        }
+        const typedInstruction = TypedNavigationInstruction.create(instruction);
+        return new ViewportInstruction(0, 0, null, typedInstruction, null, null, []);
+    }
+    contains(other) {
+        const thisChildren = this.children;
+        const otherChildren = other.children;
+        if (thisChildren.length < otherChildren.length) {
+            return false;
+        }
+        if (!this.component.equals(other.component))
+            return false;
+        // if either of the viewports are not set then ignore
+        const vp = this.viewport ?? null;
+        const otherVp = other.viewport ?? null;
+        if (vp !== null && otherVp !== null && vp !== otherVp)
+            return false;
+        for (let i = 0, ii = otherChildren.length; i < ii; ++i) {
+            if (!thisChildren[i].contains(otherChildren[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    equals(other) {
+        const thisChildren = this.children;
+        const otherChildren = other.children;
+        if (thisChildren.length !== otherChildren.length) {
+            return false;
+        }
+        if (!this.component.equals(other.component) ||
+            this.viewport !== other.viewport ||
+            !shallowEquals(this.params, other.params)) {
+            return false;
+        }
+        for (let i = 0, ii = thisChildren.length; i < ii; ++i) {
+            if (!thisChildren[i].equals(otherChildren[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /** @internal */
+    _clone() {
+        return new ViewportInstruction(this.open, this.close, this.recognizedRoute, this.component._clone(), this.viewport, this.params, [...this.children]);
+    }
+    toUrlComponent(recursive = true) {
+        const component = this.component.toUrlComponent();
+        const vp = this.viewport;
+        const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
+        const thisPart = `${'('.repeat(this.open)}${component}${stringifyParams(this.params)}${viewport}${')'.repeat(this.close)}`;
+        const childPart = recursive ? this.children.map(x => x.toUrlComponent()).join('+') : '';
+        return thisPart.length > 0
+            ? childPart.length > 0
+                ? `${thisPart}/${childPart}`
+                : thisPart
+            : childPart;
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        const component = `c:${this.component}`;
+        const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `viewport:${this.viewport}`;
+        const children = this.children.length === 0 ? '' : `children:[${this.children.map(String).join(',')}]`;
+        const props = [component, viewport, children].filter(Boolean).join(',');
+        return `VPI(${props})`;
+    }
+}
+/**
+ * Note on the parenthesized parameters:
+ * We will land on this branch if and only if the component cannot be eagerly recognized (in the RouteContext#generateViewportInstruction) AND the parameters are also provided.
+ * When the routes are eagerly recognized, then there is no parameters left at this point and everything is already packed in the generated path as well as in the recognized route.
+ * Thus, in normal scenarios the users will never land here.
+ *
+ * Whenever, they are using a hand composed (string) path, then in that case there is no question of having parameters at this point, rather the given path is recognized in the createAndAppendNodes.
+ * It might be a rare edge case where users provide half the parameters in the string path and half as form of parameters; example: `load="route: r1/id1; params.bind: {id2}"`.
+ * We might not want to officially support such cases.
+ *
+ * However, as the route recognition is inherently lazy (think about child routes, whose routing configuration are not resolved till a child routing context is created, or
+ * the usage of instance level getRouteConfig), the component cannot be recognized fully eagerly. Thus, it is difficult at this point to correctly handle parameters as defined by the path templates defined for the component.
+ * This artifact is kept here for the purpose of fallback.
+ *
+ * We can think about a stricter mode where we throw error if any params remains unconsumed at this point.
+ * Or simply ignore the params while creating the URL. However, that does not feel right at all.
+ */
+function stringifyParams(params) {
+    if (params === null)
+        return '';
+    const keys = Object.keys(params);
+    const numKeys = keys.length;
+    if (numKeys === 0)
+        return '';
+    const values = Array(numKeys);
+    const indexKeys = [];
+    const namedKeys = [];
+    for (const key of keys) {
+        if (isArrayIndex(key)) {
+            indexKeys.push(Number(key));
+        }
+        else {
+            namedKeys.push(key);
+        }
+    }
+    for (let i = 0; i < numKeys; ++i) {
+        const indexKeyIdx = indexKeys.indexOf(i);
+        if (indexKeyIdx > -1) {
+            values[i] = params[i];
+            indexKeys.splice(indexKeyIdx, 1);
+        }
+        else {
+            const namedKey = namedKeys.shift();
+            values[i] = `${namedKey}=${params[namedKey]}`;
+        }
+    }
+    return `(${values.join(',')})`;
+}
+class ViewportInstructionTree {
+    constructor(options, isAbsolute, children, queryParams, fragment) {
+        this.options = options;
+        this.isAbsolute = isAbsolute;
+        this.children = children;
+        this.queryParams = queryParams;
+        this.fragment = fragment;
+        Object.freeze(queryParams);
+    }
+    static create(instructionOrInstructions, routerOptions, options, rootCtx, traverseChildren) {
+        options = options instanceof NavigationOptions ? options : NavigationOptions.create(routerOptions, options ?? emptyObject);
+        let context = options.context;
+        if (!(context instanceof RouteContext) && rootCtx != null) {
+            context = options.context = RouteContext.resolve(rootCtx, context);
+        }
+        const hasContext = context != null;
+        if (instructionOrInstructions instanceof Array) {
+            // This whole process is synchronous, if traverseChildren is not true.
+            const len = instructionOrInstructions.length;
+            const children = new Array(len);
+            const query = new URLSearchParams(options.queryParams ?? emptyObject);
+            const promises = new Array(len);
+            for (let i = 0; i < len; i++) {
+                const instruction = instructionOrInstructions[i];
+                promises[i] = onResolve(hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, traverseChildren) : null, eagerVi => {
+                    if (eagerVi !== null) {
+                        children[i] = eagerVi.vi;
+                        mergeURLSearchParams(query, eagerVi.query, false);
+                    }
+                    else {
+                        children[i] = ViewportInstruction.create(instruction);
+                    }
+                });
+            }
+            return onResolve(onResolveAll(...promises), () => new ViewportInstructionTree(options, false, children, query, options.fragment));
+        }
+        if (typeof instructionOrInstructions === 'string') {
+            const expr = RouteExpression.parse(routerOptions._urlParser.parse(instructionOrInstructions));
+            return expr.toInstructionTree(options);
+        }
+        return onResolve(hasContext
+            ? context.routeConfigContext._generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
+                ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
+                : { component: instructionOrInstructions, params: emptyObject }, traverseChildren)
+            : null, eagerVi => {
+            const query = new URLSearchParams(options.queryParams ?? emptyObject);
+            return eagerVi !== null
+                ? new ViewportInstructionTree(options, false, [eagerVi.vi], mergeURLSearchParams(query, eagerVi.query, false), options.fragment)
+                : new ViewportInstructionTree(options, false, [ViewportInstruction.create(instructionOrInstructions)], query, options.fragment);
+        });
+    }
+    equals(other) {
+        const thisChildren = this.children;
+        const otherChildren = other.children;
+        if (thisChildren.length !== otherChildren.length) {
+            return false;
+        }
+        for (let i = 0, ii = thisChildren.length; i < ii; ++i) {
+            if (!thisChildren[i].equals(otherChildren[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    toUrl(isFinalInstruction, parser) {
+        let parentPath = '';
+        if (!isFinalInstruction) {
+            const parentPaths = [];
+            let ctx = this.options.context;
+            if (ctx != null && !(ctx instanceof RouteContext))
+                throw new Error('Invalid operation; incompatible navigation context.');
+            while (ctx != null && !ctx.routeConfigContext.isRoot) {
+                const vpa = ctx.vpa;
+                const node = vpa._currState === 4096 /* State.currIsActive */ ? vpa._currNode : vpa._nextNode;
+                if (node == null)
+                    throw new Error('Invalid operation; nodes of the viewport agent are not set.');
+                parentPaths.splice(0, 0, node.instruction.toUrlComponent());
+                ctx = ctx.parent;
+            }
+            if (parentPaths[0] === '') {
+                parentPaths.splice(0, 1);
+            }
+            parentPath = parentPaths.join('/');
+        }
+        const currentPath = this.toPath();
+        return parser.stringify(parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath, this.queryParams, this.fragment);
+    }
+    toPath() {
+        return this.children.map(x => x.toUrlComponent()).join('+');
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        return `[${this.children.map(String).join(',')}]`;
+    }
+}
+class NavigationStrategy {
+    constructor(
+    /** @internal */ getComponent) {
+        this.getComponent = getComponent;
+    }
+}
+
+class TypedNavigationInstruction {
+    constructor(type, value) {
+        this.type = type;
+        this.value = value;
+    }
+    static create(instruction) {
+        if (instruction instanceof TypedNavigationInstruction) {
+            return instruction;
+        }
+        if (typeof instruction === 'string')
+            return new TypedNavigationInstruction(0 /* NavigationInstructionType.string */, instruction);
+        // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
+        if (!isObjectOrFunction(instruction))
+            expectType('function/class or object', '', instruction);
+        if (instruction instanceof NavigationStrategy)
+            return new TypedNavigationInstruction(5 /* NavigationInstructionType.NavigationStrategy */, instruction);
+        if (typeof instruction === 'function') {
+            if (CustomElement.isType(instruction)) {
+                // This is the class itself
+                // CustomElement.getDefinition will throw if the type is not a custom element
+                const definition = CustomElement.getDefinition(instruction);
+                return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, definition);
+            }
+            else {
+                return TypedNavigationInstruction.create(instruction());
+            }
+        }
+        if (instruction instanceof Promise)
+            return new TypedNavigationInstruction(3 /* NavigationInstructionType.Promise */, instruction);
+        if (isPartialViewportInstruction(instruction)) {
+            const viewportInstruction = ViewportInstruction.create(instruction);
+            return new TypedNavigationInstruction(1 /* NavigationInstructionType.ViewportInstruction */, viewportInstruction);
+        }
+        if (isCustomElementViewModel(instruction))
+            return new TypedNavigationInstruction(4 /* NavigationInstructionType.IRouteViewModel */, instruction);
+        // We might have gotten a complete definition. In that case use it as-is.
+        if (instruction instanceof CustomElementDefinition)
+            return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, instruction);
+        // If we have a partial definition, create a complete definition from it.
+        // Use-case:
+        // import * as component from './conventional-html-only-component.html';
+        // @route({
+        //   routes: [
+        //     {
+        //       path: 'path',
+        //       component,
+        //     },
+        //   ],
+        // })
+        if (isPartialCustomElementDefinition(instruction)) {
+            const definition = CustomElementDefinition.create(instruction);
+            CustomElement.define(definition);
+            return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, definition);
+        }
+        throw new Error(getMessage(3400 /* Events.instrInvalid */, tryStringify(instruction)));
+    }
+    equals(other) {
+        switch (this.type) {
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
+            case 2 /* NavigationInstructionType.CustomElementDefinition */:
+            case 4 /* NavigationInstructionType.IRouteViewModel */:
+            case 3 /* NavigationInstructionType.Promise */:
+            case 0 /* NavigationInstructionType.string */:
+                return this.type === other.type && this.value === other.value;
+            case 1 /* NavigationInstructionType.ViewportInstruction */:
+                return this.type === other.type && this.value.equals(other.value);
+        }
+    }
+    /** @internal */
+    _clone() {
+        return new TypedNavigationInstruction(this.type, this.value);
+    }
+    toUrlComponent() {
+        switch (this.type) {
+            case 2 /* NavigationInstructionType.CustomElementDefinition */:
+                return this.value.name;
+            case 4 /* NavigationInstructionType.IRouteViewModel */:
+            case 3 /* NavigationInstructionType.Promise */:
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
+                throw new Error(getMessage(3403 /* Events.instrInvalidUrlComponentOperation */, this.type));
+            case 1 /* NavigationInstructionType.ViewportInstruction */:
+                return this.value.toUrlComponent();
+            case 0 /* NavigationInstructionType.string */:
+                return this.value;
+        }
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        switch (this.type) {
+            case 2 /* NavigationInstructionType.CustomElementDefinition */:
+                return `CEDef(name:'${this.value.name}')`;
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
+                return `NS`;
+            case 3 /* NavigationInstructionType.Promise */:
+                return `Promise`;
+            case 4 /* NavigationInstructionType.IRouteViewModel */:
+                return `VM(name:'${CustomElement.getDefinition(this.value.constructor).name}')`;
+            case 1 /* NavigationInstructionType.ViewportInstruction */:
+                return this.value.toString();
+            case 0 /* NavigationInstructionType.string */:
+                return `'${this.value}'`;
+        }
+    }
+}
+
+/**
+ * A component agent handles an instance of a routed view-model (a component).
+ * It deals with invoking the hooks (`canLoad`, `loading`, `canUnload`, `unloading`),
+ * and activating, deactivating, and disposing the component (via the associated controller).
+ *
+ * @internal
+ */
+class ComponentAgent {
+    constructor(
+    /** @internal */ _instance, 
+    /** @internal */ _controller, 
+    /** @internal */ _routeNode, 
+    /** @internal */ _ctx, 
+    /** @internal */ _routerOptions) {
+        this._instance = _instance;
+        this._controller = _controller;
+        this._routeNode = _routeNode;
+        this._ctx = _ctx;
+        this._routerOptions = _routerOptions;
+        this._logger = _controller.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx.routeConfigContext._friendlyPath}>`);
+        trace(this._logger, 3050 /* Events.caCreated */);
+        const lifecycleHooks = _controller.lifecycleHooks;
+        this._canLoadHooks = (lifecycleHooks.canLoad ?? []).map(x => x.instance);
+        this._loadHooks = (lifecycleHooks.loading ?? []).map(x => x.instance);
+        this._canUnloadHooks = (lifecycleHooks.canUnload ?? []).map(x => x.instance);
+        this._unloadHooks = (lifecycleHooks.unloading ?? []).map(x => x.instance);
+        this._hasCanLoad = 'canLoad' in _instance;
+        this._hasLoad = 'loading' in _instance;
+        this._hasCanUnload = 'canUnload' in _instance;
+        this._hasUnload = 'unloading' in _instance;
+    }
+    /** @internal */
+    _activate(initiator, parent) {
+        const controller = this._controller;
+        const viewportController = this._ctx.vpa.hostController;
+        switch (controller.mountTarget) {
+            case MountTarget.host:
+            case MountTarget.shadowRoot:
+                viewportController.host.appendChild(controller.host);
+                break;
+            case MountTarget.location:
+                viewportController.host.append(controller.location.$start, controller.location);
+                break;
+            case MountTarget.none:
+                throw new Error('Invalid mount target for routed component');
+        }
+        if (initiator === null) {
+            trace(this._logger, 3051 /* Events.caActivateSelf */);
+            return this._controller.activate(this._controller, parent);
+        }
+        trace(this._logger, 3052 /* Events.caActivateInitiator */);
+        // Promise return values from user VM hooks are awaited by the initiator
+        void this._controller.activate(initiator, parent);
+    }
+    /** @internal */
+    _deactivate(initiator, parent) {
+        const controller = this._controller;
+        // there's a case controller was disposed and is being deactivated again?
+        // todo: these 3 lines seems invasive, and ugly, should this be a method on Controller?
+        controller.host?.remove();
+        controller.location?.remove();
+        controller.location?.$start?.remove();
+        if (initiator === null) {
+            trace(this._logger, 3053 /* Events.caDeactivateSelf */);
+            return controller.deactivate(controller, parent);
+        }
+        trace(this._logger, 3054 /* Events.caDeactivateInitiator */);
+        // Promise return values from user VM hooks are awaited by the initiator
+        void controller.deactivate(initiator, parent);
+    }
+    /** @internal */
+    _dispose() {
+        trace(this._logger, 3055 /* Events.caDispose */);
+        this._controller.dispose();
+    }
+    /** @internal */
+    _canUnload(tr, next, b) {
+        trace(this._logger, 3056 /* Events.caCanUnload */, next, this._canUnloadHooks.length);
+        b._push();
+        let promise = Promise.resolve();
+        for (const hook of this._canUnloadHooks) {
+            b._push();
+            promise = promise.then(() => new Promise((res) => {
+                if (tr.guardsResult !== true) {
+                    b._pop();
+                    res();
+                    return;
+                }
+                tr._run(() => {
+                    return hook.canUnload(this._instance, next, this._routeNode);
+                }, ret => {
+                    if (tr.guardsResult === true && ret === false) {
+                        tr.guardsResult = false;
+                    }
+                    b._pop();
+                    res();
+                });
+            }));
+        }
+        if (this._hasCanUnload) {
+            b._push();
+            // deepscan-disable-next-line UNUSED_VAR_ASSIGN
+            promise = promise.then(() => {
+                if (tr.guardsResult !== true) {
+                    b._pop();
+                    return;
+                }
+                tr._run(() => {
+                    return this._instance.canUnload(next, this._routeNode);
+                }, ret => {
+                    if (tr.guardsResult === true && ret === false) {
+                        tr.guardsResult = false;
+                    }
+                    b._pop();
+                });
+            });
+        }
+        b._pop();
+    }
+    /** @internal */
+    _canLoad(tr, next, b) {
+        trace(this._logger, 3057 /* Events.caCanLoad */, next, this._canLoadHooks.length);
+        const rootCtx = this._ctx.root;
+        b._push();
+        let promise = Promise.resolve();
+        for (const hook of this._canLoadHooks) {
+            b._push();
+            promise = promise.then(() => new Promise((res) => {
+                if (tr.guardsResult !== true) {
+                    b._pop();
+                    res();
+                    return;
+                }
+                tr._run(() => {
+                    return hook.canLoad(this._instance, next.params, next, this._routeNode);
+                }, ret => {
+                    if (tr.guardsResult === true && ret != null && ret !== true) {
+                        tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
+                    }
+                    b._pop();
+                    res();
+                });
+            }));
+        }
+        if (this._hasCanLoad) {
+            b._push();
+            // deepscan-disable-next-line UNUSED_VAR_ASSIGN
+            promise = promise.then(() => {
+                if (tr.guardsResult !== true) {
+                    b._pop();
+                    return;
+                }
+                tr._run(() => {
+                    return this._instance.canLoad(next.params, next, this._routeNode);
+                }, ret => {
+                    if (tr.guardsResult === true && ret != null && ret !== true) {
+                        tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
+                    }
+                    b._pop();
+                });
+            });
+        }
+        b._pop();
+    }
+    /** @internal */
+    _unloading(tr, next, b) {
+        trace(this._logger, 3058 /* Events.caUnloading */, next, this._unloadHooks.length);
+        b._push();
+        for (const hook of this._unloadHooks) {
+            tr._run(() => {
+                b._push();
+                return hook.unloading(this._instance, next, this._routeNode);
+            }, () => {
+                b._pop();
+            });
+        }
+        if (this._hasUnload) {
+            tr._run(() => {
+                b._push();
+                return this._instance.unloading(next, this._routeNode);
+            }, () => {
+                b._pop();
+            });
+        }
+        b._pop();
+    }
+    /** @internal */
+    _loading(tr, next, b) {
+        trace(this._logger, 3059 /* Events.caLoading */, next, this._loadHooks.length);
+        b._push();
+        for (const hook of this._loadHooks) {
+            tr._run(() => {
+                b._push();
+                return hook.loading(this._instance, next.params, next, this._routeNode);
+            }, () => {
+                b._pop();
+            });
+        }
+        if (this._hasLoad) {
+            tr._run(() => {
+                b._push();
+                return this._instance.loading(next.params, next, this._routeNode);
+            }, () => {
+                b._pop();
+            });
+        }
+        b._pop();
+    }
+}
+
+const IRouteContext = /*@__PURE__*/ DI.createInterface('IRouteContext');
+const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
+function isEagerInstruction(val) {
+    if (val == null)
+        return false;
+    const params = val.params;
+    const component = val.component;
+    return typeof params === 'object'
+        && params !== null
+        && component != null
+        && allowedEagerComponentTypes.includes(typeof component)
+        && !(component instanceof Promise) // a promise component is inherently meant to be lazy-loaded
+        && !(component instanceof NavigationStrategy);
+}
+function createEagerInstructions(instructionOrInstructions) {
+    if (!isArray(instructionOrInstructions))
+        instructionOrInstructions = [instructionOrInstructions];
+    const numInstr = instructionOrInstructions.length;
+    for (let i = 0; i < numInstr; ++i) {
+        const instr = core(instructionOrInstructions[i]);
+        if (instr == null)
+            throw new Error(getMessage(3404 /* Events.instrIncompatiblePathGenerationInstr */, instructionOrInstructions));
+        instructionOrInstructions[i] = instr;
+    }
+    return instructionOrInstructions;
+    function core(val) {
+        let component;
+        if (typeof val === 'string' || typeof val === 'function') {
+            component = val;
+            val = null;
+        }
+        else {
+            component = val.component;
+        }
+        if (component == null
+            || !allowedEagerComponentTypes.includes(typeof component)
+            || component instanceof Promise
+            || component instanceof NavigationStrategy)
+            return null;
+        return { ...val, component, params: val?.params ?? emptyObject };
+    }
+}
+/**
+ * Holds the information of a component in the context of a specific container.
+ *
+ * The `RouteContext` is cached using a 3-part composite key consisting of the CustomElementDefinition, the RouteConfig and the RenderContext.
+ *
+ * This means there can be more than one `RouteContext` per component type if either:
+ * - The `RouteConfig` for a type is overridden manually via `Route.configure`
+ * - Different components (with different `RenderContext`s) reference the same component via a child route config
+ */
+class RouteContext {
+    get isRoot() {
+        return this.parent === null;
+    }
+    get node() {
+        const node = this._node;
+        if (node === null)
+            throw new Error(getMessage(3171 /* Events.rcNoNode */, this));
+        return node;
+    }
+    /** @internal */
+    set node(value) {
+        const prev = this._prevNode = this._node;
+        if (prev !== value) {
+            this._node = value;
+            trace(this._logger, 3151 /* Events.rcNodeChanged */, this._prevNode, value);
+        }
+    }
+    /**
+     * The viewport hosting the component associated with this RouteContext.
+     * The root RouteContext has no ViewportAgent and will throw when attempting to access this property.
+     */
+    get vpa() {
+        const vpa = this._vpa;
+        if (vpa === null)
+            throw new Error(getMessage(3172 /* Events.rcNoVpa */, this));
+        return vpa;
+    }
+    constructor(viewportAgent, parent, parentContainer, _router, routeConfigContext, _locationMgr) {
+        this.parent = parent;
+        this._router = _router;
+        this.routeConfigContext = routeConfigContext;
+        this._locationMgr = _locationMgr;
+        /** @internal */ this._childViewportAgents = [];
+        /** @internal */ this._prevNode = null;
+        /** @internal */ this._node = null;
+        this._vpa = viewportAgent;
+        if (parent === null) {
+            this.root = this;
+        }
+        else {
+            this.root = parent.root;
+        }
+        this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.routeConfigContext._friendlyPath}>`);
+        trace(this._logger, 3150 /* Events.rcCreated */);
+        this._router._subscribeNavigationStart(this);
+        const container = this.container = parentContainer.createChild();
+        this._platform = container.get(IPlatform);
+        container.registerResolver(IController, this._hostControllerProvider = new InstanceProvider(), true);
+        const ctxProvider = new InstanceProvider('IRouteContext', this);
+        container.registerResolver(IRouteContext, ctxProvider);
+        container.registerResolver(RouteContext, ctxProvider);
+        if (_router.options.useNavigationModel) {
+            // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
+            // Also considering that in a realistic app the number of configured routes are limited in number, this subscription and keeping the routes' active property in sync should not create much issue.
+            // If need be we can optimize it later.
+            container
+                .get(IRouterEvents)
+                .subscribe('au:router:navigation-end', () => {
+                routeConfigContext.navigationModel._setIsActive(_router, this);
+            });
+        }
+    }
+    /**
+     * Create a new `RouteContext` and register it in the provided container.
+     *
+     * Uses the `RenderContext` of the registered `IAppRoot` as the root context.
+     *
+     * @param container - The container from which to resolve the `IAppRoot` and in which to register the `RouteContext`
+     */
+    static setRoot(container) {
+        const logger = container.get(ILogger).scopeTo('RouteContext');
+        if (!container.has(IAppRoot, true)) {
+            logAndThrow(new Error(getMessage(3167 /* Events.rcNoAppRoot */)), logger);
+        }
+        if (container.has(IRouteContext, true)) {
+            logAndThrow(new Error(getMessage(3168 /* Events.rcHasRootContext */)), logger);
+        }
+        const { controller } = container.get(IAppRoot);
+        if (controller === void 0) {
+            logAndThrow(new Error(getMessage(3169 /* Events.rcNoRootCtrl */)), logger);
+        }
+        const router = container.get(IRouter);
+        return onResolve(router.getRouteContext(null, controller.definition, controller.viewModel, controller.container, null, null, null), routeContext => {
+            container.register(Registration.instance(IRouteContext, routeContext));
+            routeContext.node = router.routeTree.root;
+        });
+    }
+    static resolve(root, context) {
+        const rootContainer = root.container;
+        const logger = rootContainer.get(ILogger).scopeTo('RouteContext');
+        if (context == null) {
+            trace(logger, 3152 /* Events.rcResolveNullishContext */, context);
+            return root;
+        }
+        if (context instanceof RouteContext) {
+            trace(logger, 3153 /* Events.rcResolveInstance */, context);
+            return context;
+        }
+        if (context instanceof rootContainer.get(IPlatform).Node) {
+            trace(logger, 3154 /* Events.rcResolveNode */, context.nodeName);
+            try {
+                // CustomElement.for can theoretically throw in (as of yet) unknown situations.
+                // If that happens, we want to know about the situation and *not* just fall back to the root context, as that might make
+                // some already convoluted issues impossible to troubleshoot.
+                // That's why we catch, log and re-throw instead of just letting the error bubble up.
+                // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
+                const controller = CustomElement.for(context, { searchParents: true });
+                return controller.container.get(IRouteContext);
+            }
+            catch (err) {
+                error(logger, 3155 /* Events.rcResolveNodeFailed */, context.nodeName, err);
+                throw err;
+            }
+        }
+        if (isCustomElementViewModel(context)) {
+            const controller = context.$controller;
+            trace(logger, 3156 /* Events.rcResolveCe */, controller.definition.name);
+            return controller.container.get(IRouteContext);
+        }
+        if (isCustomElementController(context)) {
+            const controller = context;
+            trace(logger, 3157 /* Events.rcResolveCtrl */, controller.definition.name);
+            return controller.container.get(IRouteContext);
+        }
+        logAndThrow(new Error(getMessage(3170 /* Events.rcResolveInvalidCtxType */, Object.prototype.toString.call(context))), logger);
+    }
+    dispose() {
+        this.container.dispose();
+        this._router._unsubscribeNavigationStart(this);
+    }
+    /** @internal */
+    _resolveViewportAgent(req) {
+        trace(this._logger, 3158 /* Events.rcResolveVpa */, req);
+        const agent = this._childViewportAgents.find(x => { return x._handles(req); });
+        if (agent === void 0)
+            throw new Error(getMessage(3174 /* Events.rcNoAvailableVpa */, req, this._printTree()));
+        return agent;
+    }
+    getAvailableViewportAgents() {
+        return this._childViewportAgents.filter(x => x._isAvailable());
+    }
+    getFallbackViewportAgent(name) {
+        return this._childViewportAgents.find(x => x._isAvailable() && x.viewport.name === name && x.viewport.fallback !== '') ?? null;
+    }
+    /**
+     * Create a component based on the provided viewportInstruction.
+     *
+     * @param hostController - The `ICustomElementController` whose component (typically `au-viewport`) will host this component.
+     * @param routeNode - The routeNode that describes the component + state.
+     *
+     * @internal
+     */
+    _createComponentAgent(hostController, routeNode) {
+        trace(this._logger, 3159 /* Events.rcCreateCa */, routeNode);
+        this._hostControllerProvider.prepare(hostController);
+        const container = this.container.createChild({ inheritParentResources: true });
+        const platform = this._platform;
+        const elDefn = routeNode.component;
+        const host = platform.document.createElement(elDefn.name);
+        registerHostNode(container, host, platform);
+        const componentInstance = container.invoke(elDefn.Type);
+        // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
+        const task = this.routeConfigContext._childRoutesConfigured
+            ? void 0
+            : onResolve(resolveRouteConfiguration(componentInstance, false, this.routeConfigContext.config, routeNode, null), config => this.routeConfigContext._processConfig(config));
+        return onResolve(task, () => {
+            const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn);
+            const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
+            this._hostControllerProvider.dispose();
+            return componentAgent;
+        });
+    }
+    /**
+     * Generates a path that is rooted to the application.
+     */
+    generateRootedPath(instructionOrInstructions) {
+        return onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true), vit => {
+            const relativePath = vit.toUrl(true, this._router.options._urlParser);
+            // Compute the parent path
+            let parentPath = '';
+            const parentSegments = [];
+            let ctx = vit.options.context;
+            while (!ctx.isRoot) {
+                const seg = ctx.vpa?._currNode?.instruction?.toUrlComponent(false);
+                if ((seg?.length ?? 0) !== 0)
+                    parentSegments.unshift(seg);
+                ctx = ctx.parent;
+            }
+            parentPath = parentSegments.join('/');
+            // Combine parent path and relative path
+            return parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`;
+        });
+    }
+    /**
+     * Generates a path that is relative to the this context.
+     */
+    generateRelativePath(instructionOrInstructions) {
+        return onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true), vit => vit.toUrl(true, this._router.options._urlParser));
+    }
+    createViewportInstructions(instructionOrInstructions, options, traverseChildren) {
+        if (instructionOrInstructions instanceof ViewportInstructionTree)
+            return instructionOrInstructions;
+        let context = (options?.context ?? this);
+        let contextChanged = false;
+        if (!isArray(instructionOrInstructions)) {
+            instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
+        }
+        else {
+            const len = instructionOrInstructions.length;
+            for (let i = 0; i < len; ++i) {
+                instructionOrInstructions[i] = processStringInstruction.call(this, instructionOrInstructions[i]);
+            }
+        }
+        const routerOptions = this._router.options;
+        return ViewportInstructionTree.create(instructionOrInstructions, routerOptions, NavigationOptions.create(routerOptions, { ...options, context }), this.root, traverseChildren);
+        function processStringInstruction(instr) {
+            if (typeof instr === 'string')
+                instr = this._locationMgr.removeBaseHref(instr);
+            const isVpInstr = isPartialViewportInstruction(instr);
+            let $instruction = isVpInstr ? instr.component : instr;
+            if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
+                while ($instruction.startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
+                    $instruction = $instruction.slice(3);
+                    if (!contextChanged)
+                        context = context.parent;
+                }
+                contextChanged = true;
+            }
+            if (isVpInstr) {
+                instr.component = $instruction;
+            }
+            else {
+                instr = $instruction;
+            }
+            return instr;
+        }
+    }
+    /** @internal */
+    _registerViewport(viewport) {
+        const agent = ViewportAgent.for(viewport, this);
+        if (this._childViewportAgents.includes(agent)) {
+            trace(this._logger, 3161 /* Events.rcRegisterVpSkip */, agent);
+            return agent;
+        }
+        trace(this._logger, 3160 /* Events.rcRegisterVp */, agent);
+        this._childViewportAgents.push(agent);
+        return agent;
+    }
+    /** @internal */
+    _unregisterViewport(viewport) {
+        const agent = ViewportAgent.for(viewport, this);
+        if (!this._childViewportAgents.includes(agent)) {
+            trace(this._logger, 3163 /* Events.rcUnregisterVpSkip */, agent);
+            return;
+        }
+        trace(this._logger, 3162 /* Events.rcUnregisterVp */, agent);
+        this._childViewportAgents.splice(this._childViewportAgents.indexOf(agent), 1);
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        const vpAgents = this._childViewportAgents;
+        const viewports = vpAgents.map(String).join(',');
+        return `RC(path:'${this.routeConfigContext._friendlyPath}',viewports:[${viewports}])`;
+    }
+    /** @internal */
+    _printTree() {
+        const tree = [];
+        const path = this.routeConfigContext.path;
+        for (let i = 0; i < path.length; ++i) {
+            tree.push(`${' '.repeat(i)}${path[i]}`);
+        }
+        return tree.join('\n');
+    }
+}
+class RouteConfigContext {
+    get isRoot() {
+        return this.parent === null;
+    }
+    get depth() {
+        return this.path.length - 1;
+    }
+    get navigationModel() {
+        return this._navigationModel;
+    }
+    get allResolved() {
+        return this._allResolved;
+    }
+    constructor(parent, component, config, parentContainer, _router) {
+        this.parent = parent;
+        this.component = component;
+        this.config = config;
+        this._router = _router;
+        /** @internal */ this._childRoutesConfigured = false;
+        /**
+         * The (fully resolved) configured child routes of this context's `RouteConfig`
+         */
+        this.childRoutes = [];
+        /** @internal */
+        this._allResolved = null;
+        if (parent === null) {
+            this.root = this;
+            this.path = [this];
+            this._friendlyPath = component.name;
+        }
+        else {
+            this.root = parent.root;
+            this.path = [...parent.path, this];
+            this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
+        }
+        this._logger = parentContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
+        trace(this._logger, 3150 /* Events.rcCreated */);
+        this._moduleLoader = parentContainer.get(IModuleLoader);
+        this.container = parentContainer.createChild();
+        this._recognizer = new RouteRecognizer();
+        if (_router.options.useNavigationModel) {
+            this._navigationModel = new NavigationModel([]);
+        }
+        else {
+            this._navigationModel = null;
+        }
+        this._processConfig(config);
+    }
+    /** @internal */
+    _handleNavigationStart() {
+        this.config._handleNavigationStart();
+        for (const childRoute of this.childRoutes) {
+            if (childRoute instanceof Promise)
+                continue;
+            childRoute._handleNavigationStart();
+        }
+    }
+    /** @internal */
+    _processConfig(config) {
+        const allPromises = [];
+        const childrenRoutes = config.routes ?? noRoutes;
+        const len = childrenRoutes.length;
+        if (len === 0) {
+            const getRouteConfig = config.component.prototype?.getRouteConfig;
+            this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
+            return;
+        }
+        const navModel = this._navigationModel;
+        const hasNavModel = navModel !== null;
+        let i = 0;
+        for (; i < len; i++) {
+            const childRoute = childrenRoutes[i];
+            if (childRoute instanceof Promise) {
+                allPromises.push(this._addRoute(childRoute));
+                continue;
+            }
+            const rdResolution = resolveRouteConfiguration(childRoute, true, config, null, this);
+            if (rdResolution instanceof Promise) {
+                if (!isPartialChildRouteConfig(childRoute) || childRoute.path == null)
+                    throw new Error(getMessage(3173 /* Events.rcNoPathLazyImport */));
+                for (const path of ensureArrayOfStrings(childRoute.path)) {
+                    this._$addRoute(path, childRoute.caseSensitive ?? false, rdResolution);
+                }
+                const idx = this.childRoutes.length;
+                const p = rdResolution.then((rdConfig) => {
+                    return this.childRoutes[idx] = rdConfig;
+                });
+                this.childRoutes.push(p);
+                if (hasNavModel) {
+                    navModel._addRoute(p);
+                }
+                allPromises.push(p.then(noop));
+                continue;
+            }
+            for (const path of rdResolution.path ?? emptyArray) {
+                this._$addRoute(path, rdResolution.caseSensitive, rdResolution);
+            }
+            this.childRoutes.push(rdResolution);
+            if (hasNavModel) {
+                navModel._addRoute(rdResolution);
+            }
+        }
+        this._childRoutesConfigured = true;
+        if (allPromises.length > 0) {
+            this._allResolved = Promise.all(allPromises).then(() => {
+                this._allResolved = null;
+            });
+        }
+    }
+    _addRoute(routeable) {
+        trace(this._logger, 3165 /* Events.rcAddRoute */, routeable);
+        return onResolve(resolveRouteConfiguration(routeable, true, this.config, null, this), rdConfig => {
+            for (const path of rdConfig.path ?? emptyArray) {
+                this._$addRoute(path, rdConfig.caseSensitive, rdConfig);
+            }
+            this._navigationModel?._addRoute(rdConfig);
+            this.childRoutes.push(rdConfig);
+        });
+    }
+    /** @internal */
+    _$addRoute(path, caseSensitive, handler) {
+        this._recognizer.add({
+            path,
+            caseSensitive,
+            handler,
+        }, true);
+    }
+    /** @internal */
+    _resolveLazy(promise) {
+        return this._moduleLoader.load(promise, m => {
+            // when we have import('./some-path').then(x => x.somethingSpecific)
+            const raw = m.raw;
+            if (typeof raw === 'function') {
+                const def = CustomElement.isType(raw) ? CustomElement.getDefinition(raw) : null;
+                if (def != null)
+                    return def;
+            }
+            let defaultExport = void 0;
+            let firstNonDefaultExport = void 0;
+            for (const item of m.items) {
+                const def = (CustomElement.isType(item.value)
+                    // static resource API may require to change this item.definition
+                    // into CustomElement.getDefinition(item.value) or CustomElement.getOrCreateDefinition(item.value)
+                    ? item.definition
+                    : null);
+                if (def != null) {
+                    if (item.key === 'default') {
+                        defaultExport = def;
+                    }
+                    else if (firstNonDefaultExport === void 0) {
+                        firstNonDefaultExport = def;
+                    }
+                }
+            }
+            if (defaultExport === void 0 && firstNonDefaultExport === void 0) {
+                if (!isPartialCustomElementDefinition(raw))
+                    throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+                // use-case: import('./conventional-html-only-component.html')
+                const definition = CustomElementDefinition.create(raw);
+                CustomElement.define(definition);
+                return definition;
+            }
+            return firstNonDefaultExport ?? defaultExport;
+        });
+    }
+    _generateViewportInstruction(instruction, traverseChildren) {
+        if (!isEagerInstruction(instruction))
+            return null;
+        traverseChildren ??= false;
+        const component = instruction.component;
+        let paths;
+        let throwError = false;
+        if (component instanceof RouteConfig) {
+            paths = component.path;
+            throwError = true;
+        }
+        else if (typeof component === 'string') {
+            const $rdConfig = this.childRoutes.find(x => x.id === component);
+            if ($rdConfig === void 0)
+                return null;
+            paths = $rdConfig.path;
+        }
+        else if (component.type === 0 /* NavigationInstructionType.string */) {
+            const $rdConfig = this.childRoutes.find(x => x.id === component.value);
+            if ($rdConfig === void 0)
+                return null;
+            paths = $rdConfig.path;
+        }
+        else {
+            // as the component is ensured not to be a promise in here, the resolution should also be synchronous
+            const ced = resolveCustomElementDefinition(component, this)[1];
+            paths = this.childRoutes.reduce((acc, x) => {
+                if (x.component === ced.Type) {
+                    acc.push(...x.path);
+                }
+                return acc;
+            }, []);
+            throwError = true;
+        }
+        if (paths === void 0)
+            return null;
+        const params = instruction.params;
+        const recognizer = this._recognizer;
+        const numPaths = paths.length;
+        const errors = [];
+        let result = null;
+        if (numPaths === 1) {
+            const result = core(paths[0]);
+            if (result === null) {
+                if (throwError)
+                    throw new Error(getMessage(3166 /* Events.rcEagerPathGenerationFailed */, instruction, errors));
+                debug(this._logger, 3166 /* Events.rcEagerPathGenerationFailed */, instruction, errors);
+                return null;
+            }
+            return createPathGenerationResult.call(this, result);
+        }
+        let maxScore = 0;
+        for (let i = 0; i < numPaths; i++) {
+            const res = core(paths[i]);
+            if (res === null)
+                continue;
+            if (result === null) {
+                result = res;
+                maxScore = Object.keys(res.consumed).length;
+            }
+            else if (Object.keys(res.consumed).length > maxScore) { // ignore anything other than monotonically increasing consumption
+                result = res;
+            }
+        }
+        if (result === null) {
+            if (throwError)
+                throw new Error(getMessage(3166 /* Events.rcEagerPathGenerationFailed */, instruction, errors));
+            debug(this._logger, 3166 /* Events.rcEagerPathGenerationFailed */, instruction, errors);
+            return null;
+        }
+        return createPathGenerationResult.call(this, result);
+        function core(path) {
+            const endpoint = recognizer.getEndpoint(path);
+            if (endpoint === null) {
+                errors.push(`No endpoint found for the path: '${path}'.`);
+                return null;
+            }
+            const consumed = Object.create(null);
+            for (const param of endpoint.params) {
+                const key = param.name;
+                let value = params[key];
+                if (value == null || String(value).length === 0) {
+                    if (!param.isOptional) {
+                        errors.push(`No value for the required parameter '${key}' is provided for the path: '${path}'.`);
+                        return null;
+                    }
+                    value = '';
+                }
+                else {
+                    if (!param.satisfiesPattern(value)) {
+                        errors.push(`The value '${value}' for the parameter '${key}' does not satisfy the pattern '${param.pattern}'.`);
+                        return null;
+                    }
+                    consumed[key] = value;
+                }
+                const pattern = param.isStar
+                    ? `*${key}`
+                    : param.isOptional
+                        ? `:${key}?`
+                        : `:${key}`;
+                path = path.replace(pattern, encodeURIComponent(value));
+            }
+            const consumedKeys = Object.keys(consumed);
+            const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));
+            return { path: path.replace(/\/\//g, '/'), endpoint, consumed, query };
+        }
+        // traverse the children
+        async function generateChildrenInstructions(parentConfig) {
+            const children = instruction.children;
+            const numChildren = children?.length ?? 0;
+            if (numChildren === 0)
+                return { instructions: emptyArray, query: emptyObject };
+            const parentComponent = parentConfig.component;
+            const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1];
+            return onResolve(onResolve(this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.container, this.config, this), x => onResolve(x.allResolved, () => x)), $routeConfigContext => {
+                const promises = new Array(numChildren);
+                const instructions = new Array(numChildren);
+                let query = Object.create(null);
+                for (let i = 0; i < numChildren; ++i) {
+                    const child = children[i];
+                    promises[i] = onResolve($routeConfigContext._generateViewportInstruction(isPartialViewportInstruction(child) ? { ...child, params: child.params ?? emptyObject } : { component: child, params: emptyObject }, traverseChildren), eagerVi => {
+                        if (eagerVi == null)
+                            throw new Error(getMessage(3166 /* Events.rcEagerPathGenerationFailed */, child));
+                        instructions[i] = eagerVi.vi;
+                        query = mergeQueryParams(query, eagerVi.query);
+                    });
+                }
+                return onResolve(Promise.all(promises), () => ({ instructions, query }));
+            });
+        }
+        function createPathGenerationResult(result) {
+            return onResolve((traverseChildren
+                ? generateChildrenInstructions.call(this, result.endpoint.route.handler)
+                : { instructions: instruction.children, query: emptyObject }), ({ instructions: children, query: $query }) => {
+                return {
+                    vi: ViewportInstruction.create({
+                        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+                        component: result.path,
+                        children,
+                        viewport: instruction.viewport,
+                        open: instruction.open,
+                        close: instruction.close,
+                    }),
+                    query: mergeQueryParams(result.query, $query),
+                };
+            });
+        }
+    }
+    recognize(path, searchAncestor = false) {
+        trace(this._logger, 3164 /* Events.rcRecognizePath */, path);
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        let _current = this;
+        let _continue = true;
+        let result = null;
+        while (_continue) {
+            result = _current._recognizer.recognize(path);
+            if (result === null) {
+                if (!searchAncestor || _current.isRoot)
+                    return null;
+                _current = _current.parent;
+            }
+            else {
+                _continue = false;
+            }
+        }
+        return new $RecognizedRoute(result, Reflect.has(result.params, RESIDUE)
+            ? (result.params[RESIDUE] ?? null)
+            : null);
+    }
+    dispose() {
+        this.container.dispose();
+    }
+}
+class $RecognizedRoute {
+    constructor(route, residue) {
+        this.route = route;
+        this.residue = residue;
+    }
+    toString() {
+        const route = this.route;
+        const cr = route.endpoint.route;
+        return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;
+    }
+}
+// Usage of classical interface pattern is intentional.
+class NavigationModel {
+    constructor(routes) {
+        this.routes = routes;
+        this._promise = void 0;
+    }
+    resolve() {
+        return onResolve(this._promise, noop);
+    }
+    /** @internal */
+    _setIsActive(router, context) {
+        void onResolve(this._promise, () => {
+            for (const route of this.routes) {
+                route._setIsActive(router, context);
+            }
+        });
+    }
+    /** @internal */
+    _addRoute(route) {
+        const routes = this.routes;
+        if (!(route instanceof Promise)) {
+            if ((route.nav ?? false) && route.redirectTo === null) {
+                routes.push(NavigationRoute._create(route));
+            }
+            return;
+        }
+        const index = routes.length;
+        routes.push((void 0)); // reserve the slot
+        let promise = void 0;
+        promise = this._promise = onResolve(this._promise, () => onResolve(route, rdConfig => {
+            if (rdConfig.nav && rdConfig.redirectTo === null) {
+                routes[index] = NavigationRoute._create(rdConfig);
+            }
+            else {
+                routes.splice(index, 1);
+            }
+            if (this._promise === promise) {
+                this._promise = void 0;
+            }
+        }));
+    }
+}
+// Usage of classical interface pattern is intentional.
+class NavigationRoute {
+    constructor(id, path, title, data) {
+        this.id = id;
+        this.path = path;
+        this.title = title;
+        this.data = data;
+        this._trees = null;
+    }
+    /** @internal */
+    static _create(rdConfig) {
+        return new NavigationRoute(rdConfig.id, ensureArrayOfStrings(rdConfig.path ?? emptyArray), rdConfig.title, rdConfig.data);
+    }
+    get isActive() {
+        return this._isActive;
+    }
+    /** @internal */
+    _setIsActive(router, context) {
+        let trees = this._trees;
+        if (trees === null) {
+            const routerOptions = router.options;
+            trees = this._trees = this.path.map(p => {
+                const ep = context.routeConfigContext._recognizer.getEndpoint(p);
+                if (ep === null)
+                    throw new Error(getMessage(3450 /* Events.nmNoEndpoint */, p));
+                return new ViewportInstructionTree(NavigationOptions.create(routerOptions, { context }), false, [
+                    ViewportInstruction.create({
+                        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
+                        component: p,
+                    })
+                ], emptyQuery, null);
+            });
+        }
+        this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
+    }
+}
+
+class ViewportCustomElement {
+    constructor() {
+        this.name = defaultViewportName;
+        this.usedBy = '';
+        this.default = '';
+        this.fallback = '';
+        /** @internal */ this._agent = (void 0);
+        /** @internal */ this._controller = (void 0);
+        /** @internal */
+        this._ctx = resolve(IRouteContext);
+        /** @internal */
+        this._logger = (resolve(ILogger).scopeTo(`au-viewport<${this._ctx.routeConfigContext._friendlyPath}>`));
+    }
+    /** @internal */
+    _getFallback(viewportInstruction, routeNode, context) {
+        const fallback = this.fallback;
+        return typeof fallback === 'function'
+            && !CustomElement.isType(fallback)
+            ? fallback(viewportInstruction, routeNode, context)
+            : fallback;
+    }
+    hydrated(controller) {
+        trace(this._logger, 3000 /* Events.vpHydrated */);
+        this._controller = controller;
+        this._agent = this._ctx._registerViewport(this);
+    }
+    attaching(initiator, _parent) {
+        trace(this._logger, 3001 /* Events.vpAttaching */);
+        return this._agent._activateFromViewport(initiator, this._controller);
+    }
+    detaching(initiator, _parent) {
+        trace(this._logger, 3002 /* Events.vpDetaching */);
+        return this._agent._deactivateFromViewport(initiator, this._controller);
+    }
+    dispose() {
+        trace(this._logger, 3003 /* Events.vpDispose */);
+        this._ctx._unregisterViewport(this);
+        this._agent._dispose();
+        this._agent = (void 0);
+    }
+    // Should not be adjust for DEV as it is also used of logging in production build.
+    toString() {
+        const propStrings = [];
+        for (const prop of props) {
+            const value = this[prop];
+            // Only report props that don't have default values (but always report name)
+            // This is a bit naive and dirty right now, but it's mostly for debugging purposes anyway. Can clean up later. Maybe put it in a serializer
+            switch (typeof value) {
+                case 'string':
+                    if (value !== '') {
+                        propStrings.push(`${prop}:'${value}'`);
+                    }
+                    break;
+                default: {
+                    propStrings.push(`${prop}:${String(value)}`);
+                }
+            }
+        }
+        return `VP(ctx:'${this._ctx.routeConfigContext._friendlyPath}',${propStrings.join(',')})`;
     }
 }
 CustomElement.define({
     name: 'au-viewport',
-    injectable: ParentViewport,
-    bindables: ['name', 'usedBy', 'default', 'fallback', 'fallbackAction', 'noScope', 'noLink', 'noTitle', 'noHistory', 'stateful']
+    bindables: ['name', 'usedBy', 'default', 'fallback'],
 }, ViewportCustomElement);
-
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
-const ParentViewportScope = CustomElement.createInjectable();
-class ViewportScopeCustomElement {
-    constructor() {
-        this.name = 'default';
-        this.catches = '';
-        this.collection = false;
-        this.source = null;
-        this.viewportScope = null;
-        this.isBound = false;
-        this.router = resolve(IRouter);
-        this.element = resolve(INode);
-        this.container = resolve(IContainer);
-        this.parent = resolve(ParentViewportScope);
-        this.parentController = resolve(IController);
-    }
-    // Maybe this really should be here. Check with Binh.
-    // public create(
-    //   controller: IDryCustomElementController<this>,
-    //   parentContainer: IContainer,
-    //   definition: CustomElementDefinition,
-    //   parts: PartialCustomElementDefinitionParts | undefined,
-    // ): PartialCustomElementDefinition {
-    //   // TODO(fkleuver): describe this somewhere in the docs instead
-    //   // Under the condition that there is no `replace` attribute on this custom element's declaration,
-    //   // and this custom element is containerless, its content will be placed in a part named 'default'
-    //   // See packages/jit-html/src/template-binder.ts line 411 (`replace = 'default';`) for the logic that governs this.
-    //   // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
-    //   // 1. inject the `@IInstruction` (IHydrateElementInstruction) and grab .parts['default'] from there, manually creating a view factory from that, etc.
-    //   // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the render context to use that part to compile this element instead
-    //   // This effectively causes this element to render its declared content as if it was its own template.
-    //   // We do need to set `containerless` to true on the part definition so that the correct projector is used since parts default to non-containerless.
-    //   // Otherwise, the controller will try to do `appendChild` on a comment node when it has to do `insertBefore`.
-    //   // Also, in this particular scenario (specific to viewport-scope) we need to clone the part so as to prevent the resulting compiled definition
-    //   // from ever being cached. That's the only reason why we're spreading the part into a new object for `getOrCreate`. If we didn't clone the object, this specific element wouldn't work correctly.
-    //   const part = parts!['default'];
-    //   return CustomElementDefinition.getOrCreate({ ...part, containerless: true });
-    // }
-    hydrated(controller) {
-        this.controller = controller;
-    }
-    bound(_initiator, _parent) {
-        this.isBound = true;
-        this.$controller.scope = this.parentController.scope;
-        this.connect();
-        if (this.viewportScope !== null) {
-            this.viewportScope.binding();
-        }
-    }
-    unbinding(_initiator, _parent) {
-        if (this.viewportScope !== null) {
-            this.viewportScope.unbinding();
-        }
-        return Promise.resolve();
-    }
-    connect() {
-        if (this.router.rootScope === null) {
-            return;
-        }
-        const name = this.getAttribute('name', this.name);
-        const options = {};
-        let value = this.getAttribute('catches', this.catches);
-        if (value !== void 0) {
-            options.catches = value;
-        }
-        value = this.getAttribute('collection', this.collection, true);
-        if (value !== void 0) {
-            options.collection = value;
-        }
-        // TODO: Needs to be bound? How to solve?
-        options.source = this.source ?? null;
-        this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options);
-    }
-    disconnect() {
-        if (this.viewportScope) {
-            this.router.disconnectEndpoint(null, this.viewportScope, this);
-        }
-        this.viewportScope = null;
-    }
-    getAttribute(key, value, checkExists = false) {
-        if (this.isBound) {
-            return value;
-        }
-        else {
-            if (this.element.hasAttribute(key)) {
-                if (checkExists) {
-                    return true;
-                }
-                else {
-                    value = this.element.getAttribute(key);
-                    if (value.length > 0) {
-                        return value;
-                    }
-                }
-            }
-        }
-        return void 0;
-    }
-}
-CustomElement.define({
-    name: 'au-viewport-scope',
-    template: '<template></template>',
-    containerless: false,
-    injectable: ParentViewportScope,
-    bindables: ['name', 'catches', 'collection', 'source'],
-}, ViewportScopeCustomElement);
+const props = [
+    'name',
+    'usedBy',
+    'default',
+    'fallback',
+];
 
 class LoadCustomAttribute {
     constructor() {
-        /** @internal */ this._separateProperties = false;
-        this.hasHref = null;
-        this.element = resolve(INode);
-        this.router = resolve(IRouter);
-        this.linkHandler = resolve(ILinkHandler);
-        this.ea = resolve(IEventAggregator);
-        this.activeClass = this.router.configuration.options.indicators.loadActive;
-        this.navigationEndHandler = (_navigation) => {
-            void this.updateActive();
+        /** @internal */ this._el = resolve(INode);
+        /** @internal */ this._router = resolve(IRouter);
+        /** @internal */ this._ctx = resolve(IRouteContext);
+        /** @internal */ this._events = resolve(IRouterEvents);
+        /** @internal */ this._locationMgr = resolve(ILocationManager);
+        this.attribute = 'href';
+        this.active = false;
+        /** @internal */ this._href = null;
+        /** @internal */ this._instructions = null;
+        /** @internal */ this._navigationEndListener = null;
+        this.onClick = (e) => {
+            if (this._instructions === null) {
+                return;
+            }
+            // Ensure this is an ordinary left-button click.
+            if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0) {
+                return;
+            }
+            e.preventDefault();
+            // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+            void this._router.load(this._instructions, { context: this.context });
         };
+        const el = this._el;
+        // Ensure the element is not explicitly marked as external.
+        this._isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
+        this._activeClass = this._router.options.activeClass;
     }
     binding() {
-        if (this.value == null) {
-            this._separateProperties = true;
+        if (this._isEnabled) {
+            this._el.addEventListener('click', this.onClick);
         }
-        this.element.addEventListener('click', this.linkHandler);
-        this.updateValue();
-        void this.updateActive();
-        this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
+        this.valueChanged();
+        this._navigationEndListener = this._events.subscribe('au:router:navigation-end', _e => {
+            const active = this.active = this._instructions !== null && this._router.isActive(this._instructions, this.context);
+            const activeClass = this._activeClass;
+            if (activeClass === null)
+                return;
+            this._el.classList.toggle(activeClass, active);
+        });
+    }
+    attaching() {
+        const ctx = this.context;
+        const promise = ctx.routeConfigContext.allResolved;
+        if (promise !== null) {
+            return promise.then(() => {
+                this.valueChanged();
+            });
+        }
     }
     unbinding() {
-        this.element.removeEventListener('click', this.linkHandler);
-        this.routerNavigationSubscription.dispose();
-    }
-    valueChanged(_newValue) {
-        this.updateValue();
-        void this.updateActive();
-    }
-    updateValue() {
-        if (this._separateProperties) {
-            this.value = {
-                component: this.component,
-                parameters: this.parameters,
-                viewport: this.viewport,
-                id: this.id,
-            };
+        if (this._isEnabled) {
+            this._el.removeEventListener('click', this.onClick);
         }
-        if (this.hasHref === null) {
-            this.hasHref = this.element.hasAttribute('href');
+        this._navigationEndListener.dispose();
+    }
+    valueChanged() {
+        const router = this._router;
+        const options = router.options;
+        const component = this.route;
+        // this allows binding context to null for navigation from root; unbound vs explicit null binding
+        let ctx = this.context;
+        if (ctx === void 0) {
+            ctx = this.context = this._ctx;
         }
-        if (!this.hasHref) {
-            let value = this.value;
-            if (typeof value !== 'string') {
-                const instruction = RoutingInstruction.from(this.router, value).shift();
-                const found = this._findRoute(value);
-                if (found.foundConfiguration) {
-                    instruction.route = found.matching;
-                }
-                value = RoutingInstruction.stringify(this.router, [instruction]);
+        else if (ctx === null) {
+            ctx = this.context = this._ctx.root;
+        }
+        if (component != null && ctx.routeConfigContext.allResolved === null) {
+            const params = this.params;
+            const instructions = this._instructions = router.createViewportInstructions(typeof params === 'object' && params !== null
+                ? { component, params }
+                : component, { context: ctx });
+            this._href = instructions.toUrl(false, options._urlParser);
+        }
+        else {
+            this._instructions = null;
+            this._href = null;
+        }
+        const controller = CustomElement.for(this._el, { optional: true });
+        if (controller !== null) {
+            controller.viewModel[this.attribute] = this._instructions;
+        }
+        else {
+            if (this._href === null) {
+                this._el.removeAttribute(this.attribute);
             }
-            const { scope, instruction } = RoutingScope.for(this.element, value);
-            const scopePath = scope?.path ?? '';
-            value = `${scopePath}${instruction ?? ''}`;
-            if (this.router.configuration.options.useUrlFragmentHash && !value.startsWith('#')) {
-                value = `#/${value}`;
+            else {
+                const value = options.useUrlFragmentHash ? this._href : this._locationMgr.addBaseHref(this._href);
+                this._el.setAttribute(this.attribute, value);
             }
-            this.element.setAttribute('href', value);
         }
-    }
-    async updateActive() {
-        const controller = CustomAttribute.for(this.element, 'load').parent;
-        const routeValue = typeof this.value === 'string' ? { id: this.value, path: this.value } : this.value;
-        const found = this._findRoute(routeValue);
-        const instructions = found.foundConfiguration
-            ? found.instructions
-            : getConsideredActiveInstructions(this.router, controller, this.element, this.value);
-        const element = getLoadIndicator(this.element);
-        element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
-    }
-    /** @internal */
-    _findRoute(value) {
-        if (typeof value === 'string') {
-            return new FoundRoute();
-        }
-        const scope = RoutingScope.for(this.element).scope ?? this.router.rootScope.scope;
-        if (value.id != null) {
-            return scope.findMatchingRoute(value.id, value.parameters ?? {});
-        }
-        const path = value.path;
-        if (path != null) {
-            return scope.findMatchingRoute(path, value.parameters ?? {});
-        }
-        return new FoundRoute();
     }
 }
 CustomAttribute.define({
     name: 'load',
     bindables: {
-        value: { mode: bmToView },
-        component: {},
-        parameters: {},
-        viewport: {},
-        id: {},
+        route: { mode: bmToView, primary: true, callback: 'valueChanged' },
+        params: { mode: bmToView, callback: 'valueChanged' },
+        attribute: { mode: bmToView },
+        active: { mode: bmFromView },
+        context: { mode: bmToView, callback: 'valueChanged' }
     }
 }, LoadCustomAttribute);
 
+/*
+ * Note: Intentionally, there is no bindable `context` here.
+ * Otherwise this CA needs to be turned into a multi-binding CA.
+ * Which means that the following simplest case won't work any longer:
+ *
+ * ```html
+ * <a href="https://bla.bla.com/bla" data-external>bla</a>
+ * ```
+ * Because the template compiler will think that `https` is a bindable property in this CA,
+ * and will fail as it won't find a bindable property `https` here in this CA.
+ * Therefore, till the template compiler can handle that correctly, introduction of a bindable context is intentionally omitted.
+ */
 class HrefCustomAttribute {
+    /** @internal */
+    get _isExternal() {
+        return this._el.hasAttribute('external') || this._el.hasAttribute('data-external');
+    }
     constructor() {
-        this.element = resolve(INode);
-        this.router = resolve(IRouter);
-        this.linkHandler = resolve(ILinkHandler);
-        this.ea = resolve(IEventAggregator);
-        this.activeClass = this.router.configuration.options.indicators.loadActive;
-        this.navigationEndHandler = (_navigation) => {
-            this.updateActive();
-        };
+        /** @internal */ this._el = resolve(INode);
+        /** @internal */ this._router = resolve(IRouter);
+        /** @internal */ this._ctx = resolve(IRouteContext);
+        /** @internal */ this._isInitialized = false;
+        if (this._router.options.useHref &&
+            // Ensure the element is an anchor
+            this._el.nodeName === 'A') {
+            const windowName = resolve(IWindow).name;
+            // Ensure the anchor targets the current window.
+            switch (this._el.getAttribute('target')) {
+                case null:
+                case windowName:
+                case '_self':
+                    this._isEnabled = true;
+                    break;
+                default:
+                    this._isEnabled = false;
+                    break;
+            }
+        }
+        else {
+            this._isEnabled = false;
+        }
     }
     binding() {
-        if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
-            this.element.addEventListener('click', this.linkHandler);
-            this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
+        if (!this._isInitialized) {
+            this._isInitialized = true;
+            this._isEnabled = this._isEnabled && refs.get(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
         }
-        this.updateValue();
-        this.updateActive();
+        this.valueChanged(this.value);
+        this._el.addEventListener('click', this);
+        // this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
     }
     unbinding() {
-        this.element.removeEventListener('click', this.linkHandler);
-        this.routerNavigationSubscription?.dispose();
+        // this.eventListener.dispose();
+        this._el.removeEventListener('click', this);
     }
-    valueChanged() {
-        this.updateValue();
-        this.updateActive();
-    }
-    updateValue() {
-        this.element.setAttribute('href', this.value);
-    }
-    updateActive() {
-        if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
-            const controller = CustomAttribute.for(this.element, 'href').parent;
-            const instructions = getConsideredActiveInstructions(this.router, controller, this.element, this.value);
-            const element = getLoadIndicator(this.element);
-            element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
+    valueChanged(newValue) {
+        if (newValue == null) {
+            this._el.removeAttribute('href');
+        }
+        else {
+            if (this._router.options.useUrlFragmentHash
+                && this._ctx.routeConfigContext.isRoot
+                && !/^[.#]/.test(newValue)
+                && !this._isExternal) {
+                newValue = `#${newValue}`;
+            }
+            this._el.setAttribute('href', newValue);
         }
     }
-    hasLoad() {
-        const parent = this.$controller.parent;
-        const siblings = parent.children;
-        return siblings?.some(c => c.vmKind === 'customAttribute' && c.viewModel instanceof LoadCustomAttribute) ?? false;
+    handleEvent(e) {
+        this._onClick(e);
+    }
+    /** @internal */
+    _onClick(e) {
+        // Ensure this is an ordinary left-button click
+        if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
+            // on an internally managed link
+            || this._isExternal
+            || !this._isEnabled) {
+            return;
+        }
+        // Use the normalized attribute instead of this.value to ensure consistency.
+        const href = this._el.getAttribute('href');
+        if (href !== null) {
+            e.preventDefault();
+            // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+            void this._router.load(href, { context: this._ctx });
+        }
     }
 }
 HrefCustomAttribute.$au = {
@@ -8831,11 +5321,6 @@ HrefCustomAttribute.$au = {
     }
 };
 
-class ConsideredActiveCustomAttribute {
-}
-CustomAttribute.define({ name: 'considered-active', bindables: { value: { mode: bmToView } } }, ConsideredActiveCustomAttribute);
-
-const IRouterConfiguration = /*@__PURE__*/ DI.createInterface('IRouterConfiguration', x => x.singleton(RouterConfiguration));
 const RouterRegistration = IRouter;
 /**
  * Default runtime/environment-agnostic implementations for the following interfaces:
@@ -8845,117 +5330,152 @@ const DefaultComponents = [
     RouterRegistration,
 ];
 const ViewportCustomElementRegistration = ViewportCustomElement;
-const ViewportScopeCustomElementRegistration = ViewportScopeCustomElement;
 const LoadCustomAttributeRegistration = LoadCustomAttribute;
 const HrefCustomAttributeRegistration = HrefCustomAttribute;
 /**
  * Default router resources:
- * - Custom Elements: `au-viewport`, `au-nav`
- * - Custom Attributes: `goto`, `load`, `href`
+ * - Custom Elements: `au-viewport`
+ * - Custom Attributes: `load`, `href`
  */
 const DefaultResources = [
     ViewportCustomElement,
-    ViewportScopeCustomElement,
     LoadCustomAttribute,
     HrefCustomAttribute,
-    ConsideredActiveCustomAttribute,
 ];
-/**
- * A DI configuration object containing router resource registrations
- * and the router options API.
- */
-class RouterConfiguration {
-    /**
-     * Register this configuration in a provided container and
-     * register app tasks for starting and stopping the router.
-     *
-     * @param container - The container to register in
-     */
-    static register(container) {
-        const _this = container.get(IRouterConfiguration);
-        // Transfer options (that's possibly modified through .customize)
-        _this.options = RouterConfiguration.options;
-        _this.options.setRouterConfiguration(_this);
-        // Reset defaults
-        RouterConfiguration.options = RouterOptions.create();
-        return container.register(...DefaultComponents, ...DefaultResources, AppTask.activating(IRouter, RouterConfiguration.configurationCall), AppTask.activated(IRouter, (router) => router.initialLoad()), AppTask.deactivated(IRouter, (router) => router.stop()));
+function configure(container, options) {
+    let basePath = null;
+    if (isObjectOrFunction(options)) {
+        basePath = options.basePath ?? null;
     }
+    else {
+        options = {};
+    }
+    const routerOptions = RouterOptions.create(options);
+    return container.register(Registration.cachedCallback(IBaseHref, (handler, _, __) => {
+        const window = handler.get(IWindow);
+        const url = new URL(window.document.baseURI);
+        url.pathname = normalizePath(basePath ?? url.pathname);
+        return url;
+    }), Registration.instance(IRouterOptions, routerOptions), Registration.instance(RouterOptions, routerOptions), AppTask.creating(IRouter, _ => { }), AppTask.hydrated(IContainer, RouteContext.setRoot), AppTask.activated(IRouter, router => router.start(true)), AppTask.deactivated(IRouter, router => router.stop()), ...DefaultComponents, ...DefaultResources);
+}
+const RouterConfiguration = {
+    register(container) {
+        return configure(container);
+    },
     /**
      * Make it possible to specify options to Router activation.
-     *
-     * @param config - Either a config object that's passed to router's
-     * start or a config function that's called instead of router's start.
+     * Parameter is either a config object that's passed to Router's activate
+     * or a config function that's called instead of Router's activate.
      */
-    static customize(config) {
-        if (config === undefined) {
-            RouterConfiguration.options = RouterOptions.create();
-            RouterConfiguration.configurationCall = (router) => {
-                router.start();
-            };
-        }
-        else if (config instanceof Function) {
-            RouterConfiguration.configurationCall = config;
-        }
-        else {
-            RouterConfiguration.options = RouterOptions.create();
-            RouterConfiguration.options.apply(config);
-        }
-        return RouterConfiguration;
-    }
-    /**
-     * Create a new container with this configuration applied to it.
-     */
-    static createContainer() {
-        return this.register(DI.createContainer());
-    }
-    /**
-     * Get the router configuration for a context.
-     *
-     * @param context - The context to get the configuration for
-     */
-    static for(context) {
-        if (context instanceof Router) {
-            return context.configuration;
-        }
-        return context.get(IRouterConfiguration);
-    }
-    /**
-     * Apply router options.
-     *
-     * @param options - The options to apply
-     * @param firstResetDefaults - Whether the default router options should
-     * be set before applying the specified options
-     */
-    apply(options, firstResetDefaults = false) {
-        if (firstResetDefaults) {
-            this.options = RouterOptions.create();
-        }
-        this.options.apply(options);
-    }
-    addHook(hookFunction, options) {
-        return RoutingHook.add(hookFunction, options);
-    }
-    /**
-     * Remove a routing hook.
-     *
-     * @param id - The id of the hook to remove (returned from the addHook call)
-     */
-    removeHook(id) {
-        return RoutingHook.remove(id);
-    }
-    /**
-     * Remove all routing hooks.
-     */
-    removeAllHooks() {
-        return RoutingHook.removeAll();
-    }
-}
-// ONLY used during registration to support .customize. Transfered to
-// instance property after that.
-RouterConfiguration.options = RouterOptions.create();
-RouterConfiguration.configurationCall = (router) => {
-    router.start();
+    customize(options) {
+        return {
+            register(container) {
+                return configure(container, options);
+            },
+        };
+    },
 };
 
-export { ConfigurableRoute, ConsideredActiveCustomAttribute, DefaultComponents, DefaultResources, Endpoint$1 as Endpoint, EndpointContent, FoundRoute, HrefCustomAttribute, HrefCustomAttributeRegistration, ILinkHandler, IRouter, IRouterConfiguration, InstructionParameters, LinkHandler, LoadCustomAttribute, LoadCustomAttributeRegistration, Navigation, NavigationCoordinator, NavigationFlags, Navigator, RecognizedRoute, Endpoint as RecognizerEndpoint, Route, RouteRecognizer, Router, RouterConfiguration, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationEndEvent, RouterNavigationErrorEvent, RouterNavigationStartEvent, RouterOptions, RouterRegistration, RouterStartEvent, RouterStopEvent, Routes, RoutingHook, RoutingInstruction, RoutingScope, Runner, Step, Viewport, ViewportContent, ViewportCustomElement, ViewportCustomElementRegistration, ViewportOptions, ViewportScope, ViewportScopeContent, ViewportScopeCustomElement, ViewportScopeCustomElementRegistration, route, routes };
+class ScrollState {
+    constructor(/** @internal */ _el) {
+        this._el = _el;
+        this._top = _el.scrollTop;
+        this._left = _el.scrollLeft;
+    }
+    /** @internal */
+    static _has(el) {
+        return el.scrollTop > 0 || el.scrollLeft > 0;
+    }
+    /** @internal */
+    _restore() {
+        this._el.scrollTo(this._left, this._top);
+        this._el = null;
+    }
+}
+function restoreState(state) {
+    state._restore();
+}
+class HostElementState {
+    constructor(host) {
+        /** @internal */ this._scrollStates = [];
+        this._save(host.children);
+    }
+    /** @internal */
+    _save(elements) {
+        let el;
+        for (let i = 0, ii = elements.length; i < ii; ++i) {
+            el = elements[i];
+            if (ScrollState._has(el)) {
+                this._scrollStates.push(new ScrollState(el));
+            }
+            this._save(el.children);
+        }
+    }
+    /** @internal */
+    _restore() {
+        this._scrollStates.forEach(restoreState);
+        this._scrollStates = null;
+    }
+}
+const IStateManager = /*@__PURE__*/ DI.createInterface('IStateManager', x => x.singleton(ScrollStateManager));
+class ScrollStateManager {
+    constructor() {
+        this._cache = new WeakMap();
+    }
+    saveState(controller) {
+        this._cache.set(controller.host, new HostElementState(controller.host));
+    }
+    restoreState(controller) {
+        const state = this._cache.get(controller.host);
+        if (state !== void 0) {
+            state._restore();
+            this._cache.delete(controller.host);
+        }
+    }
+}
+
+const ICurrentRoute = /*@__PURE__*/ DI.createInterface('ICurrentRoute', x => x.singleton(CurrentRoute));
+class CurrentRoute {
+    constructor() {
+        this.path = '';
+        this.url = '';
+        this.title = '';
+        this.query = new URLSearchParams();
+        this.parameterInformation = emptyArray;
+        const router = resolve(IRouter);
+        const options = router.options;
+        // In a realistic app, the lifetime of the CurrentRoute instance is the same as the app itself.
+        // Therefor the disposal of the subscription is avoided here.
+        // An alternative would be to introduce a new configuration option such that the router initializes this class in its constructor and also registers the class to container.
+        // Then the app task hooks of the router can be used directly to start/dispose the subscription.
+        resolve(IRouterEvents)
+            .subscribe('au:router:navigation-end', (event) => {
+            const vit = event.finalInstructions;
+            batch(() => {
+                this.path = vit.toPath();
+                this.url = vit.toUrl(true, options._urlParser);
+                this.title = router._getTitle();
+                this.query = vit.queryParams;
+                this.parameterInformation = vit.children.map((instruction) => ParameterInformation.create(instruction));
+            });
+        });
+    }
+}
+class ParameterInformation {
+    constructor(config, viewport, params, children) {
+        this.config = config;
+        this.viewport = viewport;
+        this.params = params;
+        this.children = children;
+    }
+    static create(instruction) {
+        const route = instruction.recognizedRoute?.route;
+        const params = Object.create(null);
+        Object.assign(params, route?.params ?? instruction.params);
+        Reflect.deleteProperty(params, RESIDUE);
+        return new ParameterInformation(route?.endpoint.route.handler ?? null, instruction.viewport, params, instruction.children.map((ci) => this.create(ci)));
+    }
+}
+
+export { AST, AuNavId, ComponentExpression, CompositeSegmentExpression, DefaultComponents, DefaultResources, HrefCustomAttribute, HrefCustomAttributeRegistration, ICurrentRoute, ILocationManager, IRouteContext, IRouter, IRouterEvents, IRouterOptions, IStateManager, LoadCustomAttribute, LoadCustomAttributeRegistration, LocationChangeEvent, NavigationCancelEvent, NavigationEndEvent, NavigationErrorEvent, NavigationOptions, NavigationStartEvent, NavigationStrategy, ParameterExpression, ParameterListExpression, Route, RouteConfig, RouteContext, RouteExpression, RouteNode, RouteTree, Router, RouterConfiguration, RouterOptions, RouterRegistration, ScopedSegmentExpression, SegmentExpression, SegmentGroupExpression, Transition, ViewportAgent, ViewportCustomElement, ViewportCustomElementRegistration, ViewportExpression, fragmentUrlParser, isManagedState, pathUrlParser, route, toManagedState };
 //# sourceMappingURL=index.dev.mjs.map

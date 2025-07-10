@@ -404,7 +404,6 @@ class RouteRecognizer {
         return result;
     }
     $recognize(path) {
-        path = decodeURI(path);
         if (!path.startsWith('/')) {
             path = `/${path}`;
         }

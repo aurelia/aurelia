@@ -1,6 +1,5 @@
 import { type IServiceLocator } from '@aurelia/kernel';
 import { IAstEvaluator } from '@aurelia/runtime';
-import type { ITask, TaskQueue } from '@aurelia/platform';
 import type { IAccessor, ICollectionSubscriber, IObserverLocator, IObserverLocatorBasedConnectable, ISubscriber, Scope } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
@@ -14,9 +13,9 @@ export declare class InterpolationBinding implements IBinding, ISubscriber, ICol
     strict: boolean;
     isBound: boolean;
     partBindings: InterpolationPartBinding[];
-    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, taskQueue: TaskQueue, ast: Interpolation, target: object, targetProperty: string, mode: BindingMode, strict: boolean);
+    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, ast: Interpolation, target: object, targetProperty: string, mode: BindingMode, strict: boolean);
     updateTarget(): void;
-    bind(_scope: Scope): void;
+    bind(scope: Scope): void;
     unbind(): void;
     /**
      * Start using a given observer to update the target
@@ -33,7 +32,6 @@ export declare class InterpolationPartBinding implements IBinding, ICollectionSu
     readonly owner: InterpolationBinding;
     readonly mode: BindingMode;
     _scope?: Scope;
-    task: ITask | null;
     isBound: boolean;
     constructor(ast: IsExpression, target: object, targetProperty: string, locator: IServiceLocator, observerLocator: IObserverLocator, strict: boolean, owner: InterpolationBinding);
     updateTarget(): void;

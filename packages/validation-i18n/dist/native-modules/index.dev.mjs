@@ -1,15 +1,15 @@
 import { I18N, Signals } from '../../../i18n/dist/native-modules/index.mjs';
 import { DI, resolve, IEventAggregator, Registration, noop } from '../../../kernel/dist/native-modules/index.mjs';
-import { IPlatform } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { ValidationMessageProvider, ValidationRuleAliasMessage } from '../../../validation/dist/native-modules/index.mjs';
 import { ValidationController, ValidationControllerFactory, getDefaultValidationHtmlConfiguration, ValidationHtmlConfiguration } from '../../../validation-html/dist/native-modules/index.mjs';
+import { queueAsyncTask } from '../../../runtime/dist/native-modules/index.mjs';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 const I18nKeyConfiguration = /*@__PURE__*/ DI.createInterface('I18nKeyConfiguration');
 class LocalizedValidationController extends ValidationController {
-    constructor(ea = resolve(IEventAggregator), platform = resolve(IPlatform)) {
+    constructor(ea = resolve(IEventAggregator)) {
         super();
-        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { platform.domQueue.queueTask(async () => { await this.revalidateErrors(); }); });
+        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { queueAsyncTask(async () => { await this.revalidateErrors(); }); });
     }
 }
 class LocalizedValidationControllerFactory extends ValidationControllerFactory {

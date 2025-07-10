@@ -15,7 +15,7 @@ class MemoryStorage {
     }
 }
 
-const h = /*@__PURE__*/ t.createInterface((t => t.singleton(MemoryStorage)));
+const h = /*@__PURE__*/ t.createInterface(t => t.singleton(MemoryStorage));
 
 class HttpClientConfiguration {
     constructor() {
@@ -70,14 +70,14 @@ const createMappedError = (t, ...e) => new Error(`AUR${String(t).padStart(4, "0"
 
 const c = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
-const o = /*@__PURE__*/ t.createInterface("fetch", (t => {
+const o = /*@__PURE__*/ t.createInterface("fetch", t => {
     if (typeof fetch !== "function") {
         throw createMappedError(5e3);
     }
     return t.instance(fetch);
-}));
+});
 
-const a = /*@__PURE__*/ t.createInterface("IHttpClient", (t => t.aliasTo(HttpClient)));
+const a = /*@__PURE__*/ t.createInterface("IHttpClient", t => t.aliasTo(HttpClient));
 
 class HttpClient {
     constructor() {
@@ -126,10 +126,10 @@ class HttpClient {
         }
         const r = e.interceptors;
         if (r?.length > 0) {
-            if (r.filter((t => t instanceof RetryInterceptor)).length > 1) {
+            if (r.filter(t => t instanceof RetryInterceptor).length > 1) {
                 throw createMappedError(5004);
             }
-            const t = r.findIndex((t => t instanceof RetryInterceptor));
+            const t = r.findIndex(t => t instanceof RetryInterceptor);
             if (t >= 0 && t !== r.length - 1) {
                 throw createMappedError(5005);
             }
@@ -144,7 +144,7 @@ class HttpClient {
     fetch(t, e) {
         this.C();
         let s = this.buildRequest(t, e);
-        return this.processRequest(s, this.t).then((t => {
+        return this.processRequest(s, this.t).then(t => {
             let e;
             if (t instanceof Response) {
                 e = Promise.resolve(t);
@@ -155,18 +155,18 @@ class HttpClient {
                 throw createMappedError(5006, t);
             }
             return this.processResponse(e, this.t, s);
-        })).then((t => {
+        }).then(t => {
             if (t instanceof Request) {
                 return this.fetch(t);
             }
             return t;
-        })).then((t => {
+        }).then(t => {
             this.R();
             return t;
-        }), (t => {
+        }, t => {
             this.R();
             throw t;
-        }));
+        });
     }
     buildRequest(t, e) {
         const s = this.defaults ?? {};
@@ -223,7 +223,7 @@ class HttpClient {
         return this.I(t, e, s, "DELETE");
     }
     dispose() {
-        this.t.forEach((t => t.dispose?.()));
+        this.t.forEach(t => t.dispose?.());
         this.t.length = 0;
         this.i = null;
     }
@@ -246,11 +246,11 @@ class HttpClient {
         return this.B(t, e, "response", "responseError", Response, s, this);
     }
     B(t, e, s, r, i, ...n) {
-        return (e ?? []).reduce(((t, e) => {
+        return (e ?? []).reduce((t, e) => {
             const h = e[s];
             const c = e[r];
             return t.then(h ? t => t instanceof i ? h.call(e, t, ...n) : t : identity, c ? t => c.call(e, t, ...n) : thrower);
-        }), Promise.resolve(t));
+        }, Promise.resolve(t));
     }
     I(t, e, s, r) {
         if (!s) {
@@ -311,9 +311,9 @@ function dispatch(t, e) {
         bubbles: true,
         cancelable: true
     });
-    setTimeout((() => {
+    setTimeout(() => {
         t.dispatchEvent(s);
-    }), 1);
+    }, 1);
 }
 
 const u = /*@__PURE__*/ Object.freeze({
@@ -321,7 +321,7 @@ const u = /*@__PURE__*/ Object.freeze({
     drained: "aurelia-fetch-client-requests-drained"
 });
 
-const f = /*@__PURE__*/ t.createInterface((t => t.singleton(CacheService)));
+const f = /*@__PURE__*/ t.createInterface(t => t.singleton(CacheService));
 
 const l = /*@__PURE__*/ Object.freeze({
     Set: "au:fetch:cache:set",
@@ -361,7 +361,7 @@ class CacheService {
         return s;
     }
     setStaleTimer(t, e, s) {
-        const r = this.p.setTimeout((async () => {
+        const r = this.p.setTimeout(async () => {
             this.delete(t);
             await this.q.get(s);
             const e = this.getItem(t);
@@ -370,24 +370,24 @@ class CacheService {
                 value: e
             });
             this.N(r);
-        }), e);
+        }, e);
         this.j.push(r);
     }
     startBackgroundRefresh(t) {
         if (!t || this.O > -1) return;
-        this.O = this.p.setInterval((() => {
+        this.O = this.p.setInterval(() => {
             this.ea.publish(l.CacheBackgroundRefreshing);
-            this.T.forEach(((t, e) => {
+            this.T.forEach((t, e) => {
                 this.delete(e);
-                void this.q.get(t).then((() => {
+                void this.q.get(t).then(() => {
                     const t = this.getItem(e);
                     this.ea.publish(l.CacheBackgroundRefreshed, {
                         key: e,
                         value: t
                     });
-                }));
-            }));
-        }), t);
+                });
+            });
+        }, t);
     }
     stopBackgroundRefresh() {
         this.p.clearInterval(this.O);
@@ -460,14 +460,14 @@ class CacheService {
         this.T.clear();
         this.ea.publish(l.Reset);
         this.stopBackgroundRefresh();
-        this.j.forEach((t => {
+        this.j.forEach(t => {
             this.p.clearTimeout(t);
-        }));
+        });
         this.j.length = 0;
     }
     dispose() {
         this.clear();
-        this.H.forEach((t => t.dispose()));
+        this.H.forEach(t => t.dispose());
         this.ea.publish(l.Dispose);
     }
     N(t) {
@@ -546,9 +546,9 @@ class BrowserIndexDBStorage {
         this.get = t => this.getStore().get(t).result;
         this.clear = () => {
             const t = this.getStore();
-            t.getAllKeys().result.forEach((e => {
+            t.getAllKeys().result.forEach(e => {
                 t.delete(e);
-            }));
+            });
         };
         this.database = this.cache.open(BrowserIndexDBStorage.cacheName).result;
     }
@@ -560,14 +560,14 @@ class BrowserStorage {
     constructor(t) {
         this.cache = t;
         this.delete = t => this.cache.removeItem(t);
-        this.has = t => Object.keys(this.cache).some((e => e === t));
+        this.has = t => Object.keys(this.cache).some(e => e === t);
         this.set = (t, e) => this.cache.setItem(t, JSON.stringify(e));
         this.get = t => JSON.parse(this.cache.getItem(t) ?? "null");
         this.clear = () => {
-            Object.keys(this.cache).forEach((t => {
+            Object.keys(this.cache).forEach(t => {
                 if (!t.startsWith(CacheInterceptor.prefix)) return;
                 this.cache.removeItem(t);
-            }));
+            });
         };
     }
 }
@@ -625,34 +625,34 @@ class RetryInterceptor {
     responseError(t, e, s) {
         const {retryConfig: r} = e;
         const {requestClone: i} = r;
-        return Promise.resolve().then((() => {
+        return Promise.resolve().then(() => {
             if (r.counter < r.maxRetries) {
                 const n = r.doRetry != null ? r.doRetry(t, e) : true;
-                return Promise.resolve(n).then((n => {
+                return Promise.resolve(n).then(n => {
                     if (n) {
                         r.counter++;
                         const t = calculateDelay(r);
-                        return new Promise((e => this.p.setTimeout(e, !isNaN(t) ? t : 0))).then((() => {
+                        return new Promise(e => this.p.setTimeout(e, !isNaN(t) ? t : 0)).then(() => {
                             const t = i.clone();
                             if (typeof r.beforeRetry === "function") {
                                 return r.beforeRetry(t, s);
                             }
                             return t;
-                        })).then((t => {
+                        }).then(t => {
                             const e = {
                                 ...t,
                                 retryConfig: r
                             };
                             return s.fetch(e);
-                        }));
+                        });
                     }
                     delete e.retryConfig;
                     throw t;
-                }));
+                });
             }
             delete e.retryConfig;
             throw t;
-        }));
+        });
     }
 }
 

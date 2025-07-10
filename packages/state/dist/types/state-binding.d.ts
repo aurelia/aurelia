@@ -1,4 +1,3 @@
-import { TaskQueue } from '@aurelia/platform';
 import { type IServiceLocator } from '@aurelia/kernel';
 import { IsBindingBehavior } from '@aurelia/expression-parser';
 import { type IObserverLocator, type IObserverLocatorBasedConnectable, ISubscriber, type IAstEvaluator, type Scope } from '@aurelia/runtime';
@@ -16,7 +15,7 @@ export declare class StateBinding implements IBinding, ISubscriber, IStoreSubscr
     private readonly targetProperty;
     strict: boolean;
     mode: BindingMode;
-    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, taskQueue: TaskQueue, ast: IsBindingBehavior, target: object, prop: PropertyKey, store: IStore<object>, strict: boolean);
+    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, ast: IsBindingBehavior, target: object, prop: PropertyKey, store: IStore<object>, strict: boolean);
     updateTarget(value: unknown): void;
     bind(_scope: Scope): void;
     unbind(): void;

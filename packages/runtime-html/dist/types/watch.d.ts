@@ -5,16 +5,20 @@ export type IWatcherCallback<TType extends object, TValue = unknown> = (this: TT
 export interface IWatchDefinition<T extends object = object> {
     expression: PropertyKey | IDepCollectionFn<T>;
     callback: keyof T | IWatcherCallback<T>;
+    flush: 'async' | 'sync';
 }
+export type IWatchOptions = {
+    flush?: 'async' | 'sync';
+};
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;
-type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K, context: ClassDecoratorContext<K>) => void;
+type WatchClassDecorator<T extends object> = (target: Constructable<T>, context: ClassDecoratorContext<Constructable<T>>) => void;
 type WatchMethodDecorator<T, TV extends AnyMethod> = (target: TV, context: ClassMethodDecoratorContext<T, TV>) => void;
 type MethodsOf<Type> = {
     [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never;
 }[keyof Type];
-export declare function watch<T extends object, D = unknown>(expressionOrPropertyAccessFn: PropertyKey, changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>): WatchClassDecorator<T>;
-export declare function watch<T extends object, D = unknown>(expressionOrPropertyAccessFn: IDepCollectionFn<T, D>, changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>): WatchClassDecorator<T>;
-export declare function watch<T extends object = object, D = unknown, TV extends AnyMethod = AnyMethod>(expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>): WatchMethodDecorator<T, TV>;
+export declare function watch<T extends object, D = unknown>(expressionOrPropertyAccessFn: PropertyKey, changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>, options?: IWatchOptions): WatchClassDecorator<T>;
+export declare function watch<T extends object, D = unknown>(expressionOrPropertyAccessFn: IDepCollectionFn<T, D>, changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>, options?: IWatchOptions): WatchClassDecorator<T>;
+export declare function watch<T extends object = object, D = unknown, TV extends AnyMethod = AnyMethod>(expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>, options?: IWatchOptions): WatchMethodDecorator<T, TV>;
 export declare const Watch: Readonly<{
     add(Type: Constructable, definition: IWatchDefinition): void;
     getDefinitions(Type: Constructable): IWatchDefinition[];

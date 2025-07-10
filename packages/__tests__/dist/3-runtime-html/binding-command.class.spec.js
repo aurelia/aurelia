@@ -1,4 +1,5 @@
 import { BindingMode, CustomElement } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 // TemplateCompiler - Binding Commands integration
@@ -68,13 +69,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
                         assert.contains(el.classList, className.toLowerCase(), `[[truthy]]${el.className}.contains(${className}) 1`);
                     }
                     component.value = falsyValue;
-                    platform.domQueue.flush();
+                    runTasks();
                     for (let i = 0, ii = childEls.length; ii > i; ++i) {
                         const el = childEls[i];
                         assert.notContains(el.classList, className.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${className}) 2`);
                     }
                     component.value = truthyValue;
-                    platform.domQueue.flush();
+                    runTasks();
                     for (let i = 0, ii = childEls.length; ii > i; ++i) {
                         const el = childEls[i];
                         assert.contains(el.classList, className.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${className}) 3`);
@@ -94,12 +95,12 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
             assert.strictEqual(classes.length > 0, true, 'At least one class in multi-class test');
             eachCartesianJoin([falsyValues, truthyValues], (falsyValue, truthyValue) => {
                 component.value = truthyValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (const cls of classes) {
                     assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
                 }
                 component.value = falsyValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (const cls of classes) {
                     assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
                 }
@@ -117,13 +118,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
             assert.strictEqual(classes.length > 0, true, 'At least one class in multi-class test');
             eachCartesianJoin([falsyValues, truthyValues], (falsyValue, truthyValue) => {
                 component.value = truthyValue;
-                platform.domQueue.flush();
+                runTasks();
                 assert.contains(el.classList, 'base-class', 'Base class should always be present');
                 for (const cls of classes) {
                     assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
                 }
                 component.value = falsyValue;
-                platform.domQueue.flush();
+                runTasks();
                 assert.contains(el.classList, 'base-class', 'Base class should always be present');
                 for (const cls of classes) {
                     assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
@@ -142,12 +143,12 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
             assert.strictEqual(classes.length > 0, true, 'At least one class in multi-class test');
             eachCartesianJoin([falsyValues, truthyValues], (falsyValue, truthyValue) => {
                 component.value = truthyValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (const cls of classes) {
                     assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
                 }
                 component.value = falsyValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (const cls of classes) {
                     assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
                 }
@@ -197,13 +198,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
             }
             eachCartesianJoin([falsyValues, truthyValues], (falsyValue, truthyValue) => {
                 component.value = falsyValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0, ii = els.length; ii > i; ++i) {
                     const el = els[i];
                     assert.notContains(el.classList, className.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${className}) 2`);
                 }
                 component.value = truthyValue;
-                platform.domQueue.flush();
+                runTasks();
                 for (let i = 0, ii = els.length; ii > i; ++i) {
                     const el = els[i];
                     assert.contains(el.classList, className.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${className}) 3`);

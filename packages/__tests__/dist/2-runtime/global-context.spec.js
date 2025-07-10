@@ -1,5 +1,6 @@
 import { AccessGlobalExpression, ExpressionParser } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 const globalNames = [
     'Infinity',
@@ -102,8 +103,8 @@ describe('2-runtime/global-context.spec.ts', function () {
         }
     });
     describe('evaluation of global expressions - ensure parameters are reactive but the globals+properties are not observed', function () {
-        it('Math.max', function () {
-            const { ctx, component, assertText, flush, stop } = createFixture('${num1},${num2},${Math.max(num1, num2)}', class {
+        it('Math.max', async function () {
+            const { ctx, component, assertText, stop } = createFixture('${num1},${num2},${Math.max(num1, num2)}', class {
                 constructor() {
                     this.num1 = 1;
                     this.num2 = 2;
@@ -111,7 +112,7 @@ describe('2-runtime/global-context.spec.ts', function () {
             });
             assertText('1,2,2');
             component.num1 = 3;
-            flush();
+            await tasksSettled();
             assertText('3,2,3');
             void stop(true);
             ensureGlobalsAreUntouched(ctx.wnd.globalThis);
@@ -121,54 +122,54 @@ describe('2-runtime/global-context.spec.ts', function () {
                 createFixture('${JSON()}');
             });
         });
-        it('Object.prototype.toString.call', function () {
-            const { ctx, component, assertText, flush, stop } = createFixture('${Object.prototype.toString.call(value)}', class {
+        it('Object.prototype.toString.call', async function () {
+            const { ctx, component, assertText, stop } = createFixture('${Object.prototype.toString.call(value)}', class {
                 constructor() {
                     this.value = 0;
                 }
             });
             assertText('[object Number]');
             component.value = '0';
-            flush();
+            await tasksSettled();
             assertText('[object String]');
             void stop(true);
             ensureGlobalsAreUntouched(ctx.wnd.globalThis);
         });
-        it('instanceof Object', function () {
-            const { ctx, component, assertText, flush, stop } = createFixture('${value instanceof Object ? "object" : "something else"}', class {
+        it('instanceof Object', async function () {
+            const { ctx, component, assertText, stop } = createFixture('${value instanceof Object ? "object" : "something else"}', class {
                 constructor() {
                     this.value = {};
                 }
             });
             assertText('object');
             component.value = null;
-            flush();
+            await tasksSettled();
             assertText('something else');
             void stop(true);
             ensureGlobalsAreUntouched(ctx.wnd.globalThis);
         });
-        it('isNaN', function () {
-            const { ctx, component, assertText, flush, stop } = createFixture('${isNaN(value === 0 ? NaN : value) ? "its NaN" : value', class {
+        it('isNaN', async function () {
+            const { ctx, component, assertText, stop } = createFixture('${isNaN(value === 0 ? NaN : value) ? "its NaN" : value', class {
                 constructor() {
                     this.value = 0;
                 }
             });
             assertText('its NaN');
             component.value = 1;
-            flush();
+            await tasksSettled();
             assertText('1');
             void stop(true);
             ensureGlobalsAreUntouched(ctx.wnd.globalThis);
         });
         it('isFinite', async function () {
-            const { ctx, component, assertText, flush, stop } = createFixture('${isFinite(value === 0 ? Infinity : value) ? "finite" : "infinite"', class {
+            const { ctx, component, assertText, stop } = createFixture('${isFinite(value === 0 ? Infinity : value) ? "finite" : "infinite"', class {
                 constructor() {
                     this.value = 0;
                 }
             });
             assertText('infinite');
             component.value = 1;
-            flush();
+            await tasksSettled();
             assertText('finite');
             void stop(true);
             ensureGlobalsAreUntouched(ctx.wnd.globalThis);

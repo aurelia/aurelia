@@ -36,6 +36,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
+import { tasksSettled } from '@aurelia/runtime';
 import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { StoreConfiguration, Store, connectTo, dispatchify } from "@aurelia/store-v1";
@@ -100,7 +101,7 @@ describe("store-v1/integration.spec.ts", function () {
         assert.equal(store['_state'].getValue().foo, "bar");
         await tearDown();
     });
-    it("should throw if no initial state was provided", function () {
+    it("should throw if no initial state was provided", async function () {
         let App = (() => {
             let _classDecorators = [customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })];
             let _classDescriptor;
@@ -118,7 +119,7 @@ describe("store-v1/integration.spec.ts", function () {
             })();
             return App = _classThis;
         })();
-        return assert.rejects(() => createFixture({ component: App, initialState: null }));
+        await assert.rejects(() => createFixture({ component: App, initialState: null }));
     });
     it("should inject the proper store for connectTo", async function () {
         let App = (() => {
@@ -211,7 +212,7 @@ describe("store-v1/integration.spec.ts", function () {
         assert.equal(store['_state'].getValue().foo, "bar");
         const sut = ctx.container.get(App);
         await sut.changeFoo();
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.equal(host.querySelector("#sut").textContent, "foobar");
         assert.equal(store['_state'].getValue().foo, "foobar");
         await tearDown();

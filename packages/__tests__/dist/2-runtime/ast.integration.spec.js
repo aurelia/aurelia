@@ -1,5 +1,6 @@
 import { AccessScopeExpression, ConditionalExpression, } from '@aurelia/expression-parser';
-import { BindingMode, IPlatform, LetBinding, PropertyBinding, } from '@aurelia/runtime-html';
+import { BindingMode, LetBinding, PropertyBinding, } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createContainer, createFixture, createObserverLocator, createScopeForTest, } from '@aurelia/testing';
 describe('2-runtime/ast.integration.spec.ts', function () {
     // well maybe should just delete these tests
@@ -13,10 +14,10 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const accessScopeExpr = new AccessScopeExpression('name', 0);
                 const source = { name: 'hello' };
                 const target = { name: '' };
-                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, {}, accessScopeExpr, target, 'name', BindingMode.toView, false);
+                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, accessScopeExpr, target, 'name', BindingMode.toView, false);
                 binding.bind(createScopeForTest(source));
                 assert.strictEqual(target.name, 'hello');
-                Array.from({ length: 5 }).forEach(idx => {
+                Array.from({ length: 5 }).forEach((_, idx) => {
                     source.name = `${idx}`;
                     assert.strictEqual(target.name, `${idx}`);
                 });
@@ -28,7 +29,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
                 const target = { value: '' };
                 const scope = createScopeForTest(target, source);
-                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, container.get(IPlatform).domQueue, conditionalExpr, target, 'value', BindingMode.toView, false);
+                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, conditionalExpr, target, 'value', BindingMode.toView, false);
                 let handleChangeCallCount = 0;
                 binding.handleChange = (handleChange => {
                     return function (...args) {
@@ -38,7 +39,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 })(binding.handleChange);
                 binding.bind(scope);
                 assert.strictEqual(target.value, 'no');
-                Array.from({ length: 5 }).forEach(idx => {
+                Array.from({ length: 5 }).forEach((_, idx) => {
                     const $count = handleChangeCallCount;
                     source.checked = !source.checked;
                     assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
@@ -81,7 +82,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const binding = new LetBinding(container, observerLocator, accessScopeExpr, 'value', true, false);
                 binding.bind(scope);
                 assert.strictEqual(source.value, 'hello');
-                Array.from({ length: 5 }).forEach(idx => {
+                Array.from({ length: 5 }).forEach((_, idx) => {
                     oc.name = `${idx}`;
                     assert.strictEqual(source.value, `${idx}`);
                 });
@@ -139,31 +140,31 @@ describe('2-runtime/ast.integration.spec.ts', function () {
     });
     describe('[[AccessMember]]', function () {
         it('notifies when binding with .length', function () {
-            const { trigger, assertText, flush } = createFixture
+            const { trigger, assertText } = createFixture
                 .component({ items: [1, 2] })
                 .html `
           <button click.trigger="items.length = 0">item count: \${items.length}</button>
         `
                 .build();
             trigger.click('button');
-            flush();
+            runTasks();
             assertText('button', 'item count: 0');
         });
     });
     describe('[[AccessKey]]', function () {
         it('notifies when assigning to array index', function () {
-            const { trigger, assertText, flush } = createFixture
+            const { trigger, assertText } = createFixture
                 .component({ items: [1, 2] })
                 .html `
           <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
         `
                 .build();
             trigger.click('button');
-            flush();
+            runTasks();
             assertText('button', 'item at [1]: 0');
         });
         it('notifies when binding two way with array index', function () {
-            const { getAllBy, type, flush } = createFixture
+            const { getAllBy, type } = createFixture
                 .component({ items: [1, 2] })
                 .html `
           <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
@@ -174,7 +175,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 .build();
             const inputs = getAllBy('input');
             type(inputs[0], '3');
-            flush();
+            runTasks();
             assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
         });
     });

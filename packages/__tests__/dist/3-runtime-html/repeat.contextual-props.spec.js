@@ -1,6 +1,7 @@
 import { noop } from '@aurelia/kernel';
 import { ValueConverter, } from '@aurelia/runtime-html';
-import { assert, createFixture } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
+import { assert, createFixture, } from '@aurelia/testing';
 describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
     // todo: enable tests that create new collection via value converter
     const simpleRepeatPropsTestCases = [
@@ -320,17 +321,16 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
             // eslint-disable-next-line mocha/no-exclusive-tests
             ? it.only(_title, fn)
             : it(_title, fn);
-        suit(title, function () {
+        suit(title, async function () {
             // const ctx = TestContext.create();
             let au;
             let component;
-            let ctx;
             // let body: HTMLElement;
             let host;
             try {
                 // au.app({ host, component: App });
                 // await au.start();
-                ({ component, au, ctx, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
+                ({ component, au, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
                 assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
             }
             catch (ex) {
@@ -350,9 +350,9 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
             }
             try {
                 mutate(component.items, component);
-                ctx.platform.domQueue.flush();
+                await tasksSettled();
                 assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
-                void au.stop();
+                await au.stop();
             }
             catch (ex) {
                 if (!mutationWillThrow) {

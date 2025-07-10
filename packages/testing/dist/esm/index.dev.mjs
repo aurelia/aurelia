@@ -1,7 +1,7 @@
 import { ensureEmpty, reportTaskQueue } from '@aurelia/platform';
 import { noop, isArrayIndex, DI, Registration, kebabCase, emptyArray, EventAggregator, ILogger, ISink, LogLevel } from '@aurelia/kernel';
 import { IObserverLocator, astEvaluate, astAssign, astBind, astUnbind, IDirtyChecker, INodeObserverLocator, Scope } from '@aurelia/runtime';
-import { StandardConfiguration, IPlatform, CustomElement, CustomAttribute, Aurelia } from '@aurelia/runtime-html';
+import { StandardConfiguration, IPlatform, CustomElement, CustomAttribute, Aurelia, registerHostNode } from '@aurelia/runtime-html';
 import { ITemplateCompiler, InstructionType } from '@aurelia/template-compiler';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { Metadata } from '@aurelia/metadata';
@@ -7767,6 +7767,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
         throw new Error('Container of the context contains instance of the application root component. ' +
             'Consider using a different class, or context as it will likely cause surprises in tests.');
     }
+    registerHostNode(container, host);
     const component = container.get(App);
     let startPromise = void 0;
     function startFixtureApp() {
@@ -7903,6 +7904,18 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
         const el = strictQueryBy(selector, `to assert className contains "${classes}"`);
         classes.forEach(c => assert.contains(el.classList, c));
     }
+    function assertClassStrict(selector, ...classes) {
+        const el = strictQueryBy(selector, `to assert className contains only "${classes}"`);
+        const existingClasses = Array.from(el.classList);
+        if (classes.length === 0 && existingClasses.length > 0) {
+            assert.fail(`expected element to have no classes, but found [${existingClasses.join(', ')}]`);
+        }
+        classes.forEach(c => assert.contains(el.classList, c));
+        const extraClasses = existingClasses.filter(c => !classes.includes(c));
+        if (extraClasses.length > 0) {
+            assert.fail(`expected element to only have classes [${classes.join(', ')}] but found [${extraClasses.join(', ')}]`);
+        }
+    }
     function assertAttr(selector, name, value) {
         const el = strictQueryBy(selector, `to compare attribute "${name}" against "${value}"`);
         assert.strictEqual(el.getAttribute(name), value);
@@ -7972,9 +7985,6 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
         el.scrollBy(typeof init === 'number' ? { top: init } : init);
         el.dispatchEvent(new platform.window.Event('scroll'));
     };
-    const flush = (time) => {
-        ctx.platform.domQueue.flush(time);
-    };
     const stop = (dispose = false) => {
         let ret = void 0;
         try {
@@ -8023,6 +8033,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
             this.assertTextContain = assertTextContain;
             this.assertHtml = assertHtml;
             this.assertClass = assertClass;
+            this.assertClassStrict = assertClassStrict;
             this.assertAttr = assertAttr;
             this.assertAttrNS = assertAttrNS;
             this.assertStyles = assertStyles;
@@ -8032,7 +8043,6 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
             this.trigger = trigger;
             this.type = type;
             this.scrollBy = scrollBy;
-            this.flush = flush;
         }
         start() {
             return (app ??= au.app({ host: host, component })).start();

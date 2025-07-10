@@ -1,3 +1,4 @@
+import { tasksSettled } from '@aurelia/runtime';
 import { PLATFORM, assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 describe('3-runtime-html/focus.spec.ts', function () {
@@ -29,7 +30,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
                 assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
             });
         });
-        it('invokes focus when there is **NO** tabindex attribute', function () {
+        it('invokes focus when there is **NO** tabindex attribute', async function () {
             let callCount = 0;
             PLATFORM.window.HTMLDivElement.prototype.focus = function () {
                 callCount++;
@@ -65,7 +66,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
         }
         for (const [desc, template] of specs) {
             describe(`with ${desc}`, function () {
-                it('Works in basic scenario', function () {
+                it('Works in basic scenario', async function () {
                     const { testHost, component, ctx } = createFixture(`<template>
               ${template}
             </template>`, class App {
@@ -117,7 +118,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
                 const hasShadowRoot = shadowMode !== null;
                 const isFocusable = ceProp && (typeof ceProp.tabIndex !== 'undefined' || ceProp.contentEditable);
                 const ceName = `ce-${Math.random().toString().slice(-6)}`;
-                it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, function () {
+                it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function () {
                     const { testHost, start, component, ctx } = createFixture(`<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`, class App {
                         constructor() {
                             this.hasFocus = true;
@@ -235,7 +236,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
                     assert.equal(doc.activeElement, focusable);
                     assert.equal(component.hasFocus, true, 'window@blur');
                     component.selectedOption = '2';
-                    ctx.platform.domQueue.flush();
+                    await tasksSettled();
                     assert.equal(doc.activeElement, focusable);
                     assert.equal(component.hasFocus, true, 'select@change');
                 }

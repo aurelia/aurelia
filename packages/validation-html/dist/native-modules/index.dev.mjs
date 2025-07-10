@@ -2,7 +2,7 @@ import { DI, resolve, IServiceLocator, optional, IContainer, Registration, noop 
 import { IValidator, parsePropertyName, ValidationResult, ValidateInstruction, PropertyRule, getDefaultValidationConfiguration, ValidationConfiguration } from '../../../validation/dist/native-modules/index.mjs';
 import { IPlatform, INode, bindable, CustomAttribute, BindingMode, BindingBehavior, PropertyBinding, IFlushQueue, BindingTargetSubscriber, CustomElement } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { IExpressionParser } from '../../../expression-parser/dist/native-modules/index.mjs';
-import { astEvaluate, connectable, mixinNoopAstEvaluator, IObserverLocator } from '../../../runtime/dist/native-modules/index.mjs';
+import { astEvaluate, queueAsyncTask, connectable, mixinNoopAstEvaluator, IObserverLocator } from '../../../runtime/dist/native-modules/index.mjs';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -18,13 +18,14 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
 
 
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var descriptor = ({});
+    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};
@@ -44,6 +45,7 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
             else descriptor[key] = _;
         }
     }
+    if (target) Object.defineProperty(target, contextIn.name, descriptor);
     done = true;
 }
 function __runInitializers(thisArg, initializers, value) {
@@ -311,7 +313,7 @@ class ValidationController {
             ];
         }
         this.validating = true;
-        const task = this.platform.domQueue.queueTask(async () => {
+        const task = queueAsyncTask(async () => {
             try {
                 const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
                 const newResults = results.reduce((acc, resultSet) => {
@@ -678,7 +680,7 @@ class ValidationConnector {
         this.isDirty = false;
         this.validatedOnce = false;
         this.triggerEvent = null;
-        this.task = null;
+        /** @internal */ this._isQueued = false;
         this.propertyBinding = propertyBinding;
         this.target = propertyBinding.target;
         this.defaultTrigger = defaultTrigger;
@@ -720,10 +722,8 @@ class ValidationConnector {
         }
     }
     stop() {
-        this.task?.cancel();
-        this.source = void 0;
+        this._isQueued = false;
         this.scope = void 0;
-        this.task = null;
         const triggerEventName = this.triggerEvent;
         if (triggerEventName !== null) {
             this.target?.removeEventListener(triggerEventName, this);
@@ -791,12 +791,14 @@ class ValidationConnector {
     //              if it's not observable from a high level, then we should tweak the tests
     //              or make assumption, rather than breaking encapsulation
     validateBinding() {
-        // Queue the new one before canceling the old one, to prevent early yield
-        const task = this.task;
-        this.task = this._platform.domQueue.queueTask(() => this.controller.validateBinding(this.propertyBinding));
-        if (task !== this.task) {
-            task?.cancel();
+        if (this._isQueued) {
+            return;
         }
+        this._isQueued = true;
+        queueAsyncTask(() => {
+            this._isQueued = false;
+            return this.controller.validateBinding(this.propertyBinding);
+        });
     }
     /** @internal */
     _processDelta(delta) {

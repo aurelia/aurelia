@@ -37,6 +37,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
 import { DI, ILogger, LoggerConfiguration, LogLevel, pascalCase, Registration, resolve, sink, } from '@aurelia/kernel';
+import { tasksSettled, } from '@aurelia/runtime';
 import { bindingBehavior, customElement, CustomElement, Switch, Aurelia, IPlatform, bindable, INode, valueConverter, } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext, } from '@aurelia/testing';
 import { createSpecFunction, } from '../util.js';
@@ -617,7 +618,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
         </template>`,
             }, config(), '<div> the curious case of processing </div>', [], [], async (ctx) => {
                 ctx.app.status = "delivered" /* Status.delivered */;
-                ctx.platform.domQueue.flush();
+                await tasksSettled();
                 assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
             });
             yield new TestData('supports non-case elements', {
@@ -1212,5 +1213,282 @@ describe('3-runtime-html/switch.spec.ts', function () {
       `
             .build().started;
     });
+    // Note: This is just an unrolled test for debugging purposes (useful for future refactoring of the tests)
+    for (const config of [
+        new Config(false, false, noop),
+        new Config(true, false, noop),
+        new Config(true, true, createWaiter(0)),
+        new Config(true, true, createWaiter(5)),
+    ]) {
+        it('supports multi-case collection mutation (unwrapped)', async function () {
+            let App = (() => {
+                let _classDecorators = [customElement({
+                        name: 'app',
+                        template: `
+    <template>
+      <template switch.bind="status">
+        <case-host case.bind="statuses" ce-id="1">Processing.</case-host>
+        <case-host case="dispatched"    ce-id="2">On the way.</case-host>
+        <case-host case="delivered"     ce-id="3">Delivered.</case-host>
+        <default-case-host default-case ce-id="1">Unknown.</default-case-host>
+      </template>
+    </template>`
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var App = _classThis = class {
+                    constructor() {
+                        this.status1 = "received" /* Status.received */;
+                        this.status2 = "processing" /* Status.processing */;
+                        this.statuses = ["received" /* Status.received */, "processing" /* Status.processing */];
+                        this.status = "dispatched" /* Status.dispatched */;
+                        this.statusNum = 0 /* StatusNum.unknown */;
+                    }
+                };
+                __setFunctionName(_classThis, "App");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    App = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return App = _classThis;
+            })();
+            let CaseHost = (() => {
+                let _classDecorators = [customElement({ name: 'case-host', template: '<au-slot>' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                let _ceId_decorators;
+                let _ceId_initializers = [];
+                let _ceId_extraInitializers = [];
+                var CaseHost = _classThis = class {
+                    constructor() {
+                        this.ceId = __runInitializers(this, _ceId_initializers, null);
+                        this.$logger = (__runInitializers(this, _ceId_extraInitializers), resolve(ILogger));
+                        const node = resolve(INode);
+                        const ceId = node.dataset.ceId;
+                        if (ceId) {
+                            (this.logger = resolve(ILogger).scopeTo(`case-host-${ceId}`)).debug('ctor');
+                            delete node.dataset.ceId;
+                        }
+                    }
+                    async binding() {
+                        this.logger ??= this.ceId === null ? this.$logger.scopeTo('case-host') : this.$logger.scopeTo(`case-host-${this.ceId}`);
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('binding');
+                    }
+                    async bound() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('bound');
+                    }
+                    async attaching() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('attaching');
+                    }
+                    async attached() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('attached');
+                    }
+                    async detaching() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('detaching');
+                    }
+                    async unbinding() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('unbinding');
+                    }
+                };
+                __setFunctionName(_classThis, "CaseHost");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _ceId_decorators = [bindable];
+                    __esDecorate(null, null, _ceId_decorators, { kind: "field", name: "ceId", static: false, private: false, access: { has: obj => "ceId" in obj, get: obj => obj.ceId, set: (obj, value) => { obj.ceId = value; } }, metadata: _metadata }, _ceId_initializers, _ceId_extraInitializers);
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    CaseHost = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return CaseHost = _classThis;
+            })();
+            let DefaultCaseHost = (() => {
+                let _classDecorators = [customElement({ name: 'default-case-host', template: '<au-slot>' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                let _ceId_decorators;
+                let _ceId_initializers = [];
+                let _ceId_extraInitializers = [];
+                var DefaultCaseHost = _classThis = class {
+                    constructor() {
+                        this.ceId = __runInitializers(this, _ceId_initializers, null);
+                        this.$logger = (__runInitializers(this, _ceId_extraInitializers), resolve(ILogger));
+                        const node = resolve(INode);
+                        const ceId = node.dataset.ceId;
+                        if (ceId) {
+                            (this.logger = resolve(ILogger).scopeTo(`default-case-host-${ceId}`)).debug('ctor');
+                            delete node.dataset.ceId;
+                        }
+                    }
+                    async binding() {
+                        this.logger ??= this.ceId === null ? this.$logger.scopeTo('default-case-host') : this.$logger.scopeTo(`default-case-host-${this.ceId}`);
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('binding');
+                    }
+                    async bound() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('bound');
+                    }
+                    async attaching() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('attaching');
+                    }
+                    async attached() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('attached');
+                    }
+                    async detaching() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('detaching');
+                    }
+                    async unbinding() {
+                        if (config.hasPromise)
+                            await config.wait();
+                        this.logger.debug('unbinding');
+                    }
+                };
+                __setFunctionName(_classThis, "DefaultCaseHost");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _ceId_decorators = [bindable];
+                    __esDecorate(null, null, _ceId_decorators, { kind: "field", name: "ceId", static: false, private: false, access: { has: obj => "ceId" in obj, get: obj => obj.ceId, set: (obj, value) => { obj.ceId = value; } }, metadata: _metadata }, _ceId_initializers, _ceId_extraInitializers);
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    DefaultCaseHost = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return DefaultCaseHost = _classThis;
+            })();
+            const ctx = TestContext.create();
+            const host = ctx.doc.createElement('div');
+            ctx.doc.body.appendChild(host);
+            const container = ctx.container;
+            const au = new Aurelia(container);
+            let error = null;
+            let app = null;
+            let controller = null;
+            try {
+                await au
+                    .register(LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog] }), ToStatusStringValueConverter, NoopBindingBehavior, Registration.instance(Config, config), CaseHost, DefaultCaseHost)
+                    .app({
+                    host,
+                    component: App
+                })
+                    .start();
+                app = au.root.controller.viewModel;
+                controller = au.root.controller;
+            }
+            catch (e) {
+                error = e;
+            }
+            const wait = async ($switch) => {
+                const promise = $switch.promise;
+                await promise;
+                if ($switch.promise !== promise) {
+                    await wait($switch);
+                }
+            };
+            assert.strictEqual(error, null);
+            assert.html.innerEqual(host, `<case-host>On the way.</case-host>`, 'innerHTML');
+            const log = container.get(ILogger).sinks.find(s => s instanceof DebugLog);
+            const $switch = controller.children.find(x => x.viewModel instanceof Switch).viewModel;
+            const cases = $switch['cases'];
+            const expectedStartLog = [
+                `Case-#${cases[0]['id']}.isMatch()`,
+                `Case-#${cases[1]['id']}.isMatch()`,
+                'case-host-2.binding',
+                'case-host-2.bound',
+                'case-host-2.attaching',
+                'case-host-2.attached',
+            ];
+            assert.deepStrictEqual(log.log, expectedStartLog, 'start lifecycle calls');
+            log.clear();
+            app.statuses.push("dispatched" /* Status.dispatched */);
+            await wait($switch);
+            assert.html.innerEqual(host, `<case-host>Processing.</case-host>`, `change1 innerHTML`);
+            const expectedLog1 = [
+                `Case-#${cases[0]['id']}.isMatch()`,
+                'case-host-2.detaching',
+                'case-host-2.unbinding',
+                'case-host-1.binding',
+                'case-host-1.bound',
+                'case-host-1.attaching',
+                'case-host-1.attached',
+            ];
+            assert.deepStrictEqual(log.log, expectedLog1, 'change1');
+            log.clear();
+            app.status = "unknown" /* Status.unknown */;
+            await wait($switch);
+            assert.html.innerEqual(host, `<default-case-host>Unknown.</default-case-host>`, `change2 innerHTML`);
+            const expectedLog2 = [
+                `Case-#${cases[0]['id']}.isMatch()`,
+                `Case-#${cases[1]['id']}.isMatch()`,
+                `Case-#${cases[2]['id']}.isMatch()`,
+                'case-host-1.detaching',
+                'case-host-1.unbinding',
+                'default-case-host-1.binding',
+                'default-case-host-1.bound',
+                'default-case-host-1.attaching',
+                'default-case-host-1.attached',
+            ];
+            assert.deepStrictEqual(log.log, expectedLog2, 'change2');
+            log.clear();
+            app.statuses.push(app.status = "delivered" /* Status.delivered */);
+            await wait($switch);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            assert.html.innerEqual(host, `<case-host>Processing.</case-host>`, `change3 innerHTML`);
+            const expectedLog3 = [
+                `Case-#${cases[0]['id']}.isMatch()`,
+                `Case-#${cases[1]['id']}.isMatch()`,
+                `Case-#${cases[2]['id']}.isMatch()`,
+                'default-case-host-1.detaching',
+                'default-case-host-1.unbinding',
+                'case-host-3.binding',
+                'case-host-3.bound',
+                'case-host-3.attaching',
+                'case-host-3.attached',
+                `Case-#${cases[0]['id']}.isMatch()`,
+                'case-host-3.detaching',
+                'case-host-3.unbinding',
+                'case-host-1.binding',
+                'case-host-1.bound',
+                'case-host-1.attaching',
+                'case-host-1.attached',
+            ];
+            assert.deepStrictEqual(log.log, expectedLog3, 'change3');
+            log.clear();
+            await au.stop();
+            assert.html.innerEqual(host, '', 'post-detach innerHTML');
+            const expectedStopLog = [
+                'case-host-1.detaching',
+                'case-host-1.unbinding',
+            ];
+            assert.deepStrictEqual(log.log, expectedStopLog, 'stop lifecycle calls');
+            ctx.doc.body.removeChild(host);
+        });
+    }
 });
 //# sourceMappingURL=switch.spec.js.map

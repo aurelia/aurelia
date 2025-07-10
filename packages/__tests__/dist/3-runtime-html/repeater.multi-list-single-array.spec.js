@@ -1,3 +1,4 @@
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/repeater.multi-list-single-array.spec.ts', function () {
     describe('2 repeaters sharing an array', function () {
@@ -20,6 +21,7 @@ describe('3-runtime-html/repeater.multi-list-single-array.spec.ts', function () 
                 .html `${baseTemplate}`
                 .build().started;
             component.items.splice(1, 0, { id: 3 });
+            await tasksSettled();
             assert.strictEqual(getBy('center').textContent.replace(/\s/g, ''), '132132');
         });
         describe('sub repeat', function () {
@@ -50,6 +52,7 @@ describe('3-runtime-html/repeater.multi-list-single-array.spec.ts', function () 
                     .html `${baseTemplate}`
                     .build().started;
                 component.items[0].subs.splice(1, 0, { id: 13 });
+                await tasksSettled();
                 assert.strictEqual(getBy('center').textContent.replace(/\s/g, ''), '111312'.repeat(4));
             });
         });

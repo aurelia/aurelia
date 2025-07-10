@@ -1,3 +1,4 @@
+import { runTasks } from '@aurelia/runtime';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, hJsx, // deepscan-disable-line UNUSED_IMPORT
 TestContext, createFixture, } from '@aurelia/testing';
@@ -31,6 +32,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
             hJsx("div", { id: "d1" }, "hello"),
             hJsx("button", { portal: "target: #d1; position.bind: position" }, "click me")), { position: 'beforeend' });
         component.position = 'afterend';
+        runTasks();
         assertHtml('<div id="d1">hello</div><!--au-start--><button>click me</button><!--au-end--><!--au-start--><!--au-end-->');
     });
     it('moves view when position change afterend -> beforebegin', function () {
@@ -38,6 +40,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
             hJsx("div", { id: "d1" }, "hello"),
             hJsx("button", { portal: "target: #d1; position.bind: position" }, "click me")), { position: 'beforeend' });
         component.position = 'beforebegin';
+        runTasks();
         assertHtml('<!--au-start--><button>click me</button><!--au-end--><div id="d1">hello</div><!--au-start--><!--au-end-->');
     });
     it('removes location marker when portal is deactivated', function () {
@@ -46,8 +49,10 @@ describe('3-runtime-html/portal.spec.tsx', function () {
             hJsx("p", { id: "package", "if$bind": "open", portal: "#dest" })), { open: false });
         assertHtml('div', '');
         component.open = true;
+        runTasks();
         assertHtml('div', '<!--au-start--><p id="package"></p><!--au-end-->');
         component.open = false;
+        runTasks();
         assertHtml('div', '');
     });
     describe('basic', function () {
@@ -184,6 +189,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
                 }, class App {
                 }),
                 assertionFn: (_ctx, _host, comp) => {
+                    runTasks();
                     assert.notEqual(childrenQuerySelector(comp.localDiv, '.divdiv'), null, 'comp.localDiv should have contained .divdiv');
                 },
                 postTeardownAssertionFn: (ctx, _host, _comp) => {
@@ -203,12 +209,16 @@ describe('3-runtime-html/portal.spec.tsx', function () {
                     assert.equal(childrenQuerySelector(comp.localDiv, '.divdiv'), null, 'comp.localDiv should not have contained .divdiv (1)');
                     assert.equal(childrenQuerySelector(ctx.doc.body, '.divdiv'), comp.divdiv, 'body shoulda contained .divdiv (2)');
                     comp.target = comp.localDiv;
+                    runTasks();
                     assert.equal(childrenQuerySelector(comp.localDiv, '.divdiv'), comp.divdiv, 'comp.localDiv should have contained .divdiv (3)');
                     comp.target = null;
+                    runTasks();
                     assert.equal(childrenQuerySelector(ctx.doc.body, '.divdiv'), comp.divdiv, 'when .target=null, divdiv shoulda gone back to body (4)');
                     comp.target = comp.localDiv;
+                    runTasks();
                     assert.equal(childrenQuerySelector(comp.localDiv, '.divdiv'), comp.divdiv, 'comp.localDiv should have contained .divdiv (5)');
                     comp.target = undefined;
+                    runTasks();
                     assert.equal(childrenQuerySelector(ctx.doc.body, '.divdiv'), comp.divdiv, 'when .target = undefined, .divdiv shoulda gone back to body (6)');
                 }
             },
@@ -232,8 +242,10 @@ describe('3-runtime-html/portal.spec.tsx', function () {
                 assertionFn: (ctx, _host, comp) => {
                     assert.notStrictEqual(childrenQuerySelector(ctx.doc.body, '.divdiv'), null, 'it should have been moved to body');
                     comp.target = '.mock-target';
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-1');
                     comp.target = null;
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement, ctx.doc.body);
                 }
             },
@@ -257,17 +269,23 @@ describe('3-runtime-html/portal.spec.tsx', function () {
                 assertionFn: (ctx, host, comp) => {
                     assert.notStrictEqual(childrenQuerySelector(ctx.doc.body, '.divdiv'), null, 'it should have been moved to body');
                     comp.target = '.mock-target';
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
                     comp.target = null;
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement, ctx.doc.body);
                     comp.target = '.mock-target';
+                    runTasks();
                     // still not #mock-1-1 yet, because render context is unclear, so #mock-1-0 comes first for .mock-target
                     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
                     comp.renderContext = host.querySelector('#mock-render-context');
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-1');
                     comp.renderContext = undefined;
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
                     comp.renderContext = null;
+                    runTasks();
                     assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
                 }
             },

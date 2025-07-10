@@ -212,14 +212,14 @@ function isWeakMap(e) {
 
 function getOwnNonIndexProperties(e, n) {
     if (n) {
-        return c(e).filter((e => !t.isArrayIndex(e)));
+        return c(e).filter(e => !t.isArrayIndex(e));
     } else {
-        return m(e).filter((e => !t.isArrayIndex(e)));
+        return m(e).filter(e => !t.isArrayIndex(e));
     }
 }
 
 function getEnumerables(e, t) {
-    return t.filter((t => k(e, t)));
+    return t.filter(t => k(e, t));
 }
 
 const N = b({
@@ -1529,7 +1529,7 @@ function getKeys(e, t) {
     } else {
         n = m(e);
         if (i.length !== 0) {
-            n.push(...i.filter((t => k(e, t))));
+            n.push(...i.filter(t => k(e, t)));
         }
     }
     return n;
@@ -1698,7 +1698,7 @@ function formatSpecialArray(e, n, i, r, a, s) {
 
 function formatArrayBuffer(e, t) {
     const n = new Uint8Array(t);
-    let i = join(n.slice(0, Math.min(e.maxArrayLength, n.length)).map((e => e.toString(16))), " ");
+    let i = join(n.slice(0, Math.min(e.maxArrayLength, n.length)).map(e => e.toString(16)), " ");
     const r = n.length - e.maxArrayLength;
     if (r > 0) {
         i += ` ... ${r} more byte${r > 1 ? "s" : ""}`;
@@ -2380,7 +2380,7 @@ function verifyBindingInstructionsEqual(e, t, n, i) {
             }
         }
     }
-    if (i === "instruction" && n.some((e => e.startsWith("W")))) {
+    if (i === "instruction" && n.some(e => e.startsWith("W"))) {
         throw new Error(`Failed assertion: binding instruction mismatch\n  - ${n.join("\n  - ")}`);
     }
 }
@@ -2980,7 +2980,7 @@ function computedStyle(e, t, n) {
 function notComputedStyle(e, t, n) {
     const i = matchStyle(e, t);
     if (i.isMatch) {
-        const e = Object.entries(t).map((([e, t]) => `${e}:${t}`)).join(",");
+        const e = Object.entries(t).map(([e, t]) => `${e}:${t}`).join(",");
         innerFail({
             actual: e,
             expected: e,
@@ -4071,14 +4071,14 @@ const $e = [ ":after", ":before", ":backdrop", ":cue", ":first-letter", ":first-
 const we = [ "xml:lang", "xml:base", "accesskey", "autocapitalize", "aria-foo", "class", "contenteditable", "contextmenu", "data-foo", "dir", "draggable", "dropzone", "hidden", "id", "is", "itemid", "itemprop", "itemref", "itemscope", "itemtype", "lang", "slot", "spellcheck", "style", "tabindex", "title", "translate", "onabort", "onautocomplete", "onautocompleteerror", "onblur", "oncancel", "oncanplay", "oncanplaythrough", "onchange", "onclick", "onclose", "oncontextmenu", "oncuechange", "ondblclick", "ondrag", "ondragend", "ondragenter", "ondragexit", "ondragleave", "ondragover", "ondragstart", "ondrop", "ondurationchange", "onemptied", "onended", "onerror", "onfocus", "oninput", "oninvalid", "onkeydown", "onkeypress", "onkeyup", "onload", "onloadeddata", "onloadedmetadata", "onloadstart", "onmousedown", "onmouseenter", "onmouseleave", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmousewheel", "onpause", "onplay", "onplaying", "onprogress", "onratechange", "onreset", "onresize", "onscroll", "onseeked", "onseeking", "onselect", "onshow", "onsort", "onstalled", "onsubmit", "onsuspend", "ontimeupdate", "ontoggle", "onvolumechange", "onwaiting" ];
 
 function eachCartesianJoinFactory(e, t) {
-    e = e.slice(0).filter((e => e.length > 0));
+    e = e.slice(0).filter(e => e.length > 0);
     if (typeof t !== "function") {
         throw new Error("Callback is not a function");
     }
     if (e.length === 0) {
         return;
     }
-    const n = e.reduce(((e, t) => e *= t.length), 1);
+    const n = e.reduce((e, t) => e *= t.length, 1);
     const i = Array(e.length).fill(0);
     const r = [];
     let a = null;
@@ -4110,7 +4110,7 @@ function eachCartesianJoinFactory(e, t) {
         }
     }
     if (r.length > 0) {
-        const e = `eachCartesionJoinFactory failed to load ${r.length} tests:\n\n${r.map((e => e.message)).join("\n")}`;
+        const e = `eachCartesionJoinFactory failed to load ${r.length} tests:\n\n${r.map(e => e.message).join("\n")}`;
         throw new Error(e);
     }
 }
@@ -4123,14 +4123,14 @@ function updateElementByIndicesFactory(e, t, n) {
 }
 
 function eachCartesianJoin(e, t) {
-    e = e.slice(0).filter((e => e.length > 0));
+    e = e.slice(0).filter(e => e.length > 0);
     if (typeof t !== "function") {
         throw new Error("Callback is not a function");
     }
     if (e.length === 0) {
         return;
     }
-    const n = e.reduce(((e, t) => e *= t.length), 1);
+    const n = e.reduce((e, t) => e *= t.length, 1);
     const i = Array(e.length).fill(0);
     const r = updateElementByIndices(e, Array(e.length), i);
     t(...r, 0);
@@ -4154,14 +4154,14 @@ function eachCartesianJoin(e, t) {
 }
 
 async function eachCartesianJoinAsync(e, t) {
-    e = e.slice(0).filter((e => e.length > 0));
+    e = e.slice(0).filter(e => e.length > 0);
     if (typeof t !== "function") {
         throw new Error("Callback is not a function");
     }
     if (e.length === 0) {
         return;
     }
-    const n = e.reduce(((e, t) => e *= t.length), 1);
+    const n = e.reduce((e, t) => e *= t.length, 1);
     const i = Array(e.length).fill(0);
     const r = updateElementByIndices(e, Array(e.length), i);
     await t(...r, 0);
@@ -4312,14 +4312,14 @@ hJsx.Fragment = "template";
 
 const Ee = new t.EventAggregator;
 
-const onFixtureCreated = e => Ee.subscribe("fixture:created", (t => {
+const onFixtureCreated = e => Ee.subscribe("fixture:created", t => {
     try {
         e(t);
     } catch (e) {
         console.log("(!) Error in fixture:created callback");
         console.log(e);
     }
-}));
+});
 
 function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {}, u) {
     const {container: c} = o;
@@ -4334,9 +4334,9 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
     };
     const v = [ "aliases", "bindables", "capture", "containerless", "dependencies", "enhance", "strict" ];
     if (b !== n && n != null) {
-        v.forEach((e => {
+        v.forEach(e => {
             s.Metadata.define(i.CustomElement.getAnnotation(n, e, null), b, e);
-        }));
+        });
     }
     const y = i.CustomElement.isType(b) ? i.CustomElement.getDefinition(b) : {};
     const x = i.CustomElement.define({
@@ -4348,6 +4348,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
     if (c.has(x, true)) {
         throw new Error("Container of the context contains instance of the application root component. " + "Consider using a different class, or context as it will likely cause surprises in tests.");
     }
+    i.registerHostNode(c, m);
     const $ = c.get(x);
     let w = void 0;
     function startFixtureApp() {
@@ -4465,7 +4466,19 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
     }
     function assertClass(e, ...t) {
         const n = strictQueryBy(e, `to assert className contains "${t}"`);
-        t.forEach((e => ye.contains(n.classList, e)));
+        t.forEach(e => ye.contains(n.classList, e));
+    }
+    function assertClassStrict(e, ...t) {
+        const n = strictQueryBy(e, `to assert className contains only "${t}"`);
+        const i = Array.from(n.classList);
+        if (t.length === 0 && i.length > 0) {
+            ye.fail(`expected element to have no classes, but found [${i.join(", ")}]`);
+        }
+        t.forEach(e => ye.contains(n.classList, e));
+        const r = i.filter(e => !t.includes(e));
+        if (r.length > 0) {
+            ye.fail(`expected element to only have classes [${t.join(", ")}] but found [${r.join(", ")}]`);
+        }
     }
     function assertAttr(e, t, n) {
         const i = strictQueryBy(e, `to compare attribute "${t}" against "${n}"`);
@@ -4498,27 +4511,27 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
         const r = strictQueryBy(e, `to fire event "${t}"`);
         return $triggerEvent(r, o, t, n, i);
     }
-    Se.forEach((e => {
+    Se.forEach(e => {
         Object.defineProperty(trigger, e, {
             configurable: true,
             writable: true,
             value: (t, n, i) => triggerMouseEvent(strictQueryBy(t, `to fire event "${e}"`), o, e, n, i)
         });
-    }));
-    Ce.forEach((e => {
+    });
+    Ce.forEach(e => {
         Object.defineProperty(trigger, e, {
             configurable: true,
             writable: true,
             value: (t, n, i) => triggerKeyboardEvent(strictQueryBy(t, `to fire event "${e}"`), o, e, n, i)
         });
-    }));
-    [ "change", "input", "scroll" ].forEach((e => {
+    });
+    [ "change", "input", "scroll" ].forEach(e => {
         Object.defineProperty(trigger, e, {
             configurable: true,
             writable: true,
             value: (t, n, i) => $triggerEvent(strictQueryBy(t, `to fire event "${e}"`), o, e, n, i)
         });
-    }));
+    });
     function type(e, t) {
         const n = typeof e === "string" ? strictQueryBy(e, `to emulate input for "${t}"`) : e;
         if (n === null || !/input|textarea/i.test(n.nodeName)) {
@@ -4535,9 +4548,6 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
             top: t
         } : t);
         n.dispatchEvent(new f.window.Event("scroll"));
-    };
-    const flush = e => {
-        o.platform.domQueue.flush(e);
     };
     const stop = (e = false) => {
         let t = void 0;
@@ -4584,6 +4594,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
             this.assertTextContain = assertTextContain;
             this.assertHtml = assertHtml;
             this.assertClass = assertClass;
+            this.assertClassStrict = assertClassStrict;
             this.assertAttr = assertAttr;
             this.assertAttrNS = assertAttrNS;
             this.assertStyles = assertStyles;
@@ -4593,7 +4604,6 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
             this.trigger = trigger;
             this.type = type;
             this.scrollBy = scrollBy;
-            this.flush = flush;
         }
         start() {
             return (E ??= g.app({
@@ -4609,7 +4619,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {},
         }
         get started() {
             if (w instanceof Promise) {
-                return Promise.resolve(w).then((() => this));
+                return Promise.resolve(w).then(() => this);
             }
             return Promise.resolve(this);
         }
@@ -4713,23 +4723,23 @@ function triggerMouseEvent(e, t, n, i, r) {
     e.dispatchEvent(a);
 }
 
-Se.forEach((e => {
+Se.forEach(e => {
     Object.defineProperty($triggerEvent, e, {
         configurable: true,
         writable: true,
         value: (t, n, i, r) => triggerMouseEvent(t, n, e, i, r)
     });
-}));
+});
 
-Ce.forEach((e => {
+Ce.forEach(e => {
     Object.defineProperty($triggerEvent, e, {
         configurable: true,
         writable: true,
         value: (t, n, i, r) => triggerKeyboardEvent(t, n, e, i, r)
     });
-}));
+});
 
-const Oe = Object.assign(((e, n) => class TargetedConsoleSink {
+const Oe = Object.assign((e, n) => class TargetedConsoleSink {
     static register(e) {
         e.register(t.Registration.singleton(t.ISink, this));
     }
@@ -4738,7 +4748,7 @@ const Oe = Object.assign(((e, n) => class TargetedConsoleSink {
             e(t.message);
         }
     }
-}), {
+}, {
     error: e => Oe(e, t.LogLevel.error),
     warn: e => Oe(e, t.LogLevel.warn),
     info: e => Oe(e, t.LogLevel.info),
@@ -5027,9 +5037,9 @@ class MockBrowserHistoryLocation {
     }
     notifyChange() {
         if (this.changeCallback) {
-            this.changeCallback(null).catch((e => {
+            this.changeCallback(null).catch(e => {
                 throw e;
-            }));
+            });
         }
     }
 }
@@ -5131,15 +5141,15 @@ class SpySubscriber {
     }
     dispose() {
         if (this.A !== void 0) {
-            this.A.forEach((e => e.dispose()));
+            this.A.forEach(e => e.dispose());
             this.A = void 0;
         }
         if (this.F !== void 0) {
-            this.F.forEach((e => e.dispose()));
+            this.F.forEach(e => e.dispose());
             this.F = void 0;
         }
         if (this.T !== void 0) {
-            this.T.forEach((e => e.dispose()));
+            this.T.forEach(e => e.dispose());
             this.T = void 0;
         }
         this.I = 0;
@@ -5180,7 +5190,7 @@ function stringify(e, t) {
         return e;
 
       case "[object Array]":
-        return `[${e.map((e => stringify(e, t))).join(",")}]`;
+        return `[${e.map(e => stringify(e, t)).join(",")}]`;
 
       case "[object Event]":
         return `'${e.type}'`;
@@ -5212,7 +5222,7 @@ function jsonStringify(e, t) {
     try {
         let n = [];
         let i = 0;
-        const r = JSON.stringify(e, (function(e, r) {
+        const r = JSON.stringify(e, function(e, r) {
             if (e === "dom") {
                 return "(dom)";
             }
@@ -5236,7 +5246,7 @@ function jsonStringify(e, t) {
             }
             --i;
             return r;
-        }));
+        });
         n = void 0;
         let a = r.replace(qe, "");
         if (a.length > 25) {

@@ -188,6 +188,10 @@ export interface IFixture<T> {
      */
     assertClass(selector: string, ...classes: string[]): void;
     /**
+     * Assert an element based on the given selector has only the given css classes and no others
+     */
+    assertClassStrict(selector: string, ...classes: string[]): void;
+    /**
      * Assert the attribute value of an element matching the given selector inside the application host equals to a given string.
      *
      * Will throw if there' more than one elements with matching selector
@@ -231,7 +235,6 @@ export interface IFixture<T> {
      * A helper to scroll and trigger a scroll even on an element matching the given selector
      */
     scrollBy(selector: string, options: number | ScrollToOptions): void;
-    flush(): void;
 }
 export type ITrigger = {
     (selector: string, event: 'keydown' | 'keyup' | 'keypress', init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;

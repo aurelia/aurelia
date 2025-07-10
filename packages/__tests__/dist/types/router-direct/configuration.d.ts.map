@@ -1,0 +1,1 @@
+{"version":3,"file":"configuration.d.ts","sourceRoot":"","sources":["../../../src/router-direct/configuration.ts"],"names":[],"mappings":"AAAA,OAAO,EAA4B,SAAS,EAAuB,QAAQ,EAAE,MAAM,iBAAiB,CAAC;AACrG,OAAO,EAA8B,WAAW,EAAE,MAAM,kBAAkB,CAAC;AAI3E,eAAO,MAAM,uBAAuB;aACzB,WAAW,aAAY,QAAQ,GAAoB,SAAS;CAgBtE,CAAC"}

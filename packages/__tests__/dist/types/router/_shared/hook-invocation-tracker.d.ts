@@ -11,7 +11,7 @@ export declare class HookInvocationTracker {
     readonly platform: IPlatform;
     readonly notifyHistory: string[];
     constructor(aggregator: HookInvocationAggregator, methodName: HookName);
-    notify(componentName: string, step?: string): void;
+    notify(componentName: string): void;
     resolve(): void;
     private setTimeout;
     private clearTimeout;
@@ -44,7 +44,7 @@ export declare class HookInvocationAggregator {
     readonly loading: HookInvocationTracker;
     readonly canUnload: HookInvocationTracker;
     readonly unloading: HookInvocationTracker;
-    notify(componentName: string, step: string, tracker: HookInvocationTracker): void;
+    notify(componentName: string, tracker: HookInvocationTracker): void;
     setPhase(label: string): void;
     dispose(): void;
 }

@@ -36,6 +36,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { children, CustomElement, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/children-observer.spec.ts', function () {
@@ -168,7 +169,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
             assert.equal(viewModel.childrenChangedCallCount, 1);
             hostViewModel.oneCount = 2;
             hostViewModel.twoCount = 2;
-            await Promise.resolve();
+            await tasksSettled();
             assert.equal(viewModel.children.length, 4);
             assert.equal(viewModel.childrenChangedCallCount, 2);
             assert.instanceOf(viewModel.children[0], ChildOne);
@@ -188,7 +189,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
             assert.equal(viewModel.childrenChangedCallCount, 1);
             hostViewModel.oneCount = 2;
             hostViewModel.twoCount = 2;
-            await Promise.resolve();
+            await tasksSettled();
             assert.equal(viewModel.children.length, 2);
             assert.equal(viewModel.childrenChangedCallCount, 2);
             assert.instanceOf(viewModel.children[0], ChildTwo);
@@ -209,7 +210,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
             assert.equal(viewModel.childrenChangedCallCount, 1);
             hostViewModel.oneCount = 2;
             hostViewModel.twoCount = 2;
-            await Promise.resolve();
+            await tasksSettled();
             assert.equal(viewModel.children.length, 2);
             assert.equal(viewModel.childrenChangedCallCount, 2);
             assert.equal(viewModel.children[0].tagName, tagName);
@@ -248,13 +249,13 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { flush, assertText } = createFixture('<e-l ref=el><div repeat.for="i of items">', class App {
+            const { assertText } = createFixture('<e-l ref=el><div repeat.for="i of items">', class App {
                 constructor() {
                     this.items = 3;
                 }
             }, [El]);
             await Promise.resolve();
-            flush();
+            runTasks();
             assertText('child count: 3');
         });
     });

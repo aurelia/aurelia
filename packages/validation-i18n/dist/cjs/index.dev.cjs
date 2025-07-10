@@ -4,16 +4,16 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var i18n = require('@aurelia/i18n');
 var kernel = require('@aurelia/kernel');
-var runtimeHtml = require('@aurelia/runtime-html');
 var validation = require('@aurelia/validation');
 var validationHtml = require('@aurelia/validation-html');
+var runtime = require('@aurelia/runtime');
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 const I18nKeyConfiguration = /*@__PURE__*/ kernel.DI.createInterface('I18nKeyConfiguration');
 class LocalizedValidationController extends validationHtml.ValidationController {
-    constructor(ea = kernel.resolve(kernel.IEventAggregator), platform = kernel.resolve(runtimeHtml.IPlatform)) {
+    constructor(ea = kernel.resolve(kernel.IEventAggregator)) {
         super();
-        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { platform.domQueue.queueTask(async () => { await this.revalidateErrors(); }); });
+        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { runtime.queueAsyncTask(async () => { await this.revalidateErrors(); }); });
     }
 }
 class LocalizedValidationControllerFactory extends validationHtml.ValidationControllerFactory {

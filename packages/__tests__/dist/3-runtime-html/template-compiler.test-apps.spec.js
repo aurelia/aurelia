@@ -39,6 +39,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
 import { CustomElement, SVGAnalyzer, bindable, customElement, } from '@aurelia/runtime-html';
 import { assert, createFixture, PLATFORM, TestContext } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
+import { runTasks } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     it('renders fractal tree', async function () {
@@ -78,7 +79,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
             assert.equal(g.getAttribute('transform'), idx === 0 ? null : '');
         });
         component.onMouseMove({ clientX: 50, clientY: 50 });
-        ctx.platform.domQueue.flush();
+        runTasks();
         gNodes = appHost.querySelectorAll('svg g');
         assert.strictEqual(gNodes.length, expectedNodeCount, 'should have rendered 127 <g/>');
         gNodes.forEach(g => {
@@ -179,7 +180,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
             }
         });
     }
-    it('understands local recursive element', function () {
+    it('understands local recursive element', async function () {
         let Child = (() => {
             let _classDecorators = [customElement({
                     name: 'child',

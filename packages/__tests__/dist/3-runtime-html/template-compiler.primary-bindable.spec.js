@@ -40,6 +40,7 @@ import { resolve, } from '@aurelia/kernel';
 import { assert, TestContext, } from '@aurelia/testing';
 import { bindable, bindingBehavior, valueConverter, customAttribute, CustomElement, INode, CustomAttribute, Aurelia, ValueConverter, } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
+import { runTasks } from '@aurelia/runtime';
 describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function () {
     const testCases = [
         {
@@ -903,6 +904,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
             }
             const app = au.root.controller.viewModel;
             app.appId = 'appId-appId';
+            runTasks();
             if (isNode()) {
                 assert.strictEqual(anchorEl.href, '/?params=[object Object]');
             }

@@ -1,4 +1,5 @@
 import { CustomAttribute } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/binding-command.attr.spec.ts', function () {
     const testCases = [
@@ -53,19 +54,19 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
                     this.a = 5;
                 }
             },
-            assertFn: ({ ctx, appHost, component }) => {
+            assertFn: ({ appHost, component }) => {
                 assert.strictEqual(appHost.querySelector('div')?.getAttribute('myattr'), '5');
                 component['a'] = undefined;
                 assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
                 component['a'] = 5;
                 assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
                 component['a'] = null;
                 assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
             },
         },

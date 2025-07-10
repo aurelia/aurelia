@@ -8,11 +8,9 @@ export interface ComputedWatcher extends IObserverLocatorBasedConnectable, IServ
 export declare class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscriber {
     readonly obj: IObservable;
     readonly $get: (obj: object, watcher: IConnectable) => unknown;
-    readonly useProxy: boolean;
     isBound: boolean;
-    private running;
     get value(): unknown;
-    constructor(obj: IObservable, observerLocator: IObserverLocator, $get: (obj: object, watcher: IConnectable) => unknown, cb: IWatcherCallback<object>, useProxy: boolean);
+    constructor(obj: IObservable, observerLocator: IObserverLocator, $get: (obj: object, watcher: IConnectable) => unknown, cb: IWatcherCallback<object>, flush?: 'async' | 'sync');
     handleChange(): void;
     handleCollectionChange(): void;
     bind(): void;
@@ -28,8 +26,10 @@ export declare class ExpressionWatcher implements IBinding, IObserverLocatorBase
     oL: IObserverLocator;
     isBound: boolean;
     get value(): unknown;
-    constructor(scope: Scope, l: IServiceLocator, oL: IObserverLocator, expression: IsBindingBehavior, callback: IWatcherCallback<object>);
-    handleChange(value: unknown): void;
+    constructor(scope: Scope, l: IServiceLocator, oL: IObserverLocator, expression: IsBindingBehavior, callback: IWatcherCallback<object>, flush?: 'async' | 'sync');
+    handleChange(): void;
+    handleCollectionChange(): void;
+    private run;
     bind(): void;
     unbind(): void;
 }

@@ -17,12 +17,12 @@ class Platform {
         this.macroTaskRequested = false;
         this.macroTaskHandle = -1;
         this.globalThis = s;
-        "decodeURI decodeURIComponent encodeURI encodeURIComponent Date Reflect console".split(" ").forEach((i => {
+        "decodeURI decodeURIComponent encodeURI encodeURIComponent Date Reflect console".split(" ").forEach(i => {
             this[i] = i in t ? t[i] : s[i];
-        }));
-        "clearInterval clearTimeout queueMicrotask setInterval setTimeout".split(" ").forEach((i => {
+        });
+        "clearInterval clearTimeout queueMicrotask setInterval setTimeout".split(" ").forEach(i => {
             this[i] = i in t ? t[i] : s[i]?.bind(s) ?? notImplemented(i);
-        }));
+        });
         this.performanceNow = "performanceNow" in t ? t.performanceNow : s.performance?.now?.bind(s.performance) ?? notImplemented("performance.now");
         this.flushMacroTask = this.flushMacroTask.bind(this);
         this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
@@ -294,7 +294,7 @@ class Task {
         try {
             l = n(h - f);
             if (l instanceof Promise) {
-                l.then((s => {
+                l.then(s => {
                     if (this.persistent) {
                         r._(this);
                     } else {
@@ -310,7 +310,7 @@ class Task {
                     if (c !== void 0) {
                         c(s);
                     }
-                })).catch((s => {
+                }).catch(s => {
                     if (!this.persistent) {
                         this.dispose();
                     }
@@ -321,7 +321,7 @@ class Task {
                     } else {
                         throw s;
                     }
-                }));
+                });
             } else {
                 if (this.persistent) {
                     r._(this);
@@ -470,7 +470,7 @@ const reportTaskQueue = s => {
 
 const ensureEmpty = s => {
     s.flush();
-    s.h.forEach((s => s.cancel()));
+    s.h.forEach(s => s.cancel());
 };
 
 export { Platform, Task, TaskAbortError, TaskQueue, ensureEmpty, reportTaskQueue };

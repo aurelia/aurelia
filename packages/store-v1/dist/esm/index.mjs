@@ -199,7 +199,7 @@ class Store {
     }
     isActionRegistered(t) {
         if (typeof t === "string") {
-            return Array.from(this.actions).find((e => e[1].type === t)) !== undefined;
+            return Array.from(this.actions).find(e => e[1].type === t) !== undefined;
         }
         return this.actions.has(t);
     }
@@ -236,7 +236,7 @@ class Store {
     }
     lookupAction(t) {
         if (typeof t === "string") {
-            const e = Array.from(this.actions).find((([e, r]) => r.type === t));
+            const e = Array.from(this.actions).find(([e, r]) => r.type === t);
             if (e) {
                 return e[0];
             }
@@ -246,7 +246,7 @@ class Store {
         return undefined;
     }
     async queueDispatch(t) {
-        return new Promise(((e, r) => {
+        return new Promise((e, r) => {
             this.dispatchQueue.push({
                 actions: t,
                 resolve: e,
@@ -255,7 +255,7 @@ class Store {
             if (this.dispatchQueue.length === 1) {
                 this.handleQueue();
             }
-        }));
+        });
     }
     async handleQueue() {
         if (this.dispatchQueue.length > 0) {
@@ -271,23 +271,23 @@ class Store {
         }
     }
     async internalDispatch(t) {
-        const e = t.find((t => !this.actions.has(t.reducer)));
+        const e = t.find(t => !this.actions.has(t.reducer));
         if (e) {
             throw new UnregisteredActionError(e.reducer);
         }
         y.container.get(i).performance.mark("dispatch-start");
-        const r = t.map((t => ({
+        const r = t.map(t => ({
             type: this.actions.get(t.reducer).type,
             params: t.params,
             reducer: t.reducer
-        })));
+        }));
         const s = {
-            name: r.map((t => t.type)).join("->"),
-            params: r.reduce(((t, e) => t.concat(e.params)), []),
-            pipedActions: r.map((t => ({
+            name: r.map(t => t.type).join("->"),
+            params: r.reduce((t, e) => t.concat(e.params), []),
+            pipedActions: r.map(t => ({
                 name: t.type,
                 params: t.params
-            })))
+            }))
         };
         if (this.options.logDispatchedActions) {
             this.logger[getLogType(this.options, "dispatchedActions", p.info)](`Dispatching: ${s.name}`);
@@ -339,7 +339,7 @@ class Store {
         }, a);
     }
     executeMiddlewares(t, e, r) {
-        return Array.from(this.middlewares).filter((t => t[1].placement === e)).reduce((async (t, s, n) => {
+        return Array.from(this.middlewares).filter(t => t[1].placement === e).reduce(async (t, s, n) => {
             try {
                 const e = await s[0](await t, this._state.getValue(), s[1].settings, r);
                 if (e === false) {
@@ -354,7 +354,7 @@ class Store {
             } finally {
                 y.container.get(i).performance.mark(`dispatch-${e}-${s[0].name}`);
             }
-        }), t);
+        }, t);
     }
     setupDevTools() {
         if (this.t.__REDUX_DEVTOOLS_EXTENSION__) {
@@ -362,12 +362,12 @@ class Store {
             this.devToolsAvailable = true;
             this.devTools = this.t.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
-            this.devTools.subscribe((t => {
+            this.devTools.subscribe(t => {
                 this.logger[getLogType(this.options, "devToolsStatus", p.debug)](`DevTools sent change ${t.type}`);
                 if (t.type === "ACTION" && t.payload !== undefined) {
-                    const e = Array.from(this.actions).find((function([e]) {
+                    const e = Array.from(this.actions).find(function([e]) {
                         return e.name === t.payload?.name;
-                    }));
+                    });
                     const r = this.lookupAction(t.payload?.name) ?? e?.[0];
                     if (!r) {
                         throw new DevToolsRemoteDispatchError("Tried to remotely dispatch an unregistered action");
@@ -375,9 +375,9 @@ class Store {
                     if (!t.payload.args || t.payload.args.length < 1) {
                         throw new DevToolsRemoteDispatchError("No action arguments provided");
                     }
-                    this.dispatch(r, ...t.payload.args.slice(1).map((t => JSON.parse(t)))).catch((() => {
+                    this.dispatch(r, ...t.payload.args.slice(1).map(t => JSON.parse(t))).catch(() => {
                         throw new DevToolsRemoteDispatchError("Issue when trying to dispatch an action through devtools");
-                    }));
+                    });
                     return;
                 }
                 if (t.type === "DISPATCH" && t.payload) {
@@ -405,7 +405,7 @@ class Store {
                         }
                     }
                 }
-            }));
+            });
         }
     }
     updateDevToolsState(t, e) {
@@ -445,14 +445,14 @@ async function executeSteps(t, e, ...r) {
         await t(r);
         e();
     };
-    return new Promise(((e, i) => {
+    return new Promise((e, i) => {
         let s = 0;
-        r.slice(0, -1).forEach((e => {
+        r.slice(0, -1).forEach(e => {
             t.state.pipe(c(s), h(1), u(0)).subscribe(tryStep(logStep(e, s), i));
             s++;
-        }));
+        });
         t.state.pipe(c(s), h(1)).subscribe(lastStep(tryStep(logStep(r[r.length - 1], s), i), e));
-    }));
+    });
 }
 
 const defaultSelector = t => t.state;
@@ -476,7 +476,7 @@ function connectTo(t) {
         };
         return Object.entries({
             ...t ? e.selector : r
-        }).map((([r, i]) => ({
+        }).map(([r, i]) => ({
             targets: e.target && t ? [ e.target, r ] : [ r ],
             selector: i,
             changeHandlers: {
@@ -484,7 +484,7 @@ function connectTo(t) {
                 [`${e.target ?? r}Changed`]: e.target ? 0 : 1,
                 propertyChanged: 0
             }
-        })));
+        }));
     }
     return function(e, r) {
         const i = typeof t === "object" && t.setup ? e.prototype[t.setup] : e.prototype.binding;
@@ -494,30 +494,30 @@ function connectTo(t) {
                 throw new Error("Provided onChanged handler does not exist on target VM");
             }
             const e = s.getCached(this) ? s.getCached(this).container.get(Store) : y.container.get(Store);
-            this._stateSubscriptions = createSelectors().map((t => getSource(e, t.selector).subscribe((e => {
+            this._stateSubscriptions = createSelectors().map(t => getSource(e, t.selector).subscribe(e => {
                 const r = t.targets.length - 1;
-                const i = t.targets.reduce(((t = {}, e) => t[e]), this);
-                Object.entries(t.changeHandlers).forEach((([s, n]) => {
+                const i = t.targets.reduce((t = {}, e) => t[e], this);
+                Object.entries(t.changeHandlers).forEach(([s, n]) => {
                     if (s in this) {
                         this[s](...[ t.targets[r], e, i ].slice(n, 3));
                     }
-                }));
-                t.targets.reduce(((t, i, s) => {
+                });
+                t.targets.reduce((t, i, s) => {
                     t[i] = s === r ? e : t[i] || {};
                     return t[i];
-                }), this);
-            }))));
+                }, this);
+            }));
             if (i) {
                 return i.apply(this, arguments);
             }
         };
         e.prototype[typeof t === "object" && t.teardown ? t.teardown : "unbinding"] = function() {
             if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
-                this._stateSubscriptions.forEach((t => {
+                this._stateSubscriptions.forEach(t => {
                     if (t instanceof o && t.closed === false) {
                         t.unsubscribe();
                     }
-                }));
+                });
             }
             if (n) {
                 return n.apply(this, arguments);

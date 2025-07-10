@@ -108,7 +108,7 @@ class VirtualRepeat {
         const i = e.forOf;
         const c = this.iterable = unwrapExpression(i.iterable) ?? i.iterable;
         const a = this.$ = i.iterable !== c;
-        this.T = new CollectionObservationMediator(this, (() => a ? this.I() : this.L()));
+        this.T = new CollectionObservationMediator(this, () => a ? this.I() : this.L());
         this.local = i.declaration.name;
         this.taskQueue = t.resolve(s.IPlatform).domQueue;
     }
@@ -267,13 +267,13 @@ class VirtualRepeat {
     }
     handleScrollerChange(t) {
         const e = this.task;
-        this.task = this.taskQueue.queueTask((() => {
+        this.task = this.taskQueue.queueTask(() => {
             this.task = null;
             if (this.views.length > 0 && this.itemHeight > 0) {
                 this.V();
                 this.handleScroll(t);
             }
-        }));
+        });
         e?.cancel();
     }
     handleScroll(t) {
@@ -364,10 +364,10 @@ class VirtualRepeat {
     }
     A() {
         const t = this.task;
-        this.task = this.taskQueue.queueTask((() => {
+        this.task = this.taskQueue.queueTask(() => {
             this.task = null;
             this.B(this.items, this.collectionStrategy);
-        }));
+        });
         t?.cancel();
     }
     _() {
@@ -597,14 +597,14 @@ class ScrollerObserver {
         this.scroller.addEventListener("scroll", this);
         const t = getResizeObserverClass(this.p);
         if (typeof t === "function") {
-            (this.sizeObs = new t((t => {
+            (this.sizeObs = new t(t => {
                 const e = this.geo;
                 const s = new ElementGeometry(t[0].contentRect);
                 if (!s.equals(e)) {
                     this.geo = s;
                     this.notify();
                 }
-            }))).observe(this.scroller);
+            })).observe(this.scroller);
         }
     }
     stop() {

@@ -23,7 +23,6 @@ export declare class TranslationBinding implements IBinding {
     ast: IsExpression;
     private readonly i18n;
     target: HTMLElement;
-    private parameter;
     /**
      * A semi-private property used by connectable mixin
      */

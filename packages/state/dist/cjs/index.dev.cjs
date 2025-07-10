@@ -24,21 +24,6 @@ const IActionHandler = /*@__PURE__*/ createInterface('IActionHandler');
 const IStore = /*@__PURE__*/ createInterface('IStore');
 const IState = /*@__PURE__*/ createInterface('IState');
 
-const actionHandlerSymbol = '__au_ah__';
-const ActionHandler = Object.freeze({
-    define(actionHandler) {
-        function registry(state, action) {
-            return actionHandler(state, action);
-        }
-        registry[actionHandlerSymbol] = true;
-        registry.register = function (c) {
-            kernel.Registration.instance(IActionHandler, actionHandler).register(c);
-        };
-        return registry;
-    },
-    isType: (r) => typeof r === 'function' && actionHandlerSymbol in r,
-});
-
 const IDevToolsExtension = /*@__PURE__*/ createInterface("IDevToolsExtension", x => x.cachedCallback((container) => {
     const win = container.get(runtimeHtml.IWindow);
     const devToolsExtension = win.__REDUX_DEVTOOLS_EXTENSION__;
@@ -51,6 +36,7 @@ class Store {
     }
     constructor() {
         /** @internal */ this._subs = new Set();
+        /** @internal */ this._middlewares = new Map();
         /** @internal */ this._dispatching = false;
         /** @internal */ this._dispatchQueues = [];
         this._initialState = this._state = kernel.resolve(kernel.optional(IState)) ?? new State();
@@ -76,6 +62,14 @@ class Store {
         }
         this._subs.delete(subscriber);
     }
+    registerMiddleware(middleware, placement, settings) {
+        this._middlewares.set(middleware, { placement, settings });
+    }
+    unregisterMiddleware(middleware) {
+        if (this._middlewares.has(middleware)) {
+            this._middlewares.delete(middleware);
+        }
+    }
     /** @internal */
     _setState(state) {
         const prevState = this._state;
@@ -88,11 +82,57 @@ class Store {
         }
     }
     /** @internal */
-    _handleAction(handlers, $state, $action) {
-        for (const handler of handlers) {
-            $state = kernel.onResolve($state, $state => handler($state, $action));
+    _executeMiddlewares(state, placement, action) {
+        const middlewares = Array.from(this._middlewares.entries())
+            .filter(([_, settings]) => settings.placement === placement);
+        if (middlewares.length === 0) {
+            return state;
         }
-        return kernel.onResolve($state, s => s);
+        // Chain the middleware execution using `onResolve` so that each middleware
+        // receives the resolved state from the previous middleware, regardless of
+        // whether that result is synchronous or asynchronous.
+        let result = state;
+        for (const [middleware, settings] of middlewares) {
+            result = kernel.onResolve(result, (currentStateOrFlag) => {
+                // If a previous middleware signalled blocking, keep propagating the flag.
+                if (currentStateOrFlag === false) {
+                    return false;
+                }
+                try {
+                    const ret = kernel.onResolve(middleware(currentStateOrFlag, action, settings.settings), (middlewareResult) => {
+                        if (middlewareResult === false) {
+                            return false;
+                        }
+                        if (middlewareResult != null) {
+                            return middlewareResult;
+                        }
+                        // If the middleware did not return a value, propagate the current state.
+                        return currentStateOrFlag;
+                    });
+                    if (kernel.isPromise(ret)) {
+                        return ret.catch(error => {
+                            this._logger.error(`Middleware execution failed: ${error}`);
+                            return currentStateOrFlag;
+                        });
+                    }
+                    return ret;
+                }
+                catch (error) {
+                    this._logger.error(`Middleware execution failed: ${error}`);
+                    return currentStateOrFlag;
+                }
+            });
+        }
+        return result;
+    }
+    /** @internal */
+    _handleAction(handlers, $state, $action) {
+        // Ensure we work with either promise or value uniformly
+        let currentState = $state;
+        for (const handler of handlers) {
+            currentState = kernel.onResolve(currentState, state => handler(state, $action));
+        }
+        return currentState;
     }
     dispatch(action) {
         if (this._dispatching) {
@@ -100,33 +140,50 @@ class Store {
             return;
         }
         this._dispatching = true;
-        const afterDispatch = ($state) => {
-            return kernel.onResolve($state, s => {
-                const $$action = this._dispatchQueues.shift();
-                if ($$action != null) {
-                    return kernel.onResolve(this._handleAction(this._handlers, s, $$action), state => {
-                        this._setState(state);
-                        return afterDispatch(state);
-                    });
+        const processAction = (actionToProcess) => {
+            const finalize = () => {
+                const nextAction = this._dispatchQueues.shift();
+                if (nextAction != null) {
+                    return processAction(nextAction);
                 }
                 else {
                     this._dispatching = false;
                 }
+            };
+            const middlewareResultBefore = this._executeMiddlewares(this._state, 'before', actionToProcess);
+            const afterBefore = kernel.onResolve(middlewareResultBefore, (beforeState) => {
+                if (beforeState === false) {
+                    return finalize();
+                }
+                const handlerResult = this._handleAction(this._handlers, beforeState, actionToProcess);
+                const afterHandler = kernel.onResolve(handlerResult, (newState) => {
+                    const middlewareResultAfter = this._executeMiddlewares(newState, 'after', actionToProcess);
+                    return kernel.onResolve(middlewareResultAfter, (afterState) => {
+                        if (afterState !== false) {
+                            this._setState(afterState);
+                        }
+                        return finalize();
+                    });
+                });
+                return afterHandler;
             });
+            return afterBefore;
         };
-        const newState = this._handleAction(this._handlers, this._state, action);
-        if (kernel.isPromise(newState)) {
-            return newState.then($state => {
-                this._setState($state);
-                return afterDispatch(this._state);
-            }, ex => {
-                this._dispatching = false;
-                throw ex;
-            });
+        try {
+            const result = processAction(action);
+            if (kernel.isPromise(result)) {
+                return result.catch(error => {
+                    this._dispatching = false;
+                    this._logger.error(`Action or middleware failed: ${error}`);
+                    throw error;
+                });
+            }
+            return result;
         }
-        else {
-            this._setState(newState);
-            return afterDispatch(this._state);
+        catch (error) {
+            this._dispatching = false;
+            this._logger.error(`Action or middleware failed: ${error}`);
+            throw error;
         }
     }
     /* istanbul ignore next */
@@ -140,7 +197,7 @@ class Store {
         const devTools = extension.connect(options);
         devTools.init(this._initialState);
         devTools.subscribe((message) => {
-            this._logger.info('DevTools sent a message:', message);
+            this._logger.info(`DevTools sent a message: ${JSON.stringify(message)}`);
             const payload = typeof message.payload === 'string'
                 ? tryParseJson(message.payload)
                 : message.payload;
@@ -211,12 +268,24 @@ function tryParseJson(str) {
     }
 }
 
-const atLayout = runtime.AccessorType.Layout;
-const stateActivating = runtimeHtml.State.activating;
+const actionHandlerSymbol = '__au_ah__';
+const ActionHandler = Object.freeze({
+    define(actionHandler) {
+        function registry(state, action) {
+            return actionHandler(state, action);
+        }
+        registry[actionHandlerSymbol] = true;
+        registry.register = function (c) {
+            kernel.Registration.instance(IActionHandler, actionHandler).register(c);
+        };
+        return registry;
+    },
+    isType: (r) => typeof r === 'function' && actionHandlerSymbol in r,
+});
+
 class StateBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, prop, store, strict) {
+    constructor(controller, locator, observerLocator, ast, target, prop, store, strict) {
         this.isBound = false;
-        /** @internal */ this._task = null;
         /** @internal */ this._value = void 0;
         /** @internal */ this._sub = void 0;
         /** @internal */ this._updateCount = 0;
@@ -226,7 +295,6 @@ class StateBinding {
         this.mode = runtimeHtml.BindingMode.toView;
         this._controller = controller;
         this.l = locator;
-        this._taskQueue = taskQueue;
         this._store = store;
         this.oL = observerLocator;
         this.ast = ast;
@@ -277,65 +345,30 @@ class StateBinding {
         // also disregard incoming future value of promise resolution if any
         this._updateCount++;
         this._scope = void 0;
-        this._task?.cancel();
-        this._task = null;
         this._store.unsubscribe(this);
     }
     handleChange(newValue) {
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
-        // Alpha: during bind a simple strategy for bind is always flush immediately
-        // todo:
-        //  (1). determine whether this should be the behavior
-        //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
         const obsRecord = this.obs;
         obsRecord.version++;
         newValue = runtime.astEvaluate(this.ast, this._scope, this, this);
         obsRecord.clear();
-        let task;
-        if (shouldQueueFlush) {
-            // Queue the new one before canceling the old one, to prevent early yield
-            task = this._task;
-            this._task = this._taskQueue.queueTask(() => {
-                this.updateTarget(newValue);
-                this._task = null;
-            }, updateTaskOpts);
-            task?.cancel();
-            task = null;
-        }
-        else {
-            this.updateTarget(newValue);
-        }
+        this.updateTarget(newValue);
     }
     handleStateChange() {
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
         const state = this._store.getState();
         const _scope = this._scope;
         const overrideContext = _scope.overrideContext;
         _scope.bindingContext = overrideContext.bindingContext = state;
         const value = runtime.astEvaluate(this.ast, _scope, this, this.mode > runtimeHtml.BindingMode.oneTime ? this : null);
-        const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
         if (value === this._value) {
             return;
         }
         this._value = value;
-        let task = null;
-        if (shouldQueueFlush) {
-            // Queue the new one before canceling the old one, to prevent early yield
-            task = this._task;
-            this._task = this._taskQueue.queueTask(() => {
-                this.updateTarget(value);
-                this._task = null;
-            }, updateTaskOpts);
-            task?.cancel();
-        }
-        else {
-            this.updateTarget(this._value);
-        }
+        this.updateTarget(value);
     }
     /** @internal */
     _unsub() {
@@ -357,9 +390,6 @@ class StateBinding {
 function isSubscribable(v) {
     return v instanceof Object && 'subscribe' in v;
 }
-const updateTaskOpts = {
-    preempt: true,
-};
 
 const bindingStateSubscriberMap = new WeakMap();
 class StateBindingBehavior {
@@ -518,7 +548,7 @@ const StateBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(class
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
-        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ast, target, instruction.to, this._stateContainer, renderingCtrl.strict ?? false));
+        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, ast, target, instruction.to, this._stateContainer, renderingCtrl.strict ?? false));
     }
 }, null);
 const DispatchBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(class DispatchBindingInstructionRenderer {
@@ -553,6 +583,12 @@ const createConfiguration = (initialState, actionHandlers, options = {}) => {
             /* istanbul ignore next */
             runtimeHtml.AppTask.creating(kernel.IContainer, container => {
                 const store = container.get(IStore);
+                // Register middlewares if provided
+                if (options.middlewares) {
+                    for (const middlewareReg of options.middlewares) {
+                        store.registerMiddleware(middlewareReg.middleware, middlewareReg.placement, middlewareReg.settings);
+                    }
+                }
                 const devTools = container.get(IDevToolsExtension);
                 if (options.devToolsOptions?.disable !== true && devTools != null) {
                     store.connectDevTools(options.devToolsOptions ?? {});
@@ -708,6 +744,36 @@ class CreatedLifecycleHooks {
 }
 runtimeHtml.LifecycleHooks.define({}, CreatedLifecycleHooks);
 
+function createStateMemoizer(...fns) {
+    if (fns.length === 1) {
+        // with only 1, result function is also a memorizer
+        const resultFn = fns[0];
+        let lastState;
+        let lastResult;
+        return (state) => {
+            if (state === lastState) {
+                return lastResult;
+            }
+            lastState = state;
+            return (lastResult = resultFn(state));
+        };
+    }
+    const resultFn = fns[fns.length - 1];
+    const memoizerFns = fns.slice(0, -1);
+    let lastInputs;
+    let lastResult;
+    return (state) => {
+        const inputs = memoizerFns.map(fn => fn(state));
+        if (lastInputs !== undefined &&
+            inputs.length === lastInputs.length &&
+            inputs.every((v, i) => v === lastInputs[i])) {
+            return lastResult;
+        }
+        lastInputs = inputs;
+        return (lastResult = resultFn(...inputs));
+    };
+}
+
 exports.ActionHandler = ActionHandler;
 exports.DispatchBindingCommand = DispatchBindingCommand;
 exports.DispatchBindingInstruction = DispatchBindingInstruction;
@@ -722,5 +788,7 @@ exports.StateBindingInstruction = StateBindingInstruction;
 exports.StateBindingInstructionRenderer = StateBindingInstructionRenderer;
 exports.StateDefaultConfiguration = StateDefaultConfiguration;
 exports.StateDispatchBinding = StateDispatchBinding;
+exports.Store = Store;
+exports.createStateMemoizer = createStateMemoizer;
 exports.fromState = fromState;
 //# sourceMappingURL=index.dev.cjs.map

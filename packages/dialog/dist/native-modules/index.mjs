@@ -1,114 +1,106 @@
-import { DI as t, Registration as e, resolve as i, IContainer as s, onResolve as o, InstanceProvider as r, isFunction as n, onResolveAll as l, isPromise as a, optional as c, noop as u } from "../../../kernel/dist/native-modules/index.mjs";
+import { DI as t, Registration as s, resolve as i, IContainer as e, isFunction as o, onResolve as r, InstanceProvider as n, onResolveAll as l, isString as a, noop as c } from "../../../kernel/dist/native-modules/index.mjs";
 
-import { IPlatform as g, IEventTarget as D, registerHostNode as f, Controller as m, CustomElementDefinition as d, CustomElement as p, INode as v, AppTask as C, IWindow as w } from "../../../runtime-html/dist/native-modules/index.mjs";
+import { IPlatform as u, IEventTarget as g, registerHostNode as D, Controller as d, CustomElementDefinition as f, CustomElement as m, INode as C, AppTask as p, IWindow as v } from "../../../runtime-html/dist/native-modules/index.mjs";
 
-const E = t.createInterface;
+const w = t.createInterface;
 
-const R = e.singleton;
+const E = s.singleton;
 
-const S = e.instance;
+const R = s.instance;
 
-const b = /*@__PURE__*/ E("IDialogService");
+const S = /*@__PURE__*/ w("IDialogService");
 
-const O = /*@__PURE__*/ E("IDialogController");
+const O = /*@__PURE__*/ w("IDialogController");
 
-const y = /*@__PURE__*/ E("IDialogDomRenderer");
+const y = /*@__PURE__*/ w("IDialogDomRenderer");
 
-const P = /*@__PURE__*/ E("IDialogDom");
+const b = /*@__PURE__*/ w("IDialogDom");
 
-const I = /*@__PURE__*/ E("IDialogDomAnimator");
-
-const $ = /*@__PURE__*/ E("IDialogKeyboardService");
-
-const k = /*@__PURE__*/ E("IDialogGlobalSettings");
+const k = /*@__PURE__*/ w("IDialogGlobalSettings");
 
 class DialogOpenResult {
-    constructor(t, e) {
+    constructor(t, s) {
         this.wasCancelled = t;
-        this.dialog = e;
+        this.dialog = s;
     }
-    static create(t, e) {
-        return new DialogOpenResult(t, e);
+    static create(t, s) {
+        return new DialogOpenResult(t, s);
     }
 }
 
 class DialogCloseResult {
-    constructor(t, e) {
+    constructor(t, s) {
         this.status = t;
-        this.value = e;
+        this.value = s;
     }
-    static create(t, e) {
-        return new DialogCloseResult(t, e);
+    static create(t, s) {
+        return new DialogCloseResult(t, s);
     }
 }
 
-const createMappedError = (t, ...e) => {
+const createMappedError = (t, ...s) => {
     const i = String(t).padStart(4, "0");
-    return new Error(`AUR${i}:${e.map(String)}`);
+    return new Error(`AUR${i}:${s.map(String)}`);
 };
 
 class DialogController {
     constructor() {
-        this.p = i(g);
-        this.ctn = i(s);
-        this.t = void 0;
-        this.closed = new Promise(((t, e) => {
-            this.i = t;
-            this.u = e;
-        }));
+        this.p = i(u);
+        this.ctn = i(e);
+        this.closed = new Promise((t, s) => {
+            this.t = t;
+            this.i = s;
+        });
     }
     activate(t) {
-        const e = this.ctn.createChild();
-        const {model: i, template: s, rejectOnCancel: r, renderer: n = e.get(y)} = t;
-        const l = t.host ?? this.p.document.body;
-        const a = this.dom = n.render(l, t);
-        const c = e.has(D, true) ? e.get(D) : null;
-        const u = a.contentHost;
-        const g = e.get($);
+        const s = this.ctn.createChild();
+        const {model: i, template: e, rejectOnCancel: n, renderer: l} = t;
+        const a = o(l) ? s.invoke(l) : l;
+        const c = t.host ?? this.p.document.body;
+        const u = this.dom = a.render(c, this, t.options);
+        const C = s.has(g, true) ? s.get(g) : null;
+        const p = u.contentHost;
         this.settings = t;
-        if (c == null || !c.contains(l)) {
-            e.register(S(D, l));
+        if (C == null || !C.contains(c)) {
+            s.register(R(g, c));
         }
-        e.register(S(P, a));
-        f(e, u, this.p);
-        return new Promise((s => {
-            const o = Object.assign(this.cmp = this.getOrCreateVm(e, t, u), {
+        s.register(R(b, u));
+        D(s, p, this.p);
+        return new Promise(e => {
+            const o = Object.assign(this.cmp = this.getOrCreateVm(s, t, p), {
                 $dialog: this
             });
-            s(o.canActivate?.(i) ?? true);
-        })).then((t => {
+            e(o.canActivate?.(i) ?? true);
+        }).then(t => {
             if (t !== true) {
-                a.dispose();
-                if (r) {
+                u.dispose();
+                if (n) {
                     throw createDialogCancelError(null, 905);
                 }
                 return DialogOpenResult.create(true, this);
             }
-            const n = this.cmp;
-            return o(n.activate?.(i), (() => {
-                const t = this.controller = m.$el(e, n, u, null, d.create(this.getDefinition(n) ?? {
-                    name: p.generateName(),
-                    template: s
+            const o = this.cmp;
+            return r(o.activate?.(i), () => {
+                const t = this.controller = d.$el(s, o, p, null, f.create(this.getDefinition(o) ?? {
+                    name: m.generateName(),
+                    template: e
                 }));
-                return o(t.activate(t, null), (() => {
-                    this.t = g.add(this, a);
-                    return o(a.show?.(), (() => DialogOpenResult.create(false, this)));
-                }));
-            }));
-        }), (t => {
-            a.dispose();
+                return r(t.activate(t, null), () => r(u.show?.(), () => DialogOpenResult.create(false, this)));
+            });
+        }, t => {
+            u.dispose();
             throw t;
-        }));
+        });
     }
-    deactivate(t, e) {
+    deactivate(t, s) {
         if (this.h) {
             return this.h;
         }
         let i = true;
-        const {controller: s, dom: r, cmp: n, settings: {rejectOnCancel: l}} = this;
-        const a = DialogCloseResult.create(t, e);
-        const c = new Promise((c => {
-            c(o(n.canDeactivate?.(a) ?? true, (c => {
+        const {controller: e, dom: o, cmp: n, settings: {rejectOnCancel: l}} = this;
+        const a = DialogCloseResult.create(t, s);
+        const c = new Promise(c => {
+            c(r(n.canDeactivate?.(a) ?? true, c => {
                 if (c !== true) {
                     i = false;
                     this.h = void 0;
@@ -117,21 +109,20 @@ class DialogController {
                     }
                     return DialogCloseResult.create("abort");
                 }
-                return o(n.deactivate?.(a), (() => o(r.hide?.(), (() => o(s.deactivate(s, null), (() => {
-                    r.dispose();
-                    this.t?.dispose();
+                return r(n.deactivate?.(a), () => r(o.hide?.(), () => r(e.deactivate(e, null), () => {
+                    o.dispose();
                     if (!l && t !== "error") {
-                        this.i(a);
+                        this.t(a);
                     } else {
-                        this.u(createDialogCancelError(e, 907));
+                        this.i(createDialogCancelError(s, 907));
                     }
                     return a;
-                }))))));
-            })));
-        })).catch((t => {
+                })));
+            }));
+        }).catch(t => {
             this.h = void 0;
             throw t;
-        }));
+        });
         this.h = i ? c : void 0;
         return c;
     }
@@ -142,130 +133,124 @@ class DialogController {
         return this.deactivate("cancel", t);
     }
     error(t) {
-        const e = createDialogCloseError(t);
-        return new Promise((t => t(o(this.cmp.deactivate?.(DialogCloseResult.create("error", e)), (() => o(this.controller.deactivate(this.controller, null), (() => {
+        const s = createDialogCloseError(t);
+        return new Promise(t => t(r(this.cmp.deactivate?.(DialogCloseResult.create("error", s)), () => r(this.controller.deactivate(this.controller, null), () => {
             this.dom.dispose();
-            this.u(e);
-        })))))));
+            this.i(s);
+        }))));
     }
-    getOrCreateVm(t, e, i) {
-        const s = e.component;
-        if (s == null) {
+    getOrCreateVm(t, s, i) {
+        const e = s.component;
+        if (e == null) {
             return new EmptyComponent;
         }
-        if (typeof s === "object") {
-            return s;
+        if (typeof e === "object") {
+            return e;
         }
         const o = this.p;
-        t.registerResolver(o.HTMLElement, t.registerResolver(o.Element, t.registerResolver(v, new r("ElementResolver", i))));
-        return t.invoke(s);
+        t.registerResolver(o.HTMLElement, t.registerResolver(o.Element, t.registerResolver(C, new n("ElementResolver", i))));
+        return t.invoke(e);
     }
     getDefinition(t) {
-        const e = n(t) ? t : t?.constructor;
-        return p.isType(e) ? p.getDefinition(e) : null;
+        const s = o(t) ? t : t?.constructor;
+        return m.isType(s) ? m.getDefinition(s) : null;
     }
 }
 
 class EmptyComponent {}
 
-function createDialogCancelError(t, e) {
-    const i = createMappedError(e);
+function createDialogCancelError(t, s) {
+    const i = createMappedError(s);
     i.wasCancelled = true;
     i.value = t;
     return i;
 }
 
 function createDialogCloseError(t) {
-    const e = createMappedError(908);
-    e.wasCancelled = false;
-    e.value = t;
-    return e;
+    const s = createMappedError(908);
+    s.wasCancelled = false;
+    s.value = t;
+    return s;
 }
 
 class DialogService {
     constructor() {
         this.dlgs = [];
-        this.C = i(s);
-        this.R = i(k);
+        this.u = i(e);
+        this.C = i(k);
     }
     static register(t) {
-        t.register(R(this, this), e.aliasTo(this, b), C.deactivating(b, (t => o(t.closeAll(), (t => {
+        t.register(E(this, this), s.aliasTo(this, S), p.deactivating(S, t => r(t.closeAll(), t => {
             if (t.length > 0) {
                 throw createMappedError(901, t.length);
             }
-        })))));
+        })));
     }
     get controllers() {
         return this.dlgs.slice(0);
     }
     open(t) {
-        return asDialogOpenPromise(new Promise((e => {
-            const i = DialogSettings.from(this.R, t);
-            const s = i.container ?? this.C.createChild();
-            e(o(i.load(), (t => {
-                const e = s.invoke(DialogController);
-                s.register(S(O, e), S(DialogController, e));
-                return o(e.activate(t), (t => {
+        return asDialogOpenPromise(new Promise(s => {
+            const i = DialogSettings.from(this.C, t);
+            const e = i.container ?? this.u.createChild();
+            s(r(i.load(), t => {
+                const s = e.invoke(DialogController);
+                e.register(R(O, s), R(DialogController, s));
+                return r(s.activate(t), t => {
                     if (!t.wasCancelled) {
-                        this.dlgs.push(e);
-                        const $removeController = () => this.remove(e);
-                        void e.closed.finally($removeController);
+                        this.dlgs.push(s);
+                        const $removeController = () => this.remove(s);
+                        void s.closed.finally($removeController);
                     }
                     return t;
-                }));
-            })));
-        })));
+                });
+            }));
+        }));
     }
     closeAll() {
-        return Promise.all(Array.from(this.dlgs).map((t => {
+        return Promise.all(Array.from(this.dlgs).map(t => {
             if (t.settings.rejectOnCancel) {
-                return t.cancel().then((() => null));
+                return t.cancel().then(() => null);
             }
-            return t.cancel().then((e => e.status === "cancel" ? null : t));
-        }))).then((t => t.filter((t => !!t))));
+            return t.cancel().then(s => s.status === "cancel" ? null : t);
+        })).then(t => t.filter(t => !!t));
     }
     remove(t) {
-        const e = this.dlgs.indexOf(t);
-        if (e > -1) {
-            this.dlgs.splice(e, 1);
+        const s = this.dlgs.indexOf(t);
+        if (s > -1) {
+            this.dlgs.splice(s, 1);
         }
     }
 }
 
 class DialogSettings {
-    static from(...t) {
-        return Object.assign(new DialogSettings, ...t).P().O();
+    static from(t, s) {
+        const i = Object.assign(new DialogSettings, t, s, {
+            options: {
+                ...t.options ?? {},
+                ...s.options ?? {}
+            }
+        });
+        if (i.component == null && i.template == null) {
+            throw createMappedError(903);
+        }
+        return i;
     }
     load() {
         const t = this;
-        const e = this.component;
+        const s = this.component;
         const i = this.template;
-        const s = l(...[ e == null ? void 0 : o(e(), (e => {
-            t.component = e;
-        })), n(i) ? o(i(), (e => {
-            t.template = e;
-        })) : void 0 ]);
-        return a(s) ? s.then((() => t)) : t;
-    }
-    P() {
-        if (this.component == null && this.template == null) {
-            throw createMappedError(903);
-        }
-        return this;
-    }
-    O() {
-        if (this.keyboard == null) {
-            this.keyboard = this.lock ? [] : [ "Enter", "Escape" ];
-        }
-        if (typeof this.overlayDismiss !== "boolean") {
-            this.overlayDismiss = !this.lock;
-        }
-        return this;
+        const e = l(s == null ? void 0 : r(m.isType(s) ? s : s(), s => {
+            t.component = s;
+        }), o(i) ? r(i(), s => {
+            t.template = s;
+        }) : void 0);
+        return r(e, () => t);
     }
 }
 
-function whenClosed(t, e) {
-    return this.then((i => i.dialog.closed.then(t, e)), e);
+function whenClosed(t, s) {
+    return this.then(i => i.dialog.closed.then(t, s), s);
 }
 
 function asDialogOpenPromise(t) {
@@ -273,155 +258,240 @@ function asDialogOpenPromise(t) {
     return t;
 }
 
-class DefaultDialogGlobalSettings {
+class DialogDomRendererClassic {
     constructor() {
-        this.lock = true;
-        this.startingZIndex = 1e3;
-        this.rejectOnCancel = false;
-    }
-    static register(t) {
-        R(k, this).register(t);
-    }
-}
-
-class DefaultDialogDomRenderer {
-    constructor() {
-        this.p = i(g);
-        this.I = i(c(I));
+        this.p = i(u);
+        this.R = i(I);
         this.overlayCss = "position:absolute;width:100%;height:100%;top:0;left:0;";
         this.wrapperCss = `${this.overlayCss} display:flex;`;
         this.hostCss = "position:relative;margin:auto;";
     }
-    static register(t) {
-        t.register(R(y, this));
-    }
-    render(t, e) {
-        const i = this.p.document;
-        const h = (t, e) => {
-            const s = i.createElement(t);
-            s.style.cssText = e;
-            return s;
+    render(t, s, i) {
+        const e = this.p.document;
+        const h = (t, s) => {
+            const i = e.createElement(t);
+            i.style.cssText = s;
+            return i;
         };
-        const {startingZIndex: s} = e;
-        const o = `${this.wrapperCss};${s == null ? "" : `z-index:${s}`}`;
-        const r = t.appendChild(h("au-dialog-container", o));
-        const n = r.appendChild(h("au-dialog-overlay", this.overlayCss));
-        const l = r.appendChild(h("div", this.hostCss));
-        return new DefaultDialogDom(r, n, l, this.I);
+        const {startingZIndex: o} = i ?? {};
+        const r = `${this.wrapperCss};${o == null ? "" : `z-index:${o}`}`;
+        const n = t.appendChild(h("au-dialog-container", r));
+        const l = n.appendChild(h("au-dialog-overlay", this.overlayCss));
+        const a = n.appendChild(h("div", this.hostCss));
+        return new DialogDomClassic(n, l, a, s, this.R, i ?? {});
     }
 }
 
-class DefaultDialogDom {
-    constructor(t, e, i, s) {
-        this.wrapper = t;
-        this.overlay = e;
+class DialogDomClassic {
+    constructor(t, s, i, e, o, r) {
+        this.root = t;
+        this.overlay = s;
         this.contentHost = i;
-        this.I = s;
+        this.O = null;
+        this.I = e;
+        this.R = o;
+        this.P = r ?? {};
     }
     show() {
-        return this.I?.show(this);
+        return r(this.P?.show?.(this), () => {
+            this.O = this.R.add(this.I, this);
+        });
     }
     hide() {
-        return this.I?.hide(this);
+        this.O?.dispose();
+        return this.P?.hide?.(this);
     }
     dispose() {
-        this.wrapper.remove();
+        this.O?.dispose();
+        this.root.remove();
     }
 }
 
-class DefaultDialogEventManager {
+const I = /*@__PURE__*/ w("IDialogEventManager", t => t.singleton(DialogEventManagerClassic));
+
+class DialogEventManagerClassic {
     constructor() {
         this.ctrls = [];
-        this.w = i(w);
+        this.w = i(v);
     }
-    static register(t) {
-        R($, this).register(t);
-    }
-    add(t, e) {
+    add(t, s) {
         if (this.ctrls.push(t) === 1) {
             this.w.addEventListener("keydown", this);
         }
-        const i = t.settings.mouseEvent ?? "click";
+        const i = t.settings.options;
+        const e = i.lock;
+        let o = i.overlayDismiss;
+        o = typeof o === "boolean" ? o : !e;
+        const r = i.mouseEvent ?? "click";
         const handleClick = i => {
-            if (t.settings.overlayDismiss && !e.contentHost.contains(i.target)) {
+            if (o && !s.contentHost.contains(i.target)) {
                 void t.cancel();
             }
         };
-        e.overlay.addEventListener(i, handleClick);
+        s.overlay?.addEventListener(r, handleClick);
         const handleSubmit = t => {
-            const e = t.target;
-            const i = !e.getAttribute("action");
-            if (e.tagName === "FORM" && i) {
+            const s = t.target;
+            const i = !s.getAttribute("action");
+            if (s.tagName === "FORM" && i) {
                 t.preventDefault();
             }
         };
-        e.contentHost.addEventListener("submit", handleSubmit);
+        s.contentHost.addEventListener("submit", handleSubmit);
+        let n = false;
         return {
             dispose: () => {
+                if (n) {
+                    return;
+                }
+                n = true;
                 this.$(t);
-                e.overlay.removeEventListener(i, handleClick);
-                e.contentHost.removeEventListener("submit", handleSubmit);
+                s.overlay?.removeEventListener(r, handleClick);
+                s.contentHost.removeEventListener("submit", handleSubmit);
             }
         };
     }
     $(t) {
-        const e = this.ctrls;
-        const i = e.indexOf(t);
+        const s = this.ctrls;
+        const i = s.indexOf(t);
         if (i !== -1) {
-            e.splice(i, 1);
+            s.splice(i, 1);
         }
-        if (e.length === 0) {
+        if (s.length === 0) {
             this.w.removeEventListener("keydown", this);
         }
     }
+    j(t) {
+        const s = t.settings.options;
+        return s.keyboard ?? (s.lock ? [] : [ "Enter", "Escape" ]);
+    }
     handleEvent(t) {
-        const e = t;
-        const i = getActionKey(e);
+        const s = t;
+        const i = DialogEventManagerClassic.M(s);
         if (i == null) {
             return;
         }
-        const s = this.ctrls.slice(-1)[0];
-        if (s == null || s.settings.keyboard.length === 0) {
+        const e = this.ctrls.slice(-1)[0];
+        if (e == null) {
             return;
         }
-        const o = s.settings.keyboard;
+        const o = this.j(e);
         if (i === "Escape" && o.includes(i)) {
-            void s.cancel();
+            void e.cancel();
         } else if (i === "Enter" && o.includes(i)) {
-            void s.ok();
+            void e.ok();
         }
     }
+    static M(t) {
+        if ((t.code || t.key) === "Escape" || t.keyCode === 27) {
+            return "Escape";
+        }
+        if ((t.code || t.key) === "Enter" || t.keyCode === 13) {
+            return "Enter";
+        }
+        return undefined;
+    }
 }
 
-function getActionKey(t) {
-    if ((t.code || t.key) === "Escape" || t.keyCode === 27) {
-        return "Escape";
+class DialogDomRendererStandard {
+    constructor() {
+        this.p = i(u);
     }
-    if ((t.code || t.key) === "Enter" || t.keyCode === 13) {
-        return "Enter";
+    render(t, s, i = {}) {
+        const h = t => this.p.document.createElement(t);
+        const e = h("dialog");
+        const o = e.appendChild(h("div"));
+        if (i.closedby) {
+            e.setAttribute("closedby", i.closedby);
+        }
+        t.appendChild(e);
+        return new DialogDomStandard(e, o, s, i);
     }
-    return undefined;
 }
 
-function createDialogConfiguration(t, e) {
+class DialogDomStandard {
+    constructor(t, s, i, e) {
+        this.root = t;
+        this.contentHost = s;
+        this.A = null;
+        this.I = i;
+        this.P = e;
+        this._ = t.ownerDocument.createElement("div");
+        if (e.overlayStyle != null) {
+            this.setOverlayStyle(e.overlayStyle);
+        }
+    }
+    setOverlayStyle(t) {
+        const s = this.A ??= this.root.insertAdjacentElement("afterbegin", this.root.ownerDocument.createElement("style"));
+        const i = this._;
+        i.style.cssText = "";
+        if (a(t)) {
+            i.style.cssText = t;
+        } else {
+            Object.assign(i.style, t);
+        }
+        s.textContent = `:modal::backdrop{${i.style.cssText}}`;
+    }
+    show() {
+        if (this.P.modal) {
+            this.root.showModal();
+        } else {
+            this.root.show();
+        }
+        return r(this.P.show?.(this), () => {
+            this.root.addEventListener("cancel", this);
+        });
+    }
+    hide() {
+        if (!this.root.open) ;
+        return r(this.P.hide?.(this), () => {
+            this.root.removeEventListener("cancel", this);
+            this.root.close();
+        });
+    }
+    dispose() {
+        this.root.remove();
+    }
+    handleEvent(t) {
+        t.preventDefault();
+        void this.I.cancel();
+    }
+}
+
+function createDialogConfiguration(t, s) {
     return {
-        settingsProvider: t,
-        register: i => i.register(...e, C.creating((() => t(i.get(k))))),
-        customize(t, i) {
-            return createDialogConfiguration(t, i ?? e);
+        register: i => i.register(E(k, s), DialogService, p.creating(() => t(i.get(k)))),
+        customize(t) {
+            return createDialogConfiguration(t, s);
         }
     };
 }
 
-const A = /*@__PURE__*/ createDialogConfiguration((() => {
+const P = /*@__PURE__*/ createDialogConfiguration(() => {
     throw createMappedError(904);
-}), [ class NoopDialogGlobalSettings {
-    static register(t) {
-        t.register(R(k, this));
+}, class {
+    constructor() {
+        this.options = {};
     }
-} ]);
+});
 
-const j = /*@__PURE__*/ createDialogConfiguration(u, [ DialogService, DefaultDialogGlobalSettings, DefaultDialogDomRenderer, DefaultDialogEventManager ]);
+const $ = /*@__PURE__*/ createDialogConfiguration(c, class {
+    constructor() {
+        this.renderer = DialogDomRendererStandard;
+        this.options = {
+            modal: true
+        };
+    }
+});
 
-export { DefaultDialogDom, DefaultDialogDomRenderer, DefaultDialogEventManager, DefaultDialogGlobalSettings, DialogCloseResult, A as DialogConfiguration, DialogController, j as DialogDefaultConfiguration, DialogOpenResult, DialogService, O as IDialogController, P as IDialogDom, I as IDialogDomAnimator, y as IDialogDomRenderer, $ as IDialogEventManager, k as IDialogGlobalSettings, b as IDialogService };
+const j = /*@__PURE__*/ createDialogConfiguration(c, class {
+    constructor() {
+        this.renderer = DialogDomRendererClassic;
+        this.options = {
+            lock: true,
+            startingZIndex: 1e3
+        };
+    }
+});
+
+export { DialogCloseResult, P as DialogConfiguration, j as DialogConfigurationClassic, $ as DialogConfigurationStandard, DialogController, DialogDomClassic, DialogDomRendererClassic, DialogDomRendererStandard, DialogDomStandard, DialogOpenResult, DialogService, O as IDialogController, b as IDialogDom, y as IDialogDomRenderer, k as IDialogGlobalSettings, S as IDialogService, createDialogConfiguration };
 

@@ -1,6 +1,11 @@
 import { IContainer } from '@aurelia/kernel';
-import { IActionHandler } from './interfaces';
+import { IActionHandler, IStateMiddleware, MiddlewarePlacement } from './interfaces';
 import { IDevToolsOptions } from './interfaces-devtools';
+export interface IMiddlewareRegistration<T = any, S = any> {
+    middleware: IStateMiddleware<T, S>;
+    placement: MiddlewarePlacement;
+    settings?: S;
+}
 export declare const StateDefaultConfiguration: IStateConfiguration;
 export interface IStateConfiguration {
     register(c: IContainer): void;
@@ -11,6 +16,7 @@ export interface IStateConfiguration {
 }
 export interface IStateConfigurationOptions {
     devToolsOptions?: IDevToolsOptions;
+    middlewares?: IMiddlewareRegistration[];
 }
 export interface IConfigurationInit {
     /**

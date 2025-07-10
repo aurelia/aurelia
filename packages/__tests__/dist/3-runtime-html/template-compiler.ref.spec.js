@@ -1,5 +1,6 @@
 import { noop, } from '@aurelia/kernel';
 import { Controller, CustomAttribute, CustomElement, INode, Aurelia, } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, TestContext, } from '@aurelia/testing';
 describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
     var _a, _b;
@@ -272,7 +273,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
             assertFn: (ctx, host, comp) => {
                 assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
                 comp.renderDiv = true;
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
             }
         },

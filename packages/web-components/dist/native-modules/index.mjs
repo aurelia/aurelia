@@ -2,7 +2,7 @@ import { DI as t, resolve as s, IContainer as e, InstanceProvider as n } from ".
 
 import { IPlatform as i, IRendering as l, CustomElementDefinition as o, CustomElement as r, INode as c, Controller as a } from "../../../runtime-html/dist/native-modules/index.mjs";
 
-const u = /*@__PURE__*/ t.createInterface((t => t.singleton(WcCustomElementRegistry)));
+const u = /*@__PURE__*/ t.createInterface(t => t.singleton(WcCustomElementRegistry));
 
 class WcCustomElementRegistry {
     constructor() {

@@ -37,10 +37,11 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
 import { CustomElement, customElement, slotted } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
     describe('intitial rendering', function () {
-        it('assigns value', function () {
+        it('assigns value', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -74,7 +75,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
             }, [El,]);
             assert.strictEqual(el.divs.length, 1);
         });
-        it('assigns only projected content', function () {
+        it('assigns only projected content', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -104,11 +105,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><div></div>', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el><div></div>', class App {
+            }, [El,]).started;
             assertText('div count: 1');
         });
-        it('assigns only projected content from matching slot', function () {
+        it('assigns only projected content from matching slot', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -138,13 +139,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture(
+            const { assertText } = await createFixture(
             // projecting 3 divs to 2 different slots
             '<el><div au-slot="1"></div><div></div><div></div>', class App {
-            }, [El,]);
+            }, [El,]).started;
             assertText('div count: 1');
         });
-        it('calls change handler', function () {
+        it('calls change handler', async function () {
             let call = 0;
             let El = (() => {
                 let _classDecorators = [customElement({
@@ -178,11 +179,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            createFixture('<el><div></div>', class App {
-            }, [El,]);
+            await createFixture('<el><div></div>', class App {
+            }, [El,]).started;
             assert.strictEqual(call, 1);
         });
-        it('calls specified change handler', function () {
+        it('calls specified change handler', async function () {
             let call = 0;
             let El = (() => {
                 let _classDecorators = [customElement({
@@ -218,11 +219,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            createFixture('<el><div></div>', class App {
-            }, [El,]);
+            await createFixture('<el><div></div>', class App {
+            }, [El,]).started;
             assert.strictEqual(call, 1);
         });
-        it('does not call change handler if theres no slot', function () {
+        it('does not call change handler if theres no slot', async function () {
             let call = 0;
             let El = (() => {
                 let _classDecorators = [customElement({
@@ -256,11 +257,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            createFixture('<el><div></div>', class App {
-            }, [El,]);
+            await createFixture('<el><div></div>', class App {
+            }, [El,]).started;
             assert.strictEqual(call, 0);
         });
-        it('does not call change handler there are no matching nodes', function () {
+        it('does not call change handler there are no matching nodes', async function () {
             let call = 0;
             let El = (() => {
                 let _classDecorators = [customElement({
@@ -294,11 +295,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            createFixture('<el><input>', class App {
-            }, [El,]);
+            await createFixture('<el><input>', class App {
+            }, [El,]).started;
             assert.strictEqual(call, 0);
         });
-        it('assigns to multiple @slotted properties with same queries', function () {
+        it('assigns to multiple @slotted properties with same queries', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -334,12 +335,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { component: { el: { divs, divs2 } } } = createFixture('<el component.ref="el"><div>', class App {
-            }, [El,]);
+            const { component: { el: { divs, divs2 } } } = await createFixture('<el component.ref="el"><div>', class App {
+            }, [El,]).started;
             assert.strictEqual(divs.length, 1);
             assert.strictEqual(divs2.length, 1);
         });
-        it('assigns to multiple slotted properties with overlapping queries', function () {
+        it('assigns to multiple slotted properties with overlapping queries', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -375,11 +376,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><div></div><p>', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el><div></div><p>', class App {
+            }, [El,]).started;
             assertText('Count: 1 2');
         });
-        it('calls change handler of multiple slotted props with overlapping queries', function () {
+        it('calls change handler of multiple slotted props with overlapping queries', async function () {
             let call1 = 0;
             let call2 = 0;
             let El = (() => {
@@ -423,11 +424,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            createFixture('<el><div></div><p>', class App {
-            }, [El,]);
+            await createFixture('<el><div></div><p>', class App {
+            }, [El,]).started;
             assert.deepStrictEqual([call1, call2], [1, 1]);
         });
-        it('assigns nodes rendered by repeat', function () {
+        it('assigns nodes rendered by repeat', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -463,11 +464,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><div repeat.for="i of 3"></div><p repeat.for="i of 3">', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el><div repeat.for="i of 3"></div><p repeat.for="i of 3">', class App {
+            }, [El,]).started;
             assertText('Count: 3 6');
         });
-        it('assigns all nodes with $all', function () {
+        it('assigns all nodes with $all', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -497,12 +498,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el>text<div></div><p></p><!--ha-->', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el>text<div></div><p></p><!--ha-->', class App {
+            }, [El,]).started;
             // comments are filtered out by projection slot change notifier
             assertText('Count: 3 text');
         });
-        it('assigns all elements with *', function () {
+        it('assigns all elements with *', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -532,8 +533,8 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el>text<div></div><p>', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el>text<div></div><p>', class App {
+            }, [El,]).started;
             assertText('Count: 2 text');
         });
         it('works with slots when there are elements in between', async function () {
@@ -566,13 +567,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture(
+            const { assertText } = await createFixture(
             // projecting 3 divs to 2 different slots
             '<el><div au-slot="1"></div><div></div><div></div>', class App {
-            }, [El,]);
+            }, [El,]).started;
             assertText('div count: 3');
         });
-        it('assigns when more slots are generated in fallback of a slot', function () {
+        it('assigns when more slots are generated in fallback of a slot', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -602,11 +603,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><div au-slot="1"></div>', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el><div au-slot="1"></div>', class App {
+            }, [El,]).started;
             assertText('div count: 1');
         });
-        it('assigns when projection contains slot', function () {
+        it('assigns when projection contains slot', async function () {
             let Parent = (() => {
                 let _classDecorators = [customElement({
                         name: 'parent',
@@ -656,11 +657,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<parent><div></div>', class App {
-            }, [Parent, El]);
+            const { assertText } = await createFixture('<parent><div></div>', class App {
+            }, [Parent, El]).started;
             assertText('div count: 1');
         });
-        it('assigns when projection fallbacks', function () {
+        it('assigns when projection fallbacks', async function () {
             let Parent = (() => {
                 let _classDecorators = [customElement({
                         name: 'parent',
@@ -710,11 +711,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<parent>', class App {
-            }, [Parent, El]);
+            const { assertText } = await createFixture('<parent>', class App {
+            }, [Parent, El]).started;
             assertText('div count: 1');
         });
-        it('assigns when projection fallbacks multiple slot', function () {
+        it('assigns when projection fallbacks multiple slot', async function () {
             let Parent = (() => {
                 let _classDecorators = [customElement({
                         name: 'parent',
@@ -764,11 +765,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<parent>', class App {
-            }, [Parent, El]);
+            const { assertText } = await createFixture('<parent>', class App {
+            }, [Parent, El]).started;
             assertText('inputs count: 2');
         });
-        it('assigns values independently to different elements at root level', function () {
+        it('assigns values independently to different elements at root level', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -798,11 +799,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><input></el> | <el><input><input>', class App {
-            }, [El]);
+            const { assertText } = await createFixture('<el><input></el> | <el><input><input>', class App {
+            }, [El]).started;
             assertText('inputs count: 1 | inputs count: 2');
         });
-        it('assigns values independently to different elements in a custom element', function () {
+        it('assigns values independently to different elements in a custom element', async function () {
             let Parent = (() => {
                 let _classDecorators = [customElement({
                         name: 'parent',
@@ -852,11 +853,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<parent>', class App {
-            }, [Parent, El]);
+            const { assertText } = await createFixture('<parent>', class App {
+            }, [Parent, El]).started;
             assertText('inputs count: 1 | inputs count: 2');
         });
-        it('assigns all node with custom slot name from definition object', function () {
+        it('assigns all node with custom slot name from definition object', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -888,11 +889,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><div au-slot=1>', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el><div au-slot=1>', class App {
+            }, [El,]).started;
             assertText('Count: 1');
         });
-        it('assigns on dynamically generated <au-slot>', function () {
+        it('assigns on dynamically generated <au-slot>', async function () {
             let El = (() => {
                 let _classDecorators = [customElement({
                         name: 'el',
@@ -922,11 +923,11 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText } = createFixture('<el><div>', class App {
-            }, [El,]);
+            const { assertText } = await createFixture('<el><div>', class App {
+            }, [El,]).started;
             assertText('Count: 3');
         });
-        it('does not call slotchange inititially', function () {
+        it('does not call slotchange inititially', async function () {
             let call = 0;
             let El = (() => {
                 let _classDecorators = [customElement({
@@ -960,8 +961,8 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            createFixture('<el><div>', class App {
-            }, [El,]);
+            await createFixture('<el><div>', class App {
+            }, [El,]).started;
             assert.strictEqual(call, 0);
         });
     });
@@ -996,19 +997,19 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText, component, flush } = createFixture('<el><div if.bind="show"></div><p>', class App {
+            const { assertText, component } = await createFixture('<el><div if.bind="show"></div><p>', class App {
                 constructor() {
                     this.show = false;
                 }
-            }, [El,]);
+            }, [El,]).started;
             assertText('Count: 1');
             component.show = true;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assertText('Count: 2');
             component.show = false;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assertText('Count: 1');
         });
         it('updates added/removed nodes on the removal of multiple nodes', async function () {
@@ -1041,19 +1042,19 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText, component, flush } = createFixture('<el><div repeat.for="_ of i">', class App {
+            const { assertText, component } = await createFixture('<el><div repeat.for="_ of i">', class App {
                 constructor() {
                     this.i = 0;
                 }
-            }, [El,]);
+            }, [El,]).started;
             assertText('Count: 0');
             component.i = 3;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assertText('Count: 3');
             component.i = 0;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assertText('Count: 0');
         });
         it('updates values independently for multiple <au-slot> in a custom element', async function () {
@@ -1107,12 +1108,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { assertText, trigger, flush } = createFixture('<parent>', class App {
-            }, [Parent, El]);
+            const { assertText, trigger } = await createFixture('<parent>', class App {
+            }, [Parent, El]).started;
             assertText('inputs count: 1 | inputs count: 2');
             trigger.click('button');
-            await Promise.resolve();
-            flush();
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assertText('inputs count: 1 | inputs count: 3');
         });
         it('calls slotchange after rendering', async function () {
@@ -1149,18 +1150,18 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { component, flush } = createFixture('<el><div if.bind="show"></div><p>', class App {
+            const { component } = createFixture('<el><div if.bind="show"></div><p>', class App {
                 constructor() {
                     this.show = false;
                 }
             }, [El,]);
             component.show = true;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assert.deepStrictEqual(calls, [['default', 2]]);
             component.show = false;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
         });
         it('calls slotchange without having to have @slotted gh #2071', async function () {
@@ -1188,18 +1189,18 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { component, flush } = createFixture('<el><div if.bind="show"></div><p>', class App {
+            const { component } = createFixture('<el><div if.bind="show"></div><p>', class App {
                 constructor() {
                     this.show = false;
                 }
             }, [El,]);
             component.show = true;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assert.deepStrictEqual(calls, [['default', 2]]);
             component.show = false;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
         });
         it('[containerless] calls slotchange without having to have @slotted gh #2071', async function () {
@@ -1228,23 +1229,23 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
                 })();
                 return El = _classThis;
             })();
-            const { component, flush } = createFixture('<el><div if.bind="show"></div><p>', class App {
+            const { component } = createFixture('<el><div if.bind="show"></div><p>', class App {
                 constructor() {
                     this.show = false;
                 }
             }, [El,]);
             component.show = true;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assert.deepStrictEqual(calls, [['default', 2]]);
             component.show = false;
-            await Promise.resolve(); // for mutation observer to tick
-            flush(); // for text update
+            await tasksSettled(); // flush binding
+            await Promise.resolve(); // mutation observer tick
             assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
         });
     });
     describe('with shadow dom', function () {
-        it('works with shadow dom on', function () {
+        it('works with shadow dom on', async function () {
             const { assertTextContain } = createFixture(`<modal-basic>
           <div au-slot=test>from \${$host.msg}</div>
         `, class {
@@ -1260,7 +1261,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
             assertTextContain('from modal');
         });
     });
-    it('does not interfere with direct text child in shadow dom', function () {
+    it('does not interfere with direct text child in shadow dom', async function () {
         const { assertTextContain } = createFixture(`<modal-basic>
         hi <div au-slot=test>from \${$host.msg}</div>
       `, class {

@@ -35,7 +35,7 @@ function createIntlFormatValueConverterExpression(name, binding) {
 /** BindingMode */
 /** @internal */ const bmToView = runtimeHtml.BindingMode.toView;
 /** State */
-/** @internal */ const stateActivating = runtimeHtml.State.activating;
+/** @internal */ runtimeHtml.State.activating;
 /** @internal */ const behaviorTypeName = 'binding-behavior';
 /** @internal */ const valueConverterTypeName = 'value-converter';
 
@@ -63,13 +63,14 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
 
 
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var descriptor = ({});
+    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};
@@ -89,6 +90,7 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
             else descriptor[key] = _;
         }
     }
+    if (target) Object.defineProperty(target, contextIn.name, descriptor);
     done = true;
 }
 function __runInitializers(thisArg, initializers, value) {
@@ -430,9 +432,6 @@ const getMessageByCode = (name, ...details) => {
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'];
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 const forOpts = { optional: true };
-const taskQueueOpts = {
-    preempt: true,
-};
 class TranslationBinding {
     static create({ parser, observerLocator, context, controller, target, instruction, platform, isParameterContext, }) {
         const binding = this._getBinding({ observerLocator, context, controller, target, platform });
@@ -462,7 +461,8 @@ class TranslationBinding {
         /** @internal */
         this._contentAttributes = contentAttributes;
         /** @internal */
-        this._task = null;
+        this._isQueued = false;
+        /** @internal */
         this.parameter = null;
         // see Listener binding for explanation
         /** @internal */
@@ -475,7 +475,6 @@ class TranslationBinding {
         this._platform = platform;
         this._targetAccessors = new Set();
         this.oL = observerLocator;
-        this._taskQueue = platform.domQueue;
     }
     bind(_scope) {
         if (this.isBound) {
@@ -500,26 +499,43 @@ class TranslationBinding {
         runtime.astUnbind(this.ast, this._scope, this);
         this.parameter?.unbind();
         this._targetAccessors.clear();
-        if (this._task !== null) {
-            this._task.cancel();
-            this._task = null;
-        }
+        this._isQueued = false;
         this._scope = (void 0);
         this.obs.clearAll();
         this.isBound = false;
     }
     handleChange(_newValue, _previousValue) {
-        this.obs.version++;
-        this._keyExpression = runtime.astEvaluate(this.ast, this._scope, this, this);
-        this.obs.clear();
-        this._ensureKeyExpression();
-        this.updateTranslations();
+        if (!this.isBound)
+            return;
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        runtime.queueTask(() => {
+            this._isQueued = false;
+            if (!this.isBound)
+                return;
+            this.obs.version++;
+            this._keyExpression = runtime.astEvaluate(this.ast, this._scope, this, this);
+            this.obs.clear();
+            this._ensureKeyExpression();
+            this.updateTranslations();
+        });
     }
     handleLocaleChange() {
-        // todo:
-        // no flag passed, so if a locale is updated during binding of a component
-        // and the author wants to signal that locale change fromBind, then it's a bug
-        this.updateTranslations();
+        if (!this.isBound)
+            return;
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        runtime.queueTask(() => {
+            this._isQueued = false;
+            if (!this.isBound)
+                return;
+            // todo:
+            // no flag passed, so if a locale is updated during binding of a component
+            // and the author wants to signal that locale change fromBind, then it's a bug
+            this.updateTranslations();
+        });
     }
     useParameter(expr) {
         if (this.parameter != null) {
@@ -530,8 +546,6 @@ class TranslationBinding {
     updateTranslations() {
         const results = this.i18n.evaluate(this._keyExpression, this.parameter?.value);
         const content = Object.create(null);
-        const accessorUpdateTasks = [];
-        const task = this._task;
         this._targetAccessors.clear();
         for (const item of results) {
             const value = item.value;
@@ -545,36 +559,14 @@ class TranslationBinding {
                     const accessor = controller?.viewModel
                         ? this.oL.getAccessor(controller.viewModel, kernel.camelCase(attribute))
                         : this.oL.getAccessor(this.target, attribute);
-                    const shouldQueueUpdate = this._controller.state !== stateActivating && (accessor.type & runtime.AccessorType.Layout) > 0;
-                    if (shouldQueueUpdate) {
-                        accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, this.target, attribute));
-                    }
-                    else {
-                        accessor.setValue(value, this.target, attribute);
-                    }
+                    accessor.setValue(value, this.target, attribute);
                     this._targetAccessors.add(accessor);
                 }
             }
         }
-        let shouldQueueContent = false;
         if (Object.keys(content).length > 0) {
-            shouldQueueContent = this._controller.state !== stateActivating;
-            if (!shouldQueueContent) {
-                this._updateContent(content);
-            }
+            this._updateContent(content);
         }
-        if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
-            this._task = this._taskQueue.queueTask(() => {
-                this._task = null;
-                for (const updateTask of accessorUpdateTasks) {
-                    updateTask.run();
-                }
-                if (shouldQueueContent) {
-                    this._updateContent(content);
-                }
-            }, taskQueueOpts);
-        }
-        task?.cancel();
     }
     /** @internal */
     _preprocessAttributes(attributes) {
@@ -652,23 +644,14 @@ class TranslationBinding {
 runtime.connectable(TranslationBinding, null);
 runtimeHtml.mixinAstEvaluator(TranslationBinding);
 runtimeHtml.mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
-class AccessorUpdateTask {
-    constructor(accessor, v, el, attr) {
-        this.accessor = accessor;
-        this.v = v;
-        this.el = el;
-        this.attr = attr;
-    }
-    run() {
-        this.accessor.setValue(this.v, this.el, this.attr);
-    }
-}
 class ParameterBinding {
     constructor(owner, ast, updater) {
         this.owner = owner;
         this.ast = ast;
         this.updater = updater;
         this.isBound = false;
+        /** @internal */
+        this._isQueued = false;
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
@@ -679,13 +662,20 @@ class ParameterBinding {
     handleChange(_newValue, _previousValue) {
         // todo(test): add an integration/e2e for this
         //             setup: put this inside an if and switch on/off that if
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
-        this.obs.version++;
-        this.value = runtime.astEvaluate(this.ast, this._scope, this, this);
-        this.obs.clear();
-        this.updater();
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        runtime.queueTask(() => {
+            this._isQueued = false;
+            if (!this.isBound)
+                return;
+            this.obs.version++;
+            this.value = runtime.astEvaluate(this.ast, this._scope, this, this);
+            this.obs.clear();
+            this.updater();
+        });
     }
     bind(_scope) {
         if (this.isBound) {

@@ -245,7 +245,7 @@ class RecognizeResult {
         this.candidates = [ new Candidate([ "" ], [ t ], [], this) ];
     }
     getSolution() {
-        const t = this.candidates.filter((t => hasEndpoint(t) && t.i()));
+        const t = this.candidates.filter(t => hasEndpoint(t) && t.i());
         if (t.length === 0) {
             return null;
         }
@@ -361,7 +361,6 @@ class RouteRecognizer {
         return s;
     }
     $recognize(t) {
-        t = decodeURI(t);
         if (!t.startsWith("/")) {
             t = `/${t}`;
         }
@@ -436,9 +435,9 @@ class State {
             e = void 0;
             i = this.nextStates = [];
         } else if (t === null) {
-            e = i.find((t => t.value === s));
+            e = i.find(t => t.value === s);
         } else {
-            e = i.find((s => s.segment?.equals(t)));
+            e = i.find(s => s.segment?.equals(t));
         }
         if (e === void 0) {
             i.push(e = new State(this, t, s));

@@ -1,22 +1,31 @@
-import { ConsoleSink, LogLevel, LoggerConfiguration, Registration } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
-import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
+import { ConsoleSink, IContainer, LogLevel, LoggerConfiguration, Registration } from '@aurelia/kernel';
+import { IRouterOptions } from '@aurelia/router';
+import { AppTask, IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation } from '@aurelia/testing';
 export const TestRouterConfiguration = {
-    for(ctx, logLevel = LogLevel.debug) {
+    for(logLevel = LogLevel.warn, sinks = [ConsoleSink]) {
         return {
             register(container) {
                 container.register(LoggerConfiguration.create({
                     level: logLevel,
                     colorOptions: 'no-colors',
-                    sinks: [ConsoleSink],
+                    sinks,
                 }));
                 const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-                container.register(Registration.instance(IHistory, mockBrowserHistoryLocation), Registration.instance(ILocation, mockBrowserHistoryLocation), AppTask.hydrating(IRouter, router => {
-                    mockBrowserHistoryLocation.changeCallback = async (ev) => { router.viewer.handlePopStateEvent(ev); };
-                }));
+                container.register(Registration.instance(IHistory, mockBrowserHistoryLocation), Registration.instance(ILocation, mockBrowserHistoryLocation));
             },
         };
     },
 };
+export function getLocationChangeHandlerRegistration() {
+    return AppTask.hydrated(IContainer, container => {
+        const useHash = container.get(IRouterOptions).useUrlFragmentHash;
+        const window = container.get(IWindow);
+        const mockBrowserHistoryLocation = container.get(IHistory);
+        mockBrowserHistoryLocation.changeCallback = () => {
+            window.dispatchEvent(useHash ? new HashChangeEvent('hashchange') : new PopStateEvent('popstate'));
+            return Promise.resolve();
+        };
+    });
+}
 //# sourceMappingURL=configuration.js.map

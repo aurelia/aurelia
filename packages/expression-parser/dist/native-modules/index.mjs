@@ -2011,12 +2011,12 @@ const {CharScanners: xe, IdParts: we} = /*@__PURE__*/ (() => {
     };
     const t = new Array(65535);
     t.fill(unexpectedCharacter, 0, 65535);
-    decompress(t, null, e.Skip, (() => {
+    decompress(t, null, e.Skip, () => {
         nextChar();
         return null;
-    }));
+    });
     decompress(t, null, e.IdStart, scanIdentifier);
-    decompress(t, null, e.Digit, (() => scanNumber(false)));
+    decompress(t, null, e.Digit, () => scanNumber(false));
     t[34] = t[39] = () => scanString();
     t[96] = () => scanTemplate();
     t[33] = () => {

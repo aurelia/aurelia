@@ -7,7 +7,6 @@ export interface ComputedObserver<T extends object> extends IObserverLocatorBase
 }
 export declare class ComputedObserver<T extends object> implements IObserver, IObserverLocatorBasedConnectable, ISubscriber, ICollectionSubscriber, ISubscriberCollection {
     type: AccessorType;
-    private _notified;
     /**
      * The getter this observer is wrapping
      */
@@ -20,7 +19,7 @@ export declare class ComputedObserver<T extends object> implements IObserver, IO
      * A semi-private property used by connectable mixin
      */
     readonly oL: IObserverLocator;
-    constructor(obj: T, get: ComputedGetterFn<T>, set: undefined | ((v: unknown) => void), observerLocator: IObserverLocator, useProxy: boolean);
+    constructor(obj: T, get: ComputedGetterFn<T>, set: undefined | ((v: unknown) => void), observerLocator: IObserverLocator, flush?: 'sync' | 'async');
     init(value: unknown): void;
     getValue(): any;
     setValue(v: unknown): void;

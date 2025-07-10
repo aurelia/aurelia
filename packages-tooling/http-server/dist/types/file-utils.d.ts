@@ -1,6 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
 import { Stats } from "fs";
 export declare function readFile(path: string): Promise<Buffer>;
 export declare function readFile(path: string, options: string): Promise<string>;

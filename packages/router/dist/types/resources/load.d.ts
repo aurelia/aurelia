@@ -1,23 +1,20 @@
 import { ICustomAttributeViewModel } from '@aurelia/runtime-html';
-import { Parameters } from '../instructions/instruction-parameters';
+import { IRouteContext } from '../route-context';
+import { Params } from '../instructions';
 export declare class LoadCustomAttribute implements ICustomAttributeViewModel {
-    value: unknown;
-    component?: string;
-    parameters?: Parameters;
-    viewport?: string;
-    id?: string;
-    private hasHref;
-    private routerNavigationSubscription;
-    private readonly element;
-    private readonly router;
-    private readonly linkHandler;
-    private readonly ea;
-    private readonly activeClass;
+    route: unknown;
+    params?: Params;
+    attribute: string;
+    active: boolean;
+    /**
+     * When not bound, it defaults to the injected instance of the router context.
+     */
+    context?: IRouteContext;
+    constructor();
     binding(): void;
+    attaching(): void | Promise<void>;
     unbinding(): void;
-    valueChanged(_newValue: unknown): void;
-    private updateValue;
-    private readonly navigationEndHandler;
-    private updateActive;
+    valueChanged(): void;
+    private readonly onClick;
 }
 //# sourceMappingURL=load.d.ts.map

@@ -1,8 +1,9 @@
 import { assert, createFixture } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 describe('3-runtime-html/input.spec.ts', function () {
     const isTestingInNode = isNode();
-    it('works: input[text] value.bind', function () {
+    it('works: input[text] value.bind', async function () {
         const { appHost, component, ctx } = createFixture(`<input value.bind="message">`, class App {
             constructor() {
                 this.message = 'Hello';
@@ -14,11 +15,11 @@ describe('3-runtime-html/input.spec.ts', function () {
         input.dispatchEvent(new ctx.Event('change'));
         assert.strictEqual(component.message, 'world');
         component.message = 'hello world';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(input.value, 'hello world');
     });
     if (!isTestingInNode) {
-        it('works: input[number] + value-as-number.bind', function () {
+        it('works: input[number] + value-as-number.bind', async function () {
             const { appHost, component, ctx } = createFixture(`<input type=number value-as-number.bind="count">`, class App {
                 constructor() {
                     this.count = 0;
@@ -31,18 +32,18 @@ describe('3-runtime-html/input.spec.ts', function () {
             input.dispatchEvent(new ctx.Event('change'));
             assert.strictEqual(component.count, 100);
         });
-        it('treats file input ".bind" to as ".from-view"', function () {
-            const { component, ctx } = createFixture(`<input type=file files.bind="file">`, class App {
+        it('treats file input ".bind" to as ".from-view"', async function () {
+            const { component } = createFixture(`<input type=file files.bind="file">`, class App {
                 constructor() {
                     this.file = '';
                 }
             });
-            assert.doesNotThrow(() => {
+            await assert.doesNotReject(async () => {
                 component.file = 'c:/my-file.txt';
-                ctx.platform.domQueue.flush();
+                await tasksSettled();
             });
         });
-        it('special property valueAsNumber on <input type=number> + bad value', function () {
+        it('special property valueAsNumber on <input type=number> + bad value', async function () {
             const { appHost: host, component: comp, ctx } = createFixture(`<input type=number value-as-number.bind="count">`, { count: 0 });
             const input = host.querySelector('input');
             assert.strictEqual(input.valueAsNumber, 0);
@@ -61,7 +62,7 @@ describe('3-runtime-html/input.spec.ts', function () {
             assert.strictEqual(comp.count, 0);
             // then bogus value
             comp.count = 'abc';
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(input.valueAsNumber, NaN);
             // input.valueAsNumber observer does not propagate the value back
             // this may result in some GH issues
@@ -70,7 +71,7 @@ describe('3-runtime-html/input.spec.ts', function () {
             input.dispatchEvent(new ctx.CustomEvent('change'));
             assert.strictEqual(comp.count, 123);
         });
-        it('special property valueAsNumber on <input type=date>', function () {
+        it('special property valueAsNumber on <input type=date>', async function () {
             const { appHost: host, component: comp, ctx } = createFixture(`<input type=date value-as-number.bind="count">`, { count: undefined });
             const input = host.querySelector('input');
             assert.strictEqual(input.valueAsNumber, 0);
@@ -99,14 +100,14 @@ describe('3-runtime-html/input.spec.ts', function () {
             assert.strictEqual(comp.count, NaN, 'comp.count === NaN when input.valueAsNumber is bogus');
             // then bogus value
             comp.count = 'abc';
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.strictEqual(input.valueAsNumber, NaN);
             // input.valueAsNumber observer does not propagate the value back
             // this may result in some GH issues
             assert.strictEqual(comp.count, 'abc', 'comp.count === abc');
         });
     }
-    it('works: textarea + value.bind', function () {
+    it('works: textarea + value.bind', async function () {
         const { appHost, component, ctx } = createFixture(`<textarea value.bind="message">`, class App {
             constructor() {
                 this.message = 'Hello';
@@ -118,47 +119,47 @@ describe('3-runtime-html/input.spec.ts', function () {
         input.dispatchEvent(new ctx.Event('change'));
         assert.strictEqual(component.message, 'world');
         component.message = 'hello world';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(input.value, 'hello world');
     });
-    it('assigns removes attribute to "minLength", "maxLength" on null/undefined', function () {
+    it('assigns removes attribute to "minLength", "maxLength" on null/undefined', async function () {
         const { assertAttr } = createFixture
             .html `<input minlength.bind="null" maxlength.bind="undefined">`
             .build();
         assertAttr('input', 'minlength', null);
         assertAttr('input', 'maxlength', null);
     });
-    it('removes "placeholder" attr on null/undefined', function () {
+    it('removes "placeholder" attr on null/undefined', async function () {
         const { assertAttr } = createFixture
             .html `<input placeholder.bind="null">`
             .build();
         assertAttr('input', 'placeholder', null);
     });
-    it('assigns "size" attr correctly', function () {
+    it('assigns "size" attr correctly', async function () {
         const { assertAttr } = createFixture
             .html `<input size.bind="1">`
             .build();
         assertAttr('input', 'size', '1');
     });
-    it('removes "size" attr on null/undefined', function () {
+    it('removes "size" attr on null/undefined', async function () {
         const { assertAttr } = createFixture
             .html `<input size.bind="null">`
             .build();
         assertAttr('input', 'size', null);
     });
-    it('removes "pattern" attr on null/undefined', function () {
+    it('removes "pattern" attr on null/undefined', async function () {
         const { assertAttr } = createFixture
             .html `<input pattern.bind="null">`
             .build();
         assertAttr('input', 'pattern', null);
     });
-    it('removes "title" attr on null/undefined', function () {
+    it('removes "title" attr on null/undefined', async function () {
         const { assertAttr } = createFixture
             .html `<input title.bind="null">`
             .build();
         assertAttr('input', 'title', null);
     });
-    it('sets popover API attrs', function () {
+    it('sets popover API attrs', async function () {
         const { assertAttr } = createFixture
             .component({ target: 'a', toggle: 'auto' })
             // both button and input will be the same so it's fine
@@ -169,20 +170,20 @@ describe('3-runtime-html/input.spec.ts', function () {
     });
     describe('gh issues', function () {
         it('selects radio when radios are rendered inside an [if]', async function () {
-            const { assertChecked, trigger, flush } = createFixture(`
+            const { assertChecked, trigger } = createFixture(`
         <let show.bind="true" option.bind="'s'"></let>
         <input if.bind="show"  id="blue"  type="radio" name="r1" checked.bind="option" value="s" />
         <input if.bind="!show" id="green" type="radio" name="r1" checked.bind="option" value="s" />
         <button click.trigger="show = !show">toggle</button>
         `);
             trigger('button', 'click');
-            flush();
+            await tasksSettled();
             assertChecked('#green', true);
             trigger('button', 'click');
-            flush();
+            await tasksSettled();
             assertChecked('#blue', true);
             trigger('button', 'click');
-            flush();
+            await tasksSettled();
             assertChecked('#green', true);
         });
     });

@@ -24,6 +24,7 @@
   * [Template variables](templates/template-syntax/template-variables.md)
   * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
+* [Advanced custom attributes](templates/advanced-custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)
 * [Binding behaviors](templates/binding-behaviors.md)
 * [Form Inputs](templates/forms.md)
@@ -49,6 +50,7 @@
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
   * [Extending binding language](developer-guides/scenarios/bindingcommand.md)
   * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
+  * [Extending the template compiler](advanced-scenarios/extending-the-template-compiler.md)
   * [Attribute mapping](developer-guides/scenarios/attributemapper.md)
 
 ## Getting to know Aurelia
@@ -108,6 +110,10 @@
 * [Building plugins](developer-guides/building-plugins.md)
 * [Web Components](developer-guides/web-components.md)
 * [UI virtualization](developer-guides/ui-virtualization.md)
+* [Performance optimization techniques](advanced-scenarios/performance-optimization-techniques.md)
+* [Organizing large-scale projects](advanced-scenarios/organizing-large-scale-projects.md)
+* [Debugging and Troubleshooting](developer-guides/debugging-and-troubleshooting.md)
+* [Error Handling Patterns](developer-guides/error-handling-patterns.md)
 * [Errors](developer-guides/error-messages/README.md)
   * [Kernel Errors](developer-guides/error-messages/0001-to-0023/README.md)
   * [Template Compiler Errors](developer-guides/error-messages/0088-to-0723/README.md)

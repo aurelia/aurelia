@@ -109,12 +109,12 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     let i = 0;
     if (ii === 1) {
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      result = staticParts[0] + partBindings[0]._value + staticParts[1];
+      result = staticParts[0] + partBindings[0]._evaluate() + staticParts[1];
     } else {
       result = staticParts[0];
       for (; ii > i; ++i) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        result += partBindings[i]._value + staticParts[i + 1];
+        result += partBindings[i]._evaluate() + staticParts[i + 1];
       }
     }
 
@@ -192,6 +192,9 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   /** @internal */
   public readonly boundFn = false;
 
+  /** @internal */
+  private _isDirty = false;
+
   public constructor(
     public readonly ast: IsExpression,
     public readonly target: object,
@@ -211,23 +214,32 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
 
   public handleChange(): void {
     if (!this.isBound) return;
+    this._isDirty = true;
+    this.updateTarget();
+  }
+
+  public handleCollectionChange(): void {
+    if (!this.isBound) return;
+    this._isDirty = true;
+    this.updateTarget();
+  }
+
+  /** @internal */
+  public _evaluate() {
+    if (!this._isDirty) return this._value;
 
     this.obs.version++;
     const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
     this.obs.clear();
-    // todo(!=): maybe should do strict comparison?
-    // eslint-disable-next-line eqeqeq
-    if (newValue != this._value) {
-      this._value = newValue;
-      if (isArray(newValue)) {
-        this.observeCollection(newValue);
-      }
-      this.updateTarget();
-    }
-  }
 
-  public handleCollectionChange(): void {
-    this.handleChange();
+    // unlike handleChange, this is always called
+    this._value = newValue;
+    if (isArray(newValue)) {
+      this.observeCollection(newValue);
+    }
+
+    this._isDirty = false;
+    return this._value;
   }
 
   public bind(scope: Scope): void {
@@ -244,12 +256,15 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
       this.observeCollection(this._value);
     }
 
+    this._isDirty = false;
     this.isBound = true;
   }
 
   public unbind(): void {
     if (!this.isBound) return;
     this.isBound = false;
+    this._value = void 0;
+    this._isDirty = false;
 
     astUnbind(this.ast, this._scope!, this);
 

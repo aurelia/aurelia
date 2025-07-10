@@ -1,7 +1,7 @@
 export { type IAstEvaluator, astAssign, astBind, astEvaluate, astUnbind, } from './ast.eval';
 export { mixinNoopAstEvaluator, } from './ast.utilities';
 export { Scope, BindingContext, type IBindingContext, type IOverrideContext, } from './scope';
-export { queueTask, queueAsyncTask, runTasks, tasksSettled, Task, TaskAbortError, type TaskStatus, } from './queue';
+export { queueTask, queueAsyncTask, queueRecurringTask, getRecurringTasks, runTasks, tasksSettled, Task, RecurringTask, TaskAbortError, type TaskStatus, } from './queue';
 export { type IObserverLocatorBasedConnectable, type IObserverRecord, connectable, } from './connectable';
 export { type ArrayObserver, type ArrayIndexObserver, } from './array-observer';
 export { type MapObserver, } from './map-observer';

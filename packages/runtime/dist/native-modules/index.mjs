@@ -94,7 +94,7 @@ class BindingContext {
 
 class OverrideContext {}
 
-const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (() => {
+const {astAssign: P, astEvaluate: R, astBind: x, astUnbind: I} = /*@__PURE__*/ (() => {
     const e = "AccessThis";
     const r = "AccessBoundary";
     const a = "AccessGlobal";
@@ -117,17 +117,17 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
     const S = "Assign";
     const k = "ArrowFunction";
     const P = "ValueConverter";
-    const x = "BindingBehavior";
-    const R = "ArrayBindingPattern";
+    const R = "BindingBehavior";
+    const x = "ArrayBindingPattern";
     const I = "ObjectBindingPattern";
     const _ = "BindingIdentifier";
     const M = "ForOfStatement";
     const D = "Interpolation";
-    const L = "ArrayDestructuring";
-    const N = "ObjectDestructuring";
-    const V = "DestructuringAssignmentLeaf";
-    const B = "Custom";
-    const T = Scope.getContext;
+    const T = "ArrayDestructuring";
+    const L = "ObjectDestructuring";
+    const N = "DestructuringAssignmentLeaf";
+    const V = "Custom";
+    const B = Scope.getContext;
     function astEvaluate(t, o, F, H) {
         switch (t.$kind) {
           case e:
@@ -153,7 +153,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
 
           case c:
             {
-                const e = T(o, t.name, t.ancestor);
+                const e = B(o, t.name, t.ancestor);
                 if (H !== null) {
                     H.observe(e, t.name);
                 }
@@ -250,7 +250,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
 
           case w:
             {
-                const e = T(o, t.name, t.ancestor);
+                const e = B(o, t.name, t.ancestor);
                 if (e == null) {
                     if (F?.strict) {
                         throw createMappedError(114, t.name, e);
@@ -491,7 +491,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 return F?.useConverter?.(t.name, "toView", astEvaluate(t.expression, o, F, H), t.args.map(t => astEvaluate(t, o, F, H)));
             }
 
-          case x:
+          case R:
             return astEvaluate(t.expression, o, F, H);
 
           case _:
@@ -513,21 +513,21 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 return `${t.parts[0]}${astEvaluate(t.firstExpression, o, F, H)}${t.parts[1]}`;
             }
 
-          case V:
+          case N:
             return astEvaluate(t.target, o, F, H);
 
-          case L:
+          case T:
             {
                 return t.list.map(t => astEvaluate(t, o, F, H));
             }
 
-          case R:
+          case x:
           case I:
-          case N:
+          case L:
           default:
             return void 0;
 
-          case B:
+          case V:
             return t.evaluate(o, F, H);
         }
     }
@@ -538,7 +538,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 if (e.name === "$host") {
                     throw createMappedError(106);
                 }
-                const t = T(r, e.name, e.ancestor);
+                const t = B(r, e.name, e.ancestor);
                 return t[e.name] = u;
             }
 
@@ -598,11 +598,11 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 return astAssign(e.expression, r, n, a, u);
             }
 
-          case x:
+          case R:
             return astAssign(e.expression, r, n, a, u);
 
+          case T:
           case L:
-          case N:
             {
                 const t = e.list;
                 const s = t.length;
@@ -611,12 +611,12 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 for (i = 0; i < s; i++) {
                     o = t[i];
                     switch (o.$kind) {
-                      case V:
+                      case N:
                         astAssign(o, r, n, a, u);
                         break;
 
+                      case T:
                       case L:
-                      case N:
                         {
                             if (typeof u !== "object" || u === null) {
                                 throw createMappedError(112);
@@ -633,7 +633,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 break;
             }
 
-          case V:
+          case N:
             {
                 if (e instanceof t) {
                     if (u == null) {
@@ -674,7 +674,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 break;
             }
 
-          case B:
+          case V:
             return e.assign(r, n, u);
 
           default:
@@ -683,7 +683,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
     }
     function astBind(t, e, r) {
         switch (t.$kind) {
-          case x:
+          case R:
             {
                 r.bindBehavior?.(t.name, e, t.args.map(t => astEvaluate(t, e, r, null)));
                 astBind(t.expression, e, r);
@@ -703,7 +703,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 break;
             }
 
-          case B:
+          case V:
             {
                 t.bind?.(e, r);
             }
@@ -711,7 +711,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
     }
     function astUnbind(t, e, r) {
         switch (t.$kind) {
-          case x:
+          case R:
             {
                 r.unbindBehavior?.(t.name, e);
                 astUnbind(t.expression, e, r);
@@ -731,7 +731,7 @@ const {astAssign: P, astEvaluate: x, astBind: R, astUnbind: I} = /*@__PURE__*/ (
                 break;
             }
 
-          case B:
+          case V:
             {
                 t.unbind?.(e, r);
             }
@@ -759,62 +759,64 @@ const M = "pending";
 
 const D = "running";
 
-const L = "completed";
+const T = "completed";
 
-const N = "canceled";
+const L = "canceled";
 
-const V = Promise.resolve();
+const N = Promise.resolve();
+
+let V = false;
 
 let B = false;
 
-let T = false;
-
 const j = [];
 
-let F = 0;
+const F = [];
 
-let H = null;
+let H = 0;
 
-let $ = [];
+let $ = null;
 
-let z = null;
+let z = [];
 
 let U = null;
 
+let W = null;
+
 const requestRun = () => {
-    if (!B) {
-        B = true;
-        void V.then(() => {
-            B = false;
-            T = true;
+    if (!V) {
+        V = true;
+        void N.then(() => {
+            V = false;
+            B = true;
             runTasks();
         });
     }
 };
 
 const signalSettled = t => {
-    if (H && j.length === 0 && F === 0) {
-        H = null;
-        if ($.length > 0) {
-            const t = $;
-            $ = [];
+    if ($ && j.length === 0 && H === 0) {
+        $ = null;
+        if (z.length > 0) {
+            const t = z;
+            z = [];
             if (t.length === 1) {
-                U(t[0]);
+                W(t[0]);
             } else {
-                U(new AggregateError(t, "One or more tasks failed."));
+                W(new AggregateError(t, "One or more tasks failed."));
             }
         } else {
-            z(t);
+            U(t);
         }
     }
 };
 
 const runTasks = () => {
-    const t = !T;
-    T = false;
-    H ??= new Promise((t, e) => {
-        z = t;
-        U = e;
+    const t = !B;
+    B = false;
+    $ ??= new Promise((t, e) => {
+        U = t;
+        W = e;
     });
     let e = -j.length;
     const r = j.length === 0;
@@ -822,22 +824,22 @@ const runTasks = () => {
         if (++e > 1e4) {
             const t = new Error(`Potential deadlock detected. More than 10000 extra tasks were queued from within tasks.`);
             j.length = 0;
-            U?.(t);
-            H = null;
+            W?.(t);
+            $ = null;
             throw t;
         }
         const t = j.shift();
-        if (t instanceof Task) {
-            t.run();
-        } else {
+        if (typeof t === "function") {
             try {
                 t();
             } catch (t) {
-                $.push(t);
+                z.push(t);
             }
+        } else {
+            t.run();
         }
     }
-    const s = $.slice();
+    const s = z.slice();
     signalSettled(!r);
     if (t && s.length > 0) {
         if (s.length === 1) {
@@ -848,21 +850,23 @@ const runTasks = () => {
     }
 };
 
+const getRecurringTasks = () => F.slice();
+
 const tasksSettled = () => {
-    if (H) {
-        return H;
+    if ($) {
+        return $;
     }
-    if (j.length > 0 || F > 0) {
-        return H ??= new Promise((t, e) => {
-            z = t;
-            U = e;
+    if (j.length > 0 || H > 0) {
+        return $ ??= new Promise((t, e) => {
+            U = t;
+            W = e;
         });
     }
-    return V.then(() => {
-        if (j.length > 0 || F > 0) {
-            return H ??= new Promise((t, e) => {
-                z = t;
-                U = e;
+    return N.then(() => {
+        if (j.length > 0 || H > 0) {
+            return $ ??= new Promise((t, e) => {
+                U = t;
+                W = e;
             });
         }
         return false;
@@ -877,11 +881,11 @@ const queueTask = t => {
 const queueAsyncTask = (t, e) => {
     const r = new Task(t, e?.delay);
     if (r.delay != null && r.delay > 0) {
-        ++F;
+        ++H;
         r.t = setTimeout(() => {
-            --F;
+            --H;
             r.t = undefined;
-            if (r.status === N) {
+            if (r.status === L) {
                 signalSettled(true);
                 return;
             }
@@ -928,35 +932,35 @@ class Task {
         try {
             t = this.callback();
         } catch (t) {
-            this.u = N;
+            this.u = L;
             this.A(t);
-            $.push(t);
+            z.push(t);
             return;
         }
         if (t instanceof Promise) {
-            ++F;
+            ++H;
             t.then(t => {
-                this.u = L;
+                this.u = T;
                 this.C(t);
             }).catch(t => {
-                this.u = N;
+                this.u = L;
                 this.A(t);
-                $.push(t);
+                z.push(t);
             }).finally(() => {
-                --F;
+                --H;
                 signalSettled(true);
             });
         } else {
-            this.u = L;
+            this.u = T;
             this.C(t);
         }
     }
     cancel() {
         if (this.t !== undefined) {
             clearTimeout(this.t);
-            --F;
+            --H;
             this.t = undefined;
-            this.u = N;
+            this.u = L;
             const t = new TaskAbortError(this);
             this.A(t);
             void this.i.catch(a);
@@ -967,7 +971,7 @@ class Task {
             const t = j.indexOf(this);
             if (t > -1) {
                 j.splice(t, 1);
-                this.u = N;
+                this.u = L;
                 const e = new TaskAbortError(this);
                 this.A(e);
                 void this.i.catch(a);
@@ -981,21 +985,88 @@ class Task {
 
 Task.h = 0;
 
-const W = /*@__PURE__*/ r.createInterface("ICoercionConfiguration");
+const queueRecurringTask = (t, e) => {
+    const r = new RecurringTask(t, Math.max(e?.interval ?? 0, 0));
+    F.push(r);
+    r.O();
+    return r;
+};
 
-const q = 0;
+class RecurringTask {
+    constructor(t, e) {
+        this.cb = t;
+        this.P = e;
+        this.id = ++RecurringTask.R;
+        this.I = false;
+        this._ = [];
+    }
+    run() {
+        try {
+            this.cb();
+        } catch (t) {
+            z.push(t);
+            return;
+        }
+    }
+    O() {
+        if (this.I) {
+            return;
+        }
+        this.t = setTimeout(() => {
+            this.M();
+            if (!this.I) {
+                this.O();
+            }
+        }, this.P);
+    }
+    M() {
+        j.push(this);
+        requestRun();
+        const t = this._.splice(0);
+        for (const e of t) {
+            e();
+        }
+    }
+    next() {
+        if (this.I) {
+            return Promise.resolve();
+        }
+        return new Promise(t => this._.push(t));
+    }
+    cancel() {
+        this.I = true;
+        if (this.t !== undefined) {
+            clearTimeout(this.t);
+            this.t = undefined;
+        }
+        const t = F.indexOf(this);
+        if (t > -1) {
+            F.splice(t, 1);
+        }
+        const e = this._.splice(0);
+        for (const t of e) {
+            t();
+        }
+    }
+}
 
-const K = 1;
+RecurringTask.R = 0;
 
-const G = 2;
+const q = /*@__PURE__*/ r.createInterface("ICoercionConfiguration");
 
-const J = 4;
+const K = 0;
 
-const Q = /*@__PURE__*/ A({
-    None: q,
-    Observer: K,
-    Node: G,
-    Layout: J
+const G = 1;
+
+const J = 2;
+
+const Q = 4;
+
+const X = /*@__PURE__*/ A({
+    None: K,
+    Observer: G,
+    Node: J,
+    Layout: Q
 });
 
 function copyIndexMap(t, e, r) {
@@ -1048,19 +1119,19 @@ function isIndexMap(t) {
     return i(t) && t.isIndexMap === true;
 }
 
-let X = new Map;
+let Y = new Map;
 
-let Y = false;
+let Z = false;
 
 function batch(t) {
-    const e = X;
-    const r = X = new Map;
-    Y = true;
+    const e = Y;
+    const r = Y = new Map;
+    Z = true;
     try {
         t();
     } finally {
-        X = null;
-        Y = false;
+        Y = null;
+        Z = false;
         try {
             let t;
             let s;
@@ -1098,30 +1169,30 @@ function batch(t) {
                 }
             }
         } finally {
-            X = e;
+            Y = e;
         }
     }
 }
 
 function addCollectionBatch(t, e, r) {
-    if (!X.has(t)) {
-        X.set(t, [ 2, e, r ]);
+    if (!Y.has(t)) {
+        Y.set(t, [ 2, e, r ]);
     } else {
-        X.get(t)[2] = r;
+        Y.get(t)[2] = r;
     }
 }
 
 function addValueBatch(t, e, r) {
-    const s = X.get(t);
+    const s = Y.get(t);
     if (s === void 0) {
-        X.set(t, [ 1, e, r ]);
+        Y.set(t, [ 1, e, r ]);
     } else {
         s[1] = e;
         s[2] = r;
     }
 }
 
-const Z = /*@__PURE__*/ (() => {
+const tt = /*@__PURE__*/ (() => {
     function subscriberCollection(t, e) {
         return t == null ? subscriberCollectionDeco : subscriberCollectionDeco(t);
     }
@@ -1150,30 +1221,30 @@ const Z = /*@__PURE__*/ (() => {
     class SubscriberRecord {
         constructor() {
             this.count = 0;
-            this.O = [];
-            this.P = [];
-            this.R = false;
+            this.T = [];
+            this.L = [];
+            this.N = false;
         }
         add(t) {
-            if (this.O.includes(t)) {
+            if (this.T.includes(t)) {
                 return false;
             }
-            this.O[this.O.length] = t;
+            this.T[this.T.length] = t;
             if ("handleDirty" in t) {
-                this.P[this.P.length] = t;
-                this.R = true;
+                this.L[this.L.length] = t;
+                this.N = true;
             }
             ++this.count;
             return true;
         }
         remove(t) {
-            let e = this.O.indexOf(t);
+            let e = this.T.indexOf(t);
             if (e !== -1) {
-                this.O.splice(e, 1);
-                e = this.P.indexOf(t);
+                this.T.splice(e, 1);
+                e = this.L.indexOf(t);
                 if (e !== -1) {
-                    this.P.splice(e, 1);
-                    this.R = this.P.length > 0;
+                    this.L.splice(e, 1);
+                    this.N = this.L.length > 0;
                 }
                 --this.count;
                 return true;
@@ -1181,16 +1252,16 @@ const Z = /*@__PURE__*/ (() => {
             return false;
         }
         notify(t, e) {
-            if (Y) {
+            if (Z) {
                 addValueBatch(this, t, e);
                 return;
             }
-            for (const r of this.O.slice(0)) {
+            for (const r of this.T.slice(0)) {
                 r.handleChange(t, e);
             }
         }
         notifyCollection(t, e) {
-            const r = this.O.slice(0);
+            const r = this.T.slice(0);
             const s = r.length;
             let n = 0;
             for (;n < s; ++n) {
@@ -1199,8 +1270,8 @@ const Z = /*@__PURE__*/ (() => {
             return;
         }
         notifyDirty() {
-            if (this.R) {
-                for (const t of this.P.slice(0)) {
+            if (this.N) {
+                for (const t of this.L.slice(0)) {
                     t.handleDirty();
                 }
             }
@@ -1212,7 +1283,7 @@ const Z = /*@__PURE__*/ (() => {
 class CollectionLengthObserver {
     constructor(t) {
         this.owner = t;
-        this.type = K;
+        this.type = G;
         this.v = (this.o = t.collection).length;
     }
     getValue() {
@@ -1248,7 +1319,7 @@ class CollectionLengthObserver {
 class CollectionSizeObserver {
     constructor(t) {
         this.owner = t;
-        this.type = K;
+        this.type = G;
         this.v = (this.o = t.collection).size;
     }
     getValue() {
@@ -1279,7 +1350,7 @@ function implementLengthObserver(t) {
     const e = t.prototype;
     ensureProto(e, "subscribe", subscribe);
     ensureProto(e, "unsubscribe", unsubscribe);
-    return Z(t, null);
+    return tt(t, null);
 }
 
 function subscribe(t) {
@@ -1294,7 +1365,7 @@ function unsubscribe(t) {
     }
 }
 
-const tt = /*@__PURE__*/ (() => {
+const et = /*@__PURE__*/ (() => {
     const t = Symbol.for("__au_arr_obs__");
     const e = Array[t] ?? rtDefineHiddenProp(Array, t, new WeakMap);
     function sortCompare(t, e) {
@@ -1617,7 +1688,7 @@ const tt = /*@__PURE__*/ (() => {
                         break;
                     }
                 }
-                if (o || Y) {
+                if (o || Z) {
                     r.notify();
                 }
                 return this;
@@ -1646,7 +1717,7 @@ const tt = /*@__PURE__*/ (() => {
     }
     class ArrayObserverImpl {
         constructor(t) {
-            this.type = K;
+            this.type = G;
             if (!o) {
                 o = true;
                 enableArrayObservation();
@@ -1661,7 +1732,7 @@ const tt = /*@__PURE__*/ (() => {
             const t = this.subs;
             t.notifyDirty();
             const e = this.indexMap;
-            if (Y) {
+            if (Z) {
                 addCollectionBatch(t, this.collection, e);
                 return;
             }
@@ -1678,7 +1749,7 @@ const tt = /*@__PURE__*/ (() => {
         }
     }
     (() => {
-        Z(ArrayObserverImpl, null);
+        tt(ArrayObserverImpl, null);
     })();
     class ArrayIndexObserverImpl {
         constructor(t, e) {
@@ -1733,7 +1804,7 @@ const tt = /*@__PURE__*/ (() => {
         }
     }
     (() => {
-        Z(ArrayIndexObserverImpl, null);
+        tt(ArrayIndexObserverImpl, null);
     })();
     return function getArrayObserver(t) {
         let r = e.get(t);
@@ -1745,7 +1816,7 @@ const tt = /*@__PURE__*/ (() => {
     };
 })();
 
-const et = /*@__PURE__*/ (() => {
+const rt = /*@__PURE__*/ (() => {
     const t = Symbol.for("__au_set_obs__");
     const e = Set[t] ?? rtDefineHiddenProp(Set, t, new WeakMap);
     const {add: r, clear: s, delete: n} = Set.prototype;
@@ -1825,7 +1896,7 @@ const et = /*@__PURE__*/ (() => {
     }
     class SetObserverImpl {
         constructor(t) {
-            this.type = K;
+            this.type = G;
             this.collection = t;
             this.indexMap = createIndexMap(t.size);
             this.lenObs = void 0;
@@ -1834,7 +1905,7 @@ const et = /*@__PURE__*/ (() => {
             const t = this.subs;
             t.notifyDirty();
             const e = this.indexMap;
-            if (Y) {
+            if (Z) {
                 addCollectionBatch(t, this.collection, e);
                 return;
             }
@@ -1847,7 +1918,7 @@ const et = /*@__PURE__*/ (() => {
             return this.lenObs ??= new CollectionSizeObserver(this);
         }
     }
-    Z(SetObserverImpl, null);
+    tt(SetObserverImpl, null);
     return function getSetObserver(t) {
         let r = e.get(t);
         if (r === void 0) {
@@ -1858,7 +1929,7 @@ const et = /*@__PURE__*/ (() => {
     };
 })();
 
-const rt = /*@__PURE__*/ (() => {
+const st = /*@__PURE__*/ (() => {
     const t = Symbol.for("__au_map_obs__");
     const e = Map[t] ?? rtDefineHiddenProp(Map, t, new WeakMap);
     const {set: r, clear: s, delete: n} = Map.prototype;
@@ -1952,7 +2023,7 @@ const rt = /*@__PURE__*/ (() => {
     }
     class MapObserverImpl {
         constructor(t) {
-            this.type = K;
+            this.type = G;
             this.collection = t;
             this.indexMap = createIndexMap(t.size);
             this.lenObs = void 0;
@@ -1961,7 +2032,7 @@ const rt = /*@__PURE__*/ (() => {
             const t = this.subs;
             t.notifyDirty();
             const e = this.indexMap;
-            if (Y) {
+            if (Z) {
                 addCollectionBatch(t, this.collection, e);
                 return;
             }
@@ -1974,7 +2045,7 @@ const rt = /*@__PURE__*/ (() => {
             return this.lenObs ??= new CollectionSizeObserver(this);
         }
     }
-    Z(MapObserverImpl, null);
+    tt(MapObserverImpl, null);
     return function getMapObserver(t) {
         let r = e.get(t);
         if (r === void 0) {
@@ -1985,7 +2056,7 @@ const rt = /*@__PURE__*/ (() => {
     };
 })();
 
-const st = /*@__PURE__*/ (() => {
+const nt = /*@__PURE__*/ (() => {
     class BindingObserverRecord {
         constructor(t) {
             this.version = 0;
@@ -2028,11 +2099,11 @@ const st = /*@__PURE__*/ (() => {
     function observeCollection(t) {
         let e;
         if (i(t)) {
-            e = tt(t);
-        } else if (c(t)) {
             e = et(t);
-        } else if (u(t)) {
+        } else if (c(t)) {
             e = rt(t);
+        } else if (u(t)) {
+            e = st(t);
         } else {
             throw createMappedError(210, t);
         }
@@ -2062,63 +2133,63 @@ const st = /*@__PURE__*/ (() => {
 })();
 
 function connectable(t, e) {
-    return t == null ? st : st(t, e);
+    return t == null ? nt : nt(t, e);
 }
 
-let nt = null;
+let it = null;
 
-const it = [];
+const ot = [];
 
-let ot = false;
+let at = false;
 
 function pauseConnecting() {
-    ot = false;
+    at = false;
 }
 
 function resumeConnecting() {
-    ot = true;
+    at = true;
 }
 
 function currentConnectable() {
-    return nt;
+    return it;
 }
 
 function enterConnectable(t) {
     if (t == null) {
         throw createMappedError(206);
     }
-    if (nt == null) {
-        nt = t;
-        it[0] = nt;
-        ot = true;
+    if (it == null) {
+        it = t;
+        ot[0] = it;
+        at = true;
         return;
     }
-    if (nt === t) {
+    if (it === t) {
         throw createMappedError(207);
     }
-    it.push(t);
-    nt = t;
-    ot = true;
+    ot.push(t);
+    it = t;
+    at = true;
 }
 
 function exitConnectable(t) {
     if (t == null) {
         throw createMappedError(208);
     }
-    if (nt !== t) {
+    if (it !== t) {
         throw createMappedError(209);
     }
-    it.pop();
-    nt = it.length > 0 ? it[it.length - 1] : null;
-    ot = nt != null;
+    ot.pop();
+    it = ot.length > 0 ? ot[ot.length - 1] : null;
+    at = it != null;
 }
 
-const at = /*@__PURE__*/ A({
+const ct = /*@__PURE__*/ A({
     get current() {
-        return nt;
+        return it;
     },
     get connecting() {
-        return ot;
+        return at;
     },
     enter: enterConnectable,
     exit: exitConnectable,
@@ -2126,20 +2197,20 @@ const at = /*@__PURE__*/ A({
     resume: resumeConnecting
 });
 
-const ct = Reflect.get;
+const ut = Reflect.get;
 
-const ut = Object.prototype.toString;
+const ht = Object.prototype.toString;
 
-const ht = new WeakMap;
+const lt = new WeakMap;
 
-const lt = "__au_nw__";
+const ft = "__au_nw__";
 
-const ft = "__au_nw";
+const dt = "__au_nw";
 
 function canWrap(t) {
-    switch (ut.call(t)) {
+    switch (ht.call(t)) {
       case "[object Object]":
-        return t.constructor[lt] !== true;
+        return t.constructor[ft] !== true;
 
       case "[object Array]":
       case "[object Map]":
@@ -2151,26 +2222,26 @@ function canWrap(t) {
     }
 }
 
-const dt = "__raw__";
+const pt = "__raw__";
 
 function wrap(t) {
     return canWrap(t) ? getProxy(t) : t;
 }
 
 function getProxy(t) {
-    return ht.get(t) ?? createProxy(t);
+    return lt.get(t) ?? createProxy(t);
 }
 
 function getRaw(t) {
-    return t[dt] ?? t;
+    return t[pt] ?? t;
 }
 
 function unwrap(t) {
-    return canWrap(t) && t[dt] || t;
+    return canWrap(t) && t[pt] || t;
 }
 
 function doNotCollect(t, e) {
-    if (e === "constructor" || e === "__proto__" || e === "$observers" || e === Symbol.toPrimitive || e === Symbol.toStringTag || t.constructor[`${ft}_${O(e)}__`] === true) {
+    if (e === "constructor" || e === "__proto__" || e === "$observers" || e === Symbol.toPrimitive || e === Symbol.toStringTag || t.constructor[`${dt}_${O(e)}__`] === true) {
         return true;
     }
     const r = Reflect.getOwnPropertyDescriptor(t, e);
@@ -2178,41 +2249,41 @@ function doNotCollect(t, e) {
 }
 
 function createProxy(t) {
-    const e = i(t) ? wt : u(t) || c(t) ? vt : pt;
+    const e = i(t) ? vt : u(t) || c(t) ? bt : wt;
     const r = new Proxy(t, e);
-    ht.set(t, r);
-    ht.set(r, r);
+    lt.set(t, r);
+    lt.set(r, r);
     return r;
 }
 
-const pt = {
+const wt = {
     get(t, e, r) {
-        if (e === dt) {
+        if (e === pt) {
             return t;
         }
         const s = currentConnectable();
-        if (!ot || doNotCollect(t, e) || s == null) {
-            return ct(t, e, r);
+        if (!at || doNotCollect(t, e) || s == null) {
+            return ut(t, e, r);
         }
         s.observe(t, e);
-        return wrap(ct(t, e, r));
+        return wrap(ut(t, e, r));
     },
     deleteProperty(t, e) {
         return delete t[e];
     }
 };
 
-const wt = {
+const vt = {
     get(t, e, r) {
-        if (e === dt) {
+        if (e === pt) {
             return t;
         }
-        if (!ot || doNotCollect(t, e) || nt == null) {
-            return ct(t, e, r);
+        if (!at || doNotCollect(t, e) || it == null) {
+            return ut(t, e, r);
         }
         switch (e) {
           case "length":
-            nt.observe(t, "length");
+            it.observe(t, "length");
             return t.length;
 
           case "map":
@@ -2291,8 +2362,8 @@ const wt = {
           case "entries":
             return wrappedEntries;
         }
-        nt.observe(t, e);
-        return wrap(ct(t, e, r));
+        it.observe(t, e);
+        return wrap(ut(t, e, r));
     },
     ownKeys(t) {
         currentConnectable()?.observe(t, "length");
@@ -2303,74 +2374,74 @@ const wt = {
 function wrappedArrayMap(t, e) {
     const r = getRaw(this);
     const s = r.map((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return wrap(s);
 }
 
 function wrappedArrayEvery(t, e) {
     const r = getRaw(this);
     const s = r.every((r, s) => t.call(e, wrap(r), s, this));
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return s;
 }
 
 function wrappedArrayFilter(t, e) {
     const r = getRaw(this);
     const s = r.filter((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return wrap(s);
 }
 
 function wrappedArrayIncludes(t) {
     const e = getRaw(this);
     const r = e.includes(unwrap(t));
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return r;
 }
 
 function wrappedArrayIndexOf(t) {
     const e = getRaw(this);
     const r = e.indexOf(unwrap(t));
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return r;
 }
 
 function wrappedArrayLastIndexOf(t) {
     const e = getRaw(this);
     const r = e.lastIndexOf(unwrap(t));
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return r;
 }
 
 function wrappedArrayFindIndex(t, e) {
     const r = getRaw(this);
     const s = r.findIndex((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return s;
 }
 
 function wrappedArrayFind(t, e) {
     const r = getRaw(this);
     const s = r.find((e, r) => t(wrap(e), r, this), e);
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return wrap(s);
 }
 
 function wrappedArrayFlat() {
     const t = getRaw(this);
-    observeCollection(nt, t);
+    observeCollection(it, t);
     return wrap(t.flat());
 }
 
 function wrappedArrayFlatMap(t, e) {
     const r = getRaw(this);
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return getProxy(r.flatMap((r, s) => wrap(t.call(e, wrap(r), s, this))));
 }
 
 function wrappedArrayJoin(t) {
     const e = getRaw(this);
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return e.join(t);
 }
 
@@ -2401,45 +2472,45 @@ function wrappedArrayReverse(...t) {
 function wrappedArraySome(t, e) {
     const r = getRaw(this);
     const s = r.some((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return s;
 }
 
 function wrappedArraySort(t) {
     const e = getRaw(this);
     const r = e.sort(t);
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return wrap(r);
 }
 
 function wrappedArraySlice(t, e) {
     const r = getRaw(this);
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return getProxy(r.slice(t, e));
 }
 
 function wrappedReduce(t, e) {
     const r = getRaw(this);
     const s = r.reduce((e, r, s) => t(e, wrap(r), s, this), e);
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return wrap(s);
 }
 
 function wrappedReduceRight(t, e) {
     const r = getRaw(this);
     const s = r.reduceRight((e, r, s) => t(e, wrap(r), s, this), e);
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return wrap(s);
 }
 
-const vt = {
+const bt = {
     get(t, e, r) {
-        if (e === dt) {
+        if (e === pt) {
             return t;
         }
         const s = currentConnectable();
-        if (!ot || doNotCollect(t, e) || s == null) {
-            return ct(t, e, r);
+        if (!at || doNotCollect(t, e) || s == null) {
+            return ut(t, e, r);
         }
         switch (e) {
           case "size":
@@ -2488,13 +2559,13 @@ const vt = {
           case Symbol.iterator:
             return u(t) ? wrappedEntries : wrappedValues;
         }
-        return wrap(ct(t, e, r));
+        return wrap(ut(t, e, r));
     }
 };
 
 function wrappedForEach(t, e) {
     const r = getRaw(this);
-    observeCollection(nt, r);
+    observeCollection(it, r);
     return r.forEach((r, s) => {
         t.call(e, wrap(r), wrap(s), this);
     });
@@ -2502,13 +2573,13 @@ function wrappedForEach(t, e) {
 
 function wrappedHas(t) {
     const e = getRaw(this);
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return e.has(unwrap(t));
 }
 
 function wrappedGet(t) {
     const e = getRaw(this);
-    observeCollection(nt, e);
+    observeCollection(it, e);
     return wrap(e.get(unwrap(t)));
 }
 
@@ -2530,7 +2601,7 @@ function wrappedDelete(t) {
 
 function wrappedKeys() {
     const t = getRaw(this);
-    observeCollection(nt, t);
+    observeCollection(it, t);
     const e = t.keys();
     return {
         next() {
@@ -2553,7 +2624,7 @@ function wrappedKeys() {
 
 function wrappedValues() {
     const t = getRaw(this);
-    observeCollection(nt, t);
+    observeCollection(it, t);
     const e = t.values();
     return {
         next() {
@@ -2576,7 +2647,7 @@ function wrappedValues() {
 
 function wrappedEntries() {
     const t = getRaw(this);
-    observeCollection(nt, t);
+    observeCollection(it, t);
     const e = t.entries();
     return {
         next() {
@@ -2599,31 +2670,31 @@ function wrappedEntries() {
 
 const observeCollection = (t, e) => t?.observeCollection(e);
 
-const bt = /*@__PURE__*/ A({
+const gt = /*@__PURE__*/ A({
     getProxy: getProxy,
     getRaw: getRaw,
     wrap: wrap,
     unwrap: unwrap,
-    rawKey: dt
+    rawKey: pt
 });
 
 class ComputedObserver {
     constructor(t, e, r, s, n = "async") {
-        this.type = K;
+        this.type = G;
         this.ov = void 0;
         this.v = void 0;
-        this.I = false;
-        this._ = false;
+        this.V = false;
+        this.B = false;
         this.D = false;
         this.cb = void 0;
-        this.M = void 0;
-        this.L = void 0;
+        this.j = void 0;
+        this.F = void 0;
         this.o = t;
-        this.N = wrap(t);
+        this.H = wrap(t);
         this.$get = e;
         this.$set = r;
         this.oL = s;
-        this.V = n;
+        this.$ = n;
     }
     init(t) {
         this.v = t;
@@ -2636,14 +2707,14 @@ class ComputedObserver {
         if (this.D) {
             this.compute();
             this.D = false;
-            this.I = false;
+            this.V = false;
         }
         return this.v;
     }
     setValue(t) {
         if (n(this.$set)) {
-            if (this.M !== void 0) {
-                t = this.M.call(null, t, this.L);
+            if (this.j !== void 0) {
+                t = this.j.call(null, t, this.F);
             }
             if (!h(t, this.v)) {
                 this.$set.call(this.o, t);
@@ -2654,8 +2725,8 @@ class ComputedObserver {
         }
     }
     useCoercer(t, e) {
-        this.M = t;
-        this.L = e;
+        this.j = t;
+        this.F = e;
         return true;
     }
     useCallback(t) {
@@ -2684,7 +2755,7 @@ class ComputedObserver {
         if (this.subs.add(t) && this.subs.count === 1) {
             this.ov = this.compute();
             this.D = false;
-            this.I = false;
+            this.V = false;
         }
     }
     unsubscribe(t) {
@@ -2692,40 +2763,40 @@ class ComputedObserver {
             this.D = true;
             this.obs.clearAll();
             this.ov = void 0;
-            this.I = true;
+            this.V = true;
         }
     }
     run() {
-        if (this.V === "sync") {
-            this.B();
+        if (this.$ === "sync") {
+            this.U();
             return;
         }
-        if (this._) {
+        if (this.B) {
             return;
         }
-        this._ = true;
+        this.B = true;
         queueTask(() => {
-            this._ = false;
-            this.B();
+            this.B = false;
+            this.U();
         });
     }
-    B() {
+    U() {
         const t = this.v;
         const e = this.ov;
         const r = this.compute();
         this.D = false;
-        if (!this.I || !h(r, t)) {
+        if (!this.V || !h(r, t)) {
             this.cb?.(r, e);
             this.subs.notify(r, e);
             this.ov = this.v = r;
-            this.I = true;
+            this.V = true;
         }
     }
     compute() {
         this.obs.version++;
         try {
             enterConnectable(this);
-            return this.v = unwrap(this.$get.call(this.N, this.N, this));
+            return this.v = unwrap(this.$get.call(this.H, this.H, this));
         } finally {
             this.obs.clear();
             exitConnectable(this);
@@ -2735,7 +2806,7 @@ class ComputedObserver {
 
 (() => {
     connectable(ComputedObserver, null);
-    Z(ComputedObserver, null);
+    tt(ComputedObserver, null);
 })();
 
 typeof SuppressedError === "function" ? SuppressedError : function(t, e, r) {
@@ -2743,12 +2814,12 @@ typeof SuppressedError === "function" ? SuppressedError : function(t, e, r) {
     return s.name = "SuppressedError", s.error = t, s.suppressed = e, s;
 };
 
-const gt = (() => {
+const yt = (() => {
     const t = new WeakMap;
     const normalizeKey = t => l(t) ? t : String(t);
     return {
         get: (e, r) => t.get(e)?.get(normalizeKey(r)),
-        T: (e, r) => t.get(e)?.get(normalizeKey(r))?.flush,
+        W: (e, r) => t.get(e)?.get(normalizeKey(r))?.flush,
         set: (e, r, s) => {
             if (!t.has(e)) {
                 t.set(e, new Map);
@@ -2762,16 +2833,16 @@ function computed(t) {
     return function decorator(e, r) {
         r.addInitializer(function() {
             const e = t.flush ?? "async";
-            gt.set(this, r.name, {
+            yt.set(this, r.name, {
                 flush: e
             });
         });
     };
 }
 
-const yt = /*@__PURE__*/ m("IDirtyChecker", void 0);
+const Ct = /*@__PURE__*/ m("IDirtyChecker", void 0);
 
-const Ct = {
+const Et = {
     timeoutsPerCheck: 25,
     disabled: false,
     throw: false,
@@ -2784,21 +2855,21 @@ const Ct = {
 
 class DirtyChecker {
     static register(t) {
-        t.register(f.singleton(this, this), f.aliasTo(this, yt));
+        t.register(f.singleton(this, this), f.aliasTo(this, Ct));
     }
     constructor() {
         this.tracked = [];
-        this.j = null;
-        this.F = 0;
+        this.q = null;
+        this.K = 0;
         this.p = d(p);
         this.check = () => {
-            if (Ct.disabled) {
+            if (Et.disabled) {
                 return;
             }
-            if (++this.F < Ct.timeoutsPerCheck) {
+            if (++this.K < Et.timeoutsPerCheck) {
                 return;
             }
-            this.F = 0;
+            this.K = 0;
             const t = this.tracked.slice(0);
             const e = t.length;
             let r;
@@ -2810,10 +2881,10 @@ class DirtyChecker {
                 }
             }
         };
-        Z(DirtyCheckProperty, null);
+        tt(DirtyCheckProperty, null);
     }
     createProperty(t, e) {
-        if (Ct.throw) {
+        if (Et.throw) {
             throw createMappedError(218, e);
         }
         return new DirtyCheckProperty(this, t, e);
@@ -2821,16 +2892,16 @@ class DirtyChecker {
     addProperty(t) {
         this.tracked.push(t);
         if (this.tracked.length === 1) {
-            this.j = this.p.taskQueue.queueTask(this.check, {
-                persistent: true
+            this.q = queueRecurringTask(this.check, {
+                interval: 0
             });
         }
     }
     removeProperty(t) {
         this.tracked.splice(this.tracked.indexOf(t), 1);
         if (this.tracked.length === 0) {
-            this.j.cancel();
-            this.j = null;
+            this.q.cancel();
+            this.q = null;
         }
     }
 }
@@ -2839,9 +2910,9 @@ class DirtyCheckProperty {
     constructor(t, e, r) {
         this.obj = e;
         this.key = r;
-        this.type = q;
+        this.type = K;
         this.ov = void 0;
-        this.H = t;
+        this.G = t;
     }
     getValue() {
         return this.obj[this.key];
@@ -2861,12 +2932,12 @@ class DirtyCheckProperty {
     subscribe(t) {
         if (this.subs.add(t) && this.subs.count === 1) {
             this.ov = this.obj[this.key];
-            this.H.addProperty(this);
+            this.G.addProperty(this);
         }
     }
     unsubscribe(t) {
         if (this.subs.remove(t) && this.subs.count === 0) {
-            this.H.removeProperty(this);
+            this.G.removeProperty(this);
         }
     }
 }
@@ -2876,7 +2947,7 @@ class PrimitiveObserver {
         return true;
     }
     constructor(t, e) {
-        this.type = q;
+        this.type = K;
         this.o = t;
         this.k = e;
     }
@@ -2890,7 +2961,7 @@ class PrimitiveObserver {
 
 class PropertyAccessor {
     constructor() {
-        this.type = q;
+        this.type = K;
     }
     getValue(t, e) {
         return t[e];
@@ -2902,12 +2973,12 @@ class PropertyAccessor {
 
 class SetterObserver {
     constructor(t, e) {
-        this.type = K;
+        this.type = G;
         this.v = void 0;
         this.iO = false;
         this.cb = void 0;
-        this.M = void 0;
-        this.L = void 0;
+        this.j = void 0;
+        this.F = void 0;
         this.o = t;
         this.k = e;
     }
@@ -2915,8 +2986,8 @@ class SetterObserver {
         return this.v;
     }
     setValue(t) {
-        if (this.M !== void 0) {
-            t = this.M.call(void 0, t, this.L);
+        if (this.j !== void 0) {
+            t = this.j.call(void 0, t, this.F);
         }
         const e = this.v;
         if (this.iO) {
@@ -2940,8 +3011,8 @@ class SetterObserver {
         return true;
     }
     useCoercer(t, e) {
-        this.M = t;
-        this.L = e;
+        this.j = t;
+        this.F = e;
         this.start();
         return true;
     }
@@ -2983,30 +3054,30 @@ class SetterObserver {
 }
 
 (() => {
-    Z(SetterObserver, null);
+    tt(SetterObserver, null);
 })();
 
-const Et = new PropertyAccessor;
+const At = new PropertyAccessor;
 
-const At = /*@__PURE__*/ m("IObserverLocator", t => t.singleton(ObserverLocator));
+const Ot = /*@__PURE__*/ m("IObserverLocator", t => t.singleton(ObserverLocator));
 
-const Ot = /*@__PURE__*/ m("INodeObserverLocator", t => t.cachedCallback(t => new DefaultNodeObserverLocator));
+const mt = /*@__PURE__*/ m("INodeObserverLocator", t => t.cachedCallback(t => new DefaultNodeObserverLocator));
 
 class DefaultNodeObserverLocator {
     handles() {
         return false;
     }
     getObserver() {
-        return Et;
+        return At;
     }
     getAccessor() {
-        return Et;
+        return At;
     }
 }
 
-const mt = /*@__PURE__*/ m("IComputedObserverLocator", t => t.singleton(class DefaultLocator {
+const St = /*@__PURE__*/ m("IComputedObserverLocator", t => t.singleton(class DefaultLocator {
     getObserver(t, e, r, s) {
-        const n = new ComputedObserver(t, r.get, r.set, s, gt.T(t, e));
+        const n = new ComputedObserver(t, r.get, r.set, s, yt.W(t, e));
         C(t, e, {
             enumerable: r.enumerable,
             configurable: true,
@@ -3023,13 +3094,13 @@ const mt = /*@__PURE__*/ m("IComputedObserverLocator", t => t.singleton(class De
 
 class ObserverLocator {
     constructor() {
-        this.$ = [];
-        this.H = d(yt);
-        this.U = d(Ot);
-        this.W = d(mt);
+        this.J = [];
+        this.G = d(Ct);
+        this.X = d(mt);
+        this.Y = d(St);
     }
     addAdapter(t) {
-        this.$.push(t);
+        this.J.push(t);
     }
     getObserver(t, e) {
         if (t == null) {
@@ -3056,69 +3127,69 @@ class ObserverLocator {
         if (r !== void 0) {
             return r;
         }
-        if (this.U.handles(t, e, this)) {
-            return this.U.getAccessor(t, e, this);
+        if (this.X.handles(t, e, this)) {
+            return this.X.getAccessor(t, e, this);
         }
-        return Et;
+        return At;
     }
     getArrayObserver(t) {
-        return tt(t);
-    }
-    getMapObserver(t) {
-        return rt(t);
-    }
-    getSetObserver(t) {
         return et(t);
     }
+    getMapObserver(t) {
+        return st(t);
+    }
+    getSetObserver(t) {
+        return rt(t);
+    }
     createObserver(t, e) {
-        if (this.U.handles(t, e, this)) {
-            return this.U.getObserver(t, e, this);
+        if (this.X.handles(t, e, this)) {
+            return this.X.getObserver(t, e, this);
         }
         switch (e) {
           case "length":
             if (i(t)) {
-                return tt(t).getLengthObserver();
+                return et(t).getLengthObserver();
             }
             break;
 
           case "size":
             if (u(t)) {
-                return rt(t).getLengthObserver();
+                return st(t).getLengthObserver();
             } else if (c(t)) {
-                return et(t).getLengthObserver();
+                return rt(t).getLengthObserver();
             }
             break;
 
           default:
             if (i(t) && o(e)) {
-                return tt(t).getIndexObserver(Number(e));
+                return et(t).getIndexObserver(Number(e));
             }
             break;
         }
-        let r = kt(t, e);
+        let r = Pt(t, e);
         if (r === void 0) {
-            let s = St(t);
+            let s = kt(t);
             while (s !== null) {
-                r = kt(s, e);
+                r = Pt(s, e);
                 if (r === void 0) {
-                    s = St(s);
+                    s = kt(s);
                 } else {
                     break;
                 }
             }
         }
         if (r !== void 0 && !y.call(r, "value")) {
-            let s = this.q(t, e, r);
+            let s = this.Z(t, e, r);
             if (s == null) {
                 s = (r.get?.getObserver)?.(t);
             }
-            return s == null ? r.configurable ? this.W.getObserver(t, e, r, this) : this.H.createProperty(t, e) : s;
+            return s == null ? r.configurable ? this.Y.getObserver(t, e, r, this) : this.G.createProperty(t, e) : s;
         }
         return new SetterObserver(t, e);
     }
-    q(t, e, r) {
-        if (this.$.length > 0) {
-            for (const s of this.$) {
+    Z(t, e, r) {
+        if (this.J.length > 0) {
+            for (const s of this.J) {
                 const n = s.getObserver(t, e, r, this);
                 if (n != null) {
                     return n;
@@ -3132,18 +3203,18 @@ class ObserverLocator {
 const getCollectionObserver = t => {
     let e;
     if (i(t)) {
-        e = tt(t);
-    } else if (u(t)) {
-        e = rt(t);
-    } else if (c(t)) {
         e = et(t);
+    } else if (u(t)) {
+        e = st(t);
+    } else if (c(t)) {
+        e = rt(t);
     }
     return e;
 };
 
-const St = Object.getPrototypeOf;
+const kt = Object.getPrototypeOf;
 
-const kt = Object.getOwnPropertyDescriptor;
+const Pt = Object.getOwnPropertyDescriptor;
 
 const getObserverLookup = t => {
     let e = t.$observers;
@@ -3155,12 +3226,12 @@ const getObserverLookup = t => {
     return e;
 };
 
-const Pt = /*@__PURE__*/ m("IObservation", t => t.singleton(Observation));
+const Rt = /*@__PURE__*/ m("IObservation", t => t.singleton(Observation));
 
 class Observation {
     constructor() {
-        this.oL = d(At);
-        this.K = d(e);
+        this.oL = d(Ot);
+        this.tt = d(e);
     }
     run(t) {
         const e = new RunEffect(this.oL, t);
@@ -3215,7 +3286,7 @@ class Observation {
                 o = s;
             }
         };
-        const a = new ExpressionObserver(Scope.create(t), this.oL, this.K.parse(e, "IsProperty"), handleChange);
+        const a = new ExpressionObserver(Scope.create(t), this.oL, this.tt.parse(e, "IsProperty"), handleChange);
         const run = () => {
             if (i) return;
             i = true;
@@ -3247,7 +3318,7 @@ class RunEffect {
         this.running = false;
         this.runCount = 0;
         this.stopped = false;
-        this.G = undefined;
+        this.et = undefined;
         this.run = () => {
             if (this.stopped) {
                 throw createMappedError(225);
@@ -3260,9 +3331,9 @@ class RunEffect {
             this.queued = false;
             ++this.obs.version;
             try {
-                this.G?.call(void 0);
+                this.et?.call(void 0);
                 enterConnectable(this);
-                this.G = this.fn(this);
+                this.et = this.fn(this);
             } finally {
                 this.obs.clear();
                 this.running = false;
@@ -3279,8 +3350,8 @@ class RunEffect {
             }
         };
         this.stop = () => {
-            this.G?.call(void 0);
-            this.G = void 0;
+            this.et?.call(void 0);
+            this.et = void 0;
             this.stopped = true;
             this.obs.clearAll();
         };
@@ -3317,7 +3388,7 @@ class ExpressionObserver {
     run() {
         this.obs.version++;
         const t = this.v;
-        const e = x(this.ast, this.s, this, this);
+        const e = R(this.ast, this.s, this, this);
         this.obs.clear();
         if (!h(e, t)) {
             this.v = e;
@@ -3348,7 +3419,7 @@ const xt = /*@__PURE__*/ (() => {
     function observable(e, r) {
         if (!SetterNotifier.mixed) {
             SetterNotifier.mixed = true;
-            Z(SetterNotifier, null);
+            tt(SetterNotifier, null);
         }
         let s = false;
         let n;
@@ -3429,7 +3500,7 @@ const xt = /*@__PURE__*/ (() => {
     }
     class SetterNotifier {
         constructor(t, e, r, s) {
-            this.type = K;
+            this.type = G;
             this.v = void 0;
             this.ov = void 0;
             this.o = t;
@@ -3466,13 +3537,13 @@ function nowrap(t, e) {
     function decorator(t, e) {
         switch (e.kind) {
           case "class":
-            rtDefineHiddenProp(t, lt, true);
+            rtDefineHiddenProp(t, ft, true);
             break;
 
           case "field":
             e.addInitializer(function() {
                 const t = this.constructor;
-                const r = `${ft}_${O(e.name)}__`;
+                const r = `${dt}_${O(e.name)}__`;
                 if (r in t) return;
                 rtDefineHiddenProp(t, r, true);
             });
@@ -3481,5 +3552,5 @@ function nowrap(t, e) {
     }
 }
 
-export { Q as AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, at as ConnectableSwitcher, DirtyCheckProperty, Ct as DirtyCheckSettings, DirtyChecker, W as ICoercionConfiguration, mt as IComputedObserverLocator, yt as IDirtyChecker, Ot as INodeObserverLocator, Pt as IObservation, At as IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, bt as ProxyObservable, Scope, SetterObserver, Task, TaskAbortError, P as astAssign, R as astBind, x as astEvaluate, I as astUnbind, batch, cloneIndexMap, computed, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, _ as mixinNoopAstEvaluator, nowrap, xt as observable, queueAsyncTask, queueTask, runTasks, Z as subscriberCollection, tasksSettled };
+export { X as AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ct as ConnectableSwitcher, DirtyCheckProperty, Et as DirtyCheckSettings, DirtyChecker, q as ICoercionConfiguration, St as IComputedObserverLocator, Ct as IDirtyChecker, mt as INodeObserverLocator, Rt as IObservation, Ot as IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, gt as ProxyObservable, RecurringTask, Scope, SetterObserver, Task, TaskAbortError, P as astAssign, x as astBind, R as astEvaluate, I as astUnbind, batch, cloneIndexMap, computed, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, getRecurringTasks, isIndexMap, _ as mixinNoopAstEvaluator, nowrap, xt as observable, queueAsyncTask, queueRecurringTask, queueTask, runTasks, tt as subscriberCollection, tasksSettled };
 

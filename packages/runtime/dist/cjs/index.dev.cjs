@@ -845,6 +845,7 @@ const resolvedPromise = Promise.resolve();
 let runScheduled = false;
 let isAutoRun = false;
 const queue = [];
+const recurringTasks = [];
 let pendingAsyncCount = 0;
 let settlePromise = null;
 let taskErrors = [];
@@ -961,16 +962,16 @@ const runTasks = () => {
             throw error;
         }
         const task = queue.shift();
-        if (task instanceof Task) {
-            task.run();
-        }
-        else {
+        if (typeof task === 'function') {
             try {
                 task();
             }
             catch (err) {
                 taskErrors.push(err);
             }
+        }
+        else {
+            task.run();
         }
     }
     // Make a copy; this is for testing, signalSettled will clear the array
@@ -984,6 +985,43 @@ const runTasks = () => {
             throw new AggregateError(errors, 'One or more tasks failed.');
         }
     }
+};
+/**
+ * Gets a read-only copy of the list of all active recurring tasks.
+ *
+ * While the returned array is a copy, the `RecurringTask` objects within it
+ * are the actual instances managed by the scheduler. This is useful for
+ * inspection or for cleaning up all active tasks by iterating over the array
+ * and calling `task.cancel()` on each one.
+ *
+ * @returns A new array containing all currently active {@link RecurringTask} instances.
+ *
+ * @example
+ * Cleaning up after a test
+ * ```ts
+ * afterEach(() => {
+ *   // Ensure no recurring tasks leak between tests
+ *   for (const task of getRecurringTasks()) {
+ *     task.cancel();
+ *   }
+ * });
+ * ```
+ *
+ * @example
+ * Inspecting active tasks for debugging
+ * ```ts
+ * function logActiveRecurringTasks() {
+ *   const tasks = getRecurringTasks();
+ *   if (tasks.length > 0) {
+ *     console.log('Active recurring tasks:', tasks.map(t => `ID ${t.id}`));
+ *   } else {
+ *     console.log('No active recurring tasks.');
+ *   }
+ * }
+ * ```
+ */
+const getRecurringTasks = () => {
+    return recurringTasks.slice();
 };
 /**
  * Return a promise that resolves once **all queued work has finished** and the
@@ -1390,6 +1428,145 @@ class Task {
 }
 /** @internal */
 Task._taskId = 0;
+/**
+ * Queue a callback to run **repeatedly** on a given interval, managed by
+ * Aurelia's central scheduler.
+ *
+ * Unlike a one-off task from {@link queueAsyncTask}, this creates a persistent,
+ * timer-based operation that continues until explicitly canceled. Each
+ * execution of the callback is pushed onto the normal task queue, ensuring
+ * it runs with the same timing and error-handling as other framework tasks.
+ *
+ * This is useful for polling or any periodic background work that needs to be
+ * test-friendly and integrated with Aurelia's life-cycle.
+ *
+ * @param callback  - The function to execute on each interval. Any exception
+ *                    it throws is captured and surfaced collectively via
+ *                    `tasksSettled()` or `runTasks()` (after awaiting `task.next()`).
+ * @param opts.interval  - The delay **in milliseconds** between the end of one
+ *                         execution and the start of the next. Defaults to `0`.
+ * @returns A {@link RecurringTask} handle that lets you `cancel()` the
+ *                                  repetition or use `await task.next()` to wait for
+ *                                  the next run.
+ */
+const queueRecurringTask = (callback, opts) => {
+    const task = new RecurringTask(callback, Math.max(opts?.interval ?? 0, 0));
+    recurringTasks.push(task);
+    task._start();
+    return task;
+};
+/**
+ * A handle returned by {@link queueRecurringTask} that lets you observe and
+ * control a periodic, repeating task.
+ *
+ * Unlike a single-use {@link Task}, a `RecurringTask` does not have a status
+ * or a final `result` promise. Instead, it continues to schedule itself on a
+ * given interval until it is explicitly stopped.
+ */
+class RecurringTask {
+    constructor(_callback, _interval) {
+        this._callback = _callback;
+        this._interval = _interval;
+        this.id = ++RecurringTask._nextId;
+        /** @internal */
+        this._canceled = false;
+        /** @internal */
+        this._nextResolvers = [];
+    }
+    /** @internal */
+    run() {
+        try {
+            // TODO: possibly store return value to connect to resolver
+            this._callback();
+        }
+        catch (err) {
+            taskErrors.push(err);
+            return;
+        }
+    }
+    /** @internal */
+    _start() {
+        if (this._canceled) {
+            return;
+        }
+        this._timerId = setTimeout(() => {
+            this._tick();
+            if (!this._canceled) {
+                this._start();
+            }
+        }, this._interval);
+    }
+    /** @internal */
+    _tick() {
+        queue.push(this);
+        requestRun();
+        const resolvers = this._nextResolvers.splice(0);
+        for (const resolver of resolvers) {
+            resolver();
+        }
+    }
+    /**
+     * Returns a promise that resolves after the next time the task's callback
+     * is queued for execution.
+     *
+     * This is useful for synchronizing other work with the task's interval,
+     * especially in tests. If the task has already been canceled, it returns an
+     * immediately-resolved promise.
+     *
+     * @returns A promise that resolves when the next interval occurs.
+     *
+     * @example
+     * Synchronizing with a polling task in a test
+     * ```ts
+     * it('updates data on a polling interval', async () => {
+     *   let count = 0;
+     *   const poller = queueRecurringTask(() => count++, { interval: 100 });
+     *
+     *   await poller.next();
+     *   await tasksSettled();
+     *   expect(count).toBe(1);
+     *
+     *   await poller.next();
+     *   await tasksSettled();
+     *   expect(count).toBe(2);
+     *
+     *   poller.cancel();
+     * });
+     * ```
+     */
+    next() {
+        if (this._canceled) {
+            return Promise.resolve();
+        }
+        return new Promise(resolve => this._nextResolvers.push(resolve));
+    }
+    /**
+     * Permanently stops the recurring task.
+     *
+     * This action clears any pending timer, prevents future executions, removes
+     * the task from the scheduler's list of recurring tasks, and immediately
+     * resolves any pending promises created by `next()`.
+     *
+     * Once canceled, a recurring task cannot be restarted.
+     */
+    cancel() {
+        this._canceled = true;
+        if (this._timerId !== undefined) {
+            clearTimeout(this._timerId);
+            this._timerId = undefined;
+        }
+        const idx = recurringTasks.indexOf(this);
+        if (idx > -1) {
+            recurringTasks.splice(idx, 1);
+        }
+        const resolvers = this._nextResolvers.splice(0);
+        for (const resolve of resolvers) {
+            resolve();
+        }
+    }
+}
+/** @internal */
+RecurringTask._nextId = 0;
 
 const ICoercionConfiguration = /*@__PURE__*/ kernel.DI.createInterface('ICoercionConfiguration');
 /** @internal */ const atNone = 0b0_000_000;
@@ -3341,7 +3518,7 @@ class DirtyChecker {
     addProperty(property) {
         this.tracked.push(property);
         if (this.tracked.length === 1) {
-            this._task = this.p.taskQueue.queueTask(this.check, { persistent: true });
+            this._task = queueRecurringTask(this.check, { interval: 0 });
         }
     }
     removeProperty(property) {
@@ -4100,6 +4277,7 @@ exports.ObserverLocator = ObserverLocator;
 exports.PrimitiveObserver = PrimitiveObserver;
 exports.PropertyAccessor = PropertyAccessor;
 exports.ProxyObservable = ProxyObservable;
+exports.RecurringTask = RecurringTask;
 exports.Scope = Scope;
 exports.SetterObserver = SetterObserver;
 exports.Task = Task;
@@ -4116,11 +4294,13 @@ exports.copyIndexMap = copyIndexMap;
 exports.createIndexMap = createIndexMap;
 exports.getCollectionObserver = getCollectionObserver;
 exports.getObserverLookup = getObserverLookup;
+exports.getRecurringTasks = getRecurringTasks;
 exports.isIndexMap = isIndexMap;
 exports.mixinNoopAstEvaluator = mixinNoopAstEvaluator;
 exports.nowrap = nowrap;
 exports.observable = observable;
 exports.queueAsyncTask = queueAsyncTask;
+exports.queueRecurringTask = queueRecurringTask;
 exports.queueTask = queueTask;
 exports.runTasks = runTasks;
 exports.subscriberCollection = subscriberCollection;

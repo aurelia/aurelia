@@ -22,6 +22,9 @@ export declare const mixinUseScope: <T extends {
 export declare const mixinAstEvaluator: <T extends {
     l: IServiceLocator;
 }>(target: Constructable<T>) => void;
+/**
+ * A synchronous queue used internally for ensuring update source are not called depth first
+ */
 export interface IFlushable {
     flush(): void;
 }

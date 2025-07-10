@@ -1297,7 +1297,13 @@ class BindingTargetSubscriber {
         this._flushQueue = flushQueue;
     }
     flush() {
-        this.b.updateSource(this._value);
+        // when the owning binding is unbound, there's cases where this subscriber still queued
+        // and will be flushed
+        // adding this check so that it does flush at an inappropriate time
+        // todo: maybe consider a way to dequeue this as well if necessary
+        if (this.b.isBound) {
+            this.b.updateSource(this._value);
+        }
     }
     // deepscan-disable-next-line
     handleChange(value, _) {
@@ -1809,13 +1815,13 @@ class InterpolationBinding {
         let i = 0;
         if (ii === 1) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            result = staticParts[0] + partBindings[0]._value + staticParts[1];
+            result = staticParts[0] + partBindings[0]._evaluate() + staticParts[1];
         }
         else {
             result = staticParts[0];
             for (; ii > i; ++i) {
                 // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-                result += partBindings[i]._value + staticParts[i + 1];
+                result += partBindings[i]._evaluate() + staticParts[i + 1];
             }
         }
         this._targetObserver.setValue(result, target, targetProperty);
@@ -1871,6 +1877,8 @@ class InterpolationPartBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        /** @internal */
+        this._isDirty = false;
         this.l = locator;
         this.oL = observerLocator;
     }
@@ -1880,21 +1888,29 @@ class InterpolationPartBinding {
     handleChange() {
         if (!this.isBound)
             return;
+        this._isDirty = true;
+        this.updateTarget();
+    }
+    handleCollectionChange() {
+        if (!this.isBound)
+            return;
+        this._isDirty = true;
+        this.updateTarget();
+    }
+    /** @internal */
+    _evaluate() {
+        if (!this._isDirty)
+            return this._value;
         this.obs.version++;
         const newValue = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
-        // todo(!=): maybe should do strict comparison?
-        // eslint-disable-next-line eqeqeq
-        if (newValue != this._value) {
-            this._value = newValue;
-            if (isArray(newValue)) {
-                this.observeCollection(newValue);
-            }
-            this.updateTarget();
+        // unlike handleChange, this is always called
+        this._value = newValue;
+        if (isArray(newValue)) {
+            this.observeCollection(newValue);
         }
-    }
-    handleCollectionChange() {
-        this.updateTarget();
+        this._isDirty = false;
+        return this._value;
     }
     bind(scope) {
         if (this.isBound) {
@@ -1908,12 +1924,15 @@ class InterpolationPartBinding {
         if (isArray(this._value)) {
             this.observeCollection(this._value);
         }
+        this._isDirty = false;
         this.isBound = true;
     }
     unbind() {
         if (!this.isBound)
             return;
         this.isBound = false;
+        this._value = void 0;
+        this._isDirty = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this.obs.clearAll();
@@ -2202,12 +2221,12 @@ class PropertyBinding {
         if (!this.isBound)
             return;
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
-        this._scope = void 0;
         if (this._targetSubscriber) {
             this._targetObserver.unsubscribe(this._targetSubscriber);
             this._targetSubscriber = null;
         }
+        astUnbind(this.ast, this._scope, this);
+        this._scope = void 0;
         this.obs.clearAll();
     }
     /**
@@ -9808,6 +9827,7 @@ class AuCompose {
         /** @internal */ this._hydrationContext = resolve(IHydrationContext);
         /** @internal */ this._exprParser = resolve(IExpressionParser);
         /** @internal */ this._observerLocator = resolve(IObserverLocator);
+        /** @internal */ this._attached = false;
     }
     get composing() {
         return this._composing;
@@ -9816,6 +9836,7 @@ class AuCompose {
         return this._composition;
     }
     attaching(initiator, _parent) {
+        this._attached = true;
         return this._composing = onResolve(this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator), (context) => {
             if (this._contextFactory._isCurrent(context)) {
                 this._composing = void 0;
@@ -9823,6 +9844,7 @@ class AuCompose {
         });
     }
     detaching(initiator) {
+        this._attached = false;
         const cmpstn = this._composition;
         const pending = this._composing;
         this._contextFactory.invalidate();
@@ -9831,6 +9853,8 @@ class AuCompose {
     }
     /** @internal */
     propertyChanged(name) {
+        if (!this._attached)
+            return;
         if (name === 'composing' || name === 'composition')
             return;
         if (name === 'model' && this._composition != null) {

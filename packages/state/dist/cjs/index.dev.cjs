@@ -24,21 +24,6 @@ const IActionHandler = /*@__PURE__*/ createInterface('IActionHandler');
 const IStore = /*@__PURE__*/ createInterface('IStore');
 const IState = /*@__PURE__*/ createInterface('IState');
 
-const actionHandlerSymbol = '__au_ah__';
-const ActionHandler = Object.freeze({
-    define(actionHandler) {
-        function registry(state, action) {
-            return actionHandler(state, action);
-        }
-        registry[actionHandlerSymbol] = true;
-        registry.register = function (c) {
-            kernel.Registration.instance(IActionHandler, actionHandler).register(c);
-        };
-        return registry;
-    },
-    isType: (r) => typeof r === 'function' && actionHandlerSymbol in r,
-});
-
 const IDevToolsExtension = /*@__PURE__*/ createInterface("IDevToolsExtension", x => x.cachedCallback((container) => {
     const win = container.get(runtimeHtml.IWindow);
     const devToolsExtension = win.__REDUX_DEVTOOLS_EXTENSION__;
@@ -51,6 +36,7 @@ class Store {
     }
     constructor() {
         /** @internal */ this._subs = new Set();
+        /** @internal */ this._middlewares = new Map();
         /** @internal */ this._dispatching = false;
         /** @internal */ this._dispatchQueues = [];
         this._initialState = this._state = kernel.resolve(kernel.optional(IState)) ?? new State();
@@ -76,6 +62,14 @@ class Store {
         }
         this._subs.delete(subscriber);
     }
+    registerMiddleware(middleware, placement, settings) {
+        this._middlewares.set(middleware, { placement, settings });
+    }
+    unregisterMiddleware(middleware) {
+        if (this._middlewares.has(middleware)) {
+            this._middlewares.delete(middleware);
+        }
+    }
     /** @internal */
     _setState(state) {
         const prevState = this._state;
@@ -88,11 +82,57 @@ class Store {
         }
     }
     /** @internal */
-    _handleAction(handlers, $state, $action) {
-        for (const handler of handlers) {
-            $state = kernel.onResolve($state, $state => handler($state, $action));
+    _executeMiddlewares(state, placement, action) {
+        const middlewares = Array.from(this._middlewares.entries())
+            .filter(([_, settings]) => settings.placement === placement);
+        if (middlewares.length === 0) {
+            return state;
         }
-        return kernel.onResolve($state, s => s);
+        // Chain the middleware execution using `onResolve` so that each middleware
+        // receives the resolved state from the previous middleware, regardless of
+        // whether that result is synchronous or asynchronous.
+        let result = state;
+        for (const [middleware, settings] of middlewares) {
+            result = kernel.onResolve(result, (currentStateOrFlag) => {
+                // If a previous middleware signalled blocking, keep propagating the flag.
+                if (currentStateOrFlag === false) {
+                    return false;
+                }
+                try {
+                    const ret = kernel.onResolve(middleware(currentStateOrFlag, action, settings.settings), (middlewareResult) => {
+                        if (middlewareResult === false) {
+                            return false;
+                        }
+                        if (middlewareResult != null) {
+                            return middlewareResult;
+                        }
+                        // If the middleware did not return a value, propagate the current state.
+                        return currentStateOrFlag;
+                    });
+                    if (kernel.isPromise(ret)) {
+                        return ret.catch(error => {
+                            this._logger.error(`Middleware execution failed: ${error}`);
+                            return currentStateOrFlag;
+                        });
+                    }
+                    return ret;
+                }
+                catch (error) {
+                    this._logger.error(`Middleware execution failed: ${error}`);
+                    return currentStateOrFlag;
+                }
+            });
+        }
+        return result;
+    }
+    /** @internal */
+    _handleAction(handlers, $state, $action) {
+        // Ensure we work with either promise or value uniformly
+        let currentState = $state;
+        for (const handler of handlers) {
+            currentState = kernel.onResolve(currentState, state => handler(state, $action));
+        }
+        return currentState;
     }
     dispatch(action) {
         if (this._dispatching) {
@@ -100,33 +140,50 @@ class Store {
             return;
         }
         this._dispatching = true;
-        const afterDispatch = ($state) => {
-            return kernel.onResolve($state, s => {
-                const $$action = this._dispatchQueues.shift();
-                if ($$action != null) {
-                    return kernel.onResolve(this._handleAction(this._handlers, s, $$action), state => {
-                        this._setState(state);
-                        return afterDispatch(state);
-                    });
+        const processAction = (actionToProcess) => {
+            const finalize = () => {
+                const nextAction = this._dispatchQueues.shift();
+                if (nextAction != null) {
+                    return processAction(nextAction);
                 }
                 else {
                     this._dispatching = false;
                 }
+            };
+            const middlewareResultBefore = this._executeMiddlewares(this._state, 'before', actionToProcess);
+            const afterBefore = kernel.onResolve(middlewareResultBefore, (beforeState) => {
+                if (beforeState === false) {
+                    return finalize();
+                }
+                const handlerResult = this._handleAction(this._handlers, beforeState, actionToProcess);
+                const afterHandler = kernel.onResolve(handlerResult, (newState) => {
+                    const middlewareResultAfter = this._executeMiddlewares(newState, 'after', actionToProcess);
+                    return kernel.onResolve(middlewareResultAfter, (afterState) => {
+                        if (afterState !== false) {
+                            this._setState(afterState);
+                        }
+                        return finalize();
+                    });
+                });
+                return afterHandler;
             });
+            return afterBefore;
         };
-        const newState = this._handleAction(this._handlers, this._state, action);
-        if (kernel.isPromise(newState)) {
-            return newState.then($state => {
-                this._setState($state);
-                return afterDispatch(this._state);
-            }, ex => {
-                this._dispatching = false;
-                throw ex;
-            });
+        try {
+            const result = processAction(action);
+            if (kernel.isPromise(result)) {
+                return result.catch(error => {
+                    this._dispatching = false;
+                    this._logger.error(`Action or middleware failed: ${error}`);
+                    throw error;
+                });
+            }
+            return result;
         }
-        else {
-            this._setState(newState);
-            return afterDispatch(this._state);
+        catch (error) {
+            this._dispatching = false;
+            this._logger.error(`Action or middleware failed: ${error}`);
+            throw error;
         }
     }
     /* istanbul ignore next */
@@ -140,7 +197,7 @@ class Store {
         const devTools = extension.connect(options);
         devTools.init(this._initialState);
         devTools.subscribe((message) => {
-            this._logger.info('DevTools sent a message:', message);
+            this._logger.info(`DevTools sent a message: ${JSON.stringify(message)}`);
             const payload = typeof message.payload === 'string'
                 ? tryParseJson(message.payload)
                 : message.payload;
@@ -210,6 +267,21 @@ function tryParseJson(str) {
         return undefined;
     }
 }
+
+const actionHandlerSymbol = '__au_ah__';
+const ActionHandler = Object.freeze({
+    define(actionHandler) {
+        function registry(state, action) {
+            return actionHandler(state, action);
+        }
+        registry[actionHandlerSymbol] = true;
+        registry.register = function (c) {
+            kernel.Registration.instance(IActionHandler, actionHandler).register(c);
+        };
+        return registry;
+    },
+    isType: (r) => typeof r === 'function' && actionHandlerSymbol in r,
+});
 
 class StateBinding {
     constructor(controller, locator, observerLocator, ast, target, prop, store, strict) {
@@ -511,6 +583,12 @@ const createConfiguration = (initialState, actionHandlers, options = {}) => {
             /* istanbul ignore next */
             runtimeHtml.AppTask.creating(kernel.IContainer, container => {
                 const store = container.get(IStore);
+                // Register middlewares if provided
+                if (options.middlewares) {
+                    for (const middlewareReg of options.middlewares) {
+                        store.registerMiddleware(middlewareReg.middleware, middlewareReg.placement, middlewareReg.settings);
+                    }
+                }
                 const devTools = container.get(IDevToolsExtension);
                 if (options.devToolsOptions?.disable !== true && devTools != null) {
                     store.connectDevTools(options.devToolsOptions ?? {});
@@ -710,6 +788,7 @@ exports.StateBindingInstruction = StateBindingInstruction;
 exports.StateBindingInstructionRenderer = StateBindingInstructionRenderer;
 exports.StateDefaultConfiguration = StateDefaultConfiguration;
 exports.StateDispatchBinding = StateDispatchBinding;
+exports.Store = Store;
 exports.createStateMemoizer = createStateMemoizer;
 exports.fromState = fromState;
 //# sourceMappingURL=index.dev.cjs.map

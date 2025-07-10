@@ -3,7 +3,7 @@ import { createFixture } from '@aurelia/testing';
 
 describe('4-gh-issues/2155.spec.ts', function () {
   it('should react to array mutation inside interpolation binding', async function () {
-    const { getAllBy, getBy, assertText, assertHtml, trigger } = createFixture(
+    const { assertHtml, trigger } = createFixture(
       `<div repeat.for="item of items" class="\${activeItems.includes(item) ? 'active': ''}">
         <p click.trigger="setActive(item)">\${activeItems.includes(item) ? 'active': '&nbsp;'}</p>
       </div>`,

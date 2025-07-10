@@ -227,7 +227,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public handleCollectionChange(): void {
-    this.updateTarget();
+    this.handleChange();
   }
 
   public bind(scope: Scope): void {

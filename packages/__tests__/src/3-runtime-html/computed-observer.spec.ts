@@ -591,4 +591,33 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       this.valueChanged.publish();
     }
   }
+
+  it('throws a helpful error when there is a recursive computed dependency', async function () {
+    let err: Error | null;
+    try {
+      createFixture(
+        `<div repeat.for="o of options">\${o.name}</div>`,
+        class MyApp {
+          items = [1, 2, 3];
+
+          get options() {
+            const options = this.items.map(x => ({ name: `Option ${x}`, id: x }));
+
+            if (options.length > 0) {
+              options.unshift({ name: 'Empty', id: 0 });
+            }
+
+            return options;
+          }
+        }
+      );
+
+      await tasksSettled();
+    } catch (e) {
+      err = e;
+    }
+
+    assert.notStrictEqual(err, null, `Should have thrown an error`);
+    assert.strictEqual(err.message, `Side-effect detected in computed getter 'get options': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`);
+  });
 });

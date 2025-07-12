@@ -233,13 +233,27 @@ export class ComputedObserver<T extends object> implements
   }
 
   private compute(): unknown {
+    let value: unknown;
+    let error: Error | undefined;
     this.obs.version++;
     try {
       enterConnectable(this);
-      return this._value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+      value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+    } catch (e) {
+      error = e as Error;
     } finally {
       this.obs.clear();
       exitConnectable(this);
     }
+
+    if (error) {
+      throw error;
+    }
+
+    if (this._isDirty) {
+      throw new Error(`Side-effect detected in computed getter '${this.$get.name}': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`);
+    }
+
+    return this._value = value;
   }
 }

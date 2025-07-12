@@ -2,6 +2,7 @@
 /* eslint-disable jsdoc/check-indentation */
 /* eslint-disable jsdoc/no-multi-asterisks */
 import { noop } from '@aurelia/kernel';
+import { Platform } from '@aurelia/platform';
 
 const tsPending = 'pending';
 const tsRunning = 'running';
@@ -420,7 +421,7 @@ export const queueAsyncTask = <R = any>(callback: TaskCallback<R>, options?: { d
 
   if (task.delay != null && task.delay > 0) {
     ++pendingAsyncCount;
-    task._timerId = setTimeout(() => {
+    task._timerId = Platform.getOrCreate(globalThis).setTimeout(() => {
       --pendingAsyncCount;
       task._timerId = undefined;
 
@@ -584,7 +585,7 @@ export class Task<R = any> {
    */
   public cancel(): boolean {
     if (this._timerId !== undefined) {
-      clearTimeout(this._timerId);
+      Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
       --pendingAsyncCount;
       this._timerId = undefined;
       this._status = tsCanceled;
@@ -694,7 +695,7 @@ export class RecurringTask {
       return;
     }
 
-    this._timerId = setTimeout(() => {
+    this._timerId = Platform.getOrCreate(globalThis).setTimeout(() => {
       this._tick();
       if (!this._canceled) {
         this._start();
@@ -760,7 +761,7 @@ export class RecurringTask {
   public cancel(): void {
     this._canceled = true;
     if (this._timerId !== undefined) {
-      clearTimeout(this._timerId);
+      Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
       this._timerId = undefined;
     }
 

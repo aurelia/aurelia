@@ -41,6 +41,15 @@ class MyClass {
 | ---------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `expressionOrPropertyAccessFn` | `string` or `IPropertyAccessFn` | Specifies the value to watch. When a string is provided, it is used as an expression (similar to Aurelia templating). When a function is provided, it acts as a computed getter that returns the value to observe.                                                                          |
 | `changeHandlerOrCallback`      | `string` or `IWatcherCallback`  | Optional. The callback invoked when the watched value changes. If a string is provided, it is used to resolve a method name (resolved only once, so subsequent changes to the method are not tracked). If a function is provided, it is called with three parameters: new value, old value, and the instance. |
+| `options`                      | `IWatchOptions`               | Optional. Configuration options for the watcher, including flush timing control.                                                                                                                                                                                                              |
+
+### Watch Options
+
+The `options` parameter accepts an `IWatchOptions` object with the following properties:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `flush` | `'async'` \| `'sync'` | `'async'` | Controls when the watcher callback is executed. `'async'` (default) defers execution to the next microtask, while `'sync'` executes immediately. |
 
 ---
 
@@ -379,7 +388,61 @@ class Contact {
 
 ## Best Practices
 
-### 1. Avoid Mutating Dependencies in Computed Getters
+### 1. Choose the Right Flush Mode
+
+```typescript
+// Use async flush (default) for most cases
+@watch('data', { flush: 'async' })
+onDataChange(newData) {
+  // Safe for most DOM updates and side effects
+  this.processData(newData);
+}
+
+// Use sync flush for immediate DOM updates
+@watch('scrollPosition', { flush: 'sync' })
+onScrollChange(position) {
+  // Immediate DOM update to prevent layout thrashing
+  this.updateScrollIndicator(position);
+}
+```
+
+### 2. Optimize Complex Expressions
+
+```typescript
+// ✅ Good: Simple, focused watchers
+@watch('user.name')
+onNameChange(name) { /* ... */ }
+
+// ⚠️ Caution: Complex computation
+@watch(vm => vm.items.filter(i => i.active).map(i => i.name).join(', '))
+onActiveNamesChange(names) { /* ... */ }
+
+// ✅ Better: Break into smaller watchers
+@watch(vm => vm.items.filter(i => i.active))
+onActiveItemsChange(items) {
+  this.activeNames = items.map(i => i.name).join(', ');
+}
+```
+
+### 3. Understand Collection Observation
+
+```typescript
+// ✅ Observable: Array query methods
+@watch(vm => vm.items.find(i => i.selected))
+@watch(vm => vm.items.filter(i => i.active).length)
+@watch(vm => vm.items.some(i => i.hasError))
+
+// ✅ Observable: Map/Set operations
+@watch(vm => vm.settings.get('theme'))
+@watch(vm => vm.categories.has('work'))
+@watch(vm => vm.collection.size)
+
+// ❌ Not directly observable: Mutation methods
+// (but they trigger watchers that observe content/length)
+addItem(item) { this.items.push(item); }
+```
+
+### 4. Avoid Mutating Dependencies in Computed Getters
 
 Do not alter properties or collections when returning a computed value:
 
@@ -398,7 +461,7 @@ someMethod() {}
 someMethod() {}
 ```
 
-### 2. Be Cautious with Object Identity
+### 5. Be Cautious with Object Identity
 
 Due to proxy wrapping, a raw object and its proxied version may not be strictly equal. Always access the dependency from the first parameter to maintain proper identity checks.
 
@@ -417,7 +480,7 @@ class MyClass {
 }
 ```
 
-### 3. Do Not Return Promises or Async Functions
+### 6. Do Not Return Promises or Async Functions
 
 The dependency tracking is synchronous. Returning a promise or using an async function will break the reactivity.
 
@@ -436,5 +499,306 @@ class MyClass {
     });
   })
   anotherMethod() {}
+}
+```
+
+---
+
+## Advanced Watch Patterns
+
+### Deep Object Observation
+
+The `@watch` decorator can observe deeply nested properties and complex expressions:
+
+```typescript
+import { watch } from '@aurelia/runtime-html';
+
+interface Address {
+  street: string;
+  city: string;
+  primary: boolean;
+}
+
+interface Person {
+  name: string;
+  addresses: Address[];
+  profile: {
+    avatar: string;
+    bio: string;
+  };
+}
+
+class UserProfile {
+  person: Person = {
+    name: 'John',
+    addresses: [
+      { street: '123 Main St', city: 'Boston', primary: true },
+      { street: '456 Oak Ave', city: 'Cambridge', primary: false }
+    ],
+    profile: {
+      avatar: 'default.png',
+      bio: 'Software developer'
+    }
+  };
+
+  // Watch for changes to the primary address street name
+  @watch((user: UserProfile) => user.person.addresses.find(addr => addr.primary)?.street)
+  onPrimaryAddressChange(newStreet: string, oldStreet: string) {
+    console.log(`Primary address changed from ${oldStreet} to ${newStreet}`);
+  }
+
+  // Watch nested object properties
+  @watch((user: UserProfile) => user.person.profile.avatar)
+  onAvatarChange(newAvatar: string, oldAvatar: string) {
+    console.log(`Avatar changed from ${oldAvatar} to ${newAvatar}`);
+  }
+
+  // Watch array length with complex filtering
+  @watch((user: UserProfile) => user.person.addresses.filter(addr => addr.primary).length)
+  onPrimaryAddressCountChange(count: number) {
+    if (count === 0) {
+      console.log('No primary address set!');
+    } else if (count > 1) {
+      console.log('Multiple primary addresses detected!');
+    }
+  }
+}
+```
+
+### Collection Observation Patterns
+
+#### Observable Array Methods
+
+Different array methods have varying levels of observability:
+
+```typescript
+import { watch } from '@aurelia/runtime-html';
+
+class TaskManager {
+  tasks: Task[] = [];
+
+  // These array methods ARE observable and will trigger watchers:
+  @watch((manager: TaskManager) => manager.tasks.filter(t => t.completed).length)
+  onCompletedTasksChange(count: number) {
+    console.log(`Completed tasks: ${count}`);
+  }
+
+  @watch((manager: TaskManager) => manager.tasks.find(t => t.priority === 'high'))
+  onHighPriorityTaskChange(task: Task) {
+    console.log('High priority task changed:', task);
+  }
+
+  @watch((manager: TaskManager) => manager.tasks.some(t => t.overdue))
+  onOverdueTasksChange(hasOverdue: boolean) {
+    console.log(`Has overdue tasks: ${hasOverdue}`);
+  }
+
+  @watch((manager: TaskManager) => manager.tasks.every(t => t.completed))
+  onAllTasksCompleteChange(allComplete: boolean) {
+    console.log(`All tasks complete: ${allComplete}`);
+  }
+
+  // Array iteration methods ARE observable:
+  @watch((manager: TaskManager) => {
+    const result = [];
+    for (const task of manager.tasks) {
+      result.push(task.name);
+    }
+    return result.join(', ');
+  })
+  onTaskNamesChange(names: string) {
+    console.log('Task names:', names);
+  }
+
+  // Array mutating methods (push, pop, etc.) are NOT directly observable
+  // but changes to array length or content will trigger watchers
+  addTask(task: Task) {
+    this.tasks.push(task); // This will trigger watchers that observe array content
+  }
+}
+```
+
+#### Map and Set Observation
+
+```typescript
+import { watch } from '@aurelia/runtime-html';
+
+class UserPreferences {
+  settings: Map<string, any> = new Map();
+  categories: Set<string> = new Set();
+
+  // Observable Map operations:
+  @watch((prefs: UserPreferences) => prefs.settings.get('theme'))
+  onThemeChange(theme: string) {
+    console.log('Theme changed to:', theme);
+  }
+
+  @watch((prefs: UserPreferences) => prefs.settings.has('notifications'))
+  onNotificationSettingChange(hasNotifications: boolean) {
+    console.log('Notification setting exists:', hasNotifications);
+  }
+
+  @watch((prefs: UserPreferences) => prefs.settings.size)
+  onSettingsCountChange(count: number) {
+    console.log('Settings count:', count);
+  }
+
+  // Observable Set operations:
+  @watch((prefs: UserPreferences) => prefs.categories.has('work'))
+  onWorkCategoryChange(hasWork: boolean) {
+    console.log('Work category enabled:', hasWork);
+  }
+
+  @watch((prefs: UserPreferences) => prefs.categories.size)
+  onCategoryCountChange(count: number) {
+    console.log('Category count:', count);
+  }
+
+  // Iterating over Map/Set is observable:
+  @watch((prefs: UserPreferences) => {
+    const result = [];
+    for (const [key, value] of prefs.settings.entries()) {
+      result.push(`${key}:${value}`);
+    }
+    return result.join(', ');
+  })
+  onSettingsStringChange(settingsString: string) {
+    console.log('Settings string:', settingsString);
+  }
+}
+```
+
+### Flush Timing Control
+
+The `flush` option controls when watcher callbacks are executed:
+
+```typescript
+import { watch } from '@aurelia/runtime-html';
+
+class FlushExamples {
+  counter = 0;
+
+  // Async flush (default) - callback runs in next microtask
+  @watch('counter', { flush: 'async' })
+  onCounterChangeAsync(newValue: number, oldValue: number) {
+    console.log(`Async: ${oldValue} -> ${newValue}`);
+  }
+
+  // Sync flush - callback runs immediately
+  @watch('counter', { flush: 'sync' })
+  onCounterChangeSync(newValue: number, oldValue: number) {
+    console.log(`Sync: ${oldValue} -> ${newValue}`);
+  }
+
+  increment() {
+    this.counter++;
+    console.log('After increment');
+    // Output order:
+    // 1. "Sync: 0 -> 1"
+    // 2. "After increment"
+    // 3. "Async: 0 -> 1" (in next microtask)
+  }
+}
+```
+
+### Performance Considerations
+
+#### When to Use Different Patterns
+
+```typescript
+import { watch } from '@aurelia/runtime-html';
+
+class PerformanceExamples {
+  // ✅ Good: Simple property watching
+  @watch('userName')
+  onUserNameChange(name: string) {
+    this.updateUserDisplay(name);
+  }
+
+  // ✅ Good: Computed value that depends on multiple properties
+  @watch((example: PerformanceExamples) => 
+    `${example.firstName} ${example.lastName}`.trim()
+  )
+  onFullNameChange(fullName: string) {
+    this.updateFullNameDisplay(fullName);
+  }
+
+  // ⚠️ Caution: Expensive computed getter
+  @watch((example: PerformanceExamples) => {
+    // This runs every time any dependency changes
+    return example.items
+      .filter(item => item.active)
+      .sort((a, b) => a.priority - b.priority)
+      .slice(0, 10);
+  })
+  onTopItemsChange(topItems: Item[]) {
+    this.renderTopItems(topItems);
+  }
+
+  // ✅ Better: Use sync flush for immediate DOM updates
+  @watch('scrollPosition', { flush: 'sync' })
+  onScrollPositionChange(position: number) {
+    // Update DOM immediately to prevent layout thrashing
+    this.updateScrollIndicator(position);
+  }
+
+  // ✅ Good: Watch for specific conditions
+  @watch((example: PerformanceExamples) => 
+    example.items.some(item => item.hasErrors)
+  )
+  onErrorStateChange(hasErrors: boolean) {
+    this.toggleErrorDisplay(hasErrors);
+  }
+}
+```
+
+#### Optimizing Watch Expressions
+
+```typescript
+import { watch } from '@aurelia/runtime-html';
+
+class OptimizationExamples {
+  items: Item[] = [];
+  selectedId: string = '';
+
+  // ❌ Avoid: Complex computation in getter
+  @watch((example: OptimizationExamples) => {
+    // This entire computation runs on every dependency change
+    const selected = example.items.find(item => item.id === example.selectedId);
+    return selected ? selected.details.map(d => d.value).join(', ') : '';
+  })
+  onSelectedDetailsChange(details: string) {
+    console.log('Selected details:', details);
+  }
+
+  // ✅ Better: Break into smaller watchers
+  @watch((example: OptimizationExamples) => 
+    example.items.find(item => item.id === example.selectedId)
+  )
+  onSelectedItemChange(item: Item) {
+    this.selectedItem = item;
+  }
+
+  @watch((example: OptimizationExamples) => 
+    example.selectedItem?.details.map(d => d.value).join(', ') || ''
+  )
+  onSelectedItemDetailsChange(details: string) {
+    console.log('Selected details:', details);
+  }
+
+  // ✅ Good: Use caching for expensive computations
+  private cachedResults = new Map<string, any>();
+
+  @watch((example: OptimizationExamples) => {
+    const key = `${example.selectedId}-${example.items.length}`;
+    if (!example.cachedResults.has(key)) {
+      const result = example.computeExpensiveValue();
+      example.cachedResults.set(key, result);
+    }
+    return example.cachedResults.get(key);
+  })
+  onExpensiveValueChange(value: any) {
+    console.log('Expensive value:', value);
+  }
 }
 ```

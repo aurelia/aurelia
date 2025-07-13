@@ -165,14 +165,15 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     if (!this.isBound) return;
     this.isBound = false;
 
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-
     if (this._targetSubscriber) {
       (this._targetObserver as IObserver).unsubscribe(this._targetSubscriber);
       this._targetSubscriber = null;
     }
+
+    astUnbind(this.ast, this._scope!, this);
+
+    this._scope = void 0;
+
     this.obs.clearAll();
   }
 

@@ -35,6 +35,14 @@ export const refs: INodeControllerRefs = /*@__PURE__*/ (() => {
       }
       return (ref[name] = controller) as T;
     }
+    public clear(node: INode): void {
+      const ref = refsMap.get(node);
+      if (ref == null) return;
+      refsMap.delete(node);
+      if (node.$au != null) {
+        delete (node as Writable<INode>).$au;
+      }
+    }
   }();
 })();
 

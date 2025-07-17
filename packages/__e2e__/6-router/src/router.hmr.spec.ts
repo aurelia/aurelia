@@ -16,7 +16,7 @@ test.describe('router.hmr', () => {
   let homeMarkupPath: string;
 
   [
-    homeMarkupPath = path.resolve(__dirname,'./pages/home.html'),
+    homeMarkupPath = path.resolve(__dirname, './pages/home.html'),
   ].forEach(file => {
     const originalContent = fs.readFileSync(file, { encoding: 'utf-8' });
 

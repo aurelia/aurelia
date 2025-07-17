@@ -5,6 +5,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 /** @returns {import('webpack').Configuration} */
 module.exports = function () {
   return {
+    stats: 'errors-only', // Show only errors in the console; reduce noise during tests
     target: 'web',
     mode: 'production',
     entry: './src/index.ts',
@@ -20,6 +21,10 @@ module.exports = function () {
       filename: '[name].js',
     },
     devtool: false,
+    devServer: {
+      port: process.env.APP_PORT ?? 9006,
+      historyApiFallback: true
+    },
     resolve: {
       extensions: ['.ts', '.js'],
       modules: ['.', 'node_modules'],

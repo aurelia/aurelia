@@ -29,6 +29,7 @@ import {
   ValidationResult,
   IValidator,
   ValidateInstruction,
+  isGroupRule,
   type IValidationRule,
   type IValidateable,
 } from '@aurelia/validation';
@@ -405,7 +406,11 @@ export class ValidationController implements IValidationController {
         ));
         const newResults = results.reduce(
           (acc, resultSet) => {
-            acc.push(...resultSet);
+            for (const result of resultSet) {
+              if (acc.findIndex(x => x.propertyName === result.propertyName && x.rule === result.rule) === -1) {
+                acc.push(result);
+              }
+            }
             return acc;
           },
           []);
@@ -500,7 +505,7 @@ export class ValidationController implements IValidationController {
 
     return x => !x.isManual
       && x.object === instruction.object
-      && (propertyName === void 0 || x.propertyName === propertyName)
+      && (propertyName === void 0 || x.propertyName === propertyName || isGroupRule(x.rule!))
       && (
         rules === void 0
         || rules.includes(x.propertyRule!)

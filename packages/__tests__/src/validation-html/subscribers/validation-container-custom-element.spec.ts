@@ -1,5 +1,5 @@
 import { newInstanceForScope, newInstanceOf, resolve, toArray } from '@aurelia/kernel';
-import { assert, createSpy, getVisibleText, ISpy, TestContext } from '@aurelia/testing';
+import { assert, createFixture, createSpy, getVisibleText, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import {
@@ -10,7 +10,7 @@ import {
   ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util.js';
-import { Person } from '../../validation/_test-resources.js';
+import { Flight, Person } from '../../validation/_test-resources.js';
 import { tasksSettled } from '@aurelia/runtime';
 
 describe('validation-html/subscribers/validation-container-custom-element.spec.ts', function () {
@@ -323,6 +323,116 @@ describe('validation-html/subscribers/validation-container-custom-element.spec.t
       ctx.doc.body.removeChild(host);
 
       au.dispose();
+    });
+
+    it('shows group validation errors correctly', async function () {
+      const currentDate = new Date('2025-07-20T00:00:00Z');
+
+      const msgInvalidFlightDirection = 'Invalid flight direction';
+      const msgNoTimeTravelPossible = 'No time travel possible';
+      const msgNotPossibleToGoBackInTime = 'Not possible to go back in time';
+      const msgOneWayHasNoReturn = 'One way flight has no return';
+
+      const { stop, component, appHost, ctx } = await createFixture(
+        ` <validation-container>
+          <input id="target1" type="text" value.two-way="flight.direction & validate">
+        </validation-container>
+        <validation-container>
+          <input id="target2" type="text" value.two-way="flight.departureDate & validate">
+        </validation-container>
+        <validation-container>
+          <input id="target3" type="text" value.two-way="flight.returnDate & validate">
+        </validation-container>
+        `,
+        class App {
+          private readonly flight = new Flight();
+          private readonly validationRules: IValidationRules = resolve(IValidationRules);
+          public readonly controller: IValidationController = resolve(newInstanceForScope(IValidationController));
+
+          public constructor() {
+            this.validationRules
+              .on(this.flight)
+              .ensure('direction')
+              .required()
+              .ensureGroup(
+                ['direction', 'departureDate', 'returnDate'],
+                (direction: 'one-way' | 'round-trip', departureDate: Date | string | undefined, returnDate: Date | string | undefined) => {
+                  // if the direction is not yet specified, we don't have to validate anything
+                  if (!direction) return true;
+                  const $departureDate = departureDate ? new Date(departureDate) : undefined;
+                  const $returnDate = returnDate ? new Date(returnDate) : undefined;
+                  switch (direction) {
+                    case 'round-trip':
+                      return $departureDate > $returnDate
+                        ? { property: 'departureDate', message: msgNotPossibleToGoBackInTime }
+                        : true;
+                    case 'one-way':
+                      if ($departureDate < currentDate) return { property: 'departureDate', message: msgNoTimeTravelPossible };
+                      if ($returnDate) return { property: 'returnDate', message: msgOneWayHasNoReturn };
+                      return true;
+                    default:
+                      return { property: 'direction', message: msgInvalidFlightDirection };
+                  }
+                });
+          }
+
+          public unbinding() {
+            this.validationRules.off();
+          }
+        },
+        [ValidationHtmlConfiguration]
+      ).started;
+
+      await component.controller.validate();
+
+      const containers = toArray(appHost.querySelectorAll('validation-container'));
+
+      assert.deepStrictEqual(getErrors(), [['Direction is required.'], [], []], 'round#1');
+
+      const [directionInput, departureInput, returnInput] = toArray(appHost.querySelectorAll('input'));
+
+      // invalid direction
+      directionInput.value = 'invalid';
+      await triggerEvent(directionInput);
+      assert.deepStrictEqual(getErrors(), [[msgInvalidFlightDirection], [], []], 'round#2');
+
+      // one-way - departure date in past
+      directionInput.value = 'one-way';
+      departureInput.value = '2025-07-19T00:00:00Z';
+      await triggerEvent(directionInput);
+      await triggerEvent(departureInput);
+      assert.deepStrictEqual(getErrors(), [[], [msgNoTimeTravelPossible], []], 'round#3');
+
+      // one-way - return date set
+      departureInput.value = '2025-07-21T00:00:00Z';
+      returnInput.value = '2025-07-19T00:00:00Z';
+      await triggerEvent(departureInput);
+      await triggerEvent(returnInput);
+      assert.deepStrictEqual(getErrors(), [[], [], [msgOneWayHasNoReturn]], 'round#4');
+
+      // round-trip
+      directionInput.value = 'round-trip';
+      await triggerEvent(directionInput);
+      assert.deepStrictEqual(getErrors(), [[], [msgNotPossibleToGoBackInTime], []], 'round#5');
+
+      // round-trip - valid dates
+      returnInput.value = '2025-07-23T00:00:00Z';
+      await triggerEvent(returnInput);
+      assert.deepStrictEqual(getErrors(), [[], [], []], 'round#6');
+
+      await stop(true);
+
+      function getErrors() {
+        return toArray(
+          containers.map(container => toArray(container.shadowRoot.querySelectorAll('span')))
+        ).map((els) => toArray(els).map(el => getVisibleText(el, true)));
+      }
+
+      async function triggerEvent(target: HTMLElement) {
+        target.dispatchEvent(new ctx.Event('input'));
+        target.dispatchEvent(new ctx.Event('focusout'));
+        await tasksSettled();
+      }
     });
   });
 });

@@ -14,6 +14,7 @@ import {
 } from './rule-interfaces';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { ErrorNames, createMappedError } from './errors';
+import { PropertyAccessor } from './rule-provider';
 
 export const explicitMessageKey: unique symbol = Symbol.for('au:validation:explicit-message-key');
 /**
@@ -287,6 +288,28 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
         return state === this.validState;
       }
     );
+  }
+
+  public accept(_visitor: IValidationVisitor) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('Serialization of a StateRule is not supported.');
+    }
+  }
+}
+
+export type GroupValidationResult =
+  | true
+  | { property: string; message?: string }
+  ;
+
+export class GroupRule<TObject extends IValidateable = IValidateable> extends BaseValidationRule {
+
+  public constructor(
+    public readonly properties: (string | PropertyAccessor<TObject>)[],
+    public readonly groupFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ) {
+    super(void 0);
   }
 
   public accept(_visitor: IValidationVisitor) {

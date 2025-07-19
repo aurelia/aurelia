@@ -160,7 +160,6 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _canLoad(tr: Transition, next: RouteNode, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caCanLoad, next, this._canLoadHooks.length);
-    const params = next._getParams(this._routerOptions.treatQueryAsParameters);
     const rootCtx = this._ctx.root;
     b._push();
     let promise: Promise<void> = Promise.resolve();
@@ -173,7 +172,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr._run(() => {
-          return hook.canLoad(this._instance, params, next, this._routeNode);
+          return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
@@ -192,7 +191,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr._run(() => {
-          return this._instance.canLoad!(params, next, this._routeNode);
+          return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
@@ -230,12 +229,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */
   public _loading(tr: Transition, next: RouteNode, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caLoading, next, this._loadHooks.length);
-    const params = next._getParams(this._routerOptions.treatQueryAsParameters);
     b._push();
     for (const hook of this._loadHooks) {
       tr._run(() => {
         b._push();
-        return hook.loading(this._instance, params, next, this._routeNode);
+        return hook.loading(this._instance, next.params, next, this._routeNode);
       }, () => {
         b._pop();
       });
@@ -243,7 +241,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasLoad) {
       tr._run(() => {
         b._push();
-        return this._instance.loading!(params, next, this._routeNode);
+        return this._instance.loading!(next.params, next, this._routeNode);
       }, () => {
         b._pop();
       });

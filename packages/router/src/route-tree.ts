@@ -1,7 +1,6 @@
 import {
   emptyObject,
   type ILogger,
-  isArray,
   onResolve,
   onResolveAll,
   Writable,
@@ -269,32 +268,6 @@ export class RouteNode {
       clone.context.node = clone;
     }
     return clone;
-  }
-
-  /**
-   * @internal
-   * @deprecated Will be removed in the next major version.
-   */
-  private _combinedParams: Params | null = null;
-  /**
-   * @internal
-   * @deprecated Will be removed in the next major version.
-   */
-  public _getParams(combineQuery: boolean): Params {
-    if (!combineQuery) return this.params;
-    // the params are configured and hence have a higher priority than the query parameters
-    if (this._combinedParams !== null) return this._combinedParams;
-    const combinedParams: Record<string, string | string[]> = Object.create(null);
-    for (const [key, value] of this.queryParams.entries()) {
-      if (value == null) continue;
-      if (combinedParams[key] == null) {
-        combinedParams[key] = value;
-      } else {
-        const values: string | string[] = combinedParams[key]!;
-        combinedParams[key] = [...(isArray(values) ? values : [values]), ...(isArray(value) ? value : [value])];
-      }
-    }
-    return this._combinedParams = Object.freeze({ ...combinedParams, ...this.params }) as Params;
   }
 
   // Should not be adjust for DEV as it is also used of logging in production build.
@@ -572,7 +545,7 @@ function createConfiguredNode(
             ced.name,
           ));
 
-          if (!viWithVp) {
+          if(!viWithVp) {
             (vi as Writable<ViewportInstruction>).viewport = vpa.viewport.name;
           }
           const router = ctx.container.get(IRouter);

@@ -1,5 +1,5 @@
 ---
-description: Learn how Router handles the re-entrance of the same component and how to override the default behavior.
+description: Learn how Router-Lite handles the re-entrance of the same component and how to override the default behavior.
 ---
 
 # Transition plan

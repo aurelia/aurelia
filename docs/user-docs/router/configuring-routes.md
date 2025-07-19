@@ -1,5 +1,5 @@
 ---
-description: Learn about configuring routes in Router.
+description: Learn about configuring routes in Router-Lite.
 ---
 
 # Configuring Routes

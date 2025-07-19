@@ -1,5 +1,5 @@
 ---
-description: Learn to navigate from one view to another using the Router. Also learn about routing context.
+description: Learn to navigate from one view to another using the Router-Lite. Also learn about routing context.
 ---
 
 # Navigating

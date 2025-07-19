@@ -1,5 +1,5 @@
 ---
-description: Create a navigation menu using navigation model in Router.
+description: Create a navigation menu using navigation model in Router-Lite.
 ---
 
 # Navigation model

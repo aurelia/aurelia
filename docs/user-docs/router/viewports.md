@@ -1,5 +1,5 @@
 ---
-description: Learn about viewports in Router and how to configure hierarchical routing.
+description: Learn about viewports in Router-Lite and how to configure hierarchical routing.
 ---
 
 # Viewports

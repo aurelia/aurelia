@@ -1,5 +1,5 @@
 ---
-description: Learn about configuring the Router-Lite.
+description: Learn about configuring the Router.
 ---
 
 # Router configuration
@@ -418,3 +418,12 @@ routerEvents.subscribe('au:router:navigation-end', (evt: NavigationEndEvent) => 
 ```
 
 This can help debug or log your router's runtime state. See the [ICurrentRoute docs](./configuring-routes.md#retrieving-the-current-route-and-query-parameters) for an example usage.
+
+## Treat query parameters as path parameters
+
+When the `treatQueryAsParameters` property in the router configuration is set to `true`, the router will treat query parameters as path parameters. The default value is `false`.
+
+{% hint style="warning" %}
+This is a temporary option to help developers transitioning from `router-direct` to `router`.
+It will be removed in the future version.
+{% endhint %}

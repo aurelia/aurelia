@@ -259,7 +259,6 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
 }
 
-/* @internal */
 export abstract class RuleWithDynamicMessage<TValue = any, TObject extends IValidateable = IValidateable> extends BaseValidationRule<TValue, TObject> {
   private _explicitMessageKey: string | null = null;
 
@@ -345,7 +344,10 @@ export class GroupRule<TObject extends IValidateable = IValidateable> extends Ru
           `The property '${propertyName}' is not found in the group rule properties: ${properties.map(p => p.name).join(', ')}`
         );
 
-        this._messageKey = result.message as string;
+        const messageKey = this._messageKey = result.message as string;
+        if (messageKey == null) return property;
+
+        ValidationRuleAliasMessage.setDefaultMessage(this, { aliases: [{ name: messageKey, defaultMessage: messageKey }] }, true);
         return property;
       }
     );

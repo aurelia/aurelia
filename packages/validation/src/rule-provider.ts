@@ -171,7 +171,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     let isValid = true;
     const validateRuleset = async (rules: IValidationRule[]) => {
       const validateRule = async (rule: IValidationRule) => {
-        let isValidOrPromise = rule.execute(value, object);
+        let isValidOrPromise = rule.execute(value, object, scope);
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
         }
@@ -412,6 +412,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this.validationRules.ensure<TValue>(property);
   }
 
+  public ensureGroup<TProp extends keyof TObject, TValue>(
+    properties: (TProp | PropertyAccessor<TObject, TValue>)[],
+    validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ): IValidationRules<TObject> {
+    this.latestRule = void 0;
+    return this.validationRules.ensureGroup(properties, validationFunction);
+  }
+
   /**
    * Targets an object with validation rules.
    */
@@ -534,6 +542,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       if (rule == null) {
         ruleProperty = new RuleProperty(expression, name);
         rule = new PropertyRule(this.locator, this, this.messageProvider, ruleProperty);
+        this.rules.push(rule);
       } else {
         ruleProperty = rule.property;
       }

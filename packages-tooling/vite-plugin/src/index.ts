@@ -145,6 +145,7 @@ import {
   IHydrationContext as $$IHC,
   PropertyBinding as $$PB,
   ContentBinding as $$CB,
+  refs as $$refs,
 } from '@aurelia/runtime-html';
 
 // @ts-ignore
@@ -239,13 +240,14 @@ if (${moduleText}.hot) {
       controller.definition = newDefinition;
       console.log('assigning', JSON.stringify(Object.entries(values)));
       Object.assign(controller.viewModel, values);
+      controller.deactivate(controller, controller.parent ?? null, 0);
+      $$refs.clear(h);
       if (controller._hydrateCustomElement) {
         controller._hydrateCustomElement(hydrationInst, hydrationContext);
       } else {
         controller.hE(hydrationInst, hydrationContext);
       }
       h.parentNode.replaceChild(controller.host, h);
-      controller.deactivate(controller, controller.parent ?? null, 0);
       controller.activate(controller, controller.parent ?? null, 0);
     });
   }

@@ -26,6 +26,8 @@ import {
 import {
   BaseValidationRule,
   EqualsRule,
+  GroupRule,
+  GroupValidationResult,
   IValidationMessageProvider,
   LengthRule,
   RangeRule,
@@ -457,6 +459,11 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
   ensure<TValue>(property: string | PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
 
+  ensureGroup<TProp extends keyof TObject, TValue>(
+    properties: (TProp | PropertyAccessor<TObject, TValue>)[],
+    validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ): IValidationRules<TObject>;
+
   /**
    * Targets an object with validation rules.
    */
@@ -501,6 +508,46 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       this.rules.push(rule);
     }
     return rule;
+  }
+
+  public ensureGroup(
+    properties: (keyof TObject | string | PropertyAccessor)[],
+    validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ) {
+    /**
+     * - Parses the properties.
+     * - Finds or creates a rule for each property.
+     * - Creates a new GroupRule with the parsed properties and validation function.
+     * - Adds the new group rule to the rules of each target property
+     */
+    const numProperties = properties.length;
+    if (numProperties === 0) return this;
+
+    const ruleProperties: IRuleProperty[] = new Array(numProperties);
+    const rules: PropertyRule[] = new Array(numProperties);
+
+    for (let i = 0; i < numProperties; ++i) {
+      const [name, expression] = parsePropertyName(properties[i] as any, this.parser);
+      // eslint-disable-next-line eqeqeq
+      let rule = this.rules.find((r) => r.property.name == name);
+      let ruleProperty: IRuleProperty;
+      if (rule == null) {
+        ruleProperty = new RuleProperty(expression, name);
+        rule = new PropertyRule(this.locator, this, this.messageProvider, ruleProperty);
+      } else {
+        ruleProperty = rule.property;
+      }
+      ruleProperties[i] = ruleProperty;
+      rules[i] = rule;
+    }
+
+    const groupRule = new GroupRule(ruleProperties, validationFunction);
+    for (let i = 0; i < numProperties; ++i) {
+      const rule = rules[i];
+      rule.addRule(groupRule);
+    }
+
+    return this;
   }
 
   public ensureObject(): PropertyRule {

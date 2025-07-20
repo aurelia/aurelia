@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Class, DI } from '@aurelia/kernel';
 import { type IsBindingBehavior, IExpressionParser } from '@aurelia/expression-parser';
+import { Class, DI } from '@aurelia/kernel';
+import { Scope } from '@aurelia/runtime';
 import { Deserializer } from './ast-serialization';
 import { IValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
@@ -18,9 +19,10 @@ export interface IValidationRule<TValue = any, TObject extends IValidateable = I
    *
    * @param value - value to validate
    * @param object - target object
-   * @returns {(boolean | Promise<boolean>)} - `true | Promise<true>` if the validation is successful, else `false | Promise<false>`.
+   * @returns {(boolean | IRuleProperty | Promise<boolean | IRuleProperty>)} - `true | Promise<true>` if the validation is successful, else `false | IRuleProperty | Promise<false | IRuleProperty>`.
    */
-  execute(value: TValue, object?: TObject): boolean | Promise<boolean>;
+  execute(value: TValue, object?: TObject): boolean | IRuleProperty | Promise<boolean | IRuleProperty>;
+  execute(value: TValue, object: TObject | undefined, scope: Scope): boolean | IRuleProperty | Promise<boolean | IRuleProperty>;
   accept(visitor: IValidationVisitor): any;
 }
 

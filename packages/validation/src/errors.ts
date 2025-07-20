@@ -19,6 +19,9 @@ export const enum ErrorNames {
   hydrate_rule_not_an_array = 4104,
   hydrate_rule_unsupported = 4105,
   hydrate_rule_invalid_name = 4106,
+
+  group_rule_no_scope = 4107,
+  group_rule_invalid_execution_result = 4108,
 }
 _END_CONST_ENUM();
 
@@ -33,6 +36,9 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.hydrate_rule_not_an_array]: 'The ruleset has to be an array of serialized property rule objects',
   [ErrorNames.hydrate_rule_unsupported]: `Unsupported rule {{0}}`,
   [ErrorNames.hydrate_rule_invalid_name]: 'The property name needs to be a non-empty string, encountered: {{0}}',
+
+  [ErrorNames.group_rule_no_scope]: 'GroupRule cannot be executed without a scope.',
+  [ErrorNames.group_rule_invalid_execution_result]: 'GroupRule execution result is invalid.',
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

@@ -1,43 +1,43 @@
-import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
+  AccessScopeExpression,
   IExpressionParser,
   Interpolation,
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
-  AccessScopeExpression,
 } from '@aurelia/expression-parser';
+import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
-  Scope,
   type IAstEvaluator,
+  Scope,
   astEvaluate,
   mixinNoopAstEvaluator,
 } from '@aurelia/runtime';
+import { ErrorNames, createMappedError } from './errors';
 import {
-  ValidationRuleAlias,
-  RequiredRule,
-  RegexRule,
-  LengthRule,
-  SizeRule,
-  RangeRule,
-  EqualsRule,
-  IValidationMessageProvider,
-  ValidationRuleAliasMessage,
-  BaseValidationRule,
-  StateRule,
-  explicitMessageKey,
-} from './rules';
-import {
-  IValidateable,
-  ValidationRuleExecutionPredicate,
-  IValidationVisitor,
-  ValidationDisplayNameAccessor,
-  IRuleProperty,
   IPropertyRule,
+  IRuleProperty,
+  IValidateable,
   IValidationExpressionHydrator,
   IValidationRule,
+  IValidationVisitor,
+  ValidationDisplayNameAccessor,
+  ValidationRuleExecutionPredicate
 } from './rule-interfaces';
+import {
+  BaseValidationRule,
+  EqualsRule,
+  IValidationMessageProvider,
+  LengthRule,
+  RangeRule,
+  RegexRule,
+  RequiredRule,
+  SizeRule,
+  StateRule,
+  ValidationRuleAlias,
+  ValidationRuleAliasMessage,
+  explicitMessageKey,
+} from './rules';
 import { defineMetadata, deleteMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
-import { ErrorNames, createMappedError } from './errors';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
@@ -173,10 +173,11 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
         }
-        isValid = isValid && isValidOrPromise;
-        const { displayName, name } = this.property;
+        const isPropertyValid = isValidOrPromise === true;
+        isValid = isValid && isPropertyValid;
+        const { displayName, name } = typeof isValidOrPromise === 'object' && isValidOrPromise.name != null ? isValidOrPromise : this.property;
         let message: string | undefined;
-        if (!isValidOrPromise) {
+        if (!isPropertyValid) {
           const messageEvaluationScope = Scope.create(
             new ValidationMessageEvaluationContext(
               this.messageProvider,
@@ -188,7 +189,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
             ));
           message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
         }
-        return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
+        return new ValidationResult(isPropertyValid, message, name, object, rule, this);
       };
 
       const promises: Promise<ValidationResult>[] = [];
@@ -620,7 +621,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
-  protected registeredMessages: WeakMap<IValidationRule, Map<string|symbol, Interpolation | PrimitiveLiteralExpression>> = new WeakMap();
+  protected registeredMessages: WeakMap<IValidationRule, Map<string | symbol, Interpolation | PrimitiveLiteralExpression>> = new WeakMap();
 
   public parser: IExpressionParser = resolve(IExpressionParser);
   public constructor(

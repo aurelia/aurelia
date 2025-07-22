@@ -348,6 +348,8 @@ export class GroupRule<TObject extends IValidateable = IValidateable> extends Ru
         if (messageKey == null) return property;
 
         ValidationRuleAliasMessage.setDefaultMessage(this, { aliases: [{ name: messageKey, defaultMessage: messageKey }] }, true);
+
+        //TODO: return results for all properties in the group: {valid: boolean, message?: string, property: IRuleProperty}[]
         return property;
       }
     );

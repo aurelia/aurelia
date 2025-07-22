@@ -5,7 +5,7 @@ import {
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
-import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
+import { Class, DI, ILogger, IServiceLocator, resolve, toArray } from '@aurelia/kernel';
 import {
   type IAstEvaluator,
   Scope,
@@ -170,14 +170,19 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
     let isValid = true;
     const validateRuleset = async (rules: IValidationRule[]) => {
-      const validateRule = async (rule: IValidationRule) => {
-        let isValidOrPromise = rule.execute(value, object, scope);
+      async function validateRule(this: PropertyRule, rule: IValidationRule) {
+        let isValidOrPromise = rule.execute(value, object, scope!);
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
         }
         const isPropertyValid = isValidOrPromise === true;
         isValid = isValid && isPropertyValid;
-        const { displayName, name } = typeof isValidOrPromise === 'object' && isValidOrPromise.name != null ? isValidOrPromise : this.property;
+        const isDifferentProperty = typeof isValidOrPromise === 'object' && isValidOrPromise.name != null && !Object.is(isValidOrPromise, this.property);
+
+        const validationResults: ValidationResult[] = [];
+        if (isDifferentProperty) validationResults.push(new ValidationResult(true, void 0, this.property.name, object, rule, this));
+
+        const { displayName, name } = isDifferentProperty ? isValidOrPromise as IRuleProperty : this.property;
         let message: string | undefined;
         if (!isPropertyValid) {
           const messageEvaluationScope = Scope.create(
@@ -191,16 +196,17 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
             ));
           message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
         }
-        return new ValidationResult(isPropertyValid, message, name, object, rule, this);
-      };
+        validationResults.push(new ValidationResult(isPropertyValid, message, name, object, rule, this));
+        return validationResults;
+      }
 
-      const promises: Promise<ValidationResult>[] = [];
+      const promises: Promise<ValidationResult[]>[] = [];
       for (const rule of rules) {
         if (rule.canExecute(object) && (tag === void 0 || rule.tag === tag)) {
-          promises.push(validateRule(rule));
+          promises.push(validateRule.call(this, rule));
         }
       }
-      return Promise.all(promises);
+      return toArray(await Promise.all(promises)).flat();
     };
     const accumulateResult = async (results: ValidationResult[], rules: IValidationRule[]) => {
       const result = await validateRuleset(rules);

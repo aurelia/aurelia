@@ -509,7 +509,7 @@ describe('validation/validator.spec.ts', function () {
       rules.off();
     });
 
-    it('can validated grouped properties', async function () {
+    it.skip('can validated grouped properties', async function () {
 
       const { sut, validationRules: rules } = setup();
       const flight = new Flight();

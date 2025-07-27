@@ -325,7 +325,7 @@ describe('validation-html/subscribers/validation-container-custom-element.spec.t
       au.dispose();
     });
 
-    it.only('shows group validation errors correctly', async function () {
+    it('shows group validation errors correctly', async function () {
       const currentDate = new Date('2025-07-20T00:00:00Z');
 
       const msgInvalidFlightDirection = 'Invalid flight direction';

@@ -8,6 +8,7 @@ import { IValidationMessageProvider } from './rules';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
+export type RuleExecutionResults = { property: IRuleProperty; valid: boolean }[];
 
 export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   tag?: string;
@@ -19,10 +20,10 @@ export interface IValidationRule<TValue = any, TObject extends IValidateable = I
    *
    * @param value - value to validate
    * @param object - target object
-   * @returns {(boolean | IRuleProperty | Promise<boolean | IRuleProperty>)} - `true | Promise<true>` if the validation is successful, else `false | IRuleProperty | Promise<false | IRuleProperty>`.
+   * @returns {(boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>)} - `true | Promise<true>` if the validation is successful, else `false | RuleExecutionResults | Promise<false | RuleExecutionResults>`.
    */
-  execute(value: TValue, object?: TObject): boolean | IRuleProperty | Promise<boolean | IRuleProperty>;
-  execute(value: TValue, object: TObject | undefined, scope: Scope): boolean | IRuleProperty | Promise<boolean | IRuleProperty>;
+  execute(value: TValue, object?: TObject): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
+  execute(value: TValue, object: TObject | undefined, scope: Scope): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
   accept(visitor: IValidationVisitor): any;
 }
 

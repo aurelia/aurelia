@@ -22,6 +22,8 @@ export const enum ErrorNames {
 
   group_rule_no_scope = 4107,
   group_rule_invalid_execution_result = 4108,
+
+  invalid_rule_execution_result = 4109,
 }
 _END_CONST_ENUM();
 
@@ -39,6 +41,7 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.group_rule_no_scope]: 'GroupRule cannot be executed without a scope.',
   [ErrorNames.group_rule_invalid_execution_result]: 'GroupRule execution result is invalid.',
+  [ErrorNames.invalid_rule_execution_result]: 'Invalid rule execution result.',
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

@@ -13,6 +13,7 @@ import {
   IValidateable,
   IValidationRule,
   IValidationVisitor,
+  RuleExecutionResults,
   ValidationDisplayNameAccessor
 } from './rule-interfaces';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
@@ -104,7 +105,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
     this._messageKey = messageKey;
   }
   public canExecute(_object?: IValidateable): boolean { return true; }
-  public execute(_value: TValue, _object?: TObject): boolean | IRuleProperty | Promise<boolean | IRuleProperty> {
+  public execute(_value: TValue, _object?: TObject): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults> {
     throw createMappedError(ErrorNames.method_not_implemented, 'execute');
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -312,9 +313,9 @@ export class GroupRule<TObject extends IValidateable = IValidateable> extends Ru
     super(void 0);
   }
 
-  public execute(value: unknown, object?: TObject): boolean | IRuleProperty | Promise<boolean | IRuleProperty>;
-  public execute(value: unknown, object: TObject | undefined, scope: Scope): boolean | IRuleProperty | Promise<boolean | IRuleProperty>;
-  public execute(_value: unknown, _object: IValidateable | undefined, scope?: Scope): boolean | IRuleProperty | Promise<boolean | IRuleProperty> {
+  public execute(value: unknown, object?: TObject): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
+  public execute(value: unknown, object: TObject | undefined, scope: Scope): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
+  public execute(_value: unknown, _object: IValidateable | undefined, scope?: Scope): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults> {
     // basic sanity check
     if (scope == null) throw createMappedError(ErrorNames.group_rule_no_scope);
 
@@ -333,24 +334,34 @@ export class GroupRule<TObject extends IValidateable = IValidateable> extends Ru
     return onResolve(
       this.groupFunction.apply(null, values),
       result => {
-        if (typeof result === 'boolean') return result;
+        if (typeof result === 'boolean') return properties.map(property => ({ property, valid: result }));
 
         const propertyName = result.property;
         if (propertyName == null) throw createMappedError(ErrorNames.group_rule_invalid_execution_result, 'The property name is missing.');
 
-        const property = properties.find(p => p.name === propertyName);
-        if (property == null) throw createMappedError(
+        let found = false;
+        const results: RuleExecutionResults = new Array(numProperties);
+        for (let i = 0; i < numProperties; ++i) {
+          const property = properties[i];
+          let valid = true;
+          if (!found && property.name === propertyName) {
+            found = true;
+            valid = false;
+          }
+          results[i] = { property, valid };
+        }
+
+        if (!found) throw createMappedError(
           ErrorNames.group_rule_invalid_execution_result,
           `The property '${propertyName}' is not found in the group rule properties: ${properties.map(p => p.name).join(', ')}`
         );
 
         const messageKey = this._messageKey = result.message as string;
-        if (messageKey == null) return property;
+        if (messageKey == null) return results;
 
         ValidationRuleAliasMessage.setDefaultMessage(this, { aliases: [{ name: messageKey, defaultMessage: messageKey }] }, true);
 
-        //TODO: return results for all properties in the group: {valid: boolean, message?: string, property: IRuleProperty}[]
-        return property;
+        return results;
       }
     );
   }

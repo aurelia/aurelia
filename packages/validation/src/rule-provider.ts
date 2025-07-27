@@ -5,7 +5,7 @@ import {
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
-import { Class, DI, ILogger, IServiceLocator, resolve, toArray } from '@aurelia/kernel';
+import { Class, DI, ILogger, isArray, IServiceLocator, resolve, toArray } from '@aurelia/kernel';
 import {
   type IAstEvaluator,
   Scope,
@@ -175,29 +175,42 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
         }
-        const isPropertyValid = isValidOrPromise === true;
-        isValid = isValid && isPropertyValid;
-        const isDifferentProperty = typeof isValidOrPromise === 'object' && isValidOrPromise.name != null && !Object.is(isValidOrPromise, this.property);
-
-        const validationResults: ValidationResult[] = [];
-        if (isDifferentProperty) validationResults.push(new ValidationResult(true, void 0, this.property.name, object, rule, this));
-
-        const { displayName, name } = isDifferentProperty ? isValidOrPromise as IRuleProperty : this.property;
-        let message: string | undefined;
-        if (!isPropertyValid) {
-          const messageEvaluationScope = Scope.create(
-            new ValidationMessageEvaluationContext(
-              this.messageProvider,
-              this.messageProvider.getDisplayName(name, displayName),
-              name,
-              value,
-              rule,
-              object,
-            ));
-          message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
+        switch (true) {
+          case isValidOrPromise === true:
+            isValid = isValid && true;
+            return [new ValidationResult(true, void 0, this.property.name, object, rule, this)];
+          case isValidOrPromise === false:
+            isValid = isValid && false;
+            return [createValidationResult.call(this, false, this.property)];
+          case isArray(isValidOrPromise): {
+            const length = isValidOrPromise.length;
+            const validationResults: ValidationResult[] = new Array(length);
+            for (let i = 0; i < length; ++i) {
+              const { property, valid } = isValidOrPromise[i];
+              isValid = isValid && valid;
+              validationResults[i] = createValidationResult.call(this, valid, property);
+            }
+            return validationResults;
+          }
+          default: throw createMappedError(ErrorNames.invalid_rule_execution_result, isValidOrPromise);
         }
-        validationResults.push(new ValidationResult(isPropertyValid, message, name, object, rule, this));
-        return validationResults;
+
+        function createValidationResult(this: PropertyRule, valid: boolean, property: IRuleProperty) {
+          let message: string | undefined;
+          if (!valid) {
+            const messageEvaluationScope = Scope.create(
+              new ValidationMessageEvaluationContext(
+                this.messageProvider,
+                this.messageProvider.getDisplayName(property.name, property.displayName),
+                property.name,
+                value,
+                rule,
+                object,
+              ));
+            message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
+          }
+          return new ValidationResult(valid, message, property.name, object, rule, this);
+        }
       }
 
       const promises: Promise<ValidationResult[]>[] = [];

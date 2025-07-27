@@ -302,9 +302,15 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
   }
 }
 
-export type GroupValidationResult = true | { property: string; message?: string };
+export function isGroupRule(rule: IValidationRule): rule is GroupRule {
+  return (rule as GroupRule)[groupRuleMarker] === true;
+}
 
+const groupRuleMarker = Symbol.for('au:validation:group-rule');
+export type GroupValidationResult = true | { property: string; message?: string };
 export class GroupRule<TObject extends IValidateable = IValidateable> extends RuleWithDynamicMessage<unknown, TObject> {
+
+  private get [groupRuleMarker](): true { return true; }
 
   public constructor(
     private readonly properties: IRuleProperty[],

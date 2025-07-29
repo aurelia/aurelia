@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.24",
+  "version": "2.0.0-beta.25",
   "port": 9013,
   "scripts": {
     "dev": "cross-env APP_PORT=9013 webpack serve",
@@ -18,12 +18,12 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "aurelia": "2.0.0-beta.24",
-    "@aurelia/router": "2.0.0-beta.24",
-    "@aurelia/router-direct": "2.0.0-beta.24"
+    "aurelia": "2.0.0-beta.25",
+    "@aurelia/router": "2.0.0-beta.25",
+    "@aurelia/router-direct": "2.0.0-beta.25"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.0.0-beta.24",
+    "@aurelia/webpack-loader": "2.0.0-beta.25",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "array-flatten": "^3.0.0",

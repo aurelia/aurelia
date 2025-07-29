@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Bug Fixes:
+
+* **vite:** detect production build mode better (#2194) ([e483a92](https://github.com/aurelia/aurelia/commit/e483a92))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

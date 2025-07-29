@@ -618,6 +618,6 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     }
 
     assert.notStrictEqual(err, null, `Should have thrown an error`);
-    assert.strictEqual(err.message, `Side-effect detected in computed getter 'get options': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`);
+    assert.strictEqual(err.message, `AUR0227:get options`);
   });
 });

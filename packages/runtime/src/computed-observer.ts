@@ -116,7 +116,6 @@ export class ComputedObserver<T extends object> implements
     }
     if (this._isDirty) {
       this.compute();
-      this._isDirty = false;
       this._notified = false;
     }
     return this._value;
@@ -208,11 +207,11 @@ export class ComputedObserver<T extends object> implements
 
   /** @internal */
   private _run() {
-      const currValue = this._value;
-      const oldValue = this._oldValue;
-      const newValue = this.compute();
+    const currValue = this._value;
+    const oldValue = this._oldValue;
+    const newValue = this.compute();
 
-      this._isDirty = false;
+    this._isDirty = false;
 
     // there's case where the _value property was updated without notifying subscribers
     // such is the case when this computed observer value was requested
@@ -222,17 +221,18 @@ export class ComputedObserver<T extends object> implements
     // (subscriber of this observer requests value -> this observer re-computes -> subscribers gets updated)
     // so we are only notifying subscribers when it's the actual notify phase
 
-      if (!this._notified || !areEqual(newValue, currValue)) {
-        // todo: wrong timing, this should be after notify
-        this._callback?.(newValue, oldValue);
-        this.subs.notify(newValue, oldValue);
-        this._oldValue = this._value = newValue;
-        this._notified = true;
-      }
-
+    if (!this._notified || !areEqual(newValue, currValue)) {
+      // todo: wrong timing, this should be after notify
+      this._callback?.(newValue, oldValue);
+      this.subs.notify(newValue, oldValue);
+      this._oldValue = this._value = newValue;
+      this._notified = true;
+    }
   }
 
   private compute(): unknown {
+    this._isDirty = false;
+
     let value: unknown;
     let error: Error | undefined;
     this.obs.version++;
@@ -247,11 +247,13 @@ export class ComputedObserver<T extends object> implements
     }
 
     if (error) {
+      // ensure we remain dirty if computation fails.
+      this._isDirty = true;
       throw error;
     }
 
     if (this._isDirty) {
-      throw new Error(`Side-effect detected in computed getter '${this.$get.name}': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`);
+      throw createMappedError(ErrorNames.computed_mutating, this.$get.name ?? this.$get.toString());
     }
 
     return this._value = value;

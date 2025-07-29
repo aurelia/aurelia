@@ -233,11 +233,16 @@ export class ComputedObserver<T extends object> implements
   private compute(): unknown {
     this._isDirty = false;
 
-    let value: unknown;
     this.obs.version++;
     try {
       enterConnectable(this);
-      value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+      const value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+
+      if (this._isDirty) {
+        throw createMappedError(ErrorNames.computed_mutating, this.$get.name ?? this.$get.toString());
+      }
+
+      return this._value = value;
     } catch (e) {
       this._isDirty = true;
       throw e;
@@ -245,11 +250,5 @@ export class ComputedObserver<T extends object> implements
       this.obs.clear();
       exitConnectable(this);
     }
-
-    if (this._isDirty) {
-      throw createMappedError(ErrorNames.computed_mutating, this.$get.name ?? this.$get.toString());
-    }
-
-    return this._value = value;
   }
 }

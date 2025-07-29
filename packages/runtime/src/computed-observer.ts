@@ -234,22 +234,16 @@ export class ComputedObserver<T extends object> implements
     this._isDirty = false;
 
     let value: unknown;
-    let error: Error | undefined;
     this.obs.version++;
     try {
       enterConnectable(this);
       value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
     } catch (e) {
-      error = e as Error;
+      this._isDirty = true;
+      throw e;
     } finally {
       this.obs.clear();
       exitConnectable(this);
-    }
-
-    if (error) {
-      // ensure we remain dirty if computation fails.
-      this._isDirty = true;
-      throw error;
     }
 
     if (this._isDirty) {

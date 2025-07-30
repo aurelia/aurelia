@@ -6,12 +6,7 @@
 
 * [Quick start](getting-started/quick-install-guide.md)
 * [Aurelia for new developers](getting-started/aurelia-for-new-developers.md)
-* [Hello world](getting-started/quick-start-guide/README.md)
-  * [Creating your first app](getting-started/quick-start-guide/creating-your-first-app.md)
-  * [Your first component - part 1: the view model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
-  * [Your first component - part 2: the view](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
-  * [Running our app](getting-started/quick-start-guide/running-our-app.md)
-  * [Next steps](getting-started/quick-start-guide/next-steps.md)
+* [Hello world tutorial](getting-started/quick-start-guide/README.md)
 
 ## Templates
 

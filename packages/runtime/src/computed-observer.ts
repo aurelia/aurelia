@@ -116,7 +116,6 @@ export class ComputedObserver<T extends object> implements
     }
     if (this._isDirty) {
       this.compute();
-      this._isDirty = false;
       this._notified = false;
     }
     return this._value;
@@ -208,11 +207,11 @@ export class ComputedObserver<T extends object> implements
 
   /** @internal */
   private _run() {
-      const currValue = this._value;
-      const oldValue = this._oldValue;
-      const newValue = this.compute();
+    const currValue = this._value;
+    const oldValue = this._oldValue;
+    const newValue = this.compute();
 
-      this._isDirty = false;
+    this._isDirty = false;
 
     // there's case where the _value property was updated without notifying subscribers
     // such is the case when this computed observer value was requested
@@ -222,21 +221,31 @@ export class ComputedObserver<T extends object> implements
     // (subscriber of this observer requests value -> this observer re-computes -> subscribers gets updated)
     // so we are only notifying subscribers when it's the actual notify phase
 
-      if (!this._notified || !areEqual(newValue, currValue)) {
-        // todo: wrong timing, this should be after notify
-        this._callback?.(newValue, oldValue);
-        this.subs.notify(newValue, oldValue);
-        this._oldValue = this._value = newValue;
-        this._notified = true;
-      }
-
+    if (!this._notified || !areEqual(newValue, currValue)) {
+      // todo: wrong timing, this should be after notify
+      this._callback?.(newValue, oldValue);
+      this.subs.notify(newValue, oldValue);
+      this._oldValue = this._value = newValue;
+      this._notified = true;
+    }
   }
 
   private compute(): unknown {
+    this._isDirty = false;
+
     this.obs.version++;
     try {
       enterConnectable(this);
-      return this._value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+      const value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+
+      if (this._isDirty) {
+        throw createMappedError(ErrorNames.computed_mutating, this.$get.name ?? this.$get.toString());
+      }
+
+      return this._value = value;
+    } catch (e) {
+      this._isDirty = true;
+      throw e;
     } finally {
       this.obs.clear();
       exitConnectable(this);

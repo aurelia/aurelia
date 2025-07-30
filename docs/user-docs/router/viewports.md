@@ -1,16 +1,39 @@
 ---
-description: Learn about viewports in Router-Lite and how to configure hierarchical routing.
+description: Learn about viewports in Aurelia router and how to create complex layouts with hierarchical and sibling viewports.
 ---
 
 # Viewports
 
-The `<au-viewport>` element, or commonly referred to as viewport (not to confuse with [`viewport` meta tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag)), is the "outlet", where the router attaches/loads the components.
-For a basic example of viewport, please refer the ["Getting started"-tutorial](./getting-started.md).
-Most of the examples in the preceding sections show the usage of only a single viewport.
-However, you can use multiple viewports with the sibling viewports and hierarchical routing.
-These are useful to create different routing layouts.
-In the subsequent sections, we first discuss about that.
-Later in this part of the documentation, we focus on the different configuration options available for viewports.
+Viewports are the foundation of Aurelia's routing system. The `<au-viewport>` element serves as the "outlet" where the router renders routed components. Understanding viewports is essential for creating complex application layouts with multiple content areas, nested routing, and dynamic UI structures.
+
+## Viewport Concepts Overview
+
+| Concept | Description | Use Case |
+|---------|-------------|----------|
+| **Single Viewport** | One content area | Simple page navigation |
+| **Hierarchical Viewports** | Parent-child relationships | Master-detail layouts, nested navigation |
+| **Sibling Viewports** | Multiple viewports at same level | Multi-panel dashboards, split layouts |
+| **Named Viewports** | Explicitly named outlets | Target specific content areas |
+
+## Viewport Configuration Options
+
+The `<au-viewport>` element supports several configuration attributes:
+
+```html
+<au-viewport 
+  name="main"                    <!-- Viewport identifier -->
+  used-by="specific-component"   <!-- Reserve for specific component -->
+  default="home-component"       <!-- Default component to load -->
+  fallback="not-found">          <!-- Fallback for unknown routes -->
+</au-viewport>
+```
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Unique identifier for targeting this viewport |
+| `used-by` | `string` | Restricts viewport to specific component type |
+| `default` | `string` | Component to load when viewport is empty |
+| `fallback` | `string \| function` | Handles unknown routes or components |
 
 ## Hierarchical routing
 
@@ -540,3 +563,475 @@ export class MyApp {
 You can also see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-fallback-using-function-vafyn8?ctl=1&embed=1&file=src/my-app.html" %}
+
+## Advanced Viewport Patterns
+
+### Multi-Panel Dashboard Layout
+
+Create complex dashboard layouts with multiple independent content areas:
+
+```typescript
+// dashboard.ts
+import { route } from '@aurelia/router';
+import { customElement } from '@aurelia/runtime-html';
+
+@route({
+  routes: [
+    { path: 'overview', component: import('./overview'), viewport: 'main' },
+    { path: 'analytics', component: import('./analytics'), viewport: 'main' },
+    { path: 'settings', component: import('./settings'), viewport: 'main' },
+    
+    // Sidebar components
+    { path: 'nav', component: import('./navigation'), viewport: 'sidebar' },
+    { path: 'user-info', component: import('./user-info'), viewport: 'sidebar' },
+    
+    // Modal/overlay components  
+    { path: 'notifications', component: import('./notifications'), viewport: 'overlay' },
+    { path: 'help', component: import('./help-overlay'), viewport: 'overlay' },
+  ]
+})
+@customElement({
+  name: 'dashboard',
+  template: `
+    <div class="dashboard-layout">
+      <aside class="sidebar">
+        <au-viewport name="sidebar" default="nav"></au-viewport>
+      </aside>
+      
+      <main class="main-content">
+        <au-viewport name="main" default="overview"></au-viewport>
+      </main>
+      
+      <div class="overlay-container">
+        <au-viewport name="overlay" fallback=""></au-viewport>
+      </div>
+    </div>
+  `
+})
+export class Dashboard {}
+```
+
+```css
+/* dashboard.css */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  position: relative;
+}
+
+.sidebar {
+  background: #f5f5f5;
+  border-right: 1px solid #ddd;
+}
+
+.main-content {
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.overlay-container > * {
+  pointer-events: auto;
+}
+```
+
+### Conditional Viewport Rendering
+
+Show different viewport configurations based on user permissions or application state:
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { customElement, observable } from '@aurelia/runtime-html';
+import { route, IRouter } from '@aurelia/router';
+
+interface UserService {
+  currentUser: { role: string; permissions: string[] } | null;
+  hasPermission(permission: string): boolean;
+}
+
+@route({
+  routes: [
+    { path: 'admin', component: import('./admin-panel'), viewport: 'admin' },
+    { path: 'user', component: import('./user-panel'), viewport: 'user' },
+    { path: 'public', component: import('./public-content'), viewport: 'main' },
+  ]
+})
+@customElement({
+  name: 'conditional-app',
+  template: `
+    <div class="app-container">
+      <nav>
+        <a href="public">Public</a>
+        <a href="user" if.bind="isLoggedIn">User Area</a>
+        <a href="admin" if.bind="isAdmin">Admin</a>
+      </nav>
+      
+      <!-- Admin layout -->
+      <div if.bind="isAdmin" class="admin-layout">
+        <au-viewport name="admin" fallback="access-denied"></au-viewport>
+      </div>
+      
+      <!-- User layout -->
+      <div else-if.bind="isLoggedIn" class="user-layout">
+        <au-viewport name="user" fallback="user-home"></au-viewport>
+      </div>
+      
+      <!-- Public layout -->
+      <div else class="public-layout">
+        <au-viewport name="main" default="public"></au-viewport>
+      </div>
+    </div>
+  `
+})
+export class ConditionalApp {
+  private readonly userService: UserService = resolve(UserService);
+  private readonly router: IRouter = resolve(IRouter);
+
+  get isLoggedIn(): boolean {
+    return this.userService.currentUser !== null;
+  }
+
+  get isAdmin(): boolean {
+    return this.userService.hasPermission('admin');
+  }
+}
+```
+
+### Dynamic Viewport Creation
+
+Create viewports dynamically based on configuration or user preferences:
+
+```typescript
+import { customElement, observable } from '@aurelia/runtime-html';
+import { route } from '@aurelia/router';
+
+interface PanelConfig {
+  id: string;
+  name: string;
+  component: string;
+  defaultSize: number;
+}
+
+@customElement({
+  name: 'dynamic-layout',
+  template: `
+    <div class="dynamic-container">
+      <div class="panel-controls">
+        <button repeat.for="config of availablePanels"
+                click.trigger="togglePanel(config)"
+                class="\${activePanels.includes(config.id) ? 'active' : ''}">
+          \${config.name}
+        </button>
+      </div>
+      
+      <div class="panels-container" 
+           style="grid-template-columns: \${gridTemplate}">
+        <div repeat.for="panelId of activePanels" 
+             class="panel">
+          <au-viewport name="\${panelId}" 
+                       default="\${getPanelComponent(panelId)}">
+          </au-viewport>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class DynamicLayout {
+  @observable activePanels: string[] = ['main'];
+  
+  availablePanels: PanelConfig[] = [
+    { id: 'main', name: 'Main Content', component: 'main-content', defaultSize: 2 },
+    { id: 'sidebar', name: 'Sidebar', component: 'sidebar-content', defaultSize: 1 },
+    { id: 'details', name: 'Details', component: 'details-panel', defaultSize: 1 },
+    { id: 'tools', name: 'Tools', component: 'tools-panel', defaultSize: 1 },
+  ];
+
+  get gridTemplate(): string {
+    return this.activePanels
+      .map(id => this.getPanelSize(id) + 'fr')
+      .join(' ');
+  }
+
+  togglePanel(config: PanelConfig): void {
+    const index = this.activePanels.indexOf(config.id);
+    if (index === -1) {
+      this.activePanels.push(config.id);
+    } else if (this.activePanels.length > 1) { // Keep at least one panel
+      this.activePanels.splice(index, 1);
+    }
+  }
+
+  getPanelComponent(panelId: string): string {
+    return this.availablePanels.find(p => p.id === panelId)?.component || '';
+  }
+
+  getPanelSize(panelId: string): number {
+    return this.availablePanels.find(p => p.id === panelId)?.defaultSize || 1;
+  }
+}
+```
+
+### Layout with Auxiliary Content Areas
+
+Create layouts with auxiliary content areas that can show contextual information or tools:
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { customElement, observable } from '@aurelia/runtime-html';
+import { route, IRouter } from '@aurelia/router';
+
+@route({
+  routes: [
+    // Main content routes
+    { path: 'documents', component: import('./documents'), viewport: 'main' },
+    { path: 'projects', component: import('./projects'), viewport: 'main' },
+    
+    // Auxiliary content routes
+    { path: 'document-tools', component: import('./document-tools'), viewport: 'tools' },
+    { path: 'project-tools', component: import('./project-tools'), viewport: 'tools' },
+    { path: 'inspector', component: import('./property-inspector'), viewport: 'sidebar' },
+    { path: 'outline', component: import('./document-outline'), viewport: 'sidebar' },
+  ]
+})
+@customElement({
+  name: 'workspace-app',
+  template: `
+    <div class="workspace-layout">
+      <header class="toolbar">
+        <nav>
+          <a href="documents">Documents</a>
+          <a href="projects">Projects</a>
+        </nav>
+        <div class="tool-controls">
+          <button click.trigger="showTools('document-tools')">Doc Tools</button>
+          <button click.trigger="showSidebar('inspector')">Inspector</button>
+          <button click.trigger="showSidebar('outline')">Outline</button>
+        </div>
+      </header>
+      
+      <main class="main-content">
+        <au-viewport name="main" default="documents"></au-viewport>
+      </main>
+      
+      <aside class="tools-panel \${showToolsPanel ? 'visible' : 'hidden'}">
+        <au-viewport name="tools" fallback=""></au-viewport>
+      </aside>
+      
+      <aside class="sidebar-panel \${showSidebarPanel ? 'visible' : 'hidden'}">
+        <au-viewport name="sidebar" fallback=""></au-viewport>
+      </aside>
+    </div>
+  `
+})
+export class WorkspaceApp {
+  private readonly router: IRouter = resolve(IRouter);
+  @observable showToolsPanel: boolean = false;
+  @observable showSidebarPanel: boolean = false;
+
+  async showTools(toolsRoute: string): Promise<void> {
+    await this.router.load(toolsRoute);
+    this.showToolsPanel = true;
+  }
+
+  async showSidebar(sidebarRoute: string): Promise<void> {
+    await this.router.load(sidebarRoute);
+    this.showSidebarPanel = true;
+  }
+
+  async hideTools(): Promise<void> {
+    this.showToolsPanel = false;
+  }
+
+  async hideSidebar(): Promise<void> {
+    this.showSidebarPanel = false;
+  }
+}
+```
+
+```css
+/* modal.css */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+```
+
+### Responsive Viewport Layouts
+
+Adapt viewport layouts based on screen size:
+
+```typescript
+import { customElement, observable } from '@aurelia/runtime-html';
+import { route } from '@aurelia/router';
+
+@route({
+  routes: [
+    { path: 'content', component: import('./main-content'), viewport: 'main' },
+    { path: 'sidebar', component: import('./sidebar'), viewport: 'sidebar' },
+    { path: 'mobile-menu', component: import('./mobile-menu'), viewport: 'mobile' },
+  ]
+})
+@customElement({
+  name: 'responsive-layout',
+  template: `
+    <div class="responsive-container \${layoutClass}">
+      <!-- Desktop/Tablet Layout -->
+      <div if.bind="!isMobile" class="desktop-layout">
+        <aside class="sidebar">
+          <au-viewport name="sidebar" default="sidebar"></au-viewport>
+        </aside>
+        <main class="main-content">
+          <au-viewport name="main" default="content"></au-viewport>
+        </main>
+      </div>
+      
+      <!-- Mobile Layout -->
+      <div if.bind="isMobile" class="mobile-layout">
+        <header class="mobile-header">
+          <button click.trigger="toggleMobileMenu()" class="menu-btn">
+            ☰ Menu
+          </button>
+        </header>
+        
+        <main class="mobile-main">
+          <au-viewport name="main" default="content"></au-viewport>
+        </main>
+        
+        <div class="mobile-menu \${showMobileMenu ? 'open' : 'closed'}">
+          <au-viewport name="mobile" default="mobile-menu"></au-viewport>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class ResponsiveLayout {
+  @observable isMobile: boolean = false;
+  @observable showMobileMenu: boolean = false;
+
+  constructor() {
+    this.checkScreenSize();
+    window.addEventListener('resize', () => this.checkScreenSize());
+  }
+
+  get layoutClass(): string {
+    return this.isMobile ? 'mobile' : 'desktop';
+  }
+
+  private checkScreenSize(): void {
+    this.isMobile = window.innerWidth < 768;
+    if (!this.isMobile) {
+      this.showMobileMenu = false;
+    }
+  }
+
+  toggleMobileMenu(): void {
+    this.showMobileMenu = !this.showMobileMenu;
+  }
+}
+```
+
+## Best Practices for Viewports
+
+### Viewport Naming Conventions
+
+Use consistent, descriptive names for your viewports:
+
+```typescript
+// ✅ Good naming
+<au-viewport name="main-content"></au-viewport>
+<au-viewport name="sidebar-navigation"></au-viewport>
+<au-viewport name="modal-overlay"></au-viewport>
+<au-viewport name="user-profile-details"></au-viewport>
+
+// ❌ Avoid generic names when you have multiple viewports
+<au-viewport name="viewport1"></au-viewport>
+<au-viewport name="content"></au-viewport>
+<au-viewport name="area"></au-viewport>
+```
+
+### Performance Considerations
+
+1. **Lazy load viewport content** when possible:
+```typescript
+// Use dynamic imports for non-critical viewports
+{ path: 'admin', component: () => import('./admin-panel'), viewport: 'admin' }
+```
+
+2. **Limit active viewports** to prevent memory issues:
+```typescript
+// Use fallback="" for optional viewports
+<au-viewport name="optional-panel" fallback=""></au-viewport>
+```
+
+3. **Use appropriate transition plans** to control re-rendering:
+```typescript
+// Prevent unnecessary re-creation of components
+{ path: 'cached-content', component: CachedComponent, transitionPlan: 'invoke-lifecycles' }
+```
+
+### Error Handling
+
+Always provide appropriate fallbacks for viewports:
+
+```typescript
+@customElement({
+  template: `
+    <au-viewport name="main" 
+                 fallback="error-component"
+                 default="home-component">
+    </au-viewport>
+  `
+})
+export class RobustApp {
+  // Fallback function for complex error handling
+  getFallback(instruction: ViewportInstruction, node: RouteNode): string {
+    console.error('Failed to load component:', instruction.component);
+    
+    // Different fallbacks based on the failed component
+    if (typeof instruction.component === 'string') {
+      return instruction.component.includes('admin') ? 'admin-error' : 'general-error';
+    }
+    
+    return 'general-error';
+  }
+}
+```

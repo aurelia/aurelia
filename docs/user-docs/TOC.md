@@ -82,7 +82,7 @@
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Enhance](getting-to-know-aurelia/enhance.md)
 * [Template controllers](getting-to-know-aurelia/template-controllers.md)
-* [Understanding synchronous binding](getting-to-know-aurelia/synchronous-binding-system.md)
+* [Binding system and state management](getting-to-know-aurelia/synchronous-binding-system.md)
 * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
 * [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
 * [Observation](getting-to-know-aurelia/observation/README.md)
@@ -98,6 +98,7 @@
 
 ## Developer Guides
 
+* [Developing with AI](developer-guides/developing-with-ai.md)
 * [Animation](developer-guides/animation.md)
 * [Testing](developer-guides/testing/overview.md)
   * [Overview](developer-guides/testing/overview.md)
@@ -169,6 +170,7 @@
   * [Setup and Configuration](aurelia-packages/fetch-client/setting-up.md)
   * [Response types](aurelia-packages/fetch-client/response-types.md)
   * [Working with forms](aurelia-packages/fetch-client/forms.md)
+  * [Request cancellation with AbortController](aurelia-packages/fetch-client/abort-controller.md)
   * [Intercepting responses & requests](aurelia-packages/fetch-client/interceptors.md)
   * [Advanced](aurelia-packages/fetch-client/advanced.md)
 * [Event Aggregator](aurelia-packages/event-aggregator.md)

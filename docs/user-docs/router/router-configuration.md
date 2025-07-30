@@ -1,5 +1,5 @@
 ---
-description: Learn about configuring the Router-Lite.
+description: Learn about configuring the Router.
 ---
 
 # Router configuration
@@ -19,11 +19,11 @@ RouterConfiguration.customize({
   useHref: true,                    // Enable href custom attribute processing
   historyStrategy: 'push',          // How to interact with browser history: 'push' | 'replace' | 'none'
   basePath: null,                   // Custom base path for routing (overrides document.baseURI)
-  
+
   // Navigation and UI
   activeClass: null,                // CSS class for active load attributes
   useNavigationModel: true,         // Generate navigation model for menu building
-  
+
   // Advanced customization
   buildTitle: null,                 // Custom title building function
   restorePreviousRouteTreeOnError: true, // Restore previous route on navigation errors
@@ -463,7 +463,7 @@ RouterConfiguration.customize({
   restorePreviousRouteTreeOnError: true
 })
 
-// Strict mode - leave application in error state 
+// Strict mode - leave application in error state
 RouterConfiguration.customize({
   restorePreviousRouteTreeOnError: false
 })
@@ -494,6 +494,15 @@ routerEvents.subscribe('au:router:navigation-end', (evt: NavigationEndEvent) => 
 ```
 
 This can help debug or log your router's runtime state. See the [ICurrentRoute docs](./configuring-routes.md#retrieving-the-current-route-and-query-parameters) for an example usage.
+
+## Treat query parameters as path parameters
+
+When the `treatQueryAsParameters` property in the router configuration is set to `true`, the router will treat query parameters as path parameters. The default value is `false`.
+
+{% hint style="warning" %}
+This is a temporary option to help developers transitioning from `router-direct` to `router`.
+It will be removed in the future version.
+{% endhint %}
 
 ## Advanced Configuration Scenarios
 
@@ -533,7 +542,7 @@ RouterConfiguration.customize({
   useUrlFragmentHash: isDevelopment,     // Hash routing in dev for simplicity
   historyStrategy: isDevelopment ? 'push' : 'push',  // Always use push in production
   restorePreviousRouteTreeOnError: !isDevelopment,   // Strict error handling in dev
-  buildTitle: isProduction ? 
+  buildTitle: isProduction ?
     (tr) => buildSEOTitle(tr) :          // SEO-optimized titles in production
     (tr) => `[DEV] ${tr.routeTree.root.title}`, // Simple dev titles
 })

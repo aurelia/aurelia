@@ -1,41 +1,30 @@
 ---
 description: >-
-  Watching data for changes, including support for expressions where you want to
-  watch for changes to one or more dependencies and react accordingly.
+  Watch data changes reactively with the @watch decorator. Support for properties, 
+  expressions, and computed values with automatic dependency tracking.
 ---
 
-# Watching data
+# Watching Data
 
-## Introduction
-
-The `@watch` decorator lets you respond to changes in your view model properties or computed expressions. It is intended for use on custom element and attribute view models. Once a watcher is created, it binds after the `binding` lifecycle and unbinds before `unbinding`—meaning mutations during `binding` or after `unbinding` will not trigger the watcher.
-
----
-
-## Basic Usage with @watch
-
-There are two primary ways to use `@watch`:
-
-1. **Class-level Decoration:** Attach the decorator to a class with an expression and a callback.
-2. **Method-level Decoration:** Attach the decorator to a method; the method itself acts as the callback when the watched value changes.
-
-**Syntax:**
+The `@watch` decorator enables reactive programming in Aurelia by automatically responding to changes in your view model properties or computed expressions. When data changes, your callback is invoked with the new and old values.
 
 ```typescript
 import { watch } from '@aurelia/runtime-html';
 
-// On class:
-@watch(expressionOrPropertyAccessFn, changeHandlerOrCallback)
-class MyClass {}
+class UserProfile {
+  firstName = 'John';
+  lastName = 'Doe';
 
-// On method:
-class MyClass {
-  @watch(expressionOrPropertyAccessFn)
-  someMethod() {}
+  @watch('firstName')
+  nameChanged(newName, oldName) {
+    console.log(`Name changed from ${oldName} to ${newName}`);
+  }
 }
 ```
 
-### API Parameters
+Watchers activate after the `binding` lifecycle and deactivate before `unbinding`, so changes during component initialization or cleanup won't trigger callbacks.
+
+## Two Ways to Use @watch
 
 | Name                         | Type                          | Description                                                                                                                                                                                                                                                                                    |
 | ---------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -53,342 +42,482 @@ The `options` parameter accepts an `IWatchOptions` object with the following pro
 
 ---
 
-## Reacting to Property Changes
-
-The simplest use case is to watch a single property. For example, to react whenever the `name` property changes:
-
+**Method Decorator** (most common):
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-class NameComponent {
-  name = '';
-
-  @watch('name')
-  nameChange(newName, oldName) {
-    console.log('New name:', newName);
-    console.log('Old name:', oldName);
+class UserSettings {
+  @watch('theme')
+  themeChanged(newTheme, oldTheme) {
+    document.body.className = `theme-${newTheme}`;
   }
 }
 ```
 
-You can also observe expressions on arrays. For instance, watching the length of an array:
-
+**Class Decorator** (with separate callback):
 ```typescript
-import { watch } from '@aurelia/runtime-html';
+@watch('status', (newStatus, oldStatus, vm) => vm.updateUI(newStatus))
+class OrderTracker {
+  status = 'pending';
+  
+  updateUI(status) {
+    // Update UI based on status
+  }
+}
+```
 
-class PostOffice {
-  packages = [];
+## What You Can Watch
 
-  @watch('packages.length')
-  log(newCount, oldCount) {
-    if (newCount > oldCount) {
-      // New packages arrived.
-    } else {
-      // Packages were delivered.
+### Simple Properties
+```typescript
+class Product {
+  price = 100;
+  
+  @watch('price') 
+  priceChanged(newPrice, oldPrice) {
+    if (newPrice > oldPrice) {
+      this.showPriceIncreaseWarning();
     }
+  }
+}
+```
+
+### Nested Properties
+```typescript
+class ShoppingCart {
+  user = { preferences: { currency: 'USD' } };
+  
+  @watch('user.preferences.currency')
+  currencyChanged(newCurrency) {
+    this.recalculatePrices(newCurrency);
+  }
+}
+```
+
+### Array Properties
+```typescript
+class TodoList {
+  todos = [];
+  
+  @watch('todos.length')
+  todoCountChanged(newCount, oldCount) {
+    this.updateCounter(newCount);
+    if (newCount === 0) {
+      this.showEmptyState();
+    }
+  }
+}
+```
+
+### Symbol Properties
+```typescript
+class AdvancedComponent {
+  [Symbol.for('internal-state')] = 'hidden';
+  
+  @watch(Symbol.for('internal-state'))
+  internalStateChanged(newValue) {
+    console.log('Internal state changed:', newValue);
+  }
+}
+```
+
+### Numeric Property Keys
+```typescript
+class IndexedComponent {
+  0 = 'first';
+  1 = 'second';
+  
+  @watch(0)  // Watch numeric property
+  firstChanged(value) {
+    this.updateDisplay(value);
   }
 }
 ```
 
 ---
 
-## Using Computed Functions
+## Computed Watchers
 
-Sometimes you need to monitor changes in multiple properties. In these cases, you can provide a computed getter function to the `@watch` decorator. The function should return the value you want to observe and can also register dependencies manually if needed.
-
-**Example – Watching Array Length with a Computed Getter:**
+When you need to watch multiple properties or complex expressions, use a computed function that returns the value to observe:
 
 ```typescript
-import { watch } from '@aurelia/runtime-html';
+class ProfileCard {
+  firstName = 'John';
+  lastName = 'Doe';
+  title = 'Developer';
 
-class PostOffice {
-  packages = [];
+  @watch(profile => `${profile.firstName} ${profile.lastName}`)
+  fullNameChanged(newFullName, oldFullName) {
+    this.updateDisplayName(newFullName);
+  }
 
-  @watch(post => post.packages.length)
-  log(newCount, oldCount) {
-    if (newCount > oldCount) {
-      // New packages arrived.
-    } else {
-      // Packages were delivered.
+  @watch(profile => profile.firstName && profile.lastName && profile.title)
+  isCompleteChanged(isComplete) {
+    this.toggleCompleteStatus(isComplete);
+  }
+}
+```
+
+The computed function receives your view model as its first parameter. Aurelia automatically tracks which properties your function accesses and will re-run it when any of those properties change.
+
+### Complex Computed Example
+
+```typescript
+class TaskManager {
+  tasks = [];
+  filter = 'all'; // 'all', 'completed', 'pending'
+
+  @watch(vm => vm.tasks.filter(task => 
+    vm.filter === 'all' || 
+    (vm.filter === 'completed' && task.done) ||
+    (vm.filter === 'pending' && !task.done)
+  ).length)
+  filteredCountChanged(count) {
+    this.updateCountDisplay(count);
+  }
+}
+```
+
+This watcher automatically re-runs when:
+- Items are added/removed from `tasks`
+- The `done` property changes on any task
+- The `filter` property changes
+
+## Real-World Examples
+
+### API Data Synchronization
+```typescript
+class WeatherWidget {
+  location = 'New York';
+  weatherData = null;
+  
+  @watch('location')
+  async locationChanged(newLocation) {
+    if (newLocation) {
+      this.weatherData = await this.fetchWeather(newLocation);
     }
   }
 }
 ```
 
-In this example, the callback receives the new and old computed values every time the dependency (`packages.length`) changes. The view model (`post`) is also passed as a parameter so you can access other properties if needed.
-
----
-
-## Usage Examples
-
-Below are several examples illustrating different ways to use the `@watch` decorator.
-
-### 1. Class-level, String Expression, Arrow Function Callback
-
+### Form Validation
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-@watch('counter', (newValue, oldValue, app) => app.log(newValue))
-class App {
-  counter = 0;
-
-  log(whatToLog) {
-    console.log(whatToLog);
+class RegistrationForm {
+  email = '';
+  password = '';
+  confirmPassword = '';
+  
+  @watch(form => form.password === form.confirmPassword)
+  passwordsMatchChanged(passwordsMatch) {
+    this.showPasswordError = !passwordsMatch && this.confirmPassword.length > 0;
+  }
+  
+  @watch('email')
+  emailChanged(newEmail) {
+    this.emailValid = this.validateEmail(newEmail);
   }
 }
 ```
 
-### 2. Class-level, String Expression, Method Name as Callback
-
-> **Warning:** The method is resolved only once. Changes to the method after instance creation are not detected.
-
+### State Management
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-@watch('counter', 'log')
-class App {
-  counter = 0;
-
-  log(whatToLog) {
-    console.log(whatToLog);
+class ShoppingCart {
+  items = [];
+  discount = 0;
+  
+  @watch(cart => cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0))
+  subtotalChanged(subtotal) {
+    this.subtotal = subtotal;
+    this.total = subtotal - (subtotal * this.discount / 100);
+  }
+  
+  @watch('discount')
+  discountChanged() {
+    // Recalculate total when discount changes
+    this.subtotalChanged(this.subtotal);
   }
 }
 ```
 
-### 3. Class-level, String Expression, Normal Function Callback
-
+### Dynamic UI Updates
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-@watch('counter', function(newValue, oldValue, app) {
-  // 'this' points to the instance of the class
-  this.log(newValue);
-})
-class App {
-  counter = 0;
-
-  log(whatToLog) {
-    console.log(whatToLog);
+class MediaPlayer {
+  currentTime = 0;
+  duration = 0;
+  
+  @watch(player => player.currentTime / player.duration * 100)
+  progressChanged(percentage) {
+    this.updateProgressBar(percentage);
+  }
+  
+  @watch('currentTime')
+  timeChanged(time) {
+    this.updateTimeDisplay(this.formatTime(time));
   }
 }
 ```
 
-### 4. Class-level, Normal Function as Watch Expression, Arrow Function Callback
+## Watcher Lifecycle
+
+Watchers follow component lifecycle and only respond to changes when the component is properly bound:
+
+| Lifecycle Phase | Watcher Active? | Example |
+|-----------------|-----------------|---------|
+| `binding` | ❌ No | Setup code won't trigger watchers |
+| `bound` → `detaching` | ✅ Yes | All changes trigger callbacks |
+| `unbinding` | ❌ No | Cleanup code won't trigger watchers |
 
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-@watch(function(app) { return app.counter }, (newValue, oldValue, app) => app.log(newValue))
-class App {
-  counter = 0;
-
-  log(whatToLog) {
-    console.log(whatToLog);
+class DataManager {
+  items = [];
+  
+  @watch('items.length')
+  itemCountChanged(count) {
+    console.log('Items count:', count);
+  }
+  
+  binding() {
+    // This won't trigger the watcher
+    this.items.push({ id: 1, name: 'Initial item' });
+  }
+  
+  bound() {
+    // This WILL trigger the watcher
+    this.items.push({ id: 2, name: 'Added after bound' });
+    // Console output: "Items count: 2"
+  }
+  
+  unbinding() {
+    // This won't trigger the watcher
+    this.items.length = 0;
   }
 }
 ```
 
-### 5. Class-level, Arrow Function as Watch Expression, Arrow Function Callback
+This lifecycle integration prevents watchers from firing during component initialization and cleanup, avoiding unwanted side effects.
+
+## Flush Modes
+
+Control when watcher callbacks execute with flush modes:
 
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-@watch(app => app.counter, (newValue, oldValue, app) => app.log(newValue))
-class App {
-  counter = 0;
-
-  log(whatToLog) {
-    console.log(whatToLog);
+class PerformanceMonitor {
+  // Default: 'async' - deferred to next microtask (recommended)
+  @watch('cpuUsage')
+  updateCpuDisplay(usage) {
+    this.cpuChart.update(usage);
   }
-}
-```
-
-### 6. Method-level, String Expression
-
-```typescript
-import { watch } from '@aurelia/runtime-html';
-
-class App {
-  counter = 0;
-
-  @watch('counter')
-  log(whatToLog) {
-    console.log(whatToLog);
-  }
-}
-```
-
-### 7. Method-level, Normal Function as Watch Expression
-
-```typescript
-import { watch } from '@aurelia/runtime-html';
-
-class App {
-  counter = 0;
-
-  @watch(function(app) { return app.counter })
-  log(whatToLog) {
-    console.log(whatToLog);
-  }
-}
-```
-
-### 8. Method-level, Arrow Function as Watch Expression
-
-```typescript
-import { watch } from '@aurelia/runtime-html';
-
-class App {
-  counter = 0;
-
-  @watch(app => app.counter)
-  log(whatToLog) {
-    console.log(whatToLog);
-  }
-}
-```
-
----
-
-## Watch Reactivity & Lifecycle
-
-Watchers created via the `@watch` decorator activate and deactivate in sync with component lifecycles:
-
-- **During `binding`:** Watchers are not active. Mutations here won’t trigger callbacks.
-
-  ```typescript
-  import { watch } from '@aurelia/runtime-html';
-
-  class PostOffice {
-    packages = [];
-
-    @watch(post => post.packages.length)
-    log(newCount, oldCount) {
-      console.log(`packages changes: ${oldCount} -> ${newCount}`);
-    }
-
-    binding() {
-      this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
+  
+  // 'sync' - immediate execution (use sparingly)
+  @watch('criticalError', { flush: 'sync' })
+  handleCriticalError(error) {
+    if (error) {
+      this.emergencyShutdown();
     }
   }
-  ```
-  *No log output during `binding`.*
-
-- **During `bound`:** Watchers are active. Changes will trigger the callback.
-
-  ```typescript
-  import { watch } from '@aurelia/runtime-html';
-
-  class PostOffice {
-    packages = [];
-
-    @watch(post => post.packages.length)
-    log(newCount, oldCount) {
-      console.log(`packages changes: ${oldCount} -> ${newCount}`);
-    }
-
-    bound() {
-      this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
-    }
-  }
-  ```
-  *Logs: `packages changes: 0 -> 1`.*
-
-- **During `detaching`:** Watchers are still active and will respond to changes.
-
-  ```typescript
-  import { watch } from '@aurelia/runtime-html';
-
-  class PostOffice {
-    packages = [];
-
-    @watch(post => post.packages.length)
-    log(newCount, oldCount) {
-      console.log(`packages changes: ${oldCount} -> ${newCount}`);
-    }
-
-    detaching() {
-      this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
-    }
-  }
-  ```
-  *Logs: `packages changes: 0 -> 1`.*
-
-- **During `unbinding`:** Watchers have been deactivated; changes are ignored.
-
-  ```typescript
-  import { watch } from '@aurelia/runtime-html';
-
-  class PostOffice {
-    packages = [];
-
-    @watch(post => post.packages.length)
-    log(newCount, oldCount) {
-      console.log(`packages changes: ${oldCount} -> ${newCount}`);
-    }
-
-    unbinding() {
-      this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
-    }
-  }
-  ```
-  *No log output during `unbinding`.*
-
-> **Info:** Lifecycles between `binding` and `unbinding` (such as `attaching`, `attached`, and `detaching`) behave normally with respect to watchers.
-
----
-
-## How It Works
-
-When you apply `@watch()`, a watcher is created to monitor the specified expression:
-
-- **String or Symbol Expressions:** Interpreted like Aurelia template expressions.
-- **Function Expressions (Computed Getters):** The function is called to obtain a value and register its dependencies. Two mechanisms exist:
-  - **With Native Proxy Support:** Proxies intercept property reads, including collection method calls (e.g., `.map()`), to automatically track dependencies.
-  - **Without Native Proxy Support:** You receive a second parameter—the watcher instance—to manually register dependencies.
-
-### The IWatcher Interface
-
-In environments without native proxies, the computed getter receives a watcher with the following interface:
-
-```typescript
-interface IWatcher {
-  observeProperty(obj: object, key: string | number | symbol): void;
-  observeCollection(collection: Array<any> | Map<any, any> | Set<any>): void;
 }
 ```
 
-**Example:**
+**Async (Default):** Batches multiple changes and executes callbacks asynchronously. Prevents infinite loops and improves performance.
+
+**Sync:** Executes callbacks immediately. Use only when you need instant feedback or in testing scenarios.
+
+## How Dependency Tracking Works
+
+Aurelia uses transparent proxy-based observation. When your computed function runs, it automatically tracks every property you access:
 
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-class Contact {
-  firstName = 'Chorris';
-  lastName = 'Nuck';
-
-  @watch((contact, watcher) => {
-    // Manually observe dependencies.
-    watcher.observeProperty(contact, 'firstName');
-    watcher.observeProperty(contact, 'lastName');
-    return `${contact.firstName} ${contact.lastName}`;
+class TeamStats {
+  players = [];
+  
+  @watch(team => {
+    // Aurelia automatically tracks:
+    // - team.players (array reference)  
+    // - team.players.length (when .filter() iterates)
+    // - player.isActive for each player
+    return team.players.filter(player => player.isActive).length;
   })
-  validateFullName(fullName) {
-    if (fullName === 'Chuck Norris') {
-      this.faint();
-    }
+  activeCountChanged(count) {
+    this.updateDisplay(count);
   }
 }
 ```
 
-**Automatic Array Observation:**
-> *Note:* In computed getters, common array mutation methods (`push`, `pop`, `shift`, `unshift`, `splice`, `reverse`) are not observed automatically because they don’t expose clear dependency signals.
+The watcher re-runs whenever:
+- The `players` array changes (items added/removed)
+- Any player's `isActive` property changes
+- You replace the entire `players` array
 
----
+### Manual Dependency Registration
+
+In environments without proxy support, you receive a second parameter to manually register dependencies:
+
+```typescript
+class LegacyBrowser {
+  items = [];
+  
+  @watch((vm, watcher) => {
+    // Manually register what properties to observe
+    watcher.observe(vm, 'firstName');
+    watcher.observe(vm, 'lastName');
+    watcher.observeCollection(vm.items); // For arrays, Maps, Sets
+    return `${vm.firstName} ${vm.lastName}`;
+  })
+  nameChanged(fullName) {
+    this.updateDisplay(fullName);
+  }
+}
+```
+
+The watcher parameter provides:
+- `observe(obj, key)` - Watch a property
+- `observeCollection(collection)` - Watch arrays, Maps, or Sets
+
+## Callback Signature Details
+
+All watch callbacks receive three parameters:
+
+```typescript
+class CallbackExample {
+  name = 'John';
+  
+  @watch('name')
+  nameChanged(newValue, oldValue, viewModel) {
+    console.log('New:', newValue);      // The new value
+    console.log('Old:', oldValue);      // The previous value  
+    console.log('VM:', viewModel);      // Reference to this instance
+    console.log('Context:', this);      // Also points to this instance
+  }
+}
+```
+
+### Class Decorator with Callback Function
+```typescript
+@watch('status', function(newVal, oldVal, vm) {
+  // 'this' refers to the component instance
+  this.updateStatusIcon(newVal);
+  
+  // 'vm' is also the component instance (same as 'this')
+  vm.logStatusChange(newVal, oldVal);
+})
+class StatusComponent {
+  status = 'idle';
+}
+```
+
+### Method Name as String Callback
+```typescript
+@watch('theme', 'handleThemeChange')
+class ThemeManager {
+  theme = 'light';
+  
+  handleThemeChange(newTheme, oldTheme, vm) {
+    // Method is resolved once at class definition time
+    console.log(`Theme changed from ${oldTheme} to ${newTheme}`);
+  }
+}
+```
+
+> **Important**: When using method name strings, the method is resolved only once when the class is defined. Dynamically changing the method later won't affect the watcher.
 
 ## Best Practices
 
+### ✅ Do's
+
+**Keep computed functions pure:**
+```typescript
+// Good - just return a value
+@watch(user => `${user.first} ${user.last}`)
+displayNameChanged(name) { 
+  this.updateUI(name); 
+}
+```
+
+**Use descriptive callback names:**
+```typescript
+class ProductList {
+  @watch('searchTerm')
+  searchTermChanged(term) { /* clear */ }
+  
+  @watch(vm => vm.items.filter(i => i.inStock).length)
+  availableItemsCountChanged(count) { /* update */ }
+}
+```
+
+**Prefer method decorators over class decorators:**
+```typescript
+// Preferred - cleaner and more intuitive
+class Settings {
+  @watch('theme')
+  themeChanged(newTheme) {
+    this.applyTheme(newTheme);  
+  }
+}
+```
+
+### ❌ Don'ts  
+
+**Don't mutate data in computed functions:**
+```typescript
+// Wrong - causes infinite loops
+@watch(vm => vm.counter++) // Don't increment here!
+counterChanged() {}
+
+// Wrong - mutating arrays
+@watch(vm => vm.items.push(newItem)) // Don't modify here!
+itemsChanged() {}
+```
+
+**Don't use async functions:**
+```typescript
+// Wrong - dependency tracking breaks
+@watch(async vm => await vm.fetchData())
+dataChanged() {}
+
+// Right - handle async in the callback
+@watch('dataId')
+async dataIdChanged(id) {
+  this.data = await this.fetchData(id);
+}
+```
+
+**Don't create infinite loops:**
+```typescript
+class Counter {
+  count = 0;
+  
+  @watch('count')
+  countChanged(newCount) {
+    // Wrong - this creates an infinite loop!
+    this.count = newCount + 1;
+  }
+}
+```
+
+### Performance Tips
+
+- Use `{ flush: 'async' }` (default) for better performance
+- Avoid deeply nested property access in hot paths
+- Consider debouncing expensive operations:
+
+```typescript
+class SearchComponent {
+  searchTerm = '';
+  
+  @watch('searchTerm')
+  searchChanged(term) {
+    // Debounce expensive search operations
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.performSearch(term);
+    }, 300);
+  }
+}
+```
+
+## Common Errors and Troubleshooting
+
 ### 1. Choose the Right Flush Mode
+
+### 2. Avoid Mutating Dependencies in Computed Getters
 
 ```typescript
 // Use async flush (default) for most cases
@@ -404,7 +533,6 @@ onScrollChange(position) {
   // Immediate DOM update to prevent layout thrashing
   this.updateScrollIndicator(position);
 }
-```
 
 ### 2. Optimize Complex Expressions
 
@@ -445,60 +573,89 @@ addItem(item) { this.items.push(item); }
 ### 4. Avoid Mutating Dependencies in Computed Getters
 
 Do not alter properties or collections when returning a computed value:
-
 ```typescript
-// Avoid:
-@watch(object => object.counter++)
-someMethod() {}
+// ❌ This will throw AUR0773
+@watch('counter', 'nonExistentMethod')
+class App {
+  counter = 0;
+  // Method name doesn't exist!
+}
 
-// Avoid these mutations:
-@watch(object => object.someArray.push(...args))
-@watch(object => object.someArray.pop())
-@watch(object => object.someArray.shift())
-@watch(object => object.someArray.unshift())
-@watch(object => object.someArray.splice(...args))
-@watch(object => object.someArray.reverse())
-someMethod() {}
+// ✅ Fix: Use correct method name
+@watch('counter', 'counterChanged')  
+class App {
+  counter = 0;
+  counterChanged(newValue) { /* ... */ }
+}
 ```
 
 ### 5. Be Cautious with Object Identity
 
-Due to proxy wrapping, a raw object and its proxied version may not be strictly equal. Always access the dependency from the first parameter to maintain proper identity checks.
+### Error: AUR0774 - Static Method Decoration
+```typescript
+// ❌ This will throw AUR0774
+class App {
+  @watch('counter')
+  static handleChange() { /* ... */ }
+}
+```
+
+// ✅ Fix: Use instance methods only
+class App {
+  @watch('counter') 
+  handleChange() { /* ... */ }
+}
+```
+
+### Error: AUR0772 - Null/Undefined Expression
+```typescript
+// ❌ This will throw AUR0772
+@watch(null)
+nullHandler() { /* ... */ }
+
+@watch(undefined)
+undefinedHandler() { /* ... */ }
+
+// ✅ Fix: Provide valid expression
+@watch('validProperty')
+validHandler() { /* ... */ }
+```
+
+### Computed Function Errors
+When computed functions throw errors, callbacks won't execute:
 
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-const defaultOptions = {};
-
-class MyClass {
-  options = defaultOptions;
-
-  @watch(myClass => myClass.options === defaultOptions ? null : myClass.options)
-  applyCustomOptions() {
-    // ...
+class DataProcessor {
+  data = null;
+  
+  @watch(vm => vm.data.length) // Throws if data is null
+  dataLengthChanged(length) {
+    // This won't be called if getter throws
+    console.log('Length:', length);
+  }
+  
+  // ✅ Better: Guard against null
+  @watch(vm => vm.data?.length ?? 0)
+  safeLengthChanged(length) {
+    console.log('Safe length:', length);
   }
 }
 ```
 
 ### 6. Do Not Return Promises or Async Functions
 
-The dependency tracking is synchronous. Returning a promise or using an async function will break the reactivity.
+### Circular Dependencies
+Avoid modifying watched properties in their own callbacks:
 
 ```typescript
-import { watch } from '@aurelia/runtime-html';
-
-class MyClass {
-  // Incorrect – async functions or promises are not supported
-  @watch(async myClassInstance => myClassInstance.options)
-  applyCustomOptions() {}
-
-  // Incorrect usage:
-  @watch(myClassInstance => {
-    Promise.resolve().then(() => {
-      return myClassInstance.options;
-    });
-  })
-  anotherMethod() {}
+class ProblematicCounter {
+  count = 0;
+  
+  @watch('count')
+  countChanged(newCount) {
+    // ❌ Creates infinite loop!
+    this.count = newCount + 1;
+  }
 }
 ```
 

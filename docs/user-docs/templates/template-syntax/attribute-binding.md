@@ -216,6 +216,15 @@ export class MyApp {
 
 *Result:* The `input` element's `value` attribute is bound to the `userName` property. Changes in `userName` update the `input` value and vice versa.
 
+#### Property vs. Attribute Targeting
+
+By default, Aurelia bindings target DOM **properties** rather than HTML **attributes**. This distinction is important because:
+
+- **Properties** are JavaScript object properties on DOM elements (e.g., `element.value`)
+- **Attributes** are the HTML markup attributes (e.g., `<input value="...">`)
+
+For most standard HTML attributes, this works seamlessly because browsers synchronize property and attribute values. However, for custom attributes or when you specifically need attribute targeting, use the `.attr` binding command or the `attr` binding behavior.
+
 ### 2. Using the `.attr` Binding Command
 
 When automatic mapping fails or when dealing with non-standard attributes, use the `.attr` binding command to ensure proper attribute binding.
@@ -236,25 +245,121 @@ export class MyApp {
 
 *Result:* The `input` element will have a `my-custom-attr` attribute set to "Custom Attribute Value".
 
-### 3. Combining `.bind` with Attribute Binding Behavior
+### 3. The `attr` Binding Behavior
 
-You can specify binding behaviors to fine-tune how bindings operate. For instance, using `.bind` with the `attr` binding behavior ensures that the binding targets the attribute rather than the property.
+The `attr` binding behavior is a powerful feature that forces any property binding to target the HTML attribute instead of the DOM property. This is especially useful for:
 
-**Example: Explicit Attribute Binding**
+- Custom attributes that don't have corresponding DOM properties
+- Data attributes (`data-*`)
+- ARIA attributes
+- SVG attributes
+- Cases where you need to ensure attribute-specific behavior
+
+**Example: Using the `attr` Binding Behavior**
 
 ```html
 <!-- my-app.html -->
 <input pattern.bind="patternProp & attr" />
+<div data-tooltip.bind="tooltipText & attr"></div>
+<svg>
+  <circle cx.bind="centerX & attr" cy.bind="centerY & attr" r="50" />
+</svg>
 ```
 
 ```typescript
 // my-app.ts
 export class MyApp {
   patternProp = '[A-Za-z]{3,}';
+  tooltipText = 'This is a custom tooltip';
+  centerX = 100;
+  centerY = 100;
 }
 ```
 
-*Result:* The `input` element's `pattern` attribute is bound to `patternProp`, ensuring that it reflects directly as an attribute in the DOM.
+*Result:* All bindings will target their respective HTML attributes directly, ensuring proper DOM attribute manipulation.
+
+{% hint style="warning" %}
+The `attr` binding behavior can only be used with property bindings (`.bind`, `.one-way`, `.two-way`, `.to-view`, `.from-view`). It cannot be used with event bindings (`.trigger`, `.delegate`, `.capture`) or reference bindings (`.ref`).
+{% endhint %}
+
+### 4. Attribute Mapping and Custom Elements
+
+Aurelia includes a built-in attribute mapper that handles common HTML attribute-to-property mappings automatically. For example:
+
+- `maxlength` → `maxLength`
+- `readonly` → `readOnly`
+- `tabindex` → `tabIndex`
+- `contenteditable` → `contentEditable`
+
+You can extend this mapping for custom elements or third-party components:
+
+```typescript
+// main.ts
+import { Aurelia, AppTask, IAttrMapper } from '@aurelia/runtime-html';
+
+Aurelia
+  .register(
+    AppTask.creating(IAttrMapper, (attrMapper) => {
+      attrMapper.useMapping({
+        'CUSTOM-INPUT': {
+          'max-length': 'maxLength',
+          'min-length': 'minLength'
+        }
+      });
+      
+      attrMapper.useGlobalMapping({
+        'custom-attr': 'customAttribute'
+      });
+      
+      attrMapper.useTwoWay(
+        (element, attr) => element.tagName === 'CUSTOM-INPUT' && attr === 'value'
+      );
+    })
+  )
+  .app(MyApp)
+  .start();
+```
+
+### 5. Special Attribute Handling
+
+Aurelia provides specialized handling for certain attributes:
+
+#### Class Attributes
+
+```html
+<!-- Single class binding -->
+<div class.bind="isActive && 'active'"></div>
+
+<!-- Multiple class binding -->
+<div class.bind="getClasses()"></div>
+```
+
+#### Style Attributes
+
+```html
+<!-- Style property binding -->
+<div style.background-color.bind="bgColor"></div>
+<div style.font-size.bind="fontSize + 'px'"></div>
+
+<!-- Full style object binding -->
+<div style.bind="styleObject"></div>
+```
+
+```typescript
+export class MyApp {
+  bgColor = 'red';
+  fontSize = 16;
+  styleObject = {
+    color: 'blue',
+    'font-weight': 'bold',
+    margin: '10px'
+  };
+  
+  getClasses() {
+    return this.isActive ? 'active highlight' : 'inactive';
+  }
+}
+```
 
 ## Practical Use Cases
 
@@ -409,6 +514,189 @@ export class CurrencyValueConverter {
 
 *Result:* Displays the `totalPrice` formatted as currency, e.g., "$199.99".
 
+## Troubleshooting and Common Issues
+
+### 1. Binding Behavior Errors
+
+**Error: AUR9994 - Invalid Binding Type for 'attr' Binding Behavior**
+
+This error occurs when the `attr` binding behavior is used with non-property bindings:
+
+```html
+<!-- ❌ Incorrect: Using attr with event binding -->
+<button click.trigger="save() & attr">Save</button>
+
+<!-- ✅ Correct: Remove attr from event binding -->
+<button click.trigger="save()">Save</button>
+
+<!-- ✅ Correct: Use attr with property binding -->
+<input value.bind="query & attr">
+```
+
+### 2. Null and Undefined Values
+
+When bound properties are `null` or `undefined`, attributes are removed from the DOM:
+
+```typescript
+export class MyApp {
+  tooltipText: string | null = null; // Will remove title attribute
+  isDisabled: boolean | undefined = undefined; // Will remove disabled attribute
+}
+```
+
+```html
+<!-- These attributes will be removed when values are null/undefined -->
+<div title.bind="tooltipText">Content</div>
+<button disabled.bind="isDisabled">Click me</button>
+```
+
+### 3. Custom Attribute Conflicts
+
+When using `.attr` binding command, Aurelia bypasses custom attribute detection:
+
+```html
+<!-- This will create a DOM attribute, NOT invoke a custom attribute -->
+<div my-custom.attr="value"></div>
+
+<!-- This will invoke the custom attribute -->
+<div my-custom.bind="value"></div>
+```
+
+### 4. Boolean Attribute Handling
+
+HTML boolean attributes (like `disabled`, `checked`, `readonly`) have special handling:
+
+```html
+<!-- These all result in disabled="disabled" or no attribute -->
+<button disabled.bind="true">Always Disabled</button>
+<button disabled.bind="false">Never Disabled</button>
+<button disabled.bind="isDisabled">Conditionally Disabled</button>
+```
+
+### 5. SVG Attributes
+
+SVG attributes may require the `attr` binding behavior for proper functionality:
+
+```html
+<svg>
+  <!-- For SVG-specific attributes, use attr binding behavior -->
+  <circle cx.bind="x & attr" cy.bind="y & attr" r.bind="radius & attr" />
+  <text text-anchor.bind="anchor & attr">Label</text>
+</svg>
+```
+
+## Performance Considerations
+
+### 1. Binding Mode Selection
+
+Choose the appropriate binding mode for optimal performance:
+
+- Use `.one-time` for static values that never change
+- Use `.to-view` for display-only data
+- Use `.two-way` only when bidirectional synchronization is needed
+- Use `.from-view` for write-only scenarios
+
+### 2. Expression Complexity
+
+Keep binding expressions simple for better performance:
+
+```html
+<!-- ❌ Complex expression in template -->
+<div class.bind="items.filter(i => i.active).length > 0 ? 'has-active' : 'no-active'"></div>
+
+<!-- ✅ Move logic to view model -->
+<div class.bind="hasActiveItems ? 'has-active' : 'no-active'"></div>
+```
+
+```typescript
+export class MyApp {
+  get hasActiveItems() {
+    return this.items.some(i => i.active);
+  }
+}
+```
+
+### 3. Computed Properties
+
+Use computed properties with proper dependencies for efficient updates:
+
+```typescript
+import { computed } from '@aurelia/runtime';
+
+export class MyApp {
+  items = [];
+  
+  @computed({ dependencies: ['items.length'] })
+  get itemCount() {
+    return this.items.length;
+  }
+}
+```
+
+## Best Practices
+
+### 1. Consistent Naming
+
+Use consistent naming conventions for attributes and properties:
+
+```html
+<!-- Use kebab-case for attributes -->
+<my-component data-id.bind="itemId" custom-prop.bind="value"></my-component>
+```
+
+### 2. Type Safety
+
+Leverage TypeScript for better development experience:
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  avatar?: string;
+}
+
+export class UserProfile {
+  user: User = { id: 1, name: 'John' };
+  
+  get avatarUrl(): string {
+    return this.user.avatar ?? '/default-avatar.png';
+  }
+}
+```
+
+### 3. Error Boundaries
+
+Handle potential errors in binding expressions:
+
+```html
+<!-- Use optional chaining and fallbacks -->
+<img src.bind="user?.avatar ?? defaultAvatar" alt.bind="user?.name ?? 'Unknown User'">
+```
+
+### 4. Accessibility
+
+Ensure proper accessibility attributes:
+
+```html
+<!-- Include ARIA attributes for screen readers -->
+<button 
+  disabled.bind="isLoading" 
+  aria-busy.bind="isLoading & attr"
+  aria-label.bind="buttonLabel & attr">
+  ${isLoading ? 'Loading...' : 'Submit'}
+</button>
+```
+
 ## Summary
 
 Attribute binding in Aurelia offers a flexible and powerful means to synchronize data between your view model and the DOM. By understanding and utilizing the various binding commands and techniques, you can create dynamic, responsive, and maintainable user interfaces. Always consider the specific needs of your project when choosing between different binding strategies, and leverage Aurelia's features to their fullest to enhance your application's interactivity and user experience.
+
+Key takeaways:
+
+- Use the appropriate binding mode for your use case
+- Understand the difference between property and attribute targeting
+- Leverage the `attr` binding behavior for custom attributes
+- Handle null/undefined values gracefully
+- Consider performance implications of complex expressions
+- Follow accessibility best practices
+- Use TypeScript for better development experience

@@ -6,6 +6,30 @@ description: Learn about configuring the Router-Lite.
 
 The router allows you to configure how it interprets and handles routing in your Aurelia applications. The `customize` method on the `RouterConfiguration` object can be used to configure router settings.
 
+## Complete Configuration Reference
+
+The router accepts the following configuration options through `RouterConfiguration.customize()`:
+
+```typescript
+import { RouterConfiguration } from '@aurelia/router';
+
+RouterConfiguration.customize({
+  // Core routing behavior
+  useUrlFragmentHash: false,        // Use hash-based routing instead of pushState
+  useHref: true,                    // Enable href custom attribute processing
+  historyStrategy: 'push',          // How to interact with browser history: 'push' | 'replace' | 'none'
+  basePath: null,                   // Custom base path for routing (overrides document.baseURI)
+  
+  // Navigation and UI
+  activeClass: null,                // CSS class for active load attributes
+  useNavigationModel: true,         // Generate navigation model for menu building
+  
+  // Advanced customization
+  buildTitle: null,                 // Custom title building function
+  restorePreviousRouteTreeOnError: true, // Restore previous route on navigation errors
+})
+```
+
 ## Choose between hash and pushState routing using `useUrlFragmentHash`
 
 If you do not provide any configuration value, the default is pushState routing.
@@ -395,6 +419,58 @@ The default value for this option is `null`, which also means that the `load` cu
 Note that the router does not define any CSS class out-of-the-box.
 If you want to use this feature, make sure that you defines the class as well in your stylesheet.
 
+```typescript
+// main.ts
+RouterConfiguration.customize({
+  activeClass: 'active-route'
+})
+```
+
+```css
+/* styles.css */
+.active-route {
+  font-weight: bold;
+  color: #007acc;
+  text-decoration: underline;
+}
+```
+
+```html
+<!-- These links will get the 'active-route' class when their routes are active -->
+<a load="home">Home</a>
+<a load="about">About</a>
+```
+
+## Disable navigation model generation
+
+If you're not using the navigation model feature for building menus, you can disable it to improve performance:
+
+```typescript
+RouterConfiguration.customize({
+  useNavigationModel: false
+})
+```
+
+This prevents the router from generating navigation model data, which can be useful in applications with many routes where you don't need the navigation model functionality.
+
+## Error recovery configuration
+
+The `restorePreviousRouteTreeOnError` option controls what happens when navigation fails:
+
+```typescript
+// Default behavior - restore previous route on error (recommended)
+RouterConfiguration.customize({
+  restorePreviousRouteTreeOnError: true
+})
+
+// Strict mode - leave application in error state 
+RouterConfiguration.customize({
+  restorePreviousRouteTreeOnError: false
+})
+```
+
+With the default `true` setting, if navigation fails (due to guards returning false, component loading errors, etc.), the router will restore the previous working route. Setting this to `false` provides stricter error handling but requires your application to handle error states properly.
+
 ## Observing navigation state while configuring the router
 
 Beyond setting up routes, hash/push mode, or titles, you can optionally observe the active route and track query parameters. One way is to inject `ICurrentRoute` in any of your components. Another is to watch router events:
@@ -418,3 +494,143 @@ routerEvents.subscribe('au:router:navigation-end', (evt: NavigationEndEvent) => 
 ```
 
 This can help debug or log your router's runtime state. See the [ICurrentRoute docs](./configuring-routes.md#retrieving-the-current-route-and-query-parameters) for an example usage.
+
+## Advanced Configuration Scenarios
+
+### Combining Multiple Options
+
+Most real-world applications will need to combine multiple configuration options:
+
+```typescript
+// Production-ready configuration
+RouterConfiguration.customize({
+  useUrlFragmentHash: false,           // Use clean URLs
+  historyStrategy: 'push',             // Standard browser navigation
+  activeClass: 'active',               // Highlight active nav items
+  useNavigationModel: true,            // Enable navigation model for menus
+  restorePreviousRouteTreeOnError: true, // Graceful error recovery
+  buildTitle: (transition) => {
+    // Custom title building with SEO considerations
+    const routeTitle = transition.routeTree.root.children
+      .map(child => child.title)
+      .filter(title => title)
+      .join(' - ');
+    return routeTitle ? `${routeTitle} | My App` : 'My App';
+  }
+})
+```
+
+### Environment-Specific Configuration
+
+You might want different configurations for different environments:
+
+```typescript
+// environment-based configuration
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isProduction = process.env.NODE_ENV === 'production';
+
+RouterConfiguration.customize({
+  useUrlFragmentHash: isDevelopment,     // Hash routing in dev for simplicity
+  historyStrategy: isDevelopment ? 'push' : 'push',  // Always use push in production
+  restorePreviousRouteTreeOnError: !isDevelopment,   // Strict error handling in dev
+  buildTitle: isProduction ? 
+    (tr) => buildSEOTitle(tr) :          // SEO-optimized titles in production
+    (tr) => `[DEV] ${tr.routeTree.root.title}`, // Simple dev titles
+})
+```
+
+### Micro-frontend Configuration
+
+When building micro-frontends, you might need specific base path configurations:
+
+```typescript
+// Determine base path from current location
+const currentPath = window.location.pathname;
+const microFrontendName = currentPath.split('/')[1]; // e.g., 'admin', 'customer', 'reports'
+
+RouterConfiguration.customize({
+  basePath: `/${microFrontendName}`,
+  useUrlFragmentHash: false,
+  historyStrategy: 'push',
+  buildTitle: (transition) => {
+    const appName = microFrontendName.charAt(0).toUpperCase() + microFrontendName.slice(1);
+    const routeTitle = transition.routeTree.root.children[0]?.title;
+    return routeTitle ? `${routeTitle} - ${appName}` : appName;
+  }
+})
+```
+
+### Single-Page Application Embedded in Existing Site
+
+When your Aurelia app is embedded within a larger traditional website:
+
+```typescript
+RouterConfiguration.customize({
+  basePath: '/spa',                     // App lives under /spa path
+  useUrlFragmentHash: true,             // Hash routing to avoid conflicts
+  historyStrategy: 'replace',           // Don't interfere with main site navigation
+  useHref: false,                       // Only use load attribute to avoid conflicts
+  activeClass: 'spa-active',            // Namespaced CSS class
+})
+```
+
+## Common Configuration Patterns
+
+### Mobile-Optimized Configuration
+
+```typescript
+RouterConfiguration.customize({
+  historyStrategy: 'replace',           // Reduce memory usage on mobile
+  useNavigationModel: false,            // Disable if using custom mobile navigation
+  restorePreviousRouteTreeOnError: true, // Important for unreliable mobile networks
+})
+```
+
+### Debug-Friendly Development Configuration
+
+```typescript
+RouterConfiguration.customize({
+  useUrlFragmentHash: true,             // Easier to debug without server setup
+  restorePreviousRouteTreeOnError: false, // See errors clearly in development
+  buildTitle: (transition) => {
+    // Detailed debugging information in title
+    const route = transition.routeTree.root.children[0];
+    return `[${route?.component?.name || 'Unknown'}] ${route?.title || 'No Title'}`;
+  }
+})
+```
+
+## Troubleshooting Configuration Issues
+
+### Common Problems and Solutions
+
+**Problem**: Routes not working with `useUrlFragmentHash: false`
+```typescript
+// Solution: Ensure base tag is set correctly
+// In your index.html:
+<base href="/">
+
+// And configure your server for SPA routing
+RouterConfiguration.customize({
+  useUrlFragmentHash: false
+})
+```
+
+**Problem**: External links being processed by router
+```typescript
+// Solution 1: Disable href processing
+RouterConfiguration.customize({
+  useHref: false  // Only use load attribute for routing
+})
+
+// Solution 2: Mark external links explicitly
+// <a href="mailto:test@example.com" external>Contact</a>
+```
+
+**Problem**: Navigation not updating browser history
+```typescript
+// Check your history strategy
+RouterConfiguration.customize({
+  historyStrategy: 'push'  // Ensure this is not 'none'
+})
+```

@@ -7,7 +7,7 @@ description: >-
 
 # List Rendering
 
-Aurelia’s templating system offers a robust way to work with collections—be they arrays, sets, maps, or even ranges. The `repeat.for` binding provides a declarative approach to iterating over data, creating scopes for each iteration, and optimizing DOM updates. This guide explains the intricacies of list rendering in detail.
+The `repeat.for` binding iterates over collections to render lists of data. It works with arrays, sets, maps, and ranges, creating a template instance for each item.
 
 ## The `repeat.for` Binding
 
@@ -36,45 +36,41 @@ for (let item of items) {
 
 ## Keyed Iteration for Efficient DOM Updates
 
-When working with dynamic collections, it’s crucial to minimize unnecessary DOM operations. Aurelia allows you to specify a unique key for each item in the collection. This key helps the framework:
-- **Track Changes:** By comparing key values, Aurelia can identify which items have been added, removed, or reordered.
-- **Optimize Updates:** Only the modified elements are updated, preserving performance.
-- **Maintain State:** DOM elements (e.g., with user input or focus) retain their state even if their order changes.
+When working with dynamic collections, you can specify a unique key for each item to optimize DOM updates. Aurelia uses keys to:
+- Track which items have been added, removed, or reordered
+- Only update modified elements instead of recreating all DOM nodes
+- Preserve DOM state (like focus or form input values) when items move
 
-### Syntax Examples
-
-You can declare the key using either literal or binding syntax:
+### Key Syntax
 
 ```html
-<!-- Literal syntax -->
-<ul>
-  <li repeat.for="item of items; key: id">
-    ${item.name}
-  </li>
-</ul>
-
-<!-- Bound syntax -->
+<!-- Using a property as the key -->
 <ul>
   <li repeat.for="item of items; key.bind: item.id">
     ${item.name}
   </li>
 </ul>
+
+<!-- Using a literal property name -->
+<ul>
+  <li repeat.for="item of items; key: id">
+    ${item.name}
+  </li>
+</ul>
 ```
 
-**Guidelines for Keys:**
-- **Uniqueness:** Use a property that uniquely identifies each item (like an `id`).
-- **Stability:** Avoid using array indices if the collection order can change.
+Use unique, stable identifiers as keys. Avoid array indices if the collection order can change.
 
-## Contextual Properties in Repeats
+## Contextual Properties
 
-Inside a `repeat.for` block, Aurelia exposes several contextual properties that give you more control over the rendering logic:
+Inside a `repeat.for` block, these contextual properties are available:
 
-- **`$index`**: The zero-based index of the current iteration.
-- **`$first`**: A boolean that is `true` on the first iteration.
-- **`$last`**: A boolean that is `true` on the final iteration.
-- **`$even` / `$odd`**: Flags indicating whether the current index is even or odd, which is useful for styling alternating rows.
-- **`$length`**: The total number of items in the collection.
-- **`$parent`**: A reference to the parent binding context. This is especially useful in nested repeaters.
+- `$index` - Zero-based index of the current item
+- `$first` - True for the first item
+- `$last` - True for the last item  
+- `$even` / `$odd` - True for even/odd indices
+- `$length` - Total number of items
+- `$parent` - Reference to the parent binding context
 
 ### Example Usage
 
@@ -89,14 +85,14 @@ Inside a `repeat.for` block, Aurelia exposes several contextual properties that 
 </ul>
 ```
 
-For nested repeats, you can access the outer scope with `$parent`:
+Access parent context in nested repeats:
 
 ```html
-<ul>
-  <li repeat.for="item of items">
-    Outer index: ${$parent.$index}
-  </li>
-</ul>
+<div repeat.for="category of categories">
+  <div repeat.for="item of category.items">
+    Category ${$parent.$index}, Item ${$index}: ${item.name}
+  </div>
+</div>
 ```
 
 ## Working with Arrays
@@ -124,20 +120,19 @@ export class MyComponent {
 </ul>
 ```
 
-> **Note:** Aurelia tracks changes in arrays when you use array methods like `push`, `pop`, or `splice`. Direct assignments (e.g., `array[index] = value`) won’t trigger change detection.
+Aurelia tracks array changes when you use methods like `push`, `pop`, or `splice`. Direct index assignments won't trigger updates.
 
 ## Generating Ranges
 
-`repeat.for` isn’t limited to collections—it can also generate a sequence of numbers. For instance, to create a countdown:
+`repeat.for` can generate a sequence of numbers by specifying a number:
 
 ```html
-<p repeat.for="i of 10">
-  ${10 - i}
+<p repeat.for="i of 5">
+  Item ${i}
 </p>
-<p>Blast Off!</p>
 ```
 
-This iterates 10 times and computes `10 - i` on each pass.
+This creates 5 paragraphs with `i` ranging from 0 to 4.
 
 ## Iterating Sets
 
@@ -217,69 +212,36 @@ The `keys` converter transforms the object into an array of its keys, making it 
 
 ## Custom Collection Handling with Repeat Handlers
 
-Aurelia’s repeat system is extensible. If you need to iterate over non-standard collections (like HTMLCollections, NodeLists, or FileLists), you can create a custom repeat handler by implementing the `IRepeatableHandler` interface.
+Aurelia's repeat system is extensible. You can create custom repeat handlers for non-standard collections by implementing the `IRepeatableHandler` interface.
 
 ### Custom Handler Example
 
 ```typescript
-import Aurelia, { Registration, IRepeatableHandler } from 'aurelia';
+import { IRepeatableHandler } from 'aurelia';
 
 class ArrayLikeHandler implements IRepeatableHandler {
-  static register(container) {
-    Registration.singleton(IRepeatableHandler, ArrayLikeHandler).register(container);
+  handles(value: unknown): boolean {
+    return typeof value === 'object' && value !== null && 'length' in value;
   }
 
-  handles(value: any): boolean {
-    return 'length' in value && typeof value.length === 'number';
-  }
-
-  iterate(items: any, callback: (item: any, index: number) => void): void {
-    for (let i = 0, len = items.length; i < len; i++) {
-      callback(items[i], i);
+  iterate(value: ArrayLike<unknown>, func: (item: unknown, index: number, collection: ArrayLike<unknown>) => void): void {
+    for (let i = 0; i < value.length; i++) {
+      func(value[i], i, value);
     }
   }
 }
+```
+
+Register your handler during application configuration:
+
+```typescript
+import { Registration } from 'aurelia';
 
 Aurelia.register(
-  ArrayLikeHandler,
-  // other registrations
+  Registration.singleton(IRepeatableHandler, ArrayLikeHandler)
 ).app(MyApp).start();
 ```
 
-> **Tip:** Aurelia provides a default `ArrayLikeHandler` you can import directly:
-> ```typescript
-> import Aurelia, { ArrayLikeHandler } from 'aurelia';
-> ```
-
-### Custom Handler Resolver
-
-If you need to override the default order in which Aurelia selects a repeat handler, you can implement your own `IRepeatableHandlerResolver`:
-
-```typescript
-class MyRepeatableHandlerResolver {
-  resolve(value: any) {
-    if (typeof value?.length === 'number') {
-      return {
-        iterate(items, callback) {
-          for (let i = 0; i < items.length; ++i) {
-            callback(items[i], i, items);
-          }
-        }
-      };
-    }
-    throw new Error('The repeater supports only array-like objects.');
-  }
-}
-```
-
-This custom resolver can redefine how different collection types are handled by the repeater.
-
 ## Summary
 
-Aurelia 2’s list rendering capabilities are both powerful and flexible:
-- **Versatile Iteration:** Work with arrays, sets, maps, ranges, and even objects (via converters).
-- **Efficient Updates:** Use keyed iteration to minimize DOM changes.
-- **Contextual Data:** Access properties like `$index`, `$first`, `$last`, `$even`, `$odd`, `$length`, and `$parent` for richer templates.
-- **Extensibility:** Create custom handlers and resolvers to support any iterable data structure.
-
-Mastering these features enables you to build dynamic, efficient UIs that handle complex data sets with ease.
+The `repeat.for` binding supports arrays, sets, maps, ranges, and custom collections. Use keyed iteration for optimal performance, and leverage contextual properties like `$index`, `$first`, and `$parent` when needed.

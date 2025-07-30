@@ -4,7 +4,9 @@ description: Get to know Aurelia's value converters (pipes) and how to use them 
 
 # Value Converters (Pipes)
 
-Value converters transform data as it flows between your view and view model. They’re ideal for formatting text, dates, currencies, and more. In other frameworks, you might know them as pipes.
+Value converters transform data as it flows between your view and view model. They're ideal for formatting text, dates, currencies, and more. In other frameworks, you might know them as pipes.
+
+Aurelia 2 provides a comprehensive value converter system with support for bidirectional conversion, signals-based reactivity, context awareness, and flexible registration patterns.
 
 ## Data Flow
 
@@ -159,6 +161,90 @@ Once `withContext: true` is enabled and a converter receives the `caller` parame
 
 By combining these properties, your converter can adapt its logic based on exactly which binding and component invoked it.
 
+## Registration Patterns
+
+Aurelia 2 offers multiple ways to register value converters depending on your needs.
+
+### Decorator-Based Registration (Recommended)
+
+The simplest approach uses the `@valueConverter` decorator:
+
+```typescript
+import { valueConverter } from 'aurelia';
+
+@valueConverter('myConverter')
+export class MyConverter {
+  toView(value) {
+    return value;
+  }
+}
+```
+
+### Registration with Options
+
+For more control, provide a configuration object:
+
+```typescript
+@valueConverter({ 
+  name: 'currency', 
+  aliases: ['money', 'cash'] 
+})
+export class CurrencyConverter {
+  toView(value, locale = 'en-US', currency = 'USD') {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currency
+    }).format(value);
+  }
+}
+```
+
+Now you can use any of these names in templates:
+
+```html
+<p>${amount | currency}</p>
+<p>${amount | money:'en-GB':'GBP'}</p>
+<p>${amount | cash}</p>
+```
+
+### Manual Registration
+
+For dynamic scenarios, use `ValueConverter.define()`:
+
+```typescript
+import { ValueConverter } from 'aurelia';
+
+// Inline class definition
+const DynamicConverter = ValueConverter.define('dynamic', class {
+  toView(value) {
+    return `Dynamic: ${value}`;
+  }
+});
+
+// Existing class
+class ExistingConverter {
+  toView(value) {
+    return value;
+  }
+}
+ValueConverter.define('existing', ExistingConverter);
+```
+
+### Local vs Global Registration
+
+**Global Registration**: Converters registered with decorators or in the root configuration are available throughout the application.
+
+**Local Registration**: Register converters for specific components:
+
+```typescript
+@customElement({
+  name: 'my-element',
+  template: '${value | localConverter}',
+  dependencies: [LocalConverter] // Only available within this component
+})
+class MyElement { }
+```
+
 ## Creating Custom Value Converters
 
 A converter is a simple class. Always reference it in camelCase within templates.
@@ -172,6 +258,114 @@ export class ThingValueConverter {
   }
 }
 ```
+
+## Signals-Based Reactivity
+
+Value converters can automatically re-evaluate when specific signals are dispatched, perfect for locale changes, theme updates, or global state changes.
+
+```typescript
+import { valueConverter, ISignaler } from 'aurelia';
+
+@valueConverter('localeDate')
+export class LocaleDateConverter {
+  public readonly signals = ['locale-changed', 'timezone-changed'];
+  
+  constructor(@ISignaler private signaler: ISignaler) {}
+  
+  toView(value: string, locale?: string) {
+    const currentLocale = locale || this.getCurrentLocale();
+    return new Intl.DateTimeFormat(currentLocale, {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(new Date(value));
+  }
+  
+  private getCurrentLocale() {
+    // Get current locale from your app state
+    return 'en-US';
+  }
+}
+```
+
+To trigger re-evaluation from anywhere in your app:
+
+```typescript
+export class LocaleService {
+  constructor(@ISignaler private signaler: ISignaler) {}
+  
+  changeLocale(newLocale: string) {
+    // Update your locale
+    this.signaler.dispatchSignal('locale-changed');
+  }
+}
+```
+
+Now all `localeDate` converters automatically update when the locale changes, without needing to manually refresh bindings.
+
+### Built-in Signal-Aware Converters
+
+Aurelia 2 includes several built-in converters that leverage signals:
+
+```html
+<!-- Automatically updates when locale changes -->
+<p>${message | t}</p> <!-- Translation -->
+<p>${date | df}</p> <!-- Date format -->
+<p>${number | nf}</p> <!-- Number format -->
+<p>${date | rt}</p> <!-- Relative time -->
+```
+
+## Built-in Value Converters
+
+Aurelia 2 includes several built-in converters ready for use:
+
+### Sanitize Converter
+
+Aurelia 2 includes a `sanitize` converter, but it requires you to provide your own sanitizer implementation:
+
+```typescript
+import { ISanitizer } from 'aurelia';
+
+// You must register your own sanitizer implementation
+export class MyHtmlSanitizer implements ISanitizer {
+  sanitize(input: string): string {
+    // Implement your sanitization logic
+    // You might use a library like DOMPurify here
+    return input; // This is just an example - implement proper sanitization!
+  }
+}
+
+// Register it in your main configuration
+container.register(singletonRegistration(ISanitizer, MyHtmlSanitizer));
+```
+
+Then you can use the sanitize converter:
+
+```html
+<div innerHTML.bind="userContent | sanitize"></div>
+```
+
+**Note**: The built-in sanitize converter throws an error by default. You must provide your own `ISanitizer` implementation for it to work.
+
+### I18n Converters (when @aurelia/i18n is installed)
+
+```html
+<!-- Translation -->
+<p>${'welcome.message' | t}</p>
+<p>${'welcome.user' | t:{ name: userName }}</p>
+
+<!-- Date formatting -->
+<p>${date | df}</p>
+<p>${date | df:{ year: 'numeric', month: 'long' }}</p>
+
+<!-- Number formatting -->
+<p>${price | nf:{ style: 'currency', currency: 'USD' }}</p>
+
+<!-- Relative time -->
+<p>${timestamp | rt}</p>
+```
+
+## Advanced Configuration Options
 
 ### Date Formatter Example
 
@@ -382,5 +576,100 @@ export class MorseCodeValueConverter {
 ```html
 <p>${message | morse}</p>
 ```
+
+## Performance Considerations & Best Practices
+
+### Optimization Tips
+
+1. **Avoid expensive operations in toView**: Value converters are called frequently during binding updates.
+
+```typescript
+// ❌ Bad - expensive operation on every call
+@valueConverter('slowFormat')
+export class SlowFormatConverter {
+  toView(value: string) {
+    // Don't do heavy computations here
+    return this.performExpensiveTransformation(value);
+  }
+}
+
+// ✅ Good - cache results when possible
+@valueConverter('fastFormat')
+export class FastFormatConverter {
+  private cache = new Map();
+  
+  toView(value: string) {
+    if (this.cache.has(value)) {
+      return this.cache.get(value);
+    }
+    const result = this.transformValue(value);
+    this.cache.set(value, result);
+    return result;
+  }
+}
+```
+
+2. **Use signals instead of polling**: For global state changes, signals are more efficient than frequent re-evaluation.
+
+3. **Consider memoization**: For converters with complex calculations, implement caching strategies.
+
+4. **Minimize fromView complexity**: Two-way binding calls fromView on every keystroke.
+
+### Best Practices
+
+- **Single responsibility**: Each converter should handle one specific transformation
+- **Pure functions**: Avoid side effects in converter methods when possible
+- **Descriptive names**: Use clear, descriptive names that indicate the transformation
+- **Type safety**: Use TypeScript interfaces for better developer experience
+
+```typescript
+interface CurrencyOptions {
+  locale?: string;
+  currency?: string;
+  minimumFractionDigits?: number;
+}
+
+@valueConverter('currency')
+export class CurrencyConverter {
+  toView(value: number, options: CurrencyOptions = {}): string {
+    const { locale = 'en-US', currency = 'USD', minimumFractionDigits = 2 } = options;
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits
+    }).format(value);
+  }
+  
+  fromView(value: string): number {
+    const numericValue = parseFloat(value.replace(/[^\d.-]/g, ''));
+    return isNaN(numericValue) ? 0 : numericValue;
+  }
+}
+```
+
+## Troubleshooting Common Issues
+
+### Converter Not Found
+
+If your converter isn't recognized:
+
+1. Ensure it's imported where used
+2. Check the decorator name matches template usage
+3. Verify registration in component dependencies if using local registration
+
+### Performance Issues
+
+- Profile converter execution frequency
+- Consider signal-based updates for global state
+- Implement caching for expensive operations
+- Use bidirectional converters judiciously
+
+### Context Access Issues
+
+When using `withContext`, ensure:
+
+1. The `withContext` property is set to `true`
+2. The caller parameter is the second parameter in method signatures
+3. Additional arguments come after the caller parameter
 
 These examples highlight the flexibility of Aurelia 2's value converters. Experiment with your own transformations to tailor data exactly as you need it.

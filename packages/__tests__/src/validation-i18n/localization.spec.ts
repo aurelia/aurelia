@@ -14,7 +14,6 @@ import {
   BindingWithBehavior,
   IValidationController,
   ValidationController,
-  ValidationHtmlConfiguration,
 } from '@aurelia/validation-html';
 import { LocalizedValidationController, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nConfiguration } from '@aurelia/validation-i18n';
 import { Spy } from '../Spy.js';

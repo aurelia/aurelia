@@ -106,10 +106,10 @@ describe('router/generate-path.spec.ts', function () {
         path = await router.generatePath(C1, rootVm);
         assert.strictEqual(path, expected, 'round#3 - generatePath(C1, rootVm)');
 
-        path = await router.generatePath(useHash ? '' : '');
+        path = await router.generatePath('');
         assert.strictEqual(path, expected, 'round#3 - generatePath(\'\')');
 
-        path = await router.generatePath(useHash ? '' : '', rootVm);
+        path = await router.generatePath('', rootVm);
         assert.strictEqual(path, expected, 'round#3 - generatePath(\'\', rootVm)');
 
         path = await router.generatePath({ component: C1 });

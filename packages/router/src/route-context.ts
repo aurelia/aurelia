@@ -364,7 +364,8 @@ export class RouteContext {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
       vit => {
-        const relativePath = vit.toUrl(true, this._router.options._urlParser);
+        const options = this._router.options;
+        const relativePath = vit.toUrl(true, options._urlParser, false);
 
         // Compute the parent path
         let parentPath = '';
@@ -378,7 +379,7 @@ export class RouteContext {
         parentPath = parentSegments.join('/');
 
         // Combine parent path and relative path
-        return parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`;
+        return `${options.useUrlFragmentHash ? '/#/' : ''}${parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`}`;
       }
     );
   }
@@ -389,7 +390,7 @@ export class RouteContext {
   public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
-      vit => vit.toUrl(true, this._router.options._urlParser)
+      vit => vit.toUrl(true, this._router.options._urlParser, (vit.options.context as IRouteContext).isRoot)
     );
   }
 

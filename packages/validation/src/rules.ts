@@ -274,7 +274,7 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
   public constructor(
     private readonly validState: TState,
     private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
-    private readonly messages: Partial<Record<TState, string>>, // TODO(Sayan): probably this should not be a part of the class, simple arg to ctor should suffice
+    messages: Partial<Record<TState, string>>,
   ) {
     super(void 0);
     const aliases: ValidationRuleAlias[] = [];

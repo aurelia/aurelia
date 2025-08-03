@@ -4,6 +4,11 @@
 
 ## Introduction
 
+* [Essentials](essentials/README.md)
+  * [Components](essentials/components.md)
+  * [Templates](essentials/templates.md)
+  * [Dependency Injection](essentials/dependency-injection.md)
+  * [Reactivity](essentials/reactivity.md)
 * [Quick start](getting-started/quick-install-guide.md)
 * [Aurelia for new developers](getting-started/aurelia-for-new-developers.md)
 * [Hello world tutorial](getting-started/quick-start-guide/README.md)
@@ -90,6 +95,7 @@
 * [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [Task Queue](getting-to-know-aurelia/task-queue.md)
 * [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
+* [Framework internals](getting-to-know-aurelia/framework-internals.md)
 
 ## Developer Guides
 

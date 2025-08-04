@@ -20,7 +20,7 @@ Viewports are the foundation of Aurelia's routing system. The `<au-viewport>` el
 The `<au-viewport>` element supports several configuration attributes:
 
 ```html
-<au-viewport 
+<au-viewport
   name="main"                    <!-- Viewport identifier -->
   used-by="specific-component"   <!-- Reserve for specific component -->
   default="home-component"       <!-- Default component to load -->
@@ -580,12 +580,12 @@ import { customElement } from '@aurelia/runtime-html';
     { path: 'overview', component: import('./overview'), viewport: 'main' },
     { path: 'analytics', component: import('./analytics'), viewport: 'main' },
     { path: 'settings', component: import('./settings'), viewport: 'main' },
-    
+
     // Sidebar components
     { path: 'nav', component: import('./navigation'), viewport: 'sidebar' },
     { path: 'user-info', component: import('./user-info'), viewport: 'sidebar' },
-    
-    // Modal/overlay components  
+
+    // Modal/overlay components
     { path: 'notifications', component: import('./notifications'), viewport: 'overlay' },
     { path: 'help', component: import('./help-overlay'), viewport: 'overlay' },
   ]
@@ -597,11 +597,11 @@ import { customElement } from '@aurelia/runtime-html';
       <aside class="sidebar">
         <au-viewport name="sidebar" default="nav"></au-viewport>
       </aside>
-      
+
       <main class="main-content">
         <au-viewport name="main" default="overview"></au-viewport>
       </main>
-      
+
       <div class="overlay-container">
         <au-viewport name="overlay" fallback=""></au-viewport>
       </div>
@@ -676,17 +676,17 @@ interface UserService {
         <a href="user" if.bind="isLoggedIn">User Area</a>
         <a href="admin" if.bind="isAdmin">Admin</a>
       </nav>
-      
+
       <!-- Admin layout -->
       <div if.bind="isAdmin" class="admin-layout">
         <au-viewport name="admin" fallback="access-denied"></au-viewport>
       </div>
-      
+
       <!-- User layout -->
       <div else-if.bind="isLoggedIn" class="user-layout">
         <au-viewport name="user" fallback="user-home"></au-viewport>
       </div>
-      
+
       <!-- Public layout -->
       <div else class="public-layout">
         <au-viewport name="main" default="public"></au-viewport>
@@ -734,12 +734,12 @@ interface PanelConfig {
           \${config.name}
         </button>
       </div>
-      
-      <div class="panels-container" 
+
+      <div class="panels-container"
            style="grid-template-columns: \${gridTemplate}">
-        <div repeat.for="panelId of activePanels" 
+        <div repeat.for="panelId of activePanels"
              class="panel">
-          <au-viewport name="\${panelId}" 
+          <au-viewport name="\${panelId}"
                        default="\${getPanelComponent(panelId)}">
           </au-viewport>
         </div>
@@ -749,7 +749,7 @@ interface PanelConfig {
 })
 export class DynamicLayout {
   @observable activePanels: string[] = ['main'];
-  
+
   availablePanels: PanelConfig[] = [
     { id: 'main', name: 'Main Content', component: 'main-content', defaultSize: 2 },
     { id: 'sidebar', name: 'Sidebar', component: 'sidebar-content', defaultSize: 1 },
@@ -796,7 +796,7 @@ import { route, IRouter } from '@aurelia/router';
     // Main content routes
     { path: 'documents', component: import('./documents'), viewport: 'main' },
     { path: 'projects', component: import('./projects'), viewport: 'main' },
-    
+
     // Auxiliary content routes
     { path: 'document-tools', component: import('./document-tools'), viewport: 'tools' },
     { path: 'project-tools', component: import('./project-tools'), viewport: 'tools' },
@@ -819,15 +819,15 @@ import { route, IRouter } from '@aurelia/router';
           <button click.trigger="showSidebar('outline')">Outline</button>
         </div>
       </header>
-      
+
       <main class="main-content">
         <au-viewport name="main" default="documents"></au-viewport>
       </main>
-      
+
       <aside class="tools-panel \${showToolsPanel ? 'visible' : 'hidden'}">
         <au-viewport name="tools" fallback=""></au-viewport>
       </aside>
-      
+
       <aside class="sidebar-panel \${showSidebarPanel ? 'visible' : 'hidden'}">
         <au-viewport name="sidebar" fallback=""></au-viewport>
       </aside>
@@ -923,7 +923,7 @@ import { route } from '@aurelia/router';
           <au-viewport name="main" default="content"></au-viewport>
         </main>
       </div>
-      
+
       <!-- Mobile Layout -->
       <div if.bind="isMobile" class="mobile-layout">
         <header class="mobile-header">
@@ -931,11 +931,11 @@ import { route } from '@aurelia/router';
             ☰ Menu
           </button>
         </header>
-        
+
         <main class="mobile-main">
           <au-viewport name="main" default="content"></au-viewport>
         </main>
-        
+
         <div class="mobile-menu \${showMobileMenu ? 'open' : 'closed'}">
           <au-viewport name="mobile" default="mobile-menu"></au-viewport>
         </div>
@@ -1015,7 +1015,7 @@ Always provide appropriate fallbacks for viewports:
 ```typescript
 @customElement({
   template: `
-    <au-viewport name="main" 
+    <au-viewport name="main"
                  fallback="error-component"
                  default="home-component">
     </au-viewport>
@@ -1025,12 +1025,12 @@ export class RobustApp {
   // Fallback function for complex error handling
   getFallback(instruction: ViewportInstruction, node: RouteNode): string {
     console.error('Failed to load component:', instruction.component);
-    
+
     // Different fallbacks based on the failed component
     if (typeof instruction.component === 'string') {
       return instruction.component.includes('admin') ? 'admin-error' : 'general-error';
     }
-    
+
     return 'general-error';
   }
 }

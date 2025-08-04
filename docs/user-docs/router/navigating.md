@@ -1282,7 +1282,7 @@ export class NavigationMenuComponent {
   ];
 
   get visibleMenuItems() {
-    return this.menuItems.filter(item => 
+    return this.menuItems.filter(item =>
       !item.permission || this.hasPermission(item.permission)
     );
   }
@@ -1351,7 +1351,7 @@ export class NavigationBatchService {
 
   async processNavigationQueue() {
     const operations = this.navigationQueue.splice(0); // Clear queue
-    
+
     for (const operation of operations) {
       try {
         await this.router.load(operation.route, operation.options);
@@ -1502,13 +1502,13 @@ export class NavigationService {
   async safeNavigate(route: string, options?: any): Promise<boolean> {
     try {
       const result = await this.router.load(route, options);
-      
+
       if (!result) {
         // Navigation was blocked by guards
         this.handleNavigationBlocked(route);
         return false;
       }
-      
+
       return true;
     } catch (error) {
       this.handleNavigationError(error, route);
@@ -1540,7 +1540,7 @@ export class LinkGeneratorService {
 
   async getPath(route: string, params?: any): Promise<string> {
     const cacheKey = `${route}:${JSON.stringify(params)}`;
-    
+
     if (this.pathCache.has(cacheKey)) {
       return this.pathCache.get(cacheKey)!;
     }
@@ -1564,7 +1564,7 @@ export class AccessibleNavigationComponent {
 
   async navigateWithAccessibility(route: string, announcement?: string) {
     const success = await this.router.load(route);
-    
+
     if (success && announcement) {
       // Announce navigation to screen readers
       this.announceToScreenReader(announcement);
@@ -1577,7 +1577,7 @@ export class AccessibleNavigationComponent {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only'; // Screen reader only class
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
     setTimeout(() => document.body.removeChild(announcement), 1000);
   }
@@ -1602,18 +1602,18 @@ describe('NavigationComponent', () => {
 
   it('should navigate to user profile', async () => {
     mockRouter.load.and.returnValue(Promise.resolve(true));
-    
+
     await component.navigateToUser('123');
-    
+
     expect(mockRouter.load).toHaveBeenCalledWith('user/123');
   });
 
   it('should handle navigation failure', async () => {
     mockRouter.load.and.returnValue(Promise.resolve(false));
     spyOn(component, 'showErrorMessage');
-    
+
     await component.navigateToUser('123');
-    
+
     expect(component.showErrorMessage).toHaveBeenCalled();
   });
 });

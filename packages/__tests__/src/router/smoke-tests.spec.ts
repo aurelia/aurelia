@@ -7784,4 +7784,54 @@ describe('router/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  for (const treatQueryAsParameters of [true, false]) {
+    it(`query parameters handling - treatQueryAsParameters: ${treatQueryAsParameters}`, async function () {
+      @route('c1/:id')
+      @customElement({ name: 'c-1', template: 'c1 ${params} ${query.foo} ${query.bar}' })
+      class C1 implements IRouteViewModel {
+        private params: string;
+        private query: Params;
+        public loading(params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
+          this.params = JSON.stringify(params);
+          this.query = Object.fromEntries(next.queryParams.entries());
+        }
+      }
+
+      @route({ routes: [{ id: 'c1', component: C1 }] })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root, treatQueryAsParameters });
+      const router = container.get(IRouter);
+
+      assert.html.textContent(host, '', 'init');
+
+      await router.load('c1/42?foo=bar&bar=baz');
+      assert.html.textContent(
+        host,
+        treatQueryAsParameters
+          ? `c1 {"foo":"bar","bar":"baz","id":"42"} bar baz`
+          : `c1 {"id":"42"} bar baz`,
+        'round#1');
+
+      await router.load({ component: 'c1', params: { id: '456', foo: 'bar', bar: 'baz' } });
+      assert.html.textContent(
+        host,
+        treatQueryAsParameters
+          ? `c1 {"foo":"bar","bar":"baz","id":"456"} bar baz`
+          : `c1 {"id":"456"} bar baz`,
+        'round#2');
+
+      await router.load('c1/42?foo=bar&foo=baz');
+      assert.html.textContent(
+        host,
+        treatQueryAsParameters
+          ? `c1 {"foo":["bar","baz"],"id":"42"} baz`
+          : `c1 {"id":"42"} baz`,
+        'round#3');
+
+      await au.stop(true);
+    });
+  }
 });

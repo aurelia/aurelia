@@ -171,6 +171,8 @@ export class Router {
   /** @internal */ private _navigated: boolean = false;
   /** @internal */ private _navigationId: number = 0;
 
+  /** @internal */ private _lastLocationChangeStateId: number = 0;
+
   /** @internal */ private _instructions: ViewportInstructionTree;
 
   /** @internal */ private _nextTr: Transition | null = null;
@@ -228,7 +230,8 @@ export class Router {
         const state = isManagedState(e.state) ? e.state : null;
 
         const routerOptions = this.options;
-        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
+        const auNavId = state?.[AuNavId] ?? 0;
+        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack: auNavId < this._lastLocationChangeStateId });
         const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
@@ -236,6 +239,7 @@ export class Router {
         // So we do want to solve this at some point.
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this._enqueue(instructions, e.trigger, state, null);
+        this._lastLocationChangeStateId = auNavId;
       });
     });
 

@@ -122,12 +122,14 @@ describe('router/lifecycle-hooks.spec.ts', function () {
     public async loading(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<void> {
       await log('loading', next, this.getWaitTime('loading'), this.logger);
     }
-    public async canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<boolean> {
-      await log('canUnload', current ?? rn, this.getWaitTime('canUnload'), this.logger);
+    public async canUnload(...args: unknown[]): Promise<boolean> {
+      const rn: RouteNode = (args.length === 3 ? args[1] : args[2]) as RouteNode;
+      await log('canUnload', rn, this.getWaitTime('canUnload'), this.logger);
       return true;
     }
-    public async unloading(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): Promise<void> {
-      await log('unloading', current ?? rn, this.getWaitTime('unloading'), this.logger);
+    public async unloading(...args: unknown[]): Promise<void> {
+      const rn: RouteNode = (args.length === 3 ? args[1] : args[2]) as RouteNode;
+      await log('unloading', rn, this.getWaitTime('unloading'), this.logger);
     }
   }
 
@@ -140,12 +142,14 @@ describe('router/lifecycle-hooks.spec.ts', function () {
     public loading(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): void | Promise<void> {
       this.logger.trace(`loading ${(next.instruction as IViewportInstruction).component}`);
     }
-    public canUnload(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): boolean | Promise<boolean> {
-      this.logger.trace(`canUnload ${((current ?? rn).instruction as IViewportInstruction).component}`);
+    public canUnload(...args: unknown[]): boolean | Promise<boolean> {
+      const rn: RouteNode = (args.length === 3 ? args[1] : args[2]) as RouteNode;
+      this.logger.trace(`canUnload ${(rn.instruction as IViewportInstruction).component}`);
       return true;
     }
-    public unloading(vm: IRouteViewModel, rn: RouteNode, current?: RouteNode): void | Promise<void> {
-      this.logger.trace(`unloading ${((current ?? rn).instruction as IViewportInstruction).component}`);
+    public unloading(...args: unknown[]): void | Promise<void> {
+      const rn: RouteNode = (args.length === 3 ? args[1] : args[2]) as RouteNode;
+      this.logger.trace(`unloading ${(rn.instruction as IViewportInstruction).component}`);
     }
   }
 

@@ -4,6 +4,7 @@
 
 ## Introduction
 
+* [The Aurelia Philosophy](the-aurelia-philosophy.md)
 * [Essentials](essentials/README.md)
   * [Components](essentials/components.md)
   * [Templates](essentials/templates.md)

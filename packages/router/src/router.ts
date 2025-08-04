@@ -20,7 +20,7 @@ export function isManagedState(state: {} | null): state is ManagedState {
   return isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 export function toManagedState(state: {} | null, navId: number): ManagedState {
-  return { ...state, [AuNavId]: navId };
+  return { ...state, [AuNavId]: (state as { [AuNavId]: number | undefined })?.[AuNavId] ?? navId };
 }
 
 /** @internal */
@@ -171,6 +171,8 @@ export class Router {
   /** @internal */ private _navigated: boolean = false;
   /** @internal */ private _navigationId: number = 0;
 
+  /** @internal */ private _lastLocationChangeStateId: number = 0;
+
   /** @internal */ private _instructions: ViewportInstructionTree;
 
   /** @internal */ private _nextTr: Transition | null = null;
@@ -219,6 +221,7 @@ export class Router {
 
     this._locationMgr.startListening();
     this._locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
+      console.log(`[ROUTER] Location change event: ${e.url} (trigger: ${e.trigger})`, e.state);
       // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
       // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
       // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
@@ -228,7 +231,11 @@ export class Router {
         const state = isManagedState(e.state) ? e.state : null;
 
         const routerOptions = this.options;
-        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
+        const auNavId = state?.[AuNavId] ?? 0;
+        const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
+        console.log(`[ROUTER] auNavId: ${auNavId}, _lastLocationChangeStateId: ${this._lastLocationChangeStateId}, is back: ${isBack}`);
+        this._lastLocationChangeStateId = auNavId;
+        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });
         const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
@@ -699,10 +706,10 @@ export class Router {
             // do nothing
             break;
           case 'push':
-            this._locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            this._locationMgr.pushState(toManagedState(tr.managedState, tr.id), this.updateTitle(tr), newUrl);
             break;
           case 'replace':
-            this._locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            this._locationMgr.replaceState(toManagedState(tr.managedState, tr.id), this.updateTitle(tr), newUrl);
             break;
         }
 

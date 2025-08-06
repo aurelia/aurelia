@@ -599,7 +599,7 @@ export class ProductCatalog {
     <img src.bind="product.image" alt.bind="product.name">
     <h3>${product.name}</h3>
     <p class="price">${product.price | currency}</p>
-    <button click.delegate="addToCart(product)">Add to Cart</button>
+    <button click.trigger="addToCart(product)">Add to Cart</button>
   </div>
 </div>
 
@@ -640,7 +640,7 @@ export class DataTable {
   <thead>
     <tr>
       <th repeat.for="column of columns"
-          click.delegate="sort(column.key)"
+          click.trigger="sort(column.key)"
           class="${sortColumn === column.key ? 'sorted ' + sortDirection : ''}">
         ${column.title}
         <span if.bind="sortColumn === column.key"
@@ -692,7 +692,7 @@ export class UserList {
 <div repeat.for="user of activeUsers; key.bind: user.id">
   <span>${user.name}</span> <!-- ✓ TypeScript knows user.name exists -->
   <span>${user.email}</span> <!-- ✓ Type safe -->
-  <button click.delegate="toggleUserStatus(user)">
+  <button click.trigger="toggleUserStatus(user)">
     ${user.isActive ? 'Deactivate' : 'Activate'}
   </button>
 </div>

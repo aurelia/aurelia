@@ -440,8 +440,8 @@ export class BananaInBox {
 <li background.style="bg">
 <!-- Listen to the 'blur' event using a direct event listener on the element -->
 <input blur.trigger="onBlur()">
-<!-- Listen to the 'click' event using a delegated event listener (only works with bubbling events) -->
-<button click.delegate="onClick()">
+<!-- Listen to the 'click' event using a event listener (only works with bubbling events) -->
+<button click.trigger="onClick()">
 <!-- Directly work with the event using the `$event` magic property -->
 <form submit.trigger="$event.preventDefault()">
 <!-- Set this html element to the 'nameInput' property on the declaring component -->

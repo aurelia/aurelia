@@ -6,7 +6,7 @@ Binding behaviors are a powerful category of view resources in Aurelia 2 that mo
 
 Binding behaviors enable you to:
 - **Control timing** - throttle, debounce, or trigger updates at specific intervals
-- **Modify binding modes** - force one-way, two-way, or one-time binding behavior  
+- **Modify binding modes** - force one-way, two-way, or one-time binding behavior
 - **Customize event handling** - filter events or change which events trigger updates
 - **Add debugging capabilities** - inspect, log, or visualize binding behavior
 - **Implement complex logic** - create reusable binding modifications
@@ -76,7 +76,7 @@ The `throttle` behavior is particularly valuable when used with event bindings, 
 **Handling `mousemove` events at most every 200ms**
 
 ```html
-<div mousemove.delegate="mouseMoveHandler($event) & throttle"></div>
+<div mousemove.trigger="mouseMoveHandler($event) & throttle"></div>
 ```
 
 In this case, the `mouseMoveHandler` method in your view model will be invoked at most every 200ms, regardless of how frequently the `mousemove` event is triggered as the user moves their mouse.
@@ -138,7 +138,7 @@ Similar to `throttle`, `debounce` is highly effective with event bindings.
 **Calling `mouseMoveHandler` after the mouse stops moving for 500ms**
 
 ```html
-<div mousemove.delegate="mouseMoveHandler($event) & debounce:500"></div>
+<div mousemove.trigger="mouseMoveHandler($event) & debounce:500"></div>
 ```
 
 ### Flushing Pending Debounced Calls
@@ -320,7 +320,7 @@ Consider a scenario with a panel component:
 
 ```html
 <panel>
-  <header mousedown.delegate='onMouseDown($event)' ref='headerElement'>
+  <header mousedown.trigger='onMouseDown($event)' ref='headerElement'>
     <button>Settings</button>
     <button>Close</button>
   </header>
@@ -353,7 +353,7 @@ However, this mixes DOM event handling logic with component-specific behavior. T
 
 ```html
 <panel>
-  <header mousedown.delegate='onMouseDown($event) & self'>
+  <header mousedown.trigger='onMouseDown($event) & self'>
     <button class='settings'></button>
     <button class='close'></button>
   </header>
@@ -513,7 +513,7 @@ export class InspectBindingBehavior {
       binding.updateTarget = original;
       this.originalMethods.delete(binding);
     }
-    
+
     // Clear tooltip
     if (binding.target && 'title' in binding.target) {
       binding.target.title = '';
@@ -551,7 +551,7 @@ export class HighlightUpdatesBindingBehavior {
 
     binding.updateTarget = (value) => {
       original.call(binding, value);
-      
+
       // Clear any existing timeout
       const existingTimeout = this.timeouts.get(binding);
       if (existingTimeout) {
@@ -561,12 +561,12 @@ export class HighlightUpdatesBindingBehavior {
       if (binding.target && binding.target.style) {
         const originalBg = binding.target.style.backgroundColor;
         binding.target.style.backgroundColor = highlightColor;
-        
+
         const timeout = setTimeout(() => {
           binding.target.style.backgroundColor = originalBg;
           this.timeouts.delete(binding);
         }, duration);
-        
+
         this.timeouts.set(binding, timeout);
       }
     };
@@ -579,14 +579,14 @@ export class HighlightUpdatesBindingBehavior {
       binding.updateTarget = original;
       this.originalMethods.delete(binding);
     }
-    
+
     // Clear any pending timeouts
     const timeout = this.timeouts.get(binding);
     if (timeout) {
       clearTimeout(timeout);
       this.timeouts.delete(binding);
     }
-    
+
     // Reset background color
     if (binding.target && binding.target.style) {
       binding.target.style.backgroundColor = '';
@@ -648,7 +648,7 @@ Whenever the `message` binding updates the `textContent` of the `div`, the div's
 <input value.bind="searchTerm & debounce:500">
 
 <!-- DOM updates -->
-<div scroll.delegate="onScroll($event) & throttle:16">
+<div scroll.trigger="onScroll($event) & throttle:16">
 ```
 
 **Static content optimization:**
@@ -664,11 +664,11 @@ Whenever the `message` binding updates the `textContent` of the `div`, the div's
 ```typescript
 export class MyBehavior {
   private cleanupMethods = new WeakMap();
-  
+
   bind(scope: Scope, binding: IBinding) {
     // Setup with cleanup tracking
   }
-  
+
   unbind(scope: Scope, binding: IBinding) {
     // Always clean up to prevent memory leaks
     const cleanup = this.cleanupMethods.get(binding);
@@ -697,7 +697,7 @@ export class MyBehavior {
 <input value.bind="email & debounce:300 & signal:'validate'">
 
 <!-- Immediate validation on blur -->
-<input value.bind="email & updateTrigger:'blur'" 
+<input value.bind="email & updateTrigger:'blur'"
        blur.trigger="signaler.dispatchSignal('validate')">
 ```
 
@@ -707,7 +707,7 @@ export class MyBehavior {
 <input value.bind="searchQuery & debounce:400">
 
 <!-- Immediate search button -->
-<button click.delegate="search() & signal:'search-now'">Search</button>
+<button click.trigger="search() & signal:'search-now'">Search</button>
 ```
 
 **Dynamic content:**
@@ -724,7 +724,7 @@ export class MyBehavior {
 Binding behaviors provide powerful ways to customize Aurelia's binding system:
 
 - **Built-in behaviors** cover common scenarios like rate limiting, binding modes, and event handling
-- **Custom behaviors** enable unlimited extensibility for specialized requirements  
+- **Custom behaviors** enable unlimited extensibility for specialized requirements
 - **Proper cleanup** is essential to prevent memory leaks in custom implementations
 - **Performance benefits** come from using appropriate behaviors for different use cases
 - **Debugging capabilities** make development and troubleshooting easier

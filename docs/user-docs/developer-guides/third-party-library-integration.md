@@ -451,7 +451,7 @@ export class BootstrapModal {
 ### Custom Attributes for Third-Party Libraries
 
 ```typescript
-import { autoinject, customAttribute } from 'aurelia';
+import { customAttribute } from 'aurelia';
 
 @customAttribute('tooltip')
 export class TooltipAttribute {

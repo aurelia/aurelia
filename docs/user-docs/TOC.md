@@ -117,6 +117,7 @@
 * [Organizing large-scale projects](advanced-scenarios/organizing-large-scale-projects.md)
 * [Debugging and Troubleshooting](developer-guides/debugging-and-troubleshooting.md)
 * [Error Handling Patterns](developer-guides/error-handling-patterns.md)
+* [Third Party Library Integration](developer-guides/third-party-library-integration.md)
 * [Errors](developer-guides/error-messages/README.md)
   * [Kernel Errors](developer-guides/error-messages/0001-to-0023/README.md)
   * [Template Compiler Errors](developer-guides/error-messages/0088-to-0723/README.md)

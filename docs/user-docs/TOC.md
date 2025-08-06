@@ -190,6 +190,7 @@
 * [Building a todo application](tutorials/building-a-todo-application.md)
 * [Building a weather application](tutorials/building-a-weather-application.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
+* [Micro-frontends with Module Federation](tutorials/micro-frontends-with-module-federation.md)
 * [React inside Aurelia](tutorials/using-react-inside-aurelia.md)
 * [Svelte inside Aurelia](tutorials/using-svelte-inside-aurelia.md)
 * [Synthetic view](tutorials/synthetic-view.md)

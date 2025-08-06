@@ -27,13 +27,13 @@ export class Dashboard {
   });
 
   ListWidget = CustomElement.define({
-    name: 'list-widget', 
+    name: 'list-widget',
     template: '<ul><li repeat.for="item of items">${item}</li></ul>'
   });
 
   // Switch between widgets based on user choice
   selectedWidget = this.ChartWidget;
-  
+
   switchToChart() {
     this.selectedWidget = this.ChartWidget;
   }
@@ -47,8 +47,8 @@ export class Dashboard {
 ```html
 <!-- dashboard.html -->
 <div class="widget-controls">
-  <button click.delegate="switchToChart()">Chart View</button>
-  <button click.delegate="switchToList()">List View</button>
+  <button click.trigger="switchToChart()">Chart View</button>
+  <button click.trigger="switchToList()">List View</button>
 </div>
 
 <au-compose component.bind="selectedWidget" title="Sales Data" items.bind="['Q1', 'Q2', 'Q3']"></au-compose>
@@ -101,7 +101,7 @@ export class NotificationCenter {
 ```html
 <!-- notification.html -->
 <div class="notifications">
-  <au-compose 
+  <au-compose
     repeat.for="notif of notifications"
     template.bind="getTemplate(notif)">
   </au-compose>
@@ -114,17 +114,17 @@ You can combine a template with a simple object that provides data and methods:
 
 ```html
 <!-- Each item gets its own mini-component -->
-<au-compose 
+<au-compose
   repeat.for="item of products"
   template="<div class='product'>
-    <h3>${name}</h3>  
+    <h3>${name}</h3>
     <p>${description}</p>
-    <button click.delegate='addToCart()'>Add to Cart</button>
+    <button click.trigger='addToCart()'>Add to Cart</button>
   </div>"
-  component.bind="{ 
-    name: item.name, 
+  component.bind="{
+    name: item.name,
     description: item.description,
-    addToCart: () => buyProduct(item) 
+    addToCart: () => buyProduct(item)
   }">
 </au-compose>
 ```
@@ -151,8 +151,8 @@ When you need a wrapper element around your composed content, use the `tag` prop
 
 ```html
 <!-- Create a div wrapper -->
-<au-compose 
-  tag="div" 
+<au-compose
+  tag="div"
   class="notification-container"
   template="<span class='icon'>✓</span><span class='message'>Success!</span>">
 </au-compose>
@@ -193,7 +193,7 @@ export class CardLayout {
     tag="div"
     class="card card-${card.theme}"
     template.bind="getCardTemplate(card)"
-    click.delegate="selectCard(card)">
+    click.trigger="selectCard(card)">
   </au-compose>
 </div>
 ```
@@ -213,7 +213,7 @@ export class UserWidget {
   // Called when component is first created and when model changes
   async activate(userData) {
     this.user = userData;
-    
+
     // Load user's posts when activated
     if (userData?.id) {
       this.posts = await this.loadUserPosts(userData.id);
@@ -232,7 +232,7 @@ export class UserWidget {
 ```html
 <!-- user-dashboard.html -->
 <div class="user-dashboard">
-  <au-compose 
+  <au-compose
     component.bind="UserWidget"
     model.bind="selectedUser">
   </au-compose>
@@ -240,7 +240,7 @@ export class UserWidget {
 ```
 
 ```typescript
-// user-dashboard.ts  
+// user-dashboard.ts
 export class UserDashboard {
   users = [
     { id: 1, name: 'Alice', role: 'admin' },
@@ -326,7 +326,7 @@ export class LazyDashboard {
 </div>
 
 <!-- Shows loading state while promise resolves -->
-<au-compose 
+<au-compose
   component.bind="currentComponent"
   model.bind="widgetData">
 </au-compose>
@@ -338,13 +338,13 @@ For template-only compositions, you can control whether they inherit the parent 
 
 ```html
 <!-- Auto scope (default) - inherits parent properties -->
-<au-compose 
+<au-compose
   template="<div>Welcome, ${user.name}!</div>"
   scope-behavior="auto">
 </au-compose>
 
 <!-- Scoped - isolated from parent, only uses component object -->
-<au-compose 
+<au-compose
   template="<div>Welcome, ${name}!</div>"
   component.bind="{ name: user.name }"
   scope-behavior="scoped">
@@ -378,12 +378,12 @@ export class AdminPanel {
 
 ```html
 <!-- admin-panel.html -->
-<au-compose 
+<au-compose
   component.bind="selectedWidget"
   composition.bind="composition">
 </au-compose>
 
-<button click.delegate="refreshWidget()">Refresh Widget</button>
+<button click.trigger="refreshWidget()">Refresh Widget</button>
 ```
 
 ## Real-World Examples
@@ -399,7 +399,7 @@ export class FormBuilder {
   });
 
   NumberInput = CustomElement.define({
-    name: 'number-input', 
+    name: 'number-input',
     template: '<input type="number" value.bind="value" min.bind="min" max.bind="max">'
   });
 
@@ -435,7 +435,7 @@ export class FormBuilder {
 <form class="dynamic-form">
   <div repeat.for="field of formConfig" class="field-group">
     <label>${field.name | titleCase}:</label>
-    <au-compose 
+    <au-compose
       component.bind="getFieldComponent(field)"
       value.bind="field.value"
       placeholder.bind="field.placeholder"
@@ -465,7 +465,7 @@ export class PluginHost {
       // Dynamically import the plugin module
       const module = await import(pluginConfig.url);
       const PluginComponent = module.default;
-      
+
       this.activePlugins.push({
         id: pluginConfig.id,
         name: pluginConfig.name,
@@ -493,7 +493,7 @@ export class PluginHost {
   <div class="plugin-loader">
     <h3>Available Plugins</h3>
     <div repeat.for="plugin of availablePlugins">
-      <button click.delegate="loadPlugin(plugin)">
+      <button click.trigger="loadPlugin(plugin)">
         Load ${plugin.name}
       </button>
     </div>
@@ -503,10 +503,10 @@ export class PluginHost {
     <div repeat.for="plugin of activePlugins" class="plugin-container">
       <div class="plugin-header">
         <h4>${plugin.name}</h4>
-        <button click.delegate="removePlugin(plugin.id)">Remove</button>
+        <button click.trigger="removePlugin(plugin.id)">Remove</button>
       </div>
-      
-      <au-compose 
+
+      <au-compose
         component.bind="plugin.component"
         model.bind="plugin.config">
       </au-compose>
@@ -532,7 +532,7 @@ export class CmsRenderer {
       `
     }),
     'text-block': CustomElement.define({
-      name: 'text-block', 
+      name: 'text-block',
       template: '<div class="text-content" innerHTML.bind="content"></div>'
     }),
     'image-gallery': CustomElement.define({
@@ -550,7 +550,7 @@ export class CmsRenderer {
       type: 'hero-section',
       data: {
         title: 'Welcome to Our Site',
-        subtitle: 'Building amazing experiences', 
+        subtitle: 'Building amazing experiences',
         backgroundImage: '/images/hero-bg.jpg',
         ctaText: 'Get Started'
       }
@@ -562,7 +562,7 @@ export class CmsRenderer {
       }
     },
     {
-      type: 'image-gallery', 
+      type: 'image-gallery',
       data: {
         images: [
           { url: '/images/1.jpg', alt: 'Project 1' },
@@ -673,9 +673,9 @@ export class Dashboard {
 
 ```html
 <!-- aurelia-1-dashboard.html -->
-<compose 
+<compose
   view.bind="selectedView"
-  view-model.bind="selectedViewModel" 
+  view-model.bind="selectedViewModel"
   model.bind="widgetData">
 </compose>
 ```
@@ -699,7 +699,7 @@ export class Dashboard {
 
 ```html
 <!-- aurelia-2-dashboard.html -->
-<au-compose 
+<au-compose
   component.bind="selectedComponent"
   model.bind="widgetData">
 </au-compose>
@@ -750,7 +750,7 @@ export class TemplateLoaderValueConverter {
 
   toView(url: string): Promise<string> {
     if (!this.cache.has(url)) {
-      this.cache.set(url, 
+      this.cache.set(url,
         fetch(url).then(response => response.text())
       );
     }

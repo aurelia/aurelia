@@ -103,9 +103,10 @@ ${items.map(({name}) => name)}
 ```
 
 **Error Messages:**
-- Block bodies: `"arrow function with function body is not supported"`
-- Default parameters: `"arrow function with default parameters is not supported"`  
-- Destructuring: `"arrow function with destructuring parameters is not supported"`
+When you attempt to use unsupported features, you'll receive these specific error codes:
+- Block bodies: `AUR0178: "arrow function with function body is not supported"`
+- Default parameters: `AUR0174: "arrow function with default parameters is not supported"`  
+- Destructuring: `AUR0175: "arrow function with destructuring parameters is not supported"`
 
 ## Array Operations
 
@@ -220,7 +221,7 @@ Use lambda expressions in text interpolation for inline calculations:
 
 ### Accessing Template Context
 
-Lambda expressions can access `$this` and `$parent` for scope navigation:
+Lambda expressions can access `$this` and `$parent` for scope navigation, maintaining proper binding context:
 
 ```html
 <!-- Access view model properties -->
@@ -230,27 +231,56 @@ ${items.filter(item => item.userId === $this.currentUserId).length}
 <div with.bind="childData">
   ${items.find(item => item.id === $parent.selectedId)?.name}
 </div>
+
+<!-- Complex scope navigation -->
+<div with.bind="{level: 1}">
+  <div with.bind="{level: 2}">
+    <div with.bind="{level: 3}">
+      <!-- Access different scope levels -->
+      ${(level => `Current: ${level}, Parent: ${$parent.level}, Root: ${$parent.$parent.level}`)($this.level)}
+    </div>
+  </div>
+</div>
 ```
+
+**Scope Access Patterns:**
+- **`$this`**: References the current binding context (view model)
+- **`$parent`**: References the parent binding context
+- **`$parent.$parent`**: Chain to access higher-level scopes
+- **Maintains reactivity**: Changes to referenced properties trigger updates
 
 ## Advanced Use Cases
 
 ### Nested Array Processing
 
-Process complex nested data structures:
+Process complex nested data structures with proper scope handling:
 
 ```html
-<!-- Flatten nested hierarchies (based on framework tests) -->
+<!-- Flatten nested hierarchies -->
 <div repeat.for="item of items.flatMap(x => 
   [x].concat(x.children.flatMap(y => [y].concat(y.children))))">
   ${item.name}
 </div>
 
-<!-- Access parent scope in nested operations -->
+<!-- Access parent variables in nested operations -->
 <div repeat.for="item of items.flatMap(x => 
   x.children.flatMap(y => ([x, y].concat(y.children))))">
   ${item.name}
 </div>
+
+<!-- Complex hierarchical flattening with metadata -->
+<div repeat.for="item of categories.flatMap(category => 
+  category.products
+    .filter(p => p.active)
+    .map(product => ({ ...product, categoryName: category.name })))">
+  ${item.name} (${item.categoryName})
+</div>
 ```
+
+**Nested Processing Benefits:**
+- **Maintains lexical scope**: Outer variables accessible in inner functions
+- **Reactive updates**: Changes to nested properties trigger re-evaluation
+- **Performance optimized**: Aurelia observes the right level of nesting
 
 ### Dynamic Search and Filtering
 
@@ -270,23 +300,31 @@ Create responsive search interfaces:
 </div>
 ```
 
-### Immediate Invoked Arrow Functions
+### Immediate Invoked Arrow Functions (IIFE)
 
-Execute functions immediately within templates:
+Execute functions immediately within templates using arrow function IIFE patterns:
 
 ```html
-<!-- Simple IIFE (from framework tests) -->
+<!-- Simple IIFE -->
 ${(a => a)(42)}
 
 <!-- Nested arrow functions -->
-${((a => b => a + b)(1))(2)}
+${(a => b => a + b)(1)(2)}
 
 <!-- Rest parameters -->
 ${((...args) => args[0] + args[1] + args[2])(1, 2, 3)}
 
-<!-- Complex object creation -->
+<!-- Complex object creation with property access -->
 ${(((e) => ({ a: e.value }))({ value: 'test' })).a}
+
+<!-- Multi-step calculations -->
+${((price, tax) => (price * (1 + tax)).toFixed(2))(100, 0.08)}
 ```
+
+**IIFE Use Cases:**
+- **Calculations**: Perform complex math without cluttering view model
+- **Data transformation**: Transform values inline with specific logic
+- **Scoped operations**: Execute multi-step operations in template context
 
 ## Performance and Best Practices
 
@@ -315,14 +353,25 @@ ${items.reduce((sum, item) => sum + item.price, 0)}  <!-- ✅ Observes array cha
 
 **Sorting Considerations:**
 ```html
-<!-- ✅ Works for text interpolation -->
+<!-- ✅ Works perfectly for text interpolation -->
 ${items.sort((a, b) => a - b)}
 
-<!-- ⚠️ Use slice() first for repeat.for to avoid issues -->
+<!-- ⚠️ Use slice() first for repeat.for to avoid mutation issues -->
 <div repeat.for="item of items.slice().sort((a, b) => a.order - b.order)">
   ${item.name}
 </div>
+
+<!-- ⚠️ Direct sort in repeat.for can cause issues due to array mutation -->
+<!-- This pattern is skipped in framework tests due to flush queue complications -->
+<div repeat.for="item of items.sort((a, b) => a.order - b.order)">
+  ${item.name} <!-- Can cause problems when items array is mutated -->
+</div>
 ```
+
+**Why slice() before sort()?**
+- `sort()` mutates the original array, triggering multiple change notifications
+- `slice()` creates a copy, preventing mutation conflicts with the repeater
+- Ensures stable rendering when the source array changes
 
 ### Performance Guidelines
 
@@ -362,6 +411,22 @@ ${getAvailableItems(items, categories)}
 - **Use intermediate variables:** Break complex chains into steps in your view model
 - **Check property names:** Ensure referenced properties exist and are observable
 - **Verify data structure:** Confirm arrays and objects have expected shape
+- **Parser state corruption:** If experiencing strange errors, check for syntax issues in other expressions that might corrupt the parser state
+
+### Framework Implementation Notes
+
+**AST Structure:**
+- Lambda expressions compile to `ArrowFunction` AST nodes
+- Support `rest` parameters via boolean flag
+- Body must be an expression (`IsAssign` type)
+- Parameters are stored as `BindingIdentifier[]`
+
+**Error Codes:**
+- `AUR0173`: Invalid arrow parameter list
+- `AUR0174`: Default parameters not supported  
+- `AUR0175`: Destructuring parameters not supported
+- `AUR0176`: Rest parameter must be last
+- `AUR0178`: Function body (block statements) not supported
 
 ## Summary
 

@@ -4,14 +4,15 @@
 
 ## Introduction
 
+* [The Aurelia Philosophy](the-aurelia-philosophy.md)
+* [Essentials](essentials/README.md)
+  * [Components](essentials/components.md)
+  * [Templates](essentials/templates.md)
+  * [Dependency Injection](essentials/dependency-injection.md)
+  * [Reactivity](essentials/reactivity.md)
 * [Quick start](getting-started/quick-install-guide.md)
 * [Aurelia for new developers](getting-started/aurelia-for-new-developers.md)
-* [Hello world](getting-started/quick-start-guide/README.md)
-  * [Creating your first app](getting-started/quick-start-guide/creating-your-first-app.md)
-  * [Your first component - part 1: the view model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
-  * [Your first component - part 2: the view](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
-  * [Running our app](getting-started/quick-start-guide/running-our-app.md)
-  * [Next steps](getting-started/quick-start-guide/next-steps.md)
+* [Hello world tutorial](getting-started/quick-start-guide/README.md)
 
 ## Templates
 
@@ -95,6 +96,7 @@
 * [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [Task Queue](getting-to-know-aurelia/task-queue.md)
 * [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
+* [Framework internals](getting-to-know-aurelia/framework-internals.md)
 
 ## Developer Guides
 
@@ -115,6 +117,7 @@
 * [Organizing large-scale projects](advanced-scenarios/organizing-large-scale-projects.md)
 * [Debugging and Troubleshooting](developer-guides/debugging-and-troubleshooting.md)
 * [Error Handling Patterns](developer-guides/error-handling-patterns.md)
+* [Third Party Library Integration](developer-guides/third-party-library-integration.md)
 * [Errors](developer-guides/error-messages/README.md)
   * [Kernel Errors](developer-guides/error-messages/0001-to-0023/README.md)
   * [Template Compiler Errors](developer-guides/error-messages/0088-to-0723/README.md)
@@ -187,6 +190,7 @@
 * [Building a todo application](tutorials/building-a-todo-application.md)
 * [Building a weather application](tutorials/building-a-weather-application.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
+* [Micro-frontends with Module Federation](tutorials/micro-frontends-with-module-federation.md)
 * [React inside Aurelia](tutorials/using-react-inside-aurelia.md)
 * [Svelte inside Aurelia](tutorials/using-svelte-inside-aurelia.md)
 * [Synthetic view](tutorials/synthetic-view.md)

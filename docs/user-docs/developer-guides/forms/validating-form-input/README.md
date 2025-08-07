@@ -65,7 +65,7 @@ This guide explains how to validate the user input for your app using the valida
   ```
 
   ```html
-  <form submit.delegate="submit()">
+  <form submit.trigger="submit()">
     <input value.bind="person.name & validate">
     <input value.bind="person.age & validate">
   </form>

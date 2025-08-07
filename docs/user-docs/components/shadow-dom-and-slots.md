@@ -785,7 +785,7 @@ Having more than one `<au-slot>` with the same name is also supported. This lets
 ```html
 <let details-shown.bind="false"></let>
 <au-slot name="name"></au-slot>
-<button click.delegate="detailsShown=!detailsShown">Toggle details</button>
+<button click.trigger="detailsShown=!detailsShown">Toggle details</button>
 <div if.bind="detailsShown">
   <au-slot name="name"></au-slot>
   <au-slot name="role"></au-slot>

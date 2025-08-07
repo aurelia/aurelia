@@ -155,11 +155,11 @@ Dynamically enabling or disabling form elements enhances user interaction and fo
 export class MyApp {
   isButtonDisabled = true;
   isInputDisabled = false;
-  
+
   toggleButton() {
     this.isButtonDisabled = !this.isButtonDisabled;
   }
-  
+
   toggleInput() {
     this.isInputDisabled = !this.isInputDisabled;
   }
@@ -279,7 +279,7 @@ export class MyApp {
 *Result:* All bindings will target their respective HTML attributes directly, ensuring proper DOM attribute manipulation.
 
 {% hint style="warning" %}
-The `attr` binding behavior can only be used with property bindings (`.bind`, `.one-way`, `.two-way`, `.to-view`, `.from-view`). It cannot be used with event bindings (`.trigger`, `.delegate`, `.capture`) or reference bindings (`.ref`).
+The `attr` binding behavior can only be used with property bindings (`.bind`, `.one-way`, `.two-way`, `.to-view`, `.from-view`). It cannot be used with event bindings (`.trigger`, `.capture`) or reference bindings (`.ref`).
 {% endhint %}
 
 ### 4. Attribute Mapping and Custom Elements
@@ -306,11 +306,11 @@ Aurelia
           'min-length': 'minLength'
         }
       });
-      
+
       attrMapper.useGlobalMapping({
         'custom-attr': 'customAttribute'
       });
-      
+
       attrMapper.useTwoWay(
         (element, attr) => element.tagName === 'CUSTOM-INPUT' && attr === 'value'
       );
@@ -354,7 +354,7 @@ export class MyApp {
     'font-weight': 'bold',
     margin: '10px'
   };
-  
+
   getClasses() {
     return this.isActive ? 'active highlight' : 'inactive';
   }
@@ -378,7 +378,7 @@ To better illustrate attribute bindings, here are several practical scenarios sh
 // my-app.ts
 export class MyApp {
   isActive = true;
-  
+
   toggleStatus() {
     this.isActive = !this.isActive;
   }
@@ -400,7 +400,7 @@ export class MyApp {
 // my-app.ts
 export class MyApp {
   bgColor = 'lightblue';
-  
+
   changeColor(newColor: string) {
     this.bgColor = newColor;
   }
@@ -422,7 +422,7 @@ export class MyApp {
 // my-app.ts
 export class MyApp {
   isEmailRequired = true;
-  
+
   toggleEmailRequirement() {
     this.isEmailRequired = !this.isEmailRequired;
   }
@@ -438,14 +438,14 @@ While attribute binding in Aurelia is versatile and robust, there are certain sy
 1. **Expression Syntax Restrictions**
 
    - **No Chaining with `;` or `,`**: Expressions within `${}` cannot be chained using semicolons `;` or commas `,`. Each interpolation expression should represent a single, complete expression.
-   
+
    - **Restricted Primitives and Operators**: Certain JavaScript primitives and operators cannot be used within interpolation expressions. These include:
      - `Boolean`
      - `String`
      - `instanceof`
      - `typeof`
      - Bitwise operators (except for the pipe `|` used with value converters)
-   
+
    - **Usage of Pipe `|`**: The pipe character `|` is reserved exclusively for Aurelia's value converters within bindings and cannot be used as a bitwise operator.
 
 2. **Attribute Targeting Syntax**
@@ -453,13 +453,13 @@ While attribute binding in Aurelia is versatile and robust, there are certain sy
    The presence of both `.bind` and `.attr` syntaxes can be confusing. Here's why both exist:
 
    - **Property vs. Attribute Binding**: `.bind` targets the DOM property, which is suitable for standard attributes that have corresponding DOM properties. However, for custom or non-standard attributes that do not have direct property mappings, `.attr` is necessary to bind directly to the attribute itself.
-   
+
    - **Example: Binding `id` Using Property and Attribute**
 
      ```html
      <!-- Property Binding -->
      <input id.bind="inputId" />
-     
+
      <!-- Attribute Binding -->
      <input id.attr="inputId" />
      ```
@@ -480,7 +480,7 @@ While attribute binding in Aurelia is versatile and robust, there are certain sy
    Both interpolation and keyword binding can achieve similar outcomes. The choice between them often comes down to preference and specific use case requirements.
 
    - **Performance and Features**: There is no significant performance difference between the two. Both are equally efficient and offer similar capabilities.
-   
+
    - **Readability and Maintainability**: Interpolation can be more readable for simple string concatenations, while keyword bindings offer more explicit control for complex bindings.
 
 {% hint style="info" %}
@@ -625,7 +625,7 @@ import { computed } from '@aurelia/runtime';
 
 export class MyApp {
   items = [];
-  
+
   @computed({ dependencies: ['items.length'] })
   get itemCount() {
     return this.items.length;
@@ -657,7 +657,7 @@ interface User {
 
 export class UserProfile {
   user: User = { id: 1, name: 'John' };
-  
+
   get avatarUrl(): string {
     return this.user.avatar ?? '/default-avatar.png';
   }
@@ -679,8 +679,8 @@ Ensure proper accessibility attributes:
 
 ```html
 <!-- Include ARIA attributes for screen readers -->
-<button 
-  disabled.bind="isLoading" 
+<button
+  disabled.bind="isLoading"
   aria-busy.bind="isLoading & attr"
   aria-label.bind="buttonLabel & attr">
   ${isLoading ? 'Loading...' : 'Submit'}

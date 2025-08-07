@@ -55,7 +55,7 @@ describe('PersonDetail component', () => {
   });
 
   it('renders the name and age correctly', async () => {
-    const { component, startPromise, tearDown } = createFixture(
+    const { appHost, startPromise, stop } = createFixture(
       '<person-detail name.bind="testName" age.bind="testAge"></person-detail>',
       class App {
         testName = 'Alice';
@@ -66,9 +66,10 @@ describe('PersonDetail component', () => {
 
     await startPromise;
 
-    expect(component.textContent).toContain('Person is called Alice and is 30 years old.');
+    expect(appHost.textContent).toContain('Person is called Alice and is 30 years old.');
 
-    await tearDown();
+    // Use stop(true) instead of deprecated tearDown()
+    await stop(true);
   });
 
   // Additional tests...
@@ -105,7 +106,8 @@ export class PersonDetail {
 To test this component, you can create a mock `PersonFormatter` and register it with the Aurelia container:
 
 ```typescript
-import { createFixture, Registration } from '@aurelia/testing';
+import { createFixture } from '@aurelia/testing';
+import { Registration } from '@aurelia/kernel'; // Registration comes from kernel, not testing
 import { PersonDetail } from './person-detail';
 import { PersonFormatter } from './person-formatter';
 
@@ -115,7 +117,7 @@ describe('PersonDetail with PersonFormatter dependency', () => {
       format: jest.fn().mockImplementation((name, age) => `Formatted: ${name}, age ${age}`),
     };
 
-    const { component, startPromise, tearDown } = createFixture(
+    const { appHost, startPromise, stop } = createFixture(
       '<person-detail name.bind="testName" age.bind="testAge"></person-detail>',
       class App {
         testName = 'Bob';
@@ -128,9 +130,9 @@ describe('PersonDetail with PersonFormatter dependency', () => {
     await startPromise;
 
     expect(mockPersonFormatter.format).toHaveBeenCalledWith('Bob', 40);
-    expect(component.textContent).toContain('Formatted: Bob, age 40');
+    expect(appHost.textContent).toContain('Formatted: Bob, age 40');
 
-    await tearDown();
+    await stop(true);
   });
 });
 ```
@@ -252,11 +254,13 @@ describe('EventComponent', () => {
 Test components with async operations using task queue utilities:
 
 ```typescript
-import { queueTask, tasksSettled } from '@aurelia/runtime';
+import { bindable } from 'aurelia';
 
 export class AsyncComponent {
   @bindable loading = false;
   @bindable data: any[] = [];
+
+  constructor(private dataService: DataService) {}
 
   async loadData(): Promise<void> {
     this.loading = true;
@@ -274,13 +278,16 @@ export class AsyncComponent {
 Test async operations:
 
 ```typescript
+import { tasksSettled } from '@aurelia/runtime';
+import { Registration } from '@aurelia/kernel';
+
 describe('AsyncComponent', () => {
   it('handles async data loading', async () => {
     const mockDataService = {
       fetchData: jest.fn().mockResolvedValue({ data: [1, 2, 3] })
     };
 
-    const { component, startPromise, tearDown } = createFixture(
+    const { component, startPromise, stop } = createFixture(
       '<async-component></async-component>',
       class App {},
       [AsyncComponent],
@@ -289,7 +296,8 @@ describe('AsyncComponent', () => {
 
     await startPromise;
 
-    const componentInstance = component.querySelector('async-component').au.controller.viewModel;
+    // Access the component instance through the fixture's component property
+    const componentInstance = component;
     
     // Start the async operation
     const loadPromise = componentInstance.loadData();
@@ -306,7 +314,7 @@ describe('AsyncComponent', () => {
     expect(componentInstance.data).toEqual([1, 2, 3]);
     expect(mockDataService.fetchData).toHaveBeenCalled();
 
-    await tearDown();
+    await stop(true);
   });
 });
 ```
@@ -330,6 +338,8 @@ export class StateComponent {
 Test state bindings:
 
 ```typescript
+import { Registration } from '@aurelia/kernel';
+
 describe('StateComponent', () => {
   it('updates when state changes', async () => {
     const mockStore = {
@@ -340,7 +350,7 @@ describe('StateComponent', () => {
       dispatch: jest.fn()
     };
 
-    const { component, startPromise, tearDown } = createFixture(
+    const { component, startPromise, stop } = createFixture(
       '<state-component></state-component>',
       class App {},
       [StateComponent],
@@ -349,12 +359,11 @@ describe('StateComponent', () => {
 
     await startPromise;
 
-    const componentInstance = component.querySelector('state-component').au.controller.viewModel;
-    
-    expect(componentInstance.userName).toBe('John');
-    expect(componentInstance.isLoggedIn).toBe(true);
+    // Access component instance directly through fixture's component property
+    expect(component.userName).toBe('John');
+    expect(component.isLoggedIn).toBe(true);
 
-    await tearDown();
+    await stop(true);
   });
 });
 ```
@@ -388,9 +397,11 @@ With template:
 Test conditional rendering:
 
 ```typescript
+import { tasksSettled } from '@aurelia/runtime';
+
 describe('ConditionalComponent', () => {
   it('shows content based on conditions', async () => {
-    const { component, startPromise, tearDown } = createFixture(
+    const { appHost, component, startPromise, stop } = createFixture(
       '<conditional-component show-content.bind="show" items.bind="itemList"></conditional-component>',
       class App {
         show = false;
@@ -402,23 +413,22 @@ describe('ConditionalComponent', () => {
     await startPromise;
 
     // Initially hidden
-    expect(component.textContent).not.toContain('Found');
-    expect(component.textContent).not.toContain('No items');
+    expect(appHost.textContent).not.toContain('Found');
+    expect(appHost.textContent).not.toContain('No items');
 
-    // Show content with no items
-    const app = component.querySelector('conditional-component').au.controller.viewModel;
-    app.showContent = true;
+    // Show content with no items - modify the app component, not the child
+    component.show = true;
     await tasksSettled();
 
-    expect(component.textContent).toContain('No items found');
+    expect(appHost.textContent).toContain('No items found');
 
     // Add items
-    app.items = [1, 2, 3];
+    component.itemList = [1, 2, 3];
     await tasksSettled();
 
-    expect(component.textContent).toContain('Found 3 items');
+    expect(appHost.textContent).toContain('Found 3 items');
 
-    await tearDown();
+    await stop(true);
   });
 });
 ```
@@ -432,7 +442,7 @@ describe('PerformanceComponent', () => {
   it('renders within acceptable time limits', async () => {
     const startTime = performance.now();
 
-    const { startPromise, tearDown } = createFixture(
+    const { startPromise, stop } = createFixture(
       '<performance-component items.bind="largeDataSet"></performance-component>',
       class App {
         largeDataSet = Array.from({ length: 1000 }, (_, i) => ({ id: i, value: `Item ${i}` }));
@@ -445,29 +455,29 @@ describe('PerformanceComponent', () => {
     const renderTime = performance.now() - startTime;
     expect(renderTime).toBeLessThan(100); // Should render in under 100ms
 
-    await tearDown();
+    await stop(true);
   });
 
   it('does not leak memory on repeated renders', async () => {
-    const initialMemory = performance.memory?.usedJSHeapSize;
+    const initialMemory = (performance as any).memory?.usedJSHeapSize || 0;
     
     for (let i = 0; i < 10; i++) {
-      const { startPromise, tearDown } = createFixture(
+      const { startPromise, stop } = createFixture(
         '<performance-component></performance-component>',
         class App {},
         [PerformanceComponent]
       );
 
       await startPromise;
-      await tearDown();
+      await stop(true);
     }
 
     // Force garbage collection if available
-    if (global.gc) {
-      global.gc();
+    if ((global as any).gc) {
+      (global as any).gc();
     }
 
-    const finalMemory = performance.memory?.usedJSHeapSize;
+    const finalMemory = (performance as any).memory?.usedJSHeapSize || 0;
     const memoryIncrease = finalMemory - initialMemory;
     
     // Memory increase should be minimal
@@ -484,14 +494,16 @@ describe('PerformanceComponent', () => {
 - Follow the AAA pattern: Arrange, Act, Assert
 
 ### 2. **Async Testing**
-- Always use `await` with `startPromise` and `tearDown()`
+- Always use `await` with `startPromise` and `stop(true)`
 - Use `tasksSettled()` when testing async operations
 - Handle promise rejections properly in tests
+- Note: `tearDown()` is deprecated, use `stop(true)` instead
 
 ### 3. **Mocking Strategies**
-- Mock external dependencies using `Registration.instance`
+- Mock external dependencies using `Registration.instance` from `@aurelia/kernel`
 - Use Jest spies to verify method calls
 - Mock only what's necessary for the test
+- Register mocks in the fourth parameter of `createFixture`
 
 ### 4. **Performance Testing**
 - Use `performance.now()` for timing measurements
@@ -508,3 +520,155 @@ describe('PerformanceComponent', () => {
 Testing Aurelia components involves setting up a test environment, creating fixtures, and writing assertions based on your expectations. By following these patterns and best practices, you can ensure that your components are reliable, performant, and maintainable. Remember to clean up after your tests to maintain a clean test environment and to avoid any side effects between tests.
 
 The advanced patterns shown here cover lifecycle testing, event handling, async operations, state management, conditional rendering, and performance testing. These techniques will help you create comprehensive test suites that cover the full functionality of your Aurelia components.
+
+## Complete Fixture API Reference
+
+The `createFixture` function returns a comprehensive fixture object with many utility methods for testing:
+
+### Query Methods
+
+```typescript
+// Get a single element (throws if multiple or none found)
+const button = fixture.getBy('button');
+const input = fixture.getBy<HTMLInputElement>('input[type="text"]');
+
+// Get all matching elements
+const allButtons = fixture.getAllBy('button');
+
+// Get single element or null (throws if multiple found)
+const optionalElement = fixture.queryBy('.optional-class');
+```
+
+### Assertion Methods
+
+```typescript
+// Text content assertions
+fixture.assertText('Expected text content'); // Whole app
+fixture.assertText('h1', 'Expected heading'); // Specific element
+fixture.assertTextContain('partial text'); // Contains check
+
+// HTML content assertions
+fixture.assertHtml('<p>Expected HTML</p>');
+fixture.assertHtml('.content', '<span>Expected</span>');
+
+// Attribute assertions
+fixture.assertAttr('button', 'disabled', null); // No disabled attribute
+fixture.assertAttr('input', 'value', 'test-value');
+fixture.assertAttrNS('svg', 'http://www.w3.org/2000/svg', 'viewBox', '0 0 100 100');
+
+// CSS class assertions
+fixture.assertClass('button', 'btn', 'btn-primary'); // Has these classes
+fixture.assertClassStrict('button', 'btn', 'btn-primary'); // Has only these classes
+
+// Style assertions
+fixture.assertStyles('div', { color: 'red', fontSize: '16px' });
+
+// Form element assertions
+fixture.assertValue('input', 'expected value');
+fixture.assertChecked('input[type="checkbox"]', true);
+```
+
+### Event Triggering
+
+```typescript
+// Generic event triggering
+fixture.trigger('button', 'click');
+fixture.trigger('input', 'change', { bubbles: true });
+
+// Specific event methods
+fixture.trigger.click('button');
+fixture.trigger.keydown('input', { key: 'Enter' });
+fixture.trigger.mousedown('.draggable', { clientX: 100, clientY: 50 });
+
+// Input simulation
+fixture.type('input[type="text"]', 'Hello World');
+fixture.type(inputElement, 'Direct element typing');
+
+// Scroll simulation
+fixture.scrollBy('.scrollable', 100); // Scroll down 100px
+fixture.scrollBy('.scrollable', { top: 50, left: 25 });
+```
+
+### Utility Methods
+
+```typescript
+// Debug output
+const html = fixture.printHtml(); // Logs and returns innerHTML
+
+// Event creation
+const customEvent = fixture.createEvent('my-event', { detail: { data: 'test' } });
+
+// JSX-like element creation (for complex setups)
+const element = fixture.hJsx('div', { class: 'test' }, 'Content');
+```
+
+### Error Testing Patterns
+
+Test error conditions and recovery:
+
+```typescript
+describe('ErrorComponent', () => {
+  it('handles service errors gracefully', async () => {
+    const mockService = {
+      fetchData: jest.fn().mockRejectedValue(new Error('Service unavailable'))
+    };
+
+    const { appHost, component, startPromise, stop } = createFixture(
+      '<error-component></error-component>',
+      class App {},
+      [ErrorComponent],
+      [Registration.instance(DataService, mockService)]
+    );
+
+    await startPromise;
+
+    // Trigger the error condition
+    await component.loadData();
+    await tasksSettled();
+
+    // Verify error state
+    expect(component.error).toBe('Service unavailable');
+    expect(appHost.textContent).toContain('Error loading data');
+    
+    // Verify UI shows error state
+    fixture.assertClass('.error-message', 'visible');
+
+    await stop(true);
+  });
+});
+```
+
+### Testing Custom Events
+
+```typescript
+describe('CustomEventComponent', () => {
+  it('emits custom events', async () => {
+    const eventSpy = jest.fn();
+    
+    const { appHost, startPromise, stop } = createFixture(
+      '<custom-event-component></custom-event-component>',
+      class App {},
+      [CustomEventComponent]
+    );
+
+    await startPromise;
+
+    // Listen for custom events
+    appHost.addEventListener('custom-event', eventSpy);
+
+    // Trigger the event
+    fixture.trigger.click('.trigger-button');
+    await tasksSettled();
+
+    // Verify event was emitted
+    expect(eventSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'custom-event',
+        detail: expect.any(Object)
+      })
+    );
+
+    await stop(true);
+  });
+});
+```

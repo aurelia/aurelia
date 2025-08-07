@@ -11,10 +11,11 @@ A quick reference for different aspects of Aurelia with minimal explanation.
 **src/main.ts**
 
 ```typescript
-import au from 'aurelia';
+import { Aurelia } from 'aurelia';
 import { AppRoot } from './app-root';
 
-await au.app({
+const app = new Aurelia();
+await app.app({
   component: AppRoot,
   host: document.querySelector('app-root'),
 }).start();
@@ -34,7 +35,7 @@ Note: you can copy-paste the markup below into an html file and open it directly
   <app-root></app-root>
 
   <script type="module">
-    import au, { CustomElement } from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
+    import { Aurelia, CustomElement } from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
 
     const AppRoot = CustomElement.define({
       name: 'app-root',
@@ -43,7 +44,7 @@ Note: you can copy-paste the markup below into an html file and open it directly
       message = 'Hello world!';
     });
 
-    au.app({ component: AppRoot, host: document.querySelector('app-root') }).start();
+    new Aurelia().app({ component: AppRoot, host: document.querySelector('app-root') }).start();
   </script>
 </body>
 </html>
@@ -62,10 +63,11 @@ Note: you can copy-paste the markup below into an html file and open it directly
 <body>
   ${message}
   <script type="module">
-    import au from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
+    import { Aurelia } from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
 
-    au.enhance({ component: { message: 'Hello world!' }, host: document.body }).start();
-    au.enhance({ component: { title: 'Aurelia' }, host: document.head }).start();
+    const aurelia = new Aurelia();
+    await aurelia.enhance({ component: { message: 'Hello world!' }, host: document.body }).start();
+    await aurelia.enhance({ component: { title: 'Aurelia' }, host: document.head }).start();
   </script>
 </body>
 </html>
@@ -78,10 +80,11 @@ Note: the sample below mainly demonstrates stopping an existing instance of Aure
 **src/main.ts**
 
 ```typescript
-import au from 'aurelia';
+import { Aurelia } from 'aurelia';
 import { LoginWall } from './login-wall';
 
-await au.app({
+const app = new Aurelia();
+await app.app({
   component: LoginWall,
   host: document.querySelector('login-wall'),
 }).start();
@@ -90,16 +93,17 @@ await au.app({
 **src/login-wall.ts**
 
 ```typescript
-import au from 'aurelia';
+import { Aurelia } from 'aurelia';
 import { AppRoot } from './app-root';
 
 export class LoginWall {
-  constructor(private au: Aurelia) {}
+  constructor(private aurelia: Aurelia) {}
 
   async login() {
-    await this.au.stop();
+    await this.aurelia.stop();
 
-    await au.app({
+    const newApp = new Aurelia();
+    await newApp.app({
       component: AppRoot,
       host: document.querySelector('app-root'),
     }).start();
@@ -115,6 +119,7 @@ When you need more control over the wireup and/or want to override some of the d
 import { DI, Registration } from '@aurelia/kernel';
 import {
   Aurelia,
+  IPlatform,
 
   ITemplateCompilerRegistration,
   INodeObserverLocatorRegistration,
@@ -406,15 +411,54 @@ export const Json = ValueConverter.define({
 ## Attribute patterns
 
 ```typescript
+import { attributePattern, AttrSyntax } from '@aurelia/template-compiler';
+
 @attributePattern({ pattern: '[(PART)]', symbols: '[()]' })
 export class BananaInBox {
- '[(PART)]'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  '[(PART)]'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'two-way');
   }
 }
 ```
 
 ## Binding commands / instruction renderer
+
+## CSS Classes & Styles
+
+```html
+<!-- Dynamic classes -->
+<div class="base-class" class.bind="dynamicClass">
+<div class="nav-item" active.class="isActive">
+<div class.bind="isSelected ? 'selected' : 'normal'">
+
+<!-- Dynamic styles -->
+<div style.bind="{ color: textColor, fontSize: size + 'px' }">
+<div background-color.style="bgColor">
+<div style.bind="`width: ${width}px; height: ${height}px`">
+```
+
+## Observable Properties
+
+```typescript
+import { observable } from '@aurelia/runtime';
+
+export class MyComponent {
+  @observable searchText = '';
+  @observable selectedItem = null;
+
+  // Automatically called when searchText changes
+  searchTextChanged(newValue, oldValue) {
+    this.filterItems(newValue);
+  }
+
+  // Automatically called when selectedItem changes  
+  selectedItemChanged(newItem) {
+    if (newItem) {
+      this.onItemSelected(newItem);
+    }
+  }
+}
+```
 
 ## Templating syntax
 
@@ -440,8 +484,8 @@ export class BananaInBox {
 <li background.style="bg">
 <!-- Listen to the 'blur' event using a direct event listener on the element -->
 <input blur.trigger="onBlur()">
-<!-- Listen to the 'click' event using a delegated event listener (only works with bubbling events) -->
-<button click.delegate="onClick()">
+<!-- Listen to the 'click' event using a event listener (only works with bubbling events) -->
+<button click.trigger="onClick()">
 <!-- Directly work with the event using the `$event` magic property -->
 <form submit.trigger="$event.preventDefault()">
 <!-- Set this html element to the 'nameInput' property on the declaring component -->
@@ -506,6 +550,7 @@ export class BananaInBox {
   <p>${email}</p>
 </div>
 ```
+
 
 ## Lifecycle hooks
 
@@ -762,12 +807,17 @@ export class MyComponent {
 ```
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { IPlatform } from '@aurelia/runtime-html';
+
 export class MyComponent {
+  private readonly platform = resolve(IPlatform);
+
   loading(params) {
-    this.loadDataTask = PLATFORM.taskQueue.queueTask(async () => {
+    this.loadDataTask = this.platform.taskQueue.queueTask(async () => {
       this.data = await loadData(params.id);
       this.loadDataTask = null;
-    }, { suspend: true /* Rendering proceeds, but no new tasks are run until this one finishes */ });
+    });
   }
 }
 ```
@@ -775,9 +825,13 @@ export class MyComponent {
 **Apply the practices above consistently, and you'll reap the benefits**:
 
 ```typescript
-// Await all pending tasks, sync or async (useful in unit, integration and e2e tests or generally figuring out when the app is "idle")
+import { resolve } from '@aurelia/kernel';
+import { IPlatform } from '@aurelia/runtime-html';
+
+// Await all pending tasks (useful in unit, integration and e2e tests)
+const platform = resolve(IPlatform);
 await Promise.all([
-  PLATFORM.taskQueue.yield(),
+  platform.taskQueue.yield(),
   platform.domQueue.yield(),
 ]);
 ```
@@ -789,6 +843,7 @@ In the future, time-slicing will be enabled via these TaskQueue APIs as well, wh
 ### Route Configuration
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { IRouter, route } from '@aurelia/router';
 
 @route({
@@ -806,6 +861,8 @@ export class AppRoot {
 ### Navigation
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+
 export class MyComponent {
   constructor(private router: IRouter = resolve(IRouter)) {}
 
@@ -858,6 +915,7 @@ export class MyComponent {
 ### Basic Validation Rules
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 
 export class UserForm {
@@ -865,8 +923,10 @@ export class UserForm {
   email: string = '';
   age: number = 0;
 
+  private readonly validationRules = resolve(IValidationRules);
+
   constructor() {
-    IValidationRules
+    this.validationRules
       .on(this)
       .ensure('name')
         .required()
@@ -886,10 +946,11 @@ export class UserForm {
 ### Validation Controller
 
 ```typescript
-import { IValidationController } from '@aurelia/validation';
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
+import { IValidationController } from '@aurelia/validation-html';
 
 export class UserForm {
-  constructor(private validationController: IValidationController = resolve(IValidationController)) {}
+  private readonly validationController = resolve(newInstanceForScope(IValidationController));
 
   async submit() {
     const result = await this.validationController.validate();
@@ -1307,7 +1368,7 @@ export class AppState {
 ### Store Pattern
 
 ```typescript
-import { IEventAggregator } from '@aurelia/kernel';
+import { resolve, IEventAggregator } from '@aurelia/kernel';
 
 export class UserStore {
   private users: User[] = [];
@@ -1331,6 +1392,8 @@ export class UserStore {
 ```
 
 ```typescript
+import { resolve, IEventAggregator } from '@aurelia/kernel';
+
 export class UserList {
   users: User[] = [];
 
@@ -1409,6 +1472,7 @@ export class MyDialog {
 ### Basic Setup
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class ApiService {
@@ -1571,7 +1635,9 @@ export const MyPluginConfiguration = {
 **main.ts** (consumer)
 
 ```typescript
-au.register(MyPluginConfiguration).app(...);
+import { Aurelia } from 'aurelia';
+
+new Aurelia().register(MyPluginConfiguration).app(...);
 ```
 
 #### 1.2 A function that returns an object literal with a register method (to pass in e.g. plugin options)
@@ -1607,9 +1673,11 @@ export const MyPluginConfiguration = {
 **main.ts** (consumer)
 
 ```typescript
-au.register(MyPluginConfiguration).app(...);
+import { Aurelia } from 'aurelia';
+
+new Aurelia().register(MyPluginConfiguration).app(...);
 // OR
-au.register(MyPluginConfiguration.customize({ storageType: 'localStorage' }))
+new Aurelia().register(MyPluginConfiguration.customize({ storageType: 'localStorage' })).app(...)
 ```
 
 #### 1.3 An interface
@@ -1636,7 +1704,9 @@ export class NameTag {}
 To register it as a global resource (available in all components)
 
 ```typescript
-au.register(NameTag).app(...);
+import { Aurelia } from 'aurelia';
+
+new Aurelia().register(NameTag).app(...);
 ```
 
 OR:
@@ -1667,7 +1737,8 @@ export * from './my-nav';
 **main.ts** (consumer)
 
 ```typescript
+import { Aurelia } from 'aurelia';
 import * as GlobalResources from './resources';
 
-au.register(GlobalResources).app(...);
+new Aurelia().register(GlobalResources).app(...);
 ```

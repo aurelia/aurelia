@@ -10,7 +10,13 @@ Welcome to Aurelia, the future-oriented, open-source JavaScript platform for cra
 
 Aurelia isn't just feature-rich; it's a testament to high performance and extensive extensibility, offering a component-oriented design that's fully testable. It's built for developers who know the value of simplicity and the importance of conventions that don't obstruct but enhance creativity. :sunglasses:
 
-To start, jump to our Quick Start Guide or read on for an overview.
+## Get Started Quickly
+
+New to Aurelia? Start with our **Essentials** guide for a focused introduction to the core concepts, or jump straight into building with our Quick Start Guide.
+
+{% content-ref url="essentials/" %}
+[essentials](essentials/)
+{% endcontent-ref %}
 
 {% content-ref url="getting-started/quick-start-guide/" %}
 [quick-start-guide](getting-started/quick-start-guide/)
@@ -78,4 +84,4 @@ As you become more and more familiar with Aurelia, perhaps you will even come up
 
 ## Where To Begin
 
-You're in the right place. If you are starting with Aurelia, we highly recommend reading through our [Quick Start Guide](getting-started/quick-start-guide/). It will show you how to create a project and build your first components using Aurelia's powerful templating system.
+You're in the right place. If you are starting with Aurelia, we highly recommend beginning with our [Essentials](essentials/) section to understand the core concepts, then moving on to our [Quick Start Guide](getting-started/quick-start-guide/) to create your first project and build components using Aurelia's powerful templating system.

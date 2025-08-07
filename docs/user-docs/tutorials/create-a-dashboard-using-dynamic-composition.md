@@ -389,7 +389,7 @@ We now need the markup for our component. Create a new file called `notes-compon
     <button type="button" click.trigger="addNote()">Add note</button>
 
     <ul class="notes">
-        <li repeat.for="text of notes">${text} <button type="button" class="delete-btn" click.delegate="removeNote($index)">x</button></li>
+        <li repeat.for="text of notes">${text} <button type="button" class="delete-btn" click.trigger="removeNote($index)">x</button></li>
     </ul>
 
 </div>
@@ -398,8 +398,7 @@ We now need the markup for our component. Create a new file called `notes-compon
 * `value.bind="note"` binds the native `value` attribute on our textarea to the class property called `note` we also disable spellchecking in this field
 * We add in a button with `click.trigger="addNote()"` which will call the `addNote` function every time the button is clicked
 * We then create an unordered list where we loop over the `notes` array and display the value
-* Inside of the `li` we also have a button with a `click.delegate` we use a delegate here because we don't know how big the list will be and delegation will create one event listener, not multiple.
-* On the `click.delegate` we call `removeNote` and pass in the current index value from the loop accessible via the special property `$index`
+* On the `click.trigger` we call `removeNote` and pass in the current index value from the loop accessible via the special property `$index`
 
 Unlike other components, we need some specific styles for our notes component. Because conventions rock, Aurelia will automatically look for a `.css` file for any components you create. By creating a file called `notes-component.css` alongside the other files, Aurelia will see this and automatically import it for us.
 

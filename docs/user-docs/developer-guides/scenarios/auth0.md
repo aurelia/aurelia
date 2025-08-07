@@ -1,141 +1,288 @@
-# Integrating Auth0 with Aurelia 2
+# Auth0 Integration
 
-In this recipe, we will demonstrate how to integrate Auth0 with Aurelia 2 for authentication. Auth0 provides a flexible, drop-in solution to add authentication and authorization services to your applications.
+Integrate Auth0 authentication into your Aurelia 2 application using the modern Auth0 SPA SDK.
 
 ## Prerequisites
 
-Before we begin, make sure you have:
+- Auth0 account with configured application
+- Install the Auth0 SPA SDK:
 
-- An Auth0 account and a configured Auth0 application.
-- The `@auth0/auth0-spa-js` package installed in your Aurelia project.
+```bash
+npm install @auth0/auth0-spa-js
+```
 
-## Setting Up the Auth Service
+## Environment Configuration
 
-First, we'll create an authentication service that will handle the interaction with Auth0.
+Store Auth0 configuration securely:
 
 ```typescript
-// src/services/auth-service.ts
-import { IAuth0Client, Auth0Client, Auth0ClientOptions } from '@auth0/auth0-spa-js';
-import { DI, IContainer, resolve } from 'aurelia';
+// src/environment.ts
+export const environment = {
+  auth0: {
+    domain: process.env.AUTH0_DOMAIN!,
+    clientId: process.env.AUTH0_CLIENT_ID!,
+    redirectUri: window.location.origin,
+    // Additional scopes for your application
+    scope: 'openid profile email'
+  }
+};
+```
 
-export const IAuthService = DI.createInterface<IAuthService>('IAuthService', x => x.singleton(AuthService));
-export type IAuthService = AuthService;
+## Auth Service
 
-export class AuthService {
-  private auth0Client: IAuth0Client;
+```typescript
+// src/services/auth.ts
+import { DI, Registration } from '@aurelia/kernel';
+import { createAuth0Client, Auth0Client, User } from '@auth0/auth0-spa-js';
+import { environment } from '../environment';
 
-  constructor(private container: IContainer = resolve(IContainer)) {
-    const options: Auth0ClientOptions = {
-      domain: 'YOUR_AUTH0_DOMAIN',
-      client_id: 'YOUR_AUTH0_CLIENT_ID',
-      redirect_uri: window.location.origin,
-      // ...other Auth0 client options
-    };
+export const IAuthService = DI.createInterface<IAuthService>('IAuthService');
 
-    this.auth0Client = new Auth0Client(options);
+export interface IAuthService {
+  isAuthenticated(): Promise<boolean>;
+  getUser(): Promise<User | undefined>;
+  login(): Promise<void>;
+  logout(): void;
+  handleRedirectCallback(): Promise<void>;
+  getAccessToken(): Promise<string>;
+}
+
+export class AuthService implements IAuthService {
+  private auth0Client?: Auth0Client;
+
+  async initialize(): Promise<void> {
+    if (this.auth0Client) return;
+
+    this.auth0Client = await createAuth0Client({
+      domain: environment.auth0.domain,
+      clientId: environment.auth0.clientId,
+      authorizationParams: {
+        redirect_uri: environment.auth0.redirectUri,
+        scope: environment.auth0.scope
+      },
+      useRefreshTokens: true,
+      cacheLocation: 'localstorage'
+    });
   }
 
   async login(): Promise<void> {
-    await this.auth0Client.loginWithRedirect();
+    await this.ensureInitialized();
+    await this.auth0Client!.loginWithRedirect();
   }
 
-  async handleAuthentication(): Promise<void> {
+  async handleRedirectCallback(): Promise<void> {
+    await this.ensureInitialized();
     const query = window.location.search;
+    
     if (query.includes('code=') && query.includes('state=')) {
-      await this.auth0Client.handleRedirectCallback();
+      await this.auth0Client!.handleRedirectCallback();
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }
 
-  isAuthenticated(): Promise<boolean> {
-    return this.auth0Client.isAuthenticated();
+  async isAuthenticated(): Promise<boolean> {
+    await this.ensureInitialized();
+    return this.auth0Client!.isAuthenticated();
   }
 
-  getUser(): Promise<any> {
-    return this.auth0Client.getUser();
+  async getUser(): Promise<User | undefined> {
+    await this.ensureInitialized();
+    return this.auth0Client!.getUser();
+  }
+
+  async getAccessToken(): Promise<string> {
+    await this.ensureInitialized();
+    return this.auth0Client!.getTokenSilently();
   }
 
   logout(): void {
-    this.auth0Client.logout({
-      returnTo: window.location.origin,
+    this.auth0Client?.logout({
+      logoutParams: {
+        returnTo: window.location.origin
+      }
     });
   }
+
+  private async ensureInitialized(): Promise<void> {
+    if (!this.auth0Client) {
+      await this.initialize();
+    }
+  }
 }
+
+export const AuthServiceRegistration = Registration.singleton(IAuthService, AuthService);
 ```
 
-## Configuring the Auth0 Client
+## Application Setup
 
-Replace `'YOUR_AUTH0_DOMAIN'` and `'YOUR_AUTH0_CLIENT_ID'` with the actual values from your Auth0 application settings.
-
-## Setting Up the Auth0 Client Provider
-
-Next, we'll create an Auth0 client provider to ensure our `AuthService` has access to the Auth0Client instance.
+Register the service and initialize Auth0:
 
 ```typescript
 // src/main.ts
-import { Aurelia, Registration } from 'aurelia';
+import { Aurelia, StandardConfiguration, AppTask } from '@aurelia/runtime-html';
+import { AuthServiceRegistration, IAuthService } from './services/auth';
+import { resolve } from '@aurelia/kernel';
 import { MyApp } from './my-app';
-import { IAuthService } from './services/auth-service';
 
-Aurelia
-  .register(Registration.instance(IAuthService, new AuthService()))
-  .app(MyApp)
-  .start();
+const au = new Aurelia();
+au.register(
+  StandardConfiguration,
+  AuthServiceRegistration,
+  AppTask.creating(() => {
+    // Initialize Auth0 before the app starts
+    const authService = resolve(IAuthService);
+    return authService.initialize();
+  })
+);
+
+au.app({ host: document.querySelector('my-app'), component: MyApp });
+await au.start();
 ```
 
-## Using the Auth Service in Components
-
-Now that we have our `AuthService`, we can inject it into our components to use its functionality.
+## Authentication Component
 
 ```typescript
-// src/components/login.ts
-import { customElement, ICustomElementViewModel, resolve } from 'aurelia';
-import { IAuthService } from '../services/auth-service';
+// src/components/auth.ts
+import { customElement } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
+import { IAuthService } from '../services/auth';
+import { User } from '@auth0/auth0-spa-js';
 
-@customElement({ name: 'login', template: `<button click.trigger="login()">Login</button>` })
-export class Login implements ICustomElementViewModel {
+@customElement('auth-component')
+export class AuthComponent {
+  isAuthenticated = false;
+  user: User | undefined;
+  isLoading = true;
 
-  constructor(private authService: IAuthService = resolve(IAuthService)) {}
+  private readonly authService: IAuthService = resolve(IAuthService);
 
-  login(): void {
-    this.authService.login();
-  }
-}
-```
-
-## Handling Authentication Callbacks
-
-After a successful login, Auth0 will redirect back to your application with the authentication result in the URL. We need to handle this in our application.
-
-```typescript
-// src/my-app.ts
-import { IRouter, ICustomElementViewModel, watch, resolve } from 'aurelia';
-import { IAuthService } from './services/auth-service';
-
-export class MyApp implements ICustomElementViewModel {
-
-  constructor(
-    private router: IRouter = resolve(IRouter),
-    private authService: IAuthService = resolve(IAuthService),
-  ) {}
-
-  binding(): void {
-    this.handleAuthentication();
-  }
-
-  async handleAuthentication(): Promise<void> {
-    if (await this.authService.isAuthenticated()) {
-      // User is authenticated, redirect to the home route or perform other actions
-    } else {
-      await this.authService.handleAuthentication();
-      // Handle post-login actions
+  async attached() {
+    try {
+      await this.authService.handleRedirectCallback();
+      this.isAuthenticated = await this.authService.isAuthenticated();
+      
+      if (this.isAuthenticated) {
+        this.user = await this.authService.getUser();
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  // ... Other component logic
+  async login() {
+    await this.authService.login();
+  }
+
+  logout() {
+    this.authService.logout();
+  }
 }
 ```
 
-## Conclusion
+```html
+<!-- src/components/auth.html -->
+<div class="auth-component">
+  <div if.bind="isLoading">
+    Loading...
+  </div>
+  
+  <div if.bind="!isLoading && !isAuthenticated">
+    <button click.trigger="login()">Login with Auth0</button>
+  </div>
+  
+  <div if.bind="!isLoading && isAuthenticated">
+    <h3>Welcome, ${user.name}!</h3>
+    <p>Email: ${user.email}</p>
+    <button click.trigger="logout()">Logout</button>
+  </div>
+</div>
+```
 
-You have now integrated Auth0 with Aurelia 2 using TypeScript. This setup provides a starting point to secure your application with Auth0. Be sure to handle tokens securely and implement proper error handling as needed. Remember to replace placeholders with your actual Auth0 domain and client ID in the `AuthService`.
+## Router Integration
+
+Protect routes using Auth0:
+
+```typescript
+// src/auth-guard.ts
+import { lifecycleHooks } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+import { IAuthService } from './services/auth';
+
+@lifecycleHooks()
+export class AuthGuard {
+  private readonly authService: IAuthService = resolve(IAuthService);
+
+  async canLoad(): Promise<boolean> {
+    const isAuthenticated = await this.authService.isAuthenticated();
+    
+    if (!isAuthenticated) {
+      await this.authService.login();
+      return false;
+    }
+    
+    return true;
+  }
+}
+```
+
+```typescript
+// src/my-app.ts
+import { route } from '@aurelia/router';
+import { AuthGuard } from './auth-guard';
+
+@route({
+  routes: [
+    { path: '', component: import('./home'), title: 'Home' },
+    { 
+      path: '/protected', 
+      component: import('./protected'), 
+      title: 'Protected',
+      dependencies: [AuthGuard]
+    }
+  ]
+})
+export class MyApp {}
+```
+
+## API Calls with Tokens
+
+Use access tokens for API requests:
+
+```typescript
+// src/services/api.ts
+import { resolve } from '@aurelia/kernel';
+import { IAuthService } from './auth';
+
+export class ApiService {
+  private readonly authService: IAuthService = resolve(IAuthService);
+
+  async makeAuthenticatedRequest(url: string, options: RequestInit = {}) {
+    try {
+      const token = await this.authService.getAccessToken();
+      
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      console.error('API request failed:', error);
+      throw error;
+    }
+  }
+}
+```
+
+## Best Practices
+
+- Store Auth0 credentials as environment variables
+- Use refresh tokens for better security in browsers that block third-party cookies
+- Handle token expiration gracefully
+- Implement proper error handling for authentication failures
+- Test authentication flows in different browsers
+
+This integration follows Auth0's latest SDK patterns and Aurelia 2 best practices for dependency injection and component lifecycle management.

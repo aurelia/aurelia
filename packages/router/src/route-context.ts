@@ -390,6 +390,11 @@ export class RouteContext {
   public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
+      // Note that even though this method is for generating relative paths, one can still generate a rooted path using this method.
+      // For example, when instructions like `../sibling-route` is used and the parent of the current context is the root context.
+      // In such cases, the upward crawl of context will happen, and thus the deciding factor will be if the ViewportInstructionTree
+      // is created with the root context or not. Thus, instead of simply using `false`, the `isRoot` property of the vit context is
+      // used while generating the URL.
       vit => vit.toUrl(true, this._router.options._urlParser, (vit.options.context as IRouteContext).isRoot)
     );
   }

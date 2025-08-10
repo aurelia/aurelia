@@ -1,26 +1,6 @@
-# Text interpolation
+# Text Interpolation
 
 Text interpolation allows you to display dynamic values in your views. By wrapping an expression with `${}`, you can render variables, object properties, function results, and more within your HTML. This is conceptually similar to [JavaScript template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
-
-## Displaying values with interpolation
-
-Interpolation can display the values of view model properties, object fields, and any valid expression. As an example, consider the following code:
-
-{% code title="my-app.ts" %}
-```typescript
-export class MyApp {
-  myName = 'Aurelia';
-}
-```
-{% endcode %}
-
-{% code title="my-app.html" %}
-```html
-<p>Hello, my name is ${myName}</p>
-```
-{% endcode %}
-
-Here, the template references the same property name, `myName`, that is defined in the view model. Aurelia automatically replaces `${myName}` with "Aurelia" at runtime. Any property you define on your class can be directly accessed inside your templates.
 
 ## Template expressions
 
@@ -66,6 +46,63 @@ You can also use ternary operations:
 
 This will display either "True" or "False" depending on the boolean value of `isTrue`.
 
+### Complex expressions
+
+You can use more sophisticated expressions for dynamic content:
+
+{% code title="Array operations" %}
+```typescript
+export class MyApp {
+  items = [
+    { name: 'Apple', price: 1.50, category: 'fruit' },
+    { name: 'Banana', price: 0.80, category: 'fruit' },
+    { name: 'Carrot', price: 0.90, category: 'vegetable' }
+  ];
+}
+```
+```html
+<!-- Array length and conditionals -->
+<p>Total items: ${items.length}</p>
+<p>${items.length > 0 ? 'Items available' : 'No items'}</p>
+
+<!-- Array methods (keep simple for performance) -->
+<p>First item: ${items[0]?.name}</p>
+<p>Expensive items: ${items.filter(i => i.price > 1).length}</p>
+```
+{% endcode %}
+
+{% code title="Object property access" %}
+```typescript
+export class MyApp {
+  user = {
+    profile: {
+      personal: { firstName: 'John', lastName: 'Doe' },
+      settings: { theme: 'dark', notifications: true }
+    }
+  };
+}
+```
+```html
+<!-- Deep property access -->
+<p>Welcome, ${user.profile.personal.firstName}!</p>
+
+<!-- Dynamic property access -->
+<p>Theme: ${user.profile.settings['theme']}</p>
+
+<!-- Computed display names -->
+<p>Full name: ${user.profile.personal.firstName + ' ' + user.profile.personal.lastName}</p>
+```
+{% endcode %}
+
+{% code title="Conditional and logical operations" %}
+```html
+<p>Status: ${isLoggedIn && user ? 'Authenticated' : 'Guest'}</p>
+<p>Display: ${showDetails || showSummary ? 'Visible' : 'Hidden'}</p>
+<p>Count: ${count || 0}</p>
+<p>Message: ${message?.trim() || 'No message'}</p>
+```
+{% endcode %}
+
 ## Optional Syntax
 
 Aurelia supports the following optional chaining and nullish coalescing operators in templates:
@@ -89,7 +126,7 @@ You can use these operators to safely handle null or undefined values:
 
 This helps avoid lengthy if-statements or ternary checks in your view model when dealing with potentially undefined data.
 
-## HTMLElement interpolation
+## HTMLElement Interpolation
 
 Aurelia supports passing HTMLElement objects directly to template interpolations. This allows you to dynamically create and insert DOM elements into your templates at runtime.
 
@@ -142,6 +179,42 @@ export class MyApp {
 When using `Document.parseHTMLUnsafe()`, be cautious about the source of your HTML strings to avoid XSS vulnerabilities. Only use this with trusted content.
 {% endhint %}
 
+### Security Considerations
+
+When interpolating HTMLElements, be mindful of security implications:
+
+{% code title="Safe practices" %}
+```typescript
+export class MyApp {
+  // ✅ Safe: Creating known elements
+  createSafeButton() {
+    const button = document.createElement('button');
+    button.textContent = 'Safe Button'; // textContent escapes content
+    button.className = 'safe-class';
+    return button;
+  }
+
+  // ❌ Dangerous: Using innerHTML with user input
+  createUnsafeElement(userInput: string) {
+    const div = document.createElement('div');
+    div.innerHTML = userInput; // Can execute scripts!
+    return div;
+  }
+
+  // ✅ Better: Sanitize user input or use textContent
+  createSafeElement(userInput: string) {
+    const div = document.createElement('div');
+    div.textContent = userInput; // Escapes all HTML
+    return div;
+  }
+}
+```
+{% endcode %}
+
+{% hint style="danger" %}
+**Never use innerHTML with user-provided content** without proper sanitization. This can lead to XSS vulnerabilities.
+{% endhint %}
+
 ### Dynamic element creation
 
 This feature is particularly useful for dynamic content scenarios:
@@ -177,5 +250,201 @@ While template interpolation is powerful, there are a few limitations to keep in
 3. The pipe character `|` is reserved for Aurelia value converters and cannot be used as a bitwise operator inside interpolation.
 
 {% hint style="info" %}
-For complex transformations or formatting, consider using Aurelia’s value converters instead of cramming too much logic into an interpolation.
+For complex transformations or formatting, consider using Aurelia's value converters instead of cramming too much logic into an interpolation.
 {% endhint %}
+
+## Performance Best Practices
+
+### Avoid Complex Expressions
+
+Keep interpolation expressions simple for better performance. Complex computations should be moved to getters or methods:
+
+{% code title="❌ Not recommended" %}
+```html
+<p>${items.filter(i => i.active).map(i => i.name.toUpperCase()).join(', ')}</p>
+```
+{% endcode %}
+
+{% code title="✅ Better approach" %}
+```typescript
+export class MyApp {
+  get activeItemNames() {
+    return this.items
+      .filter(i => i.active)
+      .map(i => i.name.toUpperCase())
+      .join(', ');
+  }
+}
+```
+```html
+<p>${activeItemNames}</p>
+```
+{% endcode %}
+
+### Array Observation Performance
+
+Aurelia automatically observes arrays used in interpolation. For large arrays that change frequently, consider using computed getters:
+
+{% code title="Large array optimization" %}
+```typescript
+export class MyApp {
+  private _cachedResult: string = '';
+  private _lastArrayLength: number = 0;
+
+  get expensiveArrayComputation() {
+    if (this.largeArray.length !== this._lastArrayLength) {
+      this._cachedResult = this.largeArray
+        .filter(/* complex filter */)
+        .reduce(/* expensive operation */, '');
+      this._lastArrayLength = this.largeArray.length;
+    }
+    return this._cachedResult;
+  }
+}
+```
+{% endcode %}
+
+### Memory Considerations
+
+When using HTMLElement interpolation, ensure proper cleanup to avoid memory leaks:
+
+{% code title="Proper cleanup example" %}
+```typescript
+export class MyApp {
+  elements: HTMLElement[] = [];
+
+  detaching() {
+    // Clean up event listeners and references
+    this.elements.forEach(el => {
+      el.removeEventListener('click', this.handleClick);
+    });
+    this.elements = [];
+  }
+}
+```
+{% endcode %}
+
+## Error Handling and Edge Cases
+
+### Handling Null and Undefined Values
+
+Interpolation gracefully handles `null` and `undefined` values by rendering empty strings:
+
+{% code title="Null/undefined handling" %}
+```typescript
+export class MyApp {
+  name: string | null = null;
+  data: any = undefined;
+}
+```
+```html
+<p>Name: ${name}</p>          <!-- Renders: "Name: " -->
+<p>Data: ${data}</p>          <!-- Renders: "Data: " -->
+<p>Safe: ${data?.prop}</p>     <!-- Renders: "Safe: " -->
+```
+{% endcode %}
+
+### Error-Prone Expressions
+
+Some expressions can throw runtime errors. Use defensive patterns:
+
+{% code title="❌ Can throw errors" %}
+```html
+<p>${user.profile.name}</p>           <!-- Error if user or profile is null -->
+<p>${items[selectedIndex].title}</p>  <!-- Error if index out of bounds -->
+<p>${calculateTotal()}</p>            <!-- Error if method throws -->
+```
+{% endcode %}
+
+{% code title="✅ Defensive patterns" %}
+```html
+<p>${user?.profile?.name ?? 'Anonymous'}</p>
+<p>${items[selectedIndex]?.title ?? 'No item selected'}</p>
+<p>${safeCalculateTotal()}</p>
+```
+```typescript
+export class MyApp {
+  safeCalculateTotal(): string {
+    try {
+      return this.calculateTotal().toString();
+    } catch {
+      return 'Calculation error';
+    }
+  }
+}
+```
+{% endcode %}
+
+### Type Coercion Behavior
+
+Interpolation converts values to strings following JavaScript coercion rules:
+
+{% code title="Type conversion examples" %}
+```typescript
+export class MyApp {
+  number = 42;
+  boolean = true;
+  array = [1, 2, 3];
+  object = { name: 'test' };
+}
+```
+```html
+<p>${number}</p>    <!-- Renders: "42" -->
+<p>${boolean}</p>   <!-- Renders: "true" -->
+<p>${array}</p>     <!-- Renders: "1,2,3" -->
+<p>${object}</p>    <!-- Renders: "[object Object]" -->
+```
+{% endcode %}
+
+### HTMLElement Edge Cases
+
+When interpolating HTMLElements, be aware of these behaviors:
+
+{% code title="HTMLElement considerations" %}
+```typescript
+export class MyApp {
+  nullElement: HTMLElement | null = null;
+  detachedElement = document.createElement('div');
+
+  constructor() {
+    this.detachedElement.textContent = 'Detached';
+    // Element not in DOM yet
+  }
+}
+```
+```html
+<div>${nullElement}</div>      <!-- Renders empty, no error -->
+<div>${detachedElement}</div>  <!-- Inserts element into DOM -->
+```
+{% endcode %}
+
+## Advanced Example: Dynamic Content with Observer Updates
+
+Here's an example showing how interpolation works with Aurelia's observer system to automatically update the view when data changes:
+
+{% code title="my-app.ts" %}
+```typescript
+export class MyApp {
+  items = [];
+
+  constructor() {
+    this.items.push({ name: 'Item 1' }, { name: 'Item 2' });
+  }
+
+  addItem() {
+    this.items.push({ name: `Item ${this.items.length + 1}` });
+  }
+}
+```
+{% endcode %}
+
+{% code title="my-app.html" %}
+```html
+<ul>
+  <li repeat.for="item of items">${item.name}</li>
+</ul>
+<button click.trigger="addItem()">Add Item</button>
+```
+{% endcode %}
+
+The interpolation is automatically updated by Aurelia's array observer whenever items are added to the collection.

@@ -1,11 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { addCoverage } from '../../playwright-coverage';
 
-test.describe('router configured', () => {
+test.describe('router.basic', () => {
 
   addCoverage();
-
-  test.describe.configure({ mode: 'parallel' });
 
   test.beforeEach(async ({ page, baseURL }) => {
     await page.goto(baseURL);

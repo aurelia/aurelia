@@ -149,7 +149,7 @@ class Tabs {
       // Add a class binding to mark the active tab.
       header.setAttribute('class.bind', `$host.activeTabId=='${i}'?'active':''`);
       // Add a click delegate to activate a tab.
-      header.setAttribute('click.delegate', `$host.showTab('${i}')`);
+      header.setAttribute('click.trigger', `$host.showTab('${i}')`);
       header.appendChild(p.document.createTextNode(tab.getAttribute('header')));
       headerTemplate.content.appendChild(header);
 

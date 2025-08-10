@@ -1,11 +1,36 @@
 ---
-description: Learn to navigate from one view to another using the Router-Lite. Also learn about routing context.
+description: Learn to navigate from one view to another using the Aurelia router, including declarative and programmatic navigation patterns.
 ---
 
 # Navigating
 
-This section details the various ways that you can use to navigate from one part of your application to another part.
-For performing navigation the router offers couple of alternatives, namely the `href` and the `load` custom attributes, and the `IRouter#load` method.
+Aurelia's router provides multiple ways to navigate between routes in your application. This section covers all navigation methods from simple links to complex programmatic navigation patterns.
+
+## Navigation Methods Overview
+
+The router offers three primary navigation approaches:
+
+1. **Declarative Navigation**:
+   - `href` custom attribute - Natural anchor tag navigation
+   - `load` custom attribute - Structured navigation with advanced options
+
+2. **Programmatic Navigation**:
+   - `IRouter.load()` method - Full programmatic control
+   - Navigation with options (query params, fragments, context, etc.)
+
+3. **Path Generation**:
+   - Generate URLs for routes without navigating
+   - Useful for conditional navigation and dynamic link building
+
+Choose the method that best fits your use case:
+
+| Use Case | Best Method | Example |
+|----------|-------------|---------|
+| Simple navigation links | `href` | `<a href="about">About</a>` |
+| Links with parameters | `load` with params | `<a load="route: user; params.bind: {id: userId}">User</a>` |
+| Conditional navigation | `IRouter.load()` | `if (canAccess) router.load('admin')` |
+| Navigation with query params | `IRouter.load()` with options | `router.load('search', { queryParams: { q: 'term' }})` |
+| Dynamic link generation | `router.generatePath()` | `const url = await router.generatePath('user', userId)` |
 
 ## Using the `href` custom attribute
 
@@ -1131,6 +1156,215 @@ export class MyApp {
 }
 ```
 
+## Advanced Navigation Patterns
+
+### Error Handling and Navigation Guards Integration
+
+When using programmatic navigation, you should handle potential failures and integrate with navigation guards:
+
+```typescript
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class UserManagementComponent {
+  private readonly router = resolve(IRouter);
+
+  async navigateToUser(userId: string) {
+    try {
+      const success = await this.router.load(`user/${userId}`);
+      if (!success) {
+        // Navigation was blocked by guards or failed
+        console.log('Navigation was blocked or failed');
+        this.showErrorMessage('Unable to access user profile');
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      this.router.load('error');
+    }
+  }
+
+  private showErrorMessage(message: string) {
+    // Your error handling logic
+  }
+}
+```
+
+### Conditional Navigation with Permissions
+
+```typescript
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class NavigationService {
+  private readonly router = resolve(IRouter);
+
+  async navigateWithPermissionCheck(route: string, requiredPermission: string) {
+    if (!this.hasPermission(requiredPermission)) {
+      await this.router.load('unauthorized');
+      return false;
+    }
+
+    try {
+      return await this.router.load(route);
+    } catch {
+      await this.router.load('error');
+      return false;
+    }
+  }
+
+  private hasPermission(permission: string): boolean {
+    // Your permission checking logic
+    return true;
+  }
+}
+```
+
+### Navigation with State Preservation
+
+```typescript
+export class SearchComponent {
+  private readonly router = resolve(IRouter);
+  private searchTerm: string = '';
+  private currentPage: number = 1;
+
+  async search(term: string) {
+    this.searchTerm = term;
+    this.currentPage = 1;
+
+    // Preserve search state in URL
+    await this.router.load('search', {
+      queryParams: {
+        q: term,
+        page: this.currentPage
+      },
+      // Preserve in browser history state
+      state: {
+        searchTerm: term,
+        timestamp: Date.now()
+      }
+    });
+  }
+
+  async nextPage() {
+    this.currentPage++;
+    await this.router.load('search', {
+      queryParams: {
+        q: this.searchTerm,
+        page: this.currentPage
+      },
+      historyStrategy: 'replace' // Don't create new history entry
+    });
+  }
+}
+```
+
+### Dynamic Navigation Menu
+
+```typescript
+import { IRouter, ICurrentRoute } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+interface NavigationItem {
+  label: string;
+  route: string;
+  permission?: string;
+  params?: Record<string, unknown>;
+}
+
+export class NavigationMenuComponent {
+  private readonly router = resolve(IRouter);
+  private readonly currentRoute = resolve(ICurrentRoute);
+
+  private menuItems: NavigationItem[] = [
+    { label: 'Dashboard', route: 'dashboard' },
+    { label: 'Users', route: 'users', permission: 'users.read' },
+    { label: 'Settings', route: 'settings', permission: 'admin' },
+  ];
+
+  get visibleMenuItems() {
+    return this.menuItems.filter(item =>
+      !item.permission || this.hasPermission(item.permission)
+    );
+  }
+
+  async navigateToItem(item: NavigationItem) {
+    // Skip if already on this route
+    if (this.currentRoute.path === item.route) {
+      return;
+    }
+
+    await this.router.load(item.route, {
+      queryParams: item.params,
+      title: item.label
+    });
+  }
+
+  isActive(route: string): boolean {
+    return this.currentRoute.path === route;
+  }
+
+  private hasPermission(permission: string): boolean {
+    // Your permission checking logic
+    return true;
+  }
+}
+```
+
+### Navigation with Loading States
+
+```typescript
+export class AppComponent {
+  private readonly router = resolve(IRouter);
+  private isNavigating = false;
+  private navigationError: string | null = null;
+
+  async navigateWithLoadingState(route: string) {
+    this.isNavigating = true;
+    this.navigationError = null;
+
+    try {
+      const success = await this.router.load(route);
+      if (!success) {
+        this.navigationError = 'Navigation was blocked';
+      }
+    } catch (error) {
+      this.navigationError = `Navigation failed: ${error.message}`;
+    } finally {
+      this.isNavigating = false;
+    }
+  }
+}
+```
+
+### Bulk Navigation Operations
+
+For applications that need to perform multiple navigation operations:
+
+```typescript
+export class NavigationBatchService {
+  private readonly router = resolve(IRouter);
+  private navigationQueue: Array<{ route: string; options?: any }> = [];
+
+  queueNavigation(route: string, options?: any) {
+    this.navigationQueue.push({ route, options });
+  }
+
+  async processNavigationQueue() {
+    const operations = this.navigationQueue.splice(0); // Clear queue
+
+    for (const operation of operations) {
+      try {
+        await this.router.load(operation.route, operation.options);
+        // Small delay to prevent overwhelming the router
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } catch (error) {
+        console.error(`Failed to navigate to ${operation.route}:`, error);
+      }
+    }
+  }
+}
+```
+
 ## Path generation
 The router supports generating paths eagerly for a given route or navigation instruction. Paths can be generated using the router as well as the route context.
 
@@ -1234,3 +1468,153 @@ This example generates a path to the `child` route, relative to the root context
 Note that using parameters and/or nested children for path generation instructions are also supported by the `RouteContext` API, similar to the [`generatePath` method](#router-api).
 Those examples are avoided here for brevity.
 {% endhint %}
+
+## Best Practices and Common Patterns
+
+### When to Use Each Navigation Method
+
+**Use `href` custom attribute when:**
+- Creating simple navigation links
+- Navigation doesn't require complex logic
+- You want standard browser link behavior (right-click, etc.)
+- Building static navigation menus
+
+**Use `load` custom attribute when:**
+- You need to bind parameters from your view model
+- You want to leverage the `active` property for styling
+- You need structured parameter binding
+- Working with dynamic route data
+
+**Use `IRouter.load()` method when:**
+- Navigation depends on business logic
+- You need error handling
+- Working with complex navigation flows
+- Implementing programmatic redirects
+
+### Navigation Error Handling
+
+Always handle navigation failures gracefully:
+
+```typescript
+export class NavigationService {
+  private readonly router = resolve(IRouter);
+
+  async safeNavigate(route: string, options?: any): Promise<boolean> {
+    try {
+      const result = await this.router.load(route, options);
+
+      if (!result) {
+        // Navigation was blocked by guards
+        this.handleNavigationBlocked(route);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.handleNavigationError(error, route);
+      return false;
+    }
+  }
+
+  private handleNavigationBlocked(route: string) {
+    console.warn(`Navigation to ${route} was blocked`);
+    // Show user-friendly message or redirect to appropriate page
+  }
+
+  private handleNavigationError(error: any, route: string) {
+    console.error(`Navigation to ${route} failed:`, error);
+    // Log error, show error page, or attempt recovery
+  }
+}
+```
+
+### Performance Considerations
+
+1. **Prefer `href` for simple links** - Less overhead than programmatic navigation
+2. **Cache generated paths** when generating many URLs:
+
+```typescript
+export class LinkGeneratorService {
+  private readonly router = resolve(IRouter);
+  private readonly pathCache = new Map<string, string>();
+
+  async getPath(route: string, params?: any): Promise<string> {
+    const cacheKey = `${route}:${JSON.stringify(params)}`;
+
+    if (this.pathCache.has(cacheKey)) {
+      return this.pathCache.get(cacheKey)!;
+    }
+
+    const path = await this.router.generatePath({ component: route, params });
+    this.pathCache.set(cacheKey, path);
+    return path;
+  }
+}
+```
+
+3. **Batch multiple navigation operations** when possible to avoid router overwhelm
+
+### Accessibility Considerations
+
+When implementing custom navigation, maintain accessibility:
+
+```typescript
+export class AccessibleNavigationComponent {
+  private readonly router = resolve(IRouter);
+
+  async navigateWithAccessibility(route: string, announcement?: string) {
+    const success = await this.router.load(route);
+
+    if (success && announcement) {
+      // Announce navigation to screen readers
+      this.announceToScreenReader(announcement);
+    }
+  }
+
+  private announceToScreenReader(message: string) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only'; // Screen reader only class
+    announcement.textContent = message;
+
+    document.body.appendChild(announcement);
+    setTimeout(() => document.body.removeChild(announcement), 1000);
+  }
+}
+```
+
+### Testing Navigation
+
+When testing components with navigation:
+
+```typescript
+import { IRouter } from '@aurelia/router';
+
+describe('NavigationComponent', () => {
+  let mockRouter: jasmine.SpyObj<IRouter>;
+  let component: NavigationComponent;
+
+  beforeEach(() => {
+    mockRouter = jasmine.createSpyObj('IRouter', ['load', 'generatePath']);
+    // Set up component with mock router
+  });
+
+  it('should navigate to user profile', async () => {
+    mockRouter.load.and.returnValue(Promise.resolve(true));
+
+    await component.navigateToUser('123');
+
+    expect(mockRouter.load).toHaveBeenCalledWith('user/123');
+  });
+
+  it('should handle navigation failure', async () => {
+    mockRouter.load.and.returnValue(Promise.resolve(false));
+    spyOn(component, 'showErrorMessage');
+
+    await component.navigateToUser('123');
+
+    expect(component.showErrorMessage).toHaveBeenCalled();
+  });
+});
+```

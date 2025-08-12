@@ -528,6 +528,13 @@ export class Task<R = any> {
     });
   }
 
+  public then<TResult1 = Awaited<R>, TResult2 = never>(
+    onfulfilled?: ((value: Awaited<R>) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.result.then(onfulfilled, onrejected);
+  }
+
   /** @internal */
   public run(): void {
     if (this._status !== tsPending) {

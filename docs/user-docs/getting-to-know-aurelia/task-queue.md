@@ -469,9 +469,9 @@ This section covers specialized functions and patterns for niche scenarios. The 
 
 ### When to Use `runTasks()` Synchronously (In Tests)
 
-**Problem:** You're writing a test in an environment that does not support `async` test functions, but you need to assert a DOM change that happens in a microtask.
+**Problem:** You're writing a test for a low-level component where the interaction is fundamentally synchronous. The action queues a microtask (like a render update), but you want to keep your test function simple and synchronous without needing `async/await`
 
-**Solution:** Call `runTasks()` to synchronously "flush" the scheduler's queue immediately after your action. This is the non-async equivalent of `await tasksSettled()`.
+**Solution:** Call `runTasks()` to synchronously "flush" the scheduler's queue immediately after your action. This is the non-async equivalent of `await tasksSettled()` that allows you to make your assertions directly in a non-`async` test.
 
 ```typescript
 import { runTasks } from 'aurelia';

@@ -125,7 +125,7 @@ This is why it's so effective in tests. It doesn't just wait for one thing to fi
 You give it a callback function, and it returns a `Task` object, which is your handle to control that operation's lifecycle.
 
 ```typescript
-import { queueAsyncTask } from '@aurelia/runtime';
+import { queueAsyncTask } from 'aurelia';
 
 // Schedule a task to run after a 500ms delay.
 const myTask = queueAsyncTask(() => {

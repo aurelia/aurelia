@@ -229,9 +229,11 @@ export class ProfileCard {
 **Solution:** Disable the button as soon as it's clicked. Use `queueAsyncTask` to perform the save operation and re-enable the button in a `finally` block. This guarantees the button becomes interactive again, even if the save operation fails.
 
 ```ts
-import { PLATFORM, queueAsyncTask } from 'aurelia';
+import { HttpClient } from '@aurelia/fetch-client';
+import { resolve, queueAsyncTask } from 'aurelia';
 
 export class EditForm {
+  private http = resolve(HttpClient);
   public isSaving = false;
 
   async save() {
@@ -245,7 +247,7 @@ export class EditForm {
       // queueAsyncTask returns a Task that can be awaited directly.
       await queueAsyncTask(async () => {
         // Perform the actual save operation
-        await PLATFORM.fetch('/api/data', { method: 'POST', body: /* ... */ });
+        await this.http.fetch('/api/data', { method: 'POST', body: /* ... */ });
       });
 
       // Handle successful save...
@@ -308,7 +310,8 @@ export class Notifier {
 **Solution:** Use `queueAsyncTask` to wrap your fetch logic. A `try...finally` block provides a rock-solid way to guarantee your `isLoading` flag is set back to `false`, regardless of the outcome.
 
 ```ts
-import { PLATFORM, queueAsyncTask } from 'aurelia';
+import { HttpClient } from '@aurelia/fetch-client';
+import { resolve, queueAsyncTask } from 'aurelia';
 
 export class UserProfile {
   public user = null;
@@ -320,7 +323,7 @@ export class UserProfile {
     try {
       // By awaiting the queueAsyncTask call directly, we can use standard try/catch/finally.
       this.user = await queueAsyncTask(async () => {
-        const response = await PLATFORM.fetch('/api/user/1');
+        const response = await this.http.fetch('/api/user/1');
         if (!response.ok) {
           throw new Error('Failed to fetch user.');
         }
@@ -350,7 +353,8 @@ export class UserProfile {
 **Solution:** Store the handle to the current fetch task. When a new fetch is initiated, `cancel()` the previous one before you begin. This ensures only the results from the very last request will be processed.
 
 ```ts
-import { PLATFORM, Task, queueAsyncTask, TaskAbortError } from 'aurelia';
+import { HttpClient } from '@aurelia/fetch-client';
+import { resolve, Task, queueAsyncTask, TaskAbortError } from 'aurelia';
 
 export class ProductList {
   private currentFetch: Task | null = null;
@@ -362,7 +366,7 @@ export class ProductList {
 
     // Queue the new data fetch with a small delay for better UX.
     this.currentFetch = queueAsyncTask(async () => {
-      const response = await PLATFORM.fetch(`/api/products?filter=${newFilter}`);
+      const response = await this.http.fetch(`/api/products?filter=${newFilter}`);
       return response.json();
     }, { delay: 200 });
 
@@ -389,7 +393,8 @@ export class ProductList {
 **Solution:** Use `queueRecurringTask` to create a managed, repeating task. It integrates with Aurelia's scheduler and can be easily started and stopped within your component's lifecycle hooks, making it both powerful and safe.
 
 ```ts
-import { PLATFORM, RecurringTask, queueRecurringTask } from 'aurelia';
+import { HttpClient } from '@aurelia/fetch-client';
+import { resolve, RecurringTask, queueRecurringTask } from 'aurelia';
 
 export class LiveScores {
   private poller: RecurringTask | null = null;
@@ -398,7 +403,7 @@ export class LiveScores {
   // Start polling when the component is attached to the DOM.
   attached() {
     this.poller = queueRecurringTask(async () => {
-      const response = await PLATFORM.fetch('/api/latest-scores');
+      const response = await this.http.fetch('/api/latest-scores');
       this.scores = await response.json();
     }, { interval: 5000 }); // Poll every 5 seconds
   }
@@ -419,24 +424,19 @@ Here's how you could write a reliable test for the `LiveScores` component, using
 {% endhint %}
 
 ```ts
-import { PLATFORM, RecurringTask, queueRecurringTask } from 'aurelia';
+import { HttpClient } from '@aurelia/fetch-client';
+import { tasksSettled } from '@aurelia/runtime';
+import { resolve, Registration, RecurringTask, queueRecurringTask } from 'aurelia';
 
-// Mock the global fetch function for this test suite
-let mockScores = [];
-let originalFetch = PLATFORM.fetch;
-beforeEach(() => {
-  Reflect.set(PLATFORM, 'fetch', () => {
-    return {
-      json: () => Promise.resolve(mockScores)
-    };
-  });
-});
-afterEach(() => {
-  Reflect.set(PLATFORM, 'fetch', originalFetch);
-});
 
 it('polls for new scores and updates the component', async () => {
-  const { component } = createFixture('<live-scores></live-scores>', LiveScores);
+  let mockScores = [];
+  const mockHttpClient = {
+    fetch: () => Promise.resolve({
+      json: () => Promise.resolve(mockScores),
+    }),
+  };
+  const { component } = createFixture('<live-scores></live-scores>', LiveScores, [Registration.instance(HttpClient, mockHttpClient)]);
 
   // The poller is created but hasn't run its first callback yet.
   const poller = component.poller as RecurringTask;

@@ -135,14 +135,14 @@ const myTask = queueAsyncTask(() => {
 
 ### The `Task` Handle: Your Control Panel 🎮
 
-The `Task` object returned by `queueAsyncTask()` is your "receipt" for the scheduled work. It's not just a fire-and-forget operation; it's a manageable object with three key features:
+The `Task` object returned by `queueAsyncTask()` is your "receipt" for the scheduled work. It is a "thennable" object, meaning it behaves like a promise, but with additional properties for managing its lifecycle.
 
-#### The `task.result` promise
-An await-able `Promise` that resolves with your callback's return value or rejects if it throws an error. This is how you get the outcome of *your specific task*.
+#### Directly `await`-able
+
+The `Task` object can be awaited directly to get the result of the operation. Awaiting the task will return your callback's value once it completes, or throw an error if the callback rejects. This is the recommended and most common way to consume a task.
 
 ```ts
-const task = queueAsyncTask(() => fetchProducts());
-const products = await task.result;
+const products = await queueAsyncTask(() => fetchProducts());
 ```
 
 
@@ -168,6 +168,9 @@ const task = queueAsyncTask(showTooltip, { delay: 400 });
 task.cancel();
 ```
 
+#### The `task.result` property
+
+For advanced use cases, the underlying `Promise` is accessible via `.result`. This can be useful when interoperating with libraries that require a native promise instance. In most situations, you should `await` the `Task` object directly.
 
 ### `queueRecurringTask()`: For Repeating Actions 🔁
 
@@ -239,11 +242,11 @@ export class EditForm {
     this.isSaving = true;
 
     try {
-      // queueAsyncTask returns a promise via `.result` that we can await.
+      // queueAsyncTask returns a Task that can be awaited directly.
       await queueAsyncTask(async () => {
         // Perform the actual save operation
         await PLATFORM.fetch('/api/data', { method: 'POST', body: /* ... */ });
-      }).result;
+      });
 
       // Handle successful save...
     } catch (e) {
@@ -315,16 +318,14 @@ export class UserProfile {
     this.isLoading = true;
 
     try {
-      // By awaiting the task's result, we can use standard try/catch/finally.
-      const task = queueAsyncTask(async () => {
+      // By awaiting the queueAsyncTask call directly, we can use standard try/catch/finally.
+      this.user = await queueAsyncTask(async () => {
         const response = await PLATFORM.fetch('/api/user/1');
         if (!response.ok) {
           throw new Error('Failed to fetch user.');
         }
         return response.json();
       });
-
-      this.user = await task.result;
     } catch (e) {
       // Handle fetch errors, maybe show an error message
       console.error(e);
@@ -366,7 +367,7 @@ export class ProductList {
     }, { delay: 200 });
 
     try {
-      this.products = await this.currentFetch.result;
+      this.products = await this.currentFetch;
     } catch (error) {
       // A cancelled task rejects with TaskAbortError. It's safe to
       // ignore this, as it's an expected part of the workflow.

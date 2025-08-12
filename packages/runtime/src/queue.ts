@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-hyphen-before-param-description */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable jsdoc/check-indentation */
 /* eslint-disable jsdoc/no-multi-asterisks */
@@ -532,11 +533,46 @@ export class Task<R = any> {
     });
   }
 
+  /**
+   * **Delegates to the underlying `.result` promise's `.then()` method.**
+   *
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
   public then<TResult1 = Awaited<R>, TResult2 = never>(
     onfulfilled?: ((value: Awaited<R>) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
     return this.result.then(onfulfilled, onrejected);
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.catch()` method.**
+   *
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  public catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
+  ): Promise<Awaited<R> | TResult> {
+    return this.result.catch(onrejected);
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.catch()` method.**
+   *
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  public finally(
+    onfinally?: (() => void) | null
+  ): Promise<Awaited<R>> {
+    return this.result.finally(onfinally);
   }
 
   /** @internal */

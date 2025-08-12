@@ -15,7 +15,6 @@ describe('2-runtime/queue.spec.ts', function () {
       queueTask(() => {
         i++;
       });
-
       assert.strictEqual(i, 0, 'Task should not have run yet');
       await tasksSettled();
       assert.strictEqual(i, 1, 'Task should have run once');

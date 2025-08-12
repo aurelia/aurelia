@@ -1,110 +1,65 @@
-# CLAUDE.md Example for Aurelia Projects
-
-This is an example `CLAUDE.md` file optimized for Aurelia development with Claude Code. Place this file in your project root or use hierarchical placement for monorepos.
-
-```markdown
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this Aurelia application.
+Guidance for Claude Code when working with this Aurelia 2 app.
 
 ## Framework & Architecture
 
 - Aurelia 2.x TypeScript application
-- Dependency injection with `@aurelia/kernel` - hierarchical containers
-- Template compiler with `@aurelia/template-compiler`
-- Resources follow MVVM pattern with clear separation of concerns
-- Components use lifecycle hooks: creating → created → binding → bound → attaching → attached
+- DI via `aurelia` and `@aurelia/kernel`, hierarchical containers
+- MVVM separation of concerns
+- Lifecycle order: constructor → define → hydrating → hydrated → created → binding → bound → attaching → attached → detaching → unbinding → dispose
 
 ## Project Structure
 
-- `/src/components/` - Custom elements following kebab-case naming
-- `/src/attributes/` - Custom attributes and behaviors
-- `/src/value-converters/` - Value converters and binding behaviors
-- `/src/services/` - Application services registered via DI
-- `/packages/__tests__/` - Test files (require building before execution)
+- `/src/components/` - custom elements, kebab-case names in templates
+- `/src/attributes/` - custom attributes and template controllers
+- `/src/value-converters/` - value converters
+- `/src/binding-behaviors/` - binding behaviors
+- `/src/services/` - DI-registered app services
+- Tests colocated as `*.spec.ts` or under `/tests` using Jest or Vitest
 
 ## Development Commands
 
-- `npm run build` - Build all packages (REQUIRED before testing)
-- `npm run test` - Run all tests
-- `npm run dev -- -t "pattern"` - Run specific test patterns
-- `npm run lint` - ESLint validation
-- `npm run rebuild` - Clean build from scratch
+- `npm run build` - production build, run after package changes or before publishing
+- `npm test` - run tests
+- `npm test -- -t "pattern"` - run tests matching a pattern
+- `npm run lint` - ESLint
+- `npm run dev` - dev server (tooling-specific)
 
 ## Code Standards
 
 ### TypeScript
-- Strict mode enabled - avoid `any` type
-- Prefer interfaces over type aliases for object shapes
-- Use explicit return types for public methods
-- Handle undefined/null explicitly
+- Strict mode on, avoid `any`
+- Use explicit return types for public APIs
+- Handle `undefined` and `null` explicitly
+- Use interfaces or type aliases consistently, no `var`
 
 ### Aurelia Patterns
-- Use `@singleton` for stateless services
-- Use `@transient` for stateful services  
-- Custom elements use kebab-case: `<user-profile>`
-- Classes use PascalCase: `UserProfileCustomElement`
-- Always implement proper cleanup in `detaching`/`unbinding`
+- `@singleton` for stateful or shared services
+- `@transient` for lightweight, per-use services
+- Custom elements are kebab-case in markup, classes are PascalCase
+- Clean up in `detaching`, `unbinding`, or `dispose` as appropriate
+- `.delegate` has been removed in Aurelia 2, use `.trigger` instead
 
 ### DI Registration
-- Register resources via `StandardConfiguration.customize()`
-- Use constructor injection with `@resolve()` decorator
-- Services resolve through `container.get()` or injection
+- Register resources and services with `Aurelia.register(...)` or `container.register(...)`
+- Use `Registration.singleton(...)`, `Registration.transient(...)`, or `DI.createInterface(...)` for typed tokens
+- Use `resolve(...)` for property injection or `@inject(...)` for constructor injection
+- Router settings via `RouterConfiguration.customize(...)`
 
-### Testing
-- Use `@aurelia/testing` package for component tests
-- Follow AAA pattern: Arrange, Act, Assert
-- Test both happy path and error scenarios
-- Build packages before running tests
+## Testing
+- Use `@aurelia/testing` fixtures and helpers
+- Set up a browser-like platform (jsdom) for Node-based tests
+- Follow AAA: Arrange, Act, Assert
+- Building before tests is not required for standard apps, only for package builds
 
 ## Key Conventions
+- Quote file paths with spaces
+- Prefer early returns
+- Prefer `const` over `let`
+- Type all bindable properties
+- Use Aurelia’s logger (`ILogger` with `LoggerConfiguration`) over `console.log`
 
-- Always quote file paths with spaces: `"path with spaces/file.ts"`
-- Use early returns to reduce nesting
-- Prefer const over let, never use var
-- Include TypeScript types for all bindable properties
-- Implement proper error handling in lifecycle hooks
-- Use Aurelia logger system (ILogger) instead of console.log
+## Links
 
-## Architecture Notes
-
-- Resources have metadata and are discoverable via conventions
-- Templates compile to instruction objects for DOM binding
-- Observation system uses automatic dependency tracking
-- Container hierarchy enables scoped services per component tree
-```
-
-## Key Features of This Configuration
-
-### 1. **Concise and Focused**
-Following 2025 best practices, this configuration is under 500 lines and uses short, declarative bullet points rather than long paragraphs.
-
-### 2. **Aurelia-Specific Context**
-Provides essential information about Aurelia's architecture, DI system, and lifecycle patterns that Claude needs to generate appropriate code.
-
-### 3. **Development Workflow**
-Includes critical build requirements and commands specific to the Aurelia monorepo structure.
-
-### 4. **Code Quality Standards**
-Specifies TypeScript best practices and Aurelia-specific naming conventions to ensure consistent code generation.
-
-## Usage Tips
-
-### Hierarchical Placement
-For monorepos, you can place CLAUDE.md files at different levels:
-- Root `/CLAUDE.md` - Project-wide conventions
-- `/packages/runtime/CLAUDE.md` - Package-specific rules
-- `/examples/CLAUDE.md` - Example-specific context
-
-### Regular Refinement
-Update your CLAUDE.md file as your project evolves:
-- Add new architectural decisions
-- Update build commands
-- Refine coding standards based on team feedback
-- Remove outdated or redundant information
-
-### Auto-Generation
-Use Claude Code's `/init` command to automatically generate a CLAUDE.md file by analyzing your codebase, then refine it with project-specific details.
-
-### Integration with Existing Files
-This example works well with the existing `.cursorrules` file in the Aurelia repository, providing complementary guidance for different AI tools.
+- Consult the Aurelia 2 docs when you are unsure or want to ensure you have latest up to date syntax and APIs https://docs.aurelia.io

@@ -375,13 +375,14 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
     propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
   } else {
     const rawIterIdentifier = Unparser.unparse(expr.iterable);
-    const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member, true);
-    const root = path[0] ?? null;
-    if (path.length > 0 && root !== null) {
-      const tail = path.slice(1).map(p => `['${p}']`).join('');
-      propAccExpr = `(${ctx.classUnion})['${root}']${tail}`;
+    const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? ctx.getIdentifier(member)!, true);
+    if (path.length > 0) {
+      const [root, ...rest] = path;
+      const base = root.startsWith(identifierPrefix) ? ctx.accessTypeIdentifier : `(${ctx.classUnion})`;
+      const tail = [`['${root}']`, ...rest.map(p => `['${p}']`)].join('');
+      propAccExpr = `${base}${tail}`;
     } else {
-      propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
+      propAccExpr = `${ctx.accessTypeIdentifier}`;
     }
     iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(iterIdent)}, '${rawIterIdentifier}')}`;
   }

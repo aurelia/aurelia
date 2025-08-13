@@ -1,4 +1,3 @@
-/* eslint-disable no-template-curly-in-string */
 import { preprocessResource } from '@aurelia/plugin-conventions';
 import { assertFailure, assertSuccess, createMarkupReader, prop } from './_shared';
 import { nonConventionalOptions } from './without-convention.basic.spec';

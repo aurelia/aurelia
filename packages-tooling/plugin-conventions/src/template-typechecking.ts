@@ -293,15 +293,15 @@ export function createTypeCheckedTemplate(rawHtml: string, classes: ClassMetadat
 
   const ctx = new TypeCheckingContext(attrParser, exprParser, classes, isJs);
 
-  traverse(tree, (node) => processNode(node, ctx));
+  traverse(tree, (node) => processNode(node, ctx), ctx);
   return ctx.produceTypeCheckedTemplate(rawHtml);
 }
 
 function traverseDepth($node: DefaultTreeElement, ctx: TypeCheckingContext): void {
   // drill down
-  if ($node.childNodes) traverse($node, n => processNode(n, ctx));
+  if ($node.childNodes) traverse($node, n => processNode(n, ctx), ctx);
   // For <template> tag
-  if (($node as Template).content?.childNodes) traverse(($node as Template).content, n => processNode(n, ctx));
+  if (($node as Template).content?.childNodes) traverse(($node as Template).content, n => processNode(n, ctx), ctx);
 
   ctx.popScope();
 }
@@ -432,9 +432,47 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
 }
 
 const rangeIterableIdentifier = '__TypeCheck_RangeIterable__';
+const allowedLetBindingCommands = ['bind', 'one-time', 'to-view', 'two-way'] as readonly string[];
 function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCheckingContext): void | false {
   let retVal: void | false = void 0;
   if ('tagName' in node) {
+    if (node.tagName === 'let') {
+      const hasToBindingContext = node.attrs.some(a => a.name === 'to-binding-context');
+      const attrsLoc = node.sourceCodeLocation!.attrs!;
+
+      for (const attr of node.attrs) {
+        if (attr.name === 'to-binding-context') continue;
+
+        const { target, command } = ctx.attrParser.parse(attr.name, attr.value);
+        if (!command || !allowedLetBindingCommands.includes(command)) continue;
+
+        const value = attr.value.length === 0 ? target : attr.value;
+        const ast = ctx.exprParser.parse(value, 'None');
+        if (ast == null) continue;
+
+        const [_expr, path] = mutateAccessScope(ast, ctx, m => ctx.getIdentifier(m, IdentifierInstruction.SkipGeneration) ?? m, true);
+
+        const isPrimitive = _expr.$kind === 'PrimitiveLiteral';
+        if (!isPrimitive) {
+          const loc = attrsLoc[attr.name];
+          ctx.toReplace.push({
+            loc,
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${escape(value)}')}"`
+          });
+        }
+
+        let inferredType = 'any';
+        if (isPrimitive) {
+          inferredType = Unparser.unparse(_expr as PrimitiveLiteralExpression);
+        } else if (path?.length) {
+          inferredType = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
+        }
+
+        const propName = hasToBindingContext ? target : ctx.getIdentifier(target, IdentifierInstruction.AddToOverrides)!;
+        ctx.accessTypeParts.push(acc => `Omit<${acc}, '${propName}'> & { ${propName}: ${inferredType} }`);
+      }
+      return false;
+    }
     node.attrs?.forEach(attr => {
       const syntax = ctx.attrParser.parse(attr.name, attr.value);
       if (tryProcessRepeat(syntax, attr, node, ctx)) retVal = false;
@@ -543,8 +581,13 @@ function isAccessGlobal(ast: IsLeftHandSide): boolean {
     ) && ast.accessGlobal;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function traverse(tree: any, cb: (node: DefaultTreeElement | DefaultTreeTextNode) => void | false): void {
+function traverse(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tree: any,
+  cb: (node: DefaultTreeElement | DefaultTreeTextNode) => void | false,
+  ctx: TypeCheckingContext
+): void {
+  ctx.pushScope('none');
   // eslint-disable-next-line
   tree.childNodes.forEach((n: any) => {
     const ne = n as DefaultTreeElement;
@@ -554,7 +597,8 @@ function traverse(tree: any, cb: (node: DefaultTreeElement | DefaultTreeTextNode
     const processChild = cb(ne);
     if (processChild === false) return;
 
-    if (n.childNodes) traverse(n, cb);
-    if ((n as Template).content?.childNodes) traverse(n.content, cb);
+    if (n.childNodes) traverse(n, cb, ctx);
+    if ((n as Template).content?.childNodes) traverse(n.content, cb, ctx);
   });
+  ctx.popScope();
 }

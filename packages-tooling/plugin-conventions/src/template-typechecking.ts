@@ -375,7 +375,12 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
     propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
   } else {
     const rawIterIdentifier = Unparser.unparse(expr.iterable);
-    const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? ctx.getIdentifier(member)!, true);
+    const [iterIdent, path] = mutateAccessScope(
+      expr.iterable,
+      ctx,
+      member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? ctx.getIdentifier(member)!,
+      true
+    );
     if (path.length > 0) {
       const [root, ...rest] = path;
       const base = root.startsWith(identifierPrefix) ? ctx.accessTypeIdentifier : `(${ctx.classUnion})`;

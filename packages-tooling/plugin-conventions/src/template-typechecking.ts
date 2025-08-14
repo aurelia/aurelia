@@ -68,12 +68,18 @@ const enum IdentifierInstruction {
 }
 
 type ScopeType = 'none' | 'repeat' | 'promise';
+/**
+ * A branch-local environment that describes the "with" overlay
+ * 'vm'        - a VM-rooted path; index into the vm class union
+ * 'synthetic' - a synthetic alias path; index into a synthetic alias introduced by the checker
+ */
+type OverlayEnv = { mode: 'vm' | 'synthetic'; expr: string };
 
 class IdentifierScope {
   private readonly decIdentMap: Map<string, number> | null;
   private readonly overriddenIdentMap: Map<string, string> = new Map();
   private readonly root: IdentifierScope;
-  public get isRoot(): boolean { return this.parent === null; }
+  public get isRoot(): boolean { return this.parent == null; }
   private promiseProperty: string | null = null;
 
   public constructor(
@@ -81,11 +87,22 @@ class IdentifierScope {
     private readonly classes: ClassMetadata[],
     public readonly parent: IdentifierScope | null = null,
   ) {
-    this.decIdentMap = parent === null ? new Map() : null;
-    this.root = parent === null ? this : parent.root;
+    this.decIdentMap = parent == null ? new Map() : null;
+    this.root = parent == null ? this : parent.root;
   }
 
   public createChild(type: ScopeType): IdentifierScope { return new IdentifierScope(type, this.classes, this); }
+
+  public getOverriddenIdentifier(ident: string): string | null {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let current: IdentifierScope | null = this;
+    while (current != null) {
+      const lookup = current.overriddenIdentMap;
+      if (lookup.has(ident)) return lookup.get(ident)!;
+      current = current.parent;
+    }
+    return null;
+  }
 
   public getIdentifier(ident: string, instruction: IdentifierInstruction = IdentifierInstruction.None): string | null {
     const returnIdentifier = (newIdent: string): string => {
@@ -99,32 +116,40 @@ class IdentifierScope {
     if (isPromise) {
       if (this.type !== 'promise') throw new Error(`Identifier '${ident}' is used for promise template controller, but scope is not marked as a promise scope.`);
     }
-    if (this.classes.some(c => c.members.some(x => x.name === ident))) return returnIdentifier(ident);
-
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
-    while (current !== null) {
+    while (current != null) {
       const lookup = current.overriddenIdentMap;
       if (lookup.has(ident)) return returnIdentifier(lookup.get(ident)!);
       current = current.parent;
     }
+
+    const allocate = (): string => {
+      const lookup = this.root.decIdentMap!;
+      let count = lookup.get(ident) ?? 0;
+      lookup.set(ident, ++count);
+      return `${identifierPrefix}${ident}${count}`;
+    };
+
+    if ((instruction & IdentifierInstruction.AddToOverrides) > 0) {
+      const newName = allocate();
+      this.overriddenIdentMap.set(ident, newName);
+      return returnIdentifier(newName);
+    }
+
+    if (this.classes.some(c => c.members.some(x => x.name === ident))) {
+      return returnIdentifier(ident);
+    }
+
     if ((instruction & IdentifierInstruction.SkipGeneration) > 0) return null;
-
-    const lookup = this.root.decIdentMap!;
-    let count = lookup.get(ident) ?? 0;
-    lookup.set(ident, ++count);
-    const newName = `${identifierPrefix}${ident}${count}`;
-
-    if ((instruction & IdentifierInstruction.AddToOverrides) > 0) this.overriddenIdentMap.set(ident, newName);
-
-    return returnIdentifier(newName);
+    return returnIdentifier(allocate());
   }
 
   public getPromiseProperty(): string | null {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
-    while (current !== null) {
-      if (current.promiseProperty !== null) return current.promiseProperty;
+    while (current != null) {
+      if (current.promiseProperty != null) return current.promiseProperty;
       current = current.parent;
     }
     return null;
@@ -141,6 +166,12 @@ class TypeCheckingContext {
   public readonly accessTypeParts: ((acc: string) => string)[];
   public readonly accessTypeIdentifier: string;
   public readonly accessIdentifier: string;
+
+  private readonly _envStack: OverlayEnv[] = [];
+  public get currentEnv(): OverlayEnv | null {
+    const { _envStack} = this;
+    return _envStack.length > 0 ? _envStack[_envStack.length - 1] : null;
+  }
 
   private _accessType: string | undefined = void 0;
   public get accessType(): string { return this._accessType ??= this.accessTypeParts.reduce((acc: string, part) => part(acc), ''); }
@@ -194,6 +225,13 @@ class TypeCheckingContext {
     }
   }
 
+  public pushEnv(env: OverlayEnv): void {
+    this._envStack.push(env);
+  }
+  public popEnv(): void {
+    this._envStack.pop();
+  }
+
   public produceTypeCheckedTemplate(rawHtml: string): string {
     const { accessType, isJs, accessTypeIdentifier, classes } = this;
     let html = '';
@@ -230,6 +268,9 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
   public getIdentifier(ident: string, instruction: IdentifierInstruction = IdentifierInstruction.None): string | null {
     return this.scope.getIdentifier(ident, instruction);
   }
+  public getOverriddenIdentifier(ident: string): string | null {
+    return this.scope.getOverriddenIdentifier(ident);
+  }
 
   public createLambdaExpression(expression: IsBindingBehavior): string;
   public createLambdaExpression(args: string[]): string;
@@ -238,12 +279,23 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
       const len = args.length;
       switch (len) {
         case 0: throw new Error('At least one argument is required');
-        case 1: return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${args[0]}`;
-        default: return `${TypeCheckingContext._o} => (${args.map(arg => `${TypeCheckingContext._o}.${arg}`).join(',')})`;
+        case 1: {
+          // Strip a leading "this." so `${o.this.x}` type-checks as VM access `${o.x}`
+          const arg0 = args[0].startsWith('this.') ? args[0].slice(5) : args[0];
+          return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${arg0}`;
+        }
+        default: {
+          const parts = args.map(arg => arg.startsWith('this.') ? arg.slice(5) : arg);
+          return `${TypeCheckingContext._o} => (${parts.map(arg => `${TypeCheckingContext._o}.${arg}`).join(',')})`;
+        }
       }
     }
 
     switch (args.$kind) {
+      case 'PrimitiveLiteral':
+      case 'ObjectLiteral':
+      case 'ArrayLiteral':
+        return `${TypeCheckingContext._o} => (${Unparser.unparse(args)})`;
       case 'CallScope':
         {
           const argList: string[] = [];
@@ -274,7 +326,7 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
 
   public addPromiseResolvedProperty(identifier: string): void {
     const promiseProp = this.scope.getPromiseProperty();
-    if (promiseProp === null) throw new Error('Promise property not found');
+    if (promiseProp == null) throw new Error('Promise property not found');
     this.accessTypeParts.push((acc) => `${acc} & { ${identifier}: Awaited<${this.accessTypeIdentifier}['${promiseProp}']> }`);
   }
 }
@@ -323,11 +375,20 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
     propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
   } else {
     const rawIterIdentifier = Unparser.unparse(expr.iterable);
-    const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => {
-      const newName = ctx.getIdentifier(member, IdentifierInstruction.AddToOverrides)!;
-      return newName;
-    }, true);
-    propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
+    const [iterIdent, path] = mutateAccessScope(
+      expr.iterable,
+      ctx,
+      member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? ctx.getIdentifier(member)!,
+      true
+    );
+    if (path.length > 0) {
+      const [root, ...rest] = path;
+      const base = root.startsWith(identifierPrefix) ? ctx.accessTypeIdentifier : `(${ctx.classUnion})`;
+      const tail = [`['${root}']`, ...rest.map(p => `['${p}']`)].join('');
+      propAccExpr = `${base}${tail}`;
+    } else {
+      propAccExpr = `${ctx.accessTypeIdentifier}`;
+    }
     iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(iterIdent)}, '${rawIterIdentifier}')}`;
   }
   let declaration: () => string;
@@ -431,6 +492,56 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
   }
 }
 
+function tryProcessWith(syntax: AttrSyntax, attr: Token.Attribute, node: DefaultTreeElement, ctx: TypeCheckingContext): [processed: boolean, processChild: void | false] {
+  if (syntax.target !== 'with') return [false, void 0];
+
+  ctx.pushScope('none');
+
+  const value = attr.value.length === 0 ? syntax.target : attr.value;
+  const expr = ctx.exprParser.parse(value, 'None');
+  if (expr != null) {
+    const [rewritten, path] = mutateAccessScope(expr, ctx, m => ctx.getIdentifier(m, IdentifierInstruction.SkipGeneration) ?? m, true);
+    ctx.toReplace.push({
+      loc: node.sourceCodeLocation!.attrs![attr.name],
+      modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(rewritten)}, '${escape(value)}')}"`
+    });
+
+    const baseExpr = path?.length ? `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}` : null;
+    const first = path?.[0] ?? null;
+    const env: OverlayEnv | null = baseExpr == null ? null : { mode: first?.startsWith(identifierPrefix) ? 'synthetic' : 'vm', expr: baseExpr };
+    if (env != null) ctx.pushEnv(env);
+    traverseDepth(node, ctx);
+    if (env != null) ctx.popEnv();
+    return [true, false];
+  }
+
+  traverseDepth(node, ctx);
+  return [true, false];
+}
+
+function makeEnvResolver(ctx: TypeCheckingContext): (member: string) => string {
+  return (member: string) => {
+    if (member === 'this') return member;
+
+    // respect shadowed identifiers first
+    const overridden = ctx.getOverriddenIdentifier(member);
+    if (overridden != null) return overridden;
+
+    const env = ctx.currentEnv;
+    if (env != null) {
+      const newName = ctx.getIdentifier(member, IdentifierInstruction.AddToOverrides)!;
+      ctx.accessTypeParts.push(acc => `${acc} & { ${newName}: ${computeIndexBase(env, ctx)}['${member}'] }`);
+      return newName;
+    }
+
+    return ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member;
+  };
+}
+
+function computeIndexBase(env: OverlayEnv, ctx: TypeCheckingContext): string {
+  return env.mode === 'vm' ? env.expr.replace(ctx.accessTypeIdentifier, `(${ctx.classUnion})`) : env.expr;
+}
+
 const rangeIterableIdentifier = '__TypeCheck_RangeIterable__';
 const allowedLetBindingCommands = ['bind', 'one-time', 'to-view', 'two-way'] as readonly string[];
 function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCheckingContext): void | false {
@@ -477,6 +588,10 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
       const syntax = ctx.attrParser.parse(attr.name, attr.value);
       if (tryProcessRepeat(syntax, attr, node, ctx)) retVal = false;
       else {
+        let withProcessed: boolean;
+        [withProcessed, retVal] = tryProcessWith(syntax, attr, node, ctx);
+        if (withProcessed) return;
+
         let promisedProcessed: boolean;
         [promisedProcessed, retVal] = tryProcessPromise(syntax, attr, node, ctx);
         if (!promisedProcessed && syntax.command) {
@@ -485,7 +600,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
           const expr = ctx.exprParser.parse(value, 'None');
           if (expr == null) return;
 
-          const [_expr] = mutateAccessScope(expr, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member);
+          const [_expr] = mutateAccessScope(expr, ctx, makeEnvResolver(ctx));
           if (_expr.$kind === 'PrimitiveLiteral') return;
 
           ctx.toReplace.push({
@@ -503,7 +618,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
       expr.expressions.forEach((part, idx) => {
         const originalExpr = part;
-        [part] = mutateAccessScope(part, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member);
+        [part] = mutateAccessScope(part, ctx, makeEnvResolver(ctx));
         htmlFactories.push(
           () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(part)}, '${escape(unparse(originalExpr))}')}`,
           () => expr.parts[idx + 1]

@@ -79,7 +79,7 @@ class IdentifierScope {
   private readonly decIdentMap: Map<string, number> | null;
   private readonly overriddenIdentMap: Map<string, string> = new Map();
   private readonly root: IdentifierScope;
-  public get isRoot(): boolean { return this.parent === null; }
+  public get isRoot(): boolean { return this.parent == null; }
   private promiseProperty: string | null = null;
 
   public constructor(
@@ -87,8 +87,8 @@ class IdentifierScope {
     private readonly classes: ClassMetadata[],
     public readonly parent: IdentifierScope | null = null,
   ) {
-    this.decIdentMap = parent === null ? new Map() : null;
-    this.root = parent === null ? this : parent.root;
+    this.decIdentMap = parent == null ? new Map() : null;
+    this.root = parent == null ? this : parent.root;
   }
 
   public createChild(type: ScopeType): IdentifierScope { return new IdentifierScope(type, this.classes, this); }
@@ -96,7 +96,7 @@ class IdentifierScope {
   public getOverriddenIdentifier(ident: string): string | null {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
-    while (current !== null) {
+    while (current != null) {
       const lookup = current.overriddenIdentMap;
       if (lookup.has(ident)) return lookup.get(ident)!;
       current = current.parent;
@@ -118,7 +118,7 @@ class IdentifierScope {
     }
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
-    while (current !== null) {
+    while (current != null) {
       const lookup = current.overriddenIdentMap;
       if (lookup.has(ident)) return returnIdentifier(lookup.get(ident)!);
       current = current.parent;
@@ -148,8 +148,8 @@ class IdentifierScope {
   public getPromiseProperty(): string | null {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
-    while (current !== null) {
-      if (current.promiseProperty !== null) return current.promiseProperty;
+    while (current != null) {
+      if (current.promiseProperty != null) return current.promiseProperty;
       current = current.parent;
     }
     return null;
@@ -326,7 +326,7 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
 
   public addPromiseResolvedProperty(identifier: string): void {
     const promiseProp = this.scope.getPromiseProperty();
-    if (promiseProp === null) throw new Error('Promise property not found');
+    if (promiseProp == null) throw new Error('Promise property not found');
     this.accessTypeParts.push((acc) => `${acc} & { ${identifier}: Awaited<${this.accessTypeIdentifier}['${promiseProp}']> }`);
   }
 }
@@ -443,7 +443,7 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
       const value = attr.value.length === 0 ? target : attr.value;
       const expr = ctx.exprParser.parse(value, 'None');
       // TODO: handle primitive literal
-      if (expr !== null) {
+      if (expr != null) {
         const [_expr] = mutateAccessScope(expr, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration | IdentifierInstruction.Promise) ?? member);
         addReplaceParts(_expr, value);
       }
@@ -455,7 +455,7 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
       ctx.pushScope('none');
       const value = attr.value.length === 0 ? target : attr.value;
       const expr = ctx.exprParser.parse(value, 'None');
-      if (expr !== null) {
+      if (expr != null) {
         const [_expr] = mutateAccessScope(expr, ctx, member => {
           const newName = ctx.getIdentifier(member, IdentifierInstruction.AddToOverrides)!;
           ctx.addPromiseResolvedProperty(newName);
@@ -470,7 +470,7 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
       ctx.pushScope('none');
       const value = attr.value.length === 0 ? target : attr.value;
       const expr = ctx.exprParser.parse(value, 'None');
-      if (expr !== null) {
+      if (expr != null) {
         const [_expr] = mutateAccessScope(expr, ctx, member => {
           const newName = ctx.getIdentifier(member, IdentifierInstruction.AddToOverrides)!;
           ctx.accessTypeParts.push((acc) => `${acc} & { ${newName}: any }`);
@@ -499,7 +499,7 @@ function tryProcessWith(syntax: AttrSyntax, attr: Token.Attribute, node: Default
 
   const value = attr.value.length === 0 ? syntax.target : attr.value;
   const expr = ctx.exprParser.parse(value, 'None');
-  if (expr !== null) {
+  if (expr != null) {
     const [rewritten, path] = mutateAccessScope(expr, ctx, m => ctx.getIdentifier(m, IdentifierInstruction.SkipGeneration) ?? m, true);
     ctx.toReplace.push({
       loc: node.sourceCodeLocation!.attrs![attr.name],
@@ -508,10 +508,10 @@ function tryProcessWith(syntax: AttrSyntax, attr: Token.Attribute, node: Default
 
     const baseExpr = path?.length ? `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}` : null;
     const first = path?.[0] ?? null;
-    const env: OverlayEnv | null = baseExpr === null ? null : { mode: first?.startsWith(identifierPrefix) ? 'synthetic' : 'vm', expr: baseExpr };
-    if (env !== null) ctx.pushEnv(env);
+    const env: OverlayEnv | null = baseExpr == null ? null : { mode: first?.startsWith(identifierPrefix) ? 'synthetic' : 'vm', expr: baseExpr };
+    if (env != null) ctx.pushEnv(env);
     traverseDepth(node, ctx);
-    if (env !== null) ctx.popEnv();
+    if (env != null) ctx.popEnv();
     return [true, false];
   }
 
@@ -525,10 +525,10 @@ function makeEnvResolver(ctx: TypeCheckingContext): (member: string) => string {
 
     // respect shadowed identifiers first
     const overridden = ctx.getOverriddenIdentifier(member);
-    if (overridden !== null) return overridden;
+    if (overridden != null) return overridden;
 
     const env = ctx.currentEnv;
-    if (env !== null) {
+    if (env != null) {
       const newName = ctx.getIdentifier(member, IdentifierInstruction.AddToOverrides)!;
       ctx.accessTypeParts.push(acc => `${acc} & { ${newName}: ${computeIndexBase(env, ctx)}['${member}'] }`);
       return newName;
@@ -559,7 +559,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
         const value = attr.value.length === 0 ? target : attr.value;
         const ast = ctx.exprParser.parse(value, 'None');
-        if (ast === null) continue;
+        if (ast == null) continue;
 
         const [_expr, path] = mutateAccessScope(ast, ctx, m => ctx.getIdentifier(m, IdentifierInstruction.SkipGeneration) ?? m, true);
 
@@ -598,7 +598,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
           const value = attr.value.length === 0 ? syntax.target : attr.value;
 
           const expr = ctx.exprParser.parse(value, 'None');
-          if (expr === null) return;
+          if (expr == null) return;
 
           const [_expr] = mutateAccessScope(expr, ctx, makeEnvResolver(ctx));
           if (_expr.$kind === 'PrimitiveLiteral') return;
@@ -613,7 +613,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
   } else if (node.nodeName === '#text') {
     const expr = ctx.exprParser.parse(node.value, 'Interpolation');
 
-    if (expr !== null) {
+    if (expr != null) {
       const htmlFactories: (() => string)[] = [() => expr.parts[0]];
 
       expr.expressions.forEach((part, idx) => {

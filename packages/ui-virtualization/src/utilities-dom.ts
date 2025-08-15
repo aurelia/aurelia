@@ -1,4 +1,5 @@
 import { ISyntheticView } from '@aurelia/runtime-html';
+import { createMappedError, ErrorNames } from './errors';
 
 /**
  * Walk up the DOM tree and determine what element will be scroller for an element
@@ -13,7 +14,7 @@ export const getScrollerElement = (element: Node): HTMLElement => {
     }
     current = current.parentNode as HTMLElement;
   }
-  throw new Error('Unable to find a scroller');
+  throw createMappedError(ErrorNames.scroller_element_not_found);
 };
 
 /**
@@ -55,10 +56,22 @@ export const calcOuterHeight = (element: Element): number => {
   return height;
 };
 
+export const calcOuterWidth = (element: Element): number => {
+  let width = element.getBoundingClientRect().width;
+  width += getStyleValues(element, 'marginLeft', 'marginRight');
+  return width;
+};
+
 export const calcScrollerViewportHeight = (element: Element): number => {
   let height = element.getBoundingClientRect().height;
   height -= getStyleValues(element, 'borderTopWidth', 'borderBottomWidth', 'paddingTop', 'paddingBottom');
   return height;
+};
+
+export const calcScrollerViewportWidth = (element: Element): number => {
+  let width = element.getBoundingClientRect().width;
+  width -= getStyleValues(element, 'borderLeftWidth', 'borderRightWidth', 'paddingLeft', 'paddingRight');
+  return width;
 };
 
 export const insertBeforeNode = (view: ISyntheticView, bottomBuffer: Element): void => {
@@ -94,4 +107,23 @@ export const getDistanceToScroller = (child: HTMLElement, scroller: HTMLElement)
   //   [el] <-- offset parent
   //     [el] <-- child
   return childOffsetTop + getDistanceToScroller(offsetParent, scroller);
+};
+
+/**
+ * A naive utility to calculate horizontal distance of a child element to one of its ancestor
+ * Similar to getDistanceToScroller but for horizontal positioning
+ */
+export const getHorizontalDistanceToScroller = (child: HTMLElement, scroller: HTMLElement): number => {
+  const offsetParent = child.offsetParent as HTMLElement;
+  const childOffsetLeft = child.offsetLeft;
+
+  if (offsetParent === null || offsetParent === scroller) {
+    return childOffsetLeft;
+  }
+
+  if (offsetParent.contains(scroller)) {
+    return childOffsetLeft - scroller.offsetLeft;
+  }
+
+  return childOffsetLeft + getHorizontalDistanceToScroller(offsetParent, scroller);
 };

@@ -1,6 +1,7 @@
 import { IPlatform } from "@aurelia/runtime-html";
 import { IContainer, Registration } from "@aurelia/kernel";
 import { IScrollerInfo, IScrollerObsererLocator, IScrollerObserver, IScrollerSubscriber } from "./interfaces";
+import { createMappedError, ErrorNames } from './errors';
 
 export class ScrollerObserverLocator implements IScrollerObsererLocator {
   public static get inject() {
@@ -66,13 +67,13 @@ export class ScrollerObserver implements IScrollerObserver {
   }
 
   public setValue(): void {
-    throw new Error('scroller info is readonly');
+    throw createMappedError(ErrorNames.scroller_info_readonly);
   }
 
   public getValue(): IScrollerInfo {
     const scroller = this.scroller;
     const rect = scroller.getBoundingClientRect();
-    return new ScrollerInfo(scroller, scroller.scrollTop, rect.width, rect.height);
+    return new ScrollerInfo(scroller, scroller.scrollTop, scroller.scrollLeft, rect.width, rect.height);
   }
 
   /** @internal */
@@ -131,6 +132,7 @@ class ScrollerInfo implements IScrollerInfo {
   public constructor(
     public readonly scroller: HTMLElement,
     public readonly scrollTop: number,
+    public readonly scrollLeft: number,
     public readonly width: number,
     public readonly height: number,
   ) { }

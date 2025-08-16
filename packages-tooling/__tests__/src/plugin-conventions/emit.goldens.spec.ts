@@ -1,5 +1,5 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { strict as assert } from 'node:assert';
 import { createTypeCheckedTemplate, type ClassMetadata } from '@aurelia/plugin-conventions';
 

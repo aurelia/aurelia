@@ -1,19 +1,22 @@
-import { Constructable, Class, DI, toArray, onResolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
+import { Class, Constructable, DI, onResolve, toArray } from '@aurelia/kernel';
+import { astEvaluate, Scope } from '@aurelia/runtime';
+import { createMappedError, ErrorNames } from './errors';
 import {
+  IEqualsRule,
+  ILengthRule,
+  IRangeRule,
+  IRegexRule,
+  IRequiredRule,
+  IRuleProperty,
+  ISizeRule,
   IValidateable,
   IValidationRule,
-  IRequiredRule,
-  IRegexRule,
-  ILengthRule,
-  ISizeRule,
-  IRangeRule,
-  IEqualsRule,
   IValidationVisitor,
-  ValidationDisplayNameAccessor,
+  RuleExecutionResults,
+  ValidationDisplayNameAccessor
 } from './rule-interfaces';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
-import { ErrorNames, createMappedError } from './errors';
 
 export const explicitMessageKey: unique symbol = Symbol.for('au:validation:explicit-message-key');
 /**
@@ -102,7 +105,7 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
     this._messageKey = messageKey;
   }
   public canExecute(_object?: IValidateable): boolean { return true; }
-  public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
+  public execute(_value: TValue, _object?: TObject): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults> {
     throw createMappedError(ErrorNames.method_not_implemented, 'execute');
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -257,19 +260,21 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
 }
 
-export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState extends PropertyKey = PropertyKey> extends BaseValidationRule<TValue, TObject> {
-  public static readonly $TYPE: string = 'StateRule';
-
+export abstract class RuleWithDynamicMessage<TValue = any, TObject extends IValidateable = IValidateable> extends BaseValidationRule<TValue, TObject> {
   private _explicitMessageKey: string | null = null;
 
   protected _messageKey!: string;
   public get messageKey(): string { return this._explicitMessageKey ?? this._messageKey ?? (void 0)!; }
   public set messageKey(value: string) { this._explicitMessageKey = value; }
+}
+
+export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState extends PropertyKey = PropertyKey> extends RuleWithDynamicMessage<TValue, TObject> {
+  public static readonly $TYPE: string = 'StateRule';
 
   public constructor(
     private readonly validState: TState,
     private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
-    private readonly messages: Partial<Record<TState, string>>,
+    messages: Partial<Record<TState, string>>,
   ) {
     super(void 0);
     const aliases: ValidationRuleAlias[] = [];
@@ -293,6 +298,84 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
     if (__DEV__) {
       // eslint-disable-next-line no-console
       console.warn('Serialization of a StateRule is not supported.');
+    }
+  }
+}
+
+export function isGroupRule(rule: IValidationRule): rule is GroupRule {
+  return (rule as GroupRule)[groupRuleMarker] === true;
+}
+
+const groupRuleMarker = Symbol.for('au:validation:group-rule');
+export type GroupValidationResult = true | { property: string; message?: string };
+export class GroupRule<TObject extends IValidateable = IValidateable> extends RuleWithDynamicMessage<unknown, TObject> {
+
+  private get [groupRuleMarker](): true { return true; }
+
+  public constructor(
+    private readonly properties: IRuleProperty[],
+    private readonly groupFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ) {
+    super(void 0);
+  }
+
+  public execute(value: unknown, object?: TObject): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
+  public execute(value: unknown, object: TObject | undefined, scope: Scope): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
+  public execute(_value: unknown, _object: IValidateable | undefined, scope?: Scope): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults> {
+    // basic sanity check
+    if (scope == null) throw createMappedError(ErrorNames.group_rule_no_scope);
+
+    const properties = this.properties;
+    const numProperties = properties.length;
+    if (numProperties === 0) return true;
+
+    const values: unknown[] = new Array(numProperties);
+    for (let i = 0; i < numProperties; ++i) {
+      const property = properties[i];
+      const expr = property.expression;
+      if (expr == null) continue;
+      values[i] = astEvaluate(expr, scope, null, null);
+    }
+
+    return onResolve(
+      this.groupFunction.apply(null, values),
+      result => {
+        if (typeof result === 'boolean') return properties.map(property => ({ property, valid: result }));
+
+        const propertyName = result.property;
+        if (propertyName == null) throw createMappedError(ErrorNames.group_rule_invalid_execution_result, 'The property name is missing.');
+
+        let found = false;
+        const results: RuleExecutionResults = new Array(numProperties);
+        for (let i = 0; i < numProperties; ++i) {
+          const property = properties[i];
+          let valid = true;
+          if (!found && property.name === propertyName) {
+            found = true;
+            valid = false;
+          }
+          results[i] = { property, valid };
+        }
+
+        if (!found) throw createMappedError(
+          ErrorNames.group_rule_invalid_execution_result,
+          `The property '${propertyName}' is not found in the group rule properties: ${properties.map(p => p.name).join(', ')}`
+        );
+
+        const messageKey = this._messageKey = result.message as string;
+        if (messageKey == null) return results;
+
+        ValidationRuleAliasMessage.setDefaultMessage(this, { aliases: [{ name: messageKey, defaultMessage: messageKey }] }, true);
+
+        return results;
+      }
+    );
+  }
+
+  public accept(_visitor: IValidationVisitor) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('Serialization of a GroupRule is not supported.');
     }
   }
 }

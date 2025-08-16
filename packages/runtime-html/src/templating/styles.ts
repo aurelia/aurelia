@@ -55,20 +55,45 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
     class CompilingHook implements ITemplateCompilerHooks {
       public compiling(template: HTMLElement): void {
-        const isTemplate = template.tagName === 'TEMPLATE';
-        const container = isTemplate
-          ? (template as HTMLTemplateElement).content
-          : template;
-        const plainClasses = [template, ...toArray(container.querySelectorAll('[class]'))];
-        for (const element of plainClasses) {
-          const classes = element.getAttributeNode('class')!;
-          // we always include container, so there's a case where classes is null
-          if (classes == null) {
-            continue;
+        const processElement = (el: Element): void => {
+          const classes = el.getAttributeNode('class');
+          if (classes != null && classes.value.length > 0) {
+            const newClasses = classes.value
+              .split(/\s+/g)
+              .map(x => existingMapping![x] || x)
+              .join(' ');
+            classes.value = newClasses;
           }
-          const newClasses = classes.value.split(/\s+/g).map(x => existingMapping![x] || x).join(' ');
-          classes.value = newClasses;
-        }
+        };
+
+        const walk = (node: Node): void => {
+          // Element node
+          if ((node as Element).tagName != null) {
+            const el = node as Element;
+            // process current element
+            processElement(el);
+            // if this is a <template>, also traverse into its content
+            if (el.tagName === 'TEMPLATE') {
+              const tpl = el as HTMLTemplateElement;
+              // walk the content fragment's children
+              for (const child of toArray(tpl.content.childNodes)) {
+                walk(child);
+              }
+              return;
+            }
+          }
+          // traverse normal child nodes (for DocumentFragment or Element)
+          // Note: template children are handled above via .content
+          const childNodes = (node as any).childNodes as NodeListOf<Node> | null | undefined;
+          if (childNodes != null) {
+            for (const child of toArray(childNodes as unknown as ArrayLike<Node>)) {
+              walk(child);
+            }
+          }
+        };
+
+        // Start walking from the provided template/root element
+        walk(template);
       }
     }
 

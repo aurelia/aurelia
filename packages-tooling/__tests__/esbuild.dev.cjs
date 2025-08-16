@@ -36,8 +36,24 @@ function findByExt(startPath, filter, found = []) {
   return found;
 };
 
+function copyDirSync(src, dest) {
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src)) {
+    const s = join(src, entry);
+    const d = join(dest, entry);
+    const st = fs.lstatSync(s);
+    if (st.isDirectory()) copyDirSync(s, d);
+    else fs.copyFileSync(s, d);
+  }
+}
+
+const allEntries = findByExt('./src', /\.tsx?$/) || [];
+
+// ignore plugin-conventions goldens (they're intentionally not valid TS)
+const entryPoints = allEntries.filter(p => !/[\/\\]plugin-conventions[\/\\]golden[\/\\]/.test(p));
 context({
-  entryPoints: findByExt('./src', /\.tsx?$/),
+  entryPoints,
   outdir: resolve(__dirname, 'dist/cjs'),
   sourcemap: true,
   keepNames: true,
@@ -47,12 +63,19 @@ context({
       name: 'example',
       setup(build) {
         let now;
+        const goldenRel = join('plugin-conventions', 'golden');
+        const srcGolden = resolve(process.cwd(), 'src', goldenRel);
+        const distGolden = resolve(__dirname, 'dist/cjs', goldenRel);
         build.onStart(result => {
           now = Date.now();
+          // Make sure the golden tree is present before/after the first build as well
+          copyDirSync(srcGolden, distGolden);
         });
         build.onEnd(result => {
           console.log(`Build done in ${getElapsed(Date.now(), now)}s, with ${result.errors.length} errors.`);
           now = Date.now();
+          // Keep dist in sync on every rebuild (includes manifest.json and .ts golden files)
+          copyDirSync(srcGolden, distGolden);
           console.log('verifying typings');
           try {
             execSync('npm run verify');

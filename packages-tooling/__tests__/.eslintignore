@@ -1,6 +1,7 @@
 coverage/
 dist/
 node_modules/
+src/plugin-conventions/golden/
 3-runtime-html/generated/
 karma.conf.js
 .eslintrc.cjs

@@ -1,0 +1,962 @@
+{
+  "note": "Inputs used to generate template-typechecking emit goldens.",
+  "scenarios": [
+    {
+      "label": "01_plain_interpolation_and_this",
+      "html": "<template>${firstName} ${this.lastName}</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "02_let_and_indexing",
+      "html": "<template><let deep.bind=\"obj['key'].deep\"></let>${deep.v}</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "03_with_and_call",
+      "html": "<template><div with.bind=\"obj['key']\">${deep.v}<button click.trigger=\"doThing(1, 'ok')\"></button></div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "04_repeat_array",
+      "html": "<template><li repeat.for=\"it of items\">${$index} - ${it.name}</li></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "05_promise_then",
+      "html": "<template><div promise.bind=\"data\"><template then=\"r\">${r.users[0].email}</template></div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "06_repeat_map_destructure",
+      "html": "<template><div repeat.for=\"[k, v] of map\">[${k}] (${v.x}, ${v.y})</div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "07_keyed_access_with_local_key",
+      "html": "<template><let key.bind=\"'key'\"></let>${obj[key].deep.v}</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "08_nested_with_repeat_promise_complex",
+      "html": "<template>\n  <section with.bind=\"obj['key']\">\n    <article repeat.for=\"u of $parent.items\">\n      <div promise.bind=\"data\">\n        <template then=\"r\">${u.name}-${r.users[$index]?.email}</template>\n      </div>\n    </article>\n  </section>\n</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "09_backticks_in_static_html",
+      "html": "<template><code>some `inline` code</code> ${firstName}</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "10_union_nonpublic_reexposed",
+      "html": "<template>${status} ${items.size} ${firstName}</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "members": [
+            {
+              "name": "status",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"idle\" | \"busy\"",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Set<{ id: number; tags: string[] }>()",
+              "methodArguments": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "11_let_to_binding_context_shadow",
+      "html": "<template><let to-binding-context firstName.bind=\"'Overridden'\"></let>${firstName}</template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "12_repeat_object_key_access",
+      "html": "<template><div repeat.for=\"k of obj\">${obj[k].deep.v}</div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "13_promise_then_and_catch",
+      "html": "<template><div promise.bind=\"data\"><template then=\"r\">${r.users[0].email}</template><template catch=\"e\">${e.message}</template></div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "14_this_vs_with_overlay",
+      "html": "<template><div with.bind=\"obj['key']\">${deep.v} ${this.firstName}</div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

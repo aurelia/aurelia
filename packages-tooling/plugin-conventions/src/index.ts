@@ -1,9 +1,15 @@
 export { nameConvention } from './name-convention';
 export { resourceName } from './resource-name';
-export { preprocessResource } from './preprocess-resource';
+export {
+  preprocessResource,
+  type MethodArgument,
+  type ClassMember,
+  type ClassMetadata
+} from './preprocess-resource';
 export { preprocessHtmlTemplate } from './preprocess-html-template';
 export { stripMetaData } from './strip-meta-data';
 export { preprocess } from './preprocess';
+export { createTypeCheckedTemplate } from './template-typechecking';
 export {
   type INameConvention,
   type IFileUnit,

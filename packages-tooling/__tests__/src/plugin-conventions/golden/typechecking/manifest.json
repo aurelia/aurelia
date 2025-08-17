@@ -26,28 +26,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -93,28 +93,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -160,28 +160,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -227,28 +227,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -294,28 +294,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -361,28 +361,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -428,28 +428,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -495,28 +495,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -562,28 +562,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -629,28 +629,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -715,28 +715,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -782,28 +782,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -849,28 +849,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {
@@ -916,28 +916,28 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Array<{ id: number; name: string }>()",
+              "dataType": "Array<{ id: number; name: string }>",
               "methodArguments": null
             },
             {
               "name": "map",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Map<string, { x: number; y: number }>()",
+              "dataType": "Map<string, { x: number; y: number }>",
               "methodArguments": null
             },
             {
               "name": "obj",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Record<string, { deep: { v: boolean } }>()",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
               "methodArguments": null
             },
             {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>()",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
               "methodArguments": null
             },
             {

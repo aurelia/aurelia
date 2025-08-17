@@ -31,10 +31,10 @@ const cls = (name: string, members: ClassMember[]): ClassMetadata => ({ name, me
 const Common = cls('Common', [
   m('property', 'firstName', 'string'),
   m('property', 'lastName', 'string'),
-  m('property', 'items', 'Array<{ id: number; name: string }>()'),
-  m('property', 'map', 'Map<string, { x: number; y: number }>()'),
-  m('property', 'obj', 'Record<string, { deep: { v: boolean } }>()'),
-  m('property', 'data', 'Promise<{ users: Array<{ id: number; email: string }> }>()'),
+  m('property', 'items', 'Array<{ id: number; name: string }>'),
+  m('property', 'map', 'Map<string, { x: number; y: number }>'),
+  m('property', 'obj', 'Record<string, { deep: { v: boolean } }>'),
+  m('property', 'data', 'Promise<{ users: Array<{ id: number; email: string }> }>'),
   m('method', 'doThing', '(x: number, y: string) => void'),
   { ...m('method', 'secret', '() => number'), accessModifier: 'private' },
 ]);
@@ -112,6 +112,29 @@ const eol = (s: string) => s.replace(/\r\n/g, '\n') + (s.endsWith('\n') ? '' : '
 const header = (label: string) =>
   `/* AUTO-GENERATED: ${label}\n * Do not edit by hand. Update with: npm run gen:ttc-goldens\n */\n\n`;
 
+function renderSourceHeader(html: string, classes: ClassMetadata[]) {
+  const lines: string[] = [];
+  lines.push('// === SOURCE ===');
+  lines.push('// HTML:');
+  for (const l of html.replace(/\r\n/g, '\n').split('\n')) {
+    lines.push(`// ${l}`);
+  }
+  lines.push('//');
+  lines.push('// CLASSES:');
+  lines.push('export {}'); // ensure the file is treated as a module
+  for (const c of classes) {
+    lines.push(`class ${c.name} {`);
+    for (const mem of c.members) {
+      lines.push(` ${mem.accessModifier} ${mem.name}: ${mem.dataType}`);
+    }
+    lines.push('}');
+    lines.push('');
+  }
+  lines.push('// === EMIT ===');
+  lines.push('');
+  return lines.join('\n');
+}
+
 function write(rel: string, contents: string) {
   const target = path.join(SRC_GOLDEN, rel);
   ensure(path.dirname(target));
@@ -130,8 +153,11 @@ function write(rel: string, contents: string) {
   for (const s of scenarios) {
     const tsOut = createTypeCheckedTemplate(s.html, s.classes, false);
     const jsOut = createTypeCheckedTemplate(s.html, s.classes, true);
-    write(`ts/${s.label}.ts`, header(s.label) + tsOut);
-    write(`js/${s.label}.ts`, header(s.label) + jsOut);
+
+    const srcHeader = renderSourceHeader(s.html, s.classes);
+
+    write(`ts/${s.label}.ts`, header(s.label) + srcHeader + tsOut);
+    write(`js/${s.label}.ts`, header(s.label) + srcHeader + jsOut);
   }
 
   console.log(`[ttc-goldens] wrote ${scenarios.length} scenarios to:\n  - ${SRC_GOLDEN}`);

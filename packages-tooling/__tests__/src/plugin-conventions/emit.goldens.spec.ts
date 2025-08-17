@@ -10,7 +10,12 @@ const GOLDEN_ROOT = path.resolve(__dirname, 'golden/typechecking');
 const MANIFEST = path.join(GOLDEN_ROOT, 'manifest.json');
 
 const read = (p: string) => fs.readFileSync(p, 'utf8');
-const stripHeader = (s: string) => s.replace(/^\s*\/\*[\s\S]*?AUTO-GENERATED:[\s\S]*?\*\/\s*/m, '').replace(/\r\n/g, '\n').trim();
+const getEmit = (s: string) => {
+  const noHeader = s.replace(/^\s*\/\*[\s\S]*?AUTO-GENERATED:[\s\S]*?\*\/\s*/m, '');
+  const parts = noHeader.split(/^\/\/\s*===\s*EMIT\s*===\s*$/m);
+  const emitPart = parts.length > 1 ? parts[1] : noHeader;
+  return emitPart.replace(/\r\n/g, '\n').trim();
+};
 
 describe('template-typechecking emit (goldens)', function () {
   const manifest: Manifest = JSON.parse(read(MANIFEST));
@@ -20,8 +25,8 @@ describe('template-typechecking emit (goldens)', function () {
       const goldenPath = path.join(GOLDEN_ROOT, 'ts', `${s.label}.ts`);
       assert.ok(fs.existsSync(goldenPath), `Missing golden: ${goldenPath}`);
 
-      const golden = stripHeader(read(goldenPath));
-      const current = stripHeader(String(createTypeCheckedTemplate(s.html, s.classes, false)));
+      const golden = getEmit(read(goldenPath));
+      const current = getEmit(String(createTypeCheckedTemplate(s.html, s.classes, false)));
 
       assert.strictEqual(
         current,
@@ -36,8 +41,8 @@ describe('template-typechecking emit (goldens)', function () {
       const goldenPath = path.join(GOLDEN_ROOT, 'js', `${s.label}.ts`);
       assert.ok(fs.existsSync(goldenPath), `Missing golden: ${goldenPath}`);
 
-      const golden = stripHeader(read(goldenPath));
-      const current = stripHeader(String(createTypeCheckedTemplate(s.html, s.classes,  true)));
+      const golden = getEmit(read(goldenPath));
+      const current = getEmit(String(createTypeCheckedTemplate(s.html, s.classes,  true)));
 
       assert.strictEqual(
         current,

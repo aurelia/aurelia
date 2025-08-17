@@ -7,6 +7,15 @@
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Performance optimizations -->
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@aurelia/router@latest/+esm" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@aurelia/fetch-client@latest/+esm" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@aurelia/runtime-html@latest/+esm" crossorigin>
+
   <link href="//code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" type="text/css" rel="stylesheet">
   <link
     href="//fonts.googleapis.com/css?family=Titillium+Web:700|Source+Serif+Pro:400,700|Merriweather+Sans:400,700|Source+Sans+Pro:400,300,600,700,300italic,400italic,600italic,700italic"
@@ -33,19 +42,19 @@
     <div repeat.for="article of $articleList.items" class="article-preview" data-e2e="article-${article.slug}">
       <let author.bind="article.author"></let>
       <div class="article-meta">
-        <a href="/profile/${author.username}"><img src.bind="author.image" /></a>
+        <a load="/profile/${author.username}"><img src.bind="author.image" /></a>
         <div class="info">
-          <a href="/profile/${author.username}" class="author">${author.username}</a>
+          <a load="/profile/${author.username}" class="author">${author.username}</a>
           <span class="date">${article.createdAt | date}</span>
         </div>
         <button class="btn btn-sm pull-xs-right ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
-          click.delegate="toggleFavorite(article.slug)" data-e2e="toggleFavoriteBtn">
+          click.trigger="toggleFavorite(article.slug)" data-e2e="toggleFavoriteBtn">
           <i class="ion-heart"></i>
           ${article.favoritesCount}
         </button>
       </div>
 
-      <a href="/article/${article.slug}" class="preview-link">
+      <a load="../article/${article.slug}" class="preview-link">
         <h1>${article.title}</h1>
         <p>${article.description}</p>
         <span>Read more...</span>
@@ -58,7 +67,7 @@
     <nav if.bind="$articleList.pages.length > 1">
       <ul class="pagination">
         <li repeat.for="page of $articleList.pages" class="page-item" active.class="page === $articleList.currentPage"
-          click.delegate="setPage(page)" data-e2e="page-${page}Link">
+          click.trigger="setPage(page)" data-e2e="page-${page}Link">
           <a class="page-link">${page}</a>
         </li>
       </ul>
@@ -76,29 +85,29 @@
 
   <template id="article-meta">
     <div class="article-meta">
-      <a href="/profile/${author.username}">
+      <a load="/profile/${author.username}">
         <img src.bind="author.image" /></a>
       <div class="info">
-        <a href="/profile/${author.username}" class="author">${author.username}</a>
+        <a load="/profile/${author.username}" class="author">${author.username}</a>
         <span class="date">${article.createdAt | date}</span>
       </div>
       <span if.bind="canModify">
-        <a class="btn btn-outline-secondary btn-sm" href="/editor/${article.slug}">
+        <a class="btn btn-outline-secondary btn-sm" load="/editor/${article.slug}">
           <i class="ion-edit"></i>&nbsp;Edit Article
         </a>
         &nbsp;&nbsp;
-        <button class="btn btn-outline-danger btn-sm" click.delegate="delete()" data-e2e="deleteBtn">
+        <button class="btn btn-outline-danger btn-sm" click.trigger="delete()" data-e2e="deleteBtn">
           <i class="ion-trash-a"></i>&nbsp;Delete Article
         </button>
       </span>
       <span else>
-        <button class="btn btn-sm btn-outline-secondary" click.delegate="toggleFollow()" data-e2e="toggleFollowBtn">
+        <button class="btn btn-sm btn-outline-secondary" click.trigger="toggleFollow()" data-e2e="toggleFollowBtn">
           <i class="ion-plus-round"></i>
           &nbsp;${author.following ? 'Unfollow' : 'Follow'} ${author.username}
         </button>
         &nbsp;&nbsp;
         <button class="btn btn-sm ${article.favorited ? 'btn-primary' : 'btn-outline-primary'}"
-          click.delegate="toggleFavorite()" data-e2e="toggleFavoriteBtn">
+          click.trigger="toggleFavorite()" data-e2e="toggleFavoriteBtn">
           <i class="ion-heart"></i>
           &nbsp;${article.favorited ? 'Unfavorite' : 'Favorite'} Post
           <span class="counter">(${article.favoritesCount})</span>
@@ -113,14 +122,14 @@
         <p class="card-text">${comment.body}</p>
       </div>
       <div class="card-footer">
-        <a href="/profile/${comment.author.username}" class="comment-author">
+        <a load="/profile/${comment.author.username}" class="comment-author">
           <img src.bind="comment.author.image" class="comment-author-img" />
         </a>
         &nbsp;
-        <a href="/profile/${comment.author.username}" class="comment-author">${comment.author.username}</a>
+        <a load="/profile/${comment.author.username}" class="comment-author">${comment.author.username}</a>
         <span class="date-posted">${comment.createdAt | date}</span>
         <span class="mod-options" if.bind="canModify">
-          <i class="ion-trash-a" click.delegate="delete()" data-e2e="deleteBtn"></i>
+          <i class="ion-trash-a" click.trigger="delete()" data-e2e="deleteBtn"></i>
         </span>
       </div>
     </div>
@@ -157,7 +166,7 @@
               </div>
               <div class="card-footer">
                 <img src.bind="$user.current.image" class="comment-author-img" />
-                <button class="btn btn-sm btn-primary" click.delegate="postComment()" data-e2e="postCommentBtn">
+                <button class="btn btn-sm btn-primary" click.trigger="postComment()" data-e2e="postCommentBtn">
                   Post Comment
                 </button>
               </div>
@@ -233,15 +242,15 @@
                 </fieldset>
                 <fieldset class="form-group">
                   <input type="text" class="form-control" placeholder="Enter tags" value.bind="tag"
-                    keyup.delegate="onTagKeyUp($event, tag)" name="tag">
+                    keyup.trigger="onTagKeyUp($event, tag)" name="tag">
                   <div class="tag-list">
                     <span repeat.for="tag of local.tagList" class="tag-default tag-pill" data-e2e="tag-${tag}">
-                      <i class="ion-close-round" click.delegate="removeTag($index)" data-e2e="removeTagBtn"></i>
+                      <i class="ion-close-round" click.trigger="removeTag($index)" data-e2e="removeTagBtn"></i>
                       ${tag}
                     </span>
                   </div>
                 </fieldset>
-                <button class="btn btn-lg pull-xs-right btn-primary" type="button" click.delegate="save()"
+                <button class="btn btn-lg pull-xs-right btn-primary" type="button" click.trigger="save()"
                   data-e2e="saveBtn">
                   Publish Article
                 </button>
@@ -271,11 +280,11 @@
             <div class="feed-toggle">
               <ul class="nav nav-pills outline-active">
                 <li if.bind="isAuth" class="nav-item">
-                  <a class="nav-link" active.class="mode === 'feed' && !tag" click.delegate="setView('feed')"
+                  <a class="nav-link" active.class="mode === 'feed' && !tag" click.trigger="setView('feed')"
                     data-e2e="yourFeedLink">Your Feed</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" active.class="mode === 'all' && !tag" click.delegate="setView('all')"
+                  <a class="nav-link" active.class="mode === 'all' && !tag" click.trigger="setView('all')"
                     data-e2e="globalFeedLink">Global Feed</a>
                 </li>
                 <li if.bind="tag" class="nav-item">
@@ -295,7 +304,7 @@
               <p>Popular Tags</p>
 
               <div class="tag-list">
-                <a repeat.for="tag of tags" class="tag-pill tag-default" click.delegate="setTag(tag)"
+                <a repeat.for="tag of tags" class="tag-pill tag-default" click.trigger="setTag(tag)"
                   data-e2e="${tag}TagLink">${tag}</a>
                 <div if.bind="tags.length === 0">No tags are here... yet.</div>
               </div>
@@ -319,12 +328,12 @@
               <h4>${profile.username}</h4>
               <p>${profile.bio}</p>
               <button class="btn btn-sm btn-outline-secondary action-btn" if.bind="!isSelf"
-                click.delegate="toggleFollow()" data-e2e="toggleFollowBtn">
+                click.trigger="toggleFollow()" data-e2e="toggleFollowBtn">
                 <i class="ion-plus-round"></i>
                 &nbsp;
                 ${profile.following ? 'Unfollow' : 'Follow'} ${profile.username}
               </button>
-              <a href="/settings" class="btn btn-sm btn-outline-secondary action-btn" if.bind="isSelf">
+              <a load="/settings" class="btn btn-sm btn-outline-secondary action-btn" if.bind="isSelf">
                 <i class="ion-gear-a"></i> Edit Profile Settings
               </a>
             </div>
@@ -340,12 +349,12 @@
             <div class="articles-toggle">
               <ul class="nav nav-pills outline-active">
                 <li class="nav-item">
-                  <a class="nav-link" active.class="_author" load="route:author; active.bind:_author">
+                  <a class="nav-link" active.class="_author" load="author">
                     My Posts
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" active.class="_favorites" load="route:favorites; active.bind:_favorites">
+                  <a class="nav-link" active.class="_favorites" load="favorites">
                     Favorited Posts
                   </a>
                 </li>
@@ -389,14 +398,14 @@
                 <input class="form-control form-control-lg" type="password" placeholder="Password"
                   value.bind="local.password" autocomplete="current-password" name="password">
               </fieldset>
-              <button class="btn btn-lg btn-primary pull-xs-right" click.delegate="update()" data-e2e="updateBtn">
+              <button class="btn btn-lg btn-primary pull-xs-right" click.trigger="update()" data-e2e="updateBtn">
                 Update Settings
               </button>
             </fieldset>
           </form>
 
           <hr>
-          <button class="btn btn-outline-danger" click.delegate="logout()">
+          <button class="btn btn-outline-danger" click.trigger="logout()">
             Or click here to logout.
           </button>
         </div>
@@ -409,27 +418,27 @@
   <template id="app-root">
     <nav class="navbar navbar-light">
       <div class="container">
-        <a class="navbar-brand" load="route:home; active.bind:_home">conduit</a>
+        <a class="navbar-brand" load="/home">conduit</a>
         <ul class="nav navbar-nav pull-xs-right">
           <li class="nav-item" active.class="_home">
-            <a class="nav-link" load="route:home; active.bind:_home">Home</a>
+            <a class="nav-link" load="/home">Home</a>
           </li>
           <li class="nav-item" active.class="_editor" show.bind="isAuth">
-            <a class="nav-link" load="route:editor; active.bind:_editor"><i class="ion-compose"></i>&nbsp;New Post</a>
+            <a class="nav-link" load="/editor"><i class="ion-compose"></i>&nbsp;New Post</a>
           </li>
           <li class="nav-item" active.class="_settings" show.bind="isAuth">
-            <a class="nav-link" load="route:settings; active.bind:_settings"><i
+            <a class="nav-link" load="/settings"><i
                 class="ion-gear-a"></i>&nbsp;Settings</a>
           </li>
           <li class="nav-item" active.class="_login" show.bind="!isAuth">
-            <a class="nav-link" load="route:login; active.bind:_login">Sign in</a>
+            <a class="nav-link" load="/login">Sign in</a>
           </li>
           <li class="nav-item" active.class="_register" show.bind="!isAuth">
-            <a class="nav-link" load="route:register; active.bind:_register">Sign up</a>
+            <a class="nav-link" load="/register">Sign up</a>
           </li>
           <li class="nav-item" active.class="_profile" show.bind="isAuth">
             <a class="nav-link"
-              load="route:profile; params.bind:{name:username}; active.bind:_profile">${username}</a>
+              load="/profile/${username}">${username}</a>
           </li>
         </ul>
       </div>
@@ -439,7 +448,7 @@
 
     <footer>
       <div class="container">
-        <a href="/" class="logo-font">conduit</a>
+        <a load="/" class="logo-font">conduit</a>
         <span class="attribution">
           An interactive learning project from <a href="https://thinkster.io">Thinkster</a>. Code & design licensed
           under
@@ -450,13 +459,16 @@
   </template>
 
   <script type="module">
-    import { Aurelia, IHttpClient, IRouter, RouterConfiguration, Route, Watch, CustomElement, ValueConverter, LifecycleHooks } from 'https://unpkg.com/aurelia/dist/native-modules/index.mjs';
+    import { Aurelia, CustomElement, ValueConverter, LifecycleHooks } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
+    import { RouterConfiguration, Route, IRouter } from 'https://cdn.jsdelivr.net/npm/@aurelia/router@latest/+esm';
+    import { IHttpClient } from 'https://cdn.jsdelivr.net/npm/@aurelia/fetch-client@latest/+esm';
+    import { Watch } from 'https://cdn.jsdelivr.net/npm/@aurelia/runtime-html@latest/+esm';
 
     const au = new Aurelia();
 
     au.register(
       RouterConfiguration.customize({
-        useUrlFragmentHash: false,
+        useUrlFragmentHash: true,
       }),
     );
 
@@ -464,7 +476,7 @@
     const http = au.container.get(IHttpClient);
 
     http.configure(x => x
-      .withBaseUrl('https://conduit.productionready.io/api')
+      .withBaseUrl('https://jsonplaceholder.typicode.com')
       .withDefaults({
         headers: {
           'Content-Type': 'application/json',
@@ -621,25 +633,28 @@
     };
 
     const api = {
-      loginUser(login) { return this.handle(http.post(`/users/login`, JSON.stringify({ user: login })), UserResponse, true); },
-      registerUser(registration) { return this.handle(http.post(`/users`, JSON.stringify({ user: registration })), UserResponse, true); },
-      getCurrentUser() { return this.handle(http.get(`/user`), UserResponse); },
-      updateUser(user) { return this.handle(http.put(`/user`, JSON.stringify({ user })), UserResponse); },
-      getProfile(username) { return this.handle(http.get(`/profiles/${username}`), ProfileResponse); },
-      followUser(username) { return this.handle(http.post(`/profiles/${username}/follow`), ProfileResponse); },
-      unfollowUser(username) { return this.handle(http.delete(`/profiles/${username}/follow`), ProfileResponse); },
-      getArticles(params) { return this.handle(http.get(`/articles${ArticleListQueryParams.create(params).toQueryString()}`), ArticleListResponse); },
-      getFeedArticles(params) { return this.handle(http.get(`/articles/feed${FeedArticleListQueryParams.create(params).toQueryString()}`), ArticleListResponse); },
-      getArticle(slug) { return this.handle(http.get(`/articles/${slug}`), ArticleResponse); },
-      createArticle(article) { return this.handle(http.post(`/articles`, JSON.stringify({ article })), ArticleResponse, true); },
-      updateArticle(slug, article) { return this.handle(http.put(`/articles/${slug}`, JSON.stringify({ article })), ArticleResponse, true); },
-      deleteArticle(slug) { return this.handle(http.delete(`/articles/${slug}`)); },
-      addCommentToArticle(slug, comment) { return this.handle(http.post(`/articles/${slug}/comments`, JSON.stringify({ comment })), CommentResponse, true); },
-      getCommentsFromArticle(slug) { return this.handle(http.get(`/articles/${slug}/comments`), CommentListResponse); },
-      deleteCommentFromArticle(slug, id) { return this.handle(http.delete(`/articles/${slug}/comments/${id}`)); },
-      favoriteArticle(slug) { return this.handle(http.post(`/articles/${slug}/favorite`), ArticleResponse); },
-      unfavoriteArticle(slug) { return this.handle(http.delete(`/articles/${slug}/favorite`), ArticleResponse); },
-      getTags() { return this.handle(http.get(`/tags`), TagListResponse); },
+      loginUser(login) { return Promise.resolve({ user: { id: 1, username: login.email.split('@')[0], email: login.email, token: 'demo-token-123', bio: '', image: '' } }); },
+      registerUser(registration) { return Promise.resolve({ user: { id: 1, username: registration.username, email: registration.email, token: 'demo-token-123', bio: '', image: '' } }); },
+      getCurrentUser() { return Promise.resolve({ user: { id: 1, username: 'demo-user', email: 'demo@example.com', token: 'demo-token-123', bio: 'Demo user for Aurelia 2 example', image: '' } }); },
+      updateUser(user) { return Promise.resolve({ user: { ...user, id: 1, token: 'demo-token-123' } }); },
+      getProfile(username) { return Promise.resolve({ profile: { username, bio: 'Demo profile', image: '', following: false } }); },
+      followUser(username) { return Promise.resolve({ profile: { username, bio: 'Demo profile', image: '', following: true } }); },
+      unfollowUser(username) { return Promise.resolve({ profile: { username, bio: 'Demo profile', image: '', following: false } }); },
+      getArticles(params) { return this.handle(http.get(`/posts?_limit=20`), ArticleListResponse); },
+      getFeedArticles(params) { return this.handle(http.get(`/posts?_limit=10`), ArticleListResponse); },
+      getArticle(slug) { return this.handle(http.get(`/posts/${slug}`), ArticleResponse); },
+      createArticle(article) { return Promise.resolve({ article: { ...article, id: Date.now(), slug: article.title.toLowerCase().replace(/\s+/g, '-'), createdAt: new Date().toISOString(), favoritesCount: 0, favorited: false, author: { username: 'demo-user', bio: '', image: '', following: false } } }); },
+      updateArticle(slug, article) { return Promise.resolve({ article: { ...article, id: slug, slug, updatedAt: new Date().toISOString() } }); },
+      deleteArticle(slug) { return Promise.resolve(); },
+      addCommentToArticle(slug, comment) { return Promise.resolve({ comment: { ...comment, id: Date.now(), createdAt: new Date().toISOString(), author: { username: 'demo-user', bio: '', image: '', following: false } } }); },
+      getCommentsFromArticle(slug) { return this.handle(http.get(`/posts/${slug}/comments`), CommentListResponse); },
+      deleteCommentFromArticle(slug, id) { return Promise.resolve(); },
+      favoriteArticle(slug) { return Promise.resolve({ article: { favorited: true, favoritesCount: 1 } }); },
+      unfavoriteArticle(slug) { return Promise.resolve({ article: { favorited: false, favoritesCount: 0 } }); },
+      getTags() {
+        // Simplified to avoid CORS issues - using mock data
+        return Promise.resolve({ tags: ['aurelia', 'javascript', 'spa', 'frontend', 'web-development'] });
+      },
       async handle(p, Type, handleValidationErrors) {
         const response = await p;
         if (response.status >= 200 && response.status < 400) {
@@ -647,7 +662,70 @@
             return;
           } else {
             const json = await response.json();
-            return Type.create(json);
+
+            // Transform JSONPlaceholder data to RealWorld format
+            if (Type === ArticleListResponse) {
+              const transformedData = {
+                articles: Array.isArray(json) ? json.map(post => ({
+                  slug: post.id.toString(),
+                  title: post.title,
+                  description: post.body.substring(0, 100) + '...',
+                  body: post.body,
+                  tagList: ['jsonplaceholder', 'demo'],
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  favorited: false,
+                  favoritesCount: Math.floor(Math.random() * 50),
+                  author: {
+                    username: `user${post.userId}`,
+                    bio: `Demo user ${post.userId}`,
+                    image: `https://picsum.photos/64/64?random=${post.userId}`,
+                    following: false
+                  }
+                })) : [],
+                articlesCount: Array.isArray(json) ? json.length : 0
+              };
+              return Type.create(transformedData);
+            } else if (Type === ArticleResponse) {
+              const transformedData = {
+                article: {
+                  slug: json.id.toString(),
+                  title: json.title,
+                  description: json.body.substring(0, 100) + '...',
+                  body: json.body,
+                  tagList: ['jsonplaceholder', 'demo'],
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  favorited: false,
+                  favoritesCount: Math.floor(Math.random() * 50),
+                  author: {
+                    username: `user${json.userId}`,
+                    bio: `Demo user ${json.userId}`,
+                    image: `https://picsum.photos/64/64?random=${json.userId}`,
+                    following: false
+                  }
+                }
+              };
+              return Type.create(transformedData);
+            } else if (Type === CommentListResponse) {
+              const transformedData = {
+                comments: Array.isArray(json) ? json.map(comment => ({
+                  id: comment.id,
+                  body: comment.body,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  author: {
+                    username: comment.name,
+                    bio: 'Demo commenter',
+                    image: `https://picsum.photos/32/32?random=${comment.id}`,
+                    following: false
+                  }
+                })) : [],
+              };
+              return Type.create(transformedData);
+            } else {
+              return Type.create(json);
+            }
           }
         }
         // https://github.com/gothinkster/realworld/tree/master/api#errors-and-status-codes
@@ -928,7 +1006,7 @@
       }
       async delete() {
         await $article.delete();
-        await router.load('');
+        await router.load('/');
       }
     });
 
@@ -946,7 +1024,7 @@
       }
     });
 
-    import marked from 'https://unpkg.com/marked@1.2.7/lib/marked.esm.js';
+    import { marked } from 'https://cdn.jsdelivr.net/npm/marked@16.1.2/lib/marked.esm.js';
     const ArticleView = CustomElement.define({
       name: 'article-view',
       template: getTemplate('article-view'),
@@ -1018,7 +1096,7 @@
               email: this.email,
               password: this.password,
             })) {
-              await router.load('');
+              await router.load('/');
             }
             break;
           case 'register':
@@ -1027,7 +1105,7 @@
               email: this.email,
               password: this.password,
             })) {
-              await router.load('');
+              await router.load('/');
             }
             break;
         }
@@ -1059,7 +1137,7 @@
       }
       async save() {
         if (await $article.save(this.local)) {
-          await router.load(`article/${$article.current.slug}`);
+          await router.load(`/article/${$article.current.slug}`);
         }
       }
     });
@@ -1128,6 +1206,10 @@
       template: getTemplate('profile-view'),
       dependencies: [AuthorArticles, FavoritedArticles]
     }, class {
+      static routes = [
+        { id: 'author', path: '', component: AuthorArticles, title: 'Profile' },
+        { path: 'favorites', component: FavoritedArticles, title: 'Profile' }
+      ];
       $user = $user;
       get isSelf() { return this.profile.username === this.$user.current.username; }
 
@@ -1147,10 +1229,6 @@
         this.profile = resp.profile;
       }
     });
-    Route.configure({ routes: [
-      { id: 'author', path: '', component: AuthorArticles, title: 'Profile' },
-      { path: 'favorites', component: FavoritedArticles, title: 'Profile' }
-    ]}, ProfileView);
 
     const SettingsView = CustomElement.define({
       name: 'settings-view',
@@ -1165,7 +1243,7 @@
       }
       async logout() {
         $user.logout();
-        await router.load('');
+        await router.load('/');
       }
     });
     Watch.add(SettingsView, { expression: x => x.$user.current, callback() { this.local = $user.current.clone(); } });
@@ -1173,7 +1251,18 @@
     const AppRoot = CustomElement.define({
       name: 'app-root',
       template: getTemplate('app-root'),
+      dependencies: [HomeView, AuthView, SettingsView, ProfileView, EditorView, ArticleView],
     }, class {
+      static routes = [
+        { id: 'home', path: ['', 'home'], component: HomeView, title: 'Home' },
+        { path: 'login', component: AuthView, title: 'Sign in' },
+        { path: 'register', component: AuthView, title: 'Sign up' },
+        { path: 'settings', component: SettingsView, title: 'Settings' },
+        { id: 'profile', path: 'profile/:name', component: ProfileView, title: 'Profile' },
+        { id: 'editor', path: 'editor/:slug?', component: EditorView, title: 'Editor' },
+        { id: 'article', path: 'article/:slug', component: ArticleView, title: 'Article' },
+      ];
+
       $user = $user;
       get isAuth() { return this.$user.isAuth; }
       get username() { return this.$user.current.username; }
@@ -1185,17 +1274,6 @@
         ]);
       }
     });
-    Route.configure({
-      routes: [
-        { id: 'home', path: '', component: HomeView, title: 'Home' },
-        { path: 'login', component: AuthView, title: 'Sign in' },
-        { path: 'register', component: AuthView, title: 'Sign up' },
-        { path: 'settings', component: SettingsView, title: 'Settings' },
-        { id: 'profile', path: 'profile/:name', component: ProfileView, title: 'Profile' },
-        { id: 'editor', path: 'editor/:slug?', component: EditorView, title: 'Editor' },
-        { id: 'article', path: 'article/:slug', component: ArticleView, title: 'Article' },
-      ]
-    }, AppRoot);
 
     // #endregion
 

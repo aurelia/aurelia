@@ -66,34 +66,31 @@ export class CSSModulesProcessorRegistry implements IRegistry {
           }
         };
 
-        const walk = (node: Node): void => {
-          // Element node
-          if ((node as Element).tagName != null) {
-            const el = node as Element;
-            // process current element
+        const processContainer = (container: Element | DocumentFragment): void => {
+          if ((container as Element).tagName != null) {
+            const el = container as Element;
             processElement(el);
-            // if this is a <template>, also traverse into its content
+
             if (el.tagName === 'TEMPLATE') {
               const tpl = el as HTMLTemplateElement;
-              // walk the content fragment's children
-              for (const child of toArray(tpl.content.childNodes)) {
-                walk(child);
-              }
+              processContainer(tpl.content);
               return;
             }
           }
-          // traverse normal child nodes (for DocumentFragment or Element)
-          // Note: template children are handled above via .content
-          const childNodes = (node as any).childNodes as NodeListOf<Node> | null | undefined;
-          if (childNodes != null) {
-            for (const child of toArray(childNodes as unknown as ArrayLike<Node>)) {
-              walk(child);
-            }
+
+          const elementsWithClass = container.querySelectorAll('[class]');
+          for (const el of toArray(elementsWithClass)) {
+            processElement(el);
+          }
+
+          const templateElements = container.querySelectorAll('template');
+          for (const template of toArray(templateElements)) {
+            const tpl = template;
+            processContainer(tpl.content);
           }
         };
 
-        // Start walking from the provided template/root element
-        walk(template);
+        processContainer(template);
       }
     }
 

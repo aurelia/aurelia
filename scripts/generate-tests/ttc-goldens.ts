@@ -46,55 +46,140 @@ const Other = cls('Other', [
 
 const scenarios = [
   // Baseline / simple
-  { label: '01_plain_interpolation_and_this', html: `<template>\${firstName} \${this.lastName}</template>`, classes: [Common] },
+  { label: '01_plain_interpolation_and_this',
+    html: `<template>\${firstName} \${this.lastName}</template>`,
+    classes: [Common] },
 
   // <let> and path indexing
-  { label: '02_let_and_indexing', html: `<template><let deep.bind="obj['key'].deep"></let>\${deep.v}</template>`, classes: [Common] },
+  { label: '02_let_and_indexing',
+    html: `<template><let deep.bind="obj['key'].deep"></let>\${deep.v}</template>`,
+    classes: [Common] },
 
   // with-overlay and a call with primitive + non-primitive args
-  { label: '03_with_and_call', html: `<template><div with.bind="obj['key']">\${deep.v}<button click.trigger="doThing(1, 'ok')"></button></div></template>`, classes: [Common] },
+  { label: '03_with_and_call',
+    html: `<template><div with.bind="obj['key']">\${deep.v}<button click.trigger="doThing(1, 'ok')"></button></div></template>`,
+    classes: [Common] },
 
   // repeat over array with contextuals
-  { label: '04_repeat_array', html: `<template><li repeat.for="it of items">\${$index} - \${it.name}</li></template>`, classes: [Common] },
+  { label: '04_repeat_array',
+    html: `<template><li repeat.for="it of items">\${$index} - \${it.name}</li></template>`,
+    classes: [Common] },
 
   // promise then
-  { label: '05_promise_then', html: `<template><div promise.bind="data"><template then="r">\${r.users[0].email}</template></div></template>`, classes: [Common] },
+  { label: '05_promise_then',
+    html: `<template><div promise.bind="data"><template then="r">\${r.users[0].email}</template></div></template>`,
+    classes: [Common] },
 
   // Map destructuring in repeat
-  { label: '06_repeat_map_destructure', html: `<template><div repeat.for="[k, v] of map">[\${k}] (\${v.x}, \${v.y})</div></template>`, classes: [Common] },
+  { label: '06_repeat_map_destructure',
+    html: `<template><div repeat.for="[k, v] of map">[\${k}] (\${v.x}, \${v.y})</div></template>`,
+    classes: [Common] },
 
   // keyed access with a local key (let)
-  { label: '07_keyed_access_with_local_key', html: `<template><let key.bind="'key'"></let>\${obj[key].deep.v}</template>`, classes: [Common] },
+  { label: '07_keyed_access_with_local_key',
+    html: `<template><let key.bind="'key'"></let>\${obj[key].deep.v}</template>`,
+    classes: [Common] },
 
   // nested: with > repeat (uses $parent) > promise.then; shows optional chaining + $index
   // TODO: turn `promise.bind="data"` into `promise.bind="$parent.data"` when the typechecker is updated to build a path for $parent in this case
-  { label: '08_nested_with_repeat_promise_complex', html: `<template>
-  <section with.bind="obj['key']">
-    <article repeat.for="u of $parent.items">
-      <div promise.bind="data">
-        <template then="r">\${u.name}-\${r.users[$index]?.email}</template>
-      </div>
-    </article>
-  </section>
-</template>`, classes: [Common] },
+  { label: '08_nested_with_repeat_promise_complex',
+    html: `<template>
+      <section with.bind="obj['key']">
+        <article repeat.for="u of $parent.items">
+          <div promise.bind="data">
+            <template then="r">\${u.name}-\${r.users[$index]?.email}</template>
+          </div>
+        </article>
+      </section>
+    </template>`,
+    classes: [Common] },
 
   // backticks in static HTML to exercise escaping of outer template literal
-  { label: '09_backticks_in_static_html', html: `<template><code>some \`inline\` code</code> \${firstName}</template>`, classes: [Common] },
+  { label: '09_backticks_in_static_html',
+    html: `<template><code>some \`inline\` code</code> \${firstName}</template>`,
+    classes: [Common] },
 
   // union of component classes + non-public re-exposed; intentionally references Set.size vs Array.length mismatch
-  { label: '10_union_nonpublic_reexposed', html: `<template>\${status} \${items.size} \${firstName}</template>`, classes: [Common, Other] },
+  { label: '10_union_nonpublic_reexposed',
+    html: `<template>\${status} \${items.size} \${firstName}</template>`,
+    classes: [Common, Other] },
 
   // <let to-binding-context> shadowing VM (override a VM prop)
-  { label: '11_let_to_binding_context_shadow', html: `<template><let to-binding-context firstName.bind="'Overridden'"></let>\${firstName}</template>`, classes: [Common] },
+  { label: '11_let_to_binding_context_shadow',
+    html: `<template><let to-binding-context firstName.bind="'Overridden'"></let>\${firstName}
+    </template>`,
+    classes: [Common] },
 
   // repeat over object keys and index back into ACC (object repeat pattern)
-  { label: '12_repeat_object_key_access', html: `<template><div repeat.for="k of obj">\${obj[k].deep.v}</div></template>`, classes: [Common] },
+  { label: '12_repeat_object_key_access',
+    html: `<template><div repeat.for="k of obj">\${obj[k].deep.v}</div></template>`,
+    classes: [Common] },
 
   // promise catch branch with error local
-  { label: '13_promise_then_and_catch', html: `<template><div promise.bind="data"><template then="r">\${r.users[0].email}</template><template catch="e">\${e.message}</template></div></template>`, classes: [Common] },
+  { label: '13_promise_then_and_catch',
+    html: `<template>
+      <div promise.bind="data"><template then="r">\${r.users[0].email}</template><template catch="e">\${e.message}</template></div>
+    </template>`,
+    classes: [Common] },
 
   // with overlay should not affect "this." (VM access)
-  { label: '14_this_vs_with_overlay', html: `<template><div with.bind="obj['key']">\${deep.v} \${this.firstName}</div></template>`, classes: [Common] },
+  { label: '14_this_vs_with_overlay',
+    html: `<template><div with.bind="obj['key']">\${deep.v} \${this.firstName}</div></template>`,
+    classes: [Common] },
+
+  { label: '15_with_overlay_$this_and_$parent',
+    html: `<template>
+      <div with.bind="deep">
+        \${$this.v} \${$parent.firstName} \${this.firstName}
+      </div>
+    </template>`,
+    classes: [Common] },
+
+  { label: '16_value_converter_and_behavior_chaining',
+    html: `<template>\${(firstName + ' ' + lastName) | vc1:(1 + 2) | vc2 & bb1:deep.v & bb2}</template>`,
+    classes: [Common] },
+
+  { label: '17_repeat_number_contextuals',
+    html: `<template>
+      <div repeat.for="i of 3">
+        i=\${i}
+        idx=\${$index}
+        len=\${$length}
+        first=\${$first}
+        last=\${$last}
+        even=\${$even}
+        odd=\${$odd}
+        mid=\${$middle}
+      </div>
+    </template>`,
+    classes: [Common] },
+
+  { label: '18_switch_no_scope_no_narrowing',
+    html: `<template>
+      <div switch.bind="kind">
+        <template case.bind="'a'">\${firstName}</template>
+        <template case.bind="'b'">\${lastName}</template>
+        <template default-case>\${firstName}</template>
+      </div>
+    </template>`,
+    classes: [Common] },
+
+  { label: '19_portal_uses_parent_scope',
+    html: `<template>
+      <template portal>
+        \${firstName} \${this.lastName} \${$parent && $parent.firstName}
+      </template>
+    </template>`,
+    classes: [Common] },
+
+  { label: '20_let_shadow_vs_binding_context',
+    html: `<template>
+      <let firstName.bind="'X'"></let>
+      <div>\${firstName} \${this.firstName}</div>
+      <let to-binding-context firstName.bind="'Y'"></let>
+      <div>\${firstName} \${this.firstName}</div>
+    </template>`,
+    classes: [Common] },
 ];
 
 const ROOT = path.resolve(__dirname, '../..');

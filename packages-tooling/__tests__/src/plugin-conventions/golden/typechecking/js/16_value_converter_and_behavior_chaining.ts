@@ -1,11 +1,10 @@
-/* AUTO-GENERATED: 11_let_to_binding_context_shadow
+/* AUTO-GENERATED: 16_value_converter_and_behavior_chaining
  * Do not edit by hand. Update with: npm run gen:ttc-goldens
  */
 
 // === SOURCE ===
 // HTML:
-// <template><let to-binding-context firstName.bind="'Overridden'"></let>${firstName}
-//     </template>
+// <template>${(firstName + ' ' + lastName) | vc1:(1 + 2) | vc2 & bb1:deep.v & bb2}</template>
 //
 // CLASSES:
 export {}
@@ -26,7 +25,7 @@ class Common {
 function __typecheck_template_Common__() {
   
   /**
-   * @typedef {Omit<Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any }, 'firstname'> & { firstname: ('Overridden') }} __Template_Type_Common__
+   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any }} __Template_Type_Common__
    */
   /**
    * @template {__Template_Type_Common__} T
@@ -36,7 +35,6 @@ function __typecheck_template_Common__() {
    */
   
   const access = (typecheck, expr) => expr;
-  return `<template><let to-binding-context firstName.bind="'Overridden'"></let>${access(o => o.firstName, 'firstName')}
-    </template>`;
+  return `<template>${access(o => o.((firstName+(' '))+lastName), '((firstName+(\' \'))+lastName)|vc1:((1)+(2))|vc2&bb1:deep.v&bb2')}</template>`;
 }
 

@@ -1,11 +1,15 @@
-/* AUTO-GENERATED: 13_promise_then_and_catch
+/* AUTO-GENERATED: 18_switch_no_scope_no_narrowing
  * Do not edit by hand. Update with: npm run gen:ttc-goldens
  */
 
 // === SOURCE ===
 // HTML:
 // <template>
-//       <div promise.bind="data"><template then="r">${r.users[0].email}</template><template catch="e">${e.message}</template></div>
+//       <div switch.bind="kind">
+//         <template case.bind="'a'">${firstName}</template>
+//         <template case.bind="'b'">${lastName}</template>
+//         <template default-case>${firstName}</template>
+//       </div>
 //     </template>
 //
 // CLASSES:
@@ -27,7 +31,7 @@ class Common {
 function __typecheck_template_Common__() {
   
   /**
-   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_r1: Awaited<__Template_Type_Common__['data']> } & { __Template_TypeCheck_Synthetic_e1: any }} __Template_Type_Common__
+   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any }} __Template_Type_Common__
    */
   /**
    * @template {__Template_Type_Common__} T
@@ -38,7 +42,11 @@ function __typecheck_template_Common__() {
   
   const access = (typecheck, expr) => expr;
   return `<template>
-      <div promise.bind="${access(o => o.data, 'data')}"><template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div>
+      <div switch.bind="${access(o => o.kind, 'kind')}">
+        <template case.bind="'a'">${access(o => o.firstName, 'firstName')}</template>
+        <template case.bind="'b'">${access(o => o.lastName, 'lastName')}</template>
+        <template default-case>${access(o => o.firstName, 'firstName')}</template>
+      </div>
     </template>`;
 }
 

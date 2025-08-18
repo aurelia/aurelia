@@ -5,14 +5,14 @@
 // === SOURCE ===
 // HTML:
 // <template>
-//   <section with.bind="obj['key']">
-//     <article repeat.for="u of $parent.items">
-//       <div promise.bind="data">
-//         <template then="r">${u.name}-${r.users[$index]?.email}</template>
-//       </div>
-//     </article>
-//   </section>
-// </template>
+//       <section with.bind="obj['key']">
+//         <article repeat.for="u of $parent.items">
+//           <div promise.bind="data">
+//             <template then="r">${u.name}-${r.users[$index]?.email}</template>
+//           </div>
+//         </article>
+//       </section>
+//     </template>
 //
 // CLASSES:
 export {}
@@ -44,13 +44,13 @@ function __typecheck_template_Common__() {
   
   const access = (typecheck, expr) => expr;
   return `<template>
-  <section with.bind="${access(o => o.obj[('key')], 'obj[\'key\']')}">
-    <article repeat.for="${access(o => o.__Template_TypeCheck_Synthetic_u1, 'u')} of ${access(o => o.$parent.items, '$parent.items')}">
-      <div promise.bind="${access(o => o.data, 'data')}">
-        <template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_u1.name, 'u.name')}-${access(o => o.__Template_TypeCheck_Synthetic_r1.users[o.__Template_TypeCheck_Synthetic_$index1]?.email, 'r.users[$index]?.email')}</template>
-      </div>
-    </article>
-  </section>
-</template>`;
+      <section with.bind="${access(o => o.obj[('key')], 'obj[\'key\']')}">
+        <article repeat.for="${access(o => o.__Template_TypeCheck_Synthetic_u1, 'u')} of ${access(o => o.$parent.items, '$parent.items')}">
+          <div promise.bind="${access(o => o.data, 'data')}">
+            <template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_u1.name, 'u.name')}-${access(o => o.__Template_TypeCheck_Synthetic_r1.users[o.__Template_TypeCheck_Synthetic_$index1]?.email, 'r.users[$index]?.email')}</template>
+          </div>
+        </article>
+      </section>
+    </template>`;
 }
 

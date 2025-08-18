@@ -1,11 +1,14 @@
-/* AUTO-GENERATED: 13_promise_then_and_catch
+/* AUTO-GENERATED: 20_let_shadow_vs_binding_context
  * Do not edit by hand. Update with: npm run gen:ttc-goldens
  */
 
 // === SOURCE ===
 // HTML:
 // <template>
-//       <div promise.bind="data"><template then="r">${r.users[0].email}</template><template catch="e">${e.message}</template></div>
+//       <let firstName.bind="'X'"></let>
+//       <div>${firstName} ${this.firstName}</div>
+//       <let to-binding-context firstName.bind="'Y'"></let>
+//       <div>${firstName} ${this.firstName}</div>
 //     </template>
 //
 // CLASSES:
@@ -27,7 +30,7 @@ class Common {
 function __typecheck_template_Common__() {
   
   /**
-   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_r1: Awaited<__Template_Type_Common__['data']> } & { __Template_TypeCheck_Synthetic_e1: any }} __Template_Type_Common__
+   * @typedef {Omit<Omit<Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any }, '__Template_TypeCheck_Synthetic_firstname1'> & { __Template_TypeCheck_Synthetic_firstname1: ('X') }, 'firstname'> & { firstname: ('Y') }} __Template_Type_Common__
    */
   /**
    * @template {__Template_Type_Common__} T
@@ -38,7 +41,10 @@ function __typecheck_template_Common__() {
   
   const access = (typecheck, expr) => expr;
   return `<template>
-      <div promise.bind="${access(o => o.data, 'data')}"><template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div>
+      <let firstName.bind="'X'"></let>
+      <div>${access(o => o.firstName, 'firstName')} ${access(o => o.firstName, 'this.firstName')}</div>
+      <let to-binding-context firstName.bind="'Y'"></let>
+      <div>${access(o => o.firstName, 'firstName')} ${access(o => o.firstName, 'this.firstName')}</div>
     </template>`;
 }
 

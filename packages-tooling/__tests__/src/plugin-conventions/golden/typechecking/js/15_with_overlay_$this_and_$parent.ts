@@ -1,11 +1,13 @@
-/* AUTO-GENERATED: 13_promise_then_and_catch
+/* AUTO-GENERATED: 15_with_overlay_$this_and_$parent
  * Do not edit by hand. Update with: npm run gen:ttc-goldens
  */
 
 // === SOURCE ===
 // HTML:
 // <template>
-//       <div promise.bind="data"><template then="r">${r.users[0].email}</template><template catch="e">${e.message}</template></div>
+//       <div with.bind="deep">
+//         ${$this.v} ${$parent.firstName} ${this.firstName}
+//       </div>
 //     </template>
 //
 // CLASSES:
@@ -27,7 +29,7 @@ class Common {
 function __typecheck_template_Common__() {
   
   /**
-   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_r1: Awaited<__Template_Type_Common__['data']> } & { __Template_TypeCheck_Synthetic_e1: any }} __Template_Type_Common__
+   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_v1: (Omit<Common, 'secret'> & { secret(): () => number })['deep']['v'] }} __Template_Type_Common__
    */
   /**
    * @template {__Template_Type_Common__} T
@@ -38,7 +40,9 @@ function __typecheck_template_Common__() {
   
   const access = (typecheck, expr) => expr;
   return `<template>
-      <div promise.bind="${access(o => o.data, 'data')}"><template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div>
+      <div with.bind="${access(o => o.deep, 'deep')}">
+        ${access(o => o.__Template_TypeCheck_Synthetic_v1, 'v')} ${access(o => o.$parent.firstName, '$parent.firstName')} ${access(o => o.firstName, 'this.firstName')}
+      </div>
     </template>`;
 }
 

@@ -4,7 +4,9 @@
 
 // === SOURCE ===
 // HTML:
-// <template><div promise.bind="data"><template then="r">${r.users[0].email}</template><template catch="e">${e.message}</template></div></template>
+// <template>
+//       <div promise.bind="data"><template then="r">${r.users[0].email}</template><template catch="e">${e.message}</template></div>
+//     </template>
 //
 // CLASSES:
 export {}
@@ -25,6 +27,8 @@ type __Template_Type_Common__ = Omit<Common, 'secret'> & { secret(): () => numbe
 function __typecheck_template_Common__() {
   
   const access = <T extends object>(typecheck: (o: T) => unknown, expr: string) => expr;
-  return `<template><div promise.bind="${access<__Template_Type_Common__>(o => o.data, 'data')}"><template then="${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div></template>`;
+  return `<template>
+      <div promise.bind="${access<__Template_Type_Common__>(o => o.data, 'data')}"><template then="${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div>
+    </template>`;
 }
 

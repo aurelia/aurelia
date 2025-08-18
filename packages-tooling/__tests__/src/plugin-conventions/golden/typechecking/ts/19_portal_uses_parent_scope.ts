@@ -1,10 +1,13 @@
-/* AUTO-GENERATED: 11_let_to_binding_context_shadow
+/* AUTO-GENERATED: 19_portal_uses_parent_scope
  * Do not edit by hand. Update with: npm run gen:ttc-goldens
  */
 
 // === SOURCE ===
 // HTML:
-// <template><let to-binding-context firstName.bind="'Overridden'"></let>${firstName}
+// <template>
+//       <template portal>
+//         ${firstName} ${this.lastName} ${$parent && $parent.firstName}
+//       </template>
 //     </template>
 //
 // CLASSES:
@@ -22,11 +25,14 @@ class Common {
 
 // === EMIT ===
 
-type __Template_Type_Common__ = Omit<Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any }, 'firstname'> & { firstname: ('Overridden') };
+type __Template_Type_Common__ = Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any };
 function __typecheck_template_Common__() {
   
   const access = <T extends object>(typecheck: (o: T) => unknown, expr: string) => expr;
-  return `<template><let to-binding-context firstName.bind="'Overridden'"></let>${access<__Template_Type_Common__>(o => o.firstName, 'firstName')}
+  return `<template>
+      <template portal>
+        ${access<__Template_Type_Common__>(o => o.firstName, 'firstName')} ${access<__Template_Type_Common__>(o => o.lastName, 'this.lastName')} ${access<__Template_Type_Common__>(o => o.($parent&&$parent.firstName), '($parent&&$parent.firstName)')}
+      </template>
     </template>`;
 }
 

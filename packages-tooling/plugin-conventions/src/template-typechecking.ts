@@ -523,6 +523,18 @@ function makeEnvResolver(ctx: TypeCheckingContext): (member: string) => string {
   return (member: string) => {
     if (member === 'this') return member;
 
+    if (member === '$this') {
+      const env = ctx.currentEnv;
+      if (env != null) {
+        const newName = ctx.getIdentifier('$this', IdentifierInstruction.AddToOverrides)!;
+        // overlay object itself
+        ctx.accessTypeParts.push(acc => `${acc} & { ${newName}: ${computeIndexBase(env, ctx)} }`);
+        return newName;
+      }
+      // no overlay: don't synthesize, just don't rename
+      return ctx.getIdentifier('$this', IdentifierInstruction.SkipGeneration) ?? '$this';
+    }
+
     // respect shadowed identifiers first
     const overridden = ctx.getOverriddenIdentifier(member);
     if (overridden != null) return overridden;

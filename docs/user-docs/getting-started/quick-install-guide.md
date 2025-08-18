@@ -12,7 +12,50 @@ Get Aurelia up and running in 5 minutes or less.
 - [Node.js](https://nodejs.org/en/) (latest version recommended)
 - A code editor of your choice
 
-## Create Your App
+## Option 1: Try Aurelia Instantly (No Setup Required)
+
+Want to try Aurelia immediately? Copy this into an HTML file and open it in your browser:
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Aurelia 2 Quick Try</title>
+    <base href="/" />
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
+  </head>
+  <body>
+    <app-root></app-root>
+    <script type="module">
+      import { Aurelia, CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
+
+      const App = CustomElement.define({
+        name: 'app-root',
+        template: `
+          <h1>Hello, \${name}!</h1>
+          <input value.bind="name" placeholder="Enter your name">
+          <p>You typed: \${name}</p>
+        `
+      }, class {
+        name = 'World';
+      });
+
+      new Aurelia()
+        .app({ component: App, host: document.querySelector('app-root') })
+        .start();
+    </script>
+  </body>
+</html>
+```
+
+{% hint style="info" %}
+**No installation required!** This uses Aurelia directly from a CDN. Perfect for experimentation or simple projects. For a more complete example, see the [realworld-vanilla example](https://github.com/aurelia/aurelia/tree/master/examples/realworld-vanilla) which demonstrates a full application with routing.
+{% endhint %}
+
+## Option 2: Create Your App
 
 Aurelia uses the [Makes](https://www.npmjs.com/package/makes) scaffolding tool. No global installs required.
 
@@ -29,7 +72,7 @@ When prompted:
 **Why TypeScript?** Get intellisense, type safety, and better tooling support out of the box.
 {% endhint %}
 
-## Run Your App
+### Run Your App
 
 Navigate to your project and start the development server:
 

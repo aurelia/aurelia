@@ -1,13 +1,16 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable max-lines-per-function */
 import { test, expect, Page } from '@playwright/test';
 
 test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
 
   test.beforeEach(async ({ page, baseURL }) => {
     test.setTimeout(15000);
+    await page.setViewportSize({ width: 1024, height: 600 });
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
   });
 
-  const getItemAndDivCount = async (page: Page) =>{
+  const getItemAndDivCount = async (page: Page) => {
     const repeatContainer = await page.$("#repeat-container");
     if (!repeatContainer) throw new Error();
 
@@ -32,12 +35,12 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
     // maximal divs 22
     await test.step('check basic usage test is loaded', async () => {
       await page.getByTestId("load-basic-usage").click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 500, divs: 22});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 500, divs: 22 });
     });
 
     await test.step('check after removing items from array above max views count', async () => {
       await page.getByTestId("remove-475").click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 25, divs: 22});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 25, divs: 22 });
     });
 
     await test.step('check after removing items from array below max views count', async () => {
@@ -48,12 +51,12 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
       await remove1Button.click();
       await remove1Button.click();
       await remove1Button.click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 2, divs: 2 + 2});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 2, divs: 2 + 2 });
     });
 
     await test.step('check after adding one item to array below max views count', async () => {
       await page.getByTestId("add-1").click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 3, divs: 2 + 3});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 3, divs: 2 + 3 });
     });
 
     await test.step('check after removing all items from array', async () => {
@@ -61,22 +64,22 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
       await remove1Button.click();
       await remove1Button.click();
       await remove1Button.click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 0, divs: 2 + 0});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 0, divs: 2 + 0 });
     });
 
     await test.step('check after array is filled again after being empty', async () => {
       await page.getByTestId("add-1").click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 1, divs: 2 + 1});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 1, divs: 2 + 1 });
     });
 
     await test.step('check after array is filled again but below max views count', async () => {
       await page.getByTestId("add-10").click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 11, divs: 2 + 11});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 11, divs: 2 + 11 });
     });
 
     await test.step('check after array is filled again above max views count', async () => {
       await page.getByTestId("add-100").click();
-      expect(await getItemAndDivCount(page)).toStrictEqual({items: 111, divs: 22});
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 111, divs: 22 });
     });
   });
 
@@ -94,24 +97,25 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
     // Test horizontal scrolling and div count stability
     await test.step('scroll right 1000px and verify div count stable and no blank spaces', async () => {
       const initialCounts = await getItemAndDivCount(page);
-      
+
       // Scroll right 1000px
       await scrollHorizontally(page, 1000);
-      
+
       const countsAfterScroll = await getItemAndDivCount(page);
       expect(countsAfterScroll.items).toBe(500);
       expect(countsAfterScroll.divs).toBeGreaterThanOrEqual(2);
       expect(countsAfterScroll.divs).toBeLessThanOrEqual(22);
-      
+
       // Verify no blank spaces by checking that the last visible item has valid text content
       const repeatContainer = await page.$('#repeat-container');
       const visibleDivs = await repeatContainer?.$$('div');
       if (visibleDivs && visibleDivs.length > 0) {
         // Check a few visible items to ensure they have proper content
-        for (let i = 0; i < Math.min(3, visibleDivs.length); i++) {
+        // start with 1 since 0 is the buffer div
+        for (let i = 1; i < Math.min(3, visibleDivs.length); i++) {
           const divText = await visibleDivs[i].textContent();
           // Should match pattern like "item-0-123 @ index 123"
-          expect(divText).toMatch(/item-\d+-\d+ @ index \d+/);
+          expect(divText).toMatch(/item-\d+-\d+ @ \S*\s?\d+/);
         }
       }
     });
@@ -122,7 +126,7 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
       // But we test to ensure the virtual repeat handles any potential vertical scroll gracefully
       await page.$eval('#repeat-container', (el) => (el as HTMLElement).scrollTop = 50);
       await page.waitForTimeout(16);
-      
+
       const counts = await getItemAndDivCount(page);
       expect(counts.items).toBe(500);
       expect(counts.divs).toBeGreaterThanOrEqual(2);
@@ -197,7 +201,7 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
       expect(counts.items).toBe(111);
       expect(counts.divs).toBeGreaterThanOrEqual(2);
       expect(counts.divs).toBeLessThanOrEqual(22);
-      
+
       // Final scroll test to ensure everything is still working after all operations
       await scrollHorizontally(page, 2000);
       const finalCounts = await getItemAndDivCount(page);

@@ -1,7 +1,7 @@
 import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualizationConfiguration, VirtualRepeat, VIRTUAL_REPEAT_NEAR_BOTTOM, VIRTUAL_REPEAT_NEAR_TOP, type IVirtualRepeatNearBottomEvent, type IVirtualRepeatNearTopEvent } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
-import { tasksSettled } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   if (isNode()) {
@@ -80,14 +80,14 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   });
 
   it('rerenders when scrolled', function () {
-    const { scrollBy, platform } = createFixture(
+    const { scrollBy } = createFixture(
       createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
       class App { items = createItems(); },
       virtualRepeatDeps
     );
 
     scrollBy('#scroller', 400);
-    platform.domQueue.flush();
+    runTasks();
 
     const virtualRepeat = virtualRepeats[0];
     const firstView = virtualRepeat.getViews()[0];
@@ -98,7 +98,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   describe('mutation', function () {
     // TODO: check why this fails
     it('rerenders when removed at the start', async function () {
-      const { component, platform } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps
@@ -106,7 +106,6 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(0, 10);
       await tasksSettled();
-      await platform.domQueue.yield();
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
 
       const virtualRepeat = virtualRepeats[0];
@@ -115,7 +114,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('rerenders when removed at the end', async function () {
-      const { component, platform } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps
@@ -123,7 +122,6 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(90, 10);
       await tasksSettled();
-      await platform.domQueue.yield();
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
       const virtualRepeat = virtualRepeats[0];
       const firstView = virtualRepeat.getViews()[0];
@@ -131,7 +129,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('rerenders when removed in the middle', async function () {
-      const { component, platform } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps
@@ -139,7 +137,6 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(10, 10);
       await tasksSettled();
-      await platform.domQueue.yield();
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
       const virtualRepeat = virtualRepeats[0];
       const firstView = virtualRepeat.getViews()[10];
@@ -206,14 +203,14 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('rerenders when scrolled horizontally', function () {
-      const { scrollBy, flush } = createFixture(
+      const { scrollBy } = createFixture(
         createHorizontalScrollerTemplate('<div virtual-repeat.for="item of items; layout: horizontal; item-width: 80" style="width: 80px; height: 50px; display: inline-block">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps
       );
 
       scrollBy('#scroller', { left: 400 }); // scroll horizontally by 400px
-      flush();
+      runTasks();
 
       const virtualRepeat = virtualRepeats[0];
       const firstView = virtualRepeat.getViews()[0];
@@ -224,7 +221,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
   describe('infinite scroll', function () {
     it('triggers near-bottom event when scrolling to the end', function (done) {
-      const { scrollBy, flush } = createFixture(
+      const { scrollBy } = createFixture(
         `<div
           id="scroller"
           style="box-sizing: border-box; height: 600px; border: 0px solid black; padding: 0px; overflow: auto;"
@@ -249,11 +246,11 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       // scroll to bottom
       scrollBy('#scroller', 5000);
-      flush();
+      runTasks();
     });
 
     it('triggers near-top event when scrolling back to top', function (done) {
-      const { scrollBy, flush } = createFixture(
+      const { scrollBy } = createFixture(
         `<div
           id="scroller"
           style="box-sizing: border-box; height: 600px; border: 0px solid black; padding: 0px; overflow: auto;"
@@ -277,10 +274,10 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       );
 
       scrollBy('#scroller', 5000);
-      flush();
+      runTasks();
 
       scrollBy('#scroller', -5000);
-      flush();
+      runTasks();
     });
   });
 
@@ -308,7 +305,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('scrolls correctly with variable height', function () {
-      const { scrollBy, flush } = createFixture(
+      const { scrollBy } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items; variable-height: true" style="height: ${item.height}px">${item.name}</div>'),
         class App { items = createVariableItems(); },
         virtualRepeatDeps
@@ -318,7 +315,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       // Scroll down
       scrollBy('#scroller', 500);
-      flush();
+      runTasks();
 
       const scrolledFirstItem = virtualRepeats[0].getViews()[0].nodes.firstChild.textContent;
 
@@ -327,7 +324,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('scrolls correctly with variable width in horizontal layout', function () {
-      const { scrollBy, flush } = createFixture(
+      const { scrollBy } = createFixture(
         createHorizontalScrollerTemplate('<div virtual-repeat.for="item of items; layout: horizontal; variable-width: true" style="width: ${item.width}px; height: 50px; display: inline-block">${item.name}</div>'),
         class App { items = createVariableItems(); },
         virtualRepeatDeps
@@ -337,7 +334,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       // Scroll horizontally
       scrollBy('#scroller', { left: 500 });
-      flush();
+      runTasks();
 
       const scrolledFirstItem = virtualRepeats[0].getViews()[0].nodes.firstChild.textContent;
 
@@ -346,7 +343,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('handles mutation with variable height', function () {
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items; variable-height: true" style="height: ${item.height}px">${item.name}</div>'),
         class App { items = createVariableItems(); },
         virtualRepeatDeps
@@ -356,7 +353,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       // Remove some items
       component.items.splice(0, 5);
-      flush();
+      runTasks();
 
       // Should still have views rendered
       assert.ok(virtualRepeats[0].getViews().length > 0, 'Should still have views after mutation');

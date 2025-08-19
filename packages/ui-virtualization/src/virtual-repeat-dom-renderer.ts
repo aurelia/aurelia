@@ -54,7 +54,7 @@ class DefaultDom implements IVirtualRepeatDom {
   ) { }
 
   public get scroller(): HTMLElement {
-    return getScrollerElement(this.anchor);
+    return getScrollerElement(this.anchor, this.layout);
   }
 
   public get distances(): [number, number] {
@@ -99,7 +99,7 @@ class ListDom extends DefaultDom {
   }
 
   public get scroller(): HTMLElement {
-    return getScrollerElement(this.list);
+    return getScrollerElement(this.list, this.layout);
   }
 }
 
@@ -115,7 +115,7 @@ class TableDom extends DefaultDom {
   }
 
   public get scroller(): HTMLElement {
-    return getScrollerElement(this.table);
+    return getScrollerElement(this.table, this.layout);
   }
 }
 

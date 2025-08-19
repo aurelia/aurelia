@@ -6,10 +6,10 @@ import { createMappedError, ErrorNames } from './errors';
  *
  * If none is found, return `document.documentElement`
  */
-export const getScrollerElement = (element: Node): HTMLElement => {
+export const getScrollerElement = (element: Node, orientation: 'vertical' | 'horizontal'): HTMLElement => {
   let current = element.parentNode as Element;
   while (current !== null && current !== document.body) {
-    if (hasOverflowScroll(current)) {
+    if (hasOverflowScroll(current, orientation)) {
       return current as HTMLElement;
     }
     current = current.parentNode as HTMLElement;
@@ -31,9 +31,12 @@ export const getElementDistanceToTopOfDocument = (element: Element): number => {
 /**
  * Check if an element has style scroll/auto for overflow/overflowY
  */
-export const hasOverflowScroll = (element: Element): boolean => {
+export const hasOverflowScroll = (element: Element, orientation: 'vertical' | 'horizontal'): boolean => {
   const style = window.getComputedStyle(element);
-  return style != null && (style.overflowY === 'scroll' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflow === 'auto');
+  if (orientation === 'vertical') {
+    return style != null && (style.overflowY === 'scroll' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflow === 'auto');
+  }
+  return style != null && (style.overflowX === 'scroll' || style.overflow === 'scroll' || style.overflowX === 'auto' || style.overflow === 'auto');
 };
 
 /**

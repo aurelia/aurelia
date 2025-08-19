@@ -49,4 +49,8 @@ export class BasicHorizontalApp {
     }
   }
 
+  getColor(index: number): string {
+    const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+    return colors[index % colors.length];
+  }
 }

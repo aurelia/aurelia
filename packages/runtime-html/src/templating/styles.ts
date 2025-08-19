@@ -1,4 +1,4 @@
-import { IContainer, createLookup, noop, own, resolve, toArray } from '@aurelia/kernel';
+import { IContainer, createLookup, noop, own, resolve } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
 import { ICssClassMapping } from '../dom';
 import { IPlatform } from '../platform';
@@ -57,40 +57,24 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       public compiling(template: HTMLElement): void {
         const processElement = (el: Element): void => {
           const classes = el.getAttributeNode('class');
-          if (classes != null && classes.value.length > 0) {
-            const newClasses = classes.value
-              .split(/\s+/g)
-              .map(x => existingMapping![x] || x)
-              .join(' ');
-            classes.value = newClasses;
-          }
+          if (!classes?.value) return;
+          const newClasses = classes.value
+            .split(/\s+/g)
+            .map(x => existingMapping![x] || x)
+            .join(' ');
+          classes.value = newClasses;
         };
 
         const processContainer = (container: Element | DocumentFragment): void => {
-          if ((container as Element).tagName != null) {
-            const el = container as Element;
-            processElement(el);
-
-            if (el.tagName === 'TEMPLATE') {
-              const tpl = el as HTMLTemplateElement;
-              processContainer(tpl.content);
-              return;
-            }
-          }
-
-          const elementsWithClass = container.querySelectorAll('[class]');
-          for (const el of toArray(elementsWithClass)) {
-            processElement(el);
-          }
-
-          const templateElements = container.querySelectorAll('template');
-          for (const template of toArray(templateElements)) {
-            const tpl = template;
-            processContainer(tpl.content);
-          }
+          container.querySelectorAll('[class]').forEach(processElement);
+          container.querySelectorAll('template').forEach(e => processContainer(e.content));
         };
 
-        processContainer(template);
+        processElement(template);
+        processContainer(template.tagName === 'TEMPLATE'
+          ? (template as HTMLTemplateElement).content
+          : template
+        );
       }
     }
 

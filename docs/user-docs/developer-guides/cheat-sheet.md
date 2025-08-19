@@ -30,12 +30,20 @@ Note: you can copy-paste the markup below into an html file and open it directly
 ```html
 <!DOCTYPE html>
 <html>
-<head></head>
+<head>
+  <meta charset="utf-8" />
+  <title>Aurelia 2 Script Example</title>
+  
+  <!-- Performance optimizations -->
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
+</head>
 <body>
   <app-root></app-root>
 
   <script type="module">
-    import { Aurelia, CustomElement } from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
+    import { Aurelia, CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
 
     const AppRoot = CustomElement.define({
       name: 'app-root',
@@ -59,11 +67,19 @@ Note: you can copy-paste the markup below into an html file and open it directly
 ```html
 <!DOCTYPE html>
 <html>
-<head><title>${title}</title></head>
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  
+  <!-- Performance optimizations -->
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
+</head>
 <body>
   ${message}
   <script type="module">
-    import { Aurelia } from 'https://unpkg.com/aurelia/dist/native-modules/index.js';
+    import { Aurelia } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
 
     const aurelia = new Aurelia();
     await aurelia.enhance({ component: { message: 'Hello world!' }, host: document.body }).start();

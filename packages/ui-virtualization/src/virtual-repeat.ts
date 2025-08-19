@@ -1,4 +1,3 @@
-import type { ITask } from '@aurelia/platform';
 import { resolve } from "@aurelia/kernel";
 import { type IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
 import {
@@ -9,6 +8,8 @@ import {
   type IOverrideContext,
   BindingContext,
   astEvaluate,
+  queueAsyncTask,
+  Task,
 } from '@aurelia/runtime';
 import {
   IController,
@@ -17,7 +18,6 @@ import {
   ICustomAttributeViewModel,
   ISyntheticView,
   IRenderLocation,
-  IPlatform,
   type CustomAttributeStaticAuDefinition,
 } from '@aurelia/runtime-html';
 import {
@@ -79,8 +79,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */ private readonly _obsMediator: CollectionObservationMediator;
 
   /** @internal */ private readonly views: ISyntheticView[] = [];
-  /** @internal */ private readonly taskQueue: IPlatform['domWriteQueue'];
-  /** @internal */ private task: ITask | null = null;
+  /** @internal */ private task: Task | null = null;
   /** @internal */ private _currScrollerInfo: IScrollerInfo = noScrollInfo;
 
   /** @internal */ private _needInitCalculation = true;
@@ -120,7 +119,6 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
     this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
-    this.taskQueue = resolve(IPlatform).domQueue;
 
     const extraProps = (iteratorInstruction.props ?? []);
     for (const p of extraProps) {
@@ -165,21 +163,21 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
           }
           case 'layout': {
             if (valueStr === 'horizontal' || valueStr === 'vertical') {
-              (this as any)._configuredLayout = valueStr;
+              this._configuredLayout = valueStr;
             }
             break;
           }
           case 'variableHeight':
           case 'variable-height': {
             if (valueStr === 'true' || valueStr === '1') {
-              (this as any)._configuredVariableHeight = true;
+              this._configuredVariableHeight = true;
             }
             break;
           }
           case 'variableWidth':
           case 'variable-width': {
             if (valueStr === 'true' || valueStr === '1') {
-              (this as any)._configuredVariableWidth = true;
+              this._configuredVariableWidth = true;
             }
             break;
           }
@@ -309,7 +307,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    */
   private _measureAndStoreItemSize(view: ISyntheticView, index: number): void {
     const element = view.nodes.firstChild as HTMLElement;
-    if (!element) return;
+    if (element == null) return;
 
     const height = calcOuterHeight(element);
     const width = calcOuterWidth(element);
@@ -631,7 +629,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
   public handleScrollerChange(scrollerInfo: IScrollerInfo): void {
     const task = this.task;
-    this.task = this.taskQueue.queueTask(() => {
+    this.task = queueAsyncTask(() => {
       this.task = null;
       const isHorizontal = this._configuredLayout === 'horizontal';
       const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
@@ -802,7 +800,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */
   private _queueHandleItemsChanged() {
     const task = this.task;
-    this.task = this.taskQueue.queueTask(() => {
+    this.task = queueAsyncTask(() => {
       this.task = null;
       this._handleItemsChanged(this.items, this.collectionStrategy!);
     });

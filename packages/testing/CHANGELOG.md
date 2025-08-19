@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Features:
+
+* **dialog:** add standard html dialog renderer (#2145) ([9aab108](https://github.com/aurelia/aurelia/commit/9aab108))
+
+
+### Refactorings:
+
+* ***:** async timing for computed observers (#2188) ([f874ccc](https://github.com/aurelia/aurelia/commit/f874ccc))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

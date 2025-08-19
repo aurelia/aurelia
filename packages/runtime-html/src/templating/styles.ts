@@ -1,4 +1,4 @@
-import { IContainer, createLookup, noop, own, resolve, toArray } from '@aurelia/kernel';
+import { IContainer, createLookup, noop, own, resolve } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
 import { ICssClassMapping } from '../dom';
 import { IPlatform } from '../platform';
@@ -55,20 +55,26 @@ export class CSSModulesProcessorRegistry implements IRegistry {
 
     class CompilingHook implements ITemplateCompilerHooks {
       public compiling(template: HTMLElement): void {
-        const isTemplate = template.tagName === 'TEMPLATE';
-        const container = isTemplate
-          ? (template as HTMLTemplateElement).content
-          : template;
-        const plainClasses = [template, ...toArray(container.querySelectorAll('[class]'))];
-        for (const element of plainClasses) {
-          const classes = element.getAttributeNode('class')!;
-          // we always include container, so there's a case where classes is null
-          if (classes == null) {
-            continue;
-          }
-          const newClasses = classes.value.split(/\s+/g).map(x => existingMapping![x] || x).join(' ');
+        const processElement = (el: Element): void => {
+          const classes = el.getAttributeNode('class');
+          if (!classes?.value) return;
+          const newClasses = classes.value
+            .split(/\s+/g)
+            .map(x => existingMapping![x] || x)
+            .join(' ');
           classes.value = newClasses;
-        }
+        };
+
+        const processContainer = (container: Element | DocumentFragment): void => {
+          container.querySelectorAll('[class]').forEach(processElement);
+          container.querySelectorAll('template').forEach(e => processContainer(e.content));
+        };
+
+        processElement(template);
+        processContainer(template.tagName === 'TEMPLATE'
+          ? (template as HTMLTemplateElement).content
+          : template
+        );
       }
     }
 

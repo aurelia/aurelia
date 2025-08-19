@@ -1,7 +1,9 @@
+/* eslint-disable jsdoc/require-hyphen-before-param-description */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable jsdoc/check-indentation */
 /* eslint-disable jsdoc/no-multi-asterisks */
 import { noop } from '@aurelia/kernel';
+import { Platform } from '@aurelia/platform';
 
 const tsPending = 'pending';
 const tsRunning = 'running';
@@ -331,12 +333,12 @@ export const queueTask = (callback: TaskCallback) => {
  * Queue a callback to run **asynchronously** on Aurelia's central scheduler
  * and get back a {@link Task} object you can:
  *
- * * `await` – via `task.result`
+ * * `await` – directly on the `Task` object itself
  * * cancel – via `task.cancel()`
  * * inspect – via `task.status`
  *
  * Any callbacks scheduled this way are automatically tracked by the framework,
- * so `await tasksSettled()` waits until the all tasks (and any promises they return)
+ * so `await tasksSettled()` waits until all tasks (and any promises they return)
  * have finished.
  *
  * @template R The value returned by `callback`, or the value the promise it
@@ -350,11 +352,11 @@ export const queueTask = (callback: TaskCallback) => {
  *                         is queued. While waiting, the task can still be
  *                         cancelled.
  *
- * @returns The {@link Task} representing the scheduled work.
+ * @returns A thennable {@link Task} object representing the scheduled work.
  *
- * @throws {TaskAbortError} The task's `result` promise rejects with this error
+ * @throws {TaskAbortError} Awaiting the returned `Task` rejects with this error
  *                          if the task is cancelled before it starts.
- * @throws {*}              The task's `result` promise propagates any error
+ * @throws {*}              Awaiting the returned `Task` propagates any error
  *                          thrown by `callback`.
  *
  * ---
@@ -387,7 +389,8 @@ export const queueTask = (callback: TaskCallback) => {
  *     return resp.json() as Promise<SearchResult[]>;
  *   }, { delay: 300 }); // classic 300 ms debounce
  *
- *   return current.result; // awaitable by callers
+ *   // The Task is "thennable" and can be awaited directly by callers.
+ *   return current;
  * }
  * ```
  *
@@ -420,7 +423,7 @@ export const queueAsyncTask = <R = any>(callback: TaskCallback<R>, options?: { d
 
   if (task.delay != null && task.delay > 0) {
     ++pendingAsyncCount;
-    task._timerId = setTimeout(() => {
+    task._timerId = Platform.getOrCreate(globalThis).setTimeout(() => {
       --pendingAsyncCount;
       task._timerId = undefined;
 
@@ -480,21 +483,24 @@ export class Task<R = any> {
   /** @internal */
   private readonly _result: Promise<Awaited<R>>;
   /**
-   * A promise that:
-   * * **fulfils** with the callback's return value, or
-   * * **rejects** with:
-   *   * whatever error the callback throws,
-   *   * whatever rejection the callback's promise yields, or
-   *   * a {@link TaskAbortError} if the task is canceled before it starts.
+   * The underlying promise that represents the task's execution.
    *
-   * Consumers typically `await` this to know when *their* task is done without
-   * caring about unrelated work still queued.
+   * It:
+   * * **fulfils** with the callback's return value, or
+   * * **rejects** with any error from the callback or a `TaskAbortError`.
+   *
+   * It is recommended to `await` the `Task` object directly rather than its
+   * `.result` property. This property is provided for advanced use cases, such
+   * as interoperating with libraries that require a native `Promise` instance or
+   * for use with promise-composition functions like `Promise.all()`.
    *
    * @example
-   * ```ts
-   * const toastTask = queueAsyncTask(showToast, { delay: 5000 });
-   * await toastTask.result; // waits 5 s then resolves
-   * ```
+   * // Using .result with Promise.all to await multiple tasks in parallel
+   * const task1 = queueAsyncTask(fetchUserData);
+   * const task2 = queueAsyncTask(fetchSiteSettings);
+   *
+   * // We access .result here because Promise.all requires an array of Promises.
+   * const [userData, siteSettings] = await Promise.all([task1.result, task2.result]);
    */
   public get result(): Promise<Awaited<R>> {
     return this._result;
@@ -509,7 +515,7 @@ export class Task<R = any> {
    * ```ts
    * const task = queueAsyncTask(() => 123);
    * console.log(task.status); // "pending"
-   * await task.result;
+   * await task;
    * console.log(task.status); // "completed"
    * ```
    */
@@ -525,6 +531,48 @@ export class Task<R = any> {
       this._resolve = resolve;
       this._reject = reject;
     });
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.then()` method.**
+   *
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  public then<TResult1 = Awaited<R>, TResult2 = never>(
+    onfulfilled?: ((value: Awaited<R>) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.result.then(onfulfilled, onrejected);
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.catch()` method.**
+   *
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  public catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
+  ): Promise<Awaited<R> | TResult> {
+    return this.result.catch(onrejected);
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.catch()` method.**
+   *
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  public finally(
+    onfinally?: (() => void) | null
+  ): Promise<Awaited<R>> {
+    return this.result.finally(onfinally);
   }
 
   /** @internal */
@@ -584,7 +632,7 @@ export class Task<R = any> {
    */
   public cancel(): boolean {
     if (this._timerId !== undefined) {
-      clearTimeout(this._timerId);
+      Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
       --pendingAsyncCount;
       this._timerId = undefined;
       this._status = tsCanceled;
@@ -694,7 +742,7 @@ export class RecurringTask {
       return;
     }
 
-    this._timerId = setTimeout(() => {
+    this._timerId = Platform.getOrCreate(globalThis).setTimeout(() => {
       this._tick();
       if (!this._canceled) {
         this._start();
@@ -702,6 +750,7 @@ export class RecurringTask {
     }, this._interval);
   }
 
+  /** @internal */
   private _tick(): void {
     queue.push(this);
     requestRun();
@@ -760,7 +809,7 @@ export class RecurringTask {
   public cancel(): void {
     this._canceled = true;
     if (this._timerId !== undefined) {
-      clearTimeout(this._timerId);
+      Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
       this._timerId = undefined;
     }
 

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### Bug Fixes:
+
+* **route-recognizer:** uri component decoding (#2162) ([23d83f0](https://github.com/aurelia/aurelia/commit/23d83f0))
+* **route-recognizer:** uri component decoding ([23d83f0](https://github.com/aurelia/aurelia/commit/23d83f0))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

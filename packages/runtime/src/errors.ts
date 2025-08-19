@@ -44,6 +44,7 @@ export const enum ErrorNames {
   invalid_observable_decorator_usage = 224,
   stopping_a_stopped_effect = 225,
   effect_maximum_recursion_reached = 226,
+  computed_mutating = 227,
 
   parse_invalid_start = 151,
   parse_no_spread = 152,
@@ -142,6 +143,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.invalid_observable_decorator_usage]: `Invalid @observable decorator usage, cannot determine property name`,
   [ErrorNames.stopping_a_stopped_effect]: `Trying to stop an effect that has already been stopped`,
   [ErrorNames.effect_maximum_recursion_reached]: `Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`,
+  [ErrorNames.computed_mutating]: `Side-effect detected in computed getter 'get options': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

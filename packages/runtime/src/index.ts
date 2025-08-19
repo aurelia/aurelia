@@ -20,9 +20,12 @@ export {
 export {
   queueTask,
   queueAsyncTask,
+  queueRecurringTask,
+  getRecurringTasks,
   runTasks,
   tasksSettled,
   Task,
+  RecurringTask,
   TaskAbortError,
   type TaskStatus,
 } from './queue';

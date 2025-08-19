@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Aurelia 2 + JSONPlaceholder Demo</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Performance optimizations -->
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@aurelia/router@latest/+esm" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@aurelia/fetch-client@latest/+esm" crossorigin>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    nav { background: #007acc; padding: 15px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0; }
+    nav a { color: white; text-decoration: none; margin-right: 20px; padding: 8px 16px; border-radius: 4px; transition: background 0.2s; }
+    nav a:hover, nav a.active { background: rgba(255,255,255,0.2); }
+    .post { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 6px; background: white; }
+    .post h3 { margin: 0 0 10px 0; color: #333; }
+    .post p { margin: 10px 0; color: #666; line-height: 1.5; }
+    .post .meta { font-size: 12px; color: #999; margin-top: 10px; }
+    .btn { background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn:hover { background: #005a9e; }
+    .btn-outline { background: transparent; color: #007acc; border: 1px solid #007acc; }
+    .btn-outline:hover { background: #007acc; color: white; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .error { background: #ffe6e6; border: 1px solid #ffcccc; color: #cc0000; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+    input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; font-family: inherit; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+  </style>
+</head>
+
+<body>
+  <app-root></app-root>
+
+  <script type="module">
+    import { Aurelia, CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
+    import { RouterConfiguration } from 'https://cdn.jsdelivr.net/npm/@aurelia/router@latest/+esm';
+    import { IHttpClient } from 'https://cdn.jsdelivr.net/npm/@aurelia/fetch-client@latest/+esm';
+
+    // Simple data service
+    let apiService;
+
+    const Posts = CustomElement.define({
+      name: 'posts',
+      template: `
+        <div class="container">
+          <h1>Latest Posts</h1>
+          <div if.bind="isLoading" class="loading">Loading posts...</div>
+          <div if.bind="error" class="error">\${error}</div>
+          <div repeat.for="post of posts" class="post">
+            <h3>\${post.title}</h3>
+            <p>\${post.body}</p>
+            <div class="meta">
+              By User #\${post.userId} | Post #\${post.id}
+              <a class="btn btn-outline" load="post/\${post.id}">Read more</a>
+            </div>
+          </div>
+        </div>
+      `
+    }, class {
+      posts = [];
+      isLoading = false;
+      error = null;
+
+      async load() {
+        this.isLoading = true;
+        this.error = null;
+        try {
+          const response = await apiService.get('/posts?_limit=10');
+          this.posts = await response.json();
+        } catch (err) {
+          this.error = 'Failed to load posts: ' + err.message;
+        } finally {
+          this.isLoading = false;
+        }
+      }
+    });
+
+    const Post = CustomElement.define({
+      name: 'post',
+      template: `
+        <div class="container">
+          <div if.bind="isLoading" class="loading">Loading post...</div>
+          <div if.bind="error" class="error">\${error}</div>
+          <div if.bind="post && !isLoading">
+            <h1>\${post.title}</h1>
+            <p>\${post.body}</p>
+            <div class="meta">By User #\${post.userId} | Post #\${post.id}</div>
+
+            <h3>Comments</h3>
+            <div if.bind="loadingComments" class="loading">Loading comments...</div>
+            <div repeat.for="comment of comments" class="post">
+              <h4>\${comment.name}</h4>
+              <p>\${comment.body}</p>
+              <div class="meta">By \${comment.email}</div>
+            </div>
+          </div>
+          <div if.bind="!post && !isLoading && !error">
+            <p>Post not found.</p>
+          </div>
+          <a class="btn" load="../posts">← Back to Posts</a>
+        </div>
+      `
+    }, class {
+      post = null;
+      comments = [];
+      isLoading = false;
+      loadingComments = false;
+      error = null;
+
+      async load(params) {
+        const id = parseInt(params.id);
+        this.isLoading = true;
+        this.error = null;
+
+        try {
+          // Load post
+          const postResponse = await apiService.get(`/posts/${id}`);
+          this.post = await postResponse.json();
+
+          // Load comments
+          this.loadingComments = true;
+          const commentsResponse = await apiService.get(`/posts/${id}/comments`);
+          this.comments = await commentsResponse.json();
+        } catch (err) {
+          this.error = 'Failed to load post: ' + err.message;
+        } finally {
+          this.isLoading = false;
+          this.loadingComments = false;
+        }
+      }
+    });
+
+    const Users = CustomElement.define({
+      name: 'users',
+      template: `
+        <div class="container">
+          <h1>Users</h1>
+          <div if.bind="isLoading" class="loading">Loading users...</div>
+          <div if.bind="error" class="error">\${error}</div>
+          <div repeat.for="user of users" class="post">
+            <h3>\${user.name} (@\${user.username})</h3>
+            <p><strong>Email:</strong> \${user.email}</p>
+            <p><strong>Phone:</strong> \${user.phone}</p>
+            <p><strong>Website:</strong> \${user.website}</p>
+            <div class="meta">
+              <strong>Company:</strong> \${user.company.name} |
+              <strong>Address:</strong> \${user.address.city}
+            </div>
+          </div>
+        </div>
+      `
+    }, class {
+      users = [];
+      isLoading = false;
+      error = null;
+
+      async load() {
+        this.isLoading = true;
+        this.error = null;
+        try {
+          const response = await apiService.get('/users');
+          this.users = await response.json();
+        } catch (err) {
+          this.error = 'Failed to load users: ' + err.message;
+        } finally {
+          this.isLoading = false;
+        }
+      }
+    });
+
+    const About = CustomElement.define({
+      name: 'about',
+      template: `
+        <div class="container">
+          <h1>About This Demo</h1>
+          <p>This is a demonstration of Aurelia 2 loaded directly from jsDelivr CDN without any build tools.</p>
+          <h2>Features Demonstrated:</h2>
+          <ul>
+            <li>✅ Router configuration with multiple routes</li>
+            <li>✅ HTTP client for API calls</li>
+            <li>✅ Data binding and event handling</li>
+            <li>✅ Loading states and error handling</li>
+            <li>✅ Conditional rendering with if.bind</li>
+            <li>✅ Repeating templates with repeat.for</li>
+            <li>✅ Route parameters and navigation</li>
+            <li>✅ Component lifecycle hooks</li>
+          </ul>
+          <h2>Technical Details:</h2>
+          <ul>
+            <li>🚀 No build tools required</li>
+            <li>📦 Uses jsDelivr CDN for optimal performance</li>
+            <li>⚡ Includes performance optimizations (modulepreload)</li>
+            <li>🎯 Works offline after initial load</li>
+            <li>🔗 Data from JSONPlaceholder API (CORS-enabled)</li>
+          </ul>
+          <h2>API Source:</h2>
+          <p>This demo uses <a href="https://jsonplaceholder.typicode.com/" target="_blank">JSONPlaceholder</a>, a free fake REST API for testing and prototyping.</p>
+          <a class="btn" load="../posts">← Back to Posts</a>
+        </div>
+      `
+    });
+
+    const App = CustomElement.define({
+      name: 'app-root',
+      template: `
+        <nav>
+          <a load="posts" class="\${isActive('posts') ? 'active' : ''}">Posts</a>
+          <a load="users" class="\${isActive('users') ? 'active' : ''}">Users</a>
+          <a load="about" class="\${isActive('about') ? 'active' : ''}">About</a>
+        </nav>
+        <au-viewport></au-viewport>
+      `,
+      dependencies: [Posts, Post, Users, About]
+    }, class {
+      static routes = [
+        { path: ['', 'posts'], component: Posts, title: 'Posts' },
+        { path: 'post/:id', component: Post, title: 'Post' },
+        { path: 'users', component: Users, title: 'Users' },
+        { path: 'about', component: About, title: 'About' }
+      ];
+
+      isActive(route) {
+        return window.location.hash.includes(route) || (route === 'posts' && (window.location.hash === '' || window.location.hash === '#/'));
+      }
+    });
+
+    // Initialize Aurelia
+    const au = new Aurelia();
+
+    au.register(RouterConfiguration.customize({ useUrlFragmentHash: true }));
+
+    // Set up API service
+    const http = au.container.get(IHttpClient);
+    http.configure(config => config
+      .withBaseUrl('https://jsonplaceholder.typicode.com')
+      .withDefaults({
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+    );
+
+    // Create a simple API service
+    apiService = {
+      get: (url) => http.fetch(url)
+    };
+
+    au.app({ component: App, host: document.querySelector('app-root') }).start();
+  </script>
+</body>
+</html>

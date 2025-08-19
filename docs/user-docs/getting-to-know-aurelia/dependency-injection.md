@@ -81,6 +81,8 @@ export class FileImporter {
 }
 ```
 
+> **Note:** When using `@inject`, the parameters must be listed in the same order in which they appear in the constructor.
+
 ---
 
 ## Creating Containers and Registering Services

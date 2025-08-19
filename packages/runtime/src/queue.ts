@@ -1,7 +1,9 @@
+/* eslint-disable jsdoc/require-hyphen-before-param-description */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable jsdoc/check-indentation */
 /* eslint-disable jsdoc/no-multi-asterisks */
 import { noop } from '@aurelia/kernel';
+import { Platform } from '@aurelia/platform';
 
 const tsPending = 'pending';
 const tsRunning = 'running';
@@ -14,7 +16,8 @@ const resolvedPromise = Promise.resolve();
 let runScheduled = false;
 let isAutoRun = false;
 
-const queue: (Task | (() => unknown))[] = [];
+const queue: (Task | RecurringTask | (() => unknown))[] = [];
+const recurringTasks: RecurringTask[] = [];
 let pendingAsyncCount = 0;
 let settlePromise: Promise<boolean> | null = null;
 let taskErrors: unknown[] = [];
@@ -135,14 +138,14 @@ export const runTasks = () => {
     }
 
     const task = queue.shift()!;
-    if (task instanceof Task) {
-      task.run();
-    } else {
+    if (typeof task === 'function') {
       try {
         task();
       } catch (err) {
         taskErrors.push(err);
       }
+    } else {
+      task.run();
     }
   }
   // Make a copy; this is for testing, signalSettled will clear the array
@@ -155,6 +158,44 @@ export const runTasks = () => {
       throw new AggregateError(errors, 'One or more tasks failed.');
     }
   }
+};
+
+/**
+ * Gets a read-only copy of the list of all active recurring tasks.
+ *
+ * While the returned array is a copy, the `RecurringTask` objects within it
+ * are the actual instances managed by the scheduler. This is useful for
+ * inspection or for cleaning up all active tasks by iterating over the array
+ * and calling `task.cancel()` on each one.
+ *
+ * @returns A new array containing all currently active {@link RecurringTask} instances.
+ *
+ * @example
+ * Cleaning up after a test
+ * ```ts
+ * afterEach(() => {
+ *   // Ensure no recurring tasks leak between tests
+ *   for (const task of getRecurringTasks()) {
+ *     task.cancel();
+ *   }
+ * });
+ * ```
+ *
+ * @example
+ * Inspecting active tasks for debugging
+ * ```ts
+ * function logActiveRecurringTasks() {
+ *   const tasks = getRecurringTasks();
+ *   if (tasks.length > 0) {
+ *     console.log('Active recurring tasks:', tasks.map(t => `ID ${t.id}`));
+ *   } else {
+ *     console.log('No active recurring tasks.');
+ *   }
+ * }
+ * ```
+ */
+export const getRecurringTasks = () => {
+  return recurringTasks.slice();
 };
 
 /**
@@ -292,12 +333,12 @@ export const queueTask = (callback: TaskCallback) => {
  * Queue a callback to run **asynchronously** on Aurelia's central scheduler
  * and get back a {@link Task} object you can:
  *
- * * `await` – via `task.result`
+ * * `await` – directly on the `Task` object itself
  * * cancel – via `task.cancel()`
  * * inspect – via `task.status`
  *
  * Any callbacks scheduled this way are automatically tracked by the framework,
- * so `await tasksSettled()` waits until the all tasks (and any promises they return)
+ * so `await tasksSettled()` waits until all tasks (and any promises they return)
  * have finished.
  *
  * @template R The value returned by `callback`, or the value the promise it
@@ -311,11 +352,11 @@ export const queueTask = (callback: TaskCallback) => {
  *                         is queued. While waiting, the task can still be
  *                         cancelled.
  *
- * @returns The {@link Task} representing the scheduled work.
+ * @returns A thennable {@link Task} object representing the scheduled work.
  *
- * @throws {TaskAbortError} The task's `result` promise rejects with this error
+ * @throws {TaskAbortError} Awaiting the returned `Task` rejects with this error
  *                          if the task is cancelled before it starts.
- * @throws {*}              The task's `result` promise propagates any error
+ * @throws {*}              Awaiting the returned `Task` propagates any error
  *                          thrown by `callback`.
  *
  * ---
@@ -348,7 +389,8 @@ export const queueTask = (callback: TaskCallback) => {
  *     return resp.json() as Promise<SearchResult[]>;
  *   }, { delay: 300 }); // classic 300 ms debounce
  *
- *   return current.result; // awaitable by callers
+ *   // The Task is "thennable" and can be awaited directly by callers.
+ *   return current;
  * }
  * ```
  *
@@ -381,7 +423,7 @@ export const queueAsyncTask = <R = any>(callback: TaskCallback<R>, options?: { d
 
   if (task.delay != null && task.delay > 0) {
     ++pendingAsyncCount;
-    task._timerId = setTimeout(() => {
+    task._timerId = Platform.getOrCreate(globalThis).setTimeout(() => {
       --pendingAsyncCount;
       task._timerId = undefined;
 
@@ -441,21 +483,24 @@ export class Task<R = any> {
   /** @internal */
   private readonly _result: Promise<Awaited<R>>;
   /**
-   * A promise that:
-   * * **fulfils** with the callback's return value, or
-   * * **rejects** with:
-   *   * whatever error the callback throws,
-   *   * whatever rejection the callback's promise yields, or
-   *   * a {@link TaskAbortError} if the task is canceled before it starts.
+   * The underlying promise that represents the task's execution.
    *
-   * Consumers typically `await` this to know when *their* task is done without
-   * caring about unrelated work still queued.
+   * It:
+   * * **fulfils** with the callback's return value, or
+   * * **rejects** with any error from the callback or a `TaskAbortError`.
+   *
+   * It is recommended to `await` the `Task` object directly rather than its
+   * `.result` property. This property is provided for advanced use cases, such
+   * as interoperating with libraries that require a native `Promise` instance or
+   * for use with promise-composition functions like `Promise.all()`.
    *
    * @example
-   * ```ts
-   * const toastTask = queueAsyncTask(showToast, { delay: 5000 });
-   * await toastTask.result; // waits 5 s then resolves
-   * ```
+   * // Using .result with Promise.all to await multiple tasks in parallel
+   * const task1 = queueAsyncTask(fetchUserData);
+   * const task2 = queueAsyncTask(fetchSiteSettings);
+   *
+   * // We access .result here because Promise.all requires an array of Promises.
+   * const [userData, siteSettings] = await Promise.all([task1.result, task2.result]);
    */
   public get result(): Promise<Awaited<R>> {
     return this._result;
@@ -470,7 +515,7 @@ export class Task<R = any> {
    * ```ts
    * const task = queueAsyncTask(() => 123);
    * console.log(task.status); // "pending"
-   * await task.result;
+   * await task;
    * console.log(task.status); // "completed"
    * ```
    */
@@ -486,6 +531,48 @@ export class Task<R = any> {
       this._resolve = resolve;
       this._reject = reject;
     });
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.then()` method.**
+   *
+   * Attaches callbacks for the resolution and/or rejection of the Promise.
+   * @param onfulfilled The callback to execute when the Promise is resolved.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of which ever callback is executed.
+   */
+  public then<TResult1 = Awaited<R>, TResult2 = never>(
+    onfulfilled?: ((value: Awaited<R>) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
+    return this.result.then(onfulfilled, onrejected);
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.catch()` method.**
+   *
+   * Attaches a callback for only the rejection of the Promise.
+   * @param onrejected The callback to execute when the Promise is rejected.
+   * @returns A Promise for the completion of the callback.
+   */
+  public catch<TResult = never>(
+    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
+  ): Promise<Awaited<R> | TResult> {
+    return this.result.catch(onrejected);
+  }
+
+  /**
+   * **Delegates to the underlying `.result` promise's `.catch()` method.**
+   *
+   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+   * resolved value cannot be modified from the callback.
+   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+   * @returns A Promise for the completion of the callback.
+   */
+  public finally(
+    onfinally?: (() => void) | null
+  ): Promise<Awaited<R>> {
+    return this.result.finally(onfinally);
   }
 
   /** @internal */
@@ -545,7 +632,7 @@ export class Task<R = any> {
    */
   public cancel(): boolean {
     if (this._timerId !== undefined) {
-      clearTimeout(this._timerId);
+      Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
       --pendingAsyncCount;
       this._timerId = undefined;
       this._status = tsCanceled;
@@ -582,5 +669,158 @@ export class Task<R = any> {
       }
     }
     return false;
+  }
+}
+
+/**
+ * Queue a callback to run **repeatedly** on a given interval, managed by
+ * Aurelia's central scheduler.
+ *
+ * Unlike a one-off task from {@link queueAsyncTask}, this creates a persistent,
+ * timer-based operation that continues until explicitly canceled. Each
+ * execution of the callback is pushed onto the normal task queue, ensuring
+ * it runs with the same timing and error-handling as other framework tasks.
+ *
+ * This is useful for polling or any periodic background work that needs to be
+ * test-friendly and integrated with Aurelia's life-cycle.
+ *
+ * @param callback  - The function to execute on each interval. Any exception
+ *                    it throws is captured and surfaced collectively via
+ *                    `tasksSettled()` or `runTasks()` (after awaiting `task.next()`).
+ * @param opts.interval  - The delay **in milliseconds** between the end of one
+ *                         execution and the start of the next. Defaults to `0`.
+ * @returns A {@link RecurringTask} handle that lets you `cancel()` the
+ *                                  repetition or use `await task.next()` to wait for
+ *                                  the next run.
+ */
+export const queueRecurringTask = (callback: TaskCallback, opts?: { interval?: number }) => {
+  const task = new RecurringTask(callback, Math.max(opts?.interval ?? 0, 0));
+  recurringTasks.push(task);
+  task._start();
+  return task;
+};
+
+/**
+ * A handle returned by {@link queueRecurringTask} that lets you observe and
+ * control a periodic, repeating task.
+ *
+ * Unlike a single-use {@link Task}, a `RecurringTask` does not have a status
+ * or a final `result` promise. Instead, it continues to schedule itself on a
+ * given interval until it is explicitly stopped.
+ */
+export class RecurringTask {
+  /** @internal */
+  private static _nextId = 0;
+  public readonly id: number = ++RecurringTask._nextId;
+
+  /** @internal */
+  private _timerId?: number;
+  /** @internal */
+  private _canceled = false;
+  /** @internal */
+  private readonly _nextResolvers: (() => void)[] = [];
+
+  public constructor(
+    private readonly _callback: () => unknown,
+    private readonly _interval: number,
+  ) {}
+
+  /** @internal */
+  public run(): void {
+    try {
+      // TODO: possibly store return value to connect to resolver
+      this._callback();
+    } catch (err) {
+      taskErrors.push(err);
+      return;
+    }
+  }
+
+  /** @internal */
+  public _start(): void {
+    if (this._canceled) {
+      return;
+    }
+
+    this._timerId = Platform.getOrCreate(globalThis).setTimeout(() => {
+      this._tick();
+      if (!this._canceled) {
+        this._start();
+      }
+    }, this._interval);
+  }
+
+  /** @internal */
+  private _tick(): void {
+    queue.push(this);
+    requestRun();
+
+    const resolvers = this._nextResolvers.splice(0);
+    for (const resolver of resolvers) {
+      resolver();
+    }
+  }
+
+  /**
+   * Returns a promise that resolves after the next time the task's callback
+   * is queued for execution.
+   *
+   * This is useful for synchronizing other work with the task's interval,
+   * especially in tests. If the task has already been canceled, it returns an
+   * immediately-resolved promise.
+   *
+   * @returns A promise that resolves when the next interval occurs.
+   *
+   * @example
+   * Synchronizing with a polling task in a test
+   * ```ts
+   * it('updates data on a polling interval', async () => {
+   *   let count = 0;
+   *   const poller = queueRecurringTask(() => count++, { interval: 100 });
+   *
+   *   await poller.next();
+   *   await tasksSettled();
+   *   expect(count).toBe(1);
+   *
+   *   await poller.next();
+   *   await tasksSettled();
+   *   expect(count).toBe(2);
+   *
+   *   poller.cancel();
+   * });
+   * ```
+   */
+  public next(): Promise<void> {
+    if (this._canceled) {
+      return Promise.resolve();
+    }
+    return new Promise(resolve => this._nextResolvers.push(resolve));
+  }
+
+  /**
+   * Permanently stops the recurring task.
+   *
+   * This action clears any pending timer, prevents future executions, removes
+   * the task from the scheduler's list of recurring tasks, and immediately
+   * resolves any pending promises created by `next()`.
+   *
+   * Once canceled, a recurring task cannot be restarted.
+   */
+  public cancel(): void {
+    this._canceled = true;
+    if (this._timerId !== undefined) {
+      Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
+      this._timerId = undefined;
+    }
+
+    const idx = recurringTasks.indexOf(this);
+    if (idx > -1) {
+      recurringTasks.splice(idx, 1);
+    }
+
+    const resolvers = this._nextResolvers.splice(0);
+    for (const resolve of resolvers) {
+      resolve();
+    }
   }
 }

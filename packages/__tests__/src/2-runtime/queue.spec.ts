@@ -759,7 +759,7 @@ describe('2-runtime/queue.spec.ts', function () {
         const endTime = performance.now();
         assert.strictEqual(delayedTask.status, 'running', `Delayed task should have status 'running'`);
         // Math.ceil is for CI timing drift
-        assert.greaterThan(Math.ceil(endTime - startTime), delay, 'Task ran before the delay completed');
+        assert.greaterThanOrEqualTo(Math.ceil(endTime - startTime), delay, 'Task ran before the delay completed');
       }, { delay });
 
       assert.strictEqual(delayedTask.status, 'pending', `Delayed task should have status 'pending'`);

@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-/* eslint-disable max-lines-per-function */
 import { test, expect, Page } from '@playwright/test';
 
 test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
@@ -96,7 +94,7 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
 
     // Test horizontal scrolling and div count stability
     await test.step('scroll right 1000px and verify div count stable and no blank spaces', async () => {
-      const initialCounts = await getItemAndDivCount(page);
+      await getItemAndDivCount(page);
 
       // Scroll right 1000px
       await scrollHorizontally(page, 1000);
@@ -115,7 +113,7 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
         for (let i = 1; i < Math.min(3, visibleDivs.length); i++) {
           const divText = await visibleDivs[i].textContent();
           // Should match pattern like "item-0-123 @ index 123"
-          expect(divText).toMatch(/item-\d+-\d+ @ \S*\s?\d+/);
+          expect(divText).toMatch(/item-\d+-\d+ @ \d+/);
         }
       }
     });

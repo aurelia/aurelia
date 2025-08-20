@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { test, expect, Page } from '@playwright/test';
 
 test.describe('Horizontal Variable Width Virtual Repeat', () => {
@@ -17,7 +16,7 @@ test.describe('Horizontal Variable Width Virtual Repeat', () => {
     const divs = await repeatContainer?.$$('div') || [];
 
     return {
-      container: await repeatContainer.boundingBox(),
+      container: await repeatContainer?.boundingBox(),
       items: parseInt(itemsCount || '0', 10),
       divs: divs.length,
       d: await Promise.all(divs.map(d => d.textContent()))
@@ -65,7 +64,7 @@ test.describe('Horizontal Variable Width Virtual Repeat', () => {
       for (let i = 1; i < Math.min(3, visibleDivs.length); i++) {
         const divText = await visibleDivs[i].textContent();
         // Should match pattern like "item-0-123 @ 123"
-        expect(divText).toMatch(/item-\d+-\d+ @ \S*\s?\d+/);
+        expect(divText).toMatch(/item-\d+-\d+ @ \d+/);
       }
     }
   });

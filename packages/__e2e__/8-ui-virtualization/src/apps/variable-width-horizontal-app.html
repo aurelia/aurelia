@@ -19,9 +19,10 @@
   Count:
   <span data-testid="items-count">${items.length}</span>
 </div>
-<div id="repeat-container" style="overflow-x:auto; white-space:nowrap; height:100px">
+<div id="repeat-container" style="overflow:auto hidden; white-space:nowrap; height:100px">
   <div virtual-repeat.for="item of items; layout:horizontal; item-width:120; variable-width:true" even-row.class="$even" 
-       css="display:inline-block;width:${item.w}px;height:50px;">
+       css="display:inline-block;width:${item.w}px;height:50px;vertical-align:top;"
+       background-color.style="getColor(items.indexOf(item))">
     ${item.name} @ ${$index}
   </div>
 </div>

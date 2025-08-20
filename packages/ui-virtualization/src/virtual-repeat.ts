@@ -660,10 +660,10 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       botCount: botCount1
     } = this.measureBuffer(scrollerInfo, viewCount, collectionSize, itemHeight);
     // const isScrolling = $isScrolling(prevScrollerInfo, scrollerInfo);
-    const isScrollingForward = isHorizontal
+    const isScrollingTowardsEnd = isHorizontal
       ? scrollerInfo.scrollLeft > prevScrollerInfo.scrollLeft
       : scrollerInfo.scrollTop > prevScrollerInfo.scrollTop;
-    const isJumping = isScrollingForward
+    const isJumping = isScrollingTowardsEnd
       ? currFirstIndex >= prevFirstIndex + viewCount
       : currFirstIndex + viewCount <= prevFirstIndex;
     this._currScrollerInfo = scrollerInfo;
@@ -699,7 +699,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = collectionSize;
       }
-    } else if (isScrollingForward) {
+    } else if (isScrollingTowardsEnd) {
       viewsToMoveCount = currFirstIndex - prevFirstIndex;
       while (viewsToMoveCount > 0) {
         view = views.shift()!;
@@ -729,7 +729,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       }
     }
 
-    if (isScrollingForward) {
+    if (isScrollingTowardsEnd) {
       if (collectionStrategy.isNearBottom(currFirstIndex + (viewCount - 1))) {
         repeatDom.scroller.dispatchEvent(new CustomEvent(VIRTUAL_REPEAT_NEAR_BOTTOM, {
           bubbles: true,

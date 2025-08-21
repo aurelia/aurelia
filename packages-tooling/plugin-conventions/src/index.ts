@@ -9,7 +9,7 @@ export {
 export { preprocessHtmlTemplate } from './preprocess-html-template';
 export { stripMetaData } from './strip-meta-data';
 export { preprocess } from './preprocess';
-export { createTypeCheckedTemplate } from './template-typechecking';
+export { createTypeCheckedTemplate, createScopeSnapshot } from './template-typechecking';
 export {
   type INameConvention,
   type IFileUnit,

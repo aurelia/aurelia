@@ -377,6 +377,27 @@
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart",
       "preLaunchTask": "npm: build all"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Generate TTC goldens",
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register",
+        "-r",
+        "source-map-support/register"
+      ],
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json"
+      },
+      "program": "${workspaceFolder}/scripts/generate-tests/ttc-goldens.ts",
+      "cwd": "${workspaceFolder}",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "console": "integratedTerminal"
     }
   ]
 }

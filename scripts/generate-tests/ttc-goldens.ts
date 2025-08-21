@@ -1,17 +1,35 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { createTypeCheckedTemplate } from '../../packages-tooling/plugin-conventions/src/template-typechecking';
-import type { ClassMetadata, ClassMember } from '../../packages-tooling/plugin-conventions/src/preprocess-resource';
+import { createScopeSnapshot, createHtmlTypeCheckedTemplate } from '../../packages-tooling/plugin-conventions/src/template-typechecking';
+type AccessModifier = 'public' | 'protected' | 'private';
+type MemberType = 'property' | 'method' | 'accessor';
 
-type MT = ClassMember['memberType'];
-type AM = ClassMember['accessModifier'];
+export interface MethodArgument {
+  name: string;
+  type: string;
+  isOptional: boolean;
+  isSpread: boolean;
+}
+
+export interface ClassMember {
+  accessModifier: AccessModifier;
+  memberType: MemberType;
+  name: string;
+  dataType: string;
+  methodArguments: MethodArgument[] | null;
+}
+
+export interface ClassMetadata {
+  name: string;
+  members: ClassMember[];
+}
 
 const m = (
-  memberType: MT,
+  memberType: ClassMember['memberType'],
   name: string,
   dataType: string,
-  accessModifier: AM = 'public',
+  accessModifier: ClassMember['accessModifier'] = 'public',
   methodArgs: string[] = []
 ): ClassMember => ({
   name,
@@ -28,61 +46,101 @@ const m = (
 });
 const cls = (name: string, members: ClassMember[]): ClassMetadata => ({ name, members });
 
+// --- Classes / VM shapes ---------------------------------------------------------------
+// Slightly expanded to support wider scenarios while staying compact and readable.
+
 const Common = cls('Common', [
   m('property', 'firstName', 'string'),
   m('property', 'lastName', 'string'),
   m('property', 'items', 'Array<{ id: number; name: string }>'),
   m('property', 'map', 'Map<string, { x: number; y: number }>'),
   m('property', 'obj', 'Record<string, { deep: { v: boolean } }>'),
+  m('property', 'deep', '{ v: boolean }'),                  // used for $this overlay checks
   m('property', 'data', 'Promise<{ users: Array<{ id: number; email: string }> }>'),
+  m('property', 'kind', '"a" | "b" | "c"'),                 // enables switch scenarios without spurious errors
+  m('property', 'elementId', 'string'),                     // for label/for mapping tests
+  m('property', 'greeting', 'string'),                      // for contenteditable/textContent tests
+  m('property', 'composeVm', 'unknown'),                    // for au-compose boundary smoke test
   m('method', 'doThing', '(x: number, y: string) => void'),
   { ...m('method', 'secret', '() => number'), accessModifier: 'private' },
 ]);
 
 const Other = cls('Other', [
   m('property', 'status', '"idle" | "busy"'),
-  m('property', 'items', 'Set<{ id: number; tags: string[] }>()'), // name collision on purpose
+  // Intentional name collision with Common.items
+  m('property', 'items', 'Set<{ id: number; tags: string[] }>'), // (fixed type spelling)
 ]);
+
+const Form = cls('Form', [
+  m('property', 'flag', 'boolean'),                // checkbox/radio two-way default refinement
+  m('property', 'selected', 'string[]'),           // <select multiple> value binding
+]);
+
+const Refs = cls('Refs', [
+  m('property', 'el', 'HTMLElement | null'),
+  m('property', 'vmRef', 'unknown'),
+]);
+
+const Accessors = cls('Accessors', [
+  m('accessor', 'fullName', 'string'),             // accessor member type coverage
+]);
+
+// --- Scenarios -------------------------------------------------------------------------
+// Each has label, html, classes, and a brief comment on purpose/coverage.
 
 const scenarios = [
   // Baseline / simple
-  { label: '01_plain_interpolation_and_this',
+  {
+    label: '01_plain_interpolation_and_this',
     html: `<template>\${firstName} \${this.lastName}</template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // simple scope access + explicit `this.` rendering path
 
   // <let> and path indexing
-  { label: '02_let_and_indexing',
+  {
+    label: '02_let_and_indexing',
     html: `<template><let deep.bind="obj['key'].deep"></let>\${deep.v}</template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // <let> creates locals from an indexed path; overlay uses the let local
 
   // with-overlay and a call with primitive + non-primitive args
-  { label: '03_with_and_call',
+  {
+    label: '03_with_and_call',
     html: `<template><div with.bind="obj['key']">\${deep.v}<button click.trigger="doThing(1, 'ok')"></button></div></template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // with overlay sets $this; event handler lambda + callsite args exercise expression printer
 
   // repeat over array with contextuals
-  { label: '04_repeat_array',
+  {
+    label: '04_repeat_array',
     html: `<template><li repeat.for="it of items">\${$index} - \${it.name}</li></template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // repeat locals + contextual vars ($index) and collection element typing
 
   // promise then
-  { label: '05_promise_then',
+  {
+    label: '05_promise_then',
     html: `<template><div promise.bind="data"><template then="r">\${r.users[0].email}</template></div></template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // promise overlay + then alias typed via Awaited<T>
 
   // Map destructuring in repeat
-  { label: '06_repeat_map_destructure',
+  {
+    label: '06_repeat_map_destructure',
     html: `<template><div repeat.for="[k, v] of map">[\${k}] (\${v.x}, \${v.y})</div></template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // shallow array destructuring of Map entry pairs
 
   // keyed access with a local key (let)
-  { label: '07_keyed_access_with_local_key',
+  {
+    label: '07_keyed_access_with_local_key',
     html: `<template><let key.bind="'key'"></let>\${obj[key].deep.v}</template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // dynamic key from let local; bracket notation in printer
 
-  // nested: with > repeat (uses $parent) > promise.then; shows optional chaining + $index
-  // TODO: turn `promise.bind="data"` into `promise.bind="$parent.data"` when the typechecker is updated to build a path for $parent in this case
-  { label: '08_nested_with_repeat_promise_complex',
+  // nested: with > repeat ($parent) > promise.then; optional chaining + $index
+  {
+    label: '08_nested_with_repeat_promise_complex',
     html: `<template>
       <section with.bind="obj['key']">
         <article repeat.for="u of $parent.items">
@@ -92,54 +150,72 @@ const scenarios = [
         </article>
       </section>
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // multi-frame binding: with (overlay), repeat (reuse), promise (overlay) + ?. optional chaining
 
   // backticks in static HTML to exercise escaping of outer template literal
-  { label: '09_backticks_in_static_html',
+  {
+    label: '09_backticks_in_static_html',
     html: `<template><code>some \`inline\` code</code> \${firstName}</template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // HTML contains backticks; ensures overlay string escaping remains correct
 
-  // union of component classes + non-public re-exposed; intentionally references Set.size vs Array.length mismatch
-  { label: '10_union_nonpublic_reexposed',
+  // union of component classes + non-public re-exposed; Set.size vs Array.length mismatch
+  {
+    label: '10_union_nonpublic_reexposed',
     html: `<template>\${status} \${items.size} \${firstName}</template>`,
-    classes: [Common, Other] },
+    classes: [Common, Other],
+  }, // VM union (Common | Other); name collision; Set vs Array exercises type distinctions
 
   // <let to-binding-context> shadowing VM (override a VM prop)
-  { label: '11_let_to_binding_context_shadow',
+  {
+    label: '11_let_to_binding_context_shadow',
     html: `<template><let to-binding-context firstName.bind="'Overridden'"></let>\${firstName}
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // to-binding-context should not affect *read* lane; typing stays on read overlay
 
   // repeat over object keys and index back into ACC (object repeat pattern)
-  { label: '12_repeat_object_key_access',
+  {
+    label: '12_repeat_object_key_access',
     html: `<template><div repeat.for="k of obj">\${obj[k].deep.v}</div></template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // object-key repeat pattern; bracket re-index back into record
 
   // promise catch branch with error local
-  { label: '13_promise_then_and_catch',
+  {
+    label: '13_promise_then_and_catch',
     html: `<template>
       <div promise.bind="data"><template then="r">\${r.users[0].email}</template><template catch="e">\${e.message}</template></div>
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // both then/catch branches; catch alias is intentionally unknown-typed in MVP
 
   // with overlay should not affect "this." (VM access)
-  { label: '14_this_vs_with_overlay',
+  {
+    label: '14_this_vs_with_overlay',
     html: `<template><div with.bind="obj['key']">\${deep.v} \${this.firstName}</div></template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // ensures `this.` keeps pointing to VM when under overlay
 
-  { label: '15_with_overlay_$this_and_$parent',
+  {
+    label: '15_with_overlay_$this_and_$parent',
     html: `<template>
       <div with.bind="deep">
         \${$this.v} \${$parent.firstName} \${this.firstName}
       </div>
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // explicit $this and $parent usage together with this.
 
-  { label: '16_value_converter_and_behavior_chaining',
+  {
+    label: '16_value_converter_and_behavior_chaining',
     html: `<template>\${(firstName + ' ' + lastName) | vc1:(1 + 2) | vc2 & bb1:deep.v & bb2}</template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // converter + behavior chains are transparent to TTC; printer strips wrappers
 
-  { label: '17_repeat_number_contextuals',
+  {
+    label: '17_repeat_number_contextuals',
     html: `<template>
       <div repeat.for="i of 3">
         i=\${i}
@@ -152,9 +228,11 @@ const scenarios = [
         mid=\${$middle}
       </div>
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // numeric repeat; all contextuals present and correctly typed
 
-  { label: '18_switch_no_scope_no_narrowing',
+  {
+    label: '18_switch_no_scope_no_narrowing',
     html: `<template>
       <div switch.bind="kind">
         <template case.bind="'a'">\${firstName}</template>
@@ -162,26 +240,200 @@ const scenarios = [
         <template default-case>\${firstName}</template>
       </div>
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // switch reuses scope; no overlay; no narrowing expected at TTC stage
 
-  { label: '19_portal_uses_parent_scope',
+  {
+    label: '19_portal_uses_parent_scope',
     html: `<template>
       <template portal>
         \${firstName} \${this.lastName} \${$parent && $parent.firstName}
       </template>
     </template>`,
-    classes: [Common] },
+    classes: [Common],
+  }, // portal reuses parent frame; $parent hop remains valid at site
 
-  { label: '20_let_shadow_vs_binding_context',
+  {
+    label: '20_let_shadow_vs_binding_context',
     html: `<template>
       <let firstName.bind="'X'"></let>
       <div>\${firstName} \${this.firstName}</div>
       <let to-binding-context firstName.bind="'Y'"></let>
       <div>\${firstName} \${this.firstName}</div>
     </template>`,
-    classes: [Common] },
-];
+    classes: [Common],
+  }, // contrasts shadowing (local) vs binding-context override; read lane remains lexical
 
+  // -------------------------------------------------------------------------------------
+  // Added breadth & depth
+  // -------------------------------------------------------------------------------------
+
+  {
+    label: '21_attr_preserve_aria_data',
+    html: `<template><div aria-label="\${firstName}" data-test="\${lastName}"></div></template>`,
+    classes: [Common],
+  }, // attribute interpolation to preserved prefixes should *not* map to props (attr-only target)
+
+  {
+    label: '22_label_for_normalization',
+    html: `<template><label for.bind="elementId">\${firstName}</label></template>`,
+    classes: [Common],
+  }, // attr→prop normalization: `for` → `htmlFor` (per-tag/prioritized over global)
+
+  {
+    label: '23_style_prop_vs_style_attr',
+    html: `<template>
+      <div style.background-color.bind="'red'"></div>
+      <div style="\${firstName}"></div>
+    </template>`,
+    classes: [Common],
+  }, // `.style` command hits style object typing; `style="…"` interpolation stays string attribute
+
+  {
+    label: '24_class_command_vs_attr_interp',
+    html: `<template>
+      <div class.bind="'a b'"></div>
+      <div class="x-\${firstName} y"></div>
+    </template>`,
+    classes: [Common],
+  }, // `.class` command vs attribute interpolation on `class`
+
+  {
+    label: '25_colon_bind_shorthand',
+    html: `<template><input :value="firstName" :disabled="false" /></template>`,
+    classes: [Common],
+  }, // `:prop` shorthand maps to toView property bindings (parser shorthand coverage)
+
+  {
+    label: '26_events_trigger_capture_modifier',
+    html: `<template>
+      <input @keydown.once="doThing(1, 'k')" />
+      <button click.capture="doThing(2, 'cap')"></button>
+    </template>`,
+    classes: [Common],
+  }, // `@event[:modifier]` and `.capture/.trigger` event syntax + event type hints
+
+  {
+    label: '27_ref_binding_element_and_vm',
+    html: `<template>
+      <div ref="el"></div>
+      <au-compose ref="vmRef"></au-compose>
+    </template>`,
+    classes: [Refs],
+  }, // `ref` expression sites map to frame; element vs component ref shapes are analysis-time
+
+  {
+    label: '28_input_checkbox_two_way_refinement',
+    html: `<template><input type="checkbox" checked.bind="flag" /></template>`,
+    classes: [Form],
+  }, // two-way default refined by static type=checkbox (linker hint parity)
+
+  {
+    label: '29_contenteditable_conditional_two_way',
+    html: `<template><div contenteditable="true" textcontent.bind="greeting"></div></template>`,
+    classes: [Common],
+  }, // conditional two-way case for textContent when [contenteditable] (linker hint for analysis)
+
+  {
+    label: '30_select_multiple_value_array',
+    html: `<template>
+      <select multiple value.bind="selected">
+        <option repeat.for="it of items" value.bind="it.name">\${it.name}</option>
+      </select>
+    </template>`,
+    classes: [Common, Form],
+  }, // <select multiple> → value as string[]; repeat inside select to exercise nested scopes
+
+  {
+    label: '31_switch_inside_repeat_case_expr',
+    html: `<template>
+      <div repeat.for="u of items">
+        <div switch.bind="u.id % 2">
+          <template case.bind="0">\${u.name}-even</template>
+          <template case.bind="1">\${u.name}-odd</template>
+        </div>
+      </div>
+    </template>`,
+    classes: [Common],
+  }, // switch reuse inside repeat loop; case expressions evaluated in outer frame
+
+  {
+    label: '32_deep_$parent_chain_two_hops',
+    html: `<template>
+      <section with.bind="obj['key']">
+        <ul repeat.for="it of items">
+          <li>\${$parent.$parent.firstName} - \${it.name}</li>
+        </ul>
+      </section>
+    </template>`,
+    classes: [Common],
+  }, // verifies printer path for `$parent.$parent` chains; maps to correct frames
+
+  {
+    label: '33_let_value_template_interpolation',
+    html: `<template>
+      <let greet.bind="\`Hi \${firstName}\`"></let>
+      <span>\${greet}</span>
+    </template>`,
+    classes: [Common],
+  }, // <let> value is a template expression; we record first embedded expr id for typing
+
+  {
+    label: '34_repeat_duplicate_local_diagnostic',
+    html: `<template><div repeat.for="[a, a] of items">\${a}</div></template>`,
+    classes: [Common],
+  }, // duplicate local name in same frame should surface AU1202 from ScopeGraph
+
+  {
+    label: '35_promise_then_default_alias',
+    html: `<template>
+      <div promise.bind="data">
+        <template then>\${then.users.length}</template>
+      </div>
+    </template>`,
+    classes: [Common],
+  }, // branch alias omitted value → default alias name 'then' is materialized
+
+  {
+    label: '36_switch_default_only',
+    html: `<template>
+      <div switch.bind="items.length">
+        <template default-case>\${firstName}-fallback</template>
+      </div>
+    </template>`,
+    classes: [Common],
+  }, // switch with only default-case; reuse scope; no case prop
+
+  {
+    label: '37_portal_inside_with_reuse_scope',
+    html: `<template>
+      <div with.bind="deep">
+        <template portal>\${$parent.firstName}:\${$this.v}</template>
+      </div>
+    </template>`,
+    classes: [Common],
+  }, // portal content evaluates in parent scope even when authored under with overlay
+
+  {
+    label: '38_au_compose_boundary_smoke',
+    html: `<template>
+      <au-compose view-model.bind="composeVm" model.bind="obj"></au-compose>
+    </template>`,
+    classes: [Common],
+  }, // custom element boundary present; bindings still type-check on VM side (composeVm/obj)
+
+  {
+    label: '39_attr_command_explicit',
+    html: `<template><div attr.data-foo.bind="firstName"></div></template>`,
+    classes: [Common],
+  }, // `.attr` command forces attribute binding for arbitrary attribute names
+
+  {
+    label: '40_accessor_member_usage',
+    html: `<template>\${fullName}</template>`,
+    classes: [Accessors],
+  }, // accessor-only member (no callable args) is treated like a readable property
+];
 const ROOT = path.resolve(__dirname, '../..');
 const TESTS_ROOT = path.join(ROOT, 'packages-tooling/__tests__');
 
@@ -226,6 +478,24 @@ function write(rel: string, contents: string) {
   fs.writeFileSync(target, eol(contents), 'utf8');
 }
 
+const prependJs = `// @ts-check
+/**
+ * @template TCollection
+ * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never} CollectionElement
+ */
+/**
+ * @template T
+ * @param {(o: T) => unknown} _fn
+ * @returns {void}
+ */
+function __au$access(_fn) { /* no-op */ }`;
+
+const prependTs = `// @ts-check
+type CollectionElement<TCollection> = TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never;
+/* @internal */
+const __au$access = <T>(_fn: (o: T) => unknown): void => { /* no-op */ };
+`;
+
 (function main() {
   [SRC_TS, SRC_JS].forEach(ensure);
 
@@ -236,13 +506,15 @@ function write(rel: string, contents: string) {
   fs.writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 
   for (const s of scenarios) {
-    const tsOut = createTypeCheckedTemplate(s.html, s.classes, false);
-    const jsOut = createTypeCheckedTemplate(s.html, s.classes, true);
+    const tsOut = createHtmlTypeCheckedTemplate(s.html, s.classes, false);
+    const jsOut = createHtmlTypeCheckedTemplate(s.html, s.classes, true);
+    const jsonOut = createScopeSnapshot(s.html);
 
     const srcHeader = renderSourceHeader(s.html, s.classes);
 
-    write(`ts/${s.label}.ts`, header(s.label) + srcHeader + tsOut);
-    write(`js/${s.label}.ts`, header(s.label) + srcHeader + jsOut);
+    write(`ts/${s.label}.ts`, header(s.label) + srcHeader + prependTs + tsOut);
+    write(`js/${s.label}.ts`, header(s.label) + srcHeader + prependJs + jsOut);
+    write(`json/${s.label}.json`, jsonOut);
   }
 
   console.log(`[ttc-goldens] wrote ${scenarios.length} scenarios to:\n  - ${SRC_GOLDEN}`);

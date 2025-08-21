@@ -16,9 +16,10 @@ import {
   ValidateInstruction,
   ValidationRuleAliasMessage,
   IValidationRule,
+  GroupRule,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
-import { Person, Address, Organization } from './_test-resources.js';
+import { Person, Address, Organization, Flight } from './_test-resources.js';
 import { ExpressionParser } from '@aurelia/expression-parser';
 
 describe('validation/validator.spec.ts', function () {
@@ -504,6 +505,215 @@ describe('validation/validator.spec.ts', function () {
 
       assert.deepEqual(result1.map((r) => r.toString()), [msg1]);
       assert.deepEqual(result2.map((r) => r.toString()), ['B must be 42.', msg2]);
+
+      rules.off();
+    });
+
+    it('can validate grouped properties', async function () {
+
+      const { sut, validationRules: rules } = setup();
+      const flight = new Flight();
+
+      const currentDate = new Date('2025-07-20T00:00:00Z');
+
+      const msgInvalidFlightDirection = 'Invalid flight direction';
+      const msgNoTimeTravelPossible = 'No time travel possible';
+      const msgNotPossibleToGoBackInTime = 'Not possible to go back in time';
+      const msgOneWayHasNoReturn = 'One way flight has no return';
+
+      rules
+        .on(flight)
+        .ensure('direction')
+        .required()
+        .ensureGroup(
+          ['direction', 'departureDate', 'returnDate'],
+          (direction: 'one-way' | 'round-trip', departureDate: Date | undefined, returnDate: Date | undefined) => {
+            // if the direction is not yet specified, we don't have to validate anything
+            if (!direction) return true;
+            switch (direction) {
+              case 'round-trip':
+                return departureDate > returnDate
+                  ? { property: 'departureDate', message: msgNotPossibleToGoBackInTime }
+                  : true;
+              case 'one-way':
+                if (departureDate < currentDate) return { property: 'departureDate', message: msgNoTimeTravelPossible };
+                if (returnDate) return { property: 'returnDate', message: msgOneWayHasNoReturn };
+                return true;
+              default:
+                return { property: 'direction', message: msgInvalidFlightDirection };
+            }
+          });
+
+      const allInstr = new ValidateInstruction(flight);
+      const [directionInstr, departureDateInstr, returnDateInstr] = ['direction', 'departureDate', 'returnDate'].map((p) => new ValidateInstruction(flight, p));
+
+      let results: ValidationResult[];
+
+      // no direction - basic happy path still works
+      results = await sut.validate(allInstr);
+      assert.equal(results.length, 10, 'round#1 - length');
+      assertValidationResult(results[0], false, 'direction', flight, RequiredRule, 'Direction is required.');
+      for (let i = 0; i < 9;) {
+        assertValidationResult(results[++i], true, 'direction', flight, GroupRule);
+        assertValidationResult(results[++i], true, 'departureDate', flight, GroupRule);
+        assertValidationResult(results[++i], true, 'returnDate', flight, GroupRule);
+      }
+
+      // #region invalid direction
+      flight.direction = 'foo' as any;
+      results = await sut.validate(allInstr);
+      assert.equal(results.length, 10, 'round#2 - length');
+      assert.strictEqual(results[0].valid, true, 'round#2 - rule#1 valid');
+      for (let i = 0; i < 9;) {
+        assertValidationResult(results[++i], false, 'direction', flight, GroupRule, msgInvalidFlightDirection);
+        assertValidationResult(results[++i], true, 'departureDate', flight, GroupRule);
+        assertValidationResult(results[++i], true, 'returnDate', flight, GroupRule);
+      }
+
+      results = await sut.validate(directionInstr);
+      assert.equal(results.length, 4, 'round#2 - directionInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, RequiredRule);
+      assertValidationResult(results[1], false, 'direction', flight, GroupRule, msgInvalidFlightDirection);
+      assertValidationResult(results[2], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[3], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(departureDateInstr);
+      assert.equal(results.length, 3, 'round#2 - departureDateInstr length');
+      assertValidationResult(results[0], false, 'direction', flight, GroupRule, msgInvalidFlightDirection);
+      assertValidationResult(results[1], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(returnDateInstr);
+      assert.equal(results.length, 3, 'round#2 - returnDateInstr length');
+      assertValidationResult(results[0], false, 'direction', flight, GroupRule, msgInvalidFlightDirection);
+      assertValidationResult(results[1], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+      // #endregion
+
+      // #region one-way
+      flight.direction = 'one-way';
+      flight.departureDate = new Date('2025-07-19T00:00:00Z');
+      results = await sut.validate(allInstr);
+      assert.strictEqual(results[0].valid, true, 'round#3 - rule#1 valid');
+      for (let i = 0; i < 9;) {
+        assertValidationResult(results[++i], true, 'direction', flight, GroupRule);
+        assertValidationResult(results[++i], false, 'departureDate', flight, GroupRule, msgNoTimeTravelPossible);
+        assertValidationResult(results[++i], true, 'returnDate', flight, GroupRule);
+      }
+
+      results = await sut.validate(directionInstr);
+      assert.equal(results.length, 4, 'round#3 - directionInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, RequiredRule);
+      assertValidationResult(results[1], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[2], false, 'departureDate', flight, GroupRule, msgNoTimeTravelPossible);
+      assertValidationResult(results[3], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(departureDateInstr);
+      assert.equal(results.length, 3, 'round#3 - departureDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], false, 'departureDate', flight, GroupRule, msgNoTimeTravelPossible);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(returnDateInstr);
+      assert.equal(results.length, 3, 'round#3 - returnDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], false, 'departureDate', flight, GroupRule, msgNoTimeTravelPossible);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+      // #endregion
+
+      // #region one-way with return date
+      flight.departureDate = new Date('2025-07-21T00:00:00Z');
+      flight.returnDate = new Date('2025-07-19T00:00:00Z');
+      results = await sut.validate(allInstr);
+      assert.equal(results.length, 10, 'round#4 - length');
+      assert.strictEqual(results[0].valid, true, 'round#4 - rule#1 valid');
+      for (let i = 0; i < 9;) {
+        assertValidationResult(results[++i], true, 'direction', flight, GroupRule);
+        assertValidationResult(results[++i], true, 'departureDate', flight, GroupRule);
+        assertValidationResult(results[++i], false, 'returnDate', flight, GroupRule, msgOneWayHasNoReturn);
+      }
+
+      results = await sut.validate(directionInstr);
+      assert.equal(results.length, 4, 'round#4 - directionInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, RequiredRule);
+      assertValidationResult(results[1], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[2], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[3], false, 'returnDate', flight, GroupRule, msgOneWayHasNoReturn);
+
+      results = await sut.validate(departureDateInstr);
+      assert.equal(results.length, 3, 'round#4 - departureDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[2], false, 'returnDate', flight, GroupRule, msgOneWayHasNoReturn);
+
+      results = await sut.validate(returnDateInstr);
+      assert.equal(results.length, 3, 'round#4 - returnDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[2], false, 'returnDate', flight, GroupRule, msgOneWayHasNoReturn);
+      // #endregion
+
+      // #region round-trip
+      flight.direction = 'round-trip';
+      results = await sut.validate(allInstr);
+      assert.equal(results.length, 10, 'round#5 - length');
+      assert.strictEqual(results[0].valid, true, 'round#5 - rule#1 valid');
+      for (let i = 0; i < 9;) {
+        assertValidationResult(results[++i], true, 'direction', flight, GroupRule);
+        assertValidationResult(results[++i], false, 'departureDate', flight, GroupRule, msgNotPossibleToGoBackInTime);
+        assertValidationResult(results[++i], true, 'returnDate', flight, GroupRule);
+      }
+
+      results = await sut.validate(directionInstr);
+      assert.equal(results.length, 4, 'round#5 - directionInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, RequiredRule);
+      assertValidationResult(results[1], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[2], false, 'departureDate', flight, GroupRule, msgNotPossibleToGoBackInTime);
+      assertValidationResult(results[3], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(departureDateInstr);
+      assert.equal(results.length, 3, 'round#5 - departureDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], false, 'departureDate', flight, GroupRule, msgNotPossibleToGoBackInTime);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(returnDateInstr);
+      assert.equal(results.length, 3, 'round#5 - returnDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], false, 'departureDate', flight, GroupRule, msgNotPossibleToGoBackInTime);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+      // #endregion
+
+      // #region round-trip with valid dates
+      flight.returnDate = new Date('2025-07-23T00:00:00Z');
+      results = await sut.validate(allInstr);
+      assert.equal(results.length, 10, 'round#6 - length');
+      assertValidationResult(results[0], true, 'direction', flight, RequiredRule);
+      for (let i = 0; i < 9;) {
+        assertValidationResult(results[++i], true, 'direction', flight, GroupRule);
+        assertValidationResult(results[++i], true, 'departureDate', flight, GroupRule);
+        assertValidationResult(results[++i], true, 'returnDate', flight, GroupRule);
+      }
+
+      results = await sut.validate(directionInstr);
+      assert.equal(results.length, 4, 'round#6 - directionInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, RequiredRule);
+      assertValidationResult(results[1], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[2], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[3], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(departureDateInstr);
+      assert.equal(results.length, 3, 'round#6 - departureDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+
+      results = await sut.validate(returnDateInstr);
+      assert.equal(results.length, 3, 'round#6 - returnDateInstr length');
+      assertValidationResult(results[0], true, 'direction', flight, GroupRule);
+      assertValidationResult(results[1], true, 'departureDate', flight, GroupRule);
+      assertValidationResult(results[2], true, 'returnDate', flight, GroupRule);
+      // #endregion
 
       rules.off();
     });

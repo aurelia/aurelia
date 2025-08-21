@@ -1,0 +1,159 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_46006e00f005e950",
+              "code": "data",
+              "loc": {
+                "start": 15,
+                "end": 34,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 15,
+              "end": 34,
+              "file": ""
+            }
+          },
+          "symbols": []
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_46006e00f005e950",
+              "code": "data",
+              "loc": {
+                "start": 15,
+                "end": 34,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 15,
+              "end": 34,
+              "file": ""
+            }
+          },
+          "symbols": [
+            {
+              "kind": "promiseAlias",
+              "name": "r",
+              "span": {
+                "start": 35,
+                "end": 84,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_46006e00f005e950": 1,
+        "expr_e29b1880642378c0": 2
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "promise.bind",
+                      "value": "data"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "then",
+                          "value": "r"
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "${r.users[0].email}",
+                          "loc": {
+                            "start": 54,
+                            "end": 73,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 35,
+                        "end": 84,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 10,
+                    "end": 90,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 101,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

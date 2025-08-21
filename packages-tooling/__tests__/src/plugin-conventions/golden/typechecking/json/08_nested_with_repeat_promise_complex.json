@@ -1,0 +1,394 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "with",
+            "from": {
+              "kind": "expr",
+              "id": "expr_a8fcc940a0706840",
+              "code": "obj['key']",
+              "loc": {
+                "start": 26,
+                "end": 48,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 26,
+              "end": 48,
+              "file": ""
+            }
+          },
+          "symbols": []
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "kind": "overlay",
+          "overlay": null,
+          "symbols": [
+            {
+              "kind": "repeatLocal",
+              "name": "u",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$index",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$first",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$last",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$even",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$odd",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$length",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$middle",
+              "span": {
+                "start": 67,
+                "end": 98,
+                "file": ""
+              }
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "parent": 2,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_3b58b4003a6c5a60",
+              "code": "data",
+              "loc": {
+                "start": 115,
+                "end": 134,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 115,
+              "end": 134,
+              "file": ""
+            }
+          },
+          "symbols": []
+        },
+        {
+          "id": 4,
+          "parent": 3,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_3b58b4003a6c5a60",
+              "code": "data",
+              "loc": {
+                "start": 115,
+                "end": 134,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 115,
+              "end": 134,
+              "file": ""
+            }
+          },
+          "symbols": [
+            {
+              "kind": "promiseAlias",
+              "name": "r",
+              "span": {
+                "start": 148,
+                "end": 213,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_3acd0180c88f2dc0": 4,
+        "expr_3b58b4003a6c5a60": 3,
+        "expr_705444807f16f000": 1,
+        "expr_a8fcc940a0706840": 0,
+        "expr_c6cd5f8010c938c0": 4
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "section",
+                  "attrs": [
+                    {
+                      "name": "with.bind",
+                      "value": "obj['key']"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 49,
+                        "end": 58,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "element",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "tag": "article",
+                      "attrs": [
+                        {
+                          "name": "repeat.for",
+                          "value": "u of $parent.items"
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "\n          ",
+                          "loc": {
+                            "start": 99,
+                            "end": 110,
+                            "file": ""
+                          }
+                        },
+                        {
+                          "kind": "element",
+                          "id": "0/0/0/0/0",
+                          "ns": "html",
+                          "tag": "div",
+                          "attrs": [
+                            {
+                              "name": "promise.bind",
+                              "value": "data"
+                            }
+                          ],
+                          "children": [
+                            {
+                              "kind": "text",
+                              "id": "0/0/0/0/0#text@0",
+                              "ns": "html",
+                              "text": "\n            ",
+                              "loc": {
+                                "start": 135,
+                                "end": 148,
+                                "file": ""
+                              }
+                            },
+                            {
+                              "kind": "template",
+                              "id": "0/0/0/0/0/0",
+                              "ns": "html",
+                              "attrs": [
+                                {
+                                  "name": "then",
+                                  "value": "r"
+                                }
+                              ],
+                              "children": [
+                                {
+                                  "kind": "text",
+                                  "id": "0/0/0/0/0/0#text@0",
+                                  "ns": "html",
+                                  "text": "${u.name}-${r.users[$index]?.email}",
+                                  "loc": {
+                                    "start": 167,
+                                    "end": 202,
+                                    "file": ""
+                                  }
+                                }
+                              ],
+                              "loc": {
+                                "start": 148,
+                                "end": 213,
+                                "file": ""
+                              }
+                            },
+                            {
+                              "kind": "text",
+                              "id": "0/0/0/0/0#text@1",
+                              "ns": "html",
+                              "text": "\n          ",
+                              "loc": {
+                                "start": 213,
+                                "end": 224,
+                                "file": ""
+                              }
+                            }
+                          ],
+                          "selfClosed": false,
+                          "loc": {
+                            "start": 110,
+                            "end": 230,
+                            "file": ""
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@1",
+                          "ns": "html",
+                          "text": "\n        ",
+                          "loc": {
+                            "start": 230,
+                            "end": 239,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "selfClosed": false,
+                      "loc": {
+                        "start": 58,
+                        "end": 249,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@1",
+                      "ns": "html",
+                      "text": "\n      ",
+                      "loc": {
+                        "start": 249,
+                        "end": 256,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 266,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 266,
+                    "end": 271,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 282,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

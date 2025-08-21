@@ -1,0 +1,63 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_1bd1a240904c0f80": 0,
+        "expr_db73e300958b21a0": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0#text@0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "${firstName} ${this.lastName}",
+                  "loc": {
+                    "start": 10,
+                    "end": 39,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 50,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

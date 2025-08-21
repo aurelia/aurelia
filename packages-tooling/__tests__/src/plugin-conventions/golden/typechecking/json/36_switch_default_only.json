@@ -1,0 +1,145 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_ac3380005b1eb380": 0,
+        "expr_be0fc200822e84e0": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "switch.bind",
+                      "value": "items.length"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 49,
+                        "end": 58,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "default-case",
+                          "value": ""
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "${firstName}-fallback",
+                          "loc": {
+                            "start": 81,
+                            "end": 102,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 58,
+                        "end": 113,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@1",
+                      "ns": "html",
+                      "text": "\n      ",
+                      "loc": {
+                        "start": 113,
+                        "end": 120,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 126,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 126,
+                    "end": 131,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 142,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

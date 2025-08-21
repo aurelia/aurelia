@@ -44,10 +44,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -111,10 +146,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -178,10 +248,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -245,10 +350,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -312,10 +452,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -379,10 +554,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -446,10 +656,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -513,10 +758,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -580,10 +860,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -647,10 +962,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -683,7 +1033,7 @@
               "name": "items",
               "memberType": "property",
               "accessModifier": "public",
-              "dataType": "Set<{ id: number; tags: string[] }>()",
+              "dataType": "Set<{ id: number; tags: string[] }>",
               "methodArguments": null
             }
           ]
@@ -733,10 +1083,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -800,10 +1185,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -867,10 +1287,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -934,10 +1389,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1001,10 +1491,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1068,10 +1593,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1135,10 +1695,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1202,10 +1797,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1269,10 +1899,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1336,10 +2001,45 @@
               "methodArguments": null
             },
             {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
               "name": "data",
               "memberType": "property",
               "accessModifier": "public",
               "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
               "methodArguments": null
             },
             {
@@ -1355,6 +2055,1827 @@
               "accessModifier": "private",
               "dataType": "() => number",
               "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "21_attr_preserve_aria_data",
+      "html": "<template><div aria-label=\"${firstName}\" data-test=\"${lastName}\"></div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "22_label_for_normalization",
+      "html": "<template><label for.bind=\"elementId\">${firstName}</label></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "23_style_prop_vs_style_attr",
+      "html": "<template>\n      <div style.background-color.bind=\"'red'\"></div>\n      <div style=\"${firstName}\"></div>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "24_class_command_vs_attr_interp",
+      "html": "<template>\n      <div class.bind=\"'a b'\"></div>\n      <div class=\"x-${firstName} y\"></div>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "25_colon_bind_shorthand",
+      "html": "<template><input :value=\"firstName\" :disabled=\"false\" /></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "26_events_trigger_capture_modifier",
+      "html": "<template>\n      <input @keydown.once=\"doThing(1, 'k')\" />\n      <button click.capture=\"doThing(2, 'cap')\"></button>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "27_ref_binding_element_and_vm",
+      "html": "<template>\n      <div ref=\"el\"></div>\n      <au-compose ref=\"vmRef\"></au-compose>\n    </template>",
+      "classes": [
+        {
+          "name": "Refs",
+          "members": [
+            {
+              "name": "el",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "HTMLElement | null",
+              "methodArguments": null
+            },
+            {
+              "name": "vmRef",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "28_input_checkbox_two_way_refinement",
+      "html": "<template><input type=\"checkbox\" checked.bind=\"flag\" /></template>",
+      "classes": [
+        {
+          "name": "Form",
+          "members": [
+            {
+              "name": "flag",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "boolean",
+              "methodArguments": null
+            },
+            {
+              "name": "selected",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string[]",
+              "methodArguments": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "29_contenteditable_conditional_two_way",
+      "html": "<template><div contenteditable=\"true\" textcontent.bind=\"greeting\"></div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "30_select_multiple_value_array",
+      "html": "<template>\n      <select multiple value.bind=\"selected\">\n        <option repeat.for=\"it of items\" value.bind=\"it.name\">${it.name}</option>\n      </select>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        },
+        {
+          "name": "Form",
+          "members": [
+            {
+              "name": "flag",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "boolean",
+              "methodArguments": null
+            },
+            {
+              "name": "selected",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string[]",
+              "methodArguments": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "31_switch_inside_repeat_case_expr",
+      "html": "<template>\n      <div repeat.for=\"u of items\">\n        <div switch.bind=\"u.id % 2\">\n          <template case.bind=\"0\">${u.name}-even</template>\n          <template case.bind=\"1\">${u.name}-odd</template>\n        </div>\n      </div>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "32_deep_$parent_chain_two_hops",
+      "html": "<template>\n      <section with.bind=\"obj['key']\">\n        <ul repeat.for=\"it of items\">\n          <li>${$parent.$parent.firstName} - ${it.name}</li>\n        </ul>\n      </section>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "33_let_value_template_interpolation",
+      "html": "<template>\n      <let greet.bind=\"`Hi ${firstName}`\"></let>\n      <span>${greet}</span>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "34_repeat_duplicate_local_diagnostic",
+      "html": "<template><div repeat.for=\"[a, a] of items\">${a}</div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "35_promise_then_default_alias",
+      "html": "<template>\n      <div promise.bind=\"data\">\n        <template then>${then.users.length}</template>\n      </div>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "36_switch_default_only",
+      "html": "<template>\n      <div switch.bind=\"items.length\">\n        <template default-case>${firstName}-fallback</template>\n      </div>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "37_portal_inside_with_reuse_scope",
+      "html": "<template>\n      <div with.bind=\"deep\">\n        <template portal>${$parent.firstName}:${$this.v}</template>\n      </div>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "38_au_compose_boundary_smoke",
+      "html": "<template>\n      <au-compose view-model.bind=\"composeVm\" model.bind=\"obj\"></au-compose>\n    </template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "39_attr_command_explicit",
+      "html": "<template><div attr.data-foo.bind=\"firstName\"></div></template>",
+      "classes": [
+        {
+          "name": "Common",
+          "members": [
+            {
+              "name": "firstName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "lastName",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "items",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Array<{ id: number; name: string }>",
+              "methodArguments": null
+            },
+            {
+              "name": "map",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Map<string, { x: number; y: number }>",
+              "methodArguments": null
+            },
+            {
+              "name": "obj",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Record<string, { deep: { v: boolean } }>",
+              "methodArguments": null
+            },
+            {
+              "name": "deep",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "{ v: boolean }",
+              "methodArguments": null
+            },
+            {
+              "name": "data",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "Promise<{ users: Array<{ id: number; email: string }> }>",
+              "methodArguments": null
+            },
+            {
+              "name": "kind",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "\"a\" | \"b\" | \"c\"",
+              "methodArguments": null
+            },
+            {
+              "name": "elementId",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "greeting",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
+            },
+            {
+              "name": "composeVm",
+              "memberType": "property",
+              "accessModifier": "public",
+              "dataType": "unknown",
+              "methodArguments": null
+            },
+            {
+              "name": "doThing",
+              "memberType": "method",
+              "accessModifier": "public",
+              "dataType": "(x: number, y: string) => void",
+              "methodArguments": []
+            },
+            {
+              "name": "secret",
+              "memberType": "method",
+              "accessModifier": "private",
+              "dataType": "() => number",
+              "methodArguments": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "40_accessor_member_usage",
+      "html": "<template>${fullName}</template>",
+      "classes": [
+        {
+          "name": "Accessors",
+          "members": [
+            {
+              "name": "fullName",
+              "memberType": "accessor",
+              "accessModifier": "public",
+              "dataType": "string",
+              "methodArguments": null
             }
           ]
         }

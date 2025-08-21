@@ -20,23 +20,29 @@ class Common {
  public items: Array<{ id: number; name: string }>
  public map: Map<string, { x: number; y: number }>
  public obj: Record<string, { deep: { v: boolean } }>
+ public deep: { v: boolean }
  public data: Promise<{ users: Array<{ id: number; email: string }> }>
+ public kind: "a" | "b" | "c"
+ public elementId: string
+ public greeting: string
+ public composeVm: unknown
  public doThing: (x: number, y: string) => void
  private secret: () => number
 }
 
 // === EMIT ===
-
-type __Template_Type_Common__ = Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any };
-function __typecheck_template_Common__() {
-  
-  const access = <T extends object>(typecheck: (o: T) => unknown, expr: string) => expr;
+// @ts-check
+type CollectionElement<TCollection> = TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never;
+/* @internal */
+const __au$access = <T>(_fn: (o: T) => unknown): void => { /* no-op */ };
+type __AU_TTC_T0_F0 = (Common) & { $parent: unknown };
+function __typecheck_template_Common__(): string {
+  const access = <T extends object>(typecheck: (o: T) => unknown, expr: string): string => expr;
   return `<template>
-      <div switch.bind="${access<__Template_Type_Common__>(o => o.kind, 'kind')}">
-        <template case.bind="'a'">${access<__Template_Type_Common__>(o => o.firstName, 'firstName')}</template>
-        <template case.bind="'b'">${access<__Template_Type_Common__>(o => o.lastName, 'lastName')}</template>
-        <template default-case>${access<__Template_Type_Common__>(o => o.firstName, 'firstName')}</template>
+      <div switch.bind="${access<__AU_TTC_T0_F0>(o => o.firstName, "kind")}">
+        <template case.bind="'a'">${access<__AU_TTC_T0_F0>(o => o.kind, "firstName")}</template>
+        <template case.bind="'b'">${access<__AU_TTC_T0_F0>(o => o.firstName, "lastName")}</template>
+        <template default-case>${access<__AU_TTC_T0_F0>(o => o.lastName, "firstName")}</template>
       </div>
     </template>`;
 }
-

@@ -1,0 +1,93 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": [
+            {
+              "kind": "let",
+              "name": "deep",
+              "span": {
+                "start": 10,
+                "end": 49,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_5376c800e2e6e200": 0,
+        "expr_5ab7db006f9d2340": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 2,
+        "rowTargets": [
+          "0/0/0",
+          "0/0#text@0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "let",
+                  "attrs": [
+                    {
+                      "name": "deep.bind",
+                      "value": "obj['key'].deep"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 10,
+                    "end": 49,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "${deep.v}",
+                  "loc": {
+                    "start": 49,
+                    "end": 58,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 69,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

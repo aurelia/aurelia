@@ -1,0 +1,124 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_331498c04c8ecb00": 0,
+        "expr_6f89290001f87b80": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 2,
+        "rowTargets": [
+          "0/0/0",
+          "0/0/1"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "class.bind",
+                      "value": "'a b'"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 47,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 47,
+                    "end": 54,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/1",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "class",
+                      "value": "x-${firstName} y"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 54,
+                    "end": 90,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@2",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 90,
+                    "end": 95,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 106,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

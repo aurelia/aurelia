@@ -1,0 +1,74 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_515dd50044b21980": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "input",
+                  "attrs": [
+                    {
+                      "name": "type",
+                      "value": "checkbox"
+                    },
+                    {
+                      "name": "checked.bind",
+                      "value": "flag"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 10,
+                    "end": 55,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 66,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

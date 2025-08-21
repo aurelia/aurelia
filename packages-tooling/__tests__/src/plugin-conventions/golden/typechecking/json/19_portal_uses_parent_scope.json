@@ -1,0 +1,105 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_39bf29007693bac0": 0,
+        "expr_97bddf80b3bca2c0": 0,
+        "expr_a55c0640ad83b8f4": 0,
+        "expr_d59d9b00e9f19b60": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "template",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "attrs": [
+                    {
+                      "name": "portal",
+                      "value": ""
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "\n        ${firstName} ${this.lastName} ${$parent && $parent.firstName}\n      ",
+                      "loc": {
+                        "start": 34,
+                        "end": 111,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "loc": {
+                    "start": 17,
+                    "end": 122,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 122,
+                    "end": 127,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 138,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

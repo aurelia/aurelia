@@ -1,0 +1,173 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": null,
+          "symbols": [
+            {
+              "kind": "repeatLocal",
+              "name": "a",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$index",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$first",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$last",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$even",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$odd",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$length",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            },
+            {
+              "kind": "repeatContextual",
+              "name": "$middle",
+              "span": {
+                "start": 15,
+                "end": 43,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_0e94c040dd792440": 0,
+        "expr_39ae2b002ccd3090": 1
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "repeat.for",
+                      "value": "[a, a] of items"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "${a}",
+                      "loc": {
+                        "start": 44,
+                        "end": 48,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 10,
+                    "end": 54,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 65,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": [
+    {
+      "code": "AU1202",
+      "message": "Duplicate local 'a' in the same scope.",
+      "span": {
+        "start": 15,
+        "end": 43,
+        "file": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "with",
+            "from": {
+              "kind": "expr",
+              "id": "expr_74d98400641cd9d0",
+              "code": "obj['key']",
+              "loc": {
+                "start": 15,
+                "end": 37,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 15,
+              "end": 37,
+              "file": ""
+            }
+          },
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_089369406c491980": 1,
+        "expr_74d98400641cd9d0": 0,
+        "expr_f89e6c409c190d80": 1
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "with.bind",
+                      "value": "obj['key']"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "${deep.v}",
+                      "loc": {
+                        "start": 38,
+                        "end": 47,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "element",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "tag": "button",
+                      "attrs": [
+                        {
+                          "name": "click.trigger",
+                          "value": "doThing(1, 'ok')"
+                        }
+                      ],
+                      "children": [],
+                      "selfClosed": false,
+                      "loc": {
+                        "start": 47,
+                        "end": 97,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 10,
+                    "end": 103,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 114,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

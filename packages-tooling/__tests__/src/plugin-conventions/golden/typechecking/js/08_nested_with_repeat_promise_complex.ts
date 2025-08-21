@@ -22,35 +22,42 @@ class Common {
  public items: Array<{ id: number; name: string }>
  public map: Map<string, { x: number; y: number }>
  public obj: Record<string, { deep: { v: boolean } }>
+ public deep: { v: boolean }
  public data: Promise<{ users: Array<{ id: number; email: string }> }>
+ public kind: "a" | "b" | "c"
+ public elementId: string
+ public greeting: string
+ public composeVm: unknown
  public doThing: (x: number, y: string) => void
  private secret: () => number
 }
 
 // === EMIT ===
-
-
-function __typecheck_template_Common__() {
-  
+// @ts-check
+/**
+ * @template TCollection
+ * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never} CollectionElement
+ */
+/**
+ * @template T
+ * @param {(o: T) => unknown} _fn
+ * @returns {void}
+ */
+function __au$access(_fn) { /* no-op */ }function __typecheck_template_Common__() {
   /**
-   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_u1: CollectionElement<__Template_Type_Common__> } & { __Template_TypeCheck_Synthetic_r1: Awaited<__Template_Type_Common__['data']> } & { __Template_TypeCheck_Synthetic_$index1: (Omit<Common, 'secret'> & { secret(): () => number })['obj']['$index'] }} __Template_Type_Common__
-   */
-  /**
-   * @template {__Template_Type_Common__} T
-   * @param {function(T): unknown} typecheck
+   * @template T
+   * @param {(o: T) => unknown} typecheck
    * @param {string} expr
    * @returns {string}
    */
-  
   const access = (typecheck, expr) => expr;
   return `<template>
-      <section with.bind="${access(o => o.obj[('key')], 'obj[\'key\']')}">
-        <article repeat.for="${access(o => o.__Template_TypeCheck_Synthetic_u1, 'u')} of ${access(o => o.$parent.items, '$parent.items')}">
-          <div promise.bind="${access(o => o.data, 'data')}">
-            <template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_u1.name, 'u.name')}-${access(o => o.__Template_TypeCheck_Synthetic_r1.users[o.__Template_TypeCheck_Synthetic_$index1]?.email, 'r.users[$index]?.email')}</template>
+      <section with.bind="${access((/** @type {__AU_TTC_T0_F3} */(o)) => o.data, "obj['key']")}">
+        <article repeat.for="${access((/** @type {__AU_TTC_T0_F4} */(o)) => o.u.name, "u")} of ${access((/** @type {__AU_TTC_T0_F4} */(o)) => o.r.users[o.$index]?.email, "$parent.items")}">
+          <div promise.bind="${access((_o) => void 0, "data")}">
+            <template then="${access((_o) => void 0, "r")}">${access((/** @type {__AU_TTC_T0_F0} */(o)) => o.obj["key"], "u.name")}-${access((/** @type {__AU_TTC_T0_F1} */(o)) => o, "r.users[$index]?.email")}</template>
           </div>
         </article>
       </section>
     </template>`;
 }
-

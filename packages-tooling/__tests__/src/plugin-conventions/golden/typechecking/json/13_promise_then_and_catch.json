@@ -1,0 +1,245 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_f4110290412c2000",
+              "code": "data",
+              "loc": {
+                "start": 22,
+                "end": 41,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 22,
+              "end": 41,
+              "file": ""
+            }
+          },
+          "symbols": []
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_f4110290412c2000",
+              "code": "data",
+              "loc": {
+                "start": 22,
+                "end": 41,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 22,
+              "end": 41,
+              "file": ""
+            }
+          },
+          "symbols": [
+            {
+              "kind": "promiseAlias",
+              "name": "r",
+              "span": {
+                "start": 42,
+                "end": 91,
+                "file": ""
+              }
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "parent": 1,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_f4110290412c2000",
+              "code": "data",
+              "loc": {
+                "start": 22,
+                "end": 41,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 22,
+              "end": 41,
+              "file": ""
+            }
+          },
+          "symbols": [
+            {
+              "kind": "promiseAlias",
+              "name": "e",
+              "span": {
+                "start": 91,
+                "end": 134,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_5a4337c024225510": 3,
+        "expr_ac51fc401f7fbc80": 2,
+        "expr_f4110290412c2000": 1
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "promise.bind",
+                      "value": "data"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "then",
+                          "value": "r"
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "${r.users[0].email}",
+                          "loc": {
+                            "start": 61,
+                            "end": 80,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 42,
+                        "end": 91,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/1",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "catch",
+                          "value": "e"
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/1#text@0",
+                          "ns": "html",
+                          "text": "${e.message}",
+                          "loc": {
+                            "start": 111,
+                            "end": 123,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 91,
+                        "end": 134,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 140,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 140,
+                    "end": 145,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 156,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

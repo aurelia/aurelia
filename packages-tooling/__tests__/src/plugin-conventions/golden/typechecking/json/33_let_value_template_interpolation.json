@@ -1,0 +1,141 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": [
+            {
+              "kind": "let",
+              "name": "greet",
+              "span": {
+                "start": 17,
+                "end": 59,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_08991ba0c83e03c0": 0,
+        "expr_50be6400d3b12100": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 2,
+        "rowTargets": [
+          "0/0/0",
+          "0/0/1#text@0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "let",
+                  "attrs": [
+                    {
+                      "name": "greet.bind",
+                      "value": "`Hi ${firstName}`"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 59,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 59,
+                    "end": 66,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/1",
+                  "ns": "html",
+                  "tag": "span",
+                  "attrs": [],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/1#text@0",
+                      "ns": "html",
+                      "text": "${greet}",
+                      "loc": {
+                        "start": 72,
+                        "end": 80,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 66,
+                    "end": 87,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@2",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 87,
+                    "end": 92,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 103,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

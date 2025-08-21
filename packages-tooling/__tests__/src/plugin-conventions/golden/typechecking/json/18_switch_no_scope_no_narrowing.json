@@ -1,0 +1,229 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_3b147b8080666af0": 0,
+        "expr_3eeadd80566d9c60": 0,
+        "expr_498f5500998e0954": 0,
+        "expr_5137d1c0db7407b7": 0,
+        "expr_52342e0039e79c40": 0,
+        "expr_bd243b80a829d040": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "switch.bind",
+                      "value": "kind"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 41,
+                        "end": 50,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "case.bind",
+                          "value": "'a'"
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "${firstName}",
+                          "loc": {
+                            "start": 76,
+                            "end": 88,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 50,
+                        "end": 99,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@1",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 99,
+                        "end": 108,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/1",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "case.bind",
+                          "value": "'b'"
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/1#text@0",
+                          "ns": "html",
+                          "text": "${lastName}",
+                          "loc": {
+                            "start": 134,
+                            "end": 145,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 108,
+                        "end": 156,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@2",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 156,
+                        "end": 165,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/2",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "default-case",
+                          "value": ""
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/2#text@0",
+                          "ns": "html",
+                          "text": "${firstName}",
+                          "loc": {
+                            "start": 188,
+                            "end": 200,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 165,
+                        "end": 211,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@3",
+                      "ns": "html",
+                      "text": "\n      ",
+                      "loc": {
+                        "start": 211,
+                        "end": 218,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 224,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 224,
+                    "end": 229,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 240,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

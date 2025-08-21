@@ -16,19 +16,28 @@ class Common {
  public items: Array<{ id: number; name: string }>
  public map: Map<string, { x: number; y: number }>
  public obj: Record<string, { deep: { v: boolean } }>
+ public deep: { v: boolean }
  public data: Promise<{ users: Array<{ id: number; email: string }> }>
+ public kind: "a" | "b" | "c"
+ public elementId: string
+ public greeting: string
+ public composeVm: unknown
  public doThing: (x: number, y: string) => void
  private secret: () => number
 }
 
 // === EMIT ===
-
-type __Template_Type_Common__ = Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_r1: Awaited<__Template_Type_Common__['data']> } & { __Template_TypeCheck_Synthetic_e1: any };
-function __typecheck_template_Common__() {
-  
-  const access = <T extends object>(typecheck: (o: T) => unknown, expr: string) => expr;
+// @ts-check
+type CollectionElement<TCollection> = TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never;
+/* @internal */
+const __au$access = <T>(_fn: (o: T) => unknown): void => { /* no-op */ };
+type __AU_TTC_T0_F0 = (Common) & { $parent: unknown };
+type __AU_TTC_T0_F1 = (Common)['data'] & { $this: (Common)['data'] } & (Common) & { $parent: unknown };
+type __AU_TTC_T0_F2 = (Awaited<(Common)['data']>) & { $this: Awaited<(Common)['data']> } & (Common) & { $parent: unknown } & { r: Awaited<(Common)['data']> };
+type __AU_TTC_T0_F3 = (Common)['data'] & { $this: (Common)['data'] } & (Common) & { $parent: unknown } & { e: any };
+function __typecheck_template_Common__(): string {
+  const access = <T extends object>(typecheck: (o: T) => unknown, expr: string): string => expr;
   return `<template>
-      <div promise.bind="${access<__Template_Type_Common__>(o => o.data, 'data')}"><template then="${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access<__Template_Type_Common__>(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div>
+      <div promise.bind="${access<__AU_TTC_T0_F3>(o => o.e.message, "data")}"><template then="${access((_o) => void 0, "r")}">${access<__AU_TTC_T0_F1>(o => o.data, "r.users[(0)].email")}</template><template catch="${access((_o) => void 0, "e")}">${access<__AU_TTC_T0_F2>(o => o.r.users[0].email, "e.message")}</template></div>
     </template>`;
 }
-

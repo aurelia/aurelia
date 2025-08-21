@@ -1,0 +1,171 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "with",
+            "from": {
+              "kind": "expr",
+              "id": "expr_9951f2002e6d6520",
+              "code": "deep",
+              "loc": {
+                "start": 22,
+                "end": 38,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 22,
+              "end": 38,
+              "file": ""
+            }
+          },
+          "symbols": []
+        }
+      ],
+      "exprToFrame": {
+        "expr_29dbed001a6739d4": 1,
+        "expr_319b77c0960bb000": 1,
+        "expr_8debc200851a2cc0": 1,
+        "expr_9951f2002e6d6520": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "with.bind",
+                      "value": "deep"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 39,
+                        "end": 48,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "portal",
+                          "value": ""
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "${$parent.firstName}:${$this.v}",
+                          "loc": {
+                            "start": 65,
+                            "end": 96,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 48,
+                        "end": 107,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@1",
+                      "ns": "html",
+                      "text": "\n      ",
+                      "loc": {
+                        "start": 107,
+                        "end": 114,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 120,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 120,
+                    "end": 125,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 136,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

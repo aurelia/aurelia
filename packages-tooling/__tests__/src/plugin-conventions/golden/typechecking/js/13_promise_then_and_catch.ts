@@ -16,29 +16,36 @@ class Common {
  public items: Array<{ id: number; name: string }>
  public map: Map<string, { x: number; y: number }>
  public obj: Record<string, { deep: { v: boolean } }>
+ public deep: { v: boolean }
  public data: Promise<{ users: Array<{ id: number; email: string }> }>
+ public kind: "a" | "b" | "c"
+ public elementId: string
+ public greeting: string
+ public composeVm: unknown
  public doThing: (x: number, y: string) => void
  private secret: () => number
 }
 
 // === EMIT ===
-
-
-function __typecheck_template_Common__() {
-  
+// @ts-check
+/**
+ * @template TCollection
+ * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never} CollectionElement
+ */
+/**
+ * @template T
+ * @param {(o: T) => unknown} _fn
+ * @returns {void}
+ */
+function __au$access(_fn) { /* no-op */ }function __typecheck_template_Common__() {
   /**
-   * @typedef {Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any } & { __Template_TypeCheck_Synthetic_r1: Awaited<__Template_Type_Common__['data']> } & { __Template_TypeCheck_Synthetic_e1: any }} __Template_Type_Common__
-   */
-  /**
-   * @template {__Template_Type_Common__} T
-   * @param {function(T): unknown} typecheck
+   * @template T
+   * @param {(o: T) => unknown} typecheck
    * @param {string} expr
    * @returns {string}
    */
-  
   const access = (typecheck, expr) => expr;
   return `<template>
-      <div promise.bind="${access(o => o.data, 'data')}"><template then="${access(o => o.__Template_TypeCheck_Synthetic_r1, 'r')}">${access(o => o.__Template_TypeCheck_Synthetic_r1.users[(0)].email, 'r.users[(0)].email')}</template><template catch="${access(o => o.__Template_TypeCheck_Synthetic_e1, 'e')}">${access(o => o.__Template_TypeCheck_Synthetic_e1.message, 'e.message')}</template></div>
+      <div promise.bind="${access((/** @type {__AU_TTC_T0_F3} */(o)) => o.e.message, "data")}"><template then="${access((_o) => void 0, "r")}">${access((/** @type {__AU_TTC_T0_F1} */(o)) => o.data, "r.users[(0)].email")}</template><template catch="${access((_o) => void 0, "e")}">${access((/** @type {__AU_TTC_T0_F2} */(o)) => o.r.users[0].email, "e.message")}</template></div>
     </template>`;
 }
-

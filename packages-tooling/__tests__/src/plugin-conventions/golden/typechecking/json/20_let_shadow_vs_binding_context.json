@@ -1,0 +1,228 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": [
+            {
+              "kind": "let",
+              "name": "firstname",
+              "span": {
+                "start": 17,
+                "end": 49,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_03d8a4000f1f3180": 0,
+        "expr_44ab23001586a280": 0,
+        "expr_489ccbc0d4569dc0": 0,
+        "expr_86e7f70050a43440": 0,
+        "expr_9b1351807dd8be80": 0,
+        "expr_baee2380a32117a0": 0
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 4,
+        "rowTargets": [
+          "0/0/0",
+          "0/0/1#text@0",
+          "0/0/2",
+          "0/0/3#text@0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "let",
+                  "attrs": [
+                    {
+                      "name": "firstname.bind",
+                      "value": "'X'"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 49,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 49,
+                    "end": 56,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/1",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/1#text@0",
+                      "ns": "html",
+                      "text": "${firstName} ${this.firstName}",
+                      "loc": {
+                        "start": 61,
+                        "end": 91,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 56,
+                    "end": 97,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@2",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 97,
+                    "end": 104,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/2",
+                  "ns": "html",
+                  "tag": "let",
+                  "attrs": [
+                    {
+                      "name": "to-binding-context",
+                      "value": ""
+                    },
+                    {
+                      "name": "firstname.bind",
+                      "value": "'Y'"
+                    }
+                  ],
+                  "children": [],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 104,
+                    "end": 155,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@3",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 155,
+                    "end": 162,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/3",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/3#text@0",
+                      "ns": "html",
+                      "text": "${firstName} ${this.firstName}",
+                      "loc": {
+                        "start": 167,
+                        "end": 197,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 162,
+                    "end": 203,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@4",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 203,
+                    "end": 208,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 219,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": [
+    {
+      "code": "AU1202",
+      "message": "Duplicate local 'firstname' in the same scope.",
+      "span": {
+        "start": 104,
+        "end": 155,
+        "file": ""
+      }
+    }
+  ]
+}

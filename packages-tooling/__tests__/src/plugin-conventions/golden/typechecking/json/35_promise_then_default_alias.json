@@ -1,0 +1,203 @@
+{
+  "version": "aurelia-scope@1",
+  "templates": [
+    {
+      "name": null,
+      "root": 0,
+      "frames": [
+        {
+          "id": 0,
+          "parent": null,
+          "kind": "root",
+          "overlay": null,
+          "symbols": []
+        },
+        {
+          "id": 1,
+          "parent": 0,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_f4110290412c2000",
+              "code": "data",
+              "loc": {
+                "start": 22,
+                "end": 41,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 22,
+              "end": 41,
+              "file": ""
+            }
+          },
+          "symbols": []
+        },
+        {
+          "id": 2,
+          "parent": 1,
+          "kind": "overlay",
+          "overlay": {
+            "kind": "promise",
+            "from": {
+              "kind": "expr",
+              "id": "expr_f4110290412c2000",
+              "code": "data",
+              "loc": {
+                "start": 22,
+                "end": 41,
+                "file": ""
+              }
+            },
+            "span": {
+              "start": 22,
+              "end": 41,
+              "file": ""
+            }
+          },
+          "symbols": [
+            {
+              "kind": "promiseAlias",
+              "name": "then",
+              "span": {
+                "start": 51,
+                "end": 97,
+                "file": ""
+              }
+            }
+          ]
+        }
+      ],
+      "exprToFrame": {
+        "expr_98f91800ad39a680": 2,
+        "expr_f4110290412c2000": 1
+      },
+      "linked": {
+        "name": null,
+        "rowCount": 1,
+        "rowTargets": [
+          "0/0/0"
+        ],
+        "dom": {
+          "kind": "template",
+          "id": "0",
+          "ns": "html",
+          "attrs": [],
+          "children": [
+            {
+              "kind": "template",
+              "id": "0/0",
+              "ns": "html",
+              "attrs": [],
+              "children": [
+                {
+                  "kind": "text",
+                  "id": "0/0#text@0",
+                  "ns": "html",
+                  "text": "\n      ",
+                  "loc": {
+                    "start": 10,
+                    "end": 17,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "element",
+                  "id": "0/0/0",
+                  "ns": "html",
+                  "tag": "div",
+                  "attrs": [
+                    {
+                      "name": "promise.bind",
+                      "value": "data"
+                    }
+                  ],
+                  "children": [
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@0",
+                      "ns": "html",
+                      "text": "\n        ",
+                      "loc": {
+                        "start": 42,
+                        "end": 51,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "template",
+                      "id": "0/0/0/0",
+                      "ns": "html",
+                      "attrs": [
+                        {
+                          "name": "then",
+                          "value": ""
+                        }
+                      ],
+                      "children": [
+                        {
+                          "kind": "text",
+                          "id": "0/0/0/0#text@0",
+                          "ns": "html",
+                          "text": "${then.users.length}",
+                          "loc": {
+                            "start": 66,
+                            "end": 86,
+                            "file": ""
+                          }
+                        }
+                      ],
+                      "loc": {
+                        "start": 51,
+                        "end": 97,
+                        "file": ""
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "id": "0/0/0#text@1",
+                      "ns": "html",
+                      "text": "\n      ",
+                      "loc": {
+                        "start": 97,
+                        "end": 104,
+                        "file": ""
+                      }
+                    }
+                  ],
+                  "selfClosed": false,
+                  "loc": {
+                    "start": 17,
+                    "end": 110,
+                    "file": ""
+                  }
+                },
+                {
+                  "kind": "text",
+                  "id": "0/0#text@1",
+                  "ns": "html",
+                  "text": "\n    ",
+                  "loc": {
+                    "start": 110,
+                    "end": 115,
+                    "file": ""
+                  }
+                }
+              ],
+              "loc": {
+                "start": 0,
+                "end": 126,
+                "file": ""
+              }
+            }
+          ],
+          "loc": null
+        }
+      }
+    }
+  ],
+  "diags": []
+}

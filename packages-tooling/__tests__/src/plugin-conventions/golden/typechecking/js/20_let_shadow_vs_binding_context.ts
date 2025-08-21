@@ -19,32 +19,39 @@ class Common {
  public items: Array<{ id: number; name: string }>
  public map: Map<string, { x: number; y: number }>
  public obj: Record<string, { deep: { v: boolean } }>
+ public deep: { v: boolean }
  public data: Promise<{ users: Array<{ id: number; email: string }> }>
+ public kind: "a" | "b" | "c"
+ public elementId: string
+ public greeting: string
+ public composeVm: unknown
  public doThing: (x: number, y: string) => void
  private secret: () => number
 }
 
 // === EMIT ===
-
-
-function __typecheck_template_Common__() {
-  
+// @ts-check
+/**
+ * @template TCollection
+ * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never} CollectionElement
+ */
+/**
+ * @template T
+ * @param {(o: T) => unknown} _fn
+ * @returns {void}
+ */
+function __au$access(_fn) { /* no-op */ }function __typecheck_template_Common__() {
   /**
-   * @typedef {Omit<Omit<Omit<Common, 'secret'> & { secret(): () => number } & { $parent: any }, '__Template_TypeCheck_Synthetic_firstname1'> & { __Template_TypeCheck_Synthetic_firstname1: ('X') }, 'firstname'> & { firstname: ('Y') }} __Template_Type_Common__
-   */
-  /**
-   * @template {__Template_Type_Common__} T
-   * @param {function(T): unknown} typecheck
+   * @template T
+   * @param {(o: T) => unknown} typecheck
    * @param {string} expr
    * @returns {string}
    */
-  
   const access = (typecheck, expr) => expr;
   return `<template>
       <let firstName.bind="'X'"></let>
-      <div>${access(o => o.firstName, 'firstName')} ${access(o => o.firstName, 'this.firstName')}</div>
+      <div>${access((/** @type {__AU_TTC_T0_F0} */(o)) => "X", "firstName")} ${access((/** @type {__AU_TTC_T0_F0} */(o)) => o.firstName, "this.firstName")}</div>
       <let to-binding-context firstName.bind="'Y'"></let>
-      <div>${access(o => o.firstName, 'firstName')} ${access(o => o.firstName, 'this.firstName')}</div>
+      <div>${access((/** @type {__AU_TTC_T0_F0} */(o)) => "Y", "firstName")} ${access((/** @type {__AU_TTC_T0_F0} */(o)) => o.firstName, "this.firstName")}</div>
     </template>`;
 }
-

@@ -415,7 +415,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
     if (this._needInitCalculation) {
       const calculation = this._initCalculation();
-      if (calculation.signals === SizingSignals.reset || (calculation.signals & SizingSignals.has_sizing) === 0) {
+      if (calculation.signals === SizingSignals.reset || calculation.minViews === 0 || (calculation.signals & SizingSignals.has_sizing) === 0) {
         return;
       }
       // item height cannot be 0 if signals is has-sizing
@@ -634,6 +634,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       const isHorizontal = this._configuredLayout === 'horizontal';
       const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
       if (this.views.length > 0 && itemSize > 0) {
+        console.log('handling scroll');
         this._initCalculation();
         this.handleScroll(scrollerInfo);
       }

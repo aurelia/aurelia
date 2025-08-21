@@ -2,19 +2,24 @@ import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualizationConfiguration, VirtualRepeat, VIRTUAL_REPEAT_NEAR_BOTTOM, VIRTUAL_REPEAT_NEAR_TOP, type IVirtualRepeatNearBottomEvent, type IVirtualRepeatNearTopEvent } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
 import { runTasks, tasksSettled } from '@aurelia/runtime';
+import { LifecycleHooks } from '@aurelia/runtime-html';
 
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   if (isNode()) {
     return;
   }
-  const virtualRepeatDeps = [DefaultVirtualizationConfiguration];
-  const virtualRepeats: VirtualRepeat[] = [];
 
-  this.beforeAll(function () {
-    VirtualRepeat.prototype.created = function () {
-      virtualRepeats.push(this);
-    };
-  });
+  const virtualRepeatDeps = [
+    LifecycleHooks.define({}, class Hook {
+      created(vm: unknown) {
+        if (vm instanceof VirtualRepeat) {
+          virtualRepeats.push(vm);
+        }
+      }
+    }),
+    DefaultVirtualizationConfiguration
+  ];
+  const virtualRepeats: VirtualRepeat[] = [];
 
   this.beforeEach(function () {
     virtualRepeats.length = 0;
@@ -94,6 +99,31 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     assert.deepStrictEqual(virtualRepeat.getDistances(), [400, /* whole thing - top distance */4600 - /* rendered view (24 items * 50px) */1200]);
     assert.strictEqual(firstView.nodes.firstChild.textContent, `item-8`);
   });
+
+  // describe.only('scroller resizing', function () {
+  //   it('resizes when scroller height changes', async function () {
+  //     const { component, getBy, getAllBy, scrollBy } = createFixture(
+  //       `<div id="scroller" style="height: 0; overflow: auto; background-color: lightgray;">
+  //         <div virtual-repeat.for="item of items" style="height: 50px">\${item.name}</div>
+  //       </div>`,
+  //       class App { items = createItems(); },
+  //       virtualRepeatDeps
+  //     );
+
+  //     await tasksSettled();
+
+  //     getBy('#scroller').style.height = '600px';
+  //     // console.log(getBy('#scroller').getBoundingClientRect().height);
+  //     // getBy('#scroller').style.width = '600px';
+
+  //     // await new Promise(r => setTimeout(r, 350));
+  //     await tasksSettled();
+  //     assert.strictEqual(getAllBy('div').length, 24 + 2 /* buffers */);
+  //     // await new Promise(r => setTimeout(r, 50000));
+  //     // scrollBy('main', 400);
+  //     debugger;
+  //   });
+  // });
 
   describe('mutation', function () {
     // TODO: check why this fails

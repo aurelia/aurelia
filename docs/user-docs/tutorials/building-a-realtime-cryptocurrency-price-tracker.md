@@ -99,7 +99,7 @@ Let's go over this line-by-line. Firstly, this is TypeScript, which looks/works 
 * We create a `getPrices` method, which accepts an array of strings (our cryptocurrencies). We make this method async to make working with the promise that Fetch returns a lot cleaner than chaining `.then` and `.catch` functions in our code.
 * When dealing with `async/await`, it is good practice to wrap your calls in a `try/catch` to catch any errors that might occur (timeouts, erroneous requests, missing credentials).
 * We then request the Coingecko API, passing in our cryptocurrencies. By calling the `Array.toString()` method, it will automatically create a comma-separated string of values as the API expects. You could also use `.join` to do this as well.
-* When making Fetch requests, the resulting Fetch call with allow us to get the response value, we know we are going to be getting JSON, so we return the `request.json()` call, which is a promise.
+* When making Fetch requests, the resulting Fetch call will allow us to get the response value. We know we are going to be getting JSON, so we return the `request.json()` call, which is a promise.
 
 As for errors, if we encounter them, the `catch` will capture those, and we return the error value. We have everything we need now.
 

@@ -1,6 +1,6 @@
 # Template Variables (`<let>`)
 
-Aurelia 2 allows you to managed variables directly within your view templates: the `<let>` custom element.  This element allows you to declare and initialize variables inline in your HTML, making your templates more dynamic and readable.  `<let>` is incredibly versatile, supporting a range of value assignments, from simple strings and interpolation to complex expressions and bindings to your view model.  This capability significantly enhances template flexibility and reduces the need for excessive view model code for simple template-specific logic.
+Aurelia 2 allows you to manage variables directly within your view templates: the `<let>` custom element.  This element allows you to declare and initialize variables inline in your HTML, making your templates more dynamic and readable.  `<let>` is incredibly versatile, supporting a range of value assignments, from simple strings and interpolation to complex expressions and bindings to your view model.  This capability significantly enhances template flexibility and reduces the need for excessive view model code for simple template-specific logic.
 
 ## Declaring Template Variables with `<let>`
 

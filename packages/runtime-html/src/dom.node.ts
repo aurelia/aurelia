@@ -10,6 +10,7 @@ export type INodeControllerRefs = {
   hideProp: boolean;
   get(node: INode, name: string): IHydratedController | null;
   set<T extends IHydratedController>(node: INode, name: string, controller: T): T;
+  clear(node: INode): void;
 };
 export const refs: INodeControllerRefs = /*@__PURE__*/ (() => {
   const refsMap = new WeakMap<Node, Refs>();
@@ -34,6 +35,14 @@ export const refs: INodeControllerRefs = /*@__PURE__*/ (() => {
         (node as Writable<INode>).$au ??= ref;
       }
       return (ref[name] = controller) as T;
+    }
+    public clear(node: INode): void {
+      const ref = refsMap.get(node);
+      if (ref == null) return;
+      refsMap.delete(node);
+      if (node.$au != null) {
+        delete (node as Writable<INode>).$au;
+      }
     }
   }();
 })();

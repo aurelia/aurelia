@@ -2,23 +2,22 @@
 
 ## Application Startup
 
-Aurelia allows you to configure the application startup in a couple of different ways. A quick setup where some defaults are assumed and a verbose setup where you can configure some of the framework-specific behaviors.
+Aurelia provides two main approaches for application startup: a quick setup using static methods with sensible defaults, and a verbose setup that gives you complete control over configuration.
 
 ### Quick startup
 
-The quick startup approach is what most developers will choose.
+The quick startup approach uses static methods on the Aurelia class and is the most common choice for new applications.
 
 ```typescript
-import { RouterConfiguration } from '@aurelia/router-direct';
-import Aurelia, { StyleConfiguration } from 'aurelia';
+import Aurelia from 'aurelia';
+import { RouterConfiguration } from '@aurelia/router';
 
 import { MyRootComponent } from './my-root-component';
 
-// By default host to element name (<my-root-component> for MyRootComponent),
-// or <body> if <my-root-component> is absent.
+// Simplest startup - hosts to <my-root-component> element, or <body> if not found
 Aurelia.app(MyRootComponent).start();
 
-// Or load additional Aurelia features
+// Register additional features before startup
 Aurelia
   .register(
     RouterConfiguration.customize({ useUrlFragmentHash: false })
@@ -26,7 +25,7 @@ Aurelia
   .app(MyRootComponent)
   .start();
 
-// Or host to <my-start-tag>
+// Specify a custom host element
 Aurelia
   .register(
     RouterConfiguration.customize({ useUrlFragmentHash: false })
@@ -36,75 +35,231 @@ Aurelia
     host: document.querySelector('my-start-tag')
   })
   .start();
+
+// Async startup pattern (recommended)
+const app = Aurelia
+  .register(
+    RouterConfiguration.customize({ useUrlFragmentHash: false })
+  )
+  .app(MyRootComponent);
+
+await app.start();
 ```
 
 ### Verbose Startup
 
-To start an Aurelia application, create a `new Aurelia()` object with a target `host` and a root `component` and call `start()`.
+The verbose approach gives you complete control over the DI container and configuration. Use this when integrating Aurelia into existing applications or when you need fine-grained control.
 
 ```typescript
-import Aurelia, { StandardConfiguration } from 'aurelia';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { RouterConfiguration } from '@aurelia/router';
+import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { ShellComponent } from './shell';
 
-new Aurelia()
-  .register(StandardConfiguration)
-  .app({ host: document.querySelector('body'), component: ShellComponent })
-  .start();
+// Create Aurelia instance with explicit configuration
+const au = new Aurelia();
+
+au.register(
+  StandardConfiguration,  // Essential runtime configuration
+  RouterConfiguration.customize({ useUrlFragmentHash: false }),
+  LoggerConfiguration.create({ level: LogLevel.debug })
+);
+
+au.app({
+  host: document.querySelector('body'),
+  component: ShellComponent
+});
+
+// Always await start() for proper error handling
+await au.start();
 ```
 
-In most instances, you will not use the verbose approach to starting your Aurelia applications. The verbose approach is more aimed at developers integrating Aurelia into existing web applications and views.
+**When to use verbose startup:**
+- Integrating Aurelia into existing applications
+- Custom DI container configuration needed
+- Multiple Aurelia apps in one page
+- Advanced debugging or testing scenarios
 
-## Register a globally available custom element
+**StandardConfiguration** includes essential services like:
+- Template compiler and renderer
+- Binding engine and observers  
+- Custom element/attribute support
+- Built-in value converters and binding behaviors
+- DOM event handling and delegation
+- Shadow DOM and CSS module support
 
-### Registering a single element
+## Registering Global Resources
 
-To make a custom element globally available to your application, pass the custom element constructor to the `.register()` method on your Aurelia app.
+### Registering a single custom element
+
+To make a custom element globally available throughout your application, register it before calling `app()`.
 
 ```typescript
+import Aurelia from 'aurelia';
 import { CardCustomElement } from './components/card';
 
-// When using quick startup
+// Quick startup
 Aurelia
-  .register(...)
-  .register(<any>CardCustomElement);
-  .app({ ... })
+  .register(CardCustomElement)  // No type casting needed
+  .app(MyRootComponent)
   .start();
 
-// When using verbose startup
-new Aurelia()
-  .register(...)
-  .register(<any>CardCustomElement)
-  .app({ ... })
-  .start();
+// Verbose startup
+const au = new Aurelia();
+au.register(
+  StandardConfiguration,
+  CardCustomElement
+);
+au.app({ host: document.body, component: MyRootComponent });
+await au.start();
 ```
 
-### Register a set of elements
+### Registering multiple resources
 
-If you have a package that exports all your custom elements, you can pass the entire package to the `.register()` method on your Aurelia app.
+Group related components into resource modules for better organization.
 
-src/components/index.ts:
-
+**src/components/index.ts:**
 ```typescript
 export { CardCustomElement } from './card';
 export { CollapseCustomElement } from './collapse';
+export { ModalCustomElement } from './modal';
 ```
 
-src/main.ts:
+**src/main.ts:**
+```typescript
+import Aurelia from 'aurelia';
+import * as GlobalComponents from './components';
+
+// Register all exported components at once
+Aurelia
+  .register(GlobalComponents)
+  .app(MyRootComponent)
+  .start();
+```
+
+### Registering other resource types
 
 ```typescript
-import * as globalComponents from './components';
+import Aurelia from 'aurelia';
+import { MyValueConverter } from './converters/my-value-converter';
+import { MyBindingBehavior } from './behaviors/my-binding-behavior';
+import { MyCustomAttribute } from './attributes/my-custom-attribute';
 
-// When using quick startup
 Aurelia
-  .register(...)
-  .register(<any>globalComponents)
-  .app({ ... })
-  .start();
-
-// When using verbose startup
-new Aurelia()
-  .register(...)
-  .register(<any>globalComponents)
-  .app({ ... })
+  .register(
+    MyValueConverter,
+    MyBindingBehavior,
+    MyCustomAttribute
+  )
+  .app(MyRootComponent)
   .start();
 ```
+
+## Advanced Configuration
+
+### Custom DI registrations
+
+```typescript
+import { Registration } from '@aurelia/kernel';
+import { MyService, IMyService } from './services/my-service';
+
+Aurelia
+  .register(
+    Registration.singleton(IMyService, MyService)
+  )
+  .app(MyRootComponent)
+  .start();
+```
+
+### Environment-specific configuration
+
+```typescript
+import Aurelia, { LoggerConfiguration, LogLevel } from 'aurelia';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+Aurelia
+  .register(
+    LoggerConfiguration.create({
+      level: isProduction ? LogLevel.warn : LogLevel.debug
+    })
+  )
+  .app(MyRootComponent)
+  .start();
+```
+
+## Enhancement Mode
+
+Aurelia's enhancement mode allows you to integrate Aurelia functionality into existing DOM content without replacing it entirely. This is perfect for progressively enhancing existing applications or adding Aurelia to specific sections of a page.
+
+### Basic Enhancement
+
+```typescript
+import Aurelia from 'aurelia';
+
+// Enhance existing DOM content
+const host = document.querySelector('#existing-content');
+const enhanceRoot = await Aurelia.enhance({
+  host: host,
+  component: {
+    message: 'Hello from enhanced content!',
+    items: [1, 2, 3]
+  }
+});
+
+// Later, cleanup when needed
+await enhanceRoot.deactivate();
+```
+
+### Enhancement with Custom Components
+
+```typescript
+import Aurelia from 'aurelia';
+import { MyCustomElement } from './components/my-custom-element';
+
+// Register components before enhancement
+const enhanceRoot = await Aurelia
+  .register(MyCustomElement)
+  .enhance({
+    host: document.querySelector('#content'),
+    component: {
+      data: { name: 'John', age: 30 },
+      created() {
+        console.log('Enhanced component created');
+      }
+    }
+  });
+```
+
+### Enhancement with Custom Container
+
+```typescript
+import { Aurelia } from '@aurelia/runtime-html';
+import { DI } from '@aurelia/kernel';
+import { MyService } from './services/my-service';
+
+// Create custom container with specific services
+const container = DI.createContainer();
+container.register(MyService);
+
+const au = new Aurelia();
+const enhanceRoot = await au.enhance({
+  host: document.querySelector('#widget'),
+  component: { title: 'Enhanced Widget' },
+  container: container  // Use custom container
+});
+```
+
+### When to Use Enhancement
+
+- **Legacy Application Integration**: Add Aurelia to existing applications incrementally
+- **Widget Development**: Create interactive widgets within larger non-Aurelia pages
+- **Progressive Enhancement**: Enhance server-rendered content with client-side interactivity
+- **Content Management Systems**: Add dynamic behavior to CMS-generated content
+
+**Key Differences from Standard App Mode:**
+- No need to define a root custom element
+- Can target any existing DOM element
+- Binds directly to plain JavaScript objects
+- Multiple enhanced sections can coexist on one page
+- More lightweight for small interactive components

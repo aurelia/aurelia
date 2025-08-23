@@ -29,7 +29,7 @@ A demo of the application you will be building can be found [here](https://vheis
 Before going any further, you should be familiar with some basic Aurelia concepts and some fundamental Javascript ones. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
 * You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
-* You are familiar with [component lifecycles](../components/component-lifecycles.md) (which we will use `binding` in this tutorial).
+* You are familiar with [component lifecycles](../components/component-lifecycles.md) (we will use `binding` in this tutorial).
 * You are familiar with [Aurelia value converters](../templates/value-converters.md) and how they can be used to transform data.
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 * You are familiar with `async/await` syntax. A great resource for learning can be found [here](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async\_await).
@@ -99,7 +99,7 @@ Let's go over this line-by-line. Firstly, this is TypeScript, which looks/works 
 * We create a `getPrices` method, which accepts an array of strings (our cryptocurrencies). We make this method async to make working with the promise that Fetch returns a lot cleaner than chaining `.then` and `.catch` functions in our code.
 * When dealing with `async/await`, it is good practice to wrap your calls in a `try/catch` to catch any errors that might occur (timeouts, erroneous requests, missing credentials).
 * We then request the Coingecko API, passing in our cryptocurrencies. By calling the `Array.toString()` method, it will automatically create a comma-separated string of values as the API expects. You could also use `.join` to do this as well.
-* When making Fetch requests, the resulting Fetch call with allow us to get the response value, we know we are going to be getting JSON, so we return the `request.json()` call, which is a promise.
+* When making Fetch requests, the resulting Fetch call will allow us to get the response value. We know we are going to be getting JSON, so we return the `request.json()` call, which is a promise.
 
 As for errors, if we encounter them, the `catch` will capture those, and we return the error value. We have everything we need now.
 

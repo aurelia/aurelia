@@ -4,14 +4,15 @@
 
 ## Introduction
 
+* [The Aurelia Philosophy](the-aurelia-philosophy.md)
+* [Essentials](essentials/README.md)
+  * [Components](essentials/components.md)
+  * [Templates](essentials/templates.md)
+  * [Dependency Injection](essentials/dependency-injection.md)
+  * [Reactivity](essentials/reactivity.md)
 * [Quick start](getting-started/quick-install-guide.md)
 * [Aurelia for new developers](getting-started/aurelia-for-new-developers.md)
-* [Hello world](getting-started/quick-start-guide/README.md)
-  * [Creating your first app](getting-started/quick-start-guide/creating-your-first-app.md)
-  * [Your first component - part 1: the view model](getting-started/quick-start-guide/your-first-component-part-1-the-view-model.md)
-  * [Your first component - part 2: the view](getting-started/quick-start-guide/your-first-component-part-2-the-view.md)
-  * [Running our app](getting-started/quick-start-guide/running-our-app.md)
-  * [Next steps](getting-started/quick-start-guide/next-steps.md)
+* [Hello world tutorial](getting-started/quick-start-guide/README.md)
 
 ## Templates
 
@@ -24,6 +25,7 @@
   * [Template variables](templates/template-syntax/template-variables.md)
   * [Globals](templates/globals.md)
 * [Custom attributes](templates/custom-attributes.md)
+* [Advanced custom attributes](templates/advanced-custom-attributes.md)
 * [Value converters (pipes)](templates/value-converters.md)
 * [Binding behaviors](templates/binding-behaviors.md)
 * [Form Inputs](templates/forms.md)
@@ -49,6 +51,7 @@
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
   * [Extending binding language](developer-guides/scenarios/bindingcommand.md)
   * [Using the template compiler](developer-guides/scenarios/the-template-compiler.md)
+  * [Extending the template compiler](advanced-scenarios/extending-the-template-compiler.md)
   * [Attribute mapping](developer-guides/scenarios/attributemapper.md)
 
 ## Getting to know Aurelia
@@ -80,7 +83,7 @@
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Enhance](getting-to-know-aurelia/enhance.md)
 * [Template controllers](getting-to-know-aurelia/template-controllers.md)
-* [Understanding synchronous binding](getting-to-know-aurelia/synchronous-binding-system.md)
+* [Binding system and state management](getting-to-know-aurelia/synchronous-binding-system.md)
 * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
 * [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
 * [Observation](getting-to-know-aurelia/observation/README.md)
@@ -93,9 +96,11 @@
 * [App Tasks](getting-to-know-aurelia/app-tasks.md)
 * [Task Queue](getting-to-know-aurelia/task-queue.md)
 * [Event Aggregator](getting-to-know-aurelia/event-aggregator.md)
+* [Framework internals](getting-to-know-aurelia/framework-internals.md)
 
 ## Developer Guides
 
+* [Developing with AI](developer-guides/developing-with-ai.md)
 * [Animation](developer-guides/animation.md)
 * [Testing](developer-guides/testing/overview.md)
   * [Overview](developer-guides/testing/overview.md)
@@ -108,6 +113,11 @@
 * [Building plugins](developer-guides/building-plugins.md)
 * [Web Components](developer-guides/web-components.md)
 * [UI virtualization](developer-guides/ui-virtualization.md)
+* [Performance optimization techniques](advanced-scenarios/performance-optimization-techniques.md)
+* [Organizing large-scale projects](advanced-scenarios/organizing-large-scale-projects.md)
+* [Debugging and Troubleshooting](developer-guides/debugging-and-troubleshooting.md)
+* [Error Handling Patterns](developer-guides/error-handling-patterns.md)
+* [Third Party Library Integration](developer-guides/third-party-library-integration.md)
 * [Errors](developer-guides/error-messages/README.md)
   * [Kernel Errors](developer-guides/error-messages/0001-to-0023/README.md)
   * [Template Compiler Errors](developer-guides/error-messages/0088-to-0723/README.md)
@@ -163,6 +173,7 @@
   * [Setup and Configuration](aurelia-packages/fetch-client/setting-up.md)
   * [Response types](aurelia-packages/fetch-client/response-types.md)
   * [Working with forms](aurelia-packages/fetch-client/forms.md)
+  * [Request cancellation with AbortController](aurelia-packages/fetch-client/abort-controller.md)
   * [Intercepting responses & requests](aurelia-packages/fetch-client/interceptors.md)
   * [Advanced](aurelia-packages/fetch-client/advanced.md)
 * [Event Aggregator](aurelia-packages/event-aggregator.md)
@@ -179,6 +190,7 @@
 * [Building a todo application](tutorials/building-a-todo-application.md)
 * [Building a weather application](tutorials/building-a-weather-application.md)
 * [Building a widget-based dashboard](tutorials/create-a-dashboard-using-dynamic-composition.md)
+* [Micro-frontends with Module Federation](tutorials/micro-frontends-with-module-federation.md)
 * [React inside Aurelia](tutorials/using-react-inside-aurelia.md)
 * [Svelte inside Aurelia](tutorials/using-svelte-inside-aurelia.md)
 * [Synthetic view](tutorials/synthetic-view.md)

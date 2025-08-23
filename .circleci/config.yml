@@ -546,6 +546,9 @@ jobs:
     parameters:
       path:
         type: string
+      run_webpack:
+        type: boolean
+        default: false
     steps:
       - checkout_install:
           install_drivers: false
@@ -564,6 +567,15 @@ jobs:
             npx playwright install chromium
             npm run test
           no_output_timeout: "1m"
+      - when:
+          condition: << parameters.run_webpack >>
+          steps:
+            - run:
+                name: "Run e2e webpack"
+                working_directory: << parameters.path >>
+                command: |
+                  npm run test:e2e:webpack
+                no_output_timeout: "1m"
 
   e2e_safari:
     macos:
@@ -846,6 +858,7 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router
           path: "packages/__e2e__/6-router"
+          run_webpack: true
           requires:
             - build_release
       - e2e_test:
@@ -1070,6 +1083,7 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router
           path: "packages/__e2e__/6-router"
+          run_webpack: true
           requires:
             - build_release
       - e2e_test:

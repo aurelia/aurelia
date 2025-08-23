@@ -1,10 +1,44 @@
 # Binding Behaviors
 
-Binding behaviors are a powerful category of view resources in Aurelia 2, alongside value converters, custom attributes, and custom elements.  They are most analogous to [value converters](value-converters.md) in that you declaratively use them within binding expressions to modify binding behavior.
+Binding behaviors are a powerful category of view resources in Aurelia 2 that modify how bindings operate. Unlike value converters which transform data, binding behaviors have complete access to the binding instance throughout its entire lifecycle, allowing them to fundamentally alter binding behavior.
 
-However, the crucial distinction lies in the scope of access. **Binding behaviors have complete access to the binding instance throughout its entire lifecycle.** This contrasts sharply with value converters, which are limited to intercepting and transforming values as they flow between the model and the view.
+## Overview
 
-This broader access empowers binding behaviors to fundamentally alter the behavior of bindings, unlocking a wide array of capabilities as demonstrated in the examples below.
+Binding behaviors enable you to:
+- **Control timing** - throttle, debounce, or trigger updates at specific intervals
+- **Modify binding modes** - force one-way, two-way, or one-time binding behavior
+- **Customize event handling** - filter events or change which events trigger updates
+- **Add debugging capabilities** - inspect, log, or visualize binding behavior
+- **Implement complex logic** - create reusable binding modifications
+
+### Syntax
+
+Binding behaviors use the `&` operator and follow similar syntax to value converters:
+
+```html
+<!-- Basic usage -->
+<input value.bind="searchQuery & debounce">
+
+<!-- With parameters -->
+<input value.bind="query & throttle:500">
+
+<!-- Multiple parameters -->
+<input value.bind="data & throttle:200:'signalName'">
+
+<!-- Chaining behaviors -->
+<input value.bind="text & debounce:300 & signal:'update'">
+
+<!-- Combined with value converters -->
+<span>${price | currency:'USD' & signal:'refresh'}</span>
+```
+
+**Parameter syntax flexibility:**
+```html
+<!-- All of these are equivalent -->
+<input value.bind="data & throttle:200:'signal'">
+<input value.bind="data & throttle :200 : 'signal'">
+<input value.bind="data & throttle: 200 : 'signal'">
+```
 
 ## Throttle
 
@@ -42,7 +76,7 @@ The `throttle` behavior is particularly valuable when used with event bindings, 
 **Handling `mousemove` events at most every 200ms**
 
 ```html
-<div mousemove.delegate="mouseMoveHandler($event) & throttle"></div>
+<div mousemove.trigger="mouseMoveHandler($event) & throttle"></div>
 ```
 
 In this case, the `mouseMoveHandler` method in your view model will be invoked at most every 200ms, regardless of how frequently the `mousemove` event is triggered as the user moves their mouse.
@@ -73,11 +107,13 @@ In this example:
 -   `value.bind="formValue & throttle:200:'flushInput'"`: The `formValue` binding is throttled to 200ms and associated with the signal `'flushInput'`.
 -   `blur.trigger="signaler.dispatchSignal('flushInput')"`: When the input loses focus (`blur` event), `signaler.dispatchSignal('flushInput')` is called. This immediately triggers any pending throttled update associated with the `'flushInput'` signal, ensuring the `formValue` is updated in the view model right away.
 
-You can also specify a list of signals:
+You can also specify multiple signals using an array:
 
 ```html
-<input value.bind="value & throttle :200 :['finishTyping', 'urgentUpdate']">
+<input value.bind="value & throttle:200:['finishTyping', 'urgentUpdate']">
 ```
+
+This allows multiple different signals to trigger the same throttled update, providing flexibility in complex scenarios where updates might need to be flushed from different parts of your application.
 
 ## Debounce
 
@@ -102,7 +138,7 @@ Similar to `throttle`, `debounce` is highly effective with event bindings.
 **Calling `mouseMoveHandler` after the mouse stops moving for 500ms**
 
 ```html
-<div mousemove.delegate="mouseMoveHandler($event) & debounce:500"></div>
+<div mousemove.trigger="mouseMoveHandler($event) & debounce:500"></div>
 ```
 
 ### Flushing Pending Debounced Calls
@@ -131,7 +167,11 @@ export class MyApp {
 
 In this example, the `validateInput` method (which could perform input validation or other actions) will be called when the input field loses focus, even if the 300ms debounce interval isn't fully over, ensuring timely validation.
 
-As with `throttle`, you can also provide a list of signal names to `debounce`.
+As with `throttle`, you can also provide multiple signal names to `debounce`:
+
+```html
+<input value.bind="searchQuery & debounce:500:['search', 'validate']">
+```
 
 ## UpdateTrigger
 
@@ -195,30 +235,79 @@ export class MyApp {
 
 Every 5 seconds, the `setInterval` function updates `lastUpdated` and then calls `signaler.dispatchSignal('time-update')`. This tells Aurelia to re-evaluate all bindings that are configured with `& signal:'time-update'`, causing them to refresh and display the updated "time ago" value.
 
-## oneTime
+## Binding Mode Behaviors
 
-The `oneTime` binding behavior optimizes string interpolation bindings for scenarios where the bound value is not expected to change after the initial render.  Applying `oneTime` indicates to Aurelia that the binding should only be evaluated once.
+Aurelia provides binding behaviors that explicitly specify binding modes. While binding commands (`.bind`, `.one-way`, `.two-way`) are more commonly used, these behaviors offer programmatic control over binding modes.
 
-**One-time String Interpolation Binding**
+### oneTime
 
-```html
-<span>${staticText & oneTime}</span>
-```
-
-`oneTime` bindings are the most efficient type of binding because they eliminate the overhead of property observation. Aurelia doesn't need to track changes to `staticText` after the initial binding, leading to performance improvements, especially in large lists or complex views.
-
-Aurelia also provides binding behaviors for explicitly specifying `toView` and `twoWay` binding modes, although these are less commonly used as binding behaviors since the binding commands (`.to-view`, `.two-way`, `.bind`) are more direct.
-
-**`toView` and `twoWay` binding behaviors**
+The `oneTime` binding behavior creates the most efficient binding by evaluating the expression only once and never observing it for changes.
 
 ```html
-<input value.bind="dataItem & toView"> <input value.to-view="dataItem"> <!-- Equivalent to .to-view command -->
+<!-- Perfect for static content -->
+<span>${appVersion & oneTime}</span>
+<img src.bind="logoUrl & oneTime" alt="Company Logo">
 
-<input value.bind="userInput & twoWay"> <input value.two-way="userInput"> <!-- Equivalent to .two-way command -->
+<!-- Useful in repeaters for static data -->
+<div repeat.for="item of items">
+  <span>${item.id & oneTime}</span> <!-- ID never changes -->
+  <span>${item.name}</span> <!-- Name might change -->
+</div>
 ```
 
-{% hint style="warning" %}
-Note the casing difference between binding mode **commands** and **behaviors**. Binding commands (e.g., `.to-view`, `.two-way`) use lowercase, dash-separated names due to HTML case-insensitivity. However, binding behaviors used in expressions (e.g., `toView`, `twoWay`) use camelCase as dashes are not valid in JavaScript variable names.
+`oneTime` bindings eliminate observation overhead entirely, making them ideal for:
+- Static configuration values
+- IDs and other immutable data
+- Large lists where some properties never change
+- Performance-critical rendering scenarios
+
+### toView (One-Way)
+
+Forces one-way data flow from view-model to view only.
+
+```html
+<!-- Equivalent syntaxes -->
+<input value.bind="dataItem & toView">
+<input value.one-way="dataItem">
+```
+
+### fromView
+
+Forces one-way data flow from view to view-model only. The view-model property will be updated when the view changes, but view-model changes won't update the view.
+
+```html
+<!-- Input updates view-model, but view-model changes don't update input -->
+<input value.bind="userInput & fromView">
+<!-- Equivalent to -->
+<input value.from-view="userInput">
+```
+
+This is useful for scenarios like:
+- Collecting user input without reflecting programmatic changes back to the UI
+- One-way form submission scenarios
+- Performance optimization when you don't need view updates
+
+### twoWay
+
+Forces bidirectional data synchronization between view and view-model.
+
+```html
+<!-- Equivalent syntaxes -->
+<input value.bind="userInput & twoWay">
+<input value.two-way="userInput">
+```
+
+### Binding Mode Summary
+
+| Behavior | Direction | Use Case | Command Equivalent |
+|----------|-----------|----------|-------------------|
+| `oneTime` | None (static) | Static content, performance | N/A |
+| `toView` | VM → View | Display-only data | `.one-way` |
+| `fromView` | View → VM | Input-only scenarios | `.from-view` |
+| `twoWay` | VM ↔ View | Interactive forms | `.two-way` |
+
+{% hint style="info" %}
+**Naming Convention**: Binding mode behaviors use camelCase (`toView`, `fromView`, `twoWay`) because they're JavaScript expressions, while binding commands use dash-case (`.to-view`, `.from-view`, `.two-way`) due to HTML's case-insensitive nature.
 {% endhint %}
 
 ## Self
@@ -231,7 +320,7 @@ Consider a scenario with a panel component:
 
 ```html
 <panel>
-  <header mousedown.delegate='onMouseDown($event)' ref='headerElement'>
+  <header mousedown.trigger='onMouseDown($event)' ref='headerElement'>
     <button>Settings</button>
     <button>Close</button>
   </header>
@@ -264,7 +353,7 @@ However, this mixes DOM event handling logic with component-specific behavior. T
 
 ```html
 <panel>
-  <header mousedown.delegate='onMouseDown($event) & self'>
+  <header mousedown.trigger='onMouseDown($event) & self'>
     <button class='settings'></button>
     <button class='close'></button>
   </header>
@@ -286,18 +375,64 @@ export class PanelComponent {
 
 By adding `& self` to the event binding, Aurelia ensures that `onMouseDown` is only called when the `mousedown` event originates directly from the `<header>` element, simplifying your event handler logic and separating concerns.
 
+## Attr
+
+The `attr` binding behavior forces a binding to use attribute accessor instead of property accessor. This is particularly useful when working with custom attributes or when you need to ensure the HTML attribute is set rather than just the property.
+
+**Forcing attribute binding:**
+
+```html
+<!-- Forces setting the 'data-value' attribute -->
+<div data-value.bind="itemValue & attr">
+
+<!-- Useful for custom attributes that need actual HTML attributes -->
+<custom-element custom-attr.bind="value & attr">
+
+<!-- CSS class binding as attribute -->
+<div class.bind="cssClasses & attr">
+```
+
+**When to use `attr`:**
+- Custom attributes that require actual HTML attributes to be set
+- Interoperability with third-party libraries that read HTML attributes
+- SEO considerations where attributes need to be present in the DOM
+- Cases where you need the attribute to be visible in browser dev tools
+
+**Example with custom attribute:**
+
+```typescript
+// Custom attribute that reads from HTML attribute
+export class TooltipCustomAttribute {
+  attached() {
+    // This requires the actual HTML attribute to be set
+    const tooltipText = this.element.getAttribute('tooltip');
+    // Setup tooltip with tooltipText
+  }
+}
+```
+
+```html
+<!-- Without attr - might not work -->
+<div tooltip.bind="helpText">Content</div>
+
+<!-- With attr - ensures HTML attribute is set -->
+<div tooltip.bind="helpText & attr">Content</div>
+```
+
 ## Custom Binding Behaviors
 
 You can create your own custom binding behaviors to encapsulate reusable binding modifications.  Like value converters, custom binding behaviors are view resources.
 
-Instead of `toView` and `fromView` methods (like value converters), custom binding behaviors implement `bind(binding, scope, [...args])` and `unbind(binding, scope)` methods:
+Custom binding behaviors implement `bind(scope, binding, [...args])` and `unbind(scope, binding)` methods:
 
--   **`bind(binding, scope, [...args])`**: This method is called when the binding is created and attached to the DOM.  It's where you implement the behavior modification to the `binding` instance.
-    -   `binding`: The binding instance whose behavior you want to alter. It's an object implementing the `IBinding` interface.
-    -   `scope`: The binding's scope, providing access to the view model (`scope.bindingContext`) and override context (`scope.overrideContext`).
-    -   `[...args]`: Any arguments passed to the binding behavior in the template (e.g., `& myBehavior:arg1:arg2`).
+-   **`bind(scope, binding, [...args])`**: Called when the binding is created and attached to the DOM. This is where you implement the behavior modification.
+    -   `scope`: The binding's scope, providing access to the view model (`scope.bindingContext`) and override context (`scope.overrideContext`)
+    -   `binding`: The binding instance whose behavior you want to alter (implements `IBinding` interface)
+    -   `[...args]`: Any arguments passed to the binding behavior in the template (e.g., `& myBehavior:arg1:arg2`)
 
--   **`unbind(binding, scope)`**: This method is called when the binding is detached from the DOM (e.g., when the view is unrendered).  Here, you should clean up any changes made in the `bind` method to restore the binding to its original state and prevent memory leaks.
+-   **`unbind(scope, binding)`**: Called when the binding is detached from the DOM. Clean up any changes made in the `bind` method to restore the binding to its original state and prevent memory leaks.
+
+**Important:** Note the parameter order - `scope` comes **first**, then `binding`. This is different from some other Aurelia lifecycle methods.
 
 Let's look at some practical examples of custom binding behaviors.
 
@@ -310,24 +445,32 @@ import { bindingBehavior } from '@aurelia/runtime-html';
 import { type IBinding, type Scope } from '@aurelia/runtime';
 
 export class LogBindingContextBehavior {
-  public bind(scope: Scope, binding: IBinding) {
-    const originalUpdateTarget = binding.updateTarget; // Store original updateTarget
+  private originalUpdateTarget = new WeakMap<IBinding, Function>();
 
+  public bind(scope: Scope, binding: IBinding) {
+    // Store the original updateTarget method
+    const original = binding.updateTarget;
+    this.originalUpdateTarget.set(binding, original);
+
+    // Override updateTarget to add logging
     binding.updateTarget = (value) => {
-      console.log('Binding context:', scope.bindingContext); // Log context
-      originalUpdateTarget.call(binding, value); // Call original updateTarget
+      console.log('Binding context:', scope.bindingContext);
+      console.log('Binding value:', value);
+      original.call(binding, value);
     };
   }
 
   public unbind(scope: Scope, binding: IBinding) {
-    // Restore original updateTarget on unbind to avoid side effects
-    if (binding.updateTarget !== undefined) {
-      binding.updateTarget = binding.updateTarget["originalUpdateTarget"] ?? binding.updateTarget;
+    // Restore original updateTarget method
+    const original = this.originalUpdateTarget.get(binding);
+    if (original) {
+      binding.updateTarget = original;
+      this.originalUpdateTarget.delete(binding);
     }
   }
 }
 
-bindingBehavior('logBindingContext')(LogBindingContextBehavior); // Register behavior
+bindingBehavior('logBindingContext')(LogBindingContextBehavior);
 ```
 
 **Usage in Template:**
@@ -348,17 +491,33 @@ import { bindingBehavior } from '@aurelia/runtime-html';
 import { type IBinding, type Scope } from '@aurelia/runtime';
 
 export class InspectBindingBehavior {
+  private originalMethods = new WeakMap<IBinding, Function>();
+
   public bind(scope: Scope, binding: IBinding) {
-    const originalUpdateTarget = binding.updateTarget;
+    const original = binding.updateTarget;
+    this.originalMethods.set(binding, original);
 
     binding.updateTarget = (value) => {
-      originalUpdateTarget.call(binding, value);
-      binding.target.title = `Current value: ${value}`; // Set tooltip
+      original.call(binding, value);
+      // Add tooltip showing current value
+      if (binding.target && 'title' in binding.target) {
+        binding.target.title = `Current value: ${JSON.stringify(value)}`;
+      }
     };
   }
 
   public unbind(scope: Scope, binding: IBinding) {
-    binding.target.title = null; // Clear tooltip on unbind
+    // Restore original method
+    const original = this.originalMethods.get(binding);
+    if (original) {
+      binding.updateTarget = original;
+      this.originalMethods.delete(binding);
+    }
+
+    // Clear tooltip
+    if (binding.target && 'title' in binding.target) {
+      binding.target.title = '';
+    }
   }
 }
 
@@ -383,22 +542,55 @@ import { bindingBehavior } from '@aurelia/runtime-html';
 import { type IBinding, type Scope } from '@aurelia/runtime';
 
 export class HighlightUpdatesBindingBehavior {
+  private originalMethods = new WeakMap<IBinding, Function>();
+  private timeouts = new WeakMap<IBinding, number>();
+
   public bind(scope: Scope, binding: IBinding, highlightColor: string = 'yellow', duration: number = 500) {
-    const originalUpdateTarget = binding.updateTarget;
+    const original = binding.updateTarget;
+    this.originalMethods.set(binding, original);
 
     binding.updateTarget = (value) => {
-      originalUpdateTarget.call(binding, value); // Call original updateTarget
-      const originalBg = binding.target.style.backgroundColor; // Store original background
+      original.call(binding, value);
 
-      binding.target.style.backgroundColor = highlightColor; // Apply highlight color
-      setTimeout(() => {
-        binding.target.style.backgroundColor = originalBg; // Restore original color after duration
-      }, duration);
+      // Clear any existing timeout
+      const existingTimeout = this.timeouts.get(binding);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      if (binding.target && binding.target.style) {
+        const originalBg = binding.target.style.backgroundColor;
+        binding.target.style.backgroundColor = highlightColor;
+
+        const timeout = setTimeout(() => {
+          binding.target.style.backgroundColor = originalBg;
+          this.timeouts.delete(binding);
+        }, duration);
+
+        this.timeouts.set(binding, timeout);
+      }
     };
   }
 
   public unbind(scope: Scope, binding: IBinding) {
-      binding.target.style.backgroundColor = null; // Optionally clear background on unbind
+    // Restore original method
+    const original = this.originalMethods.get(binding);
+    if (original) {
+      binding.updateTarget = original;
+      this.originalMethods.delete(binding);
+    }
+
+    // Clear any pending timeouts
+    const timeout = this.timeouts.get(binding);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.timeouts.delete(binding);
+    }
+
+    // Reset background color
+    if (binding.target && binding.target.style) {
+      binding.target.style.backgroundColor = '';
+    }
   }
 }
 
@@ -413,3 +605,128 @@ bindingBehavior('highlightUpdates')(HighlightUpdatesBindingBehavior);
 ```
 
 Whenever the `message` binding updates the `textContent` of the `div`, the div's background will briefly flash light blue for 1 second (1000ms), visually indicating the update. You can customize the highlight color and duration by passing arguments to the binding behavior in the template.
+
+## Built-in Behaviors Reference
+
+### Rate Limiting
+
+| Behavior | Purpose | Default | Parameters | Signals |
+|----------|---------|---------|------------|---------|
+| `throttle` | Limit update frequency | 200ms | `delay`, `signal` | ✅ |
+| `debounce` | Delay until input stops | 200ms | `delay`, `signal` | ✅ |
+
+### Binding Modes
+
+| Behavior | Direction | Use Case |
+|----------|-----------|----------|
+| `oneTime` | None | Static content, performance |
+| `toView` | VM → View | Display-only data |
+| `fromView` | View → VM | Input-only scenarios |
+| `twoWay` | VM ↔ View | Interactive forms |
+
+### Event & DOM
+
+| Behavior | Purpose | Use Case |
+|----------|---------|----------|
+| `self` | Filter event source | Prevent event bubbling |
+| `updateTrigger` | Custom DOM events | Control when updates occur |
+| `attr` | Force attribute access | Custom attributes, SEO |
+
+### Utility
+
+| Behavior | Purpose | Use Case |
+|----------|---------|----------|
+| `signal` | Manual refresh | Dynamic content, translations |
+
+## Best Practices
+
+### Performance Considerations
+
+**Rate limiting for expensive operations:**
+```html
+<!-- API calls -->
+<input value.bind="searchTerm & debounce:500">
+
+<!-- DOM updates -->
+<div scroll.trigger="onScroll($event) & throttle:16">
+```
+
+**Static content optimization:**
+```html
+<!-- Use oneTime for truly static content -->
+<span>${config.version & oneTime}</span>
+<img src.bind="staticLogoUrl & oneTime">
+```
+
+### Memory Management
+
+**Proper cleanup in custom behaviors:**
+```typescript
+export class MyBehavior {
+  private cleanupMethods = new WeakMap();
+
+  bind(scope: Scope, binding: IBinding) {
+    // Setup with cleanup tracking
+  }
+
+  unbind(scope: Scope, binding: IBinding) {
+    // Always clean up to prevent memory leaks
+    const cleanup = this.cleanupMethods.get(binding);
+    cleanup?.();
+    this.cleanupMethods.delete(binding);
+  }
+}
+```
+
+### Debugging and Development
+
+**Progressive enhancement approach:**
+```html
+<!-- Development: with debugging -->
+<input value.bind="data & logBindingContext & highlightUpdates">
+
+<!-- Production: optimized -->
+<input value.bind="data & debounce:300">
+```
+
+### Common Patterns
+
+**Form handling:**
+```html
+<!-- Real-time validation with debounce -->
+<input value.bind="email & debounce:300 & signal:'validate'">
+
+<!-- Immediate validation on blur -->
+<input value.bind="email & updateTrigger:'blur'"
+       blur.trigger="signaler.dispatchSignal('validate')">
+```
+
+**Search functionality:**
+```html
+<!-- Debounced search -->
+<input value.bind="searchQuery & debounce:400">
+
+<!-- Immediate search button -->
+<button click.trigger="search() & signal:'search-now'">Search</button>
+```
+
+**Dynamic content:**
+```html
+<!-- Time-sensitive content -->
+<span>${timestamp | timeAgo & signal:'time-update'}</span>
+
+<!-- Localized content -->
+<span>${'greeting.hello' | translate & signal:'locale-change'}</span>
+```
+
+## Summary
+
+Binding behaviors provide powerful ways to customize Aurelia's binding system:
+
+- **Built-in behaviors** cover common scenarios like rate limiting, binding modes, and event handling
+- **Custom behaviors** enable unlimited extensibility for specialized requirements
+- **Proper cleanup** is essential to prevent memory leaks in custom implementations
+- **Performance benefits** come from using appropriate behaviors for different use cases
+- **Debugging capabilities** make development and troubleshooting easier
+
+Use binding behaviors to create more efficient, maintainable, and user-friendly applications by controlling exactly how your data flows between view and view-model.

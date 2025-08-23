@@ -440,6 +440,7 @@ const packageNames = [
   'dialog',
   'fetch-client',
   'i18n',
+  'insights',
   'kernel',
   'metadata',
   'platform',

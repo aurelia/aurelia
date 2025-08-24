@@ -225,7 +225,7 @@ Let's now quickly add in some styling for our todo component. Open up `todo-comp
 
 ## Create the todo item component using HTML only
 
-We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet `todo-item.html`. Let's create that right now.
+We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet: `todo-item.html`. Let's create that right now.
 
 For this component, we are going to be creating an HTML-only component. It means it'll just be HTML. No view model needed:
 

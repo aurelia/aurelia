@@ -2,7 +2,7 @@
   "name": "@aurelia/monorepo",
   "private": true,
   "version": "2.0.0-beta.25",
-  "packageManager": "npm@8.19.2",
+  "packageManager": "npm@10.9.0",
   "workspaces": [
     "packages/kernel",
     "packages/metadata",
@@ -67,8 +67,8 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=20.16.0",
-    "npm": ">=7.0.0"
+    "node": ">=22.12.0 <23",
+    "npm": ">=10.0.0 <11"
   },
   "scripts": {
     "prepare": "husky install",
@@ -217,7 +217,7 @@
     }
   },
   "volta": {
-    "node": "20.19.0",
-    "npm": "8.19.2"
+    "node": "22.12.0",
+    "npm": "10.9.0"
   }
 }

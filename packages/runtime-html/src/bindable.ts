@@ -1,4 +1,4 @@
-import { kebabCase, getPrototypeChain, noop, type Class, createLookup, isString, type Constructable } from '@aurelia/kernel';
+import { getPrototypeChain, noop, type Class, createLookup, isString, type Constructable } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { defaultMode, toView, twoWay } from './binding/interfaces-bindings';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
@@ -190,10 +190,16 @@ export class BindableDefinition {
     public readonly set: InterceptorFunc,
   ) { }
 
+  /** @internal */
+  private static readonly _cache: Record<string, string> = {};
+  public static toAttr(prop: string): string {
+    return this._cache[prop] ??= prop.replace(/([A-Z])/g, (_, $1: string) => `-${$1.toLowerCase()}`);
+  }
+
   public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
     const mode = (def.mode ?? toView) as BindingMode;
     return new BindableDefinition(
-      def.attribute ?? kebabCase(prop),
+      def.attribute ?? BindableDefinition.toAttr(prop),
       def.callback ?? `${prop}Changed`,
       isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
       def.primary ?? false,

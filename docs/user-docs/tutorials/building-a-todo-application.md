@@ -225,7 +225,7 @@ Let's now quickly add in some styling for our todo component. Open up `todo-comp
 
 ## Create the todo item component using HTML only
 
-We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet `todo-item.html`. Let's create that right now.
+We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet: `todo-item.html`. Let's create that right now.
 
 For this component, we are going to be creating an HTML-only component. It means it'll just be HTML. No view model needed:
 
@@ -241,7 +241,7 @@ For this component, we are going to be creating an HTML-only component. It means
 </div>
 ```
 
-* **Lines 1,2 & 3:** The bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because it is bindable for a function that gets passed in.
+* **Lines 1, 2 & 3:** The bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTodo` bindable is interesting because it is bindable for a function that gets passed in.
 * **Line 5:** we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
 * **Line 6:** We bind the native checkbox `checked` event to the `completed` property, which sets it to true or false
 * **Line 7:** We are making our paragraph element a `contenteditable` element, which allows it to be edited (it doesn't save, but we can temporarily edit our text). We also display the text value using our interpolation `${}`

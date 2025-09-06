@@ -9,7 +9,7 @@ import type {
   IRenderLocation, ISyntheticView,
 } from '@aurelia/runtime-html';
 
-export interface IVirtualRepeater<T extends Collection = Collection> extends IScrollerSubscriber {
+export interface IVirtualRepeater<T extends Collection = Collection> {
   readonly items: T | undefined | null;
   readonly location: IRenderLocation;
   readonly $controller?: IController;
@@ -34,38 +34,6 @@ export interface IVirtualRepeatDom extends IDisposable {
   get distances(): [number, number];
 
   update(top: number, bot: number): void;
-}
-
-export const IScrollerObsererLocator = /*@__PURE__*/DI.createInterface<IScrollerObsererLocator>('IScrollerObsererLocator');
-export interface IScrollerObsererLocator {
-  getObserver(scroller: HTMLElement): IScrollerObserver;
-}
-
-export interface IScrollerObserver {
-  getValue(): IScrollerInfo;
-  subscribe(sub: IScrollerSubscriber): void;
-  unsubscribe(sub: IScrollerSubscriber): void;
-}
-
-export interface IScrollerSubscriber {
-  handleScrollerChange(scrollerInfo: IScrollerInfo): void;
-}
-
-/**
- * Object with information about current state of a scrollable element
- * Capturing:
- * - current scroll height
- * - current scroll top
- * - current scroll left
- * - real height
- * - real width
- */
-export interface IScrollerInfo {
-  readonly scroller: HTMLElement;
-  readonly scrollTop: number;
-  readonly scrollLeft: number;
-  readonly width: number;
-  readonly height: number;
 }
 
 export const ICollectionStrategyLocator = /*@__PURE__*/DI.createInterface<ICollectionStrategyLocator>('ICollectionStrategyLocator');

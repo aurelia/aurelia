@@ -67,7 +67,6 @@ describe('validation/validator.spec.ts', function () {
       return {
         sut: container.get(IValidator),
         validationRules: container.get(IValidationRules),
-        container
       };
     }
 
@@ -121,7 +120,7 @@ describe('validation/validator.spec.ts', function () {
         });
 
         it(`if given, validates only the specific rules for an object property - ${title}`, async function () {
-          const { sut, validationRules, container } = setup();
+          const { sut, validationRules } = setup();
           const message1 = 'message1', message2 = 'message2';
           const obj: Person = new Person('test', (void 0)!, (void 0)!);
           const rules = validationRules
@@ -133,7 +132,6 @@ describe('validation/validator.spec.ts', function () {
             .withMessage(message2)
             .rules[0];
           const rule = new PropertyRule(
-            container,
             rules['validationRules'],
             rules['messageProvider'],
             rules.property,

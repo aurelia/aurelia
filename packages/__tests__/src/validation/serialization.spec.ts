@@ -126,12 +126,12 @@ describe('validation/serialization.spec.ts', function () {
         }, 'Serializing a non-string displayName for rule property is not supported.');
       });
       it(`works for PropertyRule`, function () {
-        const { parser, messageProvider, validationRules, container } = setup();
+        const { parser, messageProvider, validationRules } = setup();
         const { property, serializedProperty } = properties[0];
         const [name, expression] = parsePropertyName(property, parser);
         const ruleProperty = new Property(expression, name);
         const [req, regex, maxLen] = simpleRuleList;
-        const propertyRule = new PropertyRule(container, validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
+        const propertyRule = new PropertyRule(validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
         assert.strictEqual(ValidationSerializer.serialize(propertyRule), `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`);
       });
     });
@@ -172,12 +172,12 @@ describe('validation/serialization.spec.ts', function () {
         assert.deepStrictEqual(actual, expected);
       });
       it(`works for PropertyRule`, function () {
-        const { parser, messageProvider, validationRules, container } = setup();
+        const { parser, messageProvider, validationRules } = setup();
         const { property, serializedProperty } = properties[0];
         const [name, expression] = parsePropertyName(property, parser);
         const ruleProperty = new Property(expression, name);
         const [req, regex, maxLen] = simpleRuleList;
-        const propertyRule = new PropertyRule(container, validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
+        const propertyRule = new PropertyRule(validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
         const actual = ValidationDeserializer.deserialize(`{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`, propertyRule.validationRules);
         assert.instanceOf(actual, propertyRule.constructor);
         assert.deepStrictEqual(actual, propertyRule);
@@ -350,7 +350,7 @@ describe('validation/serialization.spec.ts', function () {
           const ruleset = { prop: { displayName, rules: [{ ...modelRule }] } };
           const actual = expressionHydrator.hydrateRuleset(ruleset, validationRules);
           const [propertyName, propertyExpression] = parsePropertyName('prop', parser);
-          const expected = [new PropertyRule(container, validationRules, messageProvider, new Property(propertyExpression, propertyName, displayName), [[getRule()]])];
+          const expected = [new PropertyRule(validationRules, messageProvider, new Property(propertyExpression, propertyName, displayName), [[getRule()]])];
 
           assert.deepStrictEqual(actual, expected);
           const actualPropRule = actual[0];
@@ -385,10 +385,10 @@ describe('validation/serialization.spec.ts', function () {
       const requiredRule = simpleRuleList[0].getRule();
       const regexRule = simpleRuleList[1].getRule();
       const expected = [
-        new PropertyRule(container, validationRules, messageProvider, new Property(...parseProperty('prop1')), [[requiredRule, regexRule]]),
-        new PropertyRule(container, validationRules, messageProvider, new Property(...parseProperty('prop2.subProp1')), [[requiredRule, regexRule]]),
-        new PropertyRule(container, validationRules, messageProvider, new Property(...parseProperty('prop2.subProp2')), [[requiredRule], [regexRule]]),
-        new PropertyRule(container, validationRules, messageProvider, new Property(...parseProperty('prop3.subProp1.subSubProp1')), [[requiredRule, regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop1')), [[requiredRule, regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop2.subProp1')), [[requiredRule, regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop2.subProp2')), [[requiredRule], [regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop3.subProp1.subSubProp1')), [[requiredRule, regexRule]]),
       ];
 
       assert.deepStrictEqual(actual, expected);

@@ -5,7 +5,7 @@ import {
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
-import { Class, DI, ILogger, isArray, IServiceLocator, resolve, toArray } from '@aurelia/kernel';
+import { Class, DI, ILogger, isArray, resolve, toArray } from '@aurelia/kernel';
 import {
   type IAstEvaluator,
   Scope,
@@ -123,17 +123,13 @@ export interface PropertyRule extends IAstEvaluator { }
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
-  /** @internal */
-  public readonly l: IServiceLocator; // TODO(Sayan): remove this; possibly unused.
 
   public constructor(
-    locator: IServiceLocator,
     public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
     public property: Property,
     public $rules: IValidationRule[][] = [[]],
   ) {
-    this.l = locator;
   }
 
   public accept(visitor: IValidationVisitor): string {
@@ -519,7 +515,6 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public rules: PropertyRule[] = [];
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
-  private readonly locator: IServiceLocator = resolve(IServiceLocator);
   private readonly parser: IExpressionParser = resolve(IExpressionParser);
   private readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider);
   private readonly deserializer: IValidationExpressionHydrator = resolve(IValidationExpressionHydrator);
@@ -531,7 +526,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this.locator, this, this.messageProvider, new Property(expression, name));
+      rule = new PropertyRule(this, this.messageProvider, new Property(expression, name));
       this.rules.push(rule);
     }
     return rule;
@@ -560,7 +555,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       let ruleProperty: IProperty;
       if (rule == null) {
         ruleProperty = new Property(expression, name);
-        rule = new PropertyRule(this.locator, this, this.messageProvider, ruleProperty);
+        rule = new PropertyRule(this, this.messageProvider, ruleProperty);
         this.rules.push(rule);
       } else {
         ruleProperty = rule.property;
@@ -579,7 +574,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   }
 
   public ensureObject(): PropertyRule {
-    const rule = new PropertyRule(this.locator, this, this.messageProvider, new Property());
+    const rule = new PropertyRule(this, this.messageProvider, new Property());
     this.rules.push(rule);
     return rule;
   }

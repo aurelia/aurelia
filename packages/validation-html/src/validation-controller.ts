@@ -316,8 +316,6 @@ export class ValidationController implements IValidationController {
 
   public readonly validator: IValidator = resolve(IValidator);
   private readonly parser: IExpressionParser = resolve(IExpressionParser);
-  private readonly platform: IPlatform = resolve(IPlatform);
-  private readonly locator: IServiceLocator = resolve(IServiceLocator);
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
     this.objects.set(object, rules);
@@ -495,7 +493,7 @@ export class ValidationController implements IValidationController {
             .map(([
               { validationRules, messageProvider, property },
               rules
-            ]) => new PropertyRule(this.locator, validationRules, messageProvider, property, [rules]))
+            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
         ))
       );
     }

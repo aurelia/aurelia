@@ -173,7 +173,6 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
       case PropertyRule.$TYPE: {
         const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
         return new PropertyRule(
-          this.locator,
           validationRules,
           this.messageProvider,
           this.hydrate($raw.property, validationRules),
@@ -216,7 +215,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
           const rules: IValidationRule[][] = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
           const propertyPrefix = propertyPath.join('.');
           const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-          accRules.push(new PropertyRule(this.l, validationRules, this.messageProvider, property, rules));
+          accRules.push(new PropertyRule(validationRules, this.messageProvider, property, rules));
         } else {
           iterate(Object.entries(value), [...propertyPath, key]);
         }

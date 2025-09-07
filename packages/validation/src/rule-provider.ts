@@ -15,7 +15,7 @@ import {
 import { ErrorNames, createMappedError } from './errors';
 import {
   IPropertyRule,
-  IRuleProperty,
+  IProperty,
   IValidateable,
   IValidationExpressionHydrator,
   IValidationRule,
@@ -52,15 +52,15 @@ export interface ICustomMessage<TRule extends IValidationRule = IValidationRule>
 /* @internal */
 export const ICustomMessages = /*@__PURE__*/DI.createInterface<ICustomMessage[]>('ICustomMessages');
 
-export class RuleProperty implements IRuleProperty {
-  public static $TYPE: string = 'RuleProperty';
+export class Property implements IProperty {
+  public static $TYPE: string = 'Property';
   public constructor(
     public expression?: IsBindingBehavior,
     public name: string | number | undefined = void 0,
     public displayName: string | ValidationDisplayNameAccessor | undefined = void 0,
   ) { }
   public accept(visitor: IValidationVisitor): string {
-    return visitor.visitRuleProperty(this);
+    return visitor.visitProperty(this);
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,13 +124,13 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
   /** @internal */
-  public readonly l: IServiceLocator;
+  public readonly l: IServiceLocator; // TODO(Sayan): remove this; possibly unused.
 
   public constructor(
     locator: IServiceLocator,
     public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
-    public property: RuleProperty,
+    public property: Property,
     public $rules: IValidationRule[][] = [[]],
   ) {
     this.l = locator;
@@ -171,7 +171,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     let isValid = true;
     const validateRuleset = async (rules: IValidationRule[]) => {
       const validateRule = async (rule: IValidationRule) => {
-        const createValidationResult = (valid: boolean, property: IRuleProperty) => {
+        const createValidationResult = (valid: boolean, property: IProperty) => {
           let message: string | undefined;
           if (!valid) {
             const messageEvaluationScope = Scope.create(
@@ -531,7 +531,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty(expression, name));
+      rule = new PropertyRule(this.locator, this, this.messageProvider, new Property(expression, name));
       this.rules.push(rule);
     }
     return rule;
@@ -550,16 +550,16 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     const numProperties = properties.length;
     if (numProperties === 0) return this;
 
-    const ruleProperties: IRuleProperty[] = new Array(numProperties);
+    const ruleProperties: IProperty[] = new Array(numProperties);
     const rules: PropertyRule[] = new Array(numProperties);
 
     for (let i = 0; i < numProperties; ++i) {
       const [name, expression] = parsePropertyName(properties[i] as any, this.parser);
       // eslint-disable-next-line eqeqeq
       let rule = this.rules.find((r) => r.property.name == name);
-      let ruleProperty: IRuleProperty;
+      let ruleProperty: IProperty;
       if (rule == null) {
-        ruleProperty = new RuleProperty(expression, name);
+        ruleProperty = new Property(expression, name);
         rule = new PropertyRule(this.locator, this, this.messageProvider, ruleProperty);
         this.rules.push(rule);
       } else {
@@ -579,7 +579,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   }
 
   public ensureObject(): PropertyRule {
-    const rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty());
+    const rule = new PropertyRule(this.locator, this, this.messageProvider, new Property());
     this.rules.push(rule);
     return rule;
   }

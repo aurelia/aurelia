@@ -8,7 +8,7 @@ import {
   IRangeRule,
   IRegexRule,
   IRequiredRule,
-  IRuleProperty,
+  IProperty,
   ISizeRule,
   IValidateable,
   IValidationRule,
@@ -313,7 +313,7 @@ export class GroupRule<TObject extends IValidateable = IValidateable> extends Ru
   private get [groupRuleMarker](): true { return true; }
 
   public constructor(
-    private readonly properties: IRuleProperty[],
+    private readonly properties: IProperty[],
     private readonly groupFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
   ) {
     super(void 0);

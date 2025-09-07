@@ -8,7 +8,7 @@ import { IValidationMessageProvider } from './rules';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
-export type RuleExecutionResults = { property: IRuleProperty; valid: boolean }[];
+export type RuleExecutionResults = { property: IProperty; valid: boolean }[];
 
 export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   tag?: string;
@@ -52,7 +52,7 @@ export type ValidationDisplayNameAccessor = () => string;
 /**
  * Describes a property to be validated.
  */
-export interface IRuleProperty {
+export interface IProperty {
   /**
    * parsed property expression.
    */
@@ -72,7 +72,7 @@ export interface IRuleProperty {
  * Describes a collection of rules, defined on a property.
  */
 export interface IPropertyRule {
-  property: IRuleProperty;
+  property: IProperty;
   $rules: IValidationRule[][];
   accept(visitor: IValidationVisitor): any;
 }
@@ -84,7 +84,7 @@ export interface IValidationVisitor {
   visitSizeRule(rule: ISizeRule): string;
   visitRangeRule(rule: IRangeRule): string;
   visitEqualsRule(rule: IEqualsRule): string;
-  visitRuleProperty(property: IRuleProperty): string;
+  visitProperty(property: IProperty): string;
   visitPropertyRule(propertyRule: IPropertyRule): string;
 }
 

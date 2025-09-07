@@ -1,6 +1,5 @@
 import {
   DI,
-  IServiceLocator,
   type IContainer,
   type IFactory,
   type Constructable,
@@ -19,7 +18,6 @@ import {
   type Scope,
 } from '@aurelia/runtime';
 import {
-  IPlatform,
   PropertyBinding,
 } from '@aurelia/runtime-html';
 import {

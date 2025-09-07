@@ -170,32 +170,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
     let isValid = true;
     const validateRuleset = async (rules: IValidationRule[]) => {
-      async function validateRule(this: PropertyRule, rule: IValidationRule) {
-        let isValidOrPromise = rule.execute(value, object, scope!);
-        if (isValidOrPromise instanceof Promise) {
-          isValidOrPromise = await isValidOrPromise;
-        }
-        switch (true) {
-          case isValidOrPromise === true:
-            isValid = isValid && true;
-            return [new ValidationResult(true, void 0, this.property.name, object, rule, this)];
-          case isValidOrPromise === false:
-            isValid = isValid && false;
-            return [createValidationResult.call(this, false, this.property)];
-          case isArray(isValidOrPromise): {
-            const length = isValidOrPromise.length;
-            const validationResults: ValidationResult[] = new Array(length);
-            for (let i = 0; i < length; ++i) {
-              const { property, valid } = isValidOrPromise[i];
-              isValid = isValid && valid;
-              validationResults[i] = createValidationResult.call(this, valid, property);
-            }
-            return validationResults;
-          }
-          default: throw createMappedError(ErrorNames.invalid_rule_execution_result, isValidOrPromise);
-        }
-
-        function createValidationResult(this: PropertyRule, valid: boolean, property: IRuleProperty) {
+      const validateRule = async (rule: IValidationRule) => {
+        const createValidationResult = (valid: boolean, property: IRuleProperty) => {
           let message: string | undefined;
           if (!valid) {
             const messageEvaluationScope = Scope.create(
@@ -210,13 +186,37 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
             message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
           }
           return new ValidationResult(valid, message, property.name, object, rule, this);
+        };
+
+        let isValidOrPromise = rule.execute(value, object, scope!);
+        if (isValidOrPromise instanceof Promise) {
+          isValidOrPromise = await isValidOrPromise;
         }
-      }
+        switch (true) {
+          case isValidOrPromise === true:
+            isValid = isValid && true;
+            return [new ValidationResult(true, void 0, this.property.name, object, rule, this)];
+          case isValidOrPromise === false:
+            isValid = isValid && false;
+            return [createValidationResult(false, this.property)];
+          case isArray(isValidOrPromise): {
+            const length = isValidOrPromise.length;
+            const validationResults: ValidationResult[] = new Array(length);
+            for (let i = 0; i < length; ++i) {
+              const { property, valid } = isValidOrPromise[i];
+              isValid = isValid && valid;
+              validationResults[i] = createValidationResult(valid, property);
+            }
+            return validationResults;
+          }
+          default: throw createMappedError(ErrorNames.invalid_rule_execution_result, isValidOrPromise);
+        }
+      };
 
       const promises: Promise<ValidationResult[]>[] = [];
       for (const rule of rules) {
         if (rule.canExecute(object) && (tag === void 0 || rule.tag === tag)) {
-          promises.push(validateRule.call(this, rule));
+          promises.push(validateRule(rule));
         }
       }
       return toArray(await Promise.all(promises)).flat();

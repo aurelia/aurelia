@@ -406,6 +406,14 @@ export class ValidationController implements IValidationController {
         ));
         const newResults = results.reduce(
           (acc, resultSet) => {
+            // Instead of adding the entire resultSet to the accumulator (or simple flattening), we ensure there are no duplicates.
+            // Duplicate result set is possible when grouped rules are involved.
+            // For example, when we have a group rule for prop1, prop2, and prop3 and *everything* is validated,
+            // then the group rule validation result for every property of the group will produce the same result.
+            // Thus, for our example, when everything is validated, we will end up with 9 results: 3 identical results for each of prop1, prop2, and prop3.
+            // While that is alright in the core of the validation, given the nature of the grouped validation,
+            // when we are in the realm of UI (HTML) we don't want to show the same error multiple times.
+            // Therefore, we filter out the duplicates here.
             for (const result of resultSet) {
               if (acc.findIndex(x => x.propertyName === result.propertyName && x.rule === result.rule) === -1) {
                 acc.push(result);

@@ -6150,20 +6150,20 @@ describe('router/smoke-tests.spec.ts', function () {
       await tQueue.yield();
       assert.html.textContent(vp, 'ce1', 'back - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
+      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":1}', 'back - history');
 
       // going forward should load ce3
       history.forward();
       await tQueue.yield();
       assert.html.textContent(vp, 'ce3', 'forward - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":5}', 'forward - history');
+      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
       await dwQueue.yield();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
-      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":5}', 'strategy: none - history');
+      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
       await au.stop(true);
     });
@@ -6237,20 +6237,20 @@ describe('router/smoke-tests.spec.ts', function () {
       await tQueue.yield();
       assert.html.textContent(vp, 'ce2', 'back - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
+      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":2}', 'back - history');
 
       // going forward should load ce3
       history.forward();
       await tQueue.yield();
       assert.html.textContent(vp, 'ce3', 'forward - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":5}', 'forward - history');
+      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
       await dwQueue.yield();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
-      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":5}', 'strategy: none - history');
+      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
       await au.stop(true);
     });
@@ -6331,7 +6331,7 @@ describe('router/smoke-tests.spec.ts', function () {
       await tQueue.yield();
       assert.html.textContent(vp, 'ce3', 'forward - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":5}', 'forward - history');
+      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       await router.load('ce2', { historyStrategy: 'replace' });
       await dwQueue.yield();

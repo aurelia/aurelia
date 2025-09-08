@@ -18,6 +18,7 @@ If you are working with components you are rendering, implementing `IRouteViewMo
 ```typescript
 import {
   IRouteViewModel,
+  INavigationOptions,
   Params,
   RouteNode,
   NavigationInstruction,
@@ -27,14 +28,15 @@ export class MyComponent implements IRouteViewModel {
   canLoad?(
     params: Params,
     next: RouteNode,
-    current: RouteNode | null
+    current: RouteNode | null,
+    options: INavigationOptions
   ): boolean
     | NavigationInstruction
     | NavigationInstruction[]
     | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
-  canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
-  unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
+  loading?(params: Params, next: RouteNode, current: RouteNode | null, options: INavigationOptions): void | Promise<void>;
+  canUnload?(next: RouteNode | null, current: RouteNode, options: INavigationOptions): boolean | Promise<boolean>;
+  unloading?(next: RouteNode | null, current: RouteNode, options: INavigationOptions): void | Promise<void>;
 }
 ```
 
@@ -323,6 +325,51 @@ public unloading(next: RouteNode): void {
 This can also be seen in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-unloading?ctl=1&embed=1&file=src/child2.ts" %}
+
+## Navigation Direction Detection
+
+To detect the direction of navigation, you can use the `isBack` property from the `options: INavigationOptions` parameter in the lifecycle hooks.
+The `isBack` property will be `true` if the navigation is a backward navigation (e.g., user clicked the browser's back button) and `false` for forward navigation.
+
+```typescript
+import { IRouteViewModel, INavigationOptions, Params, RouteNode } from '@aurelia/router';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({
+  name: 'my-component',
+  template: `<div class="page">My Component Content</div>`,
+})
+export class MyComponent implements IRouteViewModel {
+  public loading(
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null,
+    options: INavigationOptions
+  ): void {
+    if (options.isBack) {
+      console.log('User navigated back to this component');
+      // Apply different logic for back navigation
+    } else {
+      console.log('User navigated forward to this component');
+      // Apply logic for forward navigation
+    }
+  }
+
+  public unloading(
+    next: RouteNode | null,
+    current: RouteNode,
+    options: INavigationOptions
+  ): void {
+    if (options.isBack) {
+      console.log('User is navigating back from this component');
+    } else {
+      console.log('User is navigating forward from this component');
+    }
+  }
+}
+```
+
+Refer the [navigation direction-aware animations example](./router-hooks.md#example-5-navigation-direction-aware-animations) to see how this can be leveraged to animate the transition of pages during navigation.
 
 ## Order of invocations
 

@@ -221,7 +221,6 @@ export class Router {
 
     this._locationMgr.startListening();
     this._locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
-      console.log(`[ROUTER] Location change event: ${e.url} (trigger: ${e.trigger})`, e.state);
       // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
       // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
       // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
@@ -233,7 +232,6 @@ export class Router {
         const routerOptions = this.options;
         const auNavId = state?.[AuNavId] ?? 0;
         const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
-        console.log(`[ROUTER] auNavId: ${auNavId}, _lastLocationChangeStateId: ${this._lastLocationChangeStateId}, is back: ${isBack}`);
         this._lastLocationChangeStateId = auNavId;
         const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });
         const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);

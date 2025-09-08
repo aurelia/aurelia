@@ -1,5 +1,5 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
-import { INavigationOptions, IRouter, IRouterEvents, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
+import { INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode } from '@aurelia/router';
 import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { isNode } from '../util.js';
@@ -15,13 +15,13 @@ describe('router/location-manager.spec.ts', function () {
       const isBackLog: boolean[] = [];
       @customElement({ name: 'c-1', template: 'c1' })
       class C1 {
-        public loading(vm: IRouteViewModel, params: Params, next: RouteNode, current: RouteNode, options: INavigationOptions): void | Promise<void> {
+        public loading(_params: Params, _next: RouteNode, _current: RouteNode, options: INavigationOptions): void | Promise<void> {
           isBackLog.push(options.isBack);
         }
       }
       @customElement({ name: 'c-2', template: 'c2' })
       class C2 {
-        public loading(vm: IRouteViewModel, params: Params, next: RouteNode, current: RouteNode, options: INavigationOptions): void | Promise<void> {
+        public loading(_params: Params, _next: RouteNode, _current: RouteNode, options: INavigationOptions): void | Promise<void> {
           isBackLog.push(options.isBack);
         }
       }
@@ -69,7 +69,7 @@ describe('router/location-manager.spec.ts', function () {
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c2$/, 'back event log path');
-      assert.deepStrictEqual(isBackLog, [true], 'back isBackLog');
+      assert.deepStrictEqual(isBackLog, [true], 'round#1 back isBackLog');
 
       eventLog.length = 0;
       history.forward();
@@ -79,7 +79,7 @@ describe('router/location-manager.spec.ts', function () {
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
-      assert.deepStrictEqual(isBackLog, [true, false], 'forward isBackLog');
+      assert.deepStrictEqual(isBackLog, [true, false], 'round#1 forward isBackLog');
 
       // navigate through history states - round#2
       isBackLog.length = 0;
@@ -91,7 +91,7 @@ describe('router/location-manager.spec.ts', function () {
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c2$/, 'back event log path');
-      assert.deepStrictEqual(isBackLog, [true], 'back isBackLog');
+      assert.deepStrictEqual(isBackLog, [true], 'round#2 back isBackLog');
 
       eventLog.length = 0;
       history.forward();
@@ -101,7 +101,7 @@ describe('router/location-manager.spec.ts', function () {
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
-      assert.deepStrictEqual(isBackLog, [true, false], 'forward isBackLog');
+      assert.deepStrictEqual(isBackLog, [true, false], 'round#2 forward isBackLog');
 
       // navigate through history states - round#3
       isBackLog.length = 0;
@@ -113,7 +113,7 @@ describe('router/location-manager.spec.ts', function () {
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c2$/, 'back event log path');
-      assert.deepStrictEqual(isBackLog, [true], 'back isBackLog');
+      assert.deepStrictEqual(isBackLog, [true], 'round#3 back isBackLog');
 
       eventLog.length = 0;
       history.forward();
@@ -123,7 +123,7 @@ describe('router/location-manager.spec.ts', function () {
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
       assert.match(eventLog[0][1], /c1$/, 'back event log path');
-      assert.deepStrictEqual(isBackLog, [true, false], 'forward isBackLog');
+      assert.deepStrictEqual(isBackLog, [true, false], 'round#3 forward isBackLog');
 
       // lastly dispatch a hashchange event
       eventLog.length = 0;

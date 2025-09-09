@@ -24,18 +24,21 @@ const safeString = String;
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
+  /* istanbul ignore next */
   ? (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = safeString(code).padStart(4, '0');
     const message = getMessageByCode(code, ...details);
     const link = `https://docs.aurelia.io/developer-guides/error-messages/ui-virtualization/aur${paddedCode}`;
     return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
   }
+  /* istanbul ignore next */
   : (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = safeString(code).padStart(4, '0');
     return new Error(`AUR${paddedCode}:${details.map(safeString)}`);
   };
 
 _START_CONST_ENUM();
+  /* istanbul ignore next */
 /** @internal */
 export const enum ErrorNames {
   method_not_implemented = 99,
@@ -50,6 +53,7 @@ export const enum ErrorNames {
 }
 _END_CONST_ENUM();
 
+  /* istanbul ignore next */
 const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
@@ -72,6 +76,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.unsupported_collection_strategy]: 'Unable to find a strategy for collection type: {{0}}. Supported types: Array, null/undefined.',
 };
 
+/* istanbul ignore next */
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
   let cooked: string = errorsMap[name];
   for (let i = 0; i < details.length; ++i) {

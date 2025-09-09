@@ -254,15 +254,21 @@ export class VirtualRepeat implements IVirtualRepeater {
     const itemHeight = this._configuredItemHeight ?? calcOuterHeight(firstElement);
     const itemWidth = this._configuredItemWidth ?? calcOuterWidth(firstElement);
 
+    if (!isHorizontal && itemHeight === 0
+      || isHorizontal && itemWidth === 0
+    ) {
+      return;
+    }
+
     const scroller = this.dom.scroller;
     const viewportSize = isHorizontal
       ? calcScrollerViewportWidth(scroller)
       : calcScrollerViewportHeight(scroller);
-    const canScroll = () => isHorizontal
+    const canScroll = isHorizontal
       ? scroller.scrollWidth > viewportSize
       : scroller.scrollHeight > viewportSize;
 
-    if (!canScroll()) {
+    if (!canScroll) {
       const viewCount = this.views.length;
       // when updating the dom
       // we will trigger an event and then handle it the next frame
@@ -272,20 +278,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     this.itemHeight = itemHeight;
     this.itemWidth = itemWidth;
 
-    if (!canScroll()) {
-      // if at this point still cannot scroll
-      // then not sure what to do
-      // just renders everything
-      this.minViewsRequired = itemCount;
-      return;
-    } else {
-      const minViews = this._configuredMinViews ?? viewportSize / (isHorizontal ? itemWidth : itemHeight);
-      this.minViewsRequired = Math.ceil(minViews);
+    const minViews = this._configuredMinViews ?? viewportSize / (isHorizontal ? itemWidth : itemHeight);
+    this.minViewsRequired = Math.ceil(minViews);
 
-      // For variable sizing, measure the first item to initialize the arrays
-      if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
-        this._measureAndStoreItemSize(firstView, 0);
-      }
+    // For variable sizing, measure the first item to initialize the arrays
+    if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
+      this._measureAndStoreItemSize(firstView, 0);
     }
 
     this._handleItemsChanged(this.items, this.collectionStrategy!);
@@ -353,7 +351,7 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     if (cumulative.length === 0) {
       // Fallback to fixed sizing
-      const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
+      const itemSize = this._getItemSize();
       return itemSize > 0 ? Math.floor(position / itemSize) : 0;
     }
 
@@ -390,11 +388,16 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     if (index >= cumulative.length) {
       // Fallback for out-of-bounds
-      const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
+      const itemSize = this._getItemSize();
       return index * itemSize;
     }
 
     return index > 0 ? cumulative[index - 1] : 0;
+  }
+
+  /** @internal */
+  private _getItemSize() {
+    return this._configuredLayout === 'horizontal' ? this.itemWidth : this.itemHeight;
   }
 
   /** @internal */
@@ -418,10 +421,12 @@ export class VirtualRepeat implements IVirtualRepeater {
       return;
     }
 
-    if (this.itemHeight === 0) {
-      // not sure what to do here
-      // this likely means the virtual repeat is in a hidden scroller
-      return;
+    if (this._getItemSize() === 0) {
+      // if prior to this function call
+      // the repeat wasn't having item height, it could be:
+      // empty array
+      // display none
+      return this._onResize();
     }
 
     // only ensure there's enough views
@@ -452,14 +457,13 @@ export class VirtualRepeat implements IVirtualRepeater {
       views.push(this._factory.create());
     }
     const isHorizontal = this._configuredLayout === 'horizontal';
-    const itemHeight = this.itemHeight;
-    const itemSize = isHorizontal ? this.itemWidth : itemHeight;
+    const itemSize = this._getItemSize();
     const local = this.local;
     const {
       firstIndex,
       topCount,
       botCount,
-    } = this.measureBuffer(this.dom.scroller, views.length, itemCount, itemHeight);
+    } = this.measureBuffer(this.dom.scroller, views.length, itemCount, itemSize);
 
     let idx = 0;
     let item: unknown;
@@ -555,20 +559,19 @@ export class VirtualRepeat implements IVirtualRepeater {
   }
 
   /** @internal */
-  private measureBuffer(scroller: HTMLElement, viewCount: number, collectionSize: number, itemHeight: number): IBufferCalculation {
+  private measureBuffer(scroller: HTMLElement, viewCount: number, collectionSize: number, itemSize: number): IBufferCalculation {
     const isHorizontal = this._configuredLayout === 'horizontal';
     const isVariableSizing = isHorizontal ? this._configuredVariableWidth : this._configuredVariableHeight;
 
     if (isVariableSizing && (isHorizontal ? this._cumulativeWidths.length > 0 : this._cumulativeHeights.length > 0)) {
       return this._measureBufferVariable(scroller, viewCount, collectionSize, isHorizontal);
     } else {
-      return this._measureBufferFixed(scroller, viewCount, collectionSize, itemHeight, isHorizontal);
+      return this._measureBufferFixed(scroller, viewCount, collectionSize, itemSize, isHorizontal);
     }
   }
 
   /** @internal */
-  private _measureBufferFixed(scroller: HTMLElement, viewCount: number, collectionSize: number, itemHeight: number, isHorizontal: boolean): IBufferCalculation {
-    const itemSize = isHorizontal ? this.itemWidth : itemHeight;
+  private _measureBufferFixed(scroller: HTMLElement, viewCount: number, collectionSize: number, itemSize: number, isHorizontal: boolean): IBufferCalculation {
     const realScroll = isHorizontal
       ? this._calcRealScrollLeft(scroller)
       : this._calcRealScrollTop(scroller);
@@ -637,8 +640,7 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     const local = this.local;
     const isHorizontal = this._configuredLayout === 'horizontal';
-    const itemHeight = this.itemHeight;
-    const itemSize = isHorizontal ? this.itemWidth : itemHeight;
+    const itemSize = this._getItemSize();
     const repeatDom = this.dom;
     const collectionStrategy = this.collectionStrategy!;
     const collectionSize = collectionStrategy.count;
@@ -647,7 +649,7 @@ export class VirtualRepeat implements IVirtualRepeater {
       firstIndex: currFirstIndex,
       topCount: topCount1,
       botCount: botCount1
-    } = this.measureBuffer(scroller, viewCount, collectionSize, itemHeight);
+    } = this.measureBuffer(scroller, viewCount, collectionSize, itemSize);
     const isScrollingTowardsEnd = isHorizontal
       ? scroller.scrollLeft > this._prevScroll
       : scroller.scrollTop > this._prevScroll;

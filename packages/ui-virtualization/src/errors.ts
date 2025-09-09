@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable prefer-template */
 
 /**
  * UI Virtualization Error Codes (AUR6000-AUR6999)
@@ -80,7 +79,6 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
     let matches = regex.exec(cooked);
     while (matches != null) {
       const method = matches[1]?.slice(1);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let value = details[i] as any;
       if (value != null) {
         switch (method) {

@@ -100,30 +100,77 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     assert.strictEqual(firstView.nodes.firstChild.textContent, `item-8`);
   });
 
-  // describe.only('scroller resizing', function () {
-  //   it('resizes when scroller height changes', async function () {
-  //     const { component, getBy, getAllBy, scrollBy } = createFixture(
-  //       `<div id="scroller" style="height: 0; overflow: auto; background-color: lightgray;">
-  //         <div virtual-repeat.for="item of items" style="height: 50px">\${item.name}</div>
-  //       </div>`,
-  //       class App { items = createItems(); },
-  //       virtualRepeatDeps
-  //     );
+  describe('scroller resizing', function () {
+    it('works with dynamic height scroller', async function () {
+      const {getAllBy } = createFixture(
+        `<main style="max-height: 300px; width: 300px; overflow: auto; background-color: lightgray;">
+          <div virtual-repeat.for="item of items" style="height: 50px">\${item.name}</div>
+        </main>`,
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
 
-  //     await tasksSettled();
+      // probably about 1 animation frame though 30ms to be sure
+      await new Promise(r => setTimeout(r, 30));
+      assert.strictEqual(getAllBy('div').length, 12 /* 6 min = 12 required */ + 2 /* buffers */);
+    });
 
-  //     getBy('#scroller').style.height = '600px';
-  //     // console.log(getBy('#scroller').getBoundingClientRect().height);
-  //     // getBy('#scroller').style.width = '600px';
+    it('works with container starting with 0 height', async function () {
+      const { getAllBy, getBy } = createFixture(
+        `<main style="height: 0px; width: 300px; overflow: auto; background-color: lightgray;">
+          <div virtual-repeat.for="item of items" style="height: 50px">\${item.name}</div>
+        </main>`,
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
 
-  //     // await new Promise(r => setTimeout(r, 350));
-  //     await tasksSettled();
-  //     assert.strictEqual(getAllBy('div').length, 24 + 2 /* buffers */);
-  //     // await new Promise(r => setTimeout(r, 50000));
-  //     // scrollBy('main', 400);
-  //     debugger;
-  //   });
-  // });
+      // probably about 1 animation frame though 30ms to be sure
+      await new Promise(r => setTimeout(r, 30));
+      assert.strictEqual(getAllBy('div').length, 2);
+
+      getBy('main').style.height = '300px';
+      // probably about 1 animation frame though 30ms to be sure
+      await new Promise(r => setTimeout(r, 30));
+      assert.strictEqual(getAllBy('div').length, 12 + 2);
+    });
+
+    it('works with dynamic width scroller', async function () {
+      const {getAllBy } = createFixture(
+        [
+          `<main style="max-width: 300px; height: 100px; overflow: auto; background-color: lightgray; white-space: nowrap;">`,
+            `<div virtual-repeat.for="item of items" style="display: inline-block; width: 50px">\${item.name}</div>,
+          </main>`
+        ].join(''),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      // probably about 1 animation frame though 30ms to be sure
+      await new Promise(r => setTimeout(r, 30));
+      assert.strictEqual(getAllBy('div').length, 12 /* 6 min = 12 required */ + 2 /* buffers */);
+    });
+
+    it('works with container starting with 0 width', async function () {
+      const { getAllBy, getBy } = createFixture(
+        [
+          `<main style="width: 0; height: 100px; overflow: auto; background-color: lightgray; white-space: nowrap;">`,
+            `<div virtual-repeat.for="item of items" style="display: inline-block; width: 50px">\${item.name}</div>,
+          </main>`
+        ].join(''),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      // probably about 1 animation frame though 30ms to be sure
+      await new Promise(r => setTimeout(r, 30));
+      assert.strictEqual(getAllBy('div').length, 12 + 2);
+
+      getBy('main').style.width = '300px';
+      // probably about 1 animation frame though 30ms to be sure
+      await new Promise(r => setTimeout(r, 30));
+      assert.strictEqual(getAllBy('div').length, 12 + 2);
+    });
+  });
 
   describe('mutation', function () {
     // TODO: check why this fails

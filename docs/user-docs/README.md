@@ -70,7 +70,7 @@ In a landscape where Virtual DOM is often touted as a necessity, Aurelia confide
 
 The decision to not use a Virtual DOM is a reflection of Aurelia's overarching philosophy: to provide a powerful, efficient, and straightforward framework that stays true to the nature of the web. This approach encourages developers to build applications that are both performant and maintainable, leveraging the full potential of the web platform.
 
-## Navigation The Aurelia Docs
+## Navigating the Aurelia Docs
 
 Your journey with Aurelia begins here in our meticulously crafted documentation. Start with the [Quick Start Guide](getting-started/quick-start-guide/) to grasp the basics of building an Aurelia application. The "Getting Started" section is your next stop, followed by "App Basics" for a deep dive into regular Aurelia usage.
 

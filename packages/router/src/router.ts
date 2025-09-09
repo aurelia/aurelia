@@ -445,7 +445,7 @@ export class Router {
   public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true),
-      vit => vit.toUrl(true, this.options._urlParser)
+      vit => vit.toUrl(true, this.options._urlParser, (vit.options.context as IRouteContext).isRoot),
     );
   }
 
@@ -693,7 +693,7 @@ export class Router {
         this._isNavigating = false;
 
         // apply history state
-        const newUrl = tr.finalInstructions.toUrl(true, this.options._urlParser);
+        const newUrl = tr.finalInstructions.toUrl(true, this.options._urlParser, true);
         switch (tr.options._getHistoryStrategy(this._instructions)) {
           case 'none':
             // do nothing

@@ -28,6 +28,10 @@ Aurelia 2 primarily offers two commands for event binding, each controlling the 
 
 2.  **`.capture`**: This command listens for events during the **capturing phase**.  Capturing is the less common phase where events propagate downwards from the window to the target element.  `.capture` is typically used in specific scenarios, such as when you need to intercept an event before it reaches child elements, potentially preventing default behaviors or further propagation.
 
+{% hint style="info" %}
+The `.delegate` command from Aurelia 1 has been removed in Aurelia 2. If you need to migrate from Aurelia 1 code that uses `.delegate`, you can use the `@aurelia/compat-v1` package, or simply replace `.delegate` with `.trigger` in most cases, as `.trigger` in Aurelia 2 efficiently handles event bubbling for dynamic content.
+{% endhint %}
+
 #### Example: Click Event Binding using `.trigger`
 
 To bind a click event on a button to a method named `handleClick` in your view model, you would use:
@@ -153,6 +157,19 @@ In this example, `trackMouse` will be executed at most every 50 milliseconds, ev
 
 Here, `searchQuery` will be called 300ms after the user *stops* typing, reducing the number of search requests.
 
+#### Performance Considerations
+
+When using throttling and debouncing, consider these performance best practices:
+
+- **Choose appropriate delays**: Too short delays may not provide performance benefits, while too long delays can make the UI feel unresponsive.
+- **Monitor handler complexity**: Ensure that even throttled/debounced handlers are optimized for performance.
+- **Use signals for immediate updates**: When you need to force immediate execution of a throttled/debounced handler (e.g., on form submission), use signals:
+
+```html
+<input input.trigger="search($event.target.value) & debounce:300:'immediate'">
+<button click.trigger="signaler.dispatchSignal('immediate')">Search Now</button>
+```
+
 ### Custom Events
 
 Aurelia 2 fully supports custom events, which are essential when working with custom elements or integrating third-party libraries that dispatch their own events.
@@ -230,7 +247,7 @@ This example shows how to check `event.key` to handle specific keys like "Enter"
 
 ### Event Delegation for Dynamic Lists
 
-Efficiently handle events on dynamically generated lists using event delegation. Attach a single event listener to the parent `<ul>` or `<div>` instead of individual listeners to each list item.
+Event delegation is a powerful technique for efficiently handling events on dynamically generated lists. Attach a single event listener to the parent `<ul>` or `<div>` instead of individual listeners to each list item using `.trigger`.
 
 ```html
 <ul click.trigger="listItemClicked($event)">
@@ -253,7 +270,7 @@ export class MyViewModel {
 }
 ```
 
-The `listItemClicked` handler attached to the `<ul>` will be triggered for clicks on any `<li>` within it due to event bubbling.  We check `event.target` to ensure the click originated from an `<li>` and extract the `data-item-id`.
+The `listItemClicked` handler attached to the `<ul>` will be triggered for clicks on any `<li>` within it due to event bubbling. We check `event.target` to ensure the click originated from an `<li>` and extract the `data-item-id`. This approach provides efficient event handling for dynamic lists without requiring individual listeners on each item.
 
 ### Custom Event Communication Between Components
 
@@ -420,6 +437,55 @@ This makes your template more readable as `:ctrl+upper_k` is more self-explanato
 {% hint style="info" %}
 Aurelia provides default key mappings for lowercase letters 'a' through 'z' (both as key codes and letter names). For uppercase letters, only key code mappings are provided by default (e.g., `:65` for 'A'). You can extend these mappings as shown above to create more semantic modifier names.
 {% endhint %}
+
+## Common Pitfalls and Troubleshooting
+
+### Event Handler Issues
+
+1. **Event not firing**: Verify that the event name is correct and the element supports that event type.
+2. **Handler not found**: Ensure the method exists in your view model and is properly spelled.
+3. **Context issues**: Remember that event handlers execute in the context of the view model, so `this` refers to the view model instance.
+
+### Performance Issues
+
+1. **Frequent event handlers**: Use throttling or debouncing for events that fire rapidly (e.g., `mousemove`, `scroll`, `input`).
+2. **Complex handlers**: Keep event handlers lightweight. Move heavy processing to separate methods called asynchronously.
+3. **Memory leaks**: Aurelia automatically manages event listener cleanup, but be cautious with manual event listeners in your handlers.
+
+### Binding Behavior Conflicts
+
+1. **Multiple rate limiters**: You cannot apply both `throttle` and `debounce` to the same binding (Error AUR9996).
+2. **Duplicate behaviors**: Avoid applying the same binding behavior multiple times (Error AUR0102).
+3. **Behavior order**: When chaining behaviors, order matters: `event.trigger="handler() & behavior1 & behavior2"`.
+
+### Event Modifier Issues
+
+1. **Incorrect syntax**: Modifiers must be placed after the command: `click.trigger:ctrl` not `click:ctrl.trigger`.
+2. **Unsupported modifiers**: Verify that the modifier is supported for the event type.
+3. **Custom modifiers**: Ensure custom key mappings are registered before use.
+
+### Debugging Tips
+
+1. **Console logging**: Add console.log statements to verify event firing:
+   ```typescript
+   handleClick(event: MouseEvent) {
+     console.log('Click handler called', event);
+     // Your logic here
+   }
+   ```
+
+2. **Browser dev tools**: Use the browser's event listener inspection to verify bindings are attached.
+
+3. **Event object inspection**: Log the entire event object to understand available properties:
+   ```typescript
+   handleEvent(event: Event) {
+     console.log('Event details:', {
+       type: event.type,
+       target: event.target,
+       currentTarget: event.currentTarget
+     });
+   }
+   ```
 
 ## Conclusion
 

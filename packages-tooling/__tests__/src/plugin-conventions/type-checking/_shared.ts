@@ -4,6 +4,7 @@ import { basename } from 'path';
 import {
   ModuleKind,
   ModuleResolutionKind,
+  ScriptTarget,
   createCompilerHost,
   createProgram,
   createSourceFile,
@@ -32,6 +33,8 @@ export const options: CompilerOptions = {
   moduleResolution: ModuleResolutionKind.Node10,
   noEmit: true,
   allowJs: true,
+  target: ScriptTarget.ES2020,
+  types: [] // prevents crawling node_modules/@types/* (cuts test execution time in half)
 };
 
 export function $basename(path: string): string {

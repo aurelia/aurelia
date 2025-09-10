@@ -1,8 +1,8 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.1-dev.202507101213",
-  "packageManager": "npm@8.19.2",
+  "version": "2.0.0-beta.25",
+  "packageManager": "npm@10.9.0",
   "workspaces": [
     "packages/kernel",
     "packages/metadata",
@@ -67,8 +67,8 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=20.16.0",
-    "npm": ">=7.0.0"
+    "node": ">=22.12.0 <23",
+    "npm": ">=10.0.0 <11"
   },
   "scripts": {
     "prepare": "husky install",
@@ -121,7 +121,7 @@
     "@typescript-eslint/eslint-plugin": "6.10.0",
     "@typescript-eslint/parser": "6.10.0",
     "chalk": "4.1.2",
-    "chromedriver": "137.0.4",
+    "chromedriver": "^139.0.0",
     "codecov": "^3.8.3",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
@@ -217,7 +217,7 @@
     }
   },
   "volta": {
-    "node": "20.19.0",
-    "npm": "8.19.2"
+    "node": "22.12.0",
+    "npm": "10.9.0"
   }
 }

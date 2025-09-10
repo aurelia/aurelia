@@ -29,7 +29,7 @@ export class CurrentRoute {
         const vit = event.finalInstructions;
         batch(() => {
           (this as Writable<CurrentRoute>).path = vit.toPath();
-          (this as Writable<CurrentRoute>).url = vit.toUrl(true, options._urlParser);
+          (this as Writable<CurrentRoute>).url = vit.toUrl(true, options._urlParser, true);
           (this as Writable<CurrentRoute>).title = router._getTitle();
           (this as Writable<CurrentRoute>).query = vit.queryParams;
           (this as Writable<CurrentRoute>).parameterInformation = vit.children.map((instruction) => ParameterInformation.create(instruction));

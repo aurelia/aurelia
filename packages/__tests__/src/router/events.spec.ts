@@ -40,16 +40,16 @@ describe('router/events.spec.ts', function () {
       const events = resolve(IRouterEvents);
       this.subscriptions = [
         events.subscribe('au:router:navigation-start', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}'`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser, true)}'`);
         }),
         events.subscribe('au:router:navigation-end', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}'`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser, true)}'`);
         }),
         events.subscribe('au:router:navigation-cancel', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}' - ${String(event.reason)}`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser, true)}' - ${String(event.reason)}`);
         }),
         events.subscribe('au:router:navigation-error', (event) => {
-          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}' - ${String(event.error)}`);
+          this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser, true)}' - ${String(event.error)}`);
         }),
       ];
     }

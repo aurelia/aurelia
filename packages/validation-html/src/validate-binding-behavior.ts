@@ -273,7 +273,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
       return;
     }
     this._isQueued = true;
-    queueAsyncTask(() => {
+    void queueAsyncTask(() => {
       this._isQueued = false;
       return this.controller.validateBinding(this.propertyBinding);
     });

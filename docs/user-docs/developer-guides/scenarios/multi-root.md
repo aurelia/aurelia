@@ -6,7 +6,15 @@ Below is a step-by-step guide on how to create a multi-root Aurelia 2 applicatio
 
 ## Strategy
 
-The approach uses two independent Aurelia applications, the first is the simple login wall host where the user is initially directed. The login wall application provides just the authentication flow implementation, and publishes an authenticated event using the `ĒventAggregator` if the user successfully authenticates. At the entry point of the application, the authenticated event is subscribed to and when received, the login wall application is stopped and replaced by a new Aurelia application instance containing the app features.  
+The multi-root approach uses two independent Aurelia applications that can be started and stopped independently. This provides complete isolation between different parts of your application, which is beneficial for:
+
+- **Complete application context separation** - Each root has its own DI container, configuration, and lifecycle
+- **Memory management** - Unused application parts can be fully disposed of
+- **Different configurations** - Each root can have different plugins, services, or settings
+- **Lazy loading of major application sections** - Load heavy application parts only when needed
+- **Legacy integration** - Migrate parts of existing applications incrementally
+
+The approach works by starting with a lightweight login application that handles authentication. Once authenticated, it stops the login application and starts the main application, ensuring clean separation of concerns and optimal resource usage.  
 
 ## Setting up
 
@@ -14,34 +22,56 @@ In the `src/main.ts` entry point, we first set up the login wall application and
 
 ```typescript
 // src/main.ts
-import Aurelia from 'aurelia';
+import { Aurelia, StandardConfiguration, AppTask } from '@aurelia/runtime-html';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
 import { LoginWall } from './login-wall';
 import { MyApp } from './my-app';
 
-const host = document.querySelector<HTMLElement>('login-wall');
-const au = new Aurelia();
-au.register(
-  StandardConfiguration,
-  AppTask.hydrated(IEventAggregator, (ea) => {
-    ea.subscribeOnce(authenticatedEvent, async () => {
-      await au.stop();
-      await start();
-     });
-  })
-);
-au.app({ host, component: LoginWall });
-await au.start();
+// Shared event constant - could also be defined in a separate constants file
+export const AUTHENTICATED_EVENT = 'user:authenticated';
+
+async function main() {
+  const host = document.querySelector<HTMLElement>('login-wall')!;
+  const au = new Aurelia();
+  
+  au.register(
+    StandardConfiguration,
+    AppTask.hydrated(() => {
+      const ea = resolve(IEventAggregator);
+      ea.subscribeOnce(AUTHENTICATED_EVENT, async () => {
+        await au.stop();
+        await startMainApp();
+      });
+    })
+  );
+  
+  au.app({ host, component: LoginWall });
+  await au.start();
+}
+
+main().catch(console.error);
 ```
 
 Starting the main app just requires a new Aurelia instance and host element. It is omitted here, but the authenticated event could have been passed to the start function to provide the application with the users auth token and any other user information received in the login process.
 
 ```typescript
-async function start() {
-  const host = document.querySelector<HTMLElement>('my-app');
+async function startMainApp() {
+  const host = document.querySelector<HTMLElement>('my-app')!;
   const au = new Aurelia();
-  au.register(StandardConfiguration, RouterConfiguration);
+  
+  au.register(
+    StandardConfiguration
+    // Add additional configurations for your main app:
+    // RouterConfiguration, 
+    // ValidationConfiguration,
+    // etc.
+  );
+  
   au.app({ host, component: MyApp });
   await au.start();
+  
+  // Store reference if you need to stop this app later
+  // window.mainApp = au;
 }
 ```
 
@@ -52,16 +82,49 @@ In `src/login-wall.ts`, we define the `LoginWall` class with a `login` method. T
 
 ```typescript
 // src/login-wall.ts
-import { customElement, inject, IEventAggregator } from 'aurelia';
-import { AppRoot } from './app-root';
+import { customElement } from '@aurelia/runtime-html';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
+import { AUTHENTICATED_EVENT } from './main';
 
 @customElement('login-wall')
-@inject(IEventAggregator)
 export class LoginWall {
-  constructor(private _ea: IEventAggregator) {}
+  private readonly ea: IEventAggregator = resolve(IEventAggregator);
+  
+  username = '';
+  password = '';
+  isLoading = false;
 
   async login() {
-    this._ea.publish(authenticatedEvent);
+    this.isLoading = true;
+    
+    try {
+      // Simulate authentication API call
+      await this.authenticate(this.username, this.password);
+      
+      // Publish success event with user data if needed
+      this.ea.publish(AUTHENTICATED_EVENT, { 
+        username: this.username,
+        timestamp: new Date() 
+      });
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Handle login error (show message, etc.)
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  
+  private async authenticate(username: string, password: string) {
+    // Replace with actual authentication logic
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (username && password) {
+          resolve(true);
+        } else {
+          reject(new Error('Invalid credentials'));
+        }
+      }, 1000);
+    });
   }
 }
 ```
@@ -77,13 +140,23 @@ In your `index.html` or equivalent, you need to have placeholders for each root 
   <!-- ... -->
 </head>
 <body>
-  <!-- Placeholder for the LoginWall component -->
-  <login-wall></login-wall>
+  <!-- Placeholder for the LoginWall component - initially visible -->
+  <login-wall style="display: block;"></login-wall>
 
-  <!-- Placeholder for the AppRoot component -->
-  <my-app></my-app>
+  <!-- Placeholder for the main app - initially hidden -->
+  <my-app style="display: none;"></my-app>
 
-  <!-- ... -->
+  <!-- Optional: Add a loading indicator -->
+  <div id="loading" style="display: none;">
+    <p>Loading application...</p>
+  </div>
+
+  <script>
+    // Optional: Show loading during transition
+    window.addEventListener('beforeunload', () => {
+      document.getElementById('loading').style.display = 'block';
+    });
+  </script>
 </body>
 </html>
 ```
@@ -96,14 +169,116 @@ The following example shows a working skeleton of the approach described.
 
 ## Managing Application State
 
-When switching roots, you might need to manage application state, like user sessions, and ensure a smooth transition. Consider using Aurelia's dependency injection, state management libraries, or browser storage mechanisms to maintain state across root transitions.
+When switching roots, you need to carefully manage application state since each root has its own DI container. Here are recommended approaches:
+
+### Passing Data Between Roots
+
+```typescript
+// In main.ts - capture data from the authenticated event
+ea.subscribeOnce(AUTHENTICATED_EVENT, async (userData) => {
+  await au.stop();
+  await startMainApp(userData); // Pass data to main app
+});
+
+// Modified startMainApp function
+async function startMainApp(userData?: any) {
+  const host = document.querySelector<HTMLElement>('my-app')!;
+  const au = new Aurelia();
+  
+  au.register(
+    StandardConfiguration,
+    // Register user data as a singleton for the main app
+    Registration.singleton('UserData', userData || {})
+  );
+  
+  au.app({ host, component: MyApp });
+  await au.start();
+}
+```
+
+### Persistent State Options
+
+- **Browser Storage** - Use localStorage/sessionStorage for data that should persist
+- **State Management Libraries** - Use libraries like Aurelia Store that can work across app boundaries  
+- **Server State** - Store critical state on the server and refetch as needed
+- **URL Parameters** - Pass simple state through URL parameters
 
 ## Additional Considerations
 
-- **Routing**: If your application uses routing, you'll need to configure the router for each root component separately.
-- **Shared Resources**: shared resources like services or custom elements, will need to be registered independently in each application via the app entry point.
-- **Cleanup**: When stopping an Aurelia app instance, make sure to clean up any event listeners or subscriptions to prevent memory leaks.
+### Memory Management and Cleanup
+
+When stopping an Aurelia application, most cleanup happens automatically, but be aware of:
+
+```typescript
+// Before stopping, clean up any global listeners you added
+window.removeEventListener('beforeunload', myHandler);
+
+// Stop the application - this cleans up most internal subscriptions
+await au.stop();
+
+// Clear any global references
+delete window.loginApp;
+```
+
+### Routing Configuration
+
+Each root needs its own router configuration:
+
+```typescript
+// login-wall might not need routing
+au.register(StandardConfiguration);
+
+// main app with full routing
+au.register(
+  StandardConfiguration,
+  RouterConfiguration.customize({ /* routing options */ })
+);
+```
+
+### Shared Resources
+
+Resources like custom elements, services, or value converters need to be registered in each application that uses them:
+
+```typescript
+// Shared service registration in both apps
+import { MySharedService } from './services/shared-service';
+
+au.register(
+  StandardConfiguration,
+  Registration.singleton(MySharedService)
+);
+```
+
+## Alternative Approaches
+
+While multi-root provides complete isolation, simpler alternatives may be sufficient for many use cases:
+
+### Router Hooks (For Authentication)
+```typescript
+// Use canLoad hooks for route protection
+@lifecycleHooks()
+export class AuthGuard {
+  canLoad(): boolean {
+    return this.authService.isAuthenticated();
+  }
+}
+```
+
+### Dynamic Composition
+```html
+<!-- Switch components without stopping applications -->
+<au-compose component.bind="isAuthenticated ? 'main-app' : 'login-wall'"></au-compose>
+```
+
+### Conditional Rendering  
+```html
+<!-- Simple show/hide approach -->
+<login-wall if.bind="!isAuthenticated"></login-wall>
+<main-app if.bind="isAuthenticated"></main-app>
+```
+
+Choose multi-root when you need complete application isolation. For simpler scenarios, the alternatives above may be more appropriate.
 
 ## Conclusion
 
-Multi-root applications in Aurelia 2 allow for a modular and dynamic approach to managing different parts of your application. By following the steps above, you can create a multi-root setup that can handle complex scenarios, such as a public and private interface transition. Remember that each application is unique, and you may need to adjust this approach to fit your specific requirements.
+Multi-root applications in Aurelia 2 provide complete isolation between different parts of your application, making them ideal for scenarios requiring separate application contexts, different configurations, or memory-intensive sections that benefit from being fully disposed. By following the steps above, you can create a robust multi-root setup that handles complex scenarios like public/private application transitions.

@@ -57,6 +57,14 @@ export class RouterOptions {
      * The default value is `true`.
      */
     public readonly restorePreviousRouteTreeOnError: boolean,
+    /**
+     * When set to `true`, the router will treat query parameters as regular parameters.
+     * This means that query parameters will be included in the route node's `params` property.
+     * The default value is `false`.
+     *
+     * @deprecated Will be removed in the next major version.
+     */
+    public readonly treatQueryAsParameters: boolean,
   ) {
     this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
    }
@@ -70,6 +78,7 @@ export class RouterOptions {
       input.useNavigationModel ?? true,
       input.activeClass ?? null,
       input.restorePreviousRouteTreeOnError ?? true,
+      input.treatQueryAsParameters ?? false,
     );
   }
 

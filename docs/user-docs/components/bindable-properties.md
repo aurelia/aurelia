@@ -926,3 +926,266 @@ input-field.html
 ```
 
 if `value` is a bindable property of `my-input`, the end result will be a binding that connects the `message` property of the corresponding `app.html` view model with `<my-input>` view model `value` property. The binding mode is also preserved like normal attributes.
+
+## Performance Considerations
+
+### Spread vs Individual Bindings
+
+When deciding between spread syntax and individual bindings, consider the following performance implications:
+
+**Spread Syntax Benefits:**
+- Reduces template verbosity and maintains cleaner code
+- Automatically handles dynamic property sets
+- Eliminates the need for manual bindable declarations for pass-through properties
+
+**Individual Binding Benefits:**
+- Slightly more efficient for small, known sets of properties
+- Explicit property access provides better type safety
+- Easier to debug specific binding issues
+
+```typescript
+// Performance comparison
+export class ComponentWrapper {
+  // Good for small, known property sets
+  @bindable name: string;
+  @bindable age: number;
+  
+  // Better for dynamic or large property sets
+  @bindable userData: UserData;
+}
+```
+
+### Memory and Observation Overhead
+
+Understanding the observation behavior helps optimize performance:
+
+```typescript
+// More efficient - limited observation
+const userData = { name: 'John', age: 30 };
+<user-profile ...userData>
+
+// Less efficient - observes all properties
+const userData = { name: 'John', age: 30, metadata: {...}, history: [...] };
+<user-profile ...userData>
+```
+
+**Best Practice:** Use spread syntax when you need to pass through a focused set of properties, not entire large objects.
+
+## Advanced Patterns
+
+### Complex Expression Patterns
+
+Spread syntax supports complex expressions and transformations:
+
+```html
+<!-- Object transformation -->
+<user-card ...user.profile>
+<user-card ...user.permissions.admin>
+<user-card ...getCurrentUser().settings>
+
+<!-- With value converters -->
+<user-card ...$bindables="user | formatUser">
+<user-card ...$bindables="user.profile | selectFields:['name', 'email']">
+
+<!-- Dynamic property selection -->
+<user-card ...$bindables="user | pick:allowedFields">
+```
+
+### Combining Spread with Other Binding Features
+
+```html
+<!-- Spread with binding behaviors -->
+<input-field ...$bindables="formData | filterEmpty & debounce:500">
+
+<!-- Spread with conditional logic -->
+<user-form ...$bindables="user & if:isEditMode">
+
+<!-- Mixed binding patterns -->
+<input-field ...user 
+             ...$attrs 
+             id.bind="fieldId" 
+             class="form-control"
+             validation.bind="userValidation">
+```
+
+### Error Handling Patterns
+
+```typescript
+// Null-safe spreading
+@customElement({ name: 'safe-component' })
+export class SafeComponent {
+  @bindable data: any;
+  
+  get safeData() {
+    return this.data || {};
+  }
+}
+```
+
+```html
+<!-- Template with null safety -->
+<safe-component ...safeData>
+<!-- or -->
+<safe-component ...$bindables="data || {}">
+```
+
+## Best Practices
+
+### When to Use Spread Syntax
+
+**✅ Good Use Cases:**
+- Component composition and wrapper components
+- Dynamic forms with varying field sets
+- Passing through configuration objects
+- Creating reusable component libraries
+
+**❌ Avoid When:**
+- You need explicit control over individual bindings
+- Working with large objects with many irrelevant properties
+- Performance is critical and you're binding a small, known set of properties
+- You need different binding modes for different properties
+
+### Maintainability Guidelines
+
+```typescript
+// Good: Clear, focused spreading
+export class FormField {
+  @bindable label: string;
+  @bindable required: boolean;
+  
+  // Spread for input-specific attributes
+  @customElement({ capture: true })
+}
+```
+
+```html
+<!-- Template shows clear intent -->
+<label>${label}
+  <input ...$attrs class="form-control">
+</label>
+```
+
+**Recommended Limits:**
+- Maximum 2 levels of attribute transferring to avoid prop-drilling
+- Use spread for groups of related properties, not entire application state
+- Document spread behavior in component interfaces
+
+### Type Safety Considerations
+
+```typescript
+// Define interfaces for spread objects
+interface UserProfile {
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+export class UserCard {
+  @bindable profile: UserProfile;
+}
+```
+
+```html
+<!-- Type-safe spreading -->
+<user-card ...user.profile>
+```
+
+## Common Patterns and Anti-Patterns
+
+### ✅ Recommended Patterns
+
+```typescript
+// Pattern 1: Wrapper Components
+@customElement({ name: 'styled-input', capture: true })
+export class StyledInput {
+  @bindable label: string;
+  @bindable theme: string;
+}
+```
+
+```html
+<div class="input-group ${theme}">
+  <label>${label}</label>
+  <input ...$attrs>
+</div>
+```
+
+```typescript
+// Pattern 2: Configuration Objects
+export class DataTable {
+  @bindable columns: Column[];
+  @bindable options: TableOptions;
+}
+```
+
+```html
+<data-table columns.bind="userColumns" ...tableConfig>
+```
+
+### ❌ Anti-Patterns to Avoid
+
+```typescript
+// Anti-pattern 1: Spreading entire application state
+export class BadComponent {
+  @bindable appState: ApplicationState; // Too broad
+}
+```
+
+```html
+<!-- Anti-pattern 2: Excessive nesting -->
+<wrapper-1 ...data>
+  <wrapper-2 ...data>
+    <wrapper-3 ...data>
+      <actual-component ...data>
+    </wrapper-3>
+  </wrapper-2>
+</wrapper-1>
+```
+
+## Debugging and Troubleshooting
+
+### Common Issues
+
+1. **HTML Case Sensitivity**
+   ```html
+   <!-- Problem: HTML converts to lowercase -->
+   <component ...firstName> <!-- becomes ...firstname -->
+   
+   <!-- Solution: Use explicit binding -->
+   <component ...$bindables="{ firstName: user.firstName }">
+   ```
+
+2. **Property Observation Not Working**
+   ```typescript
+   // Problem: Adding properties after initial binding
+   this.userData.newProperty = 'value'; // Not observed
+   
+   // Solution: Replace the entire object
+   this.userData = { ...this.userData, newProperty: 'value' };
+   ```
+
+3. **Binding Mode Conflicts**
+   ```html
+   <!-- Problem: Spread overrides explicit binding -->
+   <input value.two-way="data.value" ...formConfig>
+   
+   <!-- Solution: Put explicit bindings after spread -->
+   <input ...formConfig value.two-way="data.value">
+   ```
+
+### Debugging Tips
+
+```typescript
+// Enable detailed binding information in development
+@customElement({ 
+  name: 'debug-component',
+  capture: (attr: string) => {
+    if (__DEV__) {
+      console.log('Capturing attribute:', attr);
+    }
+    return !attr.startsWith('debug-');
+  }
+})
+```
+
+Understanding these patterns and considerations will help you use Aurelia's spread syntax effectively while maintaining good performance and code maintainability.

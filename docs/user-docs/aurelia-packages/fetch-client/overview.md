@@ -1,39 +1,239 @@
 # Fetch Client
 
-The `@aurelia/fetch-client` is a HTTP client for making network requests, designed to integrate seamlessly with Aurelia 2 applications. It is built on top of the Fetch API, providing an easy-to-use and promise-based interface to communicate with RESTful APIs.
+Aurelia's `@aurelia/fetch-client` is a powerful HTTP client built on the native Fetch API, designed specifically for modern web applications. It provides a clean, promise-based interface for making HTTP requests with enterprise-grade features like intelligent caching, automatic retries, and flexible interceptors.
 
-## Features
+```typescript
+import { IHttpClient } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
 
-The Aurelia Fetch Client comes with a host of features that make it a powerful tool for developers:
+class ApiService {
+  private http = resolve(IHttpClient);
+  
+  async getUsers() {
+    const response = await this.http.get('/api/users');
+    return response.json();
+  }
+}
+```
 
-- **Fetch API Compliance**: Utilizes the native Fetch API, ensuring a standards-compliant requesting mechanism.
-- **Fluent and Chainable API**: Offers a fluent interface to build requests in a readable and chainable manner.
-- **Flexible Interceptors**: Interceptors allow for request and response manipulation, enabling tasks such as adding headers, logging, or handling authentication globally.
-- **Configurable**: Easy to configure with sensible defaults that can be overridden as needed for different request scenarios.
-- **Promise-based Workflow**: Built around Promises, it provides a streamlined way to handle asynchronous HTTP operations.
+## Why Use Aurelia's Fetch Client?
 
-## Aurelia Fetch Client vs Native Fetch
+While the native Fetch API is powerful, Aurelia's wrapper adds essential features for real-world applications:
 
-Compared to the native Fetch API, Aurelia's Fetch Client offers several advantages. It provides a more straightforward configuration process, better default settings for common scenarios, and helper methods that simplify common tasks. For instance, setting default headers or handling JSON data becomes more intuitive with Aurelia's approach.
+### **Built for Production**
+- **Automatic retries** with exponential backoff
+- **Intelligent caching** with background refresh
+- **Request/response interceptors** for cross-cutting concerns
+- **Centralized configuration** for consistency across your app
 
-## Configuration Options
+### **Developer Experience**
+- **Fluent API** with method chaining
+- **TypeScript-first** with full type safety
+- **Dependency injection** integration
+- **Built-in error handling** patterns
 
-The Aurelia Fetch Client supports a variety of configuration options to tailor its behavior to your application's needs. These include setting default headers, base URLs, timeout settings, and more.
+### **Performance Features**
+- **Request deduplication** through caching
+- **Background data refresh** for stale content
+- **Request tracking** and status monitoring
+- **Minimal overhead** over native fetch
 
-## Interceptors
+## Quick Start
 
-Enhance the capabilities of your HTTP requests and responses by using interceptors. This feature allows you to handle various cross-cutting concerns such as logging, authentication, or adding common headers.
+```typescript
+import { IHttpClient, json } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
 
-## Error Handling
+class UserService {
+  private http = resolve(IHttpClient);
+  
+  constructor() {
+    // One-time configuration
+    this.http.configure(config => config
+      .withBaseUrl('https://api.example.com/')
+      .withDefaults({
+        headers: { 'X-API-Key': 'your-key' }
+      })
+      .rejectErrorResponses() // Reject on 4xx/5xx status codes
+    );
+  }
+  
+  async createUser(userData) {
+    return this.http.post('/users', {
+      body: json(userData)
+    });
+  }
+  
+  async getUser(id) {
+    const response = await this.http.get(`/users/${id}`);
+    return response.json();
+  }
+}
+```
 
-Efficient error handling is crucial for a robust application. The Aurelia Fetch Client provides mechanisms for catching and managing errors that may occur during the request lifecycle.
+## Core Features
 
-## Advanced Usage
+### **HTTP Methods**
+Full support for all HTTP verbs with consistent interfaces:
+```typescript
+http.get(url, options?)
+http.post(url, options?)
+http.put(url, options?)
+http.patch(url, options?)
+http.delete(url, options?)
+http.fetch(url, options?) // For custom methods
+```
 
-For more complex scenarios, the Aurelia Fetch Client supports advanced configurations and use cases, such as creating custom interceptors, managing request retries, and working with various content types.
+### **Request Status Tracking**
+Monitor your application's network activity:
+```typescript
+console.log(http.isRequesting);        // boolean
+console.log(http.activeRequestCount);  // number of active requests
+console.log(http.isConfigured);        // configuration status
+```
 
-## Conclusion
+### **Smart Base URL Handling**
+```typescript
+http.configure(config => config.withBaseUrl('https://api.example.com/v1/'));
 
-The `@aurelia/fetch-client` is a versatile HTTP client that simplifies network communication in Aurelia 2 applications. By leveraging the Fetch API and providing additional features for customization and extensibility, it equips developers with the tools required for efficient and effective API interactions.
+// Relative URLs use the base
+await http.get('/users');     // → https://api.example.com/v1/users
 
-For in-depth information on configuration, usage examples, interceptor implementation, and more, please explore the other sections of this documentation.
+// Absolute URLs are unchanged  
+await http.get('https://other-api.com/data'); // → https://other-api.com/data
+```
+
+## Advanced Capabilities
+
+### **Intelligent Caching**
+Reduce server load and improve performance with built-in caching:
+```typescript
+import { CacheInterceptor } from '@aurelia/fetch-client';
+
+const cacheInterceptor = container.invoke(CacheInterceptor, [{
+  cacheTime: 300_000,     // Cache for 5 minutes
+  refreshInterval: 60_000  // Background refresh every minute
+}]);
+
+http.configure(config => config.withInterceptor(cacheInterceptor));
+```
+
+### **Automatic Retries**
+Handle network failures gracefully:
+```typescript
+import { RetryStrategy } from '@aurelia/fetch-client';
+
+http.configure(config => config.withRetry({
+  maxRetries: 3,
+  strategy: RetryStrategy.exponential,
+  doRetry: (response) => response.status >= 500 // Only retry server errors
+}));
+```
+
+### **Powerful Interceptors**
+Implement cross-cutting concerns like authentication, logging, and error handling:
+```typescript
+http.configure(config => config.withInterceptor({
+  request(request) {
+    // Add auth header to every request
+    request.headers.set('Authorization', `Bearer ${getToken()}`);
+    return request;
+  },
+  
+  response(response) {
+    // Log all responses
+    console.log(`${response.status} ${response.url}`);
+    return response;
+  },
+  
+  responseError(error, request) {
+    if (error.status === 401) {
+      // Handle token expiration
+      return refreshToken().then(() => http.fetch(request));
+    }
+    throw error;
+  }
+}));
+```
+
+## What's Different from Native Fetch?
+
+| Feature | Native Fetch | Aurelia Fetch Client |
+|---------|--------------|---------------------|
+| Error Handling | Only network errors reject | Can reject on HTTP error status |
+| Configuration | Per-request | Centralized with defaults |
+| Caching | Manual implementation | Built-in with multiple strategies |
+| Retries | Manual implementation | Automatic with multiple strategies |
+| Interceptors | None | Request/Response/Error interceptors |
+| JSON Handling | Manual stringify/parse | Helper functions and auto-detection |
+| Base URLs | Manual concatenation | Smart URL resolution |
+| Request Tracking | Manual | Built-in status monitoring |
+
+## Common Use Cases
+
+**API Client Setup**:
+```typescript
+// Configure once, use everywhere
+http.configure(config => config
+  .withBaseUrl('https://api.example.com/v1/')
+  .withDefaults({
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': () => `Bearer ${getCurrentToken()}`
+    }
+  })
+  .rejectErrorResponses()
+  .withRetry({ maxRetries: 3 })
+);
+```
+
+**Authentication Integration**:
+```typescript
+http.configure(config => config.withInterceptor({
+  responseError(error, request, client) {
+    if (error.status === 401) {
+      return refreshAuthToken()
+        .then(() => client.fetch(request));
+    }
+    throw error;
+  }
+}));
+```
+
+**Form Submissions**:
+```typescript
+const formData = new FormData();
+formData.append('file', fileInput.files[0]);
+formData.append('description', 'Profile photo');
+
+await http.post('/upload', { body: formData });
+```
+
+## Integration with Aurelia DI
+
+The fetch client is designed to work seamlessly with Aurelia's dependency injection system:
+
+```typescript
+import { IHttpClient } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
+
+export class ApiService {
+  private http = resolve(IHttpClient);
+  
+  async getData() {
+    return this.http.get('/api/data');
+  }
+}
+```
+
+Each service gets its own configured instance when using `resolve(IHttpClient)`, allowing for service-specific configurations while maintaining the global defaults.
+
+## Next Steps
+
+- **[Setting Up](./setting-up.md)**: Basic configuration and usage patterns
+- **[Interceptors](./interceptors.md)**: Implement cross-cutting concerns
+- **[Advanced Configuration](./advanced.md)**: Caching, retries, and complex scenarios
+- **[Forms](./forms.md)**: File uploads and form data handling
+- **[Response Types](./response-types.md)**: Working with different response formats
+
+The Aurelia Fetch Client transforms the native Fetch API from a low-level primitive into a production-ready HTTP client that scales with your application's needs.

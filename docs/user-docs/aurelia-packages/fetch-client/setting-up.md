@@ -1,262 +1,596 @@
 # Setup and Configuration
 
-The Fetch Client can be used in a couple of different ways. You can create a new instance using the `new` keyboard or use dependency injection to create an instance.
+The Aurelia Fetch Client provides multiple ways to create and configure HTTP clients. You can create instances directly, use dependency injection, or configure shared instances for your application.
 
-## Basic Usage
+## Quick Start
 
-Here's a quick example of how to set up and make a GET request with the Aurelia Fetch Client in an Aurelia 2 application. The Fetch client ships with Aurelia and requires no additional installation. Import the `HttpClient` from the `@aurelia/fetch-client` package to use it.
+The simplest way to get started is by resolving the fetch client through Aurelia's dependency injection:
 
-```javascript
+```typescript
+import { IHttpClient } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
+
+export class ApiService {
+  private http = resolve(IHttpClient);
+  
+  async getUsers() {
+    const response = await this.http.get('/api/users');
+    return response.json();
+  }
+}
+```
+
+## Creating Instances
+
+### Using Dependency Injection (Recommended)
+
+```typescript
+import { IHttpClient } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
+
+export class UserService {
+  private http = resolve(IHttpClient);
+  
+  constructor() {
+    // Configure this instance
+    this.http.configure(config => config
+      .withBaseUrl('https://api.example.com/')
+      .withDefaults({
+        headers: { 'Authorization': 'Bearer token' }
+      })
+    );
+  }
+}
+```
+
+### Creating New Instances
+
+```typescript
 import { HttpClient } from '@aurelia/fetch-client';
 
 const httpClient = new HttpClient();
 
-httpClient.configure(config => {
-  config
-    .withDefaults({ mode: 'cors' })
-    .withBaseUrl('https://api.example.com/');
-});
+httpClient.configure(config => config
+  .withDefaults({ mode: 'cors' })
+  .withBaseUrl('https://api.example.com/')
+);
 
-httpClient.get('users')
-  .then(response => response.json())
-  .then(users => console.log(users))
-  .catch(error => console.error(error));
+const users = await httpClient.get('users')
+  .then(response => response.json());
 ```
 
-You can inject a new instance into your component or service class by injecting the Fetch client with the `newInstanceOf` decorator. This will ensure our component gets a new instance of the Fetch client.
+### Multiple Configured Instances
 
-```javascript
+For applications that need to communicate with different APIs:
 
+```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
 import { resolve, newInstanceOf } from '@aurelia/kernel';
-import { inject } from 'aurelia';
 
-export class MyComponent {
-    http = resolve(newInstanceOf(IHttpClient))
+export class MultiApiService {
+  // Separate instances for different APIs
+  private mainApi = resolve(newInstanceOf(IHttpClient));  
+  private authApi = resolve(newInstanceOf(IHttpClient));
+  
+  constructor() {
+    this.mainApi.configure(config => config
+      .withBaseUrl('https://api.example.com/v1/')
+      .withDefaults({
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+    
+    this.authApi.configure(config => config
+      .withBaseUrl('https://auth.example.com/')
+      .withDefaults({
+        headers: { 'X-Client-ID': 'your-client-id' }
+      })
+    );
+  }
 }
 ```
-{% endtab %}
-{% endtabs %}
 
-{% hint style="info" %}
-You should avoid creating new instances of the Fetch client. Instead, you should create a service class or wrapper functionality that encapsulates your HTTP calls.
-{% endhint %}
+> **Best Practice**: Avoid creating multiple instances unnecessarily. Instead, create service classes that encapsulate your HTTP logic with properly configured clients.
 
-## Configuring the fetch client
+## Configuration Options
 
-Many configuration options available to the native Fetch API are also available in the Aurelia Fetch Client. You can set default headers, create interceptors (more on that further down) and more.
+The Aurelia Fetch Client supports all native Fetch API options plus additional convenience methods for common scenarios.
 
-{% tabs %}
-{% tab title="TypeScript" %}
+### Basic Configuration
+
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
-import { newInstanceOf. resolve } from '@aurelia/kernel';
-import { ICustomElementViewModel } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 
-export class MyComponent implements ICustomElementViewModel {
-    constructor(readonly http: IHttpClient= resolve(newInstanceOf(IHttpClient))) {
-      http.configure(config =>
-        config
-        .withBaseUrl('api/')
-        .withDefaults({
-          credentials: 'same-origin',
-          headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'Fetch'
-          }
-        })
-        .withInterceptor({
-          request(request) {
-            console.log(`Requesting ${request.method} ${request.url}`);
-            return request;
-          },
-          response(response) {
-            console.log(`Received ${response.status} ${response.url}`);
-            return response;
-          }
-        })
-      );
-    }
- }
-```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-import { IHttpClient } from '@aurelia/fetch-client';
-import { newInstanceOf, resolve } from '@aurelia/kernel';
-
-export class MyComponent {
-    constructor(http = resolve(newInstanceOf(IHttpClient))) {
-        this.http = http
-
-        this.http.configure(config =>
-          config
-          .withBaseUrl('api/')
-          .withDefaults({
-            credentials: 'same-origin',
-            headers: {
-              'Accept': 'application/json',
-              'X-Requested-With': 'Fetch'
-            }
-          })
-          .withInterceptor({
-            request(request) {
-              console.log(`Requesting ${request.method} ${request.url}`);
-              return request;
-            },
-            response(response) {
-              console.log(`Received ${response.status} ${response.url}`);
-              return response;
-            }
-          })
-        );
-    }
- }
-```
-{% endtab %}
-{% endtabs %}
-
-In the example above, `withBaseUrl()` is used to specify a base URL that all fetches will be relative to. The `withDefaults()` method allows passing an object that can include any properties described in the optional `init` parameter to the [Request constructor](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) and will be merged into the new [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) before it is passed to the first request interceptor.
-
-`withInterceptor()` enables passing an object which can provide any of these four optional methods: `request`, `requestError`, `response`, and `responseError`. Here's an explanation of how each of these methods works:`request` takes the [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) that will be passed to `window.fetch()` after interceptors run. It should return the same Request or create a new one. It can also return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) to short-circuit the call to `fetch()` and complete the request immediately. Interceptors will handle errors thrown in request interceptors.
-
-* `requestError` acts as a Promise rejection handler during Request creation and request interceptor execution. It will receive the rejection reason and can either re-throw or recover by returning a valid Request.
-* `response` will be run after `fetch()` completes, and will receive the resulting [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) . As with `request`, it can either pass the Response along, return a modified response, or throw.
-* `responseError` is similar to `requestError` and acts as a Promise rejection handler for response rejections.
-
-These methods on the interceptor object can also return a `Promise`for their respective return values.
-
-### Fetch helpers
-
-There are some caveats with the default Fetch implementation around error handling that Aurelia conveniently provides helper methods to work with.
-
-* `config.rejectErrorResponses()` will add a response interceptor that causes responses with unsuccessful status codes to result in a rejected Promise.
-* `config.useStandardConfiguration()` will apply `rejectErrorResponses()`, and also configure `credentials: 'same-origin'` as a default on all requests.
-* The Fetch API has no convenient way of sending JSON in the body of a request. Objects must be manually serialized to JSON, and the `Content-Type` header must be set appropriately. the Fetch package includes a helper called `json` for this.
-
-#### Posting JSON
-
-{% tabs %}
-{% tab title="TypeScript" %}
-```typescript
-import { IHttpClient, json } from '@aurelia/fetch-client';
-import { newInstanceOf, resolve } from '@aurelia/kernel';
-import { ICustomElementViewModel } from 'aurelia';
-
-export class MyComponent implements ICustomElementViewModel {
-    constructor(readonly http: IHttpClient = resolve(newInstanceOf(IHttpClient)) {
-
-    }
-
-    createComment() {
-        let comment = {
-          title: 'Awesome!',
-          content: 'This Fetch client is pretty rad.'
-        };
-
-        this.http.fetch('comments', {
-          method: 'post',
-          body: json(comment)
-        });
-    }
- }
-```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```typescript
-import { IHttpClient, json } from '@aurelia/fetch-client';
-import { newInstanceOf, resolve } from '@aurelia/kernel';
-
-export class MyComponent {
-    constructor(http = resolve(newInstanceOf(IHttpClient))) {
-        this.http = http
-    }
-
-    createComment() {
-        let comment = {
-          title: 'Awesome!',
-          content: 'This Fetch client is pretty rad.'
-        };
-
-        this.http.fetch('comments', {
-          method: 'post',
-          body: json(comment)
-        });
-    }
- }
-```
-{% endtab %}
-{% endtabs %}
-
-For the example above, if you prefer `.get`/`.post`/etc.. style, you can also use corresponding method on the Fetch client
-
-```typescript
-  ...
-  this.http.post('comments', { body: JSON(comment) })
-```
-
-## Error Handling and Recovery
-
-Robust error handling is crucial for any application making HTTP requests. It involves not only catching and responding to errors but also implementing strategies for error recovery and user notification.
-
-```typescript
-http.configure(config => {
-    config.withInterceptor({
-        response(response) {
-            if (!response.ok) {
-                handleError(response);
-            }
-            return response;
-        },
-        responseError(error) {
-            handleError(error);
-            throw error; // Rethrow error after handling
+export class ApiService {
+  private http = resolve(IHttpClient);
+  
+  constructor() {
+    this.http.configure(config => config
+      .withBaseUrl('https://api.example.com/v1/')
+      .withDefaults({
+        credentials: 'same-origin',
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'Fetch'
         }
-    });
+      })
+      .withInterceptor({
+        request(request) {
+          console.log(`→ ${request.method} ${request.url}`);
+          return request;
+        },
+        response(response) {
+          console.log(`← ${response.status} ${response.url}`);
+          return response;
+        }
+      })
+    );
+  }
+}
+```
+
+### Configuration Methods
+
+#### `withBaseUrl(url: string)`
+Sets the base URL for all relative requests:
+```typescript
+config.withBaseUrl('https://api.example.com/v1/');
+
+// Later requests:
+http.get('/users');      // → https://api.example.com/v1/users
+http.get('posts');       // → https://api.example.com/v1/posts
+```
+
+#### `withDefaults(options: RequestInit)`
+Sets default options merged with every request:
+```typescript
+config.withDefaults({
+  credentials: 'include',
+  mode: 'cors',
+  headers: {
+    'Authorization': 'Bearer token123',
+    'Content-Type': 'application/json'
+  }
+});
+```
+
+#### `withInterceptor(interceptor: IFetchInterceptor)`
+Adds request/response interceptors for cross-cutting concerns:
+```typescript
+config.withInterceptor({
+  request(request) {
+    // Modify outgoing requests
+    request.headers.set('X-Timestamp', Date.now().toString());
+    return request;
+  },
+  
+  response(response) {
+    // Process incoming responses
+    if (!response.ok) {
+      console.warn(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response;
+  }
+});
+```
+
+#### `useStandardConfiguration()`
+Applies common defaults for typical applications:
+```typescript
+config.useStandardConfiguration();
+
+// Equivalent to:
+config
+  .withDefaults({ credentials: 'same-origin' })
+  .rejectErrorResponses();
+```
+
+#### `rejectErrorResponses()`
+Makes the client reject promises for HTTP error status codes (4xx, 5xx):
+```typescript
+config.rejectErrorResponses();
+
+// Now 4xx/5xx responses will reject the promise
+try {
+  await http.get('/api/invalid-endpoint');
+} catch (error) {
+  console.log('HTTP error:', error.status); // e.g., 404
+}
+```
+
+#### `withRetry(options: IRetryConfiguration)`
+Enables automatic retries for failed requests:
+```typescript
+import { RetryStrategy } from '@aurelia/fetch-client';
+
+config.withRetry({
+  maxRetries: 3,
+  strategy: RetryStrategy.exponential,
+  doRetry: (response) => response.status >= 500
+});
+```
+
+### Advanced Configuration
+
+#### Dynamic Headers
+Headers can be functions that are evaluated for each request:
+```typescript
+config.withDefaults({
+  headers: {
+    'Authorization': () => `Bearer ${getCurrentToken()}`,
+    'X-Request-ID': () => generateUUID(),
+    'X-Timestamp': () => new Date().toISOString()
+  }
+});
+```
+
+#### Request Event Dispatcher
+Enable events for request lifecycle monitoring:
+```typescript
+config.withDispatcher(document.body);
+
+// Listen for events
+document.body.addEventListener('aurelia-fetch-client-request-started', (e) => {
+  console.log('Request started');
 });
 
-function handleError(error) {
-    // Centralized error handling logic
-    console.error('Fetch Error:', error);
-    // Additional logic like logging, user notification, etc.
+document.body.addEventListener('aurelia-fetch-client-requests-drained', (e) => {
+  console.log('All requests completed');
+});
+```
+
+## Making Requests
+
+### HTTP Methods
+The fetch client provides convenient methods for all standard HTTP verbs:
+
+```typescript
+// GET request  
+const users = await http.get('/api/users');
+const userData = await users.json();
+
+// POST with JSON body
+const newUser = await http.post('/api/users', {
+  body: json({ name: 'John', email: 'john@example.com' })
+});
+
+// PUT request
+await http.put(`/api/users/${userId}`, {
+  body: json(updatedUser)
+});
+
+// PATCH request
+await http.patch(`/api/users/${userId}`, {
+  body: json({ status: 'active' })
+});
+
+// DELETE request
+await http.delete(`/api/users/${userId}`);
+```
+
+### JSON Helper
+The `json()` helper automatically stringifies objects and sets the correct content-type:
+
+```typescript
+import { IHttpClient, json } from '@aurelia/fetch-client';
+
+export class CommentService {
+  private http = resolve(IHttpClient);
+
+  async createComment(commentData) {
+    return this.http.post('/api/comments', {
+      body: json(commentData) // Automatically sets Content-Type: application/json
+    });
+  }
+  
+  // Equivalent to the manual approach:
+  async createCommentManual(commentData) {
+    return this.http.post('/api/comments', {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(commentData)
+    });
+  }
 }
 ```
 
-## Retrying failed requests
-
-The Fetch client comes with a retry implementation that can be configured like the following example
+### Request Options
+All methods accept standard Fetch API options:
 
 ```typescript
-http.configure(config => config.withRetry(retryOptions))
+// GET with custom headers
+const response = await http.get('/api/data', {
+  headers: {
+    'Accept': 'application/xml',
+    'X-Custom-Header': 'value'
+  }
+});
+
+// POST with credentials
+await http.post('/api/secure-endpoint', {
+  credentials: 'include',
+  body: json(data)
+});
+
+// Request with AbortController
+const controller = new AbortController();
+const promise = http.get('/api/slow-endpoint', {
+  signal: controller.signal
+});
+
+// Cancel the request after 5 seconds
+setTimeout(() => controller.abort(), 5000);
 ```
 
-There are several options can be specified, per the following type:
-
+### Response Handling
 ```typescript
-export interface IRetryConfiguration {
-  maxRetries: number;
-  interval?: number;
-  strategy?: number | ((retryCount: number) => number);
-  minRandomInterval?: number;
-  maxRandomInterval?: number;
-  counter?: number;
-  requestClone?: Request;
-  doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
-  beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
+const response = await http.get('/api/users');
+
+// Check response status
+if (response.ok) {
+  const users = await response.json();
+  console.log(users);
+} else {
+  console.error(`HTTP ${response.status}: ${response.statusText}`);
+}
+
+// Or use rejectErrorResponses() to handle this automatically
+http.configure(config => config.rejectErrorResponses());
+
+try {
+  const response = await http.get('/api/users');
+  const users = await response.json();
+} catch (error) {
+  if (error instanceof Response) {
+    console.error(`HTTP ${error.status}: ${error.statusText}`);
+  }
 }
 ```
 
-Note that for option `strategy`, there are 4 default strategies provided via the export `RetryStrategy` from the `@aurelia/fetch-client` package:
+## Error Handling Strategies
+
+### Basic Error Handling
+The native Fetch API only rejects promises for network errors, not HTTP error status codes. Use `rejectErrorResponses()` to change this behavior:
 
 ```typescript
-export const RetryStrategy: {
-  fixed: 0;
-  incremental: 1;
-  exponential: 2;
-  random: 3;
+http.configure(config => config.rejectErrorResponses());
+
+try {
+  const response = await http.get('/api/users');
+  const users = await response.json();
+} catch (error) {
+  if (error instanceof Response) {
+    // HTTP error (4xx, 5xx)
+    console.error(`HTTP ${error.status}: ${error.statusText}`);
+    
+    if (error.status === 401) {
+      // Handle unauthorized
+      redirectToLogin();
+    } else if (error.status >= 500) {
+      // Handle server errors
+      showServerErrorMessage();
+    }
+  } else {
+    // Network error
+    console.error('Network error:', error);
+    showNetworkErrorMessage();
+  }
 }
 ```
 
-Per the names suggest, the interval which a request will be attempted again will be calcuated accordingly for each strategy. If you want to supply your own strategy, the `strategy` option can take a callback to be invoked with the number of the retry and the return value is treated as the time to wait until the next fetch attempt.
+### Centralized Error Handling
+Use interceptors to handle errors globally:
+
+```typescript
+http.configure(config => config.withInterceptor({
+  response(response) {
+    if (!response.ok) {
+      logError(`HTTP ${response.status}`, response.url);
+      
+      // Still return the response to let calling code handle it
+      return response;
+    }
+    return response;
+  },
+  
+  responseError(error, request) {
+    console.error('Request failed:', {
+      url: request?.url,
+      method: request?.method,
+      error: error.message
+    });
+    
+    // Show user-friendly error message
+    showNotification('Something went wrong. Please try again.');
+    
+    // Re-throw to let calling code handle if needed
+    throw error;
+  }
+}));
+
+function logError(message, url) {
+  // Send to logging service
+  logger.error(message, { url, timestamp: new Date() });
+}
+```
+
+### Recovery Patterns
+Implement automatic recovery for common scenarios:
+
+```typescript
+http.configure(config => config.withInterceptor({
+  async responseError(error, request, client) {
+    if (error instanceof Response && error.status === 401) {
+      // Try to refresh auth token
+      try {
+        await refreshAuthToken();
+        
+        // Retry the original request with new token
+        const newRequest = new Request(request.url, {
+          method: request.method,
+          headers: {
+            ...Object.fromEntries(request.headers.entries()),
+            'Authorization': `Bearer ${getNewToken()}`
+          },
+          body: request.body
+        });
+        
+        return client.fetch(newRequest);
+      } catch (refreshError) {
+        // Refresh failed, redirect to login
+        redirectToLogin();
+        throw error;
+      }
+    }
+    
+    throw error;
+  }
+}));
+```
+
+## Automatic Retries
+
+The fetch client includes built-in retry functionality for handling transient network failures:
+
+### Basic Retry Configuration
+```typescript
+import { RetryStrategy } from '@aurelia/fetch-client';
+
+http.configure(config => config.withRetry({
+  maxRetries: 3,
+  interval: 1000,
+  strategy: RetryStrategy.exponential
+}));
+```
+
+### Retry Strategies
+
+#### Fixed Interval
+Retries with the same delay between attempts:
+```typescript
+config.withRetry({
+  maxRetries: 3,
+  interval: 2000,
+  strategy: RetryStrategy.fixed
+});
+// Retries after: 2s, 2s, 2s
+```
+
+#### Incremental Backoff
+Increases delay with each retry:
+```typescript
+config.withRetry({
+  maxRetries: 3,
+  interval: 1000,
+  strategy: RetryStrategy.incremental
+});
+// Retries after: 1s, 2s, 3s
+```
+
+#### Exponential Backoff
+Doubles the delay with each retry:
+```typescript
+config.withRetry({
+  maxRetries: 3,
+  interval: 1000,
+  strategy: RetryStrategy.exponential
+});
+// Retries after: 1s, 2s, 4s
+```
+
+#### Random Interval
+Random delay within specified bounds:
+```typescript
+config.withRetry({
+  maxRetries: 3,
+  strategy: RetryStrategy.random,
+  minRandomInterval: 500,
+  maxRandomInterval: 2000
+});
+// Retries after random intervals between 500ms-2000ms
+```
+
+#### Custom Strategy
+Provide your own retry timing logic:
+```typescript
+config.withRetry({
+  maxRetries: 5,
+  strategy: (retryCount) => {
+    // Custom backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
+    return Math.min(100 * Math.pow(2, retryCount), 5000);
+  }
+});
+```
+
+### Conditional Retries
+Control which requests should be retried:
+
+```typescript
+config.withRetry({
+  maxRetries: 3,
+  strategy: RetryStrategy.exponential,
+  
+  // Only retry server errors, not client errors
+  doRetry: (response, request) => {
+    return response.status >= 500;
+  },
+  
+  // Modify request before retry
+  beforeRetry: (request, client) => {
+    // Add a retry header
+    request.headers.set('X-Retry-Count', retryCount.toString());
+    return request;
+  }
+});
+```
+
+### Complete Retry Configuration
+```typescript
+interface IRetryConfiguration {
+  maxRetries: number;                                    // Maximum retry attempts
+  interval?: number;                                     // Base interval in milliseconds
+  strategy?: RetryStrategy | ((retryCount: number) => number); // Retry timing strategy
+  minRandomInterval?: number;                            // Min random interval (for random strategy)
+  maxRandomInterval?: number;                            // Max random interval (for random strategy)
+  doRetry?(response: Response, request: Request): boolean | Promise<boolean>; // Conditional retry logic
+  beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>; // Request modification before retry
+}
+```
+
+### Real-world Example
+```typescript
+http.configure(config => config.withRetry({
+  maxRetries: 3,
+  strategy: RetryStrategy.exponential,
+  interval: 1000,
+  
+  // Only retry on server errors or network failures
+  doRetry: (response, request) => {
+    // Retry on 5xx server errors
+    if (response.status >= 500) return true;
+    
+    // Don't retry on client errors (4xx)
+    if (response.status >= 400 && response.status < 500) return false;
+    
+    // Retry on network errors (no response)
+    return !response;
+  },
+  
+  beforeRetry: async (request, client) => {
+    // Refresh auth token before retry if needed
+    if (request.headers.get('Authorization')) {
+      const newToken = await refreshTokenIfNeeded();
+      request.headers.set('Authorization', `Bearer ${newToken}`);
+    }
+    
+    // Add retry tracking
+    request.headers.set('X-Retry-Attempt', Date.now().toString());
+    
+    return request;
+  }
+}));
+```
+
+> **Important**: Only one retry interceptor can be configured per client, and it must be the last interceptor in the chain.

@@ -1,19 +1,71 @@
 ---
 description: >-
-  How to implement router "guards" into your applications to protect routes from
-  direct access.
+  How to implement router hooks into your applications to protect routes,
+  control navigation, and implement cross-cutting concerns like authentication and authorization.
 ---
 
-# Router hooks
+# Router Hooks
 
-Router hooks are pieces of code that can be invoked at the different stages of routing lifecycle.
-In that sense, these hooks are similar to the [lifecycle hooks](./routing-lifecycle.md) of the routed view models.
-The difference is that these hooks are shared among multiple routed view models.
-Therefore, even though the hook signatures are similar to that of the [lifecycle hooks](./routing-lifecycle.md), these hooks are supplied with an [additional argument](#anatomy-of-a-lifecycle-hook) that is the view model instance.
+{% hint style="warning" %}
+**Important Security Note:** Router hooks provide client-side route protection and should never be your only line of defense. Always implement proper authentication and authorization on your server-side APIs, as client-side code can be bypassed or manipulated.
+{% endhint %}
+
+Router hooks are pieces of code that can be invoked at different stages of the routing lifecycle to control navigation flow. If you're familiar with Angular or other frameworks, router hooks serve the same purpose as "router guards" - they allow you to intercept and control navigation. In Aurelia 2, these are called router hooks and they enable you to:
+
+- **Authenticate users** before accessing protected routes
+- **Authorize access** based on user permissions
+- **Prevent navigation** from forms with unsaved changes
+- **Load data** required before displaying a component
+- **Transform route parameters** or implement custom logic
+
+In Aurelia 2, these hooks are similar to the [lifecycle hooks](./routing-lifecycle.md) of individual routed view models, but they are shared among multiple components and provide an additional `viewModel` parameter for access to the component instance.
 
 {% hint style="info" %}
 If you worked with Aurelia 1, you might know these by their previous name: router pipelines.
 {% endhint %}
+
+## Types of Router Hooks
+
+Aurelia 2 provides four types of router hooks (similar to router guards in other frameworks) that correspond to different stages of the navigation lifecycle:
+
+### canLoad
+**Purpose:** Controls whether a component can be loaded (activated) for a route.
+**Use Cases:** 
+- Authentication checks
+- Authorization based on user permissions
+- Conditional routing based on application state
+- Redirecting users to login or error pages
+
+**Returns:** `boolean`, `NavigationInstruction`, `NavigationInstruction[]`, or Promise of these types
+
+### loading  
+**Purpose:** Performs actions after navigation is confirmed but before the component is fully loaded.
+**Use Cases:**
+- Loading required data
+- Setting up application state
+- Showing loading indicators
+- Preparing resources
+
+**Returns:** `void` or `Promise<void>`
+
+### canUnload
+**Purpose:** Controls whether the current component can be unloaded (deactivated).
+**Use Cases:**
+- Preventing navigation away from unsaved forms
+- Confirming destructive actions
+- Validating required fields before leaving
+
+**Returns:** `boolean` or `Promise<boolean>`
+
+### unloading
+**Purpose:** Performs cleanup actions before the component is unloaded.
+**Use Cases:**
+- Saving draft data
+- Cleaning up subscriptions
+- Logging analytics events
+- Performing final validations
+
+**Returns:** `void` or `Promise<void>`
 
 ## Anatomy of a lifecycle hook
 
@@ -99,14 +151,51 @@ class MySharedHooks {
 
 The only difference is the addition of the first `viewModel` parameter. This comes in handy when you need the component instance since the `this` keyword won't give you access to the component instance like it would in ordinary instance hooks.
 
-## Example: Authentication and Authorization
+## Quick Start Guide
 
-Before starting with the involved details of the shared/global lifecycle hooks, let us first create an example lifecycle hook.
-To this end, we consider the typical use-case of authorization; that is restricting certain routes to users with certain permission claims.
+The fastest way to create a router hook is to implement a class with the `@lifecycleHooks()` decorator:
+
+```typescript
+import { lifecycleHooks } from '@aurelia/runtime-html';
+import { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
+
+@lifecycleHooks()
+export class AuthenticationHook {  
+  canLoad(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode
+  ): boolean {
+    // Simple authentication check
+    const isLoggedIn = !!localStorage.getItem('authToken');
+    return isLoggedIn;
+  }
+}
+```
+
+Then register it in your main configuration:
+
+```typescript
+import { RouterConfiguration } from '@aurelia/router';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { AuthenticationHook } from './authentication-hook';
+
+const au = new Aurelia();
+au.register(
+  StandardConfiguration,
+  RouterConfiguration,
+  AuthenticationHook  // Register the hook globally
+);
+```
+
+## Comprehensive Examples
+
+### Example 1: Authentication and Authorization
+
+This example demonstrates the typical use-case of protecting routes with authentication and authorization checks.
 
 {% hint style="info" %}
-The example we are going to build in this section is just a toy example.
-For your production code, perform due diligence to evaluate the potential security threats.
+The examples in this section are simplified for illustration. In production code, perform due diligence to evaluate potential security threats and always validate permissions on the server side.
 {% endhint %}
 
 For this example, we will create two lifecycle hooks; one for authentication and another is for authorization.
@@ -271,6 +360,182 @@ You can see this example in action below.
 {% embed url="https://stackblitz.com/edit/router-lite-lifecycle-hooks-auth?ctl=1&embed=1&file=src/my-app.ts" %}
 
 Note that even though in the example we limit the the hooks to only `canLoad` method, more than one lifecycle methods/hooks can also be leveraged in a shared lifecycle hook (a class decorated by the `@lifecycleHooks()` decorator).
+
+### Example 2: Form Hook (Preventing Data Loss)
+
+This example shows how to prevent users from accidentally leaving a form with unsaved changes:
+
+```typescript
+import { lifecycleHooks } from '@aurelia/runtime-html';
+import { IRouteViewModel, RouteNode } from '@aurelia/router';
+
+interface IFormViewModel extends IRouteViewModel {
+  hasUnsavedChanges?: boolean;
+  isDirty?: boolean;
+}
+
+@lifecycleHooks()
+export class FormHook {
+  canUnload(
+    viewModel: IFormViewModel,
+    next: RouteNode | null,
+    current: RouteNode
+  ): boolean | Promise<boolean> {
+    // Check if the component has unsaved changes
+    if (viewModel.hasUnsavedChanges || viewModel.isDirty) {
+      // Show confirmation dialog
+      return confirm('You have unsaved changes. Are you sure you want to leave?');
+    }
+    return true;
+  }
+
+  unloading(
+    viewModel: IFormViewModel,
+    next: RouteNode | null,
+    current: RouteNode
+  ): void {
+    // Save draft data to localStorage before leaving
+    if (viewModel.hasUnsavedChanges) {
+      const formData = (viewModel as any).getFormData?.();
+      if (formData) {
+        localStorage.setItem(`draft_${current.computeAbsolutePath()}`, JSON.stringify(formData));
+        console.log('Draft saved before navigation');
+      }
+    }
+  }
+}
+```
+
+### Example 3: Data Loading Hook
+
+This example demonstrates loading required data before the component is displayed:
+
+```typescript
+import { resolve } from 'aurelia';
+import { lifecycleHooks } from '@aurelia/runtime-html';
+import { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
+
+interface IDataService {
+  loadUserProfile(userId: string): Promise<any>;
+  loadUserPermissions(userId: string): Promise<string[]>;
+}
+
+@lifecycleHooks()
+export class DataLoadingHook {
+  private readonly dataService: IDataService = resolve(IDataService);
+
+  async loading(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode
+  ): Promise<void> {
+    // Show loading state
+    (viewModel as any).isLoading = true;
+    
+    try {
+      // Load required data based on route parameters
+      const userId = params.id as string;
+      if (userId) {
+        const [profile, permissions] = await Promise.all([
+          this.dataService.loadUserProfile(userId),
+          this.dataService.loadUserPermissions(userId)
+        ]);
+        
+        // Attach data to the view model
+        (viewModel as any).userProfile = profile;
+        (viewModel as any).userPermissions = permissions;
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+      (viewModel as any).loadError = error;
+    } finally {
+      (viewModel as any).isLoading = false;
+    }
+  }
+}
+```
+
+### Example 4: Role-Based Authorization Hook
+
+This example shows how to implement fine-grained role-based access control:
+
+```typescript
+import { resolve } from 'aurelia';
+import { lifecycleHooks } from '@aurelia/runtime-html';
+import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router';
+
+interface IUserService {
+  getCurrentUser(): { roles: string[]; permissions: string[] } | null;
+  hasRole(role: string): boolean;
+  hasPermission(permission: string): boolean;
+}
+
+@lifecycleHooks()
+export class RoleHook {
+  private readonly userService: IUserService = resolve(IUserService);
+
+  canLoad(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode
+  ): boolean | NavigationInstruction {
+    const requiredRoles = next.data?.roles as string[];
+    const requiredPermissions = next.data?.permissions as string[];
+    const fallbackRoute = next.data?.fallbackRoute as string;
+
+    const user = this.userService.getCurrentUser();
+    if (!user) {
+      return 'login';
+    }
+
+    // Check required roles
+    if (requiredRoles?.length > 0) {
+      const hasRequiredRole = requiredRoles.some(role => this.userService.hasRole(role));
+      if (!hasRequiredRole) {
+        return fallbackRoute || 'forbidden';
+      }
+    }
+
+    // Check required permissions
+    if (requiredPermissions?.length > 0) {
+      const hasRequiredPermission = requiredPermissions.some(permission => 
+        this.userService.hasPermission(permission)
+      );
+      if (!hasRequiredPermission) {
+        return fallbackRoute || 'forbidden';
+      }
+    }
+
+    return true;
+  }
+}
+```
+
+Usage with route configuration:
+
+```typescript
+@route({
+  routes: [
+    {
+      path: 'admin',
+      component: AdminDashboard,
+      data: {
+        roles: ['admin', 'super-admin'],
+        fallbackRoute: 'unauthorized'
+      },
+    },
+    {
+      path: 'user-management',
+      component: UserManagement,
+      data: {
+        permissions: ['users.read', 'users.write'],
+        fallbackRoute: 'access-denied'
+      },
+    },
+  ],
+})
+export class MyApp {}
+```
 
 ## Global registration vs local dependencies
 
@@ -467,3 +732,110 @@ export class QueryReadingHooks {
 ```
 
 You can also do similar reading in `loading`, `canUnload`, etc. This approach can be combined with injecting `ICurrentRoute` if your logic is broader than a single hook.
+
+## Best Practices
+
+### Security Considerations
+
+1. **Never rely solely on client-side hooks for security**: Always validate permissions on the server side
+2. **Sanitize route parameters**: Validate and sanitize any data extracted from route parameters
+3. **Handle authentication tokens securely**: Use secure storage and validate tokens on each request
+4. **Implement proper error handling**: Gracefully handle authentication/authorization failures
+
+### Performance Optimizations
+
+1. **Cache permission checks**: Avoid repeated API calls for the same user permissions
+2. **Use async hooks judiciously**: Only make hooks async when necessary, as they can slow navigation
+3. **Implement hook preemption**: Design hooks to fail fast when conditions aren't met
+4. **Minimize hook logic**: Keep hook logic simple and focused on their specific purpose
+
+### Code Organization
+
+1. **Separate concerns**: Create focused hooks for specific purposes (auth, form validation, data loading)
+2. **Use TypeScript interfaces**: Define clear interfaces for your view models to improve type safety
+3. **Follow naming conventions**: Use descriptive names like `AuthenticationHook`, `FormHook`, etc.
+4. **Document hook behavior**: Comment complex hook logic and document expected return values
+
+### Example: Combined Hook Pattern
+
+For complex applications, you might want to combine multiple concerns in a single hook:
+
+```typescript
+import { resolve } from 'aurelia';
+import { lifecycleHooks } from '@aurelia/runtime-html';
+import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router';
+
+@lifecycleHooks()
+export class ComprehensiveHook {
+  private readonly authService = resolve(IAuthService);
+  private readonly dataService = resolve(IDataService);
+
+  async canLoad(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode
+  ): Promise<boolean | NavigationInstruction> {
+    // 1. Check authentication
+    if (!this.authService.isAuthenticated()) {
+      return `login?returnUrl=${encodeURIComponent(next.computeAbsolutePath())}`;
+    }
+
+    // 2. Check authorization
+    const requiredPermissions = next.data?.permissions as string[];
+    if (requiredPermissions && !this.authService.hasPermissions(requiredPermissions)) {
+      return 'forbidden';
+    }
+
+    // 3. Validate route parameters
+    if (params.id && !this.isValidId(params.id as string)) {
+      return 'not-found';
+    }
+
+    return true;
+  }
+
+  async loading(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode
+  ): Promise<void> {
+    // Pre-load any required data
+    if (params.id) {
+      try {
+        const data = await this.dataService.loadById(params.id as string);
+        (viewModel as any).data = data;
+      } catch (error) {
+        (viewModel as any).loadError = error;
+      }
+    }
+  }
+
+  private isValidId(id: string): boolean {
+    return /^[a-zA-Z0-9-_]+$/.test(id) && id.length > 0 && id.length <= 50;
+  }
+}
+```
+
+This pattern allows you to handle authentication, authorization, validation, and data loading in a single, well-organized hook.
+
+## Common Troubleshooting
+
+### Hook Not Executing
+- Ensure the hook is properly registered in your DI container
+- Check that the `@lifecycleHooks()` decorator is applied
+- Verify the hook is in the correct registration order
+
+### Infinite Redirect Loops
+- Ensure redirect targets don't have hooks that redirect back
+- Implement proper base cases in your hook logic
+- Use debugging tools to trace navigation flow
+
+### Performance Issues
+- Avoid heavy computation in synchronous hooks
+- Cache frequently accessed data (user permissions, configuration)
+- Consider using local dependencies instead of global registration for rarely-used hooks
+
+### Type Safety Issues
+- Define proper interfaces for your view models
+- Use generics when creating reusable hooks
+- Leverage TypeScript's strict type checking

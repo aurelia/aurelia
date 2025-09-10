@@ -152,6 +152,55 @@ Note: by default, bindings created from `.state` and `.dispatch` commands will o
 <input value.state="$parent.prefix + keywords">
 ```
 
+### Promise and Observable Support
+
+The `.state` binding command supports asynchronous data through Promises and RxJS-style observables:
+
+#### Promise Support
+
+```typescript
+// State with promise-returning function
+const initialState = {
+  loadUserData: () => fetch('/api/user').then(r => r.json())
+};
+```
+
+```html
+<!-- Promise values are resolved and bound automatically -->
+<input value.state="loadUserData().name">
+```
+
+#### Observable Support
+
+The plugin also supports RxJS-style observables:
+
+```typescript
+// State with observable-returning function
+const initialState = {
+  realtimeData: () => ({
+    subscribe(callback) {
+      const interval = setInterval(() => {
+        callback(new Date().toISOString());
+      }, 1000);
+      
+      // Return cleanup function
+      return () => clearInterval(interval);
+    }
+  })
+};
+```
+
+```html
+<!-- Observable values update automatically -->
+<div>Current time: ${realtimeData()}</div>
+```
+
+**Key Features:**
+- Promises are resolved once and the resolved value is bound
+- Observables continuously update the bound value
+- Cleanup functions are called when components are destroyed
+- Works with both `.state` command and `& state` binding behavior
+
 ## View model binding
 
 ### With `@fromState` decorator
@@ -575,6 +624,89 @@ export const debugMiddleware = (state, action) => {
   return state;
 };
 ```
+
+### Runtime middleware management
+
+You can add and remove middleware at runtime using the store instance:
+
+```ts
+import { resolve } from 'aurelia';
+import { IStore } from '@aurelia/state';
+
+export class MyComponent {
+  private store: IStore = resolve(IStore);
+  private debugMiddleware: (state: any, action: any) => any;
+
+  addDebugMiddleware() {
+    this.debugMiddleware = (state, action) => {
+      console.log('Debug:', action.type);
+      return state;
+    };
+
+    this.store.registerMiddleware(this.debugMiddleware, 'before');
+  }
+
+  removeDebugMiddleware() {
+    // Note: You need to keep a reference to the middleware function
+    this.store.unregisterMiddleware(this.debugMiddleware);
+  }
+}
+```
+
+## Redux DevTools Integration
+
+The Aurelia State plugin includes built-in support for Redux DevTools, providing powerful debugging capabilities for state management:
+
+### Automatic DevTools Connection
+
+DevTools integration is enabled automatically when the Redux DevTools extension is installed:
+
+```typescript
+import { StateDefaultConfiguration } from '@aurelia/state';
+
+// DevTools will automatically connect if extension is available
+Aurelia
+  .register(StateDefaultConfiguration.init(initialState, actionHandlers))
+  .app(MyApp)
+  .start();
+```
+
+### DevTools Configuration Options
+
+For advanced DevTools configuration, you can provide options:
+
+```typescript
+import { StateDefaultConfiguration } from '@aurelia/state';
+
+const devToolsOptions = {
+  name: 'My Aurelia App',
+  maxAge: 50,
+  latency: 500,
+  disable: process.env.NODE_ENV === 'production'
+};
+
+Aurelia
+  .register(
+    StateDefaultConfiguration.init(
+      initialState,
+      {
+        devToolsOptions,
+        middlewares: [/* your middleware */]
+      },
+      actionHandlers
+    )
+  )
+  .app(MyApp)
+  .start();
+```
+
+### DevTools Features Available
+
+- **Time Travel Debugging**: Navigate through state changes
+- **Action Inspection**: View dispatched actions and their payloads
+- **State Inspection**: Deep inspection of state at any point in time
+- **Action Filtering**: Filter actions by type or content
+- **State Export/Import**: Save and load state snapshots
 
 ## Example of type declaration for application stores
 

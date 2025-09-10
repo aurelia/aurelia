@@ -8,51 +8,48 @@ Aurelia's design embraces flexibility and interoperability, making it well-suite
 
 ## Install Dependencies
 
-First, ensure that your Aurelia project has the necessary dependencies to use Svelte. You'll need the Svelte core library.
+First, ensure that your Aurelia project has the necessary dependencies to use Svelte. You'll need the Svelte core library and TypeScript types.
 
 ```bash
 npm install svelte
+npm install --save-dev @types/svelte
 ```
 
-Additionally, if you're using Webpack, install the `svelte-loader` to handle `.svelte` files:
+For build configuration, the Svelte team recommends using **Vite**:
 
 ```bash
-npm install svelte-loader
+npm install --save-dev vite @vitejs/plugin-legacy @sveltejs/vite-plugin-svelte
 ```
 
 ## Configure Your Build System
 
-To process `.svelte` files correctly, configure your Webpack setup.
+Configure Vite to handle `.svelte` files with the official Svelte plugin:
 
-**webpack.config.js:**
+**vite.config.js:**
 
 ```javascript
-const SveltePreprocess = require('svelte-preprocess');
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
-module.exports = {
-  // ... existing configuration ...
-  module: {
-    rules: [
-      // ... existing rules ...
-      {
-        test: /\.svelte$/,
-        use: {
-          loader: 'svelte-loader',
-          options: {
-            preprocess: SveltePreprocess(),
-          },
-        },
-      },
-    ],
-  },
+export default defineConfig({
+  plugins: [
+    svelte({
+      // Optional: configure Svelte options
+      onwarn: (warning, handler) => {
+        // Handle Svelte warnings
+        if (warning.code === 'css-unused-selector') return;
+        handler(warning);
+      }
+    })
+  ],
   resolve: {
-    extensions: ['.mjs', '.js', '.svelte'],
-    mainFields: ['svelte', 'browser', 'module', 'main'],
-  },
-};
+    alias: {
+      // Ensure only one Svelte runtime is bundled
+      'svelte': 'svelte'
+    }
+  }
+});
 ```
-
-This ensures Webpack properly processes `.svelte` files.
 
 ## Create a Svelte Component
 
@@ -60,20 +57,38 @@ For this example, let's create a simple Svelte component.
 
 ```svelte
 <!-- src/components/MySvelteComponent.svelte -->
-<script>
-  export let name = 'World';
+<script lang="ts">
+  export let name: string = 'World';
+  export let count: number = 0;
+
+  function increment() {
+    count += 1;
+  }
 </script>
 
 <style>
   div {
     color: blue;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  button {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
   }
 </style>
 
-<div>Hello from Svelte, {name}!</div>
+<div>
+  Hello from Svelte, {name}! 
+  <br>
+  Count: {count}
+  <button on:click={increment}>+</button>
+</div>
 ```
 
-This component displays a greeting message and accepts a `name` prop.
+This component displays a greeting message with interactive functionality and accepts `name` and `count` props.
 
 ## Create an Aurelia Wrapper Component
 
@@ -81,36 +96,52 @@ To integrate the Svelte component into Aurelia, create a wrapper Aurelia compone
 
 ```typescript
 // src/resources/elements/svelte-wrapper.ts
-import { customElement, ICustomElementViewModel, INode } from 'aurelia';
+import { customElement, bindable } from 'aurelia';
 import MySvelteComponent from '../../components/MySvelteComponent.svelte';
+import type { SvelteComponent } from 'svelte';
 
 @customElement({ name: 'svelte-wrapper', template: '<template><div ref="container"></div></template>' })
-export class SvelteWrapper implements ICustomElementViewModel {
-  private container: HTMLElement;
-  private svelteInstance: any;
+export class SvelteWrapper {
+  @bindable public svelteComponent: typeof MySvelteComponent;
+  @bindable public props?: Record<string, any>;
+  
+  private container!: HTMLDivElement;
+  private svelteInstance: SvelteComponent | null = null;
 
-  constructor(@INode private element: HTMLElement) {
-    this.container = this.element.querySelector('div[ref="container"]')!;
+  public attached(): void {
+    if (this.container && this.svelteComponent) {
+      this.mountSvelteComponent();
+    }
   }
 
-  attached() {
-    this.svelteInstance = new MySvelteComponent({
-      target: this.container,
-      props: {
-        name: 'Aurelia User',
-      },
-    });
+  public propertyChanged(): void {
+    if (this.svelteInstance && this.props) {
+      // Update Svelte component props reactively
+      this.svelteInstance.$set(this.props);
+    }
   }
 
-  detaching() {
+  public detaching(): void {
     if (this.svelteInstance) {
       this.svelteInstance.$destroy();
+      this.svelteInstance = null;
+    }
+  }
+
+  private mountSvelteComponent(): void {
+    try {
+      this.svelteInstance = new this.svelteComponent({
+        target: this.container,
+        props: this.props || {},
+      });
+    } catch (error) {
+      console.error('Failed to mount Svelte component:', error);
     }
   }
 }
 ```
 
-This wrapper initializes and mounts the Svelte component when the Aurelia component is attached to the DOM.
+This wrapper properly handles Svelte component lifecycle using Aurelia 2's lifecycle hooks. It supports bindable props that are passed to the Svelte component and updates them reactively when they change.
 
 ## Register the Wrapper Component and Use It
 
@@ -118,7 +149,7 @@ Now, you must register the wrapper component with Aurelia and then use it in you
 
 ```typescript
 // src/main.ts
-import Aurelia from 'aurelia';
+import { Aurelia } from 'aurelia';
 import { SvelteWrapper } from './resources/elements/svelte-wrapper';
 import { MyApp } from './my-app';
 
@@ -133,8 +164,136 @@ Then, use it in a view:
 ```html
 <!-- src/my-view.html -->
 <template>
-  <svelte-wrapper></svelte-wrapper>
+  <svelte-wrapper 
+    svelte-component.bind="mySvelteComponent"
+    props.bind="svelteProps">
+  </svelte-wrapper>
 </template>
 ```
+
+Ensure you import and make the Svelte component available in your Aurelia component:
+
+```typescript
+// src/my-view.ts
+import MySvelteComponent from './components/MySvelteComponent.svelte';
+
+export class MyView {
+  public mySvelteComponent = MySvelteComponent;
+  public svelteProps = { 
+    name: 'Aurelia User',
+    count: 5
+  };
+}
+```
+
+## Advanced Integration Patterns
+
+### Svelte 5 Support with Modern Mount API
+
+For Svelte 5+, you can use the modern `mount()` and `unmount()` APIs:
+
+```typescript
+// src/resources/elements/svelte5-wrapper.ts
+import { customElement, bindable } from 'aurelia';
+import { mount, unmount } from 'svelte';
+import type { ComponentType, Component } from 'svelte';
+
+@customElement({ name: 'svelte5-wrapper', template: '<template><div ref="container"></div></template>' })
+export class Svelte5Wrapper {
+  @bindable public svelteComponent: ComponentType;
+  @bindable public props?: Record<string, any>;
+  
+  private container!: HTMLDivElement;
+  private svelteInstance: Component | null = null;
+
+  public attached(): void {
+    if (this.container && this.svelteComponent) {
+      this.mountSvelteComponent();
+    }
+  }
+
+  public propertyChanged(): void {
+    if (this.svelteInstance && this.props) {
+      // Svelte 5: Re-mount with new props (or use store pattern for complex state)
+      this.unmountSvelteComponent();
+      this.mountSvelteComponent();
+    }
+  }
+
+  public detaching(): void {
+    this.unmountSvelteComponent();
+  }
+
+  private mountSvelteComponent(): void {
+    try {
+      this.svelteInstance = mount(this.svelteComponent, {
+        target: this.container,
+        props: this.props || {}
+      });
+    } catch (error) {
+      console.error('Failed to mount Svelte 5 component:', error);
+    }
+  }
+
+  private unmountSvelteComponent(): void {
+    if (this.svelteInstance) {
+      unmount(this.svelteInstance, { outro: true });
+      this.svelteInstance = null;
+    }
+  }
+}
+```
+
+### Error Handling and Lifecycle Management
+
+For production applications, consider implementing robust error boundaries:
+
+```typescript
+private mountSvelteComponent(): void {
+  try {
+    this.svelteInstance = new this.svelteComponent({
+      target: this.container,
+      props: this.props || {},
+    });
+
+    // Optional: Listen to component events
+    this.svelteInstance.$on?.('custom-event', (event) => {
+      console.log('Svelte component event:', event.detail);
+    });
+  } catch (error) {
+    console.error('Failed to mount Svelte component:', error);
+    // Render fallback UI
+    this.container.innerHTML = '<div>Failed to load component</div>';
+  }
+}
+```
+
+### TypeScript Configuration
+
+Ensure your `tsconfig.json` supports Svelte files:
+
+```json
+{
+  "compilerOptions": {
+    "types": ["svelte"],
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true
+  }
+}
+```
+
+### Performance Considerations
+
+- **Reactive Updates**: Svelte components re-render when props change via `$set()` in Svelte 4 or re-mounting in Svelte 5
+- **Component Communication**: Use Svelte stores for complex state management between components
+- **Bundle Size**: Svelte's compile-time optimizations result in smaller bundles compared to runtime frameworks
+
+### Svelte 4 vs 5 Compatibility
+
+This integration pattern works with both Svelte 4 and 5:
+
+- **Svelte 4**: Uses `new Component()` constructor and `$destroy()` method
+- **Svelte 5**: Supports both legacy syntax and new `mount()`/`unmount()` APIs
+- **Migration**: Svelte 5 maintains backward compatibility, allowing gradual migration
 
 Following these steps, you can integrate Svelte components into your Aurelia 2 application. This process highlights the flexibility of Aurelia, allowing you to take advantage of Svelte's reactive capabilities while benefiting from Aurelia's powerful framework features.

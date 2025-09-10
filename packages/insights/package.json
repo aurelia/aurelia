@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/insights",
-  "version": "2.0.0-beta.24",
+  "version": "2.0.0-beta.25",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -56,16 +56,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.24",
-    "@aurelia/metadata": "2.0.0-beta.24",
-    "@aurelia/platform": "2.0.0-beta.24",
-    "@aurelia/platform-browser": "2.0.0-beta.24",
-    "@aurelia/runtime": "2.0.0-beta.24",
-    "@aurelia/runtime-html": "2.0.0-beta.24"
+    "@aurelia/kernel": "2.0.0-beta.25",
+    "@aurelia/metadata": "2.0.0-beta.25",
+    "@aurelia/platform": "2.0.0-beta.25",
+    "@aurelia/platform-browser": "2.0.0-beta.25",
+    "@aurelia/runtime": "2.0.0-beta.25",
+    "@aurelia/runtime-html": "2.0.0-beta.25"
   },
   "peerDependencies": {
-    "@aurelia/router": "2.0.0-beta.24",
-    "@aurelia/router-direct": "2.0.0-beta.24"
+    "@aurelia/router": "2.0.0-beta.25",
+    "@aurelia/router-direct": "2.0.0-beta.25"
   },
   "peerDependenciesMeta": {
     "@aurelia/router": {
@@ -76,9 +76,9 @@
     }
   },
   "devDependencies": {
-    "@aurelia/router": "2.0.0-beta.24",
-    "@aurelia/router-direct": "2.0.0-beta.24",
-    "typescript": "5.4.2"
+    "@aurelia/router": "2.0.0-beta.25",
+    "@aurelia/router-direct": "2.0.0-beta.25",
+    "typescript": "5.8.3"
   },
   "engines": {
     "node": ">=20.16.0"

@@ -265,7 +265,7 @@ export class PerformanceLifecycleHooks {
     if (vm === undefined) return 'undefined';
 
     const type = typeof vm;
-    if (type === 'object' && vm !== null) {
+    if (type === 'object') {
       return vm.constructor?.name || 'Object';
     }
 

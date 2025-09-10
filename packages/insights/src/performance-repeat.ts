@@ -332,11 +332,10 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
     }
 
     if (itemCount !== undefined) {
-      if (itemCount > this.detailedTrackingThreshold) {
-        return `Repeat • ${this.formatPhaseName(baseName)} (${itemCount} items) • ${repeatId}`;
-      } else {
-        return `Repeat • ${this.formatPhaseName(baseName)} (${itemCount} items) • ${repeatId}`;
-      }
+      // if (itemCount > this.detailedTrackingThreshold) {
+      // } else {
+      // }
+      return `Repeat • ${this.formatPhaseName(baseName)} (${itemCount} items) • ${repeatId}`;
     } else {
       return `Repeat • ${this.formatPhaseName(baseName)} • ${repeatId}`;
     }

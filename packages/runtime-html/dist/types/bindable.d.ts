@@ -59,6 +59,7 @@ export declare class BindableDefinition {
     readonly name: string;
     readonly set: InterceptorFunc;
     private constructor();
+    static toAttr(prop: string): string;
     static create(prop: string, def?: PartialBindableDefinition): BindableDefinition;
 }
 type CoercerFunction<This extends Constructable> = (this: This, value: unknown) => InstanceType<This>;

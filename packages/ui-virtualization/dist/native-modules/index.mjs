@@ -1,87 +1,116 @@
-import { DI as t, resolve as e, Registration as s } from "../../../kernel/dist/native-modules/index.mjs";
+import { DI as t, resolve as s, Registration as e } from "../../../kernel/dist/native-modules/index.mjs";
 
-import { Scope as r, BindingContext as i, astEvaluate as n, getCollectionObserver as o } from "../../../runtime/dist/native-modules/index.mjs";
+import { Scope as i, BindingContext as r, astEvaluate as n, queueAsyncTask as o, getCollectionObserver as h } from "../../../runtime/dist/native-modules/index.mjs";
 
-import { IRenderLocation as l, IController as h, IViewFactory as c, IPlatform as a } from "../../../runtime-html/dist/native-modules/index.mjs";
+import { IRenderLocation as l, IController as c, IViewFactory as a, IPlatform as u } from "../../../runtime-html/dist/native-modules/index.mjs";
 
-import { IInstruction as u } from "../../../template-compiler/dist/native-modules/index.mjs";
+import { IInstruction as f } from "../../../template-compiler/dist/native-modules/index.mjs";
 
-import { BindingBehaviorExpression as f, ValueConverterExpression as d } from "../../../expression-parser/dist/native-modules/index.mjs";
+import { BindingBehaviorExpression as d, ValueConverterExpression as m } from "../../../expression-parser/dist/native-modules/index.mjs";
 
-const m = /*@__PURE__*/ t.createInterface("IDomRenderer");
+const p = /*@__PURE__*/ t.createInterface("IDomRenderer");
 
-const p = /*@__PURE__*/ t.createInterface("IScrollerObsererLocator");
+const b = /*@__PURE__*/ t.createInterface("ICollectionStrategyLocator");
 
-const g = /*@__PURE__*/ t.createInterface("ICollectionStrategyLocator");
+const g = "near-top";
+
+const w = "near-bottom";
 
 function unwrapExpression(t) {
-    let e = false;
-    while (t instanceof f) {
-        t = t.expression;
-    }
+    let s = false;
     while (t instanceof d) {
         t = t.expression;
-        e = true;
     }
-    return e ? t : null;
+    while (t instanceof m) {
+        t = t.expression;
+        s = true;
+    }
+    return s ? t : null;
 }
 
-const getScrollerElement = t => {
+const C = String;
+
+const createMappedError = (t, ...s) => {
+    const e = C(t).padStart(4, "0");
+    return new Error(`AUR${e}:${s.map(C)}`);
+};
+
+const getScrollerElement = (t, s) => {
     let e = t.parentNode;
     while (e !== null && e !== document.body) {
-        if (hasOverflowScroll(e)) {
+        if (hasOverflowScroll(e, s)) {
             return e;
         }
         e = e.parentNode;
     }
-    throw new Error("Unable to find a scroller");
+    throw createMappedError(6002);
 };
 
-const hasOverflowScroll = t => {
+const hasOverflowScroll = (t, s) => {
     const e = window.getComputedStyle(t);
-    return e != null && (e.overflowY === "scroll" || e.overflow === "scroll" || e.overflowY === "auto" || e.overflow === "auto");
+    if (s === "vertical") {
+        return e != null && (e.overflowY === "scroll" || e.overflow === "scroll" || e.overflowY === "auto" || e.overflow === "auto");
+    }
+    return e != null && (e.overflowX === "scroll" || e.overflow === "scroll" || e.overflowX === "auto" || e.overflow === "auto");
 };
 
-const getStyleValues = (t, ...e) => {
-    const s = window.getComputedStyle(t);
-    let r = 0;
+const getStyleValues = (t, ...s) => {
+    const e = window.getComputedStyle(t);
     let i = 0;
-    for (let t = 0, n = e.length; n > t; ++t) {
-        i = parseFloat(s[e[t]]);
-        r += isNaN(i) ? 0 : i;
+    let r = 0;
+    for (let t = 0, n = s.length; n > t; ++t) {
+        r = parseFloat(e[s[t]]);
+        i += isNaN(r) ? 0 : r;
     }
-    return r;
+    return i;
 };
 
 const calcOuterHeight = t => {
-    let e = t.getBoundingClientRect().height;
-    e += getStyleValues(t, "marginTop", "marginBottom");
-    return e;
+    let s = t.getBoundingClientRect().height;
+    s += getStyleValues(t, "marginTop", "marginBottom");
+    return s;
+};
+
+const calcOuterWidth = t => {
+    let s = t.getBoundingClientRect().width;
+    s += getStyleValues(t, "marginLeft", "marginRight");
+    return s;
 };
 
 const calcScrollerViewportHeight = t => {
-    let e = t.getBoundingClientRect().height;
-    e -= getStyleValues(t, "borderTopWidth", "borderBottomWidth", "paddingTop", "paddingBottom");
-    return e;
+    let s = t.getBoundingClientRect().height;
+    s -= getStyleValues(t, "borderTopWidth", "borderBottomWidth", "paddingTop", "paddingBottom");
+    return s;
 };
 
-const getDistanceToScroller = (t, e) => {
-    const s = t.offsetParent;
-    const r = t.offsetTop;
-    if (s === null || s === e) {
-        return r;
-    }
-    if (s.contains(e)) {
-        return r - e.offsetTop;
-    }
-    return r + getDistanceToScroller(s, e);
+const calcScrollerViewportWidth = t => {
+    let s = t.getBoundingClientRect().width;
+    s -= getStyleValues(t, "borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight");
+    return s;
 };
 
-const w = {
-    height: 0,
-    scrollTop: 0,
-    scroller: null,
-    width: 0
+const getDistanceToScroller = (t, s) => {
+    const e = t.offsetParent;
+    const i = t.offsetTop;
+    if (e === null || e === s) {
+        return i;
+    }
+    if (e.contains(s)) {
+        return i - s.offsetTop;
+    }
+    return i + getDistanceToScroller(e, s);
+};
+
+const getHorizontalDistanceToScroller = (t, s) => {
+    const e = t.offsetParent;
+    const i = t.offsetLeft;
+    if (e === null || e === s) {
+        return i;
+    }
+    if (e.contains(s)) {
+        return i - s.offsetLeft;
+    }
+    return i + getHorizontalDistanceToScroller(e, s);
 };
 
 class VirtualRepeat {
@@ -89,257 +118,478 @@ class VirtualRepeat {
         this.items = void 0;
         this.views = [];
         this.task = null;
-        this.i = w;
-        this.u = true;
         this.itemHeight = 0;
+        this.itemWidth = 0;
         this.minViewsRequired = 0;
         this.dom = null;
-        this.scrollerObserver = null;
-        this.location = e(l);
-        this.instruction = e(u);
-        this.parent = e(h);
-        this.f = e(c);
-        this.C = e(g);
-        this.O = e(m);
-        this.scrollerObserverLocator = e(p);
+        this.t = "vertical";
+        this.i = false;
+        this.h = false;
+        this.u = [];
+        this.C = [];
+        this.$ = [];
+        this.T = [];
+        this.location = s(l);
+        this.instruction = s(f);
+        this.parent = s(c);
+        this.f = s(a);
+        this.B = s(b);
+        this._ = s(p);
+        this.I = false;
+        this.p = s(u);
+        this.M = 0;
         const t = this.instruction.props[0];
-        const s = t.forOf;
-        const r = this.iterable = unwrapExpression(s.iterable) ?? s.iterable;
-        const i = this.$ = s.iterable !== r;
-        this.T = new CollectionObservationMediator(this, () => i ? this.I() : this.L());
-        this.local = s.declaration.name;
-        this.taskQueue = e(a).domQueue;
+        const e = t.forOf;
+        const i = this.iterable = unwrapExpression(e.iterable) ?? e.iterable;
+        const r = this.R = e.iterable !== i;
+        this.L = new CollectionObservationMediator(this, () => r ? this.O() : this.A());
+        this.local = e.declaration.name;
+        const n = t.props ?? [];
+        for (const t of n) {
+            if (t == null) continue;
+            const s = `${t.to}:${t.value}`;
+            const e = s.split(";");
+            for (const t of e) {
+                const [s, e] = t.split(":");
+                if (!s || e === void 0) continue;
+                const i = s.trim();
+                const r = e.trim();
+                const n = Number(r);
+                switch (i) {
+                  case "itemHeight":
+                  case "item-height":
+                    {
+                        if (!Number.isNaN(n) && n > 0) {
+                            this.N = n;
+                        }
+                        break;
+                    }
+
+                  case "itemWidth":
+                  case "item-width":
+                    {
+                        if (!Number.isNaN(n) && n > 0) {
+                            this.V = n;
+                        }
+                        break;
+                    }
+
+                  case "bufferSize":
+                  case "buffer-size":
+                    {
+                        if (!Number.isNaN(n) && n > 0) {
+                            this.F = n;
+                        }
+                        break;
+                    }
+
+                  case "minViews":
+                  case "min-views":
+                    {
+                        if (!Number.isNaN(n) && n > 0) {
+                            this.W = n;
+                        }
+                        break;
+                    }
+
+                  case "layout":
+                    {
+                        if (r === "horizontal" || r === "vertical") {
+                            this.t = r;
+                        }
+                        break;
+                    }
+
+                  case "variableHeight":
+                  case "variable-height":
+                    {
+                        if (r === "true" || r === "1") {
+                            this.i = true;
+                        }
+                        break;
+                    }
+
+                  case "variableWidth":
+                  case "variable-width":
+                    {
+                        if (r === "true" || r === "1") {
+                            this.h = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
     attaching() {
-        this.dom = this.O.render(this.location);
-        (this.scrollerObserver = this.scrollerObserverLocator.getObserver(this.dom.scroller)).subscribe(this);
-        this.T.start(this.items);
-        this.collectionStrategy = this.C.getStrategy(this.items);
-        this.B(this.items, this.collectionStrategy);
+        this.dom = this._.render(this.location, this.t);
+        const t = this.dom.anchor.parentNode.tagName;
+        if (this.t === "horizontal" && (t === "TBODY" || t === "THEAD" || t === "TFOOT" || t === "TABLE")) {
+            throw createMappedError(6e3);
+        }
+        this.L.start(this.items);
+        this.collectionStrategy = this.B.getStrategy(this.items);
+        this.G = this.H();
+        this.I = true;
+        this.j();
     }
     detaching() {
+        this.I = false;
+        this.G?.();
         this.task?.cancel();
-        this.R();
+        this.P();
         this.dom.dispose();
-        this.scrollerObserver.unsubscribe(this);
-        this.T.stop();
-        this.dom = this.scrollerObserver = this.task = null;
+        this.L.stop();
+        this.dom = this.task = null;
     }
-    V() {
-        if (!(this.collectionStrategy.count > 0)) {
-            throw new Error("AURxxxx: Invalid calculation state. Virtual repeater has no items.");
-        }
-        const t = this._();
-        const e = calcOuterHeight(t.nodes.firstChild);
-        const s = this.scrollerObserver.getValue();
-        const r = this.M(s, this.collectionStrategy.count, e);
-        if (r.signals & 1) {
-            this.R();
-            return r;
-        }
-        if ((r.signals & 2) === 0) {
-            this.R();
-            return r;
-        }
-        this.itemHeight = e;
-        this.minViewsRequired = r.minViews;
-        this.u = false;
-        return r;
+    H() {
+        const t = this.dom.scroller;
+        const s = new this.p.window.ResizeObserver(() => {
+            if (!this.I) return;
+            this.j();
+        });
+        const handleScroll = () => this.handleScroll(t);
+        s.observe(t);
+        t.addEventListener("scroll", handleScroll);
+        return () => {
+            s.disconnect();
+            t.removeEventListener("scroll", handleScroll);
+        };
     }
-    M(t, e, s) {
-        if (e === 0) {
-            return Calculation.reset;
-        }
-        if (s === 0) {
-            return Calculation.none;
-        }
-        const r = Math.ceil(calcScrollerViewportHeight(t.scroller) / s);
-        return Calculation.from(2, r);
-    }
-    R() {
-        this.u = true;
-        this.minViewsRequired = 0;
-        this.itemHeight = 0;
-        this.dom.update(0, 0);
-    }
-    B(t, e) {
-        const s = this.$controller;
-        const n = e.count;
-        const o = this.views;
-        let l = 0;
-        let h = o.length;
-        let c = null;
-        if (n === 0) {
-            for (l = 0; h > l; ++l) {
-                c = o[l];
-                void c.deactivate(c, s);
-            }
-            o.length = 0;
-            this.R();
+    j() {
+        const t = this.collectionStrategy.count;
+        const s = t > 0;
+        if (!s) {
             return;
         }
-        if (this.u) {
-            const t = this.V();
-            if (t.signals === 1 || (t.signals & 2) === 0) {
-                return;
-            }
-        } else {
-            if (this.itemHeight === 0) {
-                return;
+        const e = this.U();
+        const i = this.t === "horizontal";
+        const r = e.nodes.firstChild;
+        const n = this.N ?? calcOuterHeight(r);
+        const o = this.V ?? calcOuterWidth(r);
+        if (!i && n === 0 || i && o === 0) {
+            return;
+        }
+        const h = this.dom.scroller;
+        const l = i ? calcScrollerViewportWidth(h) : calcScrollerViewportHeight(h);
+        const c = i ? h.scrollWidth > l : h.scrollHeight > l;
+        if (!c) {
+            const s = this.views.length;
+            this.dom.update(0, (i ? o : n) * (t - s));
+        }
+        this.itemHeight = n;
+        this.itemWidth = o;
+        const a = this.W ?? l / (i ? o : n);
+        this.minViewsRequired = Math.ceil(a);
+        if (i && this.h || !i && this.i) {
+            this.Y(e, 0);
+        }
+        this.q(this.items, this.collectionStrategy);
+    }
+    P() {
+        this.minViewsRequired = 0;
+        this.itemHeight = 0;
+        this.itemWidth = 0;
+        this.dom.update(0, 0);
+        this.u.length = 0;
+        this.C.length = 0;
+        this.$ = [];
+        this.T = [];
+    }
+    Y(t, s) {
+        const e = t.nodes.firstChild;
+        if (e == null) return;
+        const i = calcOuterHeight(e);
+        const r = calcOuterWidth(e);
+        this.u[s] = i;
+        this.C[s] = r;
+    }
+    J(t) {
+        this.$ = new Array(t);
+        let s = 0;
+        for (let e = 0; e < t; e++) {
+            const t = this.u[e] ?? this.itemHeight;
+            s += t;
+            this.$[e] = s;
+        }
+        this.T = new Array(t);
+        let e = 0;
+        for (let s = 0; s < t; s++) {
+            const t = this.C[s] ?? this.itemWidth;
+            e += t;
+            this.T[s] = e;
+        }
+    }
+    K(t, s) {
+        const e = s ? this.T : this.$;
+        if (e.length === 0) {
+            const s = this.X();
+            return s > 0 ? Math.floor(t / s) : 0;
+        }
+        let i = 0;
+        let r = e.length - 1;
+        while (i <= r) {
+            const s = Math.floor((i + r) / 2);
+            const n = e[s];
+            const o = s > 0 ? e[s - 1] : 0;
+            if (t >= o && t < n) {
+                return s;
+            } else if (t < o) {
+                r = s - 1;
+            } else {
+                i = s + 1;
             }
         }
-        const a = this.minViewsRequired * 2;
-        const u = Math.min(a, n);
-        if (h > a) {
-            while (h > a) {
-                c = o[h - 1];
-                void c.deactivate(c, s);
-                --h;
-            }
-            o.length = h;
+        return Math.max(0, Math.min(i, e.length - 1));
+    }
+    Z(t, s) {
+        const e = s ? this.T : this.$;
+        if (e.length === 0 || t === 0) {
+            return 0;
         }
-        if (h > n) {
-            while (h > n) {
-                c = o[h - 1];
-                void c.deactivate(c, s);
-                --h;
-            }
-            o.length = n;
+        if (t >= e.length) {
+            const s = this.X();
+            return t * s;
         }
-        h = o.length;
-        for (l = h; l < u; l++) {
+        return t > 0 ? e[t - 1] : 0;
+    }
+    X() {
+        return this.t === "horizontal" ? this.itemWidth : this.itemHeight;
+    }
+    q(t, s) {
+        const e = this.$controller;
+        const n = s.count;
+        const o = this.views;
+        let h = 0;
+        let l = o.length;
+        let c = null;
+        if (n === 0) {
+            for (h = 0; l > h; ++h) {
+                c = o[h];
+                void c.deactivate(c, e);
+            }
+            o.splice(0);
+            this.P();
+            return;
+        }
+        if (this.X() === 0) {
+            return this.j();
+        }
+        const a = this.F ?? 2;
+        const u = this.minViewsRequired * a;
+        const f = Math.min(u, n);
+        if (l > u) {
+            while (l > u) {
+                c = o[l - 1];
+                void c.deactivate(c, e);
+                --l;
+            }
+            o.splice(l);
+        }
+        if (l > n) {
+            while (l > n) {
+                c = o[l - 1];
+                void c.deactivate(c, e);
+                --l;
+            }
+            o.splice(n);
+        }
+        l = o.length;
+        for (h = l; h < f; h++) {
             o.push(this.f.create());
         }
-        const f = this.itemHeight;
-        const d = this.local;
-        const {firstIndex: m, topCount: p, botCount: g} = this.measureBuffer(this.scrollerObserver.getValue(), o.length, n, f);
-        let w = 0;
-        let C;
-        let b;
+        const d = this.t === "horizontal";
+        const m = this.X();
+        const p = this.local;
+        const {firstIndex: b, topCount: g, botCount: w} = this.measureBuffer(this.dom.scroller, o.length, n, m);
+        let C = 0;
         let v;
-        for (l = 0; u > l; ++l) {
-            w = m + l;
-            C = e.item(w);
-            c = o[l];
-            b = o[l - 1];
+        let D;
+        let $;
+        for (h = 0; f > h; ++h) {
+            C = b + h;
+            v = s.item(C);
+            c = o[h];
+            D = o[h - 1];
             if (c.isActive) {
-                v = c.scope;
-                v.bindingContext[d] = C;
-                v.overrideContext.$index = w;
-                v.overrideContext.$length = n;
+                $ = c.scope;
+                $.bindingContext[p] = v;
+                $.overrideContext.$index = C;
+                $.overrideContext.$length = n;
             } else {
-                c.nodes.insertBefore(b.nodes.firstChild.nextSibling);
-                v = r.fromParent(s.scope, new i(d, e.item(w)));
-                v.overrideContext.$index = w;
-                v.overrideContext.$length = n;
-                enhanceOverrideContext(v.overrideContext);
-                void c.activate(s, s, v);
+                c.nodes.insertBefore(D.nodes.firstChild.nextSibling);
+                $ = i.fromParent(e.scope, new r(p, s.item(C)));
+                $.overrideContext.$index = C;
+                $.overrideContext.$length = n;
+                enhanceOverrideContext($.overrideContext);
+                void c.activate(e, e, $);
+            }
+            if (d && this.h || !d && this.i) {
+                this.Y(c, C);
             }
         }
-        this.dom.update(p * f, g * f);
+        if (d && this.h || !d && this.i) {
+            this.J(n);
+        }
+        let x = 0;
+        let S = 0;
+        if (d && this.h || !d && this.i) {
+            x = this.Z(g, d);
+            S = this.Z(n - b - f, d);
+        } else {
+            x = g * m;
+            S = w * m;
+        }
+        this.dom.update(x, S);
     }
     itemsChanged(t) {
-        this.T.start(t);
-        this.collectionStrategy = this.C.getStrategy(t);
-        this.A();
+        this.L.start(t);
+        this.collectionStrategy = this.B.getStrategy(t);
+        this.tt();
     }
-    G(t) {
-        const e = t.scrollTop;
-        const s = getDistanceToScroller(this.dom.top, t.scroller);
-        const r = Math.max(0, e === 0 ? 0 : e - s);
-        return r;
+    st(t) {
+        const s = t.scrollTop;
+        const e = getDistanceToScroller(this.dom.top, t);
+        const i = Math.max(0, s === 0 ? 0 : s - e);
+        return i;
     }
-    measureBuffer(t, e, s, r) {
-        const i = this.G(t);
-        let n = i === 0 ? 0 : Math.floor(i / r);
-        if (n + e >= s) {
-            n = Math.max(0, s - e);
+    et(t) {
+        const s = t.scrollLeft;
+        const e = getHorizontalDistanceToScroller(this.dom.top, t);
+        const i = Math.max(0, s === 0 ? 0 : s - e);
+        return i;
+    }
+    measureBuffer(t, s, e, i) {
+        const r = this.t === "horizontal";
+        const n = r ? this.h : this.i;
+        if (n && (r ? this.T.length > 0 : this.$.length > 0)) {
+            return this.it(t, s, e, r);
+        } else {
+            return this.rt(t, s, e, i, r);
         }
-        const o = n;
-        const l = Math.max(0, s - o - e);
+    }
+    rt(t, s, e, i, r) {
+        const n = r ? this.et(t) : this.st(t);
+        let o = n === 0 ? 0 : Math.floor(n / i);
+        if (o + s >= e) {
+            o = Math.max(0, e - s);
+        }
+        const h = o;
+        const l = Math.max(0, e - h - s);
         return {
-            firstIndex: n,
-            topCount: o,
+            firstIndex: o,
+            topCount: h,
             botCount: l
         };
     }
-    handleScrollerChange(t) {
-        const e = this.task;
-        this.task = this.taskQueue.queueTask(() => {
-            this.task = null;
-            if (this.views.length > 0 && this.itemHeight > 0) {
-                this.V();
-                this.handleScroll(t);
-            }
-        });
-        e?.cancel();
+    it(t, s, e, i) {
+        const r = i ? this.et(t) : this.st(t);
+        let n = r === 0 ? 0 : this.K(r, i);
+        if (n + s >= e) {
+            n = Math.max(0, e - s);
+        }
+        const o = n;
+        const h = Math.max(0, e - o - s);
+        return {
+            firstIndex: n,
+            topCount: o,
+            botCount: h
+        };
     }
     handleScroll(t) {
-        const e = this.i;
-        const s = this.local;
-        const r = this.itemHeight;
-        const i = this.dom;
-        const n = this.views;
-        const o = this.collectionStrategy;
-        const l = n.length;
-        const h = o.count;
-        const c = n[0].scope.overrideContext.$index;
-        const {firstIndex: a, topCount: u, botCount: f} = this.measureBuffer(t, l, h, r);
-        const d = t.scrollTop > e.scrollTop;
-        const m = d ? a >= c + l : a + l <= c;
-        this.i = t;
+        const s = this.views;
+        const e = s.length;
+        if (e === 0) {
+            return;
+        }
+        const i = this.local;
+        const r = this.t === "horizontal";
+        const n = this.X();
+        const o = this.dom;
+        const h = this.collectionStrategy;
+        const l = h.count;
+        const c = s[0].scope.overrideContext.$index;
+        const {firstIndex: a, topCount: u, botCount: f} = this.measureBuffer(t, e, l, n);
+        const d = r ? t.scrollLeft > this.M : t.scrollTop > this.M;
+        const m = d ? a >= c + e : a + e <= c;
+        this.M = r ? t.scrollLeft : t.scrollTop;
         if (a === c) {
             return;
         }
         let p = null;
-        let g = null;
-        let w = 0;
+        let b = null;
         let C = 0;
-        let b = 0;
         let v = 0;
+        let D = 0;
+        let $ = 0;
         if (m) {
-            for (v = 0; l > v; ++v) {
-                w = a + v;
-                g = n[v].scope;
-                g.bindingContext[s] = o.item(w);
-                g.overrideContext.$index = w;
-                g.overrideContext.$length = h;
+            for ($ = 0; e > $; ++$) {
+                C = a + $;
+                b = s[$].scope;
+                b.bindingContext[i] = h.item(C);
+                b.overrideContext.$index = C;
+                b.overrideContext.$length = l;
             }
         } else if (d) {
-            C = a - c;
-            while (C > 0) {
-                p = n.shift();
-                w = n[n.length - 1].scope.overrideContext["$index"] + 1;
-                n.push(p);
-                g = p.scope;
-                g.bindingContext[s] = o.item(w);
-                g.overrideContext.$index = w;
-                g.overrideContext.$length = h;
-                p.nodes.insertBefore(i.bottom);
-                ++b;
-                --C;
+            v = a - c;
+            while (v > 0) {
+                p = s.shift();
+                C = s[s.length - 1].scope.overrideContext["$index"] + 1;
+                s.push(p);
+                b = p.scope;
+                b.bindingContext[i] = h.item(C);
+                b.overrideContext.$index = C;
+                b.overrideContext.$length = l;
+                p.nodes.insertBefore(o.bottom);
+                ++D;
+                --v;
             }
         } else {
-            C = c - a;
-            while (C > 0) {
-                w = c - (b + 1);
-                p = n.pop();
-                g = p.scope;
-                g.bindingContext[s] = o.item(w);
-                g.overrideContext.$index = w;
-                g.overrideContext.$length = h;
-                p.nodes.insertBefore(n[0].nodes.firstChild);
-                n.unshift(p);
-                ++b;
-                --C;
+            v = c - a;
+            while (v > 0) {
+                C = c - (D + 1);
+                p = s.pop();
+                b = p.scope;
+                b.bindingContext[i] = h.item(C);
+                b.overrideContext.$index = C;
+                b.overrideContext.$length = l;
+                p.nodes.insertBefore(s[0].nodes.firstChild);
+                s.unshift(p);
+                ++D;
+                --v;
             }
         }
         if (d) {
-            if (o.isNearBottom(a + (l - 1))) ;
+            if (h.isNearBottom(a + (e - 1))) {
+                o.scroller.dispatchEvent(new CustomEvent(w, {
+                    bubbles: true,
+                    detail: {
+                        lastVisibleIndex: a + (e - 1),
+                        itemCount: l
+                    }
+                }));
+            }
         } else {
-            if (o.isNearTop(n[0].scope.overrideContext["$index"])) ;
+            if (h.isNearTop(s[0].scope.overrideContext["$index"])) {
+                o.scroller.dispatchEvent(new CustomEvent(g, {
+                    bubbles: true,
+                    detail: {
+                        firstVisibleIndex: s[0].scope.overrideContext["$index"],
+                        itemCount: l
+                    }
+                }));
+            }
         }
-        i.update(u * r, f * r);
+        let x = 0;
+        let S = 0;
+        if (r && this.h || !r && this.i) {
+            x = this.Z(u, r);
+            S = this.Z(f, r);
+        } else {
+            x = u * n;
+            S = f * n;
+        }
+        o.update(x, S);
     }
     getDistances() {
         return this.dom?.distances ?? [ 0, 0 ];
@@ -347,39 +597,39 @@ class VirtualRepeat {
     getViews() {
         return this.views.slice(0);
     }
-    L() {
-        this.A();
+    A() {
+        this.tt();
     }
-    I() {
+    O() {
         const t = n(this.iterable, this.parent.scope, {
             strict: true
         }, null);
-        const e = this.items;
+        const s = this.items;
         this.items = t;
-        if (t === e) {
-            this.A();
+        if (t === s) {
+            this.tt();
         }
     }
-    A() {
+    tt() {
         const t = this.task;
-        this.task = this.taskQueue.queueTask(() => {
+        this.task = o(() => {
             this.task = null;
-            this.B(this.items, this.collectionStrategy);
+            this.q(this.items, this.collectionStrategy);
         });
         t?.cancel();
     }
-    _() {
+    U() {
         const t = this.getOrCreateFirstView();
         if (!t.isActive) {
-            const e = this.$controller;
-            const s = this.collectionStrategy;
-            const n = e.scope;
-            const o = r.fromParent(n, new i(this.local, s.first()));
+            const s = this.$controller;
+            const e = this.collectionStrategy;
+            const n = s.scope;
+            const o = i.fromParent(n, new r(this.local, e.first()));
             o.overrideContext.$index = 0;
-            o.overrideContext.$length = s.count;
+            o.overrideContext.$length = e.count;
             enhanceOverrideContext(o.overrideContext);
             t.nodes.insertBefore(this.dom.bottom);
-            void t.activate(t, e, o);
+            void t.activate(t, s, o);
         }
         return t;
     }
@@ -388,9 +638,9 @@ class VirtualRepeat {
         if (t.length > 0) {
             return t[0];
         }
-        const e = this.f.create();
-        t.push(e);
-        return e;
+        const s = this.f.create();
+        t.push(s);
+        return s;
     }
 }
 
@@ -407,54 +657,32 @@ VirtualRepeat.$au = {
 };
 
 class CollectionObservationMediator {
-    constructor(t, e) {
+    constructor(t, s) {
         this.repeat = t;
-        this.handleCollectionChange = e;
+        this.handleCollectionChange = s;
     }
     start(t) {
-        if (this.N === t) {
+        if (this.nt === t) {
             return;
         }
         this.stop();
         if (t != null) {
-            o(this.N = t)?.subscribe(this);
+            h(this.nt = t)?.subscribe(this);
         }
     }
     stop() {
-        o(this.N)?.unsubscribe(this);
+        h(this.nt)?.unsubscribe(this);
     }
 }
 
-var C;
-
-(function(t) {
-    t[t["none"] = 0] = "none";
-    t[t["reset"] = 1] = "reset";
-    t[t["has_sizing"] = 2] = "has_sizing";
-})(C || (C = {}));
-
-class Calculation {
-    static from(t, e) {
-        return new Calculation(t, e);
-    }
-    constructor(t, e) {
-        this.signals = t;
-        this.minViews = e;
-    }
-}
-
-Calculation.reset = new Calculation(1, 0);
-
-Calculation.none = new Calculation(0, 0);
-
-const b = new WeakSet;
+const v = new WeakSet;
 
 function enhanceOverrideContext(t) {
-    const e = t;
-    if (b.has(e)) {
+    const s = t;
+    if (v.has(s)) {
         return;
     }
-    Object.defineProperties(e, {
+    Object.defineProperties(s, {
         $first: createGetterDescriptor($first),
         $last: createGetterDescriptor($last),
         $middle: createGetterDescriptor($middle),
@@ -493,7 +721,7 @@ function $middle() {
 
 class CollectionStrategyLocator {
     static register(t) {
-        return s.singleton(g, this).register(t);
+        return e.singleton(b, this).register(t);
     }
     getStrategy(t) {
         if (t == null) {
@@ -502,7 +730,7 @@ class CollectionStrategyLocator {
         if (t instanceof Array) {
             return new ArrayCollectionStrategy(t);
         }
-        throw new Error(`Unable to find a strategy for collection type: ${typeof t}`);
+        throw createMappedError(6005, typeof t);
     }
 }
 
@@ -522,11 +750,11 @@ class ArrayCollectionStrategy {
     item(t) {
         return this.val[t] ?? null;
     }
-    range(t, e) {
-        const s = this.val;
-        const r = this.count;
-        if (r > t && e > t) {
-            return s.slice(t, e);
+    range(t, s) {
+        const e = this.val;
+        const i = this.count;
+        if (i > t && s > t) {
+            return e.slice(t, s);
         }
         return [];
     }
@@ -563,166 +791,74 @@ class NullCollectionStrategy {
     }
 }
 
-class ScrollerObserverLocator {
-    static get inject() {
-        return [ a ];
-    }
-    static register(t) {
-        return s.singleton(p, this).register(t);
-    }
-    constructor(t) {
-        this.cache = new WeakMap;
-        this.p = t;
-    }
-    getObserver(t) {
-        const e = this.cache;
-        let s = e.get(t);
-        if (!e.has(t)) {
-            e.set(t, s = new ScrollerObserver(this.p, t));
-        }
-        return s;
-    }
-}
-
-class ScrollerObserver {
-    constructor(t, e) {
-        this.p = t;
-        this.scroller = e;
-        this.subs = new Set;
-        this.geo = null;
-    }
-    start() {
-        this.scroller.addEventListener("scroll", this);
-        const t = getResizeObserverClass(this.p);
-        if (typeof t === "function") {
-            (this.sizeObs = new t(t => {
-                const e = this.geo;
-                const s = new ElementGeometry(t[0].contentRect);
-                if (!s.equals(e)) {
-                    this.geo = s;
-                    this.notify();
-                }
-            })).observe(this.scroller);
-        }
-    }
-    stop() {
-        this.scroller.removeEventListener("scroll", this);
-        this.sizeObs?.disconnect();
-        this.sizeObs = void 0;
-    }
-    notify() {
-        this.subs.forEach(notifySubscriber, this.getValue());
-    }
-    setValue() {
-        throw new Error("scroller info is readonly");
-    }
-    getValue() {
-        const t = this.scroller;
-        const e = t.getBoundingClientRect();
-        return new ScrollerInfo(t, t.scrollTop, e.width, e.height);
-    }
-    handleEvent(t) {
-        this.notify();
-    }
-    subscribe(t) {
-        if (this.subs.size === 0) {
-            this.start();
-        }
-        this.subs.add(t);
-    }
-    unsubscribe(t) {
-        const e = this.subs;
-        if (e.has(t) && e.size === 1) {
-            this.stop();
-        }
-        e.delete(t);
-    }
-}
-
-function notifySubscriber(t) {
-    t.handleScrollerChange(this);
-}
-
-class ElementGeometry {
-    constructor(t) {
-        this.t = t.top;
-        this.l = t.left;
-        this.w = t.width;
-        this.h = t.height;
-    }
-    equals(t) {
-        if (t == null) {
-            return false;
-        }
-        return this.t === t.t && this.l === t.l && this.w === t.w && this.h === t.h;
-    }
-}
-
-class ScrollerInfo {
-    constructor(t, e, s, r) {
-        this.scroller = t;
-        this.scrollTop = e;
-        this.width = s;
-        this.height = r;
-    }
-}
-
-const getResizeObserverClass = t => t.window.ResizeObserver;
-
 class DefaultDomRenderer {
     static get inject() {
-        return [ a ];
+        return [ u ];
     }
     static register(t) {
-        return s.singleton(m, this).register(t);
+        return e.singleton(p, this).register(t);
     }
     constructor(t) {
         this.p = t;
     }
-    render(t) {
+    render(t, s = "vertical") {
         const e = this.p.document;
-        const s = t.parentNode;
-        if (s === null) {
-            throw new Error("Invalid render target");
+        const i = t.parentNode;
+        if (i === null) {
+            throw createMappedError(6004);
         }
         let r;
-        switch (s.tagName) {
+        switch (i.tagName) {
           case "TBODY":
           case "THEAD":
           case "TFOOT":
           case "TABLE":
             r = insertBefore(e, "tr", t);
-            return new TableDom(s.closest("table"), t, r[0], r[1]);
+            return new TableDom(i.closest("table"), t, r[0], r[1], s);
 
           case "UL":
           case "OL":
             r = insertBefore(e, "div", t);
-            return new ListDom(s, t, r[0], r[1]);
+            return new ListDom(i, t, r[0], r[1], s);
 
           default:
             r = insertBefore(e, "div", t);
-            return new DefaultDom(t, r[0], r[1]);
+            return new DefaultDom(t, r[0], r[1], s);
         }
     }
 }
 
 class DefaultDom {
-    constructor(t, e, s) {
+    constructor(t, s, e, i) {
         this.anchor = t;
-        this.top = e;
-        this.bottom = s;
+        this.top = s;
+        this.bottom = e;
+        this.layout = i;
         this.tH = 0;
         this.bH = 0;
     }
     get scroller() {
-        return getScrollerElement(this.anchor);
+        return getScrollerElement(this.anchor, this.layout);
     }
     get distances() {
         return [ this.tH, this.bH ];
     }
-    update(t, e) {
-        this.top.style.height = `${this.tH = t}px`;
-        this.bottom.style.height = `${this.bH = e}px`;
+    update(t, s) {
+        if (this.layout === "horizontal") {
+            this.top.style.width = `${this.tH = t}px`;
+            this.bottom.style.width = `${this.bH = s}px`;
+            this.top.style.height = "100%";
+            this.bottom.style.height = "100%";
+            this.top.style.display = "inline-block";
+            this.bottom.style.display = "inline-block";
+        } else {
+            this.top.style.height = `${this.tH = t}px`;
+            this.bottom.style.height = `${this.bH = s}px`;
+            this.top.style.width = "";
+            this.bottom.style.width = "";
+            this.top.style.display = "";
+            this.bottom.style.display = "";
+        }
     }
     dispose() {
         this.top.remove();
@@ -731,35 +867,35 @@ class DefaultDom {
 }
 
 class ListDom extends DefaultDom {
-    constructor(t, e, s, r) {
-        super(e, s, r);
+    constructor(t, s, e, i, r) {
+        super(s, e, i, r);
         this.list = t;
     }
     get scroller() {
-        return getScrollerElement(this.list);
+        return getScrollerElement(this.list, this.layout);
     }
 }
 
 class TableDom extends DefaultDom {
-    constructor(t, e, s, r) {
-        super(e, s, r);
+    constructor(t, s, e, i, r) {
+        super(s, e, i, r);
         this.table = t;
     }
     get scroller() {
-        return getScrollerElement(this.table);
+        return getScrollerElement(this.table, this.layout);
     }
 }
 
-function insertBefore(t, e, s) {
-    const r = s.parentNode;
-    return [ r.insertBefore(t.createElement(e), s), r.insertBefore(t.createElement(e), s) ];
+function insertBefore(t, s, e) {
+    const i = e.parentNode;
+    return [ i.insertBefore(t.createElement(s), e), i.insertBefore(t.createElement(s), e) ];
 }
 
-const v = {
+const D = {
     register(t) {
-        return t.register(ScrollerObserverLocator, CollectionStrategyLocator, DefaultDomRenderer, VirtualRepeat);
+        return t.register(CollectionStrategyLocator, DefaultDomRenderer, VirtualRepeat);
     }
 };
 
-export { CollectionStrategyLocator, DefaultDomRenderer, v as DefaultVirtualizationConfiguration, g as ICollectionStrategyLocator, m as IDomRenderer, p as IScrollerObsererLocator, ScrollerObserver, ScrollerObserverLocator, VirtualRepeat };
+export { CollectionStrategyLocator, DefaultDomRenderer, D as DefaultVirtualizationConfiguration, b as ICollectionStrategyLocator, p as IDomRenderer, w as VIRTUAL_REPEAT_NEAR_BOTTOM, g as VIRTUAL_REPEAT_NEAR_TOP, VirtualRepeat };
 

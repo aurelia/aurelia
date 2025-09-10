@@ -3122,7 +3122,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
                     container.get(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
                     await Promise.resolve();
                     assertTextContent(host, 'span', `${Math.round((1000 + offset) / 1000)} seconds ago`);
-                }, { delay: 1000 }).result;
+                }, { delay: 1000 });
             }, { component: App });
         });
     });
@@ -3339,7 +3339,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
                     container.get(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
                     await Promise.resolve();
                     assertTextContent(host, 'span', `${Math.round((1000 + offset) / 1000)} seconds ago`);
-                }, { delay: 1000 }).result;
+                }, { delay: 1000 });
             }, { component: App });
         });
     });

@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var expressionParser = require('@aurelia/expression-parser');
 var kernel = require('@aurelia/kernel');
 var metadata = require('@aurelia/metadata');
+var platform = require('@aurelia/platform');
 
 /**
  * A shortcut to Object.prototype.hasOwnProperty
@@ -108,6 +109,7 @@ const errorsMap = {
     [224 /* ErrorNames.invalid_observable_decorator_usage */]: `Invalid @observable decorator usage, cannot determine property name`,
     [225 /* ErrorNames.stopping_a_stopped_effect */]: `Trying to stop an effect that has already been stopped`,
     [226 /* ErrorNames.effect_maximum_recursion_reached */]: `Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`,
+    [227 /* ErrorNames.computed_mutating */]: `Side-effect detected in computed getter 'get options': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`,
 };
 const getMessageByCode = (name, ...details) => {
     let cooked = errorsMap[name];
@@ -834,6 +836,7 @@ const mixinNoopAstEvaluator = (() => (target) => {
     });
 })();
 
+/* eslint-disable jsdoc/require-hyphen-before-param-description */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable jsdoc/check-indentation */
 /* eslint-disable jsdoc/no-multi-asterisks */
@@ -1156,12 +1159,12 @@ const queueTask = (callback) => {
  * Queue a callback to run **asynchronously** on Aurelia's central scheduler
  * and get back a {@link Task} object you can:
  *
- * * `await` – via `task.result`
+ * * `await` – directly on the `Task` object itself
  * * cancel – via `task.cancel()`
  * * inspect – via `task.status`
  *
  * Any callbacks scheduled this way are automatically tracked by the framework,
- * so `await tasksSettled()` waits until the all tasks (and any promises they return)
+ * so `await tasksSettled()` waits until all tasks (and any promises they return)
  * have finished.
  *
  * @template R The value returned by `callback`, or the value the promise it
@@ -1175,11 +1178,11 @@ const queueTask = (callback) => {
  *                         is queued. While waiting, the task can still be
  *                         cancelled.
  *
- * @returns The {@link Task} representing the scheduled work.
+ * @returns A thennable {@link Task} object representing the scheduled work.
  *
- * @throws {TaskAbortError} The task's `result` promise rejects with this error
+ * @throws {TaskAbortError} Awaiting the returned `Task` rejects with this error
  *                          if the task is cancelled before it starts.
- * @throws {*}              The task's `result` promise propagates any error
+ * @throws {*}              Awaiting the returned `Task` propagates any error
  *                          thrown by `callback`.
  *
  * ---
@@ -1212,7 +1215,8 @@ const queueTask = (callback) => {
  *     return resp.json() as Promise<SearchResult[]>;
  *   }, { delay: 300 }); // classic 300 ms debounce
  *
- *   return current.result; // awaitable by callers
+ *   // The Task is "thennable" and can be awaited directly by callers.
+ *   return current;
  * }
  * ```
  *
@@ -1244,7 +1248,7 @@ const queueAsyncTask = (callback, options) => {
     const task = new Task(callback, options?.delay);
     if (task.delay != null && task.delay > 0) {
         ++pendingAsyncCount;
-        task._timerId = setTimeout(() => {
+        task._timerId = platform.Platform.getOrCreate(globalThis).setTimeout(() => {
             --pendingAsyncCount;
             task._timerId = undefined;
             if (task.status === tsCanceled) {
@@ -1284,21 +1288,24 @@ class TaskAbortError extends Error {
  */
 class Task {
     /**
-     * A promise that:
-     * * **fulfils** with the callback's return value, or
-     * * **rejects** with:
-     *   * whatever error the callback throws,
-     *   * whatever rejection the callback's promise yields, or
-     *   * a {@link TaskAbortError} if the task is canceled before it starts.
+     * The underlying promise that represents the task's execution.
      *
-     * Consumers typically `await` this to know when *their* task is done without
-     * caring about unrelated work still queued.
+     * It:
+     * * **fulfils** with the callback's return value, or
+     * * **rejects** with any error from the callback or a `TaskAbortError`.
+     *
+     * It is recommended to `await` the `Task` object directly rather than its
+     * `.result` property. This property is provided for advanced use cases, such
+     * as interoperating with libraries that require a native `Promise` instance or
+     * for use with promise-composition functions like `Promise.all()`.
      *
      * @example
-     * ```ts
-     * const toastTask = queueAsyncTask(showToast, { delay: 5000 });
-     * await toastTask.result; // waits 5 s then resolves
-     * ```
+     * // Using .result with Promise.all to await multiple tasks in parallel
+     * const task1 = queueAsyncTask(fetchUserData);
+     * const task2 = queueAsyncTask(fetchSiteSettings);
+     *
+     * // We access .result here because Promise.all requires an array of Promises.
+     * const [userData, siteSettings] = await Promise.all([task1.result, task2.result]);
      */
     get result() {
         return this._result;
@@ -1310,7 +1317,7 @@ class Task {
      * ```ts
      * const task = queueAsyncTask(() => 123);
      * console.log(task.status); // "pending"
-     * await task.result;
+     * await task;
      * console.log(task.status); // "completed"
      * ```
      */
@@ -1330,6 +1337,38 @@ class Task {
             this._resolve = resolve;
             this._reject = reject;
         });
+    }
+    /**
+     * **Delegates to the underlying `.result` promise's `.then()` method.**
+     *
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then(onfulfilled, onrejected) {
+        return this.result.then(onfulfilled, onrejected);
+    }
+    /**
+     * **Delegates to the underlying `.result` promise's `.catch()` method.**
+     *
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch(onrejected) {
+        return this.result.catch(onrejected);
+    }
+    /**
+     * **Delegates to the underlying `.result` promise's `.catch()` method.**
+     *
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally) {
+        return this.result.finally(onfinally);
     }
     /** @internal */
     run() {
@@ -1388,7 +1427,7 @@ class Task {
      */
     cancel() {
         if (this._timerId !== undefined) {
-            clearTimeout(this._timerId);
+            platform.Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
             --pendingAsyncCount;
             this._timerId = undefined;
             this._status = tsCanceled;
@@ -1489,7 +1528,7 @@ class RecurringTask {
         if (this._canceled) {
             return;
         }
-        this._timerId = setTimeout(() => {
+        this._timerId = platform.Platform.getOrCreate(globalThis).setTimeout(() => {
             this._tick();
             if (!this._canceled) {
                 this._start();
@@ -1552,7 +1591,7 @@ class RecurringTask {
     cancel() {
         this._canceled = true;
         if (this._timerId !== undefined) {
-            clearTimeout(this._timerId);
+            platform.Platform.getOrCreate(globalThis).clearTimeout(this._timerId);
             this._timerId = undefined;
         }
         const idx = recurringTasks.indexOf(this);
@@ -3258,7 +3297,6 @@ class ComputedObserver {
         }
         if (this._isDirty) {
             this.compute();
-            this._isDirty = false;
             this._notified = false;
         }
         return this._value;
@@ -3360,10 +3398,19 @@ class ComputedObserver {
         }
     }
     compute() {
+        this._isDirty = false;
         this.obs.version++;
         try {
             enterConnectable(this);
-            return this._value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+            const value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
+            if (this._isDirty) {
+                throw createMappedError(227 /* ErrorNames.computed_mutating */, this.$get.name ?? this.$get.toString());
+            }
+            return this._value = value;
+        }
+        catch (e) {
+            this._isDirty = true;
+            throw e;
         }
         finally {
             this.obs.clear();

@@ -404,11 +404,16 @@ class BindableDefinition {
         this.name = name;
         this.set = set;
     }
+    static toAttr(prop) {
+        return this._cache[prop] ??= prop.replace(/([A-Z])/g, (_, $1) => `-${$1.toLowerCase()}`);
+    }
     static create(prop, def = {}) {
         const mode = (def.mode ?? toView);
-        return new BindableDefinition(def.attribute ?? kernel.kebabCase(prop), def.callback ?? `${prop}Changed`, kernel.isString(mode) ? templateCompiler.BindingMode[mode] ?? defaultMode : mode, def.primary ?? false, def.name ?? prop, def.set ?? getInterceptor(def));
+        return new BindableDefinition(def.attribute ?? BindableDefinition.toAttr(prop), def.callback ?? `${prop}Changed`, kernel.isString(mode) ? templateCompiler.BindingMode[mode] ?? defaultMode : mode, def.primary ?? false, def.name ?? prop, def.set ?? getInterceptor(def));
     }
 }
+/** @internal */
+BindableDefinition._cache = {};
 function coercer(target, context) {
     context.addInitializer(function () {
         Coercer.define(this, context.name);
@@ -851,6 +856,15 @@ const refs = /*@__PURE__*/ (() => {
                 node.$au ??= ref;
             }
             return (ref[name] = controller);
+        }
+        clear(node) {
+            const ref = refsMap.get(node);
+            if (ref == null)
+                return;
+            refsMap.delete(node);
+            if (node.$au != null) {
+                delete node.$au;
+            }
         }
     }();
 })();
@@ -3946,20 +3960,24 @@ class CSSModulesProcessorRegistry {
         }
         class CompilingHook {
             compiling(template) {
-                const isTemplate = template.tagName === 'TEMPLATE';
-                const container = isTemplate
-                    ? template.content
-                    : template;
-                const plainClasses = [template, ...kernel.toArray(container.querySelectorAll('[class]'))];
-                for (const element of plainClasses) {
-                    const classes = element.getAttributeNode('class');
-                    // we always include container, so there's a case where classes is null
-                    if (classes == null) {
-                        continue;
-                    }
-                    const newClasses = classes.value.split(/\s+/g).map(x => existingMapping[x] || x).join(' ');
+                const processElement = (el) => {
+                    const classes = el.getAttributeNode('class');
+                    if (!classes?.value)
+                        return;
+                    const newClasses = classes.value
+                        .split(/\s+/g)
+                        .map(x => existingMapping[x] || x)
+                        .join(' ');
                     classes.value = newClasses;
-                }
+                };
+                const processContainer = (container) => {
+                    container.querySelectorAll('[class]').forEach(processElement);
+                    container.querySelectorAll('template').forEach(e => processContainer(e.content));
+                };
+                processElement(template);
+                processContainer(template.tagName === 'TEMPLATE'
+                    ? template.content
+                    : template);
             }
         }
         container.register(templateCompiler.TemplateCompilerHooks.define(CompilingHook));

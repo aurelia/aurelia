@@ -670,7 +670,7 @@ class ValidationConnector {
             return;
         }
         this.t = true;
-        S(() => {
+        void S(() => {
             this.t = false;
             return this.controller.validateBinding(this.propertyBinding);
         });

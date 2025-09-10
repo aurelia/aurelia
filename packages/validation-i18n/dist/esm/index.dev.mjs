@@ -9,7 +9,7 @@ const I18nKeyConfiguration = /*@__PURE__*/ DI.createInterface('I18nKeyConfigurat
 class LocalizedValidationController extends ValidationController {
     constructor(ea = resolve(IEventAggregator)) {
         super();
-        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { queueAsyncTask(async () => { await this.revalidateErrors(); }); });
+        this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { void queueAsyncTask(async () => { await this.revalidateErrors(); }); });
     }
 }
 class LocalizedValidationControllerFactory extends ValidationControllerFactory {

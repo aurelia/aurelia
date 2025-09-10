@@ -61,10 +61,10 @@ export async function createFixture(Component, deps, createHIAConfig, createRout
 /**
  * Simpler fixture creation.
  */
-export async function start({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace', activeClass }) {
+export async function start({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace', activeClass, treatQueryAsParameters }) {
     const ctx = TestContext.create();
     const { container } = ctx;
-    container.register(TestRouterConfiguration.for(LogLevel.warn), RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy, activeClass }), ...registrations);
+    container.register(TestRouterConfiguration.for(LogLevel.warn), RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy, activeClass, treatQueryAsParameters }), ...registrations);
     const au = new Aurelia(container);
     const host = ctx.createElement('div');
     await au.app({ component: appRoot, host }).start();

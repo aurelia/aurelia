@@ -12668,5 +12668,63 @@ describe('router/smoke-tests.spec.ts', function () {
         assert.html.textContent(host, 'ce-two');
         await au.stop(true);
     });
+    for (const treatQueryAsParameters of [true, false]) {
+        it(`query parameters handling - treatQueryAsParameters: ${treatQueryAsParameters}`, async function () {
+            let C1 = (() => {
+                let _classDecorators = [route('c1/:id'), customElement({ name: 'c-1', template: 'c1 ${params} ${query.foo} ${query.bar}' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var C1 = _classThis = class {
+                    loading(params, next, _current) {
+                        this.params = JSON.stringify(params);
+                        this.query = Object.fromEntries(next.queryParams.entries());
+                    }
+                };
+                __setFunctionName(_classThis, "C1");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    C1 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return C1 = _classThis;
+            })();
+            let Root = (() => {
+                let _classDecorators = [route({ routes: [{ id: 'c1', component: C1 }] }), customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var Root = _classThis = class {
+                };
+                __setFunctionName(_classThis, "Root");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Root = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Root = _classThis;
+            })();
+            const { au, container, host } = await start({ appRoot: Root, treatQueryAsParameters });
+            const router = container.get(IRouter);
+            assert.html.textContent(host, '', 'init');
+            await router.load('c1/42?foo=bar&bar=baz');
+            assert.html.textContent(host, treatQueryAsParameters
+                ? `c1 {"foo":"bar","bar":"baz","id":"42"} bar baz`
+                : `c1 {"id":"42"} bar baz`, 'round#1');
+            await router.load({ component: 'c1', params: { id: '456', foo: 'bar', bar: 'baz' } });
+            assert.html.textContent(host, treatQueryAsParameters
+                ? `c1 {"foo":"bar","bar":"baz","id":"456"} bar baz`
+                : `c1 {"id":"456"} bar baz`, 'round#2');
+            await router.load('c1/42?foo=bar&foo=baz');
+            assert.html.textContent(host, treatQueryAsParameters
+                ? `c1 {"foo":["bar","baz"],"id":"42"} baz`
+                : `c1 {"id":"42"} baz`, 'round#3');
+            await au.stop(true);
+        });
+    }
 });
 //# sourceMappingURL=smoke-tests.spec.js.map

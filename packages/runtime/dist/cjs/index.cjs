@@ -6,12 +6,14 @@ var e = require("@aurelia/kernel");
 
 var r = require("@aurelia/metadata");
 
-const s = Object.prototype.hasOwnProperty;
+var s = require("@aurelia/platform");
 
-const n = Reflect.defineProperty;
+const n = Object.prototype.hasOwnProperty;
+
+const i = Reflect.defineProperty;
 
 function rtDefineHiddenProp(t, e, r) {
-    n(t, e, {
+    i(t, e, {
         configurable: true,
         writable: true,
         value: r
@@ -25,19 +27,19 @@ function ensureProto(t, e, r) {
     }
 }
 
-const i = Object.assign;
+const o = Object.assign;
 
-const o = Object.freeze;
+const a = Object.freeze;
 
-const a = String;
+const c = String;
 
-const c = e.DI.createInterface;
+const u = e.DI.createInterface;
 
-const u = r.Metadata.get;
+const h = r.Metadata.get;
 
-const h = r.Metadata.define;
+const l = r.Metadata.define;
 
-const createMappedError = (t, ...e) => new Error(`AUR${a(t).padStart(4, "0")}:${e.map(a)}`);
+const createMappedError = (t, ...e) => new Error(`AUR${c(t).padStart(4, "0")}:${e.map(c)}`);
 
 class Scope {
     constructor(t, e, r, s) {
@@ -96,13 +98,13 @@ class BindingContext {
 
 class OverrideContext {}
 
-const {astAssign: l, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (() => {
+const {astAssign: f, astEvaluate: d, astBind: p, astUnbind: w} = /*@__PURE__*/ (() => {
     const r = "AccessThis";
     const s = "AccessBoundary";
     const n = "AccessGlobal";
     const i = "AccessScope";
     const o = "ArrayLiteral";
-    const c = "ObjectLiteral";
+    const a = "ObjectLiteral";
     const u = "PrimitiveLiteral";
     const h = "New";
     const l = "Template";
@@ -187,7 +189,7 @@ const {astAssign: l, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
           case o:
             return t.elements.map(t => astEvaluate(t, V, B, j));
 
-          case c:
+          case a:
             {
                 const e = {};
                 for (let r = 0; r < t.keys.length; ++r) {
@@ -212,7 +214,7 @@ const {astAssign: l, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
             {
                 let e = t.cooked[0];
                 for (let r = 0; r < t.expressions.length; ++r) {
-                    e += a(astEvaluate(t.expressions[r], V, B, j));
+                    e += c(astEvaluate(t.expressions[r], V, B, j));
                     e += t.cooked[r + 1];
                 }
                 return e;
@@ -507,7 +509,7 @@ const {astAssign: l, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                 let e = t.parts[0];
                 let r = 0;
                 for (;r < t.expressions.length; ++r) {
-                    e += a(astEvaluate(t.expressions[r], V, B, j));
+                    e += c(astEvaluate(t.expressions[r], V, B, j));
                     e += t.parts[r + 1];
                 }
                 return e;
@@ -748,7 +750,7 @@ const {astAssign: l, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
     };
 })();
 
-const w = (() => t => {
+const v = (() => t => {
     const e = t.prototype;
     [ "bindBehavior", "unbindBehavior", "bindConverter", "unbindConverter", "useConverter" ].forEach(t => {
         rtDefineHiddenProp(e, t, () => {
@@ -757,91 +759,91 @@ const w = (() => t => {
     });
 })();
 
-const v = "pending";
+const b = "pending";
 
-const b = "running";
+const g = "running";
 
-const g = "completed";
+const y = "completed";
 
-const y = "canceled";
+const C = "canceled";
 
-const C = Promise.resolve();
-
-let E = false;
+const E = Promise.resolve();
 
 let A = false;
 
-const x = [];
+let x = false;
 
 const O = [];
 
-let m = 0;
+const m = [];
 
-let S = null;
+let S = 0;
 
-let k = [];
+let k = null;
 
-let P = null;
+let P = [];
 
 let R = null;
 
+let I = null;
+
 const requestRun = () => {
-    if (!E) {
-        E = true;
-        void C.then(() => {
-            E = false;
-            A = true;
+    if (!A) {
+        A = true;
+        void E.then(() => {
+            A = false;
+            x = true;
             runTasks();
         });
     }
 };
 
 const signalSettled = t => {
-    if (S && x.length === 0 && m === 0) {
-        S = null;
-        if (k.length > 0) {
-            const t = k;
-            k = [];
+    if (k && O.length === 0 && S === 0) {
+        k = null;
+        if (P.length > 0) {
+            const t = P;
+            P = [];
             if (t.length === 1) {
-                R(t[0]);
+                I(t[0]);
             } else {
-                R(new AggregateError(t, "One or more tasks failed."));
+                I(new AggregateError(t, "One or more tasks failed."));
             }
         } else {
-            P(t);
+            R(t);
         }
     }
 };
 
 const runTasks = () => {
-    const t = !A;
-    A = false;
-    S ??= new Promise((t, e) => {
-        P = t;
-        R = e;
+    const t = !x;
+    x = false;
+    k ??= new Promise((t, e) => {
+        R = t;
+        I = e;
     });
-    let e = -x.length;
-    const r = x.length === 0;
-    while (x.length > 0) {
+    let e = -O.length;
+    const r = O.length === 0;
+    while (O.length > 0) {
         if (++e > 1e4) {
             const t = new Error(`Potential deadlock detected. More than 10000 extra tasks were queued from within tasks.`);
-            x.length = 0;
-            R?.(t);
-            S = null;
+            O.length = 0;
+            I?.(t);
+            k = null;
             throw t;
         }
-        const t = x.shift();
+        const t = O.shift();
         if (typeof t === "function") {
             try {
                 t();
             } catch (t) {
-                k.push(t);
+                P.push(t);
             }
         } else {
             t.run();
         }
     }
-    const s = k.slice();
+    const s = P.slice();
     signalSettled(!r);
     if (t && s.length > 0) {
         if (s.length === 1) {
@@ -852,23 +854,23 @@ const runTasks = () => {
     }
 };
 
-const getRecurringTasks = () => O.slice();
+const getRecurringTasks = () => m.slice();
 
 const tasksSettled = () => {
-    if (S) {
-        return S;
+    if (k) {
+        return k;
     }
-    if (x.length > 0 || m > 0) {
-        return S ??= new Promise((t, e) => {
-            P = t;
-            R = e;
+    if (O.length > 0 || S > 0) {
+        return k ??= new Promise((t, e) => {
+            R = t;
+            I = e;
         });
     }
-    return C.then(() => {
-        if (x.length > 0 || m > 0) {
-            return S ??= new Promise((t, e) => {
-                P = t;
-                R = e;
+    return E.then(() => {
+        if (O.length > 0 || S > 0) {
+            return k ??= new Promise((t, e) => {
+                R = t;
+                I = e;
             });
         }
         return false;
@@ -877,25 +879,25 @@ const tasksSettled = () => {
 
 const queueTask = t => {
     requestRun();
-    x.push(t);
+    O.push(t);
 };
 
 const queueAsyncTask = (t, e) => {
     const r = new Task(t, e?.delay);
     if (r.delay != null && r.delay > 0) {
-        ++m;
-        r.t = setTimeout(() => {
-            --m;
+        ++S;
+        r.t = s.Platform.getOrCreate(globalThis).setTimeout(() => {
+            --S;
             r.t = undefined;
-            if (r.status === y) {
+            if (r.status === C) {
                 signalSettled(true);
                 return;
             }
-            x.push(r);
+            O.push(r);
             requestRun();
         }, r.delay);
     } else {
-        x.push(r);
+        O.push(r);
         requestRun();
     }
     return r;
@@ -919,61 +921,70 @@ class Task {
         this.callback = t;
         this.delay = e;
         this.id = ++Task.h;
-        this.u = v;
+        this.u = b;
         this.i = new Promise((t, e) => {
             this.C = t;
             this.A = e;
         });
     }
+    then(t, e) {
+        return this.result.then(t, e);
+    }
+    catch(t) {
+        return this.result.catch(t);
+    }
+    finally(t) {
+        return this.result.finally(t);
+    }
     run() {
-        if (this.u !== v) {
+        if (this.u !== b) {
             throw new Error(`Cannot run task in ${this.u} state`);
         }
-        this.u = b;
+        this.u = g;
         let t;
         try {
             t = this.callback();
         } catch (t) {
-            this.u = y;
+            this.u = C;
             this.A(t);
-            k.push(t);
+            P.push(t);
             return;
         }
         if (t instanceof Promise) {
-            ++m;
+            ++S;
             t.then(t => {
-                this.u = g;
+                this.u = y;
                 this.C(t);
             }).catch(t => {
-                this.u = y;
+                this.u = C;
                 this.A(t);
-                k.push(t);
+                P.push(t);
             }).finally(() => {
-                --m;
+                --S;
                 signalSettled(true);
             });
         } else {
-            this.u = g;
+            this.u = y;
             this.C(t);
         }
     }
     cancel() {
         if (this.t !== undefined) {
-            clearTimeout(this.t);
-            --m;
+            s.Platform.getOrCreate(globalThis).clearTimeout(this.t);
+            --S;
             this.t = undefined;
-            this.u = y;
+            this.u = C;
             const t = new TaskAbortError(this);
             this.A(t);
             void this.i.catch(e.noop);
             signalSettled(true);
             return true;
         }
-        if (this.u === v) {
-            const t = x.indexOf(this);
+        if (this.u === b) {
+            const t = O.indexOf(this);
             if (t > -1) {
-                x.splice(t, 1);
-                this.u = y;
+                O.splice(t, 1);
+                this.u = C;
                 const r = new TaskAbortError(this);
                 this.A(r);
                 void this.i.catch(e.noop);
@@ -989,7 +1000,7 @@ Task.h = 0;
 
 const queueRecurringTask = (t, e) => {
     const r = new RecurringTask(t, Math.max(e?.interval ?? 0, 0));
-    O.push(r);
+    m.push(r);
     r.O();
     return r;
 };
@@ -1006,7 +1017,7 @@ class RecurringTask {
         try {
             this.cb();
         } catch (t) {
-            k.push(t);
+            P.push(t);
             return;
         }
     }
@@ -1014,7 +1025,7 @@ class RecurringTask {
         if (this.I) {
             return;
         }
-        this.t = setTimeout(() => {
+        this.t = s.Platform.getOrCreate(globalThis).setTimeout(() => {
             this.M();
             if (!this.I) {
                 this.O();
@@ -1022,7 +1033,7 @@ class RecurringTask {
         }, this.P);
     }
     M() {
-        x.push(this);
+        O.push(this);
         requestRun();
         const t = this._.splice(0);
         for (const e of t) {
@@ -1038,12 +1049,12 @@ class RecurringTask {
     cancel() {
         this.I = true;
         if (this.t !== undefined) {
-            clearTimeout(this.t);
+            s.Platform.getOrCreate(globalThis).clearTimeout(this.t);
             this.t = undefined;
         }
-        const t = O.indexOf(this);
+        const t = m.indexOf(this);
         if (t > -1) {
-            O.splice(t, 1);
+            m.splice(t, 1);
         }
         const e = this._.splice(0);
         for (const t of e) {
@@ -1054,21 +1065,21 @@ class RecurringTask {
 
 RecurringTask.R = 0;
 
-const I = /*@__PURE__*/ e.DI.createInterface("ICoercionConfiguration");
+const _ = /*@__PURE__*/ e.DI.createInterface("ICoercionConfiguration");
 
-const _ = 0;
+const M = 0;
 
-const M = 1;
+const D = 1;
 
-const D = 2;
+const T = 2;
 
-const T = 4;
+const L = 4;
 
-const L = /*@__PURE__*/ o({
-    None: _,
-    Observer: M,
-    Node: D,
-    Layout: T
+const N = /*@__PURE__*/ a({
+    None: M,
+    Observer: D,
+    Node: T,
+    Layout: L
 });
 
 function copyIndexMap(t, e, r) {
@@ -1121,19 +1132,19 @@ function isIndexMap(t) {
     return e.isArray(t) && t.isIndexMap === true;
 }
 
-let N = new Map;
+let V = new Map;
 
-let V = false;
+let B = false;
 
 function batch(t) {
-    const e = N;
-    const r = N = new Map;
-    V = true;
+    const e = V;
+    const r = V = new Map;
+    B = true;
     try {
         t();
     } finally {
-        N = null;
-        V = false;
+        V = null;
+        B = false;
         try {
             let t;
             let s;
@@ -1171,30 +1182,30 @@ function batch(t) {
                 }
             }
         } finally {
-            N = e;
+            V = e;
         }
     }
 }
 
 function addCollectionBatch(t, e, r) {
-    if (!N.has(t)) {
-        N.set(t, [ 2, e, r ]);
+    if (!V.has(t)) {
+        V.set(t, [ 2, e, r ]);
     } else {
-        N.get(t)[2] = r;
+        V.get(t)[2] = r;
     }
 }
 
 function addValueBatch(t, e, r) {
-    const s = N.get(t);
+    const s = V.get(t);
     if (s === void 0) {
-        N.set(t, [ 1, e, r ]);
+        V.set(t, [ 1, e, r ]);
     } else {
         s[1] = e;
         s[2] = r;
     }
 }
 
-const B = /*@__PURE__*/ (() => {
+const j = /*@__PURE__*/ (() => {
     function subscriberCollection(t, e) {
         return t == null ? subscriberCollectionDeco : subscriberCollectionDeco(t);
     }
@@ -1212,7 +1223,7 @@ const B = /*@__PURE__*/ (() => {
         if (!t.has(e)) {
             t.add(e);
             const r = e.prototype;
-            n(r, "subs", {
+            i(r, "subs", {
                 get: getSubscriberRecord
             });
             ensureProto(r, "subscribe", addSubscriber);
@@ -1254,7 +1265,7 @@ const B = /*@__PURE__*/ (() => {
             return false;
         }
         notify(t, e) {
-            if (V) {
+            if (B) {
                 addValueBatch(this, t, e);
                 return;
             }
@@ -1285,7 +1296,7 @@ const B = /*@__PURE__*/ (() => {
 class CollectionLengthObserver {
     constructor(t) {
         this.owner = t;
-        this.type = M;
+        this.type = D;
         this.v = (this.o = t.collection).length;
     }
     getValue() {
@@ -1321,7 +1332,7 @@ class CollectionLengthObserver {
 class CollectionSizeObserver {
     constructor(t) {
         this.owner = t;
-        this.type = M;
+        this.type = D;
         this.v = (this.o = t.collection).size;
     }
     getValue() {
@@ -1352,7 +1363,7 @@ function implementLengthObserver(t) {
     const e = t.prototype;
     ensureProto(e, "subscribe", subscribe);
     ensureProto(e, "unsubscribe", unsubscribe);
-    return B(t, null);
+    return j(t, null);
 }
 
 function subscribe(t) {
@@ -1367,7 +1378,7 @@ function unsubscribe(t) {
     }
 }
 
-const j = /*@__PURE__*/ (() => {
+const F = /*@__PURE__*/ (() => {
     const t = Symbol.for("__au_arr_obs__");
     const r = Array[t] ?? rtDefineHiddenProp(Array, t, new WeakMap);
     function sortCompare(t, e) {
@@ -1518,7 +1529,7 @@ const j = /*@__PURE__*/ (() => {
         }
     }
     const s = Array.prototype;
-    const i = [ "push", "unshift", "pop", "shift", "splice", "reverse", "sort" ];
+    const n = [ "push", "unshift", "pop", "shift", "splice", "reverse", "sort" ];
     let o;
     function overrideArrayPrototypes() {
         const t = s.push;
@@ -1690,14 +1701,14 @@ const j = /*@__PURE__*/ (() => {
                         break;
                     }
                 }
-                if (o || V) {
+                if (o || B) {
                     s.notify();
                 }
                 return this;
             }
         };
-        for (const t of i) {
-            n(o[t], "observing", {
+        for (const t of n) {
+            i(o[t], "observing", {
                 value: true
             });
         }
@@ -1708,9 +1719,9 @@ const j = /*@__PURE__*/ (() => {
         if (o === undefined) {
             overrideArrayPrototypes();
         }
-        if (!(u(c, Array) ?? false)) {
-            h(true, Array, c);
-            for (const t of i) {
+        if (!(h(c, Array) ?? false)) {
+            l(true, Array, c);
+            for (const t of n) {
                 if (s[t].observing !== true) {
                     rtDefineHiddenProp(s, t, o[t]);
                 }
@@ -1719,7 +1730,7 @@ const j = /*@__PURE__*/ (() => {
     }
     class ArrayObserverImpl {
         constructor(t) {
-            this.type = M;
+            this.type = D;
             if (!a) {
                 a = true;
                 enableArrayObservation();
@@ -1734,7 +1745,7 @@ const j = /*@__PURE__*/ (() => {
             const t = this.subs;
             t.notifyDirty();
             const e = this.indexMap;
-            if (V) {
+            if (B) {
                 addCollectionBatch(t, this.collection, e);
                 return;
             }
@@ -1751,7 +1762,7 @@ const j = /*@__PURE__*/ (() => {
         }
     }
     (() => {
-        B(ArrayObserverImpl, null);
+        j(ArrayObserverImpl, null);
     })();
     class ArrayIndexObserverImpl {
         constructor(t, e) {
@@ -1806,7 +1817,7 @@ const j = /*@__PURE__*/ (() => {
         }
     }
     (() => {
-        B(ArrayIndexObserverImpl, null);
+        j(ArrayIndexObserverImpl, null);
     })();
     return function getArrayObserver(t) {
         let e = r.get(t);
@@ -1818,7 +1829,7 @@ const j = /*@__PURE__*/ (() => {
     };
 })();
 
-const F = /*@__PURE__*/ (() => {
+const H = /*@__PURE__*/ (() => {
     const t = Symbol.for("__au_set_obs__");
     const e = Set[t] ?? rtDefineHiddenProp(Set, t, new WeakMap);
     const {add: r, clear: s, delete: n} = Set.prototype;
@@ -1898,7 +1909,7 @@ const F = /*@__PURE__*/ (() => {
     }
     class SetObserverImpl {
         constructor(t) {
-            this.type = M;
+            this.type = D;
             this.collection = t;
             this.indexMap = createIndexMap(t.size);
             this.lenObs = void 0;
@@ -1907,7 +1918,7 @@ const F = /*@__PURE__*/ (() => {
             const t = this.subs;
             t.notifyDirty();
             const e = this.indexMap;
-            if (V) {
+            if (B) {
                 addCollectionBatch(t, this.collection, e);
                 return;
             }
@@ -1920,7 +1931,7 @@ const F = /*@__PURE__*/ (() => {
             return this.lenObs ??= new CollectionSizeObserver(this);
         }
     }
-    B(SetObserverImpl, null);
+    j(SetObserverImpl, null);
     return function getSetObserver(t) {
         let r = e.get(t);
         if (r === void 0) {
@@ -1931,7 +1942,7 @@ const F = /*@__PURE__*/ (() => {
     };
 })();
 
-const H = /*@__PURE__*/ (() => {
+const $ = /*@__PURE__*/ (() => {
     const t = Symbol.for("__au_map_obs__");
     const e = Map[t] ?? rtDefineHiddenProp(Map, t, new WeakMap);
     const {set: r, clear: s, delete: n} = Map.prototype;
@@ -2025,7 +2036,7 @@ const H = /*@__PURE__*/ (() => {
     }
     class MapObserverImpl {
         constructor(t) {
-            this.type = M;
+            this.type = D;
             this.collection = t;
             this.indexMap = createIndexMap(t.size);
             this.lenObs = void 0;
@@ -2034,7 +2045,7 @@ const H = /*@__PURE__*/ (() => {
             const t = this.subs;
             t.notifyDirty();
             const e = this.indexMap;
-            if (V) {
+            if (B) {
                 addCollectionBatch(t, this.collection, e);
                 return;
             }
@@ -2047,7 +2058,7 @@ const H = /*@__PURE__*/ (() => {
             return this.lenObs ??= new CollectionSizeObserver(this);
         }
     }
-    B(MapObserverImpl, null);
+    j(MapObserverImpl, null);
     return function getMapObserver(t) {
         let r = e.get(t);
         if (r === void 0) {
@@ -2058,7 +2069,7 @@ const H = /*@__PURE__*/ (() => {
     };
 })();
 
-const $ = /*@__PURE__*/ (() => {
+const z = /*@__PURE__*/ (() => {
     class BindingObserverRecord {
         constructor(t) {
             this.version = 0;
@@ -2101,11 +2112,11 @@ const $ = /*@__PURE__*/ (() => {
     function observeCollection(t) {
         let r;
         if (e.isArray(t)) {
-            r = j(t);
-        } else if (e.isSet(t)) {
             r = F(t);
-        } else if (e.isMap(t)) {
+        } else if (e.isSet(t)) {
             r = H(t);
+        } else if (e.isMap(t)) {
+            r = $(t);
         } else {
             throw createMappedError(210, t);
         }
@@ -2125,7 +2136,7 @@ const $ = /*@__PURE__*/ (() => {
         ensureProto(r, "observe", observe);
         ensureProto(r, "observeCollection", observeCollection);
         ensureProto(r, "subscribeTo", subscribeTo);
-        n(r, "obs", {
+        i(r, "obs", {
             get: getObserverRecord
         });
         ensureProto(r, "handleChange", noopHandleChange);
@@ -2135,63 +2146,63 @@ const $ = /*@__PURE__*/ (() => {
 })();
 
 function connectable(t, e) {
-    return t == null ? $ : $(t, e);
+    return t == null ? z : z(t, e);
 }
 
-let z = null;
+let U = null;
 
-const U = [];
+const q = [];
 
-let q = false;
+let W = false;
 
 function pauseConnecting() {
-    q = false;
+    W = false;
 }
 
 function resumeConnecting() {
-    q = true;
+    W = true;
 }
 
 function currentConnectable() {
-    return z;
+    return U;
 }
 
 function enterConnectable(t) {
     if (t == null) {
         throw createMappedError(206);
     }
-    if (z == null) {
-        z = t;
-        U[0] = z;
-        q = true;
+    if (U == null) {
+        U = t;
+        q[0] = U;
+        W = true;
         return;
     }
-    if (z === t) {
+    if (U === t) {
         throw createMappedError(207);
     }
-    U.push(t);
-    z = t;
-    q = true;
+    q.push(t);
+    U = t;
+    W = true;
 }
 
 function exitConnectable(t) {
     if (t == null) {
         throw createMappedError(208);
     }
-    if (z !== t) {
+    if (U !== t) {
         throw createMappedError(209);
     }
-    U.pop();
-    z = U.length > 0 ? U[U.length - 1] : null;
-    q = z != null;
+    q.pop();
+    U = q.length > 0 ? q[q.length - 1] : null;
+    W = U != null;
 }
 
-const W = /*@__PURE__*/ o({
+const K = /*@__PURE__*/ a({
     get current() {
-        return z;
+        return U;
     },
     get connecting() {
-        return q;
+        return W;
     },
     enter: enterConnectable,
     exit: exitConnectable,
@@ -2199,20 +2210,20 @@ const W = /*@__PURE__*/ o({
     resume: resumeConnecting
 });
 
-const K = Reflect.get;
+const G = Reflect.get;
 
-const G = Object.prototype.toString;
+const J = Object.prototype.toString;
 
-const J = new WeakMap;
+const Q = new WeakMap;
 
-const Q = "__au_nw__";
+const X = "__au_nw__";
 
-const X = "__au_nw";
+const Y = "__au_nw";
 
 function canWrap(t) {
-    switch (G.call(t)) {
+    switch (J.call(t)) {
       case "[object Object]":
-        return t.constructor[Q] !== true;
+        return t.constructor[X] !== true;
 
       case "[object Array]":
       case "[object Map]":
@@ -2224,26 +2235,26 @@ function canWrap(t) {
     }
 }
 
-const Y = "__raw__";
+const Z = "__raw__";
 
 function wrap(t) {
     return canWrap(t) ? getProxy(t) : t;
 }
 
 function getProxy(t) {
-    return J.get(t) ?? createProxy(t);
+    return Q.get(t) ?? createProxy(t);
 }
 
 function getRaw(t) {
-    return t[Y] ?? t;
+    return t[Z] ?? t;
 }
 
 function unwrap(t) {
-    return canWrap(t) && t[Y] || t;
+    return canWrap(t) && t[Z] || t;
 }
 
 function doNotCollect(t, e) {
-    if (e === "constructor" || e === "__proto__" || e === "$observers" || e === Symbol.toPrimitive || e === Symbol.toStringTag || t.constructor[`${X}_${a(e)}__`] === true) {
+    if (e === "constructor" || e === "__proto__" || e === "$observers" || e === Symbol.toPrimitive || e === Symbol.toStringTag || t.constructor[`${Y}_${c(e)}__`] === true) {
         return true;
     }
     const r = Reflect.getOwnPropertyDescriptor(t, e);
@@ -2251,41 +2262,41 @@ function doNotCollect(t, e) {
 }
 
 function createProxy(t) {
-    const r = e.isArray(t) ? tt : e.isMap(t) || e.isSet(t) ? et : Z;
+    const r = e.isArray(t) ? et : e.isMap(t) || e.isSet(t) ? rt : tt;
     const s = new Proxy(t, r);
-    J.set(t, s);
-    J.set(s, s);
+    Q.set(t, s);
+    Q.set(s, s);
     return s;
 }
 
-const Z = {
+const tt = {
     get(t, e, r) {
-        if (e === Y) {
+        if (e === Z) {
             return t;
         }
         const s = currentConnectable();
-        if (!q || doNotCollect(t, e) || s == null) {
-            return K(t, e, r);
+        if (!W || doNotCollect(t, e) || s == null) {
+            return G(t, e, r);
         }
         s.observe(t, e);
-        return wrap(K(t, e, r));
+        return wrap(G(t, e, r));
     },
     deleteProperty(t, e) {
         return delete t[e];
     }
 };
 
-const tt = {
+const et = {
     get(t, e, r) {
-        if (e === Y) {
+        if (e === Z) {
             return t;
         }
-        if (!q || doNotCollect(t, e) || z == null) {
-            return K(t, e, r);
+        if (!W || doNotCollect(t, e) || U == null) {
+            return G(t, e, r);
         }
         switch (e) {
           case "length":
-            z.observe(t, "length");
+            U.observe(t, "length");
             return t.length;
 
           case "map":
@@ -2364,8 +2375,8 @@ const tt = {
           case "entries":
             return wrappedEntries;
         }
-        z.observe(t, e);
-        return wrap(K(t, e, r));
+        U.observe(t, e);
+        return wrap(G(t, e, r));
     },
     ownKeys(t) {
         currentConnectable()?.observe(t, "length");
@@ -2376,74 +2387,74 @@ const tt = {
 function wrappedArrayMap(t, e) {
     const r = getRaw(this);
     const s = r.map((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(z, r);
+    observeCollection(U, r);
     return wrap(s);
 }
 
 function wrappedArrayEvery(t, e) {
     const r = getRaw(this);
     const s = r.every((r, s) => t.call(e, wrap(r), s, this));
-    observeCollection(z, r);
+    observeCollection(U, r);
     return s;
 }
 
 function wrappedArrayFilter(t, e) {
     const r = getRaw(this);
     const s = r.filter((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(z, r);
+    observeCollection(U, r);
     return wrap(s);
 }
 
 function wrappedArrayIncludes(t) {
     const e = getRaw(this);
     const r = e.includes(unwrap(t));
-    observeCollection(z, e);
+    observeCollection(U, e);
     return r;
 }
 
 function wrappedArrayIndexOf(t) {
     const e = getRaw(this);
     const r = e.indexOf(unwrap(t));
-    observeCollection(z, e);
+    observeCollection(U, e);
     return r;
 }
 
 function wrappedArrayLastIndexOf(t) {
     const e = getRaw(this);
     const r = e.lastIndexOf(unwrap(t));
-    observeCollection(z, e);
+    observeCollection(U, e);
     return r;
 }
 
 function wrappedArrayFindIndex(t, e) {
     const r = getRaw(this);
     const s = r.findIndex((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(z, r);
+    observeCollection(U, r);
     return s;
 }
 
 function wrappedArrayFind(t, e) {
     const r = getRaw(this);
     const s = r.find((e, r) => t(wrap(e), r, this), e);
-    observeCollection(z, r);
+    observeCollection(U, r);
     return wrap(s);
 }
 
 function wrappedArrayFlat() {
     const t = getRaw(this);
-    observeCollection(z, t);
+    observeCollection(U, t);
     return wrap(t.flat());
 }
 
 function wrappedArrayFlatMap(t, e) {
     const r = getRaw(this);
-    observeCollection(z, r);
+    observeCollection(U, r);
     return getProxy(r.flatMap((r, s) => wrap(t.call(e, wrap(r), s, this))));
 }
 
 function wrappedArrayJoin(t) {
     const e = getRaw(this);
-    observeCollection(z, e);
+    observeCollection(U, e);
     return e.join(t);
 }
 
@@ -2474,45 +2485,45 @@ function wrappedArrayReverse(...t) {
 function wrappedArraySome(t, e) {
     const r = getRaw(this);
     const s = r.some((r, s) => unwrap(t.call(e, wrap(r), s, this)));
-    observeCollection(z, r);
+    observeCollection(U, r);
     return s;
 }
 
 function wrappedArraySort(t) {
     const e = getRaw(this);
     const r = e.sort(t);
-    observeCollection(z, e);
+    observeCollection(U, e);
     return wrap(r);
 }
 
 function wrappedArraySlice(t, e) {
     const r = getRaw(this);
-    observeCollection(z, r);
+    observeCollection(U, r);
     return getProxy(r.slice(t, e));
 }
 
 function wrappedReduce(t, e) {
     const r = getRaw(this);
     const s = r.reduce((e, r, s) => t(e, wrap(r), s, this), e);
-    observeCollection(z, r);
+    observeCollection(U, r);
     return wrap(s);
 }
 
 function wrappedReduceRight(t, e) {
     const r = getRaw(this);
     const s = r.reduceRight((e, r, s) => t(e, wrap(r), s, this), e);
-    observeCollection(z, r);
+    observeCollection(U, r);
     return wrap(s);
 }
 
-const et = {
+const rt = {
     get(t, r, s) {
-        if (r === Y) {
+        if (r === Z) {
             return t;
         }
         const n = currentConnectable();
-        if (!q || doNotCollect(t, r) || n == null) {
-            return K(t, r, s);
+        if (!W || doNotCollect(t, r) || n == null) {
+            return G(t, r, s);
         }
         switch (r) {
           case "size":
@@ -2561,13 +2572,13 @@ const et = {
           case Symbol.iterator:
             return e.isMap(t) ? wrappedEntries : wrappedValues;
         }
-        return wrap(K(t, r, s));
+        return wrap(G(t, r, s));
     }
 };
 
 function wrappedForEach(t, e) {
     const r = getRaw(this);
-    observeCollection(z, r);
+    observeCollection(U, r);
     return r.forEach((r, s) => {
         t.call(e, wrap(r), wrap(s), this);
     });
@@ -2575,13 +2586,13 @@ function wrappedForEach(t, e) {
 
 function wrappedHas(t) {
     const e = getRaw(this);
-    observeCollection(z, e);
+    observeCollection(U, e);
     return e.has(unwrap(t));
 }
 
 function wrappedGet(t) {
     const e = getRaw(this);
-    observeCollection(z, e);
+    observeCollection(U, e);
     return wrap(e.get(unwrap(t)));
 }
 
@@ -2603,7 +2614,7 @@ function wrappedDelete(t) {
 
 function wrappedKeys() {
     const t = getRaw(this);
-    observeCollection(z, t);
+    observeCollection(U, t);
     const e = t.keys();
     return {
         next() {
@@ -2626,7 +2637,7 @@ function wrappedKeys() {
 
 function wrappedValues() {
     const t = getRaw(this);
-    observeCollection(z, t);
+    observeCollection(U, t);
     const e = t.values();
     return {
         next() {
@@ -2649,7 +2660,7 @@ function wrappedValues() {
 
 function wrappedEntries() {
     const t = getRaw(this);
-    observeCollection(z, t);
+    observeCollection(U, t);
     const e = t.entries();
     return {
         next() {
@@ -2672,17 +2683,17 @@ function wrappedEntries() {
 
 const observeCollection = (t, e) => t?.observeCollection(e);
 
-const rt = /*@__PURE__*/ o({
+const st = /*@__PURE__*/ a({
     getProxy: getProxy,
     getRaw: getRaw,
     wrap: wrap,
     unwrap: unwrap,
-    rawKey: Y
+    rawKey: Z
 });
 
 class ComputedObserver {
     constructor(t, e, r, s, n = "async") {
-        this.type = M;
+        this.type = D;
         this.ov = void 0;
         this.v = void 0;
         this.V = false;
@@ -2708,7 +2719,6 @@ class ComputedObserver {
         }
         if (this.D) {
             this.compute();
-            this.D = false;
             this.V = false;
         }
         return this.v;
@@ -2795,10 +2805,18 @@ class ComputedObserver {
         }
     }
     compute() {
+        this.D = false;
         this.obs.version++;
         try {
             enterConnectable(this);
-            return this.v = unwrap(this.$get.call(this.H, this.H, this));
+            const t = unwrap(this.$get.call(this.H, this.H, this));
+            if (this.D) {
+                throw createMappedError(227, this.$get.name ?? this.$get.toString());
+            }
+            return this.v = t;
+        } catch (t) {
+            this.D = true;
+            throw t;
         } finally {
             this.obs.clear();
             exitConnectable(this);
@@ -2808,7 +2826,7 @@ class ComputedObserver {
 
 (() => {
     connectable(ComputedObserver, null);
-    B(ComputedObserver, null);
+    j(ComputedObserver, null);
 })();
 
 typeof SuppressedError === "function" ? SuppressedError : function(t, e, r) {
@@ -2816,7 +2834,7 @@ typeof SuppressedError === "function" ? SuppressedError : function(t, e, r) {
     return s.name = "SuppressedError", s.error = t, s.suppressed = e, s;
 };
 
-const st = (() => {
+const nt = (() => {
     const t = new WeakMap;
     const normalizeKey = t => e.isSymbol(t) ? t : String(t);
     return {
@@ -2835,16 +2853,16 @@ function computed(t) {
     return function decorator(e, r) {
         r.addInitializer(function() {
             const e = t.flush ?? "async";
-            st.set(this, r.name, {
+            nt.set(this, r.name, {
                 flush: e
             });
         });
     };
 }
 
-const nt = /*@__PURE__*/ c("IDirtyChecker", void 0);
+const it = /*@__PURE__*/ u("IDirtyChecker", void 0);
 
-const it = {
+const ot = {
     timeoutsPerCheck: 25,
     disabled: false,
     throw: false,
@@ -2857,7 +2875,7 @@ const it = {
 
 class DirtyChecker {
     static register(t) {
-        t.register(e.Registration.singleton(this, this), e.Registration.aliasTo(this, nt));
+        t.register(e.Registration.singleton(this, this), e.Registration.aliasTo(this, it));
     }
     constructor() {
         this.tracked = [];
@@ -2865,10 +2883,10 @@ class DirtyChecker {
         this.K = 0;
         this.p = e.resolve(e.IPlatform);
         this.check = () => {
-            if (it.disabled) {
+            if (ot.disabled) {
                 return;
             }
-            if (++this.K < it.timeoutsPerCheck) {
+            if (++this.K < ot.timeoutsPerCheck) {
                 return;
             }
             this.K = 0;
@@ -2883,10 +2901,10 @@ class DirtyChecker {
                 }
             }
         };
-        B(DirtyCheckProperty, null);
+        j(DirtyCheckProperty, null);
     }
     createProperty(t, e) {
-        if (it.throw) {
+        if (ot.throw) {
             throw createMappedError(218, e);
         }
         return new DirtyCheckProperty(this, t, e);
@@ -2912,7 +2930,7 @@ class DirtyCheckProperty {
     constructor(t, e, r) {
         this.obj = e;
         this.key = r;
-        this.type = _;
+        this.type = M;
         this.ov = void 0;
         this.G = t;
     }
@@ -2949,7 +2967,7 @@ class PrimitiveObserver {
         return true;
     }
     constructor(t, e) {
-        this.type = _;
+        this.type = M;
         this.o = t;
         this.k = e;
     }
@@ -2963,7 +2981,7 @@ class PrimitiveObserver {
 
 class PropertyAccessor {
     constructor() {
-        this.type = _;
+        this.type = M;
     }
     getValue(t, e) {
         return t[e];
@@ -2975,7 +2993,7 @@ class PropertyAccessor {
 
 class SetterObserver {
     constructor(t, e) {
-        this.type = M;
+        this.type = D;
         this.v = void 0;
         this.iO = false;
         this.cb = void 0;
@@ -3028,10 +3046,10 @@ class SetterObserver {
         if (this.iO === false) {
             this.iO = true;
             this.v = this.o[this.k];
-            n(this.o, this.k, {
+            i(this.o, this.k, {
                 enumerable: true,
                 configurable: true,
-                get: i(() => this.getValue(), {
+                get: o(() => this.getValue(), {
                     getObserver: () => this
                 }),
                 set: t => {
@@ -3043,7 +3061,7 @@ class SetterObserver {
     }
     stop() {
         if (this.iO) {
-            n(this.o, this.k, {
+            i(this.o, this.k, {
                 enumerable: true,
                 configurable: true,
                 writable: true,
@@ -3056,50 +3074,50 @@ class SetterObserver {
 }
 
 (() => {
-    B(SetterObserver, null);
+    j(SetterObserver, null);
 })();
 
-const ot = new PropertyAccessor;
+const at = new PropertyAccessor;
 
-const at = /*@__PURE__*/ c("IObserverLocator", t => t.singleton(ObserverLocator));
+const ct = /*@__PURE__*/ u("IObserverLocator", t => t.singleton(ObserverLocator));
 
-const ct = /*@__PURE__*/ c("INodeObserverLocator", t => t.cachedCallback(t => new DefaultNodeObserverLocator));
+const ut = /*@__PURE__*/ u("INodeObserverLocator", t => t.cachedCallback(t => new DefaultNodeObserverLocator));
 
 class DefaultNodeObserverLocator {
     handles() {
         return false;
     }
     getObserver() {
-        return ot;
+        return at;
     }
     getAccessor() {
-        return ot;
+        return at;
     }
 }
 
-const ut = /*@__PURE__*/ c("IComputedObserverLocator", t => t.singleton(class DefaultLocator {
+const ht = /*@__PURE__*/ u("IComputedObserverLocator", t => t.singleton(class DefaultLocator {
     getObserver(t, e, r, s) {
-        const o = new ComputedObserver(t, r.get, r.set, s, st.q(t, e));
-        n(t, e, {
+        const n = new ComputedObserver(t, r.get, r.set, s, nt.q(t, e));
+        i(t, e, {
             enumerable: r.enumerable,
             configurable: true,
-            get: i(() => o.getValue(), {
-                getObserver: () => o
+            get: o(() => n.getValue(), {
+                getObserver: () => n
             }),
             set: t => {
-                o.setValue(t);
+                n.setValue(t);
             }
         });
-        return o;
+        return n;
     }
 }));
 
 class ObserverLocator {
     constructor() {
         this.J = [];
-        this.G = e.resolve(nt);
-        this.X = e.resolve(ct);
-        this.Y = e.resolve(ut);
+        this.G = e.resolve(it);
+        this.X = e.resolve(ut);
+        this.Y = e.resolve(ht);
     }
     addAdapter(t) {
         this.J.push(t);
@@ -3132,16 +3150,16 @@ class ObserverLocator {
         if (this.X.handles(t, e, this)) {
             return this.X.getAccessor(t, e, this);
         }
-        return ot;
+        return at;
     }
     getArrayObserver(t) {
-        return j(t);
+        return F(t);
     }
     getMapObserver(t) {
-        return H(t);
+        return $(t);
     }
     getSetObserver(t) {
-        return F(t);
+        return H(t);
     }
     createObserver(t, r) {
         if (this.X.handles(t, r, this)) {
@@ -3150,42 +3168,42 @@ class ObserverLocator {
         switch (r) {
           case "length":
             if (e.isArray(t)) {
-                return j(t).getLengthObserver();
+                return F(t).getLengthObserver();
             }
             break;
 
           case "size":
             if (e.isMap(t)) {
-                return H(t).getLengthObserver();
+                return $(t).getLengthObserver();
             } else if (e.isSet(t)) {
-                return F(t).getLengthObserver();
+                return H(t).getLengthObserver();
             }
             break;
 
           default:
             if (e.isArray(t) && e.isArrayIndex(r)) {
-                return j(t).getIndexObserver(Number(r));
+                return F(t).getIndexObserver(Number(r));
             }
             break;
         }
-        let n = lt(t, r);
-        if (n === void 0) {
-            let e = ht(t);
+        let s = ft(t, r);
+        if (s === void 0) {
+            let e = lt(t);
             while (e !== null) {
-                n = lt(e, r);
-                if (n === void 0) {
-                    e = ht(e);
+                s = ft(e, r);
+                if (s === void 0) {
+                    e = lt(e);
                 } else {
                     break;
                 }
             }
         }
-        if (n !== void 0 && !s.call(n, "value")) {
-            let e = this.Z(t, r, n);
+        if (s !== void 0 && !n.call(s, "value")) {
+            let e = this.Z(t, r, s);
             if (e == null) {
-                e = (n.get?.getObserver)?.(t);
+                e = (s.get?.getObserver)?.(t);
             }
-            return e == null ? n.configurable ? this.Y.getObserver(t, r, n, this) : this.G.createProperty(t, r) : e;
+            return e == null ? s.configurable ? this.Y.getObserver(t, r, s, this) : this.G.createProperty(t, r) : e;
         }
         return new SetterObserver(t, r);
     }
@@ -3205,34 +3223,34 @@ class ObserverLocator {
 const getCollectionObserver = t => {
     let r;
     if (e.isArray(t)) {
-        r = j(t);
-    } else if (e.isMap(t)) {
-        r = H(t);
-    } else if (e.isSet(t)) {
         r = F(t);
+    } else if (e.isMap(t)) {
+        r = $(t);
+    } else if (e.isSet(t)) {
+        r = H(t);
     }
     return r;
 };
 
-const ht = Object.getPrototypeOf;
+const lt = Object.getPrototypeOf;
 
-const lt = Object.getOwnPropertyDescriptor;
+const ft = Object.getOwnPropertyDescriptor;
 
 const getObserverLookup = t => {
     let r = t.$observers;
     if (r === void 0) {
-        n(t, "$observers", {
+        i(t, "$observers", {
             value: r = e.createLookup()
         });
     }
     return r;
 };
 
-const ft = /*@__PURE__*/ c("IObservation", t => t.singleton(Observation));
+const dt = /*@__PURE__*/ u("IObservation", t => t.singleton(Observation));
 
 class Observation {
     constructor() {
-        this.oL = e.resolve(at);
+        this.oL = e.resolve(ct);
         this.tt = e.resolve(t.IExpressionParser);
     }
     run(t) {
@@ -3390,7 +3408,7 @@ class ExpressionObserver {
     run() {
         this.obs.version++;
         const t = this.v;
-        const r = f(this.ast, this.s, this, this);
+        const r = d(this.ast, this.s, this, this);
         this.obs.clear();
         if (!e.areEqual(r, t)) {
             this.v = r;
@@ -3405,13 +3423,13 @@ class ExpressionObserver {
 
 (() => {
     connectable(ExpressionObserver, null);
-    w(ExpressionObserver);
+    v(ExpressionObserver);
 })();
 
-const dt = /*@__PURE__*/ (() => {
+const pt = /*@__PURE__*/ (() => {
     function getObserversLookup(t) {
         if (t.$observers === void 0) {
-            n(t, "$observers", {
+            i(t, "$observers", {
                 value: {}
             });
         }
@@ -3421,9 +3439,9 @@ const dt = /*@__PURE__*/ (() => {
     function observable(r, s) {
         if (!SetterNotifier.mixed) {
             SetterNotifier.mixed = true;
-            B(SetterNotifier, null);
+            j(SetterNotifier, null);
         }
-        let i = false;
+        let n = false;
         let o;
         if (typeof r === "object") {
             o = r;
@@ -3431,7 +3449,7 @@ const dt = /*@__PURE__*/ (() => {
             o = {
                 name: r
             };
-            i = true;
+            n = true;
         } else {
             o = e.emptyObject;
         }
@@ -3442,7 +3460,7 @@ const dt = /*@__PURE__*/ (() => {
             };
         }
         if (s?.kind === "field") return createFieldInitializer(s);
-        if (i) {
+        if (n) {
             return function(e, r) {
                 createDescriptor(e, o.name, () => t, true);
             };
@@ -3469,25 +3487,25 @@ const dt = /*@__PURE__*/ (() => {
             };
         }
         function createDescriptor(t, e, r, s) {
-            const i = o.callback || `${a(e)}Changed`;
-            const c = o.set;
+            const n = o.callback || `${c(e)}Changed`;
+            const a = o.set;
             const observableGetter = function() {
-                const t = getNotifier(this, e, i, r, c);
+                const t = getNotifier(this, e, n, r, a);
                 currentConnectable()?.subscribeTo(t);
                 return t.getValue();
             };
             observableGetter.getObserver = function(t) {
-                return getNotifier(t, e, i, r, c);
+                return getNotifier(t, e, n, r, a);
             };
             const u = {
                 enumerable: true,
                 configurable: true,
                 get: observableGetter,
                 set(t) {
-                    getNotifier(this, e, i, r, c).setValue(t);
+                    getNotifier(this, e, n, r, a).setValue(t);
                 }
             };
-            if (s) n(t.prototype, e, u); else n(t, e, u);
+            if (s) i(t.prototype, e, u); else i(t, e, u);
         }
     }
     function getNotifier(e, r, s, n, i) {
@@ -3502,7 +3520,7 @@ const dt = /*@__PURE__*/ (() => {
     }
     class SetterNotifier {
         constructor(t, r, s, n) {
-            this.type = M;
+            this.type = D;
             this.v = void 0;
             this.ov = void 0;
             this.o = t;
@@ -3539,13 +3557,13 @@ function nowrap(t, e) {
     function decorator(t, e) {
         switch (e.kind) {
           case "class":
-            rtDefineHiddenProp(t, Q, true);
+            rtDefineHiddenProp(t, X, true);
             break;
 
           case "field":
             e.addInitializer(function() {
                 const t = this.constructor;
-                const r = `${X}_${a(e.name)}__`;
+                const r = `${Y}_${c(e.name)}__`;
                 if (r in t) return;
                 rtDefineHiddenProp(t, r, true);
             });
@@ -3554,7 +3572,7 @@ function nowrap(t, e) {
     }
 }
 
-exports.AccessorType = L;
+exports.AccessorType = N;
 
 exports.BindingContext = BindingContext;
 
@@ -3564,25 +3582,25 @@ exports.CollectionSizeObserver = CollectionSizeObserver;
 
 exports.ComputedObserver = ComputedObserver;
 
-exports.ConnectableSwitcher = W;
+exports.ConnectableSwitcher = K;
 
 exports.DirtyCheckProperty = DirtyCheckProperty;
 
-exports.DirtyCheckSettings = it;
+exports.DirtyCheckSettings = ot;
 
 exports.DirtyChecker = DirtyChecker;
 
-exports.ICoercionConfiguration = I;
+exports.ICoercionConfiguration = _;
 
-exports.IComputedObserverLocator = ut;
+exports.IComputedObserverLocator = ht;
 
-exports.IDirtyChecker = nt;
+exports.IDirtyChecker = it;
 
-exports.INodeObserverLocator = ct;
+exports.INodeObserverLocator = ut;
 
-exports.IObservation = ft;
+exports.IObservation = dt;
 
-exports.IObserverLocator = at;
+exports.IObserverLocator = ct;
 
 exports.Observation = Observation;
 
@@ -3592,7 +3610,7 @@ exports.PrimitiveObserver = PrimitiveObserver;
 
 exports.PropertyAccessor = PropertyAccessor;
 
-exports.ProxyObservable = rt;
+exports.ProxyObservable = st;
 
 exports.RecurringTask = RecurringTask;
 
@@ -3604,13 +3622,13 @@ exports.Task = Task;
 
 exports.TaskAbortError = TaskAbortError;
 
-exports.astAssign = l;
+exports.astAssign = f;
 
-exports.astBind = d;
+exports.astBind = p;
 
-exports.astEvaluate = f;
+exports.astEvaluate = d;
 
-exports.astUnbind = p;
+exports.astUnbind = w;
 
 exports.batch = batch;
 
@@ -3632,11 +3650,11 @@ exports.getRecurringTasks = getRecurringTasks;
 
 exports.isIndexMap = isIndexMap;
 
-exports.mixinNoopAstEvaluator = w;
+exports.mixinNoopAstEvaluator = v;
 
 exports.nowrap = nowrap;
 
-exports.observable = dt;
+exports.observable = pt;
 
 exports.queueAsyncTask = queueAsyncTask;
 
@@ -3646,7 +3664,7 @@ exports.queueTask = queueTask;
 
 exports.runTasks = runTasks;
 
-exports.subscriberCollection = B;
+exports.subscriberCollection = j;
 
 exports.tasksSettled = tasksSettled;
 //# sourceMappingURL=index.cjs.map

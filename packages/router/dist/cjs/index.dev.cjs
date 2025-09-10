@@ -2471,6 +2471,11 @@ class RouteNode {
         /** @internal */
         this._isInstructionsFinalized = false;
         this.children = [];
+        /**
+         * @internal
+         * @deprecated Will be removed in the next major version.
+         */
+        this._combinedParams = null;
         this._originalInstruction ??= instruction;
     }
     static create(input) {
@@ -2584,6 +2589,30 @@ class RouteNode {
             clone.context.node = clone;
         }
         return clone;
+    }
+    /**
+     * @internal
+     * @deprecated Will be removed in the next major version.
+     */
+    _getParams(combineQuery) {
+        if (!combineQuery)
+            return this.params;
+        // the params are configured and hence have a higher priority than the query parameters
+        if (this._combinedParams !== null)
+            return this._combinedParams;
+        const combinedParams = Object.create(null);
+        for (const [key, value] of this.queryParams.entries()) {
+            if (value == null)
+                continue;
+            if (combinedParams[key] == null) {
+                combinedParams[key] = value;
+            }
+            else {
+                const values = combinedParams[key];
+                combinedParams[key] = [...(kernel.isArray(values) ? values : [values]), ...(kernel.isArray(value) ? value : [value])];
+            }
+        }
+        return this._combinedParams = Object.freeze({ ...combinedParams, ...this.params });
     }
     // Should not be adjust for DEV as it is also used of logging in production build.
     toString() {
@@ -3186,7 +3215,7 @@ class Router {
      * @param context - The context to use for relative navigation. If not provided, the root context is used.
      */
     generatePath(instructionOrInstructions, context) {
-        return kernel.onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true), vit => vit.toUrl(true, this.options._urlParser));
+        return kernel.onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true), vit => vit.toUrl(true, this.options._urlParser, vit.options.context.isRoot));
     }
     createViewportInstructions(instructionOrInstructions, options, traverseChildren) {
         if (instructionOrInstructions instanceof ViewportInstructionTree)
@@ -3409,7 +3438,7 @@ class Router {
                 this._instructions = tr.finalInstructions = tr.routeTree._finalizeInstructions();
                 this._isNavigating = false;
                 // apply history state
-                const newUrl = tr.finalInstructions.toUrl(true, this.options._urlParser);
+                const newUrl = tr.finalInstructions.toUrl(true, this.options._urlParser, true);
                 switch (tr.options._getHistoryStrategy(this._instructions)) {
                     case 'none':
                         // do nothing
@@ -3606,7 +3635,7 @@ const pathUrlParser = Object.freeze({
     parse(value) {
         return ParsedUrl._create(value);
     },
-    stringify(pathOrParsedUrl, query, fragment) {
+    stringify(pathOrParsedUrl, query, fragment, _isRooted) {
         return stringify(pathOrParsedUrl, query, fragment);
     }
 });
@@ -3625,8 +3654,8 @@ const fragmentUrlParser = Object.freeze({
         }
         return ParsedUrl._create(value);
     },
-    stringify(pathOrParsedUrl, query, fragment) {
-        return `/#/${stringify(pathOrParsedUrl, query, fragment)}`;
+    stringify(pathOrParsedUrl, query, fragment, isRooted) {
+        return `${isRooted ? '/#/' : ''}${stringify(pathOrParsedUrl, query, fragment)}`;
     }
 });
 
@@ -3672,7 +3701,15 @@ class RouterOptions {
      * Set this to `false`, if a stricter behavior is desired. However, in that case, you need to ensure the avoidance of errors.
      * The default value is `true`.
      */
-    restorePreviousRouteTreeOnError) {
+    restorePreviousRouteTreeOnError, 
+    /**
+     * When set to `true`, the router will treat query parameters as regular parameters.
+     * This means that query parameters will be included in the route node's `params` property.
+     * The default value is `false`.
+     *
+     * @deprecated Will be removed in the next major version.
+     */
+    treatQueryAsParameters) {
         this.useUrlFragmentHash = useUrlFragmentHash;
         this.useHref = useHref;
         this.historyStrategy = historyStrategy;
@@ -3680,10 +3717,11 @@ class RouterOptions {
         this.useNavigationModel = useNavigationModel;
         this.activeClass = activeClass;
         this.restorePreviousRouteTreeOnError = restorePreviousRouteTreeOnError;
+        this.treatQueryAsParameters = treatQueryAsParameters;
         this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
     }
     static create(input) {
-        return new RouterOptions(input.useUrlFragmentHash ?? false, input.useHref ?? true, input.historyStrategy ?? 'push', input.buildTitle ?? null, input.useNavigationModel ?? true, input.activeClass ?? null, input.restorePreviousRouteTreeOnError ?? true);
+        return new RouterOptions(input.useUrlFragmentHash ?? false, input.useHref ?? true, input.historyStrategy ?? 'push', input.buildTitle ?? null, input.useNavigationModel ?? true, input.activeClass ?? null, input.restorePreviousRouteTreeOnError ?? true, input.treatQueryAsParameters ?? false);
     }
     toString() {
         return `RO(${[
@@ -3941,7 +3979,7 @@ class ViewportInstructionTree {
         }
         return true;
     }
-    toUrl(isFinalInstruction, parser) {
+    toUrl(isFinalInstruction, parser, isRooted) {
         let parentPath = '';
         if (!isFinalInstruction) {
             const parentPaths = [];
@@ -3962,7 +4000,7 @@ class ViewportInstructionTree {
             parentPath = parentPaths.join('/');
         }
         const currentPath = this.toPath();
-        return parser.stringify(parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath, this.queryParams, this.fragment);
+        return parser.stringify(parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath, this.queryParams, this.fragment, isRooted);
     }
     toPath() {
         return this.children.map(x => x.toUrlComponent()).join('+');
@@ -4206,6 +4244,7 @@ class ComponentAgent {
     /** @internal */
     _canLoad(tr, next, b) {
         trace(this._logger, 3057 /* Events.caCanLoad */, next, this._canLoadHooks.length);
+        const params = next._getParams(this._routerOptions.treatQueryAsParameters);
         const rootCtx = this._ctx.root;
         b._push();
         let promise = Promise.resolve();
@@ -4218,7 +4257,7 @@ class ComponentAgent {
                     return;
                 }
                 tr._run(() => {
-                    return hook.canLoad(this._instance, next.params, next, this._routeNode);
+                    return hook.canLoad(this._instance, params, next, this._routeNode);
                 }, ret => {
                     if (tr.guardsResult === true && ret != null && ret !== true) {
                         tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
@@ -4237,7 +4276,7 @@ class ComponentAgent {
                     return;
                 }
                 tr._run(() => {
-                    return this._instance.canLoad(next.params, next, this._routeNode);
+                    return this._instance.canLoad(params, next, this._routeNode);
                 }, ret => {
                     if (tr.guardsResult === true && ret != null && ret !== true) {
                         tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
@@ -4273,11 +4312,12 @@ class ComponentAgent {
     /** @internal */
     _loading(tr, next, b) {
         trace(this._logger, 3059 /* Events.caLoading */, next, this._loadHooks.length);
+        const params = next._getParams(this._routerOptions.treatQueryAsParameters);
         b._push();
         for (const hook of this._loadHooks) {
             tr._run(() => {
                 b._push();
-                return hook.loading(this._instance, next.params, next, this._routeNode);
+                return hook.loading(this._instance, params, next, this._routeNode);
             }, () => {
                 b._pop();
             });
@@ -4285,7 +4325,7 @@ class ComponentAgent {
         if (this._hasLoad) {
             tr._run(() => {
                 b._push();
-                return this._instance.loading(next.params, next, this._routeNode);
+                return this._instance.loading(params, next, this._routeNode);
             }, () => {
                 b._pop();
             });
@@ -4523,7 +4563,8 @@ class RouteContext {
      */
     generateRootedPath(instructionOrInstructions) {
         return kernel.onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true), vit => {
-            const relativePath = vit.toUrl(true, this._router.options._urlParser);
+            const options = this._router.options;
+            const relativePath = vit.toUrl(true, options._urlParser, false);
             // Compute the parent path
             let parentPath = '';
             const parentSegments = [];
@@ -4536,14 +4577,20 @@ class RouteContext {
             }
             parentPath = parentSegments.join('/');
             // Combine parent path and relative path
-            return parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`;
+            return `${options.useUrlFragmentHash ? '/#/' : ''}${parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`}`;
         });
     }
     /**
      * Generates a path that is relative to the this context.
      */
     generateRelativePath(instructionOrInstructions) {
-        return kernel.onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true), vit => vit.toUrl(true, this._router.options._urlParser));
+        return kernel.onResolve(this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true), 
+        // Note that even though this method is for generating relative paths, one can still generate a rooted path using this method.
+        // For example, when instructions like `../sibling-route` is used and the parent of the current context is the root context.
+        // In such cases, the upward crawl of context will happen, and thus the deciding factor will be if the ViewportInstructionTree
+        // is created with the root context or not. Thus, instead of simply using `false`, the `isRoot` property of the vit context is
+        // used while generating the URL.
+        vit => vit.toUrl(true, this._router.options._urlParser, vit.options.context.isRoot));
     }
     createViewportInstructions(instructionOrInstructions, options, traverseChildren) {
         if (instructionOrInstructions instanceof ViewportInstructionTree)
@@ -5194,7 +5241,7 @@ class LoadCustomAttribute {
             const instructions = this._instructions = router.createViewportInstructions(typeof params === 'object' && params !== null
                 ? { component, params }
                 : component, { context: ctx });
-            this._href = instructions.toUrl(false, options._urlParser);
+            this._href = instructions.toUrl(false, options._urlParser, true);
         }
         else {
             this._instructions = null;
@@ -5457,7 +5504,7 @@ class CurrentRoute {
             const vit = event.finalInstructions;
             runtime.batch(() => {
                 this.path = vit.toPath();
-                this.url = vit.toUrl(true, options._urlParser);
+                this.url = vit.toUrl(true, options._urlParser, true);
                 this.title = router._getTitle();
                 this.query = vit.queryParams;
                 this.parameterInformation = vit.children.map((instruction) => ParameterInformation.create(instruction));

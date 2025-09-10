@@ -6,6 +6,7 @@ export type INodeControllerRefs = {
     hideProp: boolean;
     get(node: INode, name: string): IHydratedController | null;
     set<T extends IHydratedController>(node: INode, name: string, controller: T): T;
+    clear(node: INode): void;
 };
 export declare const refs: INodeControllerRefs;
 export type INode<T extends Node = Node> = T & {

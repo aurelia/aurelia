@@ -8,8 +8,7 @@ export declare class ParsedUrl {
 }
 export interface IUrlParser {
     parse(value: string): ParsedUrl;
-    stringify(value: ParsedUrl): string;
-    stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null): string;
+    stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null, isRooted: boolean): string;
 }
 export declare const pathUrlParser: IUrlParser;
 export declare const fragmentUrlParser: IUrlParser;

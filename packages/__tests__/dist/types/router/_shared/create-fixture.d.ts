@@ -31,11 +31,12 @@ type RouterTestStartOptions<TAppRoot> = {
     registrations?: any[];
     historyStrategy?: HistoryStrategy;
     activeClass?: string | null;
+    treatQueryAsParameters?: boolean;
 };
 /**
  * Simpler fixture creation.
  */
-export declare function start<TAppRoot>({ appRoot, useHash, registrations, historyStrategy, activeClass }: RouterTestStartOptions<TAppRoot>): Promise<{
+export declare function start<TAppRoot>({ appRoot, useHash, registrations, historyStrategy, activeClass, treatQueryAsParameters }: RouterTestStartOptions<TAppRoot>): Promise<{
     host: HTMLDivElement;
     au: Aurelia;
     container: IContainer;

@@ -44,6 +44,14 @@ export declare class RouterOptions {
      * The default value is `true`.
      */
     readonly restorePreviousRouteTreeOnError: boolean;
+    /**
+     * When set to `true`, the router will treat query parameters as regular parameters.
+     * This means that query parameters will be included in the route node's `params` property.
+     * The default value is `false`.
+     *
+     * @deprecated Will be removed in the next major version.
+     */
+    readonly treatQueryAsParameters: boolean;
     protected constructor(useUrlFragmentHash: boolean, useHref: boolean, 
     /**
      * The strategy to use for interacting with the browser's `history` object (if applicable).
@@ -78,7 +86,15 @@ export declare class RouterOptions {
      * Set this to `false`, if a stricter behavior is desired. However, in that case, you need to ensure the avoidance of errors.
      * The default value is `true`.
      */
-    restorePreviousRouteTreeOnError: boolean);
+    restorePreviousRouteTreeOnError: boolean, 
+    /**
+     * When set to `true`, the router will treat query parameters as regular parameters.
+     * This means that query parameters will be included in the route node's `params` property.
+     * The default value is `false`.
+     *
+     * @deprecated Will be removed in the next major version.
+     */
+    treatQueryAsParameters: boolean);
     static create(input: IRouterOptions): RouterOptions;
     toString(): string;
 }

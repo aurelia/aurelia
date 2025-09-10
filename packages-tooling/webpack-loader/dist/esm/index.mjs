@@ -28,7 +28,7 @@ function loader(contents, _preprocess = preprocess) {
 const getHmrCode = (className) => {
     const code = `
     import { Metadata as $$M } from '@aurelia/metadata';
-    import { Controller as $$C, CustomElement as $$CE, IHydrationContext as $$IHC } from '@aurelia/runtime-html';
+    import { Controller as $$C, CustomElement as $$CE, IHydrationContext as $$IHC, refs as $$refs } from '@aurelia/runtime-html';
 
     // @ts-ignore
     const controllers = [];
@@ -117,13 +117,14 @@ const getHmrCode = (className) => {
         controller.viewModel = controller.container.invoke(currentClassType);
         controller.definition = newDefinition;
         Object.assign(controller.viewModel, values);
+        controller.deactivate(controller, controller.parent ?? null, 0);
+        $$refs.clear(h);
         if (controller._hydrateCustomElement) {
           controller._hydrateCustomElement(hydrationInst, hydrationContext);
         } else {
           controller.hE(hydrationInst, hydrationContext);
         }
         h.parentNode.replaceChild(controller.host, h);
-        controller.deactivate(controller, controller.parent ?? null, 0);
         controller.activate(controller, controller.parent ?? null, 0);
       });
     }

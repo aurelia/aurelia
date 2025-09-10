@@ -6,17 +6,17 @@ import { ValidationMessageProvider as s, ValidationRuleAliasMessage as l } from 
 
 import { ValidationController as c, ValidationControllerFactory as d, getDefaultValidationHtmlConfiguration as u, ValidationHtmlConfiguration as f } from "@aurelia/validation-html";
 
-import { queueAsyncTask as h } from "@aurelia/runtime";
+import { queueAsyncTask as v } from "@aurelia/runtime";
 
-const v = "i18n:locale:changed:validation";
+const h = "i18n:locale:changed:validation";
 
 const m = /*@__PURE__*/ o.createInterface("I18nKeyConfiguration");
 
 class LocalizedValidationController extends c {
     constructor(i = e(r)) {
         super();
-        this.localeChangeSubscription = i.subscribe(v, () => {
-            h(async () => {
+        this.localeChangeSubscription = i.subscribe(h, () => {
+            void v(async () => {
                 await this.revalidateErrors();
             });
         });
@@ -43,7 +43,7 @@ class LocalizedValidationMessageProvider extends s {
         }
         a.subscribe(t.I18N_EA_CHANNEL, () => {
             this.registeredMessages = new WeakMap;
-            a.publish(v);
+            a.publish(h);
         });
     }
     getMessage(i) {

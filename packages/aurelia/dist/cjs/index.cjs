@@ -10,18 +10,16 @@ var r = require("@aurelia/runtime-html");
 
 var t = require("@aurelia/platform-browser");
 
-var s = require("@aurelia/platform");
+var s = require("@aurelia/expression-parser");
 
-var o = require("@aurelia/expression-parser");
+var o = require("@aurelia/runtime");
 
-var p = require("@aurelia/runtime");
+var p = require("@aurelia/template-compiler");
 
-var x = require("@aurelia/template-compiler");
-
-const a = t.BrowserPlatform.getOrCreate(globalThis);
+const x = t.BrowserPlatform.getOrCreate(globalThis);
 
 function createContainer() {
-    return e.DI.createContainer().register(e.Registration.instance(r.IPlatform, a), r.StandardConfiguration);
+    return e.DI.createContainer().register(e.Registration.instance(r.IPlatform, x), r.StandardConfiguration);
 }
 
 class Aurelia extends r.Aurelia {
@@ -237,59 +235,67 @@ exports.valueConverter = r.valueConverter;
 
 exports.watch = r.watch;
 
-exports.Platform = s.Platform;
+exports.CustomExpression = s.CustomExpression;
 
-exports.Task = s.Task;
+exports.IExpressionParser = s.IExpressionParser;
 
-exports.TaskAbortError = s.TaskAbortError;
+exports.ComputedObserver = o.ComputedObserver;
 
-exports.TaskQueue = s.TaskQueue;
+exports.IObservation = o.IObservation;
 
-exports.CustomExpression = o.CustomExpression;
+exports.IObserverLocator = o.IObserverLocator;
 
-exports.IExpressionParser = o.IExpressionParser;
+exports.RecurringTask = o.RecurringTask;
 
-exports.ComputedObserver = p.ComputedObserver;
+exports.Scope = o.Scope;
 
-exports.IObservation = p.IObservation;
+exports.Task = o.Task;
 
-exports.IObserverLocator = p.IObserverLocator;
+exports.TaskAbortError = o.TaskAbortError;
 
-exports.Scope = p.Scope;
+exports.batch = o.batch;
 
-exports.batch = p.batch;
+exports.getRecurringTasks = o.getRecurringTasks;
 
-exports.observable = p.observable;
+exports.observable = o.observable;
 
-exports.subscriberCollection = p.subscriberCollection;
+exports.queueAsyncTask = o.queueAsyncTask;
 
-exports.AttributePattern = x.AttributePattern;
+exports.queueRecurringTask = o.queueRecurringTask;
 
-exports.BindingCommand = x.BindingCommand;
+exports.queueTask = o.queueTask;
 
-exports.IAttrMapper = x.IAttrMapper;
+exports.runTasks = o.runTasks;
 
-exports.IAttributeParser = x.IAttributeParser;
+exports.subscriberCollection = o.subscriberCollection;
 
-exports.IAttributePattern = x.IAttributePattern;
+exports.AttributePattern = p.AttributePattern;
 
-exports.ITemplateCompiler = x.ITemplateCompiler;
+exports.BindingCommand = p.BindingCommand;
 
-exports.ITemplateCompilerHooks = x.ITemplateCompilerHooks;
+exports.IAttrMapper = p.IAttrMapper;
 
-exports.ITemplateElementFactory = x.ITemplateElementFactory;
+exports.IAttributeParser = p.IAttributeParser;
 
-exports.TemplateCompilerHooks = x.TemplateCompilerHooks;
+exports.IAttributePattern = p.IAttributePattern;
 
-exports.attributePattern = x.attributePattern;
+exports.ITemplateCompiler = p.ITemplateCompiler;
 
-exports.bindingCommand = x.bindingCommand;
+exports.ITemplateCompilerHooks = p.ITemplateCompilerHooks;
 
-exports.templateCompilerHooks = x.templateCompilerHooks;
+exports.ITemplateElementFactory = p.ITemplateElementFactory;
+
+exports.TemplateCompilerHooks = p.TemplateCompilerHooks;
+
+exports.attributePattern = p.attributePattern;
+
+exports.bindingCommand = p.bindingCommand;
+
+exports.templateCompilerHooks = p.templateCompilerHooks;
 
 exports.Aurelia = Aurelia;
 
-exports.PLATFORM = a;
+exports.PLATFORM = x;
 
 exports.default = Aurelia;
 //# sourceMappingURL=index.cjs.map

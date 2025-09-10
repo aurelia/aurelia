@@ -18,7 +18,7 @@ class LocalizedValidationController extends o.ValidationController {
     constructor(e = i.resolve(i.IEventAggregator)) {
         super();
         this.localeChangeSubscription = e.subscribe(a, () => {
-            r.queueAsyncTask(async () => {
+            void r.queueAsyncTask(async () => {
                 await this.revalidateErrors();
             });
         });

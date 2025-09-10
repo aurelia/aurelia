@@ -672,7 +672,7 @@ class ValidationConnector {
             return;
         }
         this.t = true;
-        r.queueAsyncTask(() => {
+        void r.queueAsyncTask(() => {
             this.t = false;
             return this.controller.validateBinding(this.propertyBinding);
         });

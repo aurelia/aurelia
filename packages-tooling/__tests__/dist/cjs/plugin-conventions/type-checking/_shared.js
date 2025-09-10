@@ -25,6 +25,8 @@ exports.options = {
     moduleResolution: typescript_1.ModuleResolutionKind.Node10,
     noEmit: true,
     allowJs: true,
+    target: typescript_1.ScriptTarget.ES2020,
+    types: [] // prevents crawling node_modules/@types/* (cuts test execution time in half)
 };
 function $basename(path) {
     const filename = (0, path_1.basename)(path);

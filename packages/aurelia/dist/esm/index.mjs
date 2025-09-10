@@ -8,11 +8,9 @@ export { AppTask, ArrayLikeHandler, AuSlotsInfo, Bindable, BindingBehavior, Bind
 
 import { BrowserPlatform as i } from "@aurelia/platform-browser";
 
-export { Platform, Task, TaskAbortError, TaskQueue } from "@aurelia/platform";
-
 export { CustomExpression, IExpressionParser } from "@aurelia/expression-parser";
 
-export { ComputedObserver, IObservation, IObserverLocator, Scope, batch, observable, subscriberCollection } from "@aurelia/runtime";
+export { ComputedObserver, IObservation, IObserverLocator, RecurringTask, Scope, Task, TaskAbortError, batch, getRecurringTasks, observable, queueAsyncTask, queueRecurringTask, queueTask, runTasks, subscriberCollection } from "@aurelia/runtime";
 
 export { AttributePattern, BindingCommand, IAttrMapper, IAttributeParser, IAttributePattern, ITemplateCompiler, ITemplateCompilerHooks, ITemplateElementFactory, TemplateCompilerHooks, attributePattern, bindingCommand, templateCompilerHooks } from "@aurelia/template-compiler";
 

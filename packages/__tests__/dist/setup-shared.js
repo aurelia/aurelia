@@ -12,7 +12,8 @@ export function $setup(platform) {
     BrowserPlatform.set(globalThis, platform);
     if (typeof window !== 'undefined')
         window.addEventListener('error', e => {
-            console.log('Globally caught error:', String(e.error));
+            console.log('Globally caught error:', e.message);
+            console.log('Stack trace:', e.error?.stack);
         });
     const globalStart = platform.performanceNow();
     let firstTestStart = 0;

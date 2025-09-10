@@ -92,7 +92,7 @@ export declare class ViewportInstructionTree {
     static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], routerOptions: RouterOptions, options: INavigationOptions | NavigationOptions | null, rootCtx: IRouteContext | null): ViewportInstructionTree;
     static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], routerOptions: RouterOptions, options: INavigationOptions | NavigationOptions | null, rootCtx: IRouteContext | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
     equals(other: ViewportInstructionTree): boolean;
-    toUrl(isFinalInstruction: boolean, parser: IUrlParser): string;
+    toUrl(isFinalInstruction: boolean, parser: IUrlParser, isRooted: boolean): string;
     toPath(): string;
     toString(): string;
 }

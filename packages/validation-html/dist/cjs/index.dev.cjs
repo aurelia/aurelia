@@ -799,7 +799,7 @@ class ValidationConnector {
             return;
         }
         this._isQueued = true;
-        runtime.queueAsyncTask(() => {
+        void runtime.queueAsyncTask(() => {
             this._isQueued = false;
             return this.controller.validateBinding(this.propertyBinding);
         });

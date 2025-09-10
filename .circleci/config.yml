@@ -129,7 +129,6 @@ commands:
           steps:
             - browser-tools/install-firefox
             - browser-tools/install-geckodriver
-      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - when:
           condition: <<parameters.install>>
           steps:
@@ -577,52 +576,6 @@ jobs:
                   npm run test:e2e:webpack
                 no_output_timeout: "1m"
 
-  e2e_safari:
-    macos:
-      xcode: 14.2.0
-    parameters:
-      path:
-        type: string
-    steps:
-      - checkout
-      - restore_cache:
-          key: cache-mac-{{ checksum "package-lock.json" }}-install
-      - run: |
-          # cache restored
-          if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
-            exit 0
-          else
-            npm ci
-          fi
-      - save_cache:
-          key: cache-mac-{{ checksum "package-lock.json" }}-install
-          paths:
-            - node_modules
-            - packages/__tests__/node_modules
-
-            - packages-tooling/__tests__/node_modules
-            - packages-tooling/au/node_modules
-            - packages-tooling/babel-jest/node_modules
-            - packages-tooling/http-server/node_modules
-            - packages-tooling/parcel-transformer/node_modules
-            - packages-tooling/plugin-conventions/node_modules
-            - packages-tooling/plugin-gulp/node_modules
-            - packages-tooling/ts-jest/node_modules
-            - packages-tooling/vite-plugin/node_modules
-            - packages-tooling/webpack-loader/node_modules
-      # instead of doing the following 2 commands
-      # - checkout_install
-      # just restore some cache from previous steps
-      # - run: chown -R $USER:$USER /home/circleci
-      - run: npm run build:release
-      - run:
-          name: "Run e2e script"
-          working_directory: << parameters.path >>
-          command: |
-            npx playwright install webkit
-            npm run test
-          no_output_timeout: "1m"
-
   # Standalone playwright test jobs
   e2e_verdaccio:
     executor: docker_circleci
@@ -822,14 +775,6 @@ workflows:
           requires:
             - build_release
 
-      # no longer necessary since the changes related to fragment adoption has been reverted
-      # though keeping it around for a bit longer in case there's a need again
-      # - e2e_safari:
-      #     <<: *filter_ignore_develop_release
-      #     name: safari16_select
-      #     path: "packages/__e2e__/select-safari16"
-      #     requires:
-      #       - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_gh_issues

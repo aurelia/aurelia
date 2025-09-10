@@ -5,11 +5,14 @@ import type {
   IndexMap,
 } from '@aurelia/runtime';
 import type {
+  IController,
   IRenderLocation, ISyntheticView,
 } from '@aurelia/runtime-html';
 
-export interface IVirtualRepeater<T extends Collection = Collection> extends IScrollerSubscriber {
+export interface IVirtualRepeater<T extends Collection = Collection> {
   readonly items: T | undefined | null;
+  readonly location: IRenderLocation;
+  readonly $controller?: IController;
 
   getViews(): readonly ISyntheticView[];
   getDistances(): [top: number, bottom: number];
@@ -17,48 +20,20 @@ export interface IVirtualRepeater<T extends Collection = Collection> extends ISc
 
 export const IDomRenderer = /*@__PURE__*/DI.createInterface<IDomRenderer>('IDomRenderer');
 export interface IDomRenderer {
-  render(target: HTMLElement | IRenderLocation): IVirtualRepeatDom;
+  render(target: HTMLElement | IRenderLocation, layout?: 'vertical' | 'horizontal'): IVirtualRepeatDom;
 }
 
 export interface IVirtualRepeatDom extends IDisposable {
   readonly anchor: HTMLElement | IRenderLocation;
   readonly top: HTMLElement;
   readonly bottom: HTMLElement;
+  readonly layout: 'vertical' | 'horizontal';
 
   readonly scroller: HTMLElement;
 
   get distances(): [number, number];
 
   update(top: number, bot: number): void;
-}
-
-export const IScrollerObsererLocator = /*@__PURE__*/DI.createInterface<IScrollerObsererLocator>('IScrollerObsererLocator');
-export interface IScrollerObsererLocator {
-  getObserver(scroller: HTMLElement): IScrollerObserver;
-}
-
-export interface IScrollerObserver {
-  getValue(): IScrollerInfo;
-  subscribe(sub: IScrollerSubscriber): void;
-  unsubscribe(sub: IScrollerSubscriber): void;
-}
-
-export interface IScrollerSubscriber {
-  handleScrollerChange(scrollerInfo: IScrollerInfo): void;
-}
-
-/**
- * Object with information about current state of a scrollable element
- * Capturing:
- * - current scroll height
- * - current scroll top
- * - real height
- */
-export interface IScrollerInfo {
-  readonly scroller: HTMLElement;
-  readonly scrollTop: number;
-  readonly width: number;
-  readonly height: number;
 }
 
 export const ICollectionStrategyLocator = /*@__PURE__*/DI.createInterface<ICollectionStrategyLocator>('ICollectionStrategyLocator');
@@ -97,4 +72,28 @@ export interface ICollectionStrategy<T extends Collection = Collection> {
 
 export interface ICollectionStrategySubscriber<T extends Collection = Collection> {
   handleCollectionMutation(collection: T, indexMap: IndexMap): void;
+}
+
+export const VIRTUAL_REPEAT_NEAR_TOP = 'near-top';
+export const VIRTUAL_REPEAT_NEAR_BOTTOM = 'near-bottom';
+
+export interface IVirtualRepeatNearTopEvent extends CustomEvent {
+  readonly type: 'near-top';
+  readonly detail: {
+    readonly firstVisibleIndex: number;
+    readonly itemCount: number;
+  };
+}
+
+export interface IVirtualRepeatNearBottomEvent extends CustomEvent {
+  readonly type: 'near-bottom';
+  readonly detail: {
+    readonly lastVisibleIndex: number;
+    readonly itemCount: number;
+  };
+}
+
+export interface IVirtualRepeatEventCallbacks {
+  'near-top'?: (event: IVirtualRepeatNearTopEvent) => void;
+  'near-bottom'?: (event: IVirtualRepeatNearBottomEvent) => void;
 }

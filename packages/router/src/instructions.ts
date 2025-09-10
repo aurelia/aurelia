@@ -365,7 +365,7 @@ export class ViewportInstructionTree {
     return true;
   }
 
-  public toUrl(isFinalInstruction: boolean, parser: IUrlParser): string {
+  public toUrl(isFinalInstruction: boolean, parser: IUrlParser, isRooted: boolean): string {
     let parentPath = '';
 
     if (!isFinalInstruction) {
@@ -391,7 +391,8 @@ export class ViewportInstructionTree {
     return parser.stringify(
       parentPath.length > 0 ? `${parentPath}/${currentPath}` : currentPath,
       this.queryParams,
-      this.fragment
+      this.fragment,
+      isRooted
     );
   }
 

@@ -68,7 +68,9 @@ export class ProductService {
   private readonly ordersProcessed;
   private readonly apiResponseTime;
 
-  constructor(@ITelemetryService private telemetry: ITelemetryService) {
+  private telemetry = resolve(ITelemetryService);
+
+  constructor() {
     // Create custom meter for your metrics
     this.productMeter = this.telemetry.createMeter('MyApp.ProductService');
 
@@ -358,7 +360,9 @@ return await withActivity(
 
 ```typescript
 export class ProductService {
-  constructor(@ITelemetryService private telemetry: ITelemetryService) {
+  private telemetry = resolve(ITelemetryService);
+
+  constructor() {
     this.productMeter = this.telemetry.createMeter('ECommerce.ProductService');
     this.searchesPerformed = this.productMeter.createCounter('searches.performed');
     this.searchLatency = this.productMeter.createHistogram('search.latency', 'Search response time', 'ms');
@@ -420,7 +424,9 @@ export class ProductService {
 
 ```typescript
 export class DashboardComponent {
-  constructor(@ITelemetryService private telemetry: ITelemetryService) {
+  private telemetry = resolve(ITelemetryService);
+
+  constructor() {
     this.dashboardMeter = this.telemetry.createMeter('Dashboard.Component');
     this.widgetLoads = this.dashboardMeter.createCounter('widgets.loaded');
     this.refreshRate = this.dashboardMeter.createGauge('refresh.rate');
@@ -538,7 +544,9 @@ export class ProductPage implements IRouteableComponent {
 
 // After: Optimized with parallel loading + custom telemetry
 export class ProductPage implements IRouteableComponent {
-  constructor(@ITelemetryService private telemetry: ITelemetryService) {
+  private telemetry = resolve(ITelemetryService);
+
+  constructor() {
     this.productMeter = this.telemetry.createMeter('MyApp.ProductPage');
     this.loadTime = this.productMeter.createHistogram('page.load_time', 'Page load time', 'ms');
     this.activitySource = this.telemetry.createActivitySource('MyApp.ProductPage');
@@ -608,11 +616,13 @@ The existing automatic tracking features remain unchanged. The new custom teleme
 
 ```typescript
 // v1 - Still works exactly the same
-Aurelia.register(InsightsPlugin.DefaultConfiguration)
+Aurelia.register(InsightsPlugin.DefaultConfiguration);
 
 // v2 - Add custom telemetry when you need it
 export class MyService {
-  constructor(@ITelemetryService private telemetry: ITelemetryService) {
+  private telemetry = resolve(ITelemetryService);
+
+  constructor() {
     // New opt-in telemetry APIs
     this.meter = this.telemetry.createMeter('MyApp.MyService');
   }

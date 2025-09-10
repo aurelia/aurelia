@@ -38,6 +38,6 @@
     "webpack-bundle-analyzer": "^4.10.1",
     "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^9.3.0",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   }
 }

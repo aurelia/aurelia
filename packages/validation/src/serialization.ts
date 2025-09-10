@@ -6,7 +6,7 @@ import { mixinAstEvaluator } from '@aurelia/runtime-html';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {
   IPropertyRule,
-  IRuleProperty,
+  IProperty,
   IValidationExpressionHydrator,
   IValidationRule,
   IValidationVisitor,
@@ -14,7 +14,7 @@ import {
   IRequiredRule,
   IRegexRule,
 } from './rule-interfaces';
-import { IValidationRules, parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
+import { IValidationRules, parsePropertyName, PropertyRule, Property } from './rule-provider';
 import {
   EqualsRule,
   IValidationMessageProvider,
@@ -26,7 +26,7 @@ import {
 } from './rules';
 import { ErrorNames, createMappedError } from './errors';
 
-export type Visitable<T extends IValidationRule> = (PropertyRule | RuleProperty | T) & { accept(visitor: ValidationSerializer): string };
+export type Visitable<T extends IValidationRule> = (PropertyRule | Property | T) & { accept(visitor: ValidationSerializer): string };
 
 export class ValidationSerializer implements IValidationVisitor {
   public static serialize<T extends IValidationRule>(object: Visitable<T>): string {
@@ -63,14 +63,14 @@ export class ValidationSerializer implements IValidationVisitor {
     }
     return `{"$TYPE":"${EqualsRule.$TYPE}","messageKey":"${rule.messageKey}","tag":${serializePrimitive(rule.tag)},"expectedValue":${serializedExpectedValue}}`;
   }
-  public visitRuleProperty(property: RuleProperty): string {
+  public visitProperty(property: Property): string {
     const displayName = property.displayName;
     const type = typeof displayName;
     if (displayName != null && type !== 'string') {
       throw createMappedError(ErrorNames.serialization_display_name_not_a_string, type);
     }
     const expression = property.expression;
-    return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
+    return `{"$TYPE":"${Property.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
   }
   public visitPropertyRule(propertyRule: PropertyRule): string {
     return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)}}`;
@@ -88,7 +88,7 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
   public static register(container: IContainer) {
     this.container = container;
   }
-  public static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule {
+  public static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IProperty | IPropertyRule {
     const messageProvider = this.container.get(IValidationMessageProvider);
     const parser = this.container.get(IExpressionParser);
     const deserializer = new ValidationDeserializer(this.container, messageProvider, parser);
@@ -151,8 +151,8 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
         rule.tag = astDeserializer.hydrate($raw.tag);
         return rule;
       }
-      case RuleProperty.$TYPE: {
-        const $raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'> = raw;
+      case Property.$TYPE: {
+        const $raw: Pick<Property, 'expression' | 'name' | 'displayName'> = raw;
         const astDeserializer = this.astDeserializer;
         let name: any = $raw.name;
         name = name === 'undefined' ? void 0 : astDeserializer.hydrate(name);
@@ -168,12 +168,11 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
 
         let displayName = $raw.displayName;
         displayName = displayName === 'undefined' ? void 0 : astDeserializer.hydrate(displayName);
-        return new RuleProperty(expression, name, displayName);
+        return new Property(expression, name, displayName);
       }
       case PropertyRule.$TYPE: {
         const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
         return new PropertyRule(
-          this.locator,
           validationRules,
           this.messageProvider,
           this.hydrate($raw.property, validationRules),
@@ -216,7 +215,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
           const rules: IValidationRule[][] = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
           const propertyPrefix = propertyPath.join('.');
           const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-          accRules.push(new PropertyRule(this.l, validationRules, this.messageProvider, property, rules));
+          accRules.push(new PropertyRule(validationRules, this.messageProvider, property, rules));
         } else {
           iterate(Object.entries(value), [...propertyPath, key]);
         }
@@ -312,14 +311,14 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
     return rule;
   }
 
-  private hydrateRuleProperty(raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>) {
+  private hydrateRuleProperty(raw: Pick<Property, 'expression' | 'name' | 'displayName'>) {
     const rawName = raw.name;
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!rawName || typeof rawName !== 'string') {
       throw createMappedError(ErrorNames.hydrate_rule_invalid_name, typeof rawName);
     }
     const [name, expression] = parsePropertyName(rawName, this.parser);
-    return new RuleProperty(expression, name, raw.displayName);
+    return new Property(expression, name, raw.displayName);
   }
 }
 

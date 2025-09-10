@@ -1,6 +1,6 @@
-import { IServiceLocator, newInstanceForScope, resolve } from '@aurelia/kernel';
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
-import { Aurelia, CustomElement, IPlatform, customElement } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   IValidationRules,
@@ -11,9 +11,9 @@ import {
   ControllerValidateResult,
   IValidationController,
   ValidationController,
-  ValidationResultsSubscriber,
   ValidationEvent,
   ValidationHtmlConfiguration,
+  ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util.js';
 import { Person } from '../validation/_test-resources.js';
@@ -125,7 +125,6 @@ describe('validation-html/validation-controller.spec.ts', function () {
       public person2: Person = new Person((void 0)!, (void 0)!);
       public person2rules: PropertyRule[];
 
-      public locator: IServiceLocator = resolve(IServiceLocator);
       public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
       public readonly validationRules: IValidationRules = resolve(IValidationRules);
       public constructor() {
@@ -265,7 +264,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         text: '{ object, propertyName, rules }',
         getValidationInstruction: (app: App) => {
           const { validationRules, messageProvider, property, $rules: [[required,]] } = app.person2rules[1];
-          const rule = new PropertyRule(app.locator, validationRules, messageProvider, property, [[required]]);
+          const rule = new PropertyRule(validationRules, messageProvider, property, [[required]]);
           return new ValidateInstruction(app.person2, void 0, [rule]);
         },
         assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {

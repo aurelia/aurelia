@@ -1,5 +1,6 @@
 import { resolve } from '@aurelia/kernel';
 import {
+  queueTask,
   type Collection,
   type IndexMap,
 } from '@aurelia/runtime';
@@ -67,7 +68,7 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
           return value;
         },
         (error) => {
-          this.endMeasurement(measurementId, { error: error.message });
+          this.endMeasurement(measurementId, { error: (error as Error).message });
           throw error;
         }
       );
@@ -113,7 +114,7 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
           // Complete rendering will be finished in attached()
           return value;
         },
-        (error) => {
+        (error: Error) => {
           this.endMeasurement(attachingMeasurementId, {
             error: error.message,
             finalItemCount: this.getItemCount(),
@@ -133,13 +134,13 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
   }
 
   public attached(
-    initiator: IHydratedController,
-    parent: IHydratedParentController,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
   ): void | Promise<void> {
     // End the comprehensive measurement after views are attached and DOM is ready
     // Use platform.domQueue to ensure browser has had chance to paint
     if (this.comprehensiveRenderMeasurementId) {
-      this.platform.domQueue.queueTask(() => {
+      queueTask(() => {
         this.endComprehensiveRenderMeasurement({
           totalViews: this.getItemCount(),
           renderingComplete: true,
@@ -169,7 +170,7 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
           this.endMeasurement(measurementId, { completed: true });
           return value;
         },
-        (error) => {
+        (error: Error) => {
           this.endMeasurement(measurementId, { error: error.message });
           throw error;
         }
@@ -197,7 +198,7 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
           this.endMeasurement(measurementId);
           return value;
         },
-        (error) => {
+        (error: Error) => {
           this.endMeasurement(measurementId, { error: error.message });
           throw error;
         }
@@ -237,7 +238,7 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
     });
 
     // End comprehensive measurement after DOM updates
-    this.platform.domQueue.queueTask(() => {
+    queueTask(() => {
       this.endMeasurement(comprehensiveMeasurementId, {
         newItemCount,
         itemDelta: newItemCount - oldItemCount,
@@ -282,7 +283,7 @@ export class PerformanceRepeat<C extends Collection = unknown[]> extends Repeat<
     });
 
     // End comprehensive measurement after DOM updates
-    this.platform.domQueue.queueTask(() => {
+    queueTask(() => {
       this.endMeasurement(comprehensiveMeasurementId, {
         finalItemCount: this.getActualItemCount(),
         updateComplete: true,

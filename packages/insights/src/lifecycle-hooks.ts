@@ -240,7 +240,7 @@ export class PerformanceLifecycleHooks {
 
   private getComponentName(vm: unknown, initiator: IController): string {
     // Priority 1: Get name from the actual view model constructor (most accurate)
-    if (vm !== null && vm !== undefined) {
+    if (vm != null) {
       const constructorName = vm.constructor?.name;
       if (constructorName && constructorName !== 'Object') {
         return constructorName;

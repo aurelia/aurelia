@@ -48,8 +48,7 @@ export class ParsedUrl {
 
 export interface IUrlParser {
   parse(value: string): ParsedUrl;
-  stringify(value: ParsedUrl): string;
-  stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null): string;
+  stringify(path: string, query: Readonly<URLSearchParams>, fragment: string | null, isRooted: boolean): string;
 }
 
 function stringify(value: ParsedUrl): string;
@@ -78,7 +77,7 @@ export const pathUrlParser: IUrlParser = Object.freeze({
   parse(value: string): ParsedUrl {
     return ParsedUrl._create(value);
   },
-  stringify(pathOrParsedUrl: ParsedUrl | string, query?: Readonly<URLSearchParams>, fragment?: string | null): string {
+  stringify(pathOrParsedUrl: ParsedUrl | string, query?: Readonly<URLSearchParams>, fragment?: string | null, _isRooted?: boolean): string {
     return stringify(pathOrParsedUrl as string, query as Readonly<URLSearchParams>, fragment as string);
   }
 });
@@ -98,7 +97,7 @@ export const fragmentUrlParser: IUrlParser = Object.freeze({
     }
     return ParsedUrl._create(value);
   },
-  stringify(pathOrParsedUrl: ParsedUrl | string, query?: Readonly<URLSearchParams>, fragment?: string | null): string {
-    return `/#/${stringify(pathOrParsedUrl as string, query as Readonly<URLSearchParams>, fragment as string)}`;
+  stringify(pathOrParsedUrl: string, query?: Readonly<URLSearchParams>, fragment?: string | null, isRooted?: boolean): string {
+    return `${isRooted ? '/#/' : ''}${stringify(pathOrParsedUrl, query as Readonly<URLSearchParams>, fragment as string)}`;
   }
 });

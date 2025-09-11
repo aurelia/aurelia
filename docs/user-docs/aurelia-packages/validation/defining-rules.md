@@ -398,6 +398,50 @@ validationRules
 When using `@aurelia/validation-i18n` to localize the messages, the message lookup can have the key of the localized message instead of the message itself.
 {% endhint %}
 
+**Group rule using `.ensureGroup`**
+
+The `.ensureGroup` method allows you to define a validation rule that depends on the values of multiple properties at once. This is useful for cross-field validation scenarios, such as ensuring consistency between related fields.
+
+The method takes an array of string property names (or property accessors in the form of arrow functions) and a validation function. The validation function receives the values of the specified properties (in order) and should return a result object of the shape `true | {property: string, message?: string}`. If the validation function returns `true` then the group of properties are considered valid for the rule. Otherwise, `property` specified in the result is considered invalid. The function can be synchronous or asynchronous (returning a `Promise<true | {property: string, message?: string}>`).
+
+To demonstrate the usage, let us consider a `Flight` class with properties `direction`, `departureDate`, and `returnDate` and the following rules:
+- The direction must be either 'one-way' or 'round-trip'.
+- For 'one-way' flights, `returnDate` must not be set.
+- For 'round-trip', `returnDate` must be after `departureDate`.
+
+You can use `.ensureGroup` as follows:
+
+```typescript
+validationRules
+  .on(flight)
+  .ensure('direction')
+    .required()
+  .ensureGroup(
+    ['direction', 'departureDate', 'returnDate'],
+    (direction: 'one-way' | 'round-trip', departureDate?: Date, returnDate?: Date) => {
+      // if the direction is not yet specified, we don't have to validate anything
+      if (!direction) return true;
+      const $departureDate = departureDate ? new Date(departureDate) : undefined;
+      const $returnDate = returnDate ? new Date(returnDate) : undefined;
+      switch (direction) {
+        case 'round-trip':
+          return $departureDate > $returnDate
+            ? { property: 'departureDate', message: 'Not possible to go back in time' }
+            : true;
+        case 'one-way':
+          if ($departureDate < currentDate) return { property: 'departureDate', message: 'No time travel possible' };
+          if ($returnDate) return { property: 'returnDate', message: 'One way flight has no return' };
+          return true;
+        default:
+          return { property: 'direction', message: 'Invalid flight direction' };
+      }
+  });
+```
+
+Note that when a property in the group changes, using the `.ensureGroup` API, validation error for other properties can be returned as well.
+Therefore, if the `direction` property is changed, and by doing that it results in invalid `returnDate`, using this API the inconsistency is now reported.
+This is distinctively different from the other rules where only the property that is changed is validated.
+
 **Defining rules for multiple objects**
 
 Rules on multiple objects can be defined by simply using the API in sequence for multiple objects. An example is shown below.

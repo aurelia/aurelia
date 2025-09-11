@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Class, DI } from '@aurelia/kernel';
 import { type IsBindingBehavior, IExpressionParser } from '@aurelia/expression-parser';
+import { Class, DI } from '@aurelia/kernel';
+import { Scope } from '@aurelia/runtime';
 import { Deserializer } from './ast-serialization';
 import { IValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
+export type RuleExecutionResults = { property: IProperty; valid: boolean }[];
 
 export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
   tag?: string;
@@ -18,9 +20,10 @@ export interface IValidationRule<TValue = any, TObject extends IValidateable = I
    *
    * @param value - value to validate
    * @param object - target object
-   * @returns {(boolean | Promise<boolean>)} - `true | Promise<true>` if the validation is successful, else `false | Promise<false>`.
+   * @returns {(boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>)} - `true | Promise<true>` if the validation is successful, else `false | RuleExecutionResults | Promise<false | RuleExecutionResults>`.
    */
-  execute(value: TValue, object?: TObject): boolean | Promise<boolean>;
+  execute(value: TValue, object?: TObject): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
+  execute(value: TValue, object: TObject | undefined, scope: Scope): boolean | RuleExecutionResults | Promise<boolean | RuleExecutionResults>;
   accept(visitor: IValidationVisitor): any;
 }
 
@@ -49,7 +52,7 @@ export type ValidationDisplayNameAccessor = () => string;
 /**
  * Describes a property to be validated.
  */
-export interface IRuleProperty {
+export interface IProperty {
   /**
    * parsed property expression.
    */
@@ -69,7 +72,7 @@ export interface IRuleProperty {
  * Describes a collection of rules, defined on a property.
  */
 export interface IPropertyRule {
-  property: IRuleProperty;
+  property: IProperty;
   $rules: IValidationRule[][];
   accept(visitor: IValidationVisitor): any;
 }
@@ -81,7 +84,7 @@ export interface IValidationVisitor {
   visitSizeRule(rule: ISizeRule): string;
   visitRangeRule(rule: IRangeRule): string;
   visitEqualsRule(rule: IEqualsRule): string;
-  visitRuleProperty(property: IRuleProperty): string;
+  visitProperty(property: IProperty): string;
   visitPropertyRule(propertyRule: IPropertyRule): string;
 }
 

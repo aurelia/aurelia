@@ -1,43 +1,45 @@
-import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
+  AccessScopeExpression,
   IExpressionParser,
   Interpolation,
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
-  AccessScopeExpression,
 } from '@aurelia/expression-parser';
+import { Class, DI, ILogger, isArray, resolve, toArray } from '@aurelia/kernel';
 import {
-  Scope,
   type IAstEvaluator,
+  Scope,
   astEvaluate,
   mixinNoopAstEvaluator,
 } from '@aurelia/runtime';
+import { ErrorNames, createMappedError } from './errors';
 import {
-  ValidationRuleAlias,
-  RequiredRule,
-  RegexRule,
-  LengthRule,
-  SizeRule,
-  RangeRule,
-  EqualsRule,
-  IValidationMessageProvider,
-  ValidationRuleAliasMessage,
-  BaseValidationRule,
-  StateRule,
-  explicitMessageKey,
-} from './rules';
-import {
-  IValidateable,
-  ValidationRuleExecutionPredicate,
-  IValidationVisitor,
-  ValidationDisplayNameAccessor,
-  IRuleProperty,
   IPropertyRule,
+  IProperty,
+  IValidateable,
   IValidationExpressionHydrator,
   IValidationRule,
+  IValidationVisitor,
+  ValidationDisplayNameAccessor,
+  ValidationRuleExecutionPredicate
 } from './rule-interfaces';
+import {
+  BaseValidationRule,
+  EqualsRule,
+  GroupRule,
+  GroupValidationResult,
+  IValidationMessageProvider,
+  LengthRule,
+  RangeRule,
+  RegexRule,
+  RequiredRule,
+  SizeRule,
+  StateRule,
+  ValidationRuleAlias,
+  ValidationRuleAliasMessage,
+  explicitMessageKey,
+} from './rules';
 import { defineMetadata, deleteMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
-import { ErrorNames, createMappedError } from './errors';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
@@ -50,15 +52,15 @@ export interface ICustomMessage<TRule extends IValidationRule = IValidationRule>
 /* @internal */
 export const ICustomMessages = /*@__PURE__*/DI.createInterface<ICustomMessage[]>('ICustomMessages');
 
-export class RuleProperty implements IRuleProperty {
-  public static $TYPE: string = 'RuleProperty';
+export class Property implements IProperty {
+  public static $TYPE: string = 'Property';
   public constructor(
     public expression?: IsBindingBehavior,
     public name: string | number | undefined = void 0,
     public displayName: string | ValidationDisplayNameAccessor | undefined = void 0,
   ) { }
   public accept(visitor: IValidationVisitor): string {
-    return visitor.visitRuleProperty(this);
+    return visitor.visitProperty(this);
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,17 +123,13 @@ export interface PropertyRule extends IAstEvaluator { }
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
-  /** @internal */
-  public readonly l: IServiceLocator;
 
   public constructor(
-    locator: IServiceLocator,
     public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
-    public property: RuleProperty,
+    public property: Property,
     public $rules: IValidationRule[][] = [[]],
   ) {
-    this.l = locator;
   }
 
   public accept(visitor: IValidationVisitor): string {
@@ -169,35 +167,55 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     let isValid = true;
     const validateRuleset = async (rules: IValidationRule[]) => {
       const validateRule = async (rule: IValidationRule) => {
-        let isValidOrPromise = rule.execute(value, object);
+        const createValidationResult = (valid: boolean, property: IProperty) => {
+          let message: string | undefined;
+          if (!valid) {
+            const messageEvaluationScope = Scope.create(
+              new ValidationMessageEvaluationContext(
+                this.messageProvider,
+                this.messageProvider.getDisplayName(property.name, property.displayName),
+                property.name,
+                value,
+                rule,
+                object,
+              ));
+            message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
+          }
+          return new ValidationResult(valid, message, property.name, object, rule, this);
+        };
+
+        let isValidOrPromise = rule.execute(value, object, scope!);
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
         }
-        isValid = isValid && isValidOrPromise;
-        const { displayName, name } = this.property;
-        let message: string | undefined;
-        if (!isValidOrPromise) {
-          const messageEvaluationScope = Scope.create(
-            new ValidationMessageEvaluationContext(
-              this.messageProvider,
-              this.messageProvider.getDisplayName(name, displayName),
-              name,
-              value,
-              rule,
-              object,
-            ));
-          message = astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null) as string;
+        switch (true) {
+          case isValidOrPromise === true:
+            isValid = isValid && true;
+            return [new ValidationResult(true, void 0, this.property.name, object, rule, this)];
+          case isValidOrPromise === false:
+            isValid = isValid && false;
+            return [createValidationResult(false, this.property)];
+          case isArray(isValidOrPromise): {
+            const length = isValidOrPromise.length;
+            const validationResults: ValidationResult[] = new Array(length);
+            for (let i = 0; i < length; ++i) {
+              const { property, valid } = isValidOrPromise[i];
+              isValid = isValid && valid;
+              validationResults[i] = createValidationResult(valid, property);
+            }
+            return validationResults;
+          }
+          default: throw createMappedError(ErrorNames.invalid_rule_execution_result, isValidOrPromise);
         }
-        return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };
 
-      const promises: Promise<ValidationResult>[] = [];
+      const promises: Promise<ValidationResult[]>[] = [];
       for (const rule of rules) {
         if (rule.canExecute(object) && (tag === void 0 || rule.tag === tag)) {
           promises.push(validateRule(rule));
         }
       }
-      return Promise.all(promises);
+      return toArray(await Promise.all(promises)).flat();
     };
     const accumulateResult = async (results: ValidationResult[], rules: IValidationRule[]) => {
       const result = await validateRuleset(rules);
@@ -409,6 +427,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this.validationRules.ensure<TValue>(property);
   }
 
+  public ensureGroup<TProp extends keyof TObject, TValue>(
+    properties: (TProp | PropertyAccessor<TObject, TValue>)[],
+    validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ): IValidationRules<TObject> {
+    this.latestRule = void 0;
+    return this.validationRules.ensureGroup(properties, validationFunction);
+  }
+
   /**
    * Targets an object with validation rules.
    */
@@ -456,6 +482,11 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
   ensure<TValue>(property: string | PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
 
+  ensureGroup<TProp extends keyof TObject, TValue>(
+    properties: (TProp | PropertyAccessor<TObject, TValue>)[],
+    validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ): IValidationRules<TObject>;
+
   /**
    * Targets an object with validation rules.
    */
@@ -484,7 +515,6 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public rules: PropertyRule[] = [];
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
-  private readonly locator: IServiceLocator = resolve(IServiceLocator);
   private readonly parser: IExpressionParser = resolve(IExpressionParser);
   private readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider);
   private readonly deserializer: IValidationExpressionHydrator = resolve(IValidationExpressionHydrator);
@@ -496,14 +526,55 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty(expression, name));
+      rule = new PropertyRule(this, this.messageProvider, new Property(expression, name));
       this.rules.push(rule);
     }
     return rule;
   }
 
+  public ensureGroup(
+    properties: (keyof TObject | string | PropertyAccessor)[],
+    validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
+  ) {
+    /**
+     * - Parses the properties.
+     * - Finds or creates a rule for each property.
+     * - Creates a new GroupRule with the parsed properties and validation function.
+     * - Adds the new group rule to the rules of each target property
+     */
+    const numProperties = properties.length;
+    if (numProperties === 0) return this;
+
+    const ruleProperties: IProperty[] = new Array(numProperties);
+    const rules: PropertyRule[] = new Array(numProperties);
+
+    for (let i = 0; i < numProperties; ++i) {
+      const [name, expression] = parsePropertyName(properties[i] as any, this.parser);
+      // eslint-disable-next-line eqeqeq
+      let rule = this.rules.find((r) => r.property.name == name);
+      let ruleProperty: IProperty;
+      if (rule == null) {
+        ruleProperty = new Property(expression, name);
+        rule = new PropertyRule(this, this.messageProvider, ruleProperty);
+        this.rules.push(rule);
+      } else {
+        ruleProperty = rule.property;
+      }
+      ruleProperties[i] = ruleProperty;
+      rules[i] = rule;
+    }
+
+    const groupRule = new GroupRule(ruleProperties, validationFunction);
+    for (let i = 0; i < numProperties; ++i) {
+      const rule = rules[i];
+      rule.addRule(groupRule);
+    }
+
+    return this;
+  }
+
   public ensureObject(): PropertyRule {
-    const rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty());
+    const rule = new PropertyRule(this, this.messageProvider, new Property());
     this.rules.push(rule);
     return rule;
   }
@@ -620,7 +691,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
-  protected registeredMessages: WeakMap<IValidationRule, Map<string|symbol, Interpolation | PrimitiveLiteralExpression>> = new WeakMap();
+  protected registeredMessages: WeakMap<IValidationRule, Map<string | symbol, Interpolation | PrimitiveLiteralExpression>> = new WeakMap();
 
   public parser: IExpressionParser = resolve(IExpressionParser);
   public constructor(

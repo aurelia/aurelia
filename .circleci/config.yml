@@ -25,6 +25,8 @@ map-2: &filter_only_master
     branches:
       only:
         - master
+    tags:
+      ignore: /.*/
 
 map-3: &filter_only_release
   filters:
@@ -709,42 +711,171 @@ jobs:
             echo "There are more than doc changes, running workflow $CIRCLE_WORKFLOW_ID..."
           fi
 
+  publish_pr_preview:
+    executor: docker_release
+    steps:
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      - run:
+          name: "Compute PR suffix"
+          command: |
+            SHORT_SHA=$(echo "$CIRCLE_SHA1" | cut -c1-7)
+            echo "PR_SUFFIX=pr.${CIRCLE_PR_NUMBER:-0}.${SHORT_SHA}" | tee -a $BASH_ENV
+            echo "Using suffix: ${PR_SUFFIX}"
+      - run:
+          name: "Bump all package versions to dev pre-release with PR suffix"
+          command: npm run bump-version:dev -- ${PR_SUFFIX}
+      - run:
+          name: "Configure npm for GitHub Packages (@aurelia scope)"
+          command: |
+            npm config set @aurelia:registry https://npm.pkg.github.com
+            echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
+      - run:
+          name: "Publish all packages (dev tag) to GitHub Packages"
+          command: npm run publish:dev
+      - run:
+          name: "Echo preview version"
+          command: |
+            V=$(node -p 'require("./packages/aurelia/package.json").version')
+            echo "PR preview version: ${V}" | tee PR_PREVIEW_VERSION.txt
+      - store_artifacts:
+          path: PR_PREVIEW_VERSION.txt
+          destination: PR_PREVIEW_VERSION.txt
+
 # # # # # # # # # # # # # # # #
 # - Workflows -
 # # # # # # # # # # # # # # # #
 workflows:
+  pr_lite:
+    # Fast workflow for PR branches
+    jobs:
+      - check_doc_abort:
+          <<: *filter_only_topic
+          name: pr_lite_check_doc
+
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: pr_lite_install
+          requires:
+            - pr_lite_check_doc
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: pr_lite_build
+          release: true
+          command: npm run build:release
+          requires:
+            - pr_lite_install
+
+      - unit_test_esm_node:
+          <<: *filter_only_topic
+          name: pr_lite_test_node
+          requires:
+            - pr_lite_build
+
+      - e2e_test:
+          <<: *filter_only_topic
+          name: pr_lite_e2e_smoke_vite
+          path: "packages/__e2e__/1-gh-issues"
+          requires:
+            - pr_lite_build
+
+      - publish_pr_preview:
+          <<: *filter_only_topic
+          name: pr_lite_publish_preview
+          requires:
+            - pr_lite_build
+
+  pr_full:
+    # Manual, on-demand validation for PR branches
+    jobs:
+      - request_pr_full:
+          <<: *filter_only_topic
+          type: approval
+
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: pr_full_install
+          requires:
+            - request_pr_full
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: pr_full_build_release
+          release: true
+          command: npm run build:release
+          requires:
+            - pr_full_install
+
+      - unit_test_esm:
+          <<: *filter_only_topic
+          name: pr_full_test_chrome
+          requires:
+            - pr_full_build_release
+
+      - unit_test_esm_node:
+          <<: *filter_only_topic
+          name: pr_full_test_node
+          requires:
+            - pr_full_build_release
+
+      - unit_test_cjs:
+          <<: *filter_only_topic
+          name: pr_full_test_toolings
+          requires:
+            - pr_full_build_release
+
+      - e2e_test:
+          <<: *filter_only_topic
+          name: pr_full_e2e_hmr_vite
+          path: "packages/__e2e__/2-hmr-vite"
+          requires:
+            - pr_full_build_release
+
+      - e2e_test:
+          <<: *filter_only_topic
+          name: pr_full_e2e_router
+          path: "packages/__e2e__/6-router"
+          run_webpack: true
+          requires:
+            - pr_full_build_release
   # Runs build and tests
   # Triggered by push to master or topic branches
   build_test:
     jobs:
       - check_doc_abort:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
       - checkout_install_cache:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: checkout_install
           requires:
               - check_doc_abort
       # - build_and_cache:
-      #     <<: *filter_ignore_develop_release
+      #     <<: *filter_only_master
       #     name: build_dev
       #     requires:
       #         - checkout_install
       - build_and_cache:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: build_release
           command: npm run build:release
           release: true
           requires:
               - checkout_install
       - unit_test_esm:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: test_chrome
           npm_command: "test-chrome"
           install_chrome: true
           requires:
             - build_release
       # - unit_test_esm:
-      #     <<: *filter_ignore_develop_release
+      #     <<: *filter_only_master
       #     name: test_firefox
       #     npm_command: "test-firefox"
       #     install_firefox: true
@@ -752,156 +883,156 @@ workflows:
       #     requires:
       #       - build_release
       - unit_test_esm_node:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: test_node
           requires:
             - build_release
       - unit_test_cjs:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: test_toolings
           requires:
             - build_release
 
       - lint_packages:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           requires:
             - checkout_install
 
       - e2e_verdaccio:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_verdaccio_parcel_ts
           path: "test/verdaccio-apps/parcel-conventions"
           requires:
             - build_release
 
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_gh_issues
           path: "packages/__e2e__/1-gh-issues"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_hmr_vite
           path: "packages/__e2e__/2-hmr-vite"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_vite_wo_convention
           path: "packages/__e2e__/9-vite-wo-convention"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_hmr_webpack
           path: "packages/__e2e__/3-hmr-webpack"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_router
           path: "packages/__e2e__/6-router"
           run_webpack: true
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_router_none_history_with_hash
           path: "packages/__e2e__/10-router-none-history-with-hash"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_router_direct
           path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_i18n
           path: "packages/__e2e__/4-i18n"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_validation_issue_2025
           path: "packages/__e2e__/11-validation"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_type_check
           path: "packages/__e2e__/12-type-check"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_virtual_repeat
           path: "packages/__e2e__/8-ui-virtualization"
           requires:
             - build_release
       - tacho_benchmark_prep:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           requires:
             - build_release
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_startup
           command: npm run bench:startup10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_startup___custom_element
           command: npm run bench:startup10k-ce
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_rerender
           command: npm run bench:rerender10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_rerender__custom_element
           command: npm run bench:rerender10k-ce
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_rerender1k-big-template
           command: npm run bench:rerender1k-big
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_startup1k-big-template
           command: npm run bench:startup1k-big
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_update
           command: npm run bench:update1k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_repeat_keyed_expression
           command: npm run bench:repeat-expr
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_repeat_keyed_string
           command: npm run bench:repeat-string
           requires:
             - tacho_benchmark_prep
 
       # - e2e_verdaccio:
-      #     <<: *filter_ignore_develop_release
+      #     <<: *filter_only_master
       #     name: webpack_vanilla_ts
       #     path: "examples/jit-webpack-vanilla-ts"
       #     requires:

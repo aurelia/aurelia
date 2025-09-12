@@ -15,7 +15,7 @@ import {
   IValidationRule,
   parsePropertyName,
   ValidationSerializer,
-  RuleProperty,
+  Property,
   ValidationDeserializer,
   ModelBasedRule,
   IValidator,
@@ -78,20 +78,20 @@ describe('validation/serialization.spec.ts', function () {
       public constructor(public readonly property: string, public readonly serializedProperty: string) { }
     }
     const properties = [
-      new RulePropertyTestData('prop', '{"$TYPE":"RuleProperty","name":"\\"prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"displayName":"undefined"}'),
-      new RulePropertyTestData('obj.prop', '{"$TYPE":"RuleProperty","name":"\\"obj.prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"displayName":"undefined"}'),
-      new RulePropertyTestData('prop[0]', '{"$TYPE":"RuleProperty","name":"\\"prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}'),
-      new RulePropertyTestData('prop[0].prop2', '{"$TYPE":"RuleProperty","name":"\\"prop[0].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}}},"displayName":"undefined"}'),
-      new RulePropertyTestData('obj.prop[0]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}'),
-      new RulePropertyTestData('prop[a]', '{"$TYPE":"RuleProperty","name":"\\"prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}'),
-      new RulePropertyTestData('prop[a].prop2', '{"$TYPE":"RuleProperty","name":"\\"prop[a].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}}},"displayName":"undefined"}'),
-      new RulePropertyTestData('obj.prop[a]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}'),
-      new RulePropertyTestData('prop["a"]', '{"$TYPE":"RuleProperty","name":"\\"prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
-      new RulePropertyTestData('prop["a"].prop2', '{"$TYPE":"RuleProperty","name":"\\"prop[\\"a\\"].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}}},"displayName":"undefined"}'),
-      new RulePropertyTestData('obj.prop["a"]', '{"$TYPE":"RuleProperty","name":"\\"obj.prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
-      new RulePropertyTestData("prop['a']", `{"$TYPE":"RuleProperty","name":"\\"prop['a']\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}`),
+      new RulePropertyTestData('prop', '{"$TYPE":"Property","name":"\\"prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"displayName":"undefined"}'),
+      new RulePropertyTestData('obj.prop', '{"$TYPE":"Property","name":"\\"obj.prop\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"displayName":"undefined"}'),
+      new RulePropertyTestData('prop[0]', '{"$TYPE":"Property","name":"\\"prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}'),
+      new RulePropertyTestData('prop[0].prop2', '{"$TYPE":"Property","name":"\\"prop[0].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}}},"displayName":"undefined"}'),
+      new RulePropertyTestData('obj.prop[0]', '{"$TYPE":"Property","name":"\\"obj.prop[0]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":0}},"displayName":"undefined"}'),
+      new RulePropertyTestData('prop[a]', '{"$TYPE":"Property","name":"\\"prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}'),
+      new RulePropertyTestData('prop[a].prop2', '{"$TYPE":"Property","name":"\\"prop[a].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}}},"displayName":"undefined"}'),
+      new RulePropertyTestData('obj.prop[a]', '{"$TYPE":"Property","name":"\\"obj.prop[a]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"AccessScopeExpression","name":"a","ancestor":0}},"displayName":"undefined"}'),
+      new RulePropertyTestData('prop["a"]', '{"$TYPE":"Property","name":"\\"prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
+      new RulePropertyTestData('prop["a"].prop2', '{"$TYPE":"Property","name":"\\"prop[\\"a\\"].prop2\\"","expression":{"$TYPE":"AccessMemberExpression","name":"prop2","object":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}}},"displayName":"undefined"}'),
+      new RulePropertyTestData('obj.prop["a"]', '{"$TYPE":"Property","name":"\\"obj.prop[\\"a\\"]\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessMemberExpression","name":"obj","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}'),
+      new RulePropertyTestData("prop['a']", `{"$TYPE":"Property","name":"\\"prop['a']\\"","expression":{"$TYPE":"AccessKeyedExpression","object":{"$TYPE":"AccessMemberExpression","name":"prop","object":{"$TYPE":"AccessScopeExpression","name":"$root","ancestor":0}},"key":{"$TYPE":"PrimitiveLiteralExpression","value":"\\"a\\""}},"displayName":"undefined"}`),
     ];
-    const rulePropWithUndExpr = new RulePropertyTestData('prop', '{"$TYPE":"RuleProperty","name":"\\"prop\\"","expression":null,"displayName":"undefined"}');
+    const rulePropWithUndExpr = new RulePropertyTestData('prop', '{"$TYPE":"Property","name":"\\"prop\\"","expression":null,"displayName":"undefined"}');
     describe('serialization', function () {
       for (const { name, getRule, serializedRule } of list) {
         it(`works for ${name}`, function () {
@@ -99,39 +99,39 @@ describe('validation/serialization.spec.ts', function () {
         });
       }
       for (const { property, serializedProperty } of properties) {
-        it(`works for RuleProperty - ${property}`, function () {
+        it(`works for Property - ${property}`, function () {
           const { parser } = setup();
           const [name, expression] = parsePropertyName(property, parser);
-          const ruleProperty = new RuleProperty(expression, name);
+          const ruleProperty = new Property(expression, name);
           assert.strictEqual(ValidationSerializer.serialize(ruleProperty), serializedProperty);
         });
-        it(`works for RuleProperty - ${property} with display name`, function () {
+        it(`works for Property - ${property} with display name`, function () {
           const { parser } = setup();
           const [name, expression] = parsePropertyName(property, parser);
-          const ruleProperty = new RuleProperty(expression, name, 'foo');
+          const ruleProperty = new Property(expression, name, 'foo');
           assert.strictEqual(ValidationSerializer.serialize(ruleProperty), serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'));
         });
       }
-      it('works for RuleProperty with undefined expression', function () {
+      it('works for Property with undefined expression', function () {
         setup();
-        const ruleProperty = new RuleProperty(void 0, rulePropWithUndExpr.property);
+        const ruleProperty = new Property(void 0, rulePropWithUndExpr.property);
         assert.strictEqual(ValidationSerializer.serialize(ruleProperty), rulePropWithUndExpr.serializedProperty);
       });
-      it(`throws error serializing RuleProperty if the displayName is not a string`, function () {
+      it(`throws error serializing Property if the displayName is not a string`, function () {
         const { parser } = setup();
         assert.throws(() => {
           const [name, expression] = parsePropertyName('foo', parser);
-          const ruleProperty = new RuleProperty(expression, name, () => 'foo');
+          const ruleProperty = new Property(expression, name, () => 'foo');
           ValidationSerializer.serialize(ruleProperty);
         }, 'Serializing a non-string displayName for rule property is not supported.');
       });
       it(`works for PropertyRule`, function () {
-        const { parser, messageProvider, validationRules, container } = setup();
+        const { parser, messageProvider, validationRules } = setup();
         const { property, serializedProperty } = properties[0];
         const [name, expression] = parsePropertyName(property, parser);
-        const ruleProperty = new RuleProperty(expression, name);
+        const ruleProperty = new Property(expression, name);
         const [req, regex, maxLen] = simpleRuleList;
-        const propertyRule = new PropertyRule(container, validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
+        const propertyRule = new PropertyRule(validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
         assert.strictEqual(ValidationSerializer.serialize(propertyRule), `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`);
       });
     });
@@ -146,38 +146,38 @@ describe('validation/serialization.spec.ts', function () {
         });
       }
       for (const { property, serializedProperty } of properties) {
-        it(`works for RuleProperty - ${property}`, function () {
+        it(`works for Property - ${property}`, function () {
           const { parser } = setup();
           const [name, expression] = parsePropertyName(property, parser);
-          const expected = new RuleProperty(expression, name);
+          const expected = new Property(expression, name);
           const actual = ValidationDeserializer.deserialize(serializedProperty, null!);
           assert.instanceOf(actual, expected.constructor);
           assert.deepStrictEqual(actual, expected);
         });
-        it(`works for RuleProperty - ${property} with display name`, function () {
+        it(`works for Property - ${property} with display name`, function () {
           const { parser } = setup();
           const [name, expression] = parsePropertyName(property, parser);
-          const expected = new RuleProperty(expression, name, 'foo');
+          const expected = new Property(expression, name, 'foo');
           const actual = ValidationDeserializer.deserialize(serializedProperty.replace('"displayName":"undefined"', '"displayName":"\\"foo\\""'), null!);
           assert.instanceOf(actual, expected.constructor);
           assert.deepStrictEqual(actual, expected);
         });
       }
-      it('works for RuleProperty with undefined expression', function () {
+      it('works for Property with undefined expression', function () {
         const { parser } = setup();
         const [name, expression] = parsePropertyName(rulePropWithUndExpr.property, parser);
-        const expected = new RuleProperty(expression, name);
+        const expected = new Property(expression, name);
         const actual = ValidationDeserializer.deserialize(rulePropWithUndExpr.serializedProperty, null!);
         assert.instanceOf(actual, expected.constructor);
         assert.deepStrictEqual(actual, expected);
       });
       it(`works for PropertyRule`, function () {
-        const { parser, messageProvider, validationRules, container } = setup();
+        const { parser, messageProvider, validationRules } = setup();
         const { property, serializedProperty } = properties[0];
         const [name, expression] = parsePropertyName(property, parser);
-        const ruleProperty = new RuleProperty(expression, name);
+        const ruleProperty = new Property(expression, name);
         const [req, regex, maxLen] = simpleRuleList;
-        const propertyRule = new PropertyRule(container, validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
+        const propertyRule = new PropertyRule(validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
         const actual = ValidationDeserializer.deserialize(`{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`, propertyRule.validationRules);
         assert.instanceOf(actual, propertyRule.constructor);
         assert.deepStrictEqual(actual, propertyRule);
@@ -237,7 +237,7 @@ describe('validation/serialization.spec.ts', function () {
         for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data1) {
           const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
           it(`simple property - ${item.name} - tag: ${tag}`, async function () {
-            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
+            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'Property', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
             const { container, validationRules } = setup();
             validationRules.applyModelBasedRules(Person, [modelBasedRule]);
             const validator = container.get(IValidator);
@@ -249,7 +249,7 @@ describe('validation/serialization.spec.ts', function () {
         for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data2) {
           const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
           it(`collection property - ${item.name} - tag: ${tag}`, async function () {
-            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
+            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'Property', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
             const { container, validationRules } = setup();
             validationRules.applyModelBasedRules(target, [modelBasedRule]);
             const validator = container.get(IValidator);
@@ -260,7 +260,7 @@ describe('validation/serialization.spec.ts', function () {
         for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data3) {
           const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
           it(`nested property - ${item.name} - tag: ${tag}`, async function () {
-            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
+            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'Property', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
             const { container, validationRules } = setup();
             validationRules.applyModelBasedRules(Person, [modelBasedRule]);
             const validator = container.get(IValidator);
@@ -272,7 +272,7 @@ describe('validation/serialization.spec.ts', function () {
         for (const { name, displayName, ruleNameMatcher, errorMessages, target } of data4) {
           const item = simpleRuleList.find((rule) => rule.name.match(ruleNameMatcher) !== null);
           it(`keyed property - ${item.name} - tag: ${tag}`, async function () {
-            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'RuleProperty', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
+            const modelBasedRule = new ModelBasedRule([{ $TYPE: 'PropertyRule', property: { $TYPE: 'Property', name, displayName }, $rules: [[JSON.parse(item.serializedRule)]] }], tag);
             const { container, validationRules } = setup();
             validationRules.applyModelBasedRules(Person, [modelBasedRule]);
             const validator = container.get(IValidator);
@@ -350,7 +350,7 @@ describe('validation/serialization.spec.ts', function () {
           const ruleset = { prop: { displayName, rules: [{ ...modelRule }] } };
           const actual = expressionHydrator.hydrateRuleset(ruleset, validationRules);
           const [propertyName, propertyExpression] = parsePropertyName('prop', parser);
-          const expected = [new PropertyRule(container, validationRules, messageProvider, new RuleProperty(propertyExpression, propertyName, displayName), [[getRule()]])];
+          const expected = [new PropertyRule(validationRules, messageProvider, new Property(propertyExpression, propertyName, displayName), [[getRule()]])];
 
           assert.deepStrictEqual(actual, expected);
           const actualPropRule = actual[0];
@@ -385,10 +385,10 @@ describe('validation/serialization.spec.ts', function () {
       const requiredRule = simpleRuleList[0].getRule();
       const regexRule = simpleRuleList[1].getRule();
       const expected = [
-        new PropertyRule(container, validationRules, messageProvider, new RuleProperty(...parseProperty('prop1')), [[requiredRule, regexRule]]),
-        new PropertyRule(container, validationRules, messageProvider, new RuleProperty(...parseProperty('prop2.subProp1')), [[requiredRule, regexRule]]),
-        new PropertyRule(container, validationRules, messageProvider, new RuleProperty(...parseProperty('prop2.subProp2')), [[requiredRule], [regexRule]]),
-        new PropertyRule(container, validationRules, messageProvider, new RuleProperty(...parseProperty('prop3.subProp1.subSubProp1')), [[requiredRule, regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop1')), [[requiredRule, regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop2.subProp1')), [[requiredRule, regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop2.subProp2')), [[requiredRule], [regexRule]]),
+        new PropertyRule(validationRules, messageProvider, new Property(...parseProperty('prop3.subProp1.subSubProp1')), [[requiredRule, regexRule]]),
       ];
 
       assert.deepStrictEqual(actual, expected);

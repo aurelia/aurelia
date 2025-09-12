@@ -11,3 +11,11 @@ export class Person {
 export class Organization {
   public constructor(public employees: Person[], public address: Address) { }
 }
+
+export class Flight {
+  public constructor(
+    public direction?: 'one-way' | 'round-trip',
+    public departureDate?: Date,
+    public returnDate?: Date,
+  ) { }
+}

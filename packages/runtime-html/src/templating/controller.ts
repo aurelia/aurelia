@@ -1267,7 +1267,7 @@ function createObservers(
         throw createMappedError(ErrorNames.controller_property_not_coercible, name);
       }
     }
-    if (instance[handler] != null
+    if (handler in instance
       || instance.propertyChanged != null
       || hasAggregatedCallbacks
     ) {

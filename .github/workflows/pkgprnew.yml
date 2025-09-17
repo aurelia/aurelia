@@ -23,4 +23,3 @@ jobs:
 
       - name: Publish preview packages
         run: npx pkg-pr-new publish './packages/*' './packages-tooling/*' --compact
-

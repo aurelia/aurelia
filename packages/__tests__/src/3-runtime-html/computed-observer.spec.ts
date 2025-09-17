@@ -569,6 +569,46 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     assert.deepStrictEqual([i1, i2], [3, 2]);
   });
 
+  it('calls callback after notifying subscribers', async function () {
+    const logs = [];
+    const { component } = createFixture(
+      `<el component.ref="el">`,
+      class MyApp {
+        el: { msg: string };
+      },
+      [class El {
+        static $au = {
+          type: 'custom-element',
+          name: 'el',
+          bindables: ['msg'],
+          template: '<let to-binding-context msg2.bind="msg"></let>',
+        };
+
+        private _msg = '';
+        get msg() {
+          return this._msg;
+        }
+        set msg(v) {
+          this._msg = v;
+        }
+
+        msgChanged() {
+          logs.push('callback');
+        }
+
+        set msg2(v) {
+          logs.push('setter');
+        }
+      }]
+    );
+
+    assert.deepStrictEqual(logs, ['setter']);
+    component.el.msg = '1';
+    assert.deepStrictEqual(logs, ['setter']);
+    await Promise.resolve();
+    assert.deepStrictEqual(logs, ['setter', 'setter', 'callback']);
+  });
+
   class Property {
     private _value: string;
     public readonly valueChanged: any;

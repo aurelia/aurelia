@@ -2,11 +2,19 @@ name: PR Previews (pkg.pr.new)
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
   push:
     branches: ["**"]
-    tags: ["!**"]
+    tags-ignore: ["**"]
 
-permissions: {}
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pkgprnew-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   preview:
@@ -22,4 +30,4 @@ jobs:
       - run: npm run build:release
 
       - name: Publish preview packages
-        run: npx pkg-pr-new publish './packages/*' './packages-tooling/*' --compact
+        run: npx pkg-pr-new publish './packages/*' --compact

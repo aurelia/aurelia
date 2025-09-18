@@ -785,11 +785,12 @@ workflows:
           requires:
             - pr_lite_build
 
-      - publish_pr_preview:
-          <<: *filter_only_topic
-          name: pr_lite_publish_preview
-          requires:
-            - pr_lite_build
+      # TODO: Decide after CI overhaul whether or not to keep this
+      #- publish_pr_preview:
+      #    <<: *filter_only_topic
+      #    name: pr_lite_publish_preview
+      #    requires:
+      #      - pr_lite_build
 
   pr_full:
     # Manual, on-demand validation for PR branches

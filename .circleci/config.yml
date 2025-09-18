@@ -579,8 +579,6 @@ jobs:
         default: "http://localhost:4873"
     steps:
       - checkout_install_build_bundle_publish_verdaccio:
-          from: ${CIRCLE_BRANCH}
-          to: develop
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
       - when:

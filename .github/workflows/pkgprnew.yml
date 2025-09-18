@@ -34,5 +34,4 @@ jobs:
           npx pkg-pr-new publish
           "./packages/*"
           --compact
-          --template "./examples/navigation-skeleton"
-          --template "./examples/realworld"
+          --template "./examples/stackblitz"

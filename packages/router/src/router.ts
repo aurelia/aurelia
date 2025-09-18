@@ -231,6 +231,13 @@ export class Router {
 
         const routerOptions = this.options;
         const auNavId = state?.[AuNavId] ?? 0;
+        // Note on the `this._lastLocationChangeStateId === 0` check:
+        // - The _lastLocationChangeStateId is initially 0 and it is only set in this event handler.
+        // - Therefore, if it is still 0, it means this is the first location-change event since the router started.
+        // - The event is only fired by the LocationManager in response to a popstate or hashchange event (due to the press of back/forward buttons in browser).
+        // - So when this event is first raised, since the router started, it can only mean that browser back button is pressed, as so far only forward (states are added to the history stack) navigation has occurred.
+        // - But in that case, the auNavId <= this._lastLocationChangeStateId is surely false, as the _lastLocationChangeStateId is still 0.
+        // - Hence the fallback to the = check to ensure that the first back navigation works as intended.
         const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
         this._lastLocationChangeStateId = auNavId;
         const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });

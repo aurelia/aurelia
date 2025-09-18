@@ -138,10 +138,6 @@ commands:
 
   checkout_install_build_bundle_publish_verdaccio:
     parameters:
-      from:
-        type: string
-      to:
-        type: string
       channel:
         type: string
       suffix:
@@ -151,25 +147,14 @@ commands:
         type: string
         default: "http://localhost:4873"
     steps:
-      - common/configure_git
-      # - checkout_install:
-      #     install_drivers: false
       - checkout
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
           key: cache-{{ .Revision }}-build-true
-      # - run: npm run build:release
-      # - run: npm run change-tsconfigs:invert
-      # - run: npm run build:release
-      # - run: npm run change-tsconfigs:restore
-      # - run: npm run generate-native-modules
-      - clean_merge_commit_dist:
-          from: << parameters.from >>
-          to: << parameters.to >>
-          channel: << parameters.channel >>
-          suffix: << parameters.suffix >>
+      - run: npm run generate-native-modules
+      - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
       - common/setup_verdaccio
       - run: npm config set registry << parameters.registry >>
       - run: npm run publish:<< parameters.channel >>
@@ -711,6 +696,23 @@ jobs:
             echo "There are more than doc changes, running workflow $CIRCLE_WORKFLOW_ID..."
           fi
 
+  publish_dev_from_master:
+    executor: docker_release
+    steps:
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      - run: npm run generate-native-modules
+      - run: npm run bump-version:dev
+      - run:
+          name: "Authenticate with npm registry"
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run: npm run publish:dev
+
   publish_pr_preview:
     executor: docker_release
     steps:
@@ -1038,16 +1040,20 @@ workflows:
       #     path: "examples/jit-webpack-vanilla-ts"
       #     requires:
       #       - build_release
-      - merge_and_dist:
+
+      - request_publish_dev:
           <<: *filter_only_master
-          name: merge_and_dist_master
+          type: approval
+          no_output_timeout: 20m
+
+      - publish_dev_from_master:
+          <<: *filter_only_master
+          name: publish_dev_from_master
           requires:
             - build_release
             - test_chrome
-            # - test_firefox
             - test_node
             - test_toolings
-            # - lint_packages
             - e2e_verdaccio_parcel_ts
             - e2e_gh_issues
             - e2e_hmr_vite
@@ -1056,34 +1062,6 @@ workflows:
             - e2e_router_direct
             - e2e_i18n
             - request_publish_dev
-          from: master
-          to: develop
-          channel: dev
-          push: true
-          merge_topic: false
-      - merge_and_dist:
-          <<: *filter_only_topic
-          name: merge_and_dist_topic
-          from: master
-          to: develop
-          channel: dev
-          dist_file_name: merge_and_dist_topic
-          requires:
-            - request_publish_dev
-            - build_release
-
-      - request_publish_dev:
-          <<: *filter_only_master
-          type: approval
-          no_output_timeout: 20m
-      - publish_npm:
-          <<: *filter_only_master
-          name: publish_npm_dev
-          channel: dev
-          branch: develop
-          swap: true
-          requires:
-            - merge_and_dist_master
 
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)

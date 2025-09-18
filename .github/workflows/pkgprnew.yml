@@ -30,4 +30,9 @@ jobs:
       - run: npm run build:release
 
       - name: Publish preview packages
-        run: npx pkg-pr-new publish './packages/*' --compact
+        run: >
+          npx pkg-pr-new publish
+          "./packages/*"
+          --compact
+          --template "./examples/navigation-skeleton"
+          --template "./examples/realworld"

@@ -3,11 +3,15 @@
   "private": true,
   "version": "0.8.0",
   "scripts": {
+    "dev": "webpack-dev-server",
     "watch": "webpack-dev-server",
     "build": "rimraf --glob dist && webpack --config webpack.config.js",
     "serve": "node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "build-serve": "rimraf --glob dist && webpack --config webpack.config.js && node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
+  },
+  "stackblitz": {
+    "startCommand": "npm run dev"
   },
   "dependencies": {
     "@aurelia/fetch-client": "2.0.0-beta.25",

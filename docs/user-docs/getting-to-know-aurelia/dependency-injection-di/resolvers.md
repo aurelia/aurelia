@@ -1,3 +1,7 @@
+---
+description: Control how dependencies are resolved in Aurelia using resolver helpers like optional, lazy, and all.
+---
+
 # Resolvers
 
 Resolvers in Aurelia 2 are integral to the Dependency Injection (DI) system, providing various strategies for resolving dependencies. This guide will cover each resolver type, its usage, and when to use it, with detailed code examples for both the `@inject` decorator and static `inject` property methods. Additionally, we will discuss how to create custom resolvers.

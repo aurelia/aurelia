@@ -1,3 +1,7 @@
+---
+description: Learn how to define and register services with Aurelia's dependency injection container.
+---
+
 # Creating Injectable Services
 
 ## Overview

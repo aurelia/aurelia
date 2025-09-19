@@ -1,3 +1,7 @@
+---
+description: Bind CSS classes and inline styles in Aurelia templates using expressive syntax.
+---
+
 # Class and style binding
 
 Class and style bindings in Aurelia allow you to bind to CSS properties and add one or more classes to your HTML elements inside of your views.
@@ -43,7 +47,7 @@ You can dynamically add a CSS style value to an element using the `.style` bindi
 
 Inside of your view model, you would specify `bg` as a string value on your class. 
 
-Here is a working example of a style binding setting the background colour to blue:
+Here is a working example of a style binding setting the background color to blue:
 
 {% embed url="https://stackblitz.com/edit/aurelia-conditional-style?embed=1&file=my-app.html&hideExplorer=1&hideNavigation=1&view=preview" %}
 
@@ -96,4 +100,3 @@ export class MyApp {
 {% endcode %}
 
 From a styling perspective, both examples above do the same thing. However, we are passing in an object and binding it to the `style` property instead of a string.
-

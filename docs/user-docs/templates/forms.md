@@ -9,7 +9,7 @@ description: >-
 Forms are the cornerstone of interactive web applications. Whether you're building simple contact forms, complex data-entry systems, or dynamic configuration interfaces, Aurelia provides a comprehensive and performant forms system. This guide covers everything from basic input binding to advanced patterns like collection-based form controls, dynamic form generation, and seamless validation integration.
 
 {% hint style="info" %}
-This guide assumes familiarity with Aurelia's binding system and template syntax. For fundamentals, see [Template Syntax & Features](template-syntax.md) first.
+This guide assumes familiarity with Aurelia's binding system and template syntax. For fundamentals, see [Template Syntax & Features](template-syntax/overview.md) first.
 {% endhint %}
 
 ## Table of Contents

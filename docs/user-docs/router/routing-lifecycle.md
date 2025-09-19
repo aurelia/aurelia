@@ -15,6 +15,17 @@ Router lifecycle hook methods are all completely optional. You only have to impl
 
 If you are working with components you are rendering, implementing `IRouteViewModel` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks in the appropriate way a lot easier.
 
+## Hook summary
+
+| Hook | When it runs | Common uses | Return type |
+| --- | --- | --- | --- |
+| `canLoad` | Before the component is activated | Gate routes, redirect, hydrate parameters | `boolean`/`NavigationInstruction`/`Promise` |
+| `loading` | After navigation is approved but before render | Fetch data, set up state, start animations | `void`/`Promise<void>` |
+| `canUnload` | Before the current component is deactivated | Prevent leaving, confirm unsaved changes | `boolean`/`Promise<boolean>` |
+| `unloading` | Before the component is removed | Persist drafts, dispose resources, log analytics | `void`/`Promise<void>` |
+
+> This page covers component-scoped hooks implemented on `IRouteViewModel`. For cross-cutting logic that applies to many components, see [Router hooks](./router-hooks.md).
+
 ```typescript
 import {
   IRouteViewModel,

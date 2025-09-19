@@ -1,8 +1,10 @@
-# Attributes transferring (or Spread Attributes)
+---
+description: Forward bindings from a custom element to its inner template using Aurelia's spread operators.
+---
 
-## Introduction
+# Attribute Transferring (Spread Attributes)
 
-Attribute transferring is a way to relay the binding(s) on a custom element to other element(s) inside it.
+Attribute transferring lets a custom element pass bindings it receives down to elements inside its own template. It keeps component APIs small while still exposing the flexibility callers need.
 
 As an application grows, the components inside it also grow. Something that starts simple like the following component
 
@@ -22,7 +24,7 @@ with the template
 ```
 can quickly grow out of hand with a number of needs for configuration: aria, type, min, max, pattern, tooltip, validation etc...
 
-After a while, the `FormInput` component above will be come more and more like a relayer to transfer the bindings from outside, to the elements inside it. This often results in the increase of the number of `@bindable`. This is completely fine except that it's quite some boilerplate code that is not always desirable:
+After a while, the `FormInput` component above will become more and more like a relayer that simply passes bindings through. The number of `@bindable` properties increases and maintenance becomes tedious:
 
 ```typescript
 export class FormInput {
@@ -53,7 +55,7 @@ to be repeated like this inside:
 </label>
 ```
 
-To juggle all the relevant pieces for such relaying task isn't difficult, but somewhat tedious. With attribute transferring, which is roughly close to spreading in JavaScript, the above template should be as simple as:
+Coordinating all of those bindings isn't difficult, just repetitive. Attribute transferring, conceptually similar to JavaScript spread syntax, reduces the template to:
 
 ```html
 <label>${label}
@@ -61,7 +63,7 @@ To juggle all the relevant pieces for such relaying task isn't difficult, but so
 </label>
 ```
 
-, which reads like this: for some bindings on `<form-input>`, change the targets of those bindings to the `<input>` element inside it.
+This moves the bindings declared on `<form-input>` onto the `<input>` element inside the component.
 
 ## Aurelia Spread Operators Overview
 
@@ -77,7 +79,7 @@ Each operator serves a specific purpose in component composition and data flow.
 
 ## Usage
 
-To transfer attributes & bindings from a custom element, there are two steps:
+To transfer attributes and bindings from a custom element, there are two steps:
 
 - Set `capture` to `true` on a custom element via `@customElement` decorator:
 
@@ -88,7 +90,7 @@ To transfer attributes & bindings from a custom element, there are two steps:
 })
 ```
 
-As the name suggests, this is to signal the template compiler that all the bindings & attributes, with some exceptions should be captured for future usages.
+This tells the template compiler to capture bindings and attributes (with some exceptions) for later reuse.
 
 - Spread the captured attributes onto an element:
 
@@ -97,7 +99,7 @@ As the name suggests, this is to signal the template compiler that all the bindi
 ```
 
 {% hint style="warning" %}
-It's recommended that this feature should not be overused in multi level capturing & transferring. This is often known as prop-drilling in React, and could have bad effect on overall & long term maintainability of a project. It's probably healthy to limit the max level of transferring to 2.
+Avoid chaining attribute transfer across many component layers. Deep “prop drilling” is difficult to follow and can become a maintenance burden. Keep transfers to at most one or two levels.
 {% endhint %}
 
 

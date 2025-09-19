@@ -20,4 +20,4 @@ Aurelia
     ...
 ```
 
-After adding this registration, bindings with attributes will work as expected and the syntax is the same with the other bindings. Readmore on the basic binding syntax of Aurelia [here](./template-syntax.md#attribute-bindings).
+After adding this registration, bindings with attributes will work as expected and the syntax is the same with the other bindings. Readmore on the basic binding syntax of Aurelia [here](./template-syntax/attribute-binding.md).

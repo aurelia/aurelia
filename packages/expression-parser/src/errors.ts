@@ -5,7 +5,12 @@ import { safeString } from './utilities';
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${safeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+  ? (code: ErrorNames, ...details: unknown[]) => {
+    const paddedCode = safeString(code).padStart(4, '0');
+    const message = getMessageByCode(code, ...details);
+    const link = `https://docs.aurelia.io/developer-guides/error-messages/0151-to-0179/aur${paddedCode}`;
+    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+  }
   : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${safeString(code).padStart(4, '0')}:${details.map(safeString)}`);
 
 _START_CONST_ENUM();

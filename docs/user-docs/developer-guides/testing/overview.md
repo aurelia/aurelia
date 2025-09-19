@@ -162,6 +162,7 @@ describe('MyComponent', () => {
 2. **Use Guards**: Prevent multiple initializations with guard conditions
 3. **Test Runner Integration**: Use your test runner's setup hooks for automatic initialization
 4. **Error Handling**: Handle platform setup errors gracefully
+5. **Cleanup**: Always use `stop(true)` instead of deprecated `tearDown()`
 
 ### Troubleshooting Common Issues
 
@@ -186,6 +187,15 @@ module.exports = {
 if (!(globalThis as any).__aureliaTestPlatform__) {
   bootstrapTestEnvironment();
 }
+```
+
+**Deprecated API usage:**
+```typescript
+// ❌ Deprecated - don't use
+await tearDown();
+
+// ✅ Correct - use stop() instead
+await stop(true);
 ```
 
 ## Essential Testing Imports

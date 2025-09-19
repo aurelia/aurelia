@@ -1,10 +1,16 @@
+---
+description: Use Aurelia's Event Aggregator for lightweight pub/sub communication between components.
+---
+
 # Event Aggregator
 
 The Event Aggregator provides a lightweight pub/sub mechanism for communication between components in your Aurelia applications. This documentation covers the basics of using the Event Aggregator, along with several advanced use cases for cross-component communication.
 
 {% hint style="info" %}
-The Event Aggregator is designed solely for handling custom events within your application—it is not intended to replace native DOM events. For native event handling, continue to use standard event listeners.
+The Event Aggregator is designed solely for handling custom events within your application; it is not intended to replace native DOM events. For native event handling, continue to use standard event listeners.
 {% endhint %}
+
+> **Before you start:** Review [dependency injection](dependency-injection.md) so you are comfortable resolving services into components.
 
 ## Basic Usage
 
@@ -52,7 +58,7 @@ export class MyComponent implements ICustomElementViewModel {
 
 ### Disposing of Subscriptions
 
-It is best practice to dispose of your subscriptions when a component is no longer active—typically in the `unbinding` lifecycle hook—to prevent memory leaks.
+It is best practice to dispose of your subscriptions when a component is no longer active, typically in the `unbinding` lifecycle hook, to prevent memory leaks.
 
 ```typescript
 import { ICustomElementViewModel, IEventAggregator, IDisposable, resolve } from 'aurelia';
@@ -260,3 +266,9 @@ export class HelloParent {
 {% hint style="warning" %}
 Always dispose of your subscriptions when they are no longer needed to prevent memory leaks.
 {% endhint %}
+
+## Next steps
+
+- Reach for [watching data](watching-data.md) when you need property-level reactions instead of app-wide events.
+- Combine the Event Aggregator with [App tasks](app-tasks.md) to publish startup and shutdown events.
+- For UI composition alternatives, look at [dynamic composition](dynamic-composition.md).

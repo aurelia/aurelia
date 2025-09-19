@@ -76,7 +76,7 @@ describe('PersonDetail component', () => {
 });
 ```
 
-In this example, `createFixture` is used to instantiate the component with a test context, binding `name` and `age` to specified values. We then assert that the component's text content includes the correct information. After the test completes, `tearDown` cleans up the component instance to avoid memory leaks and ensure test isolation.
+In this example, `createFixture` is used to instantiate the component with a test context, binding `name` and `age` to specified values. We then assert that the component's text content includes the correct information. After the test completes, `stop(true)` cleans up the component instance to avoid memory leaks and ensure test isolation.
 
 ## Testing Components with Dependencies
 
@@ -107,7 +107,7 @@ To test this component, you can create a mock `PersonFormatter` and register it 
 
 ```typescript
 import { createFixture } from '@aurelia/testing';
-import { Registration } from '@aurelia/kernel'; // Registration comes from kernel, not testing
+import { Registration } from 'aurelia';
 import { PersonDetail } from './person-detail';
 import { PersonFormatter } from './person-formatter';
 
@@ -182,7 +182,7 @@ describe('LifecycleComponent', () => {
     const setupSpy = jest.spyOn(LifecycleComponent.prototype, 'setupEventListeners');
     const cleanupSpy = jest.spyOn(LifecycleComponent.prototype, 'cleanupEventListeners');
 
-    const { tearDown } = createFixture(
+    const { startPromise, stop } = createFixture(
       '<lifecycle-component></lifecycle-component>',
       class App {},
       [LifecycleComponent]
@@ -194,7 +194,7 @@ describe('LifecycleComponent', () => {
     expect(setupSpy).toHaveBeenCalled();
     expect(cleanupSpy).not.toHaveBeenCalled();
 
-    await tearDown();
+    await stop(true);
 
     expect(cleanupSpy).toHaveBeenCalled();
   });
@@ -228,7 +228,7 @@ describe('EventComponent', () => {
       publish: jest.fn()
     };
 
-    const { component, startPromise, tearDown } = createFixture(
+    const { appHost, startPromise, stop } = createFixture(
       '<event-component item.bind="testItem"></event-component>',
       class App {
         testItem = { id: 1, name: 'Test' };
@@ -239,12 +239,12 @@ describe('EventComponent', () => {
 
     await startPromise;
 
-    const button = component.querySelector('button');
+    const button = appHost.querySelector('button');
     button.click();
 
     expect(mockEA.publish).toHaveBeenCalledWith('item-selected', { id: 1, name: 'Test' });
 
-    await tearDown();
+    await stop(true);
   });
 });
 ```
@@ -509,17 +509,26 @@ describe('PerformanceComponent', () => {
 - Use `performance.now()` for timing measurements
 - Test with realistic data sizes
 - Monitor memory usage in long-running tests
+- Always use `stop(true)` for proper cleanup
 
 ### 5. **Error Handling**
 - Test both success and failure scenarios
 - Verify error messages and error states
 - Test error recovery mechanisms
 
+## Next Steps
+
+For more sophisticated testing scenarios, see:
+- [Advanced Testing Techniques](advanced-testing.md) - Comprehensive fixture API, performance testing, integration patterns
+- [Testing Attributes](testing-attributes.md) - Custom attribute testing
+- [Testing Value Converters](testing-value-converters.md) - Value converter testing
+- [Mocks and Spies](mocks-spies.md) - Dependency mocking strategies
+
 ## Conclusion
 
 Testing Aurelia components involves setting up a test environment, creating fixtures, and writing assertions based on your expectations. By following these patterns and best practices, you can ensure that your components are reliable, performant, and maintainable. Remember to clean up after your tests to maintain a clean test environment and to avoid any side effects between tests.
 
-The advanced patterns shown here cover lifecycle testing, event handling, async operations, state management, conditional rendering, and performance testing. These techniques will help you create comprehensive test suites that cover the full functionality of your Aurelia components.
+The patterns shown here cover lifecycle testing, event handling, async operations, state management, conditional rendering, and basic performance testing. For more advanced testing techniques and comprehensive API coverage, refer to the Advanced Testing guide.
 
 ## Complete Fixture API Reference
 

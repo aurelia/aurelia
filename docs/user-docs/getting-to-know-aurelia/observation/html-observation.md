@@ -1,3 +1,7 @@
+---
+description: Observe changes to native HTML element properties and attributes in Aurelia.
+---
+
 # HTML observation
 
 ## Quick introduction

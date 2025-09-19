@@ -20,6 +20,8 @@ This is perfect for:
 
 The [startup sections](app-configuration-and-startup.md) showed how to start Aurelia for empty elements. Enhancement lets you work with existing DOM trees instead.
 
+> **Before you start:** Review [App configuration and startup](app-configuration-and-startup.md) to understand the standard bootstrap flow; enhancement builds on those concepts.
+
 ## Understanding What Gets Enhanced
 
 When you enhance an element, Aurelia treats that element as if it were the template of a custom element. The existing HTML becomes the "template" and your component object becomes the "view model" that provides data and behavior.
@@ -403,3 +405,9 @@ const enhanceRoot = await Aurelia.enhance({
 - **Performance critical sections**: Enhancement has overhead compared to pre-compiled templates
 
 Enhancement shines when you need to add Aurelia's power to existing content without rebuilding everything from scratch.
+
+## Next steps
+
+- Use [dynamic composition](dynamic-composition.md) when you need to render different components inside an enhanced region.
+- Combine enhancement with [watching data](watching-data.md) to react to model changes in legacy markup.
+- Explore [portalling elements](portalling-elements.md) for UI that needs to escape its original DOM location.

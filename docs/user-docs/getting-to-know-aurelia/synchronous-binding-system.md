@@ -1,8 +1,14 @@
+---
+description: Learn how Aurelia's binding system balances synchronous notifications with async computed updates and how to manage state safely.
+---
+
 # Understanding Aurelia's Binding System and State Management
 
 Aurelia v2 uses a hybrid binding system that combines synchronous property notifications with asynchronous computed property updates. While observable property changes trigger immediate notifications, computed properties use asynchronous updates by default to prevent common issues like state tearing.
 
 Understanding when updates are synchronous vs. asynchronous is crucial for managing complex state changes effectively. This document explains how Aurelia's binding system works and when you might need to use tools like `batch()` to ensure consistency.
+
+> **Before you start:** Review [Watching data](watching-data.md) to see how change observers trigger callbacks, and keep [Task queue](task-queue.md) handy when you need to wait for async flushes during testing.
 
 ## Synchronous vs Asynchronous Updates
 
@@ -232,3 +238,9 @@ class UserProfile {
 ```
 
 Aurelia's hybrid binding system gives you the flexibility to choose the right approach for your use case. The async-by-default behavior provides safety and performance, while batch() ensures consistency when you need atomic updates.
+
+## Next steps
+
+- Dive into [watching data](watching-data.md) to observe property-level changes using decorators.
+- Learn how Aurelia observes DOM primitives in [HTML observation](observation/html-observation.md).
+- Coordinate async work with the [task queue](task-queue.md) to keep UI and tests in sync.

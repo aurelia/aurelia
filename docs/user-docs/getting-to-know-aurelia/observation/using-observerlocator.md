@@ -1,3 +1,7 @@
+---
+description: Tap into Aurelia's observerLocator to watch low-level property changes manually.
+---
+
 # Using observerLocator
 
 The Observer Locator API allows you to watch properties in your components for changes without the need for using the `@observable` decorator. In most cases, manual observation will not be required using this API, but it is there if you want it.

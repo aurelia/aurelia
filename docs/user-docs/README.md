@@ -6,82 +6,122 @@ description: Get acquainted with Aurelia, the documentation, and how to get star
 
 ## What is Aurelia?
 
-Welcome to Aurelia, the future-oriented, open-source JavaScript platform for crafting extraordinary web, mobile, and desktop applications. At its core, Aurelia is more than just a framework; it believes in the unbridled power of open web standards. With Aurelia, your development experience is streamlined, intuitive, and remarkably flexible.
+**Aurelia is the web framework that feels native to the browser.** Built on web standards with zero overhead from virtual DOMs or magic abstractions, Aurelia delivers exceptional performance while keeping your code clean and maintainable.
 
-Aurelia isn't just feature-rich; it's a testament to high performance and extensive extensibility, offering a component-oriented design that's fully testable. It's built for developers who know the value of simplicity and the importance of conventions that don't obstruct but enhance creativity. :sunglasses:
+**Why developers choose Aurelia:**
+- **Efficient bundle sizes** with smart code splitting and async loading
+- **Standards-based architecture** that leverages browser capabilities
+- **TypeScript-first** with powerful dependency injection built-in
+- **No breaking changes** since 2.0 - stable, production-ready platform
 
-## Get Started Quickly
+If you value web standards, performance, and developer experience over framework hype, Aurelia is built for you.
 
-New to Aurelia? Start with our **Essentials** guide for a focused introduction to the core concepts, or jump straight into building with our Quick Start Guide.
+## Choose Your Path
 
-{% content-ref url="essentials/" %}
-[essentials](essentials/)
+**👋 New to Aurelia?** Start with our [Complete Getting Started Guide](getting-started/complete-guide.md) - build a real app in 15 minutes.
+
+**🔧 Want the concepts first?** Begin with [Essentials](essentials/) for focused introduction to core concepts.
+
+**🚀 Migrating from another framework?** 
+- [From React to Aurelia](getting-started/from-react.md) - Better performance, cleaner code
+- [From Vue to Aurelia](getting-started/from-vue.md) - All the simplicity, better performance  
+- [From Angular to Aurelia](getting-started/from-angular.md) - Keep the good, lose the complexity
+
+**⚡ Just want to see it work?** Try our [Quick Install Guide](getting-started/quick-install-guide.md) for immediate setup.
+
+{% content-ref url="getting-started/complete-guide.md" %}
+[complete-guide](getting-started/complete-guide.md)
 {% endcontent-ref %}
 
-{% content-ref url="getting-started/quick-start-guide/" %}
-[quick-start-guide](getting-started/quick-start-guide/)
-{% endcontent-ref %}
+## Why Aurelia Outperforms
 
-## Why choose Aurelia?
+### **Performance That Matters**
+- **Direct DOM manipulation** - no virtual DOM overhead
+- **Batched rendering** for optimal browser performance  
+- **Efficient memory usage** - applications that don't drain batteries
+- **Optimized bundle sizes** - smart code splitting and async loading
 
-Aurelia emerges as a beacon of innovation and power in front-end development in a sea of frameworks. Here's why Aurelia might be the perfect choice for your next project:
+### **Standards-First Development**
+- **Web Components foundation** - build for the future of the web
+- **Modern JavaScript/TypeScript** - no proprietary abstractions
+- **Seamless third-party integration** - works with any library
+- **Future-proof architecture** - leverages browser capabilities
 
-- **All-in-One Ecosystem:** Aurelia is your Swiss Army knife, offering everything from dependency injection to routing, eliminating the need to juggle multiple libraries. Its ecosystem extends to plugins for internationalization, validation, and more, supported by tools like a CLI and a VS Code plugin for seamless development. And with Aurelia, flexibility is key; you can customize every aspect, including the templating/binding engine.
-- **Unparalleled Performance:** Speed and efficiency are in Aurelia's DNA. It consistently outperforms competitors in benchmarks thanks to its sophisticated batched rendering and efficient memory usage.
-- **Data-Binding Done Right:** Aurelia harmonizes the safety of uni-directional data flow with data-binding productivity, ensuring both performance and ease of development.
-- **Stability in a Dynamic World:** Since our 1.0 release in 2016, Aurelia has maintained API stability, innovating without breaking changes, a testament to our commitment to developer trust.
-- **Adherence to High Standards:** Aurelia is a paragon of standards compliance, focusing on modern JavaScript and Web Components without unnecessary abstractions.
-- **Empowering Developers:** Aurelia's philosophy is simple: empower developers with plain JavaScript/TypeScript and get out of the way. This results in cleaner, more maintainable code.
-- **Ease of Learning and Use:** Aurelia's design is intuitive and consistent, minimizing the learning curve and maximizing productivity with solid, simple conventions.
-- **Seamless Integration:** Aurelia plays well with others. Its adherence to web standards makes it a breeze to integrate with any third-party library or framework.
-- **A Vibrant Open-Source Community:** Embrace the open-source ethos with Aurelia, licensed under MIT, without restrictive clauses. Join a community that thrives on collaboration and innovation.
-- **A Welcoming and Supportive Community:** Our active core team and Discord server embody a culture of welcome and support, where every developer is a valued member of the Aurelia family.
+### **Developer Experience**
+- **Powerful dependency injection** built-in, no external libraries needed
+- **Two-way data binding** with unidirectional safety
+- **Complete ecosystem** - routing, validation, i18n, testing, CLI
+- **API stability** - no breaking changes since 2.0, stable production platform
 
-## Embracing a Boutique Ecosystem
+### **Production Ready**
+- **Used by enterprise companies** worldwide
+- **MIT licensed** open-source with active development
+- **Comprehensive testing tools** built-in
+- **Strong TypeScript support** from day one
 
-While it's true that Aurelia's ecosystem and community might seem modest compared to some of its more populous counterparts, this perceived underdog status is, in fact, one of its greatest strengths. Aurelia represents a boutique choice in web frameworks, prioritizing quality over quantity and fostering a tight-knit, highly engaged community. This approach translates to a more focused, consistent, and dedicated development experience, both in terms of the framework itself and the support you receive from the community.
+## Built for the Future of Web Development
 
-### The Advantages of a Niche Community
+Aurelia isn't chasing the latest trends - it's built on the fundamental technologies that power the web. By embracing web standards and leveraging browser capabilities, Aurelia applications are inherently future-proof and performant.
 
-- **Direct Impact:** In a smaller community, each member's voice and contribution have a more significant impact. Developers have direct access to the core team, fostering a collaborative environment where feedback and contributions influence the framework's evolution.
-- **Quality Over Quantity:** Aurelia focuses on delivering a high-quality, refined development experience. This means that each plugin, library, and tool in the ecosystem has been carefully crafted and thoroughly vetted to meet high standards.
-- **Nurturing Innovation:** A smaller ecosystem doesn't mean limited capabilities. On the contrary, it often leads to innovative solutions and creative problem-solving, as developers are encouraged to think outside the box.
-- **Stronger Connections:** A smaller community fosters closer relationships, leading to more meaningful interactions, collaborations, and a sense of belonging. This environment is conducive to a supportive and helpful atmosphere where developers at all levels can thrive.
+**Our focused approach means:**
+- **Thoughtful feature development** - every addition serves a clear purpose
+- **Direct access to the core team** - your feedback directly shapes the framework
+- **Stable, reliable releases** - no breaking changes that disrupt your projects
+- **Quality ecosystem** - carefully curated tools and plugins that work seamlessly together
 
-### Why Size Isn't Everything
+## Direct DOM: Maximum Performance, Minimum Overhead
 
-The size of a community or ecosystem should not be the sole criterion for its effectiveness. In many cases, the quality of interactions, the dedication of its members, and the framework's alignment with your project's needs are far more critical factors. Aurelia's commitment to standards, modern best practices, and empowering approach offers a unique and rewarding development experience that stands on its own merits. Aurelia isn't trying to reinvent the wheel or make your life a misery by changing its API with every major release.
+Aurelia delivers superior performance by working directly with the browser's DOM instead of creating unnecessary abstraction layers.
 
-## The Power of Conventional DOM Manipulation: why Aurelia doesn't have a Virtual DOM
+### **Why Direct DOM Wins**
 
-In a landscape where Virtual DOM is often touted as a necessity, Aurelia confidently takes a different path. Aurelia's choice not to use a Virtual DOM is a deliberate and strategic decision grounded in a philosophy that prioritizes efficiency, simplicity, and alignment with web standards.
+**Performance Advantages:**
+- **Zero virtual DOM overhead** - no diffing algorithms or reconciliation cycles
+- **Faster rendering** - direct updates where they're needed
+- **Smaller memory footprint** - no duplicate DOM trees in memory
+- **Better battery life** - efficient resource usage on mobile devices
 
-### Understanding the Conventional DOM Approach
+**Developer Benefits:**
+- **Predictable behavior** - work directly with web platform APIs
+- **Easier debugging** - inspect actual DOM elements, not virtual representations  
+- **Better third-party integration** - no compatibility issues with DOM-based libraries
+- **Standards-aligned** - leverage browser capabilities instead of fighting them
 
-- **Directness and Efficiency:** Aurelia interacts directly and efficiently with the DOM. By avoiding the overhead of a Virtual DOM, Aurelia ensures faster rendering and updates, leading to a smoother user experience.
-- **Simplicity and Predictability:** Without the abstraction layer of a Virtual DOM, Aurelia offers a more straightforward and predictable development experience. Developers work closer to the web platform, leveraging native browser capabilities for DOM manipulation.
-- **Optimal Performance:** Aurelia's approach to DOM updates is highly optimized. It intelligently manages DOM changes, ensuring minimal performance overhead. This results in applications that are not only fast but also more resource-efficient. Let's say Aurelia isn't going to drain your phone or Macbook Pro battery.
+Modern browsers are incredibly fast at DOM manipulation. Aurelia's intelligent observation and batching system ensures you get maximum performance without the complexity and overhead of virtual DOM solutions.
 
-### The Benefits of Conventional DOM in Aurelia
+## Your Learning Journey
 
-- **Aligned with Web Standards:** Aurelia's commitment to standards means that it leverages the native capabilities of modern browsers, ensuring compatibility and future-proofing your applications. If the browser can do it, Aurelia won't try one-upping it by rolling its own implementation.
-- **Less Complexity, More Control:** By avoiding a Virtual DOM, Aurelia reduces the complexity of your application's architecture. This direct approach gives developers more control and understanding of how their application interacts with the browser.
-- **Tailored for Modern Web Development:** Aurelia is designed to meet the needs of modern web applications. Its efficient, standards-based approach is perfectly suited for today's dynamic, interactive web experiences.
+**Start Here:**
+1. **[Complete Getting Started Guide](getting-started/complete-guide.md)** - Build your first app in 15 minutes
+2. **[Essentials](essentials/)** - Core concepts explained clearly
+3. **[Components](components/)** - Build reusable UI components
 
-The decision to not use a Virtual DOM is a reflection of Aurelia's overarching philosophy: to provide a powerful, efficient, and straightforward framework that stays true to the nature of the web. This approach encourages developers to build applications that are both performant and maintainable, leveraging the full potential of the web platform.
+**Build Real Apps:**
+4. **[Templates & Binding](templates/)** - Master Aurelia's powerful templating
+5. **[Router](getting-to-know-aurelia/routing/aurelia-router.md)** - Add navigation to your applications
+6. **[Forms & Validation](aurelia-packages/validation/)** - Handle user input effectively
 
-## Navigation The Aurelia Docs
+**Production Ready:**
+7. **[Testing](developer-guides/testing/)** - Test your applications thoroughly
+8. **[Performance](advanced-scenarios/performance-optimization-techniques.md)** - Optimize for production
+9. **[Advanced Scenarios](advanced-scenarios/)** - Complex application patterns
 
-Your journey with Aurelia begins here in our meticulously crafted documentation. Start with the [Quick Start Guide](getting-started/quick-start-guide/) to grasp the basics of building an Aurelia application. The "Getting Started" section is your next stop, followed by "App Basics" for a deep dive into regular Aurelia usage.
+**Need Help?** Join our [Discord community](https://discord.gg/RBtyM6u) or check [GitHub Discussions](https://github.com/aurelia/aurelia/discussions) for support.
 
-As your comfort with Aurelia grows, explore "Advanced Scenarios" for insights into performance optimization and large-scale project management. While you may find less need for raw API documentation due to Aurelia's convention-based approach, our "API" section is comprehensive. Don't miss the "Examples" section, where practical code samples for common scenarios are found. And, our "Resources" section is a treasure trove of FAQs, framework comparisons, and much more.
+## Join the Aurelia Community
 
-Did you find something amiss in our documentation? Every page includes an "Edit on GitHub" link, making it easy to contribute corrections or improvements.
+Ready to contribute or need support? The Aurelia community welcomes developers of all skill levels.
 
-## How to Be Part of the Community
+**Get Support:**
+- **[Discord Server](https://discord.gg/RBtyM6u)** - Real-time chat with the community
+- **[GitHub Discussions](https://github.com/aurelia/aurelia/discussions)** - Q&A and feature discussions
+- **[Stack Overflow](https://stackoverflow.com/questions/tagged/aurelia)** - Technical questions and answers
 
-As you become more and more familiar with Aurelia, perhaps you will even come up with something that you would like to share with the community. :tada: The Aurelia team welcomes any contributions you feel would benefit others in the community. Check out the "Community Contribution" section if that is the case. We also welcome any feedback or suggestions that will help improve Aurelia and enrich the community. Check out the "[Contributor Guide](https://app.gitbook.com/o/-LniaXkrJI4MjF0pFJWN/s/-LndnvRP1t7WKpUte87y/)" for details about the contributing process and how to contact us.
+**Contribute:**
+- **[Contributor Guide](community-contribution/contributor-guide.md)** - How to contribute code and documentation
+- **[GitHub Issues](https://github.com/aurelia/aurelia/issues)** - Report bugs or request features
+- **[Documentation](community-contribution/writing-documentation.md)** - Help improve these docs
 
-## Where To Begin
+## Ready to Start Building?
 
-You're in the right place. If you are starting with Aurelia, we highly recommend beginning with our [Essentials](essentials/) section to understand the core concepts, then moving on to our [Quick Start Guide](getting-started/quick-start-guide/) to create your first project and build components using Aurelia's powerful templating system.
+Jump into our [Complete Getting Started Guide](getting-started/complete-guide.md) and build your first Aurelia application in 15 minutes. You'll be amazed at how intuitive and powerful web development can be with the right tools.

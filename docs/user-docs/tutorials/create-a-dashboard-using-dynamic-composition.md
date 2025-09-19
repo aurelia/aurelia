@@ -24,7 +24,7 @@ The dashboard will be comprised of a handful of different widgets and by leverag
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax/overview.md).
 * You have familiarized yourself with [components in Aurelia](../components/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
@@ -132,7 +132,7 @@ Now, we create a `dog-component.html` file inside of the `components` directory:
 </div>
 ```
 
-If you have [read up on the promise controller](../templates/template-syntax.md#using-promise-bindings-inside-of-a-repeat.for), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch` will be triggered and pass our error.
+If you have [read up on the promise controller](../templates/template-syntax/template-promises.md), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch` will be triggered and pass our error.
 
 ## Base styling
 

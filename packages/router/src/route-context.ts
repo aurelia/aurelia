@@ -942,7 +942,7 @@ class NavigationModel implements INavigationModel {
   private readonly emptyRoute: symbol = Symbol.for('au:router:empty-navigation-route');
   /** @internal */
   public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
-    let routes = this.routes;
+    const routes = this.routes;
     if (!(route instanceof Promise)) {
       if ((route.nav ?? false) && route.redirectTo === null) {
         routes.push(NavigationRoute._create(route));

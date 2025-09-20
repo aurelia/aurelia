@@ -958,9 +958,11 @@ class NavigationModel implements INavigationModel {
           routes[index] = NavigationRoute._create(rdConfig);
         }
         if (this._promise === promise) {
-          routes = routes.filter(x => x !== (this.emptyRoute as unknown));
-          this.routes.length = 0;
-          this.routes.push(...routes);
+          for (let i = this.routes.length - 1; i >= 0; --i) {
+            if (this.routes[i] === (this.emptyRoute as unknown)) {
+              this.routes.splice(i, 1);
+            }
+          }
           this._promise = void 0;
         }
       })

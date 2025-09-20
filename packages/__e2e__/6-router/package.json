@@ -29,7 +29,8 @@
     "@aurelia/runtime": "2.0.0-beta.25",
     "@aurelia/runtime-html": "2.0.0-beta.25",
     "@aurelia/router": "2.0.0-beta.25",
-    "perf-monitor": "0.6.0"
+    "perf-monitor": "0.6.0",
+    "animejs": "^4.x"
   },
   "devDependencies": {
     "@playwright/test": "1.39.0",

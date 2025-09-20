@@ -125,6 +125,7 @@ export class NavigationOptions implements INavigationOptions {
      */
     public readonly state: Params | null,
     public readonly transitionPlan: TransitionPlan | null,
+    public readonly isBack: boolean,
   ) { }
 
   public static create(routerOptions: RouterOptions, input: INavigationOptions): NavigationOptions {
@@ -137,6 +138,7 @@ export class NavigationOptions implements INavigationOptions {
       input.fragment ?? '',
       input.state ?? null,
       input.transitionPlan ?? null,
+      input.isBack ?? false,
     );
   }
 
@@ -151,6 +153,7 @@ export class NavigationOptions implements INavigationOptions {
       this.fragment,
       this.state === null ? null : { ...this.state },
       this.transitionPlan,
+      this.isBack,
     );
   }
 

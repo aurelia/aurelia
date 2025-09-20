@@ -7,7 +7,7 @@ import {
   Params,
   ViewportInstructionTree
 } from './instructions';
-import type { IRouteConfig, RouterOptions } from './options';
+import type { INavigationOptions, IRouteConfig, RouterOptions } from './options';
 import { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
@@ -15,10 +15,10 @@ import { Batch } from './util';
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentConfig: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
-  canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
-  canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
-  unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
+  canLoad?(params: Params, next: RouteNode, current: RouteNode | null, options: INavigationOptions): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
+  loading?(params: Params, next: RouteNode, current: RouteNode | null, options: INavigationOptions): void | Promise<void>;
+  canUnload?(next: RouteNode | null, current: RouteNode, options: INavigationOptions): boolean | Promise<boolean>;
+  unloading?(next: RouteNode | null, current: RouteNode, options: INavigationOptions): void | Promise<void>;
 }
 
 /**
@@ -116,6 +116,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public _canUnload(tr: Transition, next: RouteNode | null, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caCanUnload, next, this._canUnloadHooks.length);
     b._push();
+    const options = tr.options;
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canUnloadHooks) {
       b._push();
@@ -126,7 +127,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr._run(() => {
-          return hook.canUnload(this._instance, next, this._routeNode);
+          return hook.canUnload(this._instance, next, this._routeNode, options);
         }, ret => {
           if (tr.guardsResult === true && ret === false) {
             tr.guardsResult = false;
@@ -145,7 +146,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr._run(() => {
-          return this._instance.canUnload!(next, this._routeNode);
+          return this._instance.canUnload!(next, this._routeNode, options);
         }, ret => {
           if (tr.guardsResult === true && ret === false) {
             tr.guardsResult = false;
@@ -163,6 +164,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     const params = next._getParams(this._routerOptions.treatQueryAsParameters);
     const rootCtx = this._ctx.root;
     b._push();
+    const options = tr.options;
     let promise: Promise<void> = Promise.resolve();
     for (const hook of this._canLoadHooks) {
       b._push();
@@ -173,7 +175,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr._run(() => {
-          return hook.canLoad(this._instance, params, next, this._routeNode);
+          return hook.canLoad(this._instance, params, next, this._routeNode, options);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
@@ -192,7 +194,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return;
         }
         tr._run(() => {
-          return this._instance.canLoad!(params, next, this._routeNode);
+          return this._instance.canLoad!(params, next, this._routeNode, options);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
@@ -208,10 +210,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public _unloading(tr: Transition, next: RouteNode | null, b: Batch): void {
     if (__DEV__) trace(this._logger, Events.caUnloading, next, this._unloadHooks.length);
     b._push();
+    const options = tr.options;
     for (const hook of this._unloadHooks) {
       tr._run(() => {
         b._push();
-        return hook.unloading(this._instance, next, this._routeNode);
+        return hook.unloading(this._instance, next, this._routeNode, options);
       }, () => {
         b._pop();
       });
@@ -219,7 +222,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasUnload) {
       tr._run(() => {
         b._push();
-        return this._instance.unloading!(next, this._routeNode);
+        return this._instance.unloading!(next, this._routeNode, options);
       }, () => {
         b._pop();
       });
@@ -232,10 +235,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (__DEV__) trace(this._logger, Events.caLoading, next, this._loadHooks.length);
     const params = next._getParams(this._routerOptions.treatQueryAsParameters);
     b._push();
+    const options = tr.options;
     for (const hook of this._loadHooks) {
       tr._run(() => {
         b._push();
-        return hook.loading(this._instance, params, next, this._routeNode);
+        return hook.loading(this._instance, params, next, this._routeNode, options);
       }, () => {
         b._pop();
       });
@@ -243,7 +247,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (this._hasLoad) {
       tr._run(() => {
         b._push();
-        return this._instance.loading!(params, next, this._routeNode);
+        return this._instance.loading!(params, next, this._routeNode, options);
       }, () => {
         b._pop();
       });

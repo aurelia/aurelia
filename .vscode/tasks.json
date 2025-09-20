@@ -28,6 +28,15 @@
           "problemMatcher": [],
           "label": "npm: build - packages-tooling/__tests__",
           "detail": "tsc --build"
+        },
+        {
+          "type": "npm",
+          "script": "build",
+          "path": "packages/__tests__",
+          "group": "build",
+          "problemMatcher": [],
+          "label": "npm: build - tests",
+          "detail": "tsc --build"
         }
     ]
 }

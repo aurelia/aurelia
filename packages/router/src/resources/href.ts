@@ -13,6 +13,7 @@ import { LoadCustomAttribute } from '../configuration';
 import { IRouteContext } from '../route-context';
 import { resolve } from '@aurelia/kernel';
 import { bmToView } from '../util';
+import { ViewportInstructionTree } from '../instructions';
 
 /*
  * Note: Intentionally, there is no bindable `context` here.
@@ -45,6 +46,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
 
   /** @internal */private _isInitialized: boolean = false;
   /** @internal */private _isEnabled: boolean;
+  /** @internal */private _instructions: ViewportInstructionTree | null = null;
 
   /** @internal */
   private get _isExternal(): boolean {
@@ -83,23 +85,22 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     }
     this.valueChanged(this.value);
     this._el.addEventListener('click', this);
-    // this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
+
   public unbinding(): void {
-    // this.eventListener.dispose();
     this._el.removeEventListener('click', this);
   }
 
   public valueChanged(newValue: unknown): void {
     if (newValue == null) {
+      this._instructions = null;
       this._el.removeAttribute('href');
     } else {
-      if (this._router.options.useUrlFragmentHash
-        && this._ctx.routeConfigContext.isRoot
-        && !/^[.#]/.test(newValue as string)
-        && !this._isExternal
-      ) {
-        newValue = `#${newValue}`;
+      const context = this._ctx;
+      const options = this._router.options;
+      if (!this._isExternal) {
+        this._instructions = this._router.createViewportInstructions(newValue, { context });
+        newValue = this._instructions.toUrl(false, options._urlParser, true);
       }
       this._el.setAttribute('href', newValue as string);
     }
@@ -116,16 +117,13 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       // on an internally managed link
       || this._isExternal
       || !this._isEnabled
+      || this._instructions === null
     ) {
       return;
     }
 
-    // Use the normalized attribute instead of this.value to ensure consistency.
-    const href = this._el.getAttribute('href');
-    if (href !== null) {
-      e.preventDefault();
-      // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-      void this._router.load(href, { context: this._ctx });
-    }
+    e.preventDefault();
+    // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+    void this._router.load(this._instructions, { context: this._ctx });
   }
 }

@@ -147,4 +147,63 @@ test.describe('router.basic', () => {
     expect(page.url()).toBe(`${baseURL}/two`);
     expect(await page.locator('#root-vp').textContent()).toBe('Two page');
   });
+
+  for (const useUrlFragmentHash of [true, false]) {
+    test(`href generation works correctly with useUrlFragmentHash=${useUrlFragmentHash}`, async ({ page, baseURL }) => {
+
+      if (useUrlFragmentHash) {
+        await page.goto(`${baseURL}/?useUrlFragmentHash=true`);
+      }
+
+      const href1 = `${useUrlFragmentHash ? '/#/' : ''}sub/1`;
+      const href2 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/2`;
+      const href3 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/3`;
+
+      await test.step('navigates to sub route', async () => {
+        await page.click('a:has-text("Sub")');
+        await expect(page.locator('p#sub-message')).toHaveText('This is sub!');
+      });
+
+      await test.step('verifies href links', async () => {
+        await expect(page.locator('ul#sub-links >> a:has-text("Sub/1")')).toHaveAttribute('href', href1);
+        await expect(page.locator('ul#sub-links >> a:has-text("Sub/2")')).toHaveAttribute('href', href2);
+        await expect(page.locator('ul#sub-links >> a:has-text("Sub/3")')).toHaveAttribute('href', href3);
+      });
+
+      await test.step('navigates using href links', async () => {
+        // Sub/1
+        await Promise.all([
+          page.waitForURL(`${baseURL}${useUrlFragmentHash ? '/#/' : '/'}sub/1`),
+          page.click(`ul#sub-links >> a[href="${href1}"]`),
+        ]);
+        await expect(page.locator('au-viewport#sub-vp')).toHaveText('1');
+
+        // Sub/2
+        await Promise.all([
+          page.waitForURL(`${baseURL}${useUrlFragmentHash ? '/#/' : '/'}sub/2`),
+          page.click(`ul#sub-links >> a[href="${href2}"]`),
+        ]);
+        await expect(page.locator('au-viewport#sub-vp')).toHaveText('2');
+
+        // Sub/3
+        await Promise.all([
+          page.waitForURL(`${baseURL}${useUrlFragmentHash ? '/#/' : '/'}sub/3`),
+          page.click(`ul#sub-links >> a[href="${href3}"]`),
+        ]);
+        await expect(page.locator('au-viewport#sub-vp')).toHaveText('3');
+      });
+
+      await test.step('reloads and verifies the hrefs again', async () => {
+        const url = new URL(page.url());
+        if (useUrlFragmentHash) {
+          url.searchParams.set('useUrlFragmentHash', 'true');
+        }
+        await page.goto(url.toString()); // reloads the page
+        await expect(page.locator('p#sub-message')).toHaveText('This is sub!');
+        await expect(page.locator('ul#sub-links >> a:has-text("Sub/1")')).toHaveAttribute('href', href1);
+        await expect(page.locator('ul#sub-links >> a:has-text("Sub/2")')).toHaveAttribute('href', href2);
+        await expect(page.locator('ul#sub-links >> a:has-text("Sub/3")')).toHaveAttribute('href', href3);
+      });
+    });
+  }
 });

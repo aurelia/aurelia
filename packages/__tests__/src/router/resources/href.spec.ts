@@ -250,7 +250,7 @@ describe('router/resources/href.spec.ts', function () {
     await queue.yield();
 
     const anchors = Array.from(host.querySelectorAll('a'));
-    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['#ce-one', '#ce-two', '#ce-two', './ce-three']);
+    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two', '/#/./ce-three']);
 
     anchors[1].click();
     await queue.yield();
@@ -269,7 +269,7 @@ describe('router/resources/href.spec.ts', function () {
     assert.html.textContent(host, 'ce3');
 
     let anchor = host.querySelector<HTMLAnchorElement>('a#ce3a1');
-    assert.strictEqual(anchor.getAttribute('href'), '../ce-one');
+    assert.strictEqual(anchor.getAttribute('href'), '/#/ce-one');
     anchor.click();
     await queue.yield();
     assert.html.textContent(host, 'ce1');
@@ -279,7 +279,7 @@ describe('router/resources/href.spec.ts', function () {
     assert.html.textContent(host, 'ce3');
 
     anchor = host.querySelector<HTMLAnchorElement>('a#ce3a2');
-    assert.strictEqual(anchor.getAttribute('href'), 'ce-three-child');
+    assert.strictEqual(anchor.getAttribute('href'), '/#/ce-three/ce-three-child');
     anchor.click();
     await queue.yield();
     assert.html.textContent(host, 'ce3 ce3child');

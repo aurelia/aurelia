@@ -175,7 +175,7 @@
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart",
-      "preLaunchTask": "npm: build all"
+      "preLaunchTask": "npm: build - tests"
     },
     {
       "type": "node",

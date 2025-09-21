@@ -939,6 +939,7 @@ class NavigationModel implements INavigationModel {
     });
   }
 
+  private readonly emptyRoute: symbol = Symbol.for('au:router:empty-navigation-route');
   /** @internal */
   public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
     const routes = this.routes;
@@ -949,16 +950,19 @@ class NavigationModel implements INavigationModel {
       return;
     }
     const index = routes.length;
-    routes.push((void 0)!); // reserve the slot
+    routes.push(this.emptyRoute as unknown as NavigationRoute); // reserve the slot
     let promise: void | Promise<void> = void 0;
     promise = this._promise = onResolve(this._promise, () =>
       onResolve(route, rdConfig => {
         if (rdConfig.nav && rdConfig.redirectTo === null) {
           routes[index] = NavigationRoute._create(rdConfig);
-        } else {
-          routes.splice(index, 1);
         }
         if (this._promise === promise) {
+          for (let i = this.routes.length - 1; i >= 0; --i) {
+            if (this.routes[i] === (this.emptyRoute as unknown)) {
+              this.routes.splice(i, 1);
+            }
+          }
           this._promise = void 0;
         }
       })

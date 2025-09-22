@@ -142,8 +142,8 @@ describe('error-system.spec.ts', function () {
       if (isDev) {
         const message = 'Mock error message';
         const range = code < 100 ? '0001-to-0023' :
-                     code < 1000 ? '0151-to-0179' :
-                     code < 5000 ? '4000-to-4199' : '5000-to-5008';
+          code < 1000 ? '0151-to-0179' :
+            code < 5000 ? '4000-to-4199' : '5000-to-5008';
         const link = `https://docs.aurelia.io/developer-guides/error-messages/${range}/aur${paddedCode}`;
         return `AUR${paddedCode}: ${message}\\n\\nFor more information, see: ${link}`;
       } else {
@@ -201,8 +201,7 @@ describe('error-system.spec.ts', function () {
     for (const { name, min, max, range } of packageRanges) {
       it(`should validate range string format for ${name}`, function () {
         const expectedRange = `${String(min).padStart(4, '0')}-to-${String(max).padStart(4, '0')}`;
-        assert.strictEqual(range, expectedRange,
-          `Range string for ${name} should be ${expectedRange}, got ${range}`);
+        assert.strictEqual(range, expectedRange, `Range string for ${name} should be ${expectedRange}, got ${range}`);
       });
     }
 

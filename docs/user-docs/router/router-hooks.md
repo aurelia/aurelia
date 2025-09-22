@@ -30,7 +30,7 @@ Aurelia 2 provides four types of router hooks (similar to router guards in other
 
 ### canLoad
 **Purpose:** Controls whether a component can be loaded (activated) for a route.
-**Use Cases:** 
+**Use Cases:**
 - Authentication checks
 - Authorization based on user permissions
 - Conditional routing based on application state
@@ -38,7 +38,7 @@ Aurelia 2 provides four types of router hooks (similar to router guards in other
 
 **Returns:** `boolean`, `NavigationInstruction`, `NavigationInstruction[]`, or Promise of these types
 
-### loading  
+### loading
 **Purpose:** Performs actions after navigation is confirmed but before the component is fully loaded.
 **Use Cases:**
 - Loading required data
@@ -79,6 +79,7 @@ The component-level hook signatures are identical to the ones described in [Rout
 import { lifecycleHooks } from 'aurelia';
 import {
   IRouteViewModel,
+  INavigationOptions,
   Params,
   RouteNode,
   NavigationInstruction
@@ -90,7 +91,8 @@ class MySharedHooks {
     viewModel: IRouteViewModel,
     params: Params,
     next: RouteNode,
-    current: RouteNode | null
+    current: RouteNode | null,
+    options: INavigationOptions
   ): boolean
     | NavigationInstruction
     | NavigationInstruction[]
@@ -99,17 +101,20 @@ class MySharedHooks {
     viewModel: IRouteViewModel,
     params: Params,
     next: RouteNode,
-    current: RouteNode | null
+    current: RouteNode | null,
+    options: INavigationOptions
   ): void | Promise<void>;
   canUnload?(
     viewModel: IRouteViewModel,
     next: RouteNode | null,
-    current: RouteNode
+    current: RouteNode,
+    options: INavigationOptions
   ): boolean | Promise<boolean>;
   unloading?(
     viewModel: IRouteViewModel,
     next: RouteNode | null,
-    current: RouteNode
+    current: RouteNode,
+    options: INavigationOptions
   ): void | Promise<void>;
 }
 ```
@@ -122,17 +127,23 @@ The fastest way to create a router hook is to implement a class with the `@lifec
 
 ```typescript
 import { lifecycleHooks } from '@aurelia/runtime-html';
-import { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
+import { IRouteViewModel, INavigationOptions, Params, RouteNode } from '@aurelia/router';
 
 @lifecycleHooks()
-export class AuthenticationHook {  
+export class AuthenticationHook {
   canLoad(
     viewModel: IRouteViewModel,
     params: Params,
-    next: RouteNode
+    next: RouteNode,
+    current: RouteNode | null,
+    options: INavigationOptions
   ): boolean {
     // Simple authentication check
     const isLoggedIn = !!localStorage.getItem('authToken');
+
+    // Optional: Log navigation direction
+    console.log(`Navigation direction: ${options.isBack ? 'back' : 'forward'}`);
+
     return isLoggedIn;
   }
 }
@@ -396,7 +407,7 @@ export class DataLoadingHook {
   ): Promise<void> {
     // Show loading state
     (viewModel as any).isLoading = true;
-    
+
     try {
       // Load required data based on route parameters
       const userId = params.id as string;
@@ -405,7 +416,7 @@ export class DataLoadingHook {
           this.dataService.loadUserProfile(userId),
           this.dataService.loadUserPermissions(userId)
         ]);
-        
+
         // Attach data to the view model
         (viewModel as any).userProfile = profile;
         (viewModel as any).userPermissions = permissions;
@@ -463,7 +474,7 @@ export class RoleHook {
 
     // Check required permissions
     if (requiredPermissions?.length > 0) {
-      const hasRequiredPermission = requiredPermissions.some(permission => 
+      const hasRequiredPermission = requiredPermissions.some(permission =>
         this.userService.hasPermission(permission)
       );
       if (!hasRequiredPermission) {
@@ -500,6 +511,107 @@ Usage with route configuration:
   ],
 })
 export class MyApp {}
+```
+
+### Example 5: Navigation Direction-Aware Animations
+
+You can leverage the `isBack` property from the `options: INavigationOptions` parameter in the lifecycle hooks to animate page transitions for forward and backward navigation.
+The `isBack` property will be `true` if the navigation is a backward navigation (e.g., user clicked the browser's back button) and `false` for forward navigation.
+
+Here's a comprehensive example that implements smooth page transitions using AnimeJS, with different animations based on navigation direction:
+
+```typescript
+import { lifecycleHooks } from 'aurelia';
+import { INavigationOptions, IRouteViewModel, Params, RouteNode } from '@aurelia/router';
+import { animate, eases } from 'animejs';
+import { IController } from '@aurelia/runtime-html';
+
+const durationMs = 900;
+
+// Page entering animations
+const enterFromRight = (el: HTMLElement) =>
+  animate(el, {
+    translateX: ['150%', '0%'],
+    duration: durationMs,
+    ease: eases.outCubic,
+  });
+
+const enterFromLeft = (el: HTMLElement) =>
+  animate(el, {
+    translateX: ['-150%', '0%'],
+    duration: durationMs,
+    ease: eases.outCubic,
+  });
+
+// Page exiting animations
+const exitToRight = (el: HTMLElement) =>
+  animate(el, {
+    translateX: ['0%', '150%'],
+    duration: durationMs,
+    ease: eases.inCubic,
+  });
+
+const exitToLeft = (el: HTMLElement) =>
+  animate(el, {
+    translateX: ['0%', '-150%'],
+    duration: durationMs,
+    ease: eases.inCubic,
+  });
+
+@lifecycleHooks()
+export class AnimationHooks {
+  private element: HTMLElement;
+  private isBack: boolean = false;
+
+  public created(vm: IRouteViewModel, controller: IController): void {
+    this.element = controller.host;
+  }
+
+  public loading(
+    vm: IRouteViewModel,
+    params: Params,
+    next: RouteNode,
+    current: RouteNode,
+    options: INavigationOptions
+  ): void | Promise<void> {
+    // Store the navigation direction for use in the attaching hook
+    this.isBack = options.isBack;
+  }
+
+  public async unloading(
+    vm: IRouteViewModel,
+    next: RouteNode,
+    current: RouteNode,
+    options: INavigationOptions
+  ): Promise<void> {
+    // Apply exit animation based on navigation direction
+    // Forward navigation: exit to the left
+    // Backward navigation: exit to the right
+    await (options.isBack ? exitToRight(this.element).then() : exitToLeft(this.element).then());
+  }
+
+  public attaching(): Promise<void> {
+    // Apply enter animation based on navigation direction
+    // Forward navigation: enter from the right
+    // Backward navigation: enter from the left
+    return this.isBack ? enterFromLeft(this.element) : enterFromRight(this.element);
+  }
+}
+```
+
+To use these animation hooks, register them as dependencies on your routed components:
+
+```typescript
+import { customElement } from '@aurelia/runtime-html';
+import { AnimationHooks } from './animation-hooks';
+import template from './home.html';
+
+@customElement({
+  name: 'home',
+  template,
+  dependencies: [AnimationHooks]
+})
+export class Home {}
 ```
 
 ## Global registration vs local dependencies

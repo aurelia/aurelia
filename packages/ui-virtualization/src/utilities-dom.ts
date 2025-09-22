@@ -1,19 +1,20 @@
 import { ISyntheticView } from '@aurelia/runtime-html';
+import { createMappedError, ErrorNames } from './errors';
 
 /**
  * Walk up the DOM tree and determine what element will be scroller for an element
  *
  * If none is found, return `document.documentElement`
  */
-export const getScrollerElement = (element: Node): HTMLElement => {
+export const getScrollerElement = (element: Node, orientation: 'vertical' | 'horizontal'): HTMLElement => {
   let current = element.parentNode as Element;
   while (current !== null && current !== document.body) {
-    if (hasOverflowScroll(current)) {
+    if (hasOverflowScroll(current, orientation)) {
       return current as HTMLElement;
     }
     current = current.parentNode as HTMLElement;
   }
-  throw new Error('Unable to find a scroller');
+  throw createMappedError(ErrorNames.scroller_element_not_found);
 };
 
 /**
@@ -30,9 +31,12 @@ export const getElementDistanceToTopOfDocument = (element: Element): number => {
 /**
  * Check if an element has style scroll/auto for overflow/overflowY
  */
-export const hasOverflowScroll = (element: Element): boolean => {
+export const hasOverflowScroll = (element: Element, orientation: 'vertical' | 'horizontal'): boolean => {
   const style = window.getComputedStyle(element);
-  return style != null && (style.overflowY === 'scroll' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflow === 'auto');
+  if (orientation === 'vertical') {
+    return style != null && (style.overflowY === 'scroll' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflow === 'auto');
+  }
+  return style != null && (style.overflowX === 'scroll' || style.overflow === 'scroll' || style.overflowX === 'auto' || style.overflow === 'auto');
 };
 
 /**
@@ -55,10 +59,22 @@ export const calcOuterHeight = (element: Element): number => {
   return height;
 };
 
+export const calcOuterWidth = (element: Element): number => {
+  let width = element.getBoundingClientRect().width;
+  width += getStyleValues(element, 'marginLeft', 'marginRight');
+  return width;
+};
+
 export const calcScrollerViewportHeight = (element: Element): number => {
   let height = element.getBoundingClientRect().height;
   height -= getStyleValues(element, 'borderTopWidth', 'borderBottomWidth', 'paddingTop', 'paddingBottom');
   return height;
+};
+
+export const calcScrollerViewportWidth = (element: Element): number => {
+  let width = element.getBoundingClientRect().width;
+  width -= getStyleValues(element, 'borderLeftWidth', 'borderRightWidth', 'paddingLeft', 'paddingRight');
+  return width;
 };
 
 export const insertBeforeNode = (view: ISyntheticView, bottomBuffer: Element): void => {
@@ -94,4 +110,23 @@ export const getDistanceToScroller = (child: HTMLElement, scroller: HTMLElement)
   //   [el] <-- offset parent
   //     [el] <-- child
   return childOffsetTop + getDistanceToScroller(offsetParent, scroller);
+};
+
+/**
+ * A naive utility to calculate horizontal distance of a child element to one of its ancestor
+ * Similar to getDistanceToScroller but for horizontal positioning
+ */
+export const getHorizontalDistanceToScroller = (child: HTMLElement, scroller: HTMLElement): number => {
+  const offsetParent = child.offsetParent as HTMLElement;
+  const childOffsetLeft = child.offsetLeft;
+
+  if (offsetParent === null || offsetParent === scroller) {
+    return childOffsetLeft;
+  }
+
+  if (offsetParent.contains(scroller)) {
+    return childOffsetLeft - scroller.offsetLeft;
+  }
+
+  return childOffsetLeft + getHorizontalDistanceToScroller(offsetParent, scroller);
 };

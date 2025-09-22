@@ -222,10 +222,9 @@ export class ComputedObserver<T extends object> implements
     // so we are only notifying subscribers when it's the actual notify phase
 
     if (!this._notified || !areEqual(newValue, currValue)) {
-      // todo: wrong timing, this should be after notify
-      this._callback?.(newValue, oldValue);
       this.subs.notify(newValue, oldValue);
       this._oldValue = this._value = newValue;
+      this._callback?.(newValue, oldValue);
       this._notified = true;
     }
   }

@@ -364,7 +364,8 @@ export class RouteContext {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
       vit => {
-        const relativePath = vit.toUrl(true, this._router.options._urlParser);
+        const options = this._router.options;
+        const relativePath = vit.toUrl(true, options._urlParser, false);
 
         // Compute the parent path
         let parentPath = '';
@@ -378,7 +379,7 @@ export class RouteContext {
         parentPath = parentSegments.join('/');
 
         // Combine parent path and relative path
-        return parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`;
+        return `${options.useUrlFragmentHash ? '/#/' : ''}${parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`}`;
       }
     );
   }
@@ -389,7 +390,12 @@ export class RouteContext {
   public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
-      vit => vit.toUrl(true, this._router.options._urlParser)
+      // Note that even though this method is for generating relative paths, one can still generate a rooted path using this method.
+      // For example, when instructions like `../sibling-route` is used and the parent of the current context is the root context.
+      // In such cases, the upward crawl of context will happen, and thus the deciding factor will be if the ViewportInstructionTree
+      // is created with the root context or not. Thus, instead of simply using `false`, the `isRoot` property of the vit context is
+      // used while generating the URL.
+      vit => vit.toUrl(true, this._router.options._urlParser, (vit.options.context as IRouteContext).isRoot)
     );
   }
 
@@ -933,6 +939,7 @@ class NavigationModel implements INavigationModel {
     });
   }
 
+  private readonly emptyRoute: symbol = Symbol.for('au:router:empty-navigation-route');
   /** @internal */
   public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
     const routes = this.routes;
@@ -943,16 +950,19 @@ class NavigationModel implements INavigationModel {
       return;
     }
     const index = routes.length;
-    routes.push((void 0)!); // reserve the slot
+    routes.push(this.emptyRoute as unknown as NavigationRoute); // reserve the slot
     let promise: void | Promise<void> = void 0;
     promise = this._promise = onResolve(this._promise, () =>
       onResolve(route, rdConfig => {
         if (rdConfig.nav && rdConfig.redirectTo === null) {
           routes[index] = NavigationRoute._create(rdConfig);
-        } else {
-          routes.splice(index, 1);
         }
         if (this._promise === promise) {
+          for (let i = this.routes.length - 1; i >= 0; --i) {
+            if (this.routes[i] === (this.emptyRoute as unknown)) {
+              this.routes.splice(i, 1);
+            }
+          }
           this._promise = void 0;
         }
       })

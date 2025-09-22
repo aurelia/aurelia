@@ -100,8 +100,6 @@ Modern browsers are incredibly fast at DOM manipulation. Aurelia's intelligent o
 4. **[Templates & Binding](templates/)** - Master Aurelia's powerful templating
 5. **[Router](getting-to-know-aurelia/routing/aurelia-router.md)** - Add navigation to your applications
 6. **[Forms & Validation](aurelia-packages/validation/)** - Handle user input effectively
-
-**Production Ready:**
 7. **[Testing](developer-guides/testing/)** - Test your applications thoroughly
 8. **[Performance](advanced-scenarios/performance-optimization-techniques.md)** - Optimize for production
 9. **[Advanced Scenarios](advanced-scenarios/)** - Complex application patterns

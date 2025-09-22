@@ -9,7 +9,7 @@
   "version": "2.0.0-beta.25",
   "port": 9008,
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --force",
     "test:e2e": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9008 PWDEBUG=1 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
@@ -35,6 +35,6 @@
     "@aurelia/webpack-loader": "2.0.0-beta.25",
     "ts-loader": "^9.3.0",
     "@types/node": "^20.16.10",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   }
 }

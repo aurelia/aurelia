@@ -1,6 +1,7 @@
-import { containerless } from 'aurelia';
+import { customElement } from 'aurelia';
+import template from './details.html';
 
-@containerless
+@customElement({ name: 'details', template, containerless: true })
 export class Details {
   id: string;
 

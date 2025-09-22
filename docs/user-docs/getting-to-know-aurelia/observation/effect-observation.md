@@ -1,3 +1,7 @@
+---
+description: React to derived state changes with Aurelia's effect observation APIs.
+---
+
 # Effect observation
 
 Aurelia provides a higher-level API for simplifying some common tasks to handle a common reactivity intent in any application: run a function again when any of its dependencies have been changed.&#x20;

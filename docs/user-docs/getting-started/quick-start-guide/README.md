@@ -128,10 +128,10 @@ That's it! You've built a reactive Aurelia application with:
 
 Ready to dive deeper? Explore:
 
-- [Template Syntax](../../templates/README.md) - loops, conditionals, and more bindings
+- [Template Syntax](../../templates/template-syntax/overview.md) - loops, conditionals, and more bindings
 - [Component Lifecycle](../../components/components.md) - hooks for advanced behavior  
-- [Dependency Injection](../../app-basics/dependency-injection.md) - sharing services between components
-- [Router](../../routing/README.md) - multi-page applications
+- [Dependency Injection](../../essentials/dependency-injection.md) - sharing services between components
+- [Router](../../router/getting-started.md) - multi-page applications
 
 The fundamentals you learned here apply to every Aurelia app you'll build. Start experimenting and see what you can create!
 

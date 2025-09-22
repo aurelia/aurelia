@@ -1,3 +1,7 @@
+---
+description: Register and import custom elements so they can be used across Aurelia applications.
+---
+
 # Consuming a Custom Element
 In order to use a new component you must register your component either globally or within the component you would like to use it in.
 

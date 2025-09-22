@@ -13,7 +13,6 @@ Please see below a reference to each [@aurelia/template-compiler](https://github
 * [AUR0702](aur0702.md)
 * [AUR0703](aur0703.md)
 * [AUR0704](aur0704.md)
-* [AUR0705](aur0705.md)
 * [AUR0706](aur0706.md)
 * [AUR0707](aur0707.md)
 * [AUR0708](aur0708.md)
@@ -32,3 +31,4 @@ Please see below a reference to each [@aurelia/template-compiler](https://github
 * [AUR0721](aur0721.md)
 * [AUR0722](aur0722.md)
 * [AUR0723](aur0723.md)
+* [AUR9998](aur9998.md)

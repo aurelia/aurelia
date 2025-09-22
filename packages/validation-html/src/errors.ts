@@ -3,7 +3,12 @@
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+  ? (code: ErrorNames, ...details: unknown[]) => {
+    const paddedCode = String(code).padStart(4, '0');
+    const message = getMessageByCode(code, ...details);
+    const link = `https://docs.aurelia.io/developer-guides/error-messages/4200-to-4206/aur${paddedCode}`;
+    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+  }
   : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}:${details.map(String)}`);
 
 _START_CONST_ENUM();

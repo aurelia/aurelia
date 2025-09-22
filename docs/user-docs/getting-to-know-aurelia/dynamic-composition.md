@@ -1,3 +1,7 @@
+---
+description: Render components and templates dynamically with Aurelia's au-compose element.
+---
+
 # Dynamic Composition
 
 Dynamic composition lets you decide what to render at runtime instead of at compile time. Think of `<au-compose>` as a placeholder that can become any component or template based on your application's state, user preferences, or data.
@@ -8,6 +12,8 @@ This is perfect for:
 - **Plugin architectures** where components are loaded dynamically
 - **Form builders** that render different field types
 - **Content management** where layout components vary by content type
+
+> **Before you start:** Make sure you are comfortable with [components](components/README.md) and [template controllers](template-controllers.md); both concepts show up throughout the examples.
 
 ## Component Composition
 
@@ -781,3 +787,9 @@ export class TemplateLoaderValueConverter {
 6. **Use models efficiently** - Changing models is cheaper than changing components
 
 Dynamic composition gives you the flexibility to build truly dynamic UIs that adapt to your users' needs, load efficiently, and scale with your application's complexity.
+
+## Next steps
+
+- Explore [portalling elements](portalling-elements.md) to move DOM across layout boundaries.
+- Combine composition with [enhance](enhance.md) when progressively upgrading existing markup.
+- Review [watching data](watching-data.md) to react to model changes that drive composition.

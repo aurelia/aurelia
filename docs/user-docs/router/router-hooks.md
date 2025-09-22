@@ -73,47 +73,7 @@ Shared lifecycle hook logic can be defined by implementing one of the router lif
 
 While the router hooks are indeed independent of the components you are routing to, the functions are basically the same as you would use inside of an ordinary component.
 
-This is the contract for ordinary route lifecycle hooks for components:
-
-```typescript
-import {
-  IRouteViewModel,
-  INavigationOptions,
-  Params,
-  RouteNode,
-  NavigationInstruction,
-} from '@aurelia/router';
-
-export class MyComponent implements IRouteViewModel {
-  canLoad?(
-    params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
-    options: INavigationOptions
-  ): boolean
-    | NavigationInstruction
-    | NavigationInstruction[]
-    | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  loading?(
-    params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
-    options: INavigationOptions
-  ): void | Promise<void>;
-  canUnload?(
-    next: RouteNode | null,
-    current: RouteNode,
-    options: INavigationOptions
-  ): boolean | Promise<boolean>;
-  unloading?(
-    next: RouteNode | null,
-    current: RouteNode,
-    options: INavigationOptions
-  ): void | Promise<void>;
-}
-```
-
-And the following is the contract for shared lifecycle hooks.
+The component-level hook signatures are identical to the ones described in [Routing lifecycle hooks](./routing-lifecycle.md). Router hooks reuse those signatures but execute outside the component, letting you centralise cross-cutting policies.
 
 ```typescript
 import { lifecycleHooks } from 'aurelia';

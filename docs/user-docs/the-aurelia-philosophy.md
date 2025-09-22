@@ -12,6 +12,20 @@ Most importantly, we believe you shouldn't have to forget everything you know ab
 
 These beliefs have made us unfashionable. Good. We'd rather be right than trendy.
 
+## Why Not Just Use React?
+
+**Because the biggest crowd is not the only path to victory.**
+
+React is the industry default. It commands stadium keynotes, spawns endless packages, and fills job boards with requirements. We salute the React team for making component thinking mainstream and showing the browser can power ambitious interfaces. That legacy is undeniable.
+
+But scale changes the game. React's strength is modular freedom. Every decision, from routing to state management to forms to dependency injection to testing, invites you to draft your own lineup of supporting libraries. That freedom can be exhilarating. It can also demand constant attention as packages shift, maintainers rotate out, and best practices rewrite themselves overnight. Teams do not just learn React; they learn React plus the custom stack they assembled on day one and have to re-evaluate each quarter.
+
+Aurelia stays intentionally smaller so we can ship the essentials as one cohesive strike force. Our router, dependency injection, binding engine, and testing story are forged together by the same team with the same philosophy. You spend your energy shipping features, not benchmarking which combination of libraries will still be supported next quarter. When we add capability, we do it without erasing the knowledge you already earned.
+
+Choosing Aurelia means joining a community that prizes stability over hype, standards over novelty, and craftsmanship over churn. You gain direct access to maintainers who care about your use case, not just the next keynote demo. Our ecosystem is tighter, but it is aligned, predictable, and built to compound value release after release.
+
+Use React if you want the world of mix-and-match options. Choose Aurelia if you want a unified framework that already lives the principles this manifesto defends.
+
 ## Web Standards, Enhanced
 
 **We build on the web, not around it.**

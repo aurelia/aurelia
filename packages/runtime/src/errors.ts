@@ -5,7 +5,14 @@ import { rtSafeString } from './utilities';
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${rtSafeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+  ? (code: ErrorNames, ...details: unknown[]) => {
+    const paddedCode = rtSafeString(code).padStart(4, '0');
+    const message = getMessageByCode(code, ...details);
+    // Runtime errors span multiple ranges, use appropriate link
+    const linkPath = code >= 203 && code <= 227 ? '0203-to-0227' : '0151-to-0179';
+    const link = `https://docs.aurelia.io/developer-guides/error-messages/${linkPath}/aur${paddedCode}`;
+    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+  }
   : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${rtSafeString(code).padStart(4, '0')}:${details.map(rtSafeString)}`);
 
 _START_CONST_ENUM();

@@ -1,8 +1,14 @@
-# **Introduction: Concurrency & Synchronization**
+---
+description: Manage Aurelia's scheduler and task utilities to coordinate asynchronous work, rendering, and tests.
+---
 
-A modern web application constantly juggles asynchronous operations. User interactions, data fetches, and rendering updates all compete for time, creating a risk of unpredictable timing, race conditions, and flaky tests.
+# Task Queue
 
-To manage this, Aurelia provides a **task scheduling system**. Think of it as the central **air traffic controller** for your application. It is a microtask-based queue that ensures every operation is processed in a predictable and orderly sequence, bringing stability to the asynchronous nature of the web.
+Modern web applications juggle user input, network calls, and rendering. Aurelia's scheduler keeps that work predictable so you can focus on behavior instead of timing hacks.
+
+To manage concurrency, Aurelia provides a task scheduling system. Think of it as an air-traffic controller that ensures every operation is processed in a predictable sequence.
+
+> **Before you start:** Familiarise yourself with [Understanding the binding system](synchronous-binding-system.md) so you know when bindings flush, and review [App tasks](app-tasks.md) if you plan to hook into startup or teardown.
 
 It answers critical questions like:
 
@@ -16,13 +22,13 @@ To see it in action, let's start with its most immediate and powerful use case: 
 **Coming from Aurelia 1?** The Aurelia 2 scheduler serves a similar purpose to the v1 `TaskQueue` but with a more powerful and explicit API. See our **Migration Guide** for specific details.
 {% endhint %}
 
-## **Getting Started: Writing Bulletproof Component Tests**
+## Getting started: reliable component tests
 
 The single most common source of frustration in testing front-end applications is timing. You change a value, but the DOM doesn't update instantly. How long do you wait? If you've ever written a test that uses `setTimeout` to "wait for the UI to catch up," you've felt this pain.
 
 The Aurelia scheduler completely eliminates this guesswork. Let's see how with a simple example.
 
-### **The Component Under Test**
+### The component under test
 
 Imagine a basic `counter` component:
 
@@ -42,7 +48,7 @@ export class Counter {
 <button click.trigger="increment()">Increment</button>
 ```
 
-### **The Old, Flaky Way 👎**
+### The old, flaky way
 
 Without a scheduler, you might write a test like this, using `setTimeout` with an arbitrary delay to wait for the DOM to update.
 
@@ -63,9 +69,9 @@ it('updates the count after a delay', async () => {
 
 This test is fragile. It might pass on your fast machine but fail in a slow CI environment. What if the update takes 51ms? The test fails. What if it only takes 5ms? You've wasted 45ms. This is slow, unreliable, and a maintenance nightmare.
 
-### **The Aurelia Way: Deterministic & Reliable 👍**
+### The Aurelia way: deterministic and reliable
 
-With Aurelia, you don't guess. You tell the scheduler to wait until all queued work—including rendering—is finished.
+With Aurelia, you don't guess. You tell the scheduler to wait until all queued work, including rendering, is finished.
 
 TypeScript
 
@@ -133,7 +139,7 @@ const myTask = queueAsyncTask(() => {
 }, { delay: 500 });
 ```
 
-### The `Task` Handle: Your Control Panel 🎮
+### The `Task` handle
 
 The `Task` object returned by `queueAsyncTask()` is your "receipt" for the scheduled work. It is a "thennable" object, meaning it behaves like a promise, but with additional properties for managing its lifecycle.
 
@@ -172,7 +178,7 @@ task.cancel();
 
 For advanced use cases, the underlying `Promise` is accessible via `.result`. This can be useful when interoperating with libraries that require a native promise instance. In most situations, you should `await` the `Task` object directly.
 
-### `queueRecurringTask()`: For Repeating Actions 🔁
+### `queueRecurringTask()`: repeating actions
 
 For actions that need to repeat on a timer, like polling a server for live notifications, `queueRecurringTask()` is the right tool. It runs your callback on a given interval until you explicitly cancel it. It returns a special `RecurringTask` handle that lets you stop the loop with `.cancel()` or wait for the next tick with `await task.next()`, which is very useful for testing.
 
@@ -180,7 +186,7 @@ For actions that need to repeat on a timer, like polling a server for live notif
 
 You may also see the simpler `queueTask()`. This is a lower-level "fire-and-forget" function. It does not return a `Task` handle and cannot be awaited or canceled directly. It's primarily used internally by the framework and for niche plugin scenarios. For application code, **`queueAsyncTask()` is almost always the correct choice.**
 
-## Practical Recipes 🧑‍🍳
+## Practical recipes
 
 Now that you understand the core concepts, let's see how to combine them to solve common development problems. Each recipe here provides a practical, copy-paste-friendly solution you can adapt for your own applications.
 
@@ -604,3 +610,9 @@ export class ChartComponent {
 ```html
 <div data-title.bind="chartTitle" ref="chartContainer"></div>
 ```
+
+## Next steps
+
+- Learn how Aurelia batches DOM updates in [Understanding the binding system](synchronous-binding-system.md).
+- Coordinate background work with [App tasks](app-tasks.md) during startup and shutdown.
+- Explore [watching data](watching-data.md) to trigger scheduler tasks from property changes.

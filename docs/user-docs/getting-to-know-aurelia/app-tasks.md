@@ -37,7 +37,7 @@ Aurelia’s app task API provides methods that correspond to each lifecycle phas
 - `AppTask.deactivating(...)`
 - `AppTask.deactivated(...)`
 
-Each of these methods accepts a callback—and optionally a key—to perform operations during that phase. App tasks can be registered with the DI container during application instantiation or within plugins.
+Each of these methods accepts a callback, and optionally a key, to perform operations during that phase. App tasks can be registered with the DI container during application instantiation or within plugins.
 
 ---
 

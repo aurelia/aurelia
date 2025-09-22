@@ -1,8 +1,14 @@
+---
+description: Encapsulate templating logic in reusable controllers that coordinate rendering in Aurelia views.
+---
+
 # Template Controllers
 
 Template controllers are a unique and powerful feature in Aurelia 2, providing a way to encapsulate and reuse templating logic directly within your views.  They allow you to manipulate the rendering of a template based on custom logic, offering a higher level of abstraction compared to simple value bindings or even custom attributes.
 
-Think of template controllers as building blocks for creating reusable templating patterns. They are distinct from [components](../components/components.md) in that they don't define new HTML elements. Instead, they *control* the rendering behavior of existing elements and their content.  Common examples of built-in template controllers in Aurelia include `if.bind`, `repeat.for`, and `with.bind`.
+Think of template controllers as building blocks for creating reusable templating patterns. They are distinct from [components](components/README.md) in that they don't define new HTML elements. Instead, they *control* the rendering behavior of existing elements and their content.  Common examples of built-in template controllers in Aurelia include `if.bind`, `repeat.for`, and `with.bind`.
+
+> **Before you start:** Refresh the core directives in [Built-in template features](introduction/built-in-template-features.md) and keep [Dynamic composition](dynamic-composition.md) in mind if you plan to mix controllers with runtime swapping.
 
 ## Understanding Template Controllers
 
@@ -208,3 +214,9 @@ While template controllers, custom attributes, and custom elements are all view 
 *   **Custom Elements**: Define completely *new* HTML elements, encapsulating both template structure and behavior. They are used to create reusable UI components with their own encapsulated logic and markup.
 
 Template controllers are specifically designed for manipulating the *template rendering process* itself, making them the ideal choice when you need to create reusable templating patterns and implement conditional or dynamic content display logic.
+
+## Next steps
+
+- Combine controllers with [dynamic composition](dynamic-composition.md) to swap entire layouts at runtime.
+- Share data between controllers and services using the [Event Aggregator](event-aggregator.md).
+- Continue with [portalling elements](portalling-elements.md) when you need to move DOM across containers.

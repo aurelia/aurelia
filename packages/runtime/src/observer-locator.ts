@@ -1,4 +1,4 @@
-import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, createLookup } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap } from '@aurelia/kernel';
 import { ArrayObserver, getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { SetObserver, getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign } from './utilities';
+import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign, getOwnPropDesc, getProto } from './utilities';
 
 import type {
   Collection,
@@ -20,6 +20,7 @@ import type {
 } from './interfaces';
 import { ErrorNames, createMappedError } from './errors';
 import { computedPropInfo } from './object-property-info';
+import { getObserverLookup } from './observation-utils';
 
 const propertyAccessor = new PropertyAccessor();
 
@@ -88,7 +89,7 @@ export type ExtendedPropertyDescriptor = PropertyDescriptor & {
   get?: ObservableGetter;
 };
 export type ObservableGetter = PropertyDescriptor['get'] & {
-  getObserver?(obj: unknown): IObserver;
+  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
 };
 
 export class ObserverLocator {
@@ -191,7 +192,7 @@ export class ObserverLocator {
     if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
       let obs: IObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
       if (obs == null) {
-        obs = (pd.get?.getObserver)?.(obj);
+        obs = (pd.get?.getObserver)?.(obj, this);
       }
 
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -263,13 +264,3 @@ export const getCollectionObserver: {
   return obs;
 };
 
-const getProto = Object.getPrototypeOf;
-const getOwnPropDesc = Object.getOwnPropertyDescriptor;
-
-export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
-  let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
-  if (lookup === void 0) {
-    rtDef(instance, '$observers', { value: lookup = createLookup() });
-  }
-  return lookup;
-};

@@ -88,7 +88,7 @@ jobs:
   bench_startup:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: build
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -131,6 +131,7 @@ jobs:
   bench_rerender:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -154,6 +155,7 @@ jobs:
   bench_update:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3

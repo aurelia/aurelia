@@ -9,9 +9,23 @@ test.describe('router.basic', () => {
     await page.goto(baseURL);
   });
 
-  test('loads home route', async ({ page }) => {
-    await expect(page.locator('au-viewport')).toHaveText('Home page');
-  });
+  for (const useUrlFragmentHash of [true, false]) {
+    test(`loads home route (useUrlFragmentHash: ${useUrlFragmentHash})`, async ({ page }) => {
+      const assertContent = () => expect(page.locator('au-viewport')).toHaveText('Home page');
+
+      if (useUrlFragmentHash) {
+        await page.goto('?useUrlFragmentHash=true');
+      }
+      await assertContent();
+
+      const url = new URL(page.url());
+      if (useUrlFragmentHash) {
+        url.searchParams.set('useUrlFragmentHash', 'true');
+      }
+
+      await assertContent();
+    });
+  }
 
   test('handles clicks on auth anchor', async ({ page }) => {
     await page.click('text=Register');
@@ -149,7 +163,7 @@ test.describe('router.basic', () => {
   });
 
   for (const useUrlFragmentHash of [true, false]) {
-    test(`href generation works correctly with useUrlFragmentHash=${useUrlFragmentHash}`, async ({ page, baseURL }) => {
+    test(`href generation works correctly (useUrlFragmentHash: ${useUrlFragmentHash})`, async ({ page, baseURL }) => {
 
       if (useUrlFragmentHash) {
         await page.goto(`${baseURL}/?useUrlFragmentHash=true`);

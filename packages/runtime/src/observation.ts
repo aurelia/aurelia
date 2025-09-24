@@ -7,8 +7,6 @@ import { rtCreateInterface } from './utilities';
 
 import { createMappedError, ErrorNames } from './errors';
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from './interfaces';
-import { Scope } from './scope';
-import { ExpressionObserver } from './expression-observer';
 
 export interface IObservation {
   /**
@@ -123,12 +121,7 @@ export class Observation implements IObservation {
         // throw or ignore?
       }
     };
-    const observer = ExpressionObserver.create(
-      Scope.create(obj),
-      this.oL,
-      this._parser.parse(expression, 'IsProperty'),
-      handleChange,
-    );
+    const observer = this.oL.getExpressionObserver(obj, expression, handleChange);
     const run = () => {
       if (running) return;
       running = true;

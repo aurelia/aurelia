@@ -96,11 +96,10 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this._instructions = null;
       this._el.removeAttribute('href');
     } else {
-      const context = this._ctx;
-      const options = this._router.options;
       if (!this._isExternal) {
-        this._instructions = this._router.createViewportInstructions(newValue, { context });
-        newValue = this._instructions.toUrl(false, options._urlParser, true);
+        const router = this._router;
+        const instructions = this._instructions = router.createViewportInstructions(newValue, { context: this._ctx });
+        newValue = instructions.toUrl(false, router.options._urlParser, true);
       }
       this._el.setAttribute('href', newValue as string);
     }

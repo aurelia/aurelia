@@ -28,7 +28,8 @@ export class BrowserLocationManager {
   /** @internal */ private readonly _location: ILocation = resolve(ILocation);
   /** @internal */ private readonly _window: IWindow = resolve(IWindow);
   /** @internal */ private readonly _baseHref: URL = resolve(IBaseHref);
-  /** @internal */ private readonly _event: 'hashchange' | 'popstate' = resolve(IRouterOptions).useUrlFragmentHash ? 'hashchange' : 'popstate';
+  /** @internal */ private readonly _useUrlFragmentHash: boolean = resolve(IRouterOptions).useUrlFragmentHash;
+  /** @internal */ private readonly _event: 'hashchange' | 'popstate' = this._useUrlFragmentHash ? 'hashchange' : 'popstate';
 
   public constructor() {
     if (__DEV__) debug(this._logger, Events.lmBaseHref, this._baseHref.href);
@@ -112,6 +113,11 @@ export class BrowserLocationManager {
     if (path.startsWith(basePath)) {
       path = path.slice(basePath.length);
     }
+
+    if (this._useUrlFragmentHash && path.startsWith('#')) {
+      path = path.slice(1);
+    }
+
     return normalizePath(path);
   }
 }

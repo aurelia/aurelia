@@ -107,6 +107,55 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
       assertText('Hello Aurelia 2!!!!');
       assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
     });
+
+    it('works with deep property dependency', function () {
+      let i = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          obj = { message: 'Hello Aurelia 2!' };
+
+          @computedFrom('obj.message')
+          get computedMessage() {
+            i++;
+            return `${this.obj.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      component.obj.message = 'Hey';
+      assert.strictEqual(i, 1);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+    });
+
+    it('works with deep property dependency where intermediate object is replaced', function () {
+      let i = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          obj = { message: 'Hello Aurelia 2!' };
+          @computedFrom('obj.message')
+          get computedMessage() {
+            i++;
+            return `${this.obj.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      component.obj = { message: 'Hey' };
+      assert.strictEqual(i, 1);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+    });
   });
 
   describe('sync', function () {
@@ -226,6 +275,61 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
       runTasks();
       assertText('Hello Aurelia 2!!!!');
       assert.strictEqual(i, 3);
+    });
+
+    it('works with deep property dependency', function () {
+      let i = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          obj = { message: 'Hello Aurelia 2!' };
+
+          @computedFrom({
+            dependencies: ['obj.message'],
+            options: { flush: 'sync' }
+          })
+          get computedMessage() {
+            i++;
+            return `${this.obj.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      component.obj.message = 'Hey';
+      assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes`);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+    });
+
+    it('works with deep property dependency where intermediate object is replaced', function () {
+      let i = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          obj = { message: 'Hello Aurelia 2!' };
+          @computedFrom({
+            dependencies: ['obj.message'],
+            options: { flush: 'sync' }
+          })
+          get computedMessage() {
+            i++;
+            return `${this.obj.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      component.obj = { message: 'Hey' };
+      assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes`);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
     });
   });
 });

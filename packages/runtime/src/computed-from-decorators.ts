@@ -1,4 +1,4 @@
-import { isArray, isObject } from '@aurelia/kernel';
+import { isArray, isObject, isString } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from './errors';
 import { AccessorType, atObserver, IObserver, ISubscriber, ISubscriberCollection, ISubscriberRecord } from './interfaces';
 import { IObserverLocator } from './observer-locator';
@@ -77,6 +77,7 @@ export function computedFrom<
         );
         cache.set(obj, observer);
       }
+
       return observer;
     }
 
@@ -134,14 +135,6 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
   ) {
   }
 
-  public useCallback(): boolean {
-    throw createMappedError(ErrorNames.method_not_implemented, 'useCallback');
-  }
-
-  public useCoercer(): boolean {
-    throw createMappedError(ErrorNames.method_not_implemented, 'useCoercer');
-  }
-
   public getValue(): unknown {
     return this.getter.call(this.obj);
   }
@@ -181,7 +174,9 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
   /** @internal */
   private _start() {
     this._observers = this.dependencies.map(dep => {
-      const obs = this.requestor.getObserver(this.obj, dep);
+      const obs = isString(dep)
+        ? this.requestor.getExpressionObserver(this.obj, dep)
+        : this.requestor.getObserver(this.obj, dep);
       obs.subscribe(this);
       return obs;
     });
@@ -189,7 +184,9 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
 
   /** @internal */
   private _stop() {
-    this._observers?.forEach(obs => obs.unsubscribe(this));
+    this._observers?.forEach(obs => {
+      obs.unsubscribe(this);
+    });
     this._observers = null;
   }
 

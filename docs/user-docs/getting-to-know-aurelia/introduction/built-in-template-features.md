@@ -1,3 +1,7 @@
+---
+description: Use Aurelia's built-in template commands such as if, show, repeat, and switch to control markup dynamically.
+---
+
 # Built-in template features
 
 This topic demonstrates how to work with Aurelia's built-in template commands which allow you to conditionally show and hide content, loop over collections of content, conditional rendering using switch/case syntax in your views and a trove of other built-in template features.
@@ -92,7 +96,7 @@ export class MyApp {
 ## Looping over collections with repeat.for
 
 {% hint style="success" %}
-To see live examples of `repeat.for` being used, you can consult the examples page for `repeat.for` [over here](../../reference/examples/binding-and-templating/looping-with-repeat.for.md).
+To see live examples of `repeat.for` being used, visit the [`repeat.for` examples](../../reference/examples/binding-and-templating/README.md#looping-with-repeatfor).
 {% endhint %}
 
 You can use the `repeat.for` binding to iterate over collections of data in your templates. Think of `repeat.for` as a for loop, it can iterate arrays, maps and sets.
@@ -147,4 +151,3 @@ Inside of the `repeat.for` these can be accessed. In the following example we di
     <li repeat.for="item of items">${$index}</li>
 </ul>
 ```
-

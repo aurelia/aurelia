@@ -1,4 +1,4 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve, isArray } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router';
@@ -3754,7 +3754,7 @@ describe('router/smoke-tests.spec.ts', function () {
     }
 
     @route({ routes: [{ id: 'c1', path: 'c1/:id', component: C1 }] })
-    @customElement({ name: 'app', template: '<a href="#/c1/42?foo=bar#for-whatever-reason"></a><au-viewport></au-viewport>' })
+    @customElement({ name: 'app', template: '<a href="/#/c1/42?foo=bar#for-whatever-reason"></a><au-viewport></au-viewport>' })
     class App { }
 
     const { host, container } = await start({ appRoot: App, useHash: true });
@@ -3861,6 +3861,7 @@ describe('router/smoke-tests.spec.ts', function () {
       @valueConverter('firstNonEmpty')
       class FirstNonEmpty {
         public toView(paths: string[]): string {
+          if (!isArray(paths)) return;
           for (const path of paths) {
             if (path) return path;
           }
@@ -3947,6 +3948,109 @@ describe('router/smoke-tests.spec.ts', function () {
       const { container } = ctx;
 
       const navBarCe = getNavBarCe();
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration,
+        C11,
+        C12,
+        C21,
+        C22,
+        P1,
+        P2,
+        P3,
+        navBarCe
+      );
+
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
+
+      await au.app({ component: Root, host }).start();
+
+      const queue = container.get(IPlatform).domQueue;
+      const router = container.get(IRouter);
+
+      // Start
+      await queue.yield();
+      type NavBar = InstanceType<typeof navBarCe>;
+      const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
+      let childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
+      childNavBar.assert([{ href: 'c11', text: 'C11', active: true }, { href: 'c12', text: 'C12', active: false }], 'start child navbar');
+
+      // Round#1
+      await router.load('p2');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
+      childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
+      childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
+
+      // Round#2
+      await router.load('p1/c12');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
+      childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
+      childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
+
+      // Round#3
+      await router.load('p2/c21');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
+      childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
+      childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
+
+      // Round#4 - nav:false, but routeable
+      await router.load('p3');
+      await queue.yield();
+      rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
+      assert.notEqual(host.querySelector('ce-p3'), null);
+
+      await au.stop(true);
+    });
+
+    it('route deco- async components', async function () {
+      @customElement({ name: 'ce-c11', template: 'c11' })
+      class C11 { }
+      @customElement({ name: 'ce-c12', template: 'c12' })
+      class C12 { }
+      @customElement({ name: 'ce-c21', template: 'c21' })
+      class C21 { }
+      @customElement({ name: 'ce-c22', template: 'c22' })
+      class C22 { }
+
+      @route({
+        routes: [
+          { path: ['', 'c11'], component: C11, title: 'C11' },
+          { path: 'c12', component: C12, title: 'C12' },
+        ]
+      })
+      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      class P1 { }
+
+      @route({
+        routes: [
+          { path: 'c21', component: C21, title: 'C21' },
+          { path: ['', 'c22'], component: C22, title: 'C22' },
+        ]
+      })
+      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      class P2 { }
+      @customElement({ name: 'ce-p3', template: 'p3' })
+      class P3 { }
+
+      @route({
+        routes: [
+          { path: ['', 'p1'], component: Promise.resolve({ default: P1 }), title: 'P1' },
+          { path: 'p3', component: Promise.resolve({ P3 }), title: 'P3', nav: false },
+          { path: 'p2', component: Promise.resolve({ P2 }), title: 'P2' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
+      class Root { }
+
+      const ctx = TestContext.create();
+      const { container } = ctx;
+
+      const navBarCe = getNavBarCe(true);
       container.register(
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
@@ -6150,20 +6254,20 @@ describe('router/smoke-tests.spec.ts', function () {
       await tQueue.yield();
       assert.html.textContent(vp, 'ce1', 'back - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
+      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":1}', 'back - history');
 
       // going forward should load ce3
       history.forward();
       await tQueue.yield();
       assert.html.textContent(vp, 'ce3', 'forward - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":5}', 'forward - history');
+      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
       await dwQueue.yield();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
-      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":5}', 'strategy: none - history');
+      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
       await au.stop(true);
     });
@@ -6237,20 +6341,20 @@ describe('router/smoke-tests.spec.ts', function () {
       await tQueue.yield();
       assert.html.textContent(vp, 'ce2', 'back - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
+      assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":2}', 'back - history');
 
       // going forward should load ce3
       history.forward();
       await tQueue.yield();
       assert.html.textContent(vp, 'ce3', 'forward - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":5}', 'forward - history');
+      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
       await dwQueue.yield();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
-      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":5}', 'strategy: none - history');
+      assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
       await au.stop(true);
     });
@@ -6331,7 +6435,7 @@ describe('router/smoke-tests.spec.ts', function () {
       await tQueue.yield();
       assert.html.textContent(vp, 'ce3', 'forward - component');
       await dwQueue.yield();
-      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":5}', 'forward - history');
+      assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       await router.load('ce2', { historyStrategy: 'replace' });
       await dwQueue.yield();

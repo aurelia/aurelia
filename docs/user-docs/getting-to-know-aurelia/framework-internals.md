@@ -1,4 +1,10 @@
+---
+description: Explore how Aurelia's compiler turns templates into instructions and how the runtime executes them.
+---
+
 # Framework Internals: Understanding Aurelia's Instruction System
+
+> This deep dive assumes you're comfortable with Aurelia's binding and component model. Bookmark it for debugging and tooling work.
 
 Aurelia's instruction system is the bridge between template compilation and runtime execution. Templates compile to instruction objects that describe exactly what bindings and components to create, then renderers interpret these instructions to build the actual DOM bindings and component instances.
 

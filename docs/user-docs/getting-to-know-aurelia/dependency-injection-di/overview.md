@@ -1,3 +1,7 @@
+---
+description: Understand Aurelia's dependency injection concepts and why containers simplify application structure.
+---
+
 # Dependency Injection (DI)
 
 Dependency Injection (DI) is a design pattern that allows for creating objects dependent on other objects (their dependencies) without creating those dependencies themselves. It's a way of achieving loose coupling between classes and their dependencies. Aurelia provides a powerful and flexible DI system that can greatly simplify the process of wiring up the various parts of your application.

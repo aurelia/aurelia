@@ -15,7 +15,7 @@
     "test:e2e:webpack": "cross-env APP_PORT=9006 concurrently \"npm run dev:webpack\" \"playwright test\" --kill-others --success first",
     "test:e2e": "cross-env APP_PORT=9006 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9006 concurrently \"npm run dev\" \"playwright-watch test\"",
-    "test:e2e:debugger": "cross-env APP_PORT=9006 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9006 PWDEBUG=1 concurrently \"npm run dev\" \"playwright test --debug\"",
     "test": "npm run test:e2e",
     "test:watch": "npm run test:e2e:watch",
     "test:debugger": "cross-env PWDEBUG=1 playwright test"
@@ -29,7 +29,8 @@
     "@aurelia/runtime": "2.0.0-beta.25",
     "@aurelia/runtime-html": "2.0.0-beta.25",
     "@aurelia/router": "2.0.0-beta.25",
-    "perf-monitor": "0.6.0"
+    "perf-monitor": "0.6.0",
+    "animejs": "^4.x"
   },
   "devDependencies": {
     "@playwright/test": "1.39.0",

@@ -20,7 +20,7 @@ export function isManagedState(state: {} | null): state is ManagedState {
   return isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 export function toManagedState(state: {} | null, navId: number): ManagedState {
-  return { ...state, [AuNavId]: navId };
+  return { ...state, [AuNavId]: (state as { [AuNavId]: number | undefined })?.[AuNavId] ?? navId };
 }
 
 /** @internal */
@@ -171,6 +171,8 @@ export class Router {
   /** @internal */ private _navigated: boolean = false;
   /** @internal */ private _navigationId: number = 0;
 
+  /** @internal */ private _lastLocationChangeStateId: number = 0;
+
   /** @internal */ private _instructions: ViewportInstructionTree;
 
   /** @internal */ private _nextTr: Transition | null = null;
@@ -228,7 +230,17 @@ export class Router {
         const state = isManagedState(e.state) ? e.state : null;
 
         const routerOptions = this.options;
-        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
+        const auNavId = state?.[AuNavId] ?? 0;
+        // Note on the `this._lastLocationChangeStateId === 0` check:
+        // - The _lastLocationChangeStateId is initially 0 and it is only set in this event handler.
+        // - Therefore, if it is still 0, it means this is the first location-change event since the router started.
+        // - The event is only fired by the LocationManager in response to a popstate or hashchange event (due to the press of back/forward buttons in browser).
+        // - So when this event is first raised, since the router started, it can only mean that browser back button is pressed, as so far only forward (states are added to the history stack) navigation has occurred.
+        // - But in that case, the auNavId <= this._lastLocationChangeStateId is surely false, as the _lastLocationChangeStateId is still 0.
+        // - Hence the fallback to the = check to ensure that the first back navigation works as intended.
+        const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
+        this._lastLocationChangeStateId = auNavId;
+        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });
         const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
@@ -699,10 +711,10 @@ export class Router {
             // do nothing
             break;
           case 'push':
-            this._locationMgr.pushState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            this._locationMgr.pushState(toManagedState(tr.managedState, tr.id), this.updateTitle(tr), newUrl);
             break;
           case 'replace':
-            this._locationMgr.replaceState(toManagedState(tr.options.state, tr.id), this.updateTitle(tr), newUrl);
+            this._locationMgr.replaceState(toManagedState(tr.managedState, tr.id), this.updateTitle(tr), newUrl);
             break;
         }
 

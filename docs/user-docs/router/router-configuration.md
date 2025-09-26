@@ -8,27 +8,21 @@ The router allows you to configure how it interprets and handles routing in your
 
 ## Complete Configuration Reference
 
-The router accepts the following configuration options through `RouterConfiguration.customize()`:
+The router accepts the following configuration options through `RouterConfiguration.customize()` (all map directly to `RouterOptions` except for `basePath`):
 
-```typescript
-import { RouterConfiguration } from '@aurelia/router';
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `useUrlFragmentHash` | boolean | `false` | When `true`, uses hash (`#/path`) URLs instead of pushState. Leave `false` for clean URLs. |
+| `useHref` | boolean | `true` | Enables the router to intercept standard `href` links. Set to `false` if you only want to route via the `load` attribute. |
+| `historyStrategy` | `'push' \| 'replace' \| 'none' \| (instructions) => HistoryStrategy` | `'push'` | Controls how each navigation interacts with `history`. Provide a function to choose per navigation. |
+| `basePath` | `string \| null` | `null` | Overrides the base segment used to resolve relative routes. Defaults to `document.baseURI`. |
+| `activeClass` | `string \| null` | `null` | CSS class applied by the `load` attribute when a link is active. |
+| `useNavigationModel` | boolean | `true` | Generates the navigation model so you can build menus from `IRouter.navigation`. |
+| `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises how page titles are produced. Return `null` to skip title updates. |
+| `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
+| `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
 
-RouterConfiguration.customize({
-  // Core routing behavior
-  useUrlFragmentHash: false,        // Use hash-based routing instead of pushState
-  useHref: true,                    // Enable href custom attribute processing
-  historyStrategy: 'push',          // How to interact with browser history: 'push' | 'replace' | 'none'
-  basePath: null,                   // Custom base path for routing (overrides document.baseURI)
-
-  // Navigation and UI
-  activeClass: null,                // CSS class for active load attributes
-  useNavigationModel: true,         // Generate navigation model for menu building
-
-  // Advanced customization
-  buildTitle: null,                 // Custom title building function
-  restorePreviousRouteTreeOnError: true, // Restore previous route on navigation errors
-})
-```
+> Pass a partial options object—the router merges your values with the defaults so you only specify what changes. If you need to adjust settings later, resolve `IRouterOptions` from DI and mutate it at runtime. Unlike `RouterConfiguration.customize` in `@aurelia/router-direct`, this overload does not accept a callback—use app tasks or register your own startup code if you need to defer `router.start()`.
 
 ## Choose between hash and pushState routing using `useUrlFragmentHash`
 
@@ -38,10 +32,11 @@ If you prefer hash-based routing to be used, you can enable this like so:
 ```typescript
 import Aurelia from 'aurelia';
 import { RouterConfiguration } from '@aurelia/router';
+import { MyApp } from './my-app';
 
 Aurelia
   .register(RouterConfiguration.customize({ useUrlFragmentHash: true }))
-  .app(component)
+  .app(MyApp)
   .start();
 ```
 
@@ -324,9 +319,9 @@ import { RouterConfiguration } from '@aurelia/router';
 
 Aurelia
   .register(RouterConfiguration.customize({
-      useHref: false
+    useHref: false,
   }))
-  .app(component)
+  .app(MyApp)
   .start();
 ```
 
@@ -539,13 +534,13 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
 RouterConfiguration.customize({
-  useUrlFragmentHash: isDevelopment,     // Hash routing in dev for simplicity
-  historyStrategy: isDevelopment ? 'push' : 'push',  // Always use push in production
-  restorePreviousRouteTreeOnError: !isDevelopment,   // Strict error handling in dev
-  buildTitle: isProduction ?
-    (tr) => buildSEOTitle(tr) :          // SEO-optimized titles in production
-    (tr) => `[DEV] ${tr.routeTree.root.title}`, // Simple dev titles
-})
+  useUrlFragmentHash: isDevelopment,            // Hash routing in dev for simplicity
+  historyStrategy: isDevelopment ? 'replace' : 'push', // Keep history noise low in dev, full history in prod
+  restorePreviousRouteTreeOnError: !isDevelopment, // Let errors surface in dev, recover in prod
+  buildTitle: isProduction
+    ? (tr) => buildSEOTitle(tr)                 // SEO-optimised titles in production
+    : (tr) => `[DEV] ${tr.routeTree.root.title ?? 'Unknown route'}`,
+});
 ```
 
 ### Micro-frontend Configuration

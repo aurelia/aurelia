@@ -129,13 +129,13 @@ The title can be set for the overall application. By default, the title uses the
 ```typescript
 import Aurelia from 'aurelia';
 import { RouterConfiguration } from '@aurelia/router-direct';
+import { MyApp } from './my-app';
 
 Aurelia
-  .register(
-    RouterConfiguration.customize({
-      title: '${componentTitles}${appTitleSeparator}My App'
-    }))
-  .app(component)
+  .register(RouterConfiguration.customize({
+    title: '${componentTitles}${appTitleSeparator}My App',
+  }))
+  .app(MyApp)
   .start();
 ```
 
@@ -151,25 +151,41 @@ Are you trying to set the title using the Aurelia i18n package? Visit the sectio
 
 {% code title="main.ts" %}
 ```typescript
-import { RouterConfiguration, RoutingInstruction, Navigation } from '@aurelia/router-direct';
-import { Aurelia } from 'aurelia';
-
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router-direct';
+import { RouterConfiguration, RoutingInstruction, Navigation } from '@aurelia/router-direct';
 import { MyApp } from './my-app';
 
 Aurelia
   .register(RouterConfiguration.customize({
-      title: {
-        transformTitle: (title: string, instruction: RoutingInstruction, navigation: Navigation) => {
-          return `${title} - MYAPP`;
-        }
-      }
-  })
+    title: {
+      transformTitle: (title: string, instruction: RoutingInstruction, navigation: Navigation) => `${title} - MYAPP`,
+    },
+  }))
   .app(MyApp)
   .start();
 ```
 {% endcode %}
+
+The object you pass to `RouterConfiguration.customize` is merged with the default router-direct options. In the example above we override the `title` section so every navigation updates the document title via `transformTitle`. You can mix and match other options—such as `useUrlFragmentHash` or custom separators—inside the same object when you register the router.
+
+> `RouterConfiguration.customize` also accepts a callback. When you pass a function the router will call it instead of starting automatically—useful if you need to perform work before calling `router.start()` yourself.
+
+### Key router-direct options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `useUrlFragmentHash` | boolean | `true` | When `true`, URLs use the `#/path` fragment form. Set to `false` for pushState routing. |
+| `useHref` | boolean | `true` | Allows standard `href` links to act like `load`. Disable to avoid intercepting non-router links. |
+| `basePath` | string \| null | `null` | Overrides the app's base path when resolving routes. |
+| `useDirectRouting` | boolean | `true` | Enables component-owned direct routing (the default authoring style). |
+| `useConfiguredRoutes` | boolean | `true` | Enables configured routes so you can mix direct routing with `@routes` definitions. |
+| `completeStateNavigations` | boolean | `false` | Treat `load` instructions as whole-app state changes when `true`; otherwise only specified viewports update. |
+| `title` | [`TitleOptions`](#setting-the-title-of-your-application) | inherits defaults | Controls placeholders, separators, and `transformTitle`. |
+| `navigationSyncStates` | `NavigationState[]` | `['guardedUnload', 'swapped', 'completed']` | Chooses which transition steps wait for sibling viewports before continuing. |
+| `swapOrder` | `'attach-next-detach-current'` etc. | `'attach-next-detach-current'` | Determines how viewports swap content during transitions. |
+| `fallback` / `fallbackAction` | component name \| class, `'load' \| 'abort'` | `''`, `'abort'` | Configure what happens when a requested component cannot be loaded. |
+| `statefulHistoryLength` | number | `0` | Keeps the specified number of history entries stateful for back/forward navigation. |
+| `hooks` | array of `{ hook, options }` | `[]` | Registers routing hooks during configuration (mirrors calling `addHook`). |
 
 ### Changing the router mode (hash and pushState routing)
 
@@ -182,10 +198,11 @@ We are performing the configuration inside of the `main.ts` file, which is the d
 ```typescript
 import Aurelia from 'aurelia';
 import { RouterConfiguration } from '@aurelia/router-direct';
+import { MyApp } from './my-app';
 
 Aurelia
   .register(RouterConfiguration.customize({ useUrlFragmentHash: false }))
-  .app(component)
+  .app(MyApp)
   .start();
 ```
 
@@ -226,14 +243,17 @@ Or, you can set `useHref` to `false` and only ever use the `load` attribute for 
 ```typescript
 import Aurelia from 'aurelia';
 import { RouterConfiguration } from '@aurelia/router-direct';
+import { MyApp } from './my-app';
 
 Aurelia
   .register(RouterConfiguration.customize({
-      useHref: false
+    useHref: false,
   }))
-  .app(component)
+  .app(MyApp)
   .start();
 ```
+
+Setting `useHref` to `false` tells the router to ignore standard `href` attributes so only `load` triggers navigation—handy when your markup mixes internal routes with ordinary links.
 
 ### Handling unknown components
 

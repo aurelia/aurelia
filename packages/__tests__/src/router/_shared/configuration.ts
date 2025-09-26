@@ -31,7 +31,7 @@ export function getLocationChangeHandlerRegistration(): IRegistry {
     const window = container.get(IWindow);
     const mockBrowserHistoryLocation = container.get<MockBrowserHistoryLocation>(IHistory);
     mockBrowserHistoryLocation.changeCallback = () => {
-      window.dispatchEvent(useHash ? new HashChangeEvent('hashchange') : new PopStateEvent('popstate'));
+      window.dispatchEvent(useHash ? Object.assign(new HashChangeEvent('hashchange'), { state: mockBrowserHistoryLocation.state }) : new PopStateEvent('popstate', { state: mockBrowserHistoryLocation.state }));
       return Promise.resolve();
     };
   });

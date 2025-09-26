@@ -1,8 +1,14 @@
+---
+description: Configure Aurelia applications, register global resources, and choose the startup pattern that fits your project.
+---
+
 # App configuration and startup
 
 ## Application Startup
 
 Aurelia provides two main approaches for application startup: a quick setup using static methods with sensible defaults, and a verbose setup that gives you complete control over configuration.
+
+> **Before you start:** If you have not already chosen a project scaffold, walk through the [section overview](README.md) for context on how this guide fits with enhancement, routing, and composition topics.
 
 ### Quick startup
 
@@ -190,76 +196,21 @@ Aurelia
 
 ## Enhancement Mode
 
-Aurelia's enhancement mode allows you to integrate Aurelia functionality into existing DOM content without replacing it entirely. This is perfect for progressively enhancing existing applications or adding Aurelia to specific sections of a page.
-
-### Basic Enhancement
+Sometimes you need Aurelia to light up markup that already exists in the DOM. Instead of calling `app()`, reach for `Aurelia.enhance`:
 
 ```typescript
-import Aurelia from 'aurelia';
-
-// Enhance existing DOM content
-const host = document.querySelector('#existing-content');
 const enhanceRoot = await Aurelia.enhance({
-  host: host,
-  component: {
-    message: 'Hello from enhanced content!',
-    items: [1, 2, 3]
-  }
-});
-
-// Later, cleanup when needed
-await enhanceRoot.deactivate();
-```
-
-### Enhancement with Custom Components
-
-```typescript
-import Aurelia from 'aurelia';
-import { MyCustomElement } from './components/my-custom-element';
-
-// Register components before enhancement
-const enhanceRoot = await Aurelia
-  .register(MyCustomElement)
-  .enhance({
-    host: document.querySelector('#content'),
-    component: {
-      data: { name: 'John', age: 30 },
-      created() {
-        console.log('Enhanced component created');
-      }
-    }
-  });
-```
-
-### Enhancement with Custom Container
-
-```typescript
-import { Aurelia } from '@aurelia/runtime-html';
-import { DI } from '@aurelia/kernel';
-import { MyService } from './services/my-service';
-
-// Create custom container with specific services
-const container = DI.createContainer();
-container.register(MyService);
-
-const au = new Aurelia();
-const enhanceRoot = await au.enhance({
-  host: document.querySelector('#widget'),
-  component: { title: 'Enhanced Widget' },
-  container: container  // Use custom container
+  host: document.querySelector('#existing-content'),
+  component: { message: 'Hello from enhanced content!' }
 });
 ```
 
-### When to Use Enhancement
+Enhancement is ideal for progressive hydration, CMS integrations, or widgets embedded in non-Aurelia pages. You can register resources before enhancing, provide a custom DI container, and tear down the enhanced view by calling `enhanceRoot.deactivate()` when you’re done.
 
-- **Legacy Application Integration**: Add Aurelia to existing applications incrementally
-- **Widget Development**: Create interactive widgets within larger non-Aurelia pages
-- **Progressive Enhancement**: Enhance server-rendered content with client-side interactivity
-- **Content Management Systems**: Add dynamic behavior to CMS-generated content
+For a full guide, including cleanup patterns, lifecycle hooks, and advanced recipes, see the dedicated [Enhance](enhance.md) article.
 
-**Key Differences from Standard App Mode:**
-- No need to define a root custom element
-- Can target any existing DOM element
-- Binds directly to plain JavaScript objects
-- Multiple enhanced sections can coexist on one page
-- More lightweight for small interactive components
+## Next steps
+
+- Continue with [Enhance](enhance.md) for progressive integration scenarios.
+- Wire services using [dependency injection](dependency-injection.md) once your shell is running.
+- Explore [choosing a router](routing/choosing-a-router.md) to add navigation after the app is bootstrapped.

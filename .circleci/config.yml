@@ -816,6 +816,8 @@ workflows:
       - unit_test_esm:
           <<: *filter_only_topic
           name: pr_full_test_chrome
+          npm_command: "test-chrome"
+          install_chrome: true
           requires:
             - pr_full_build_release
 

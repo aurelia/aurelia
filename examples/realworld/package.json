@@ -30,10 +30,14 @@
     "webpack-dev-server": "^5.0.4"
   },
   "scripts": {
+    "dev": "webpack-dev-server",
     "start": "webpack-dev-server",
     "build:e2e": "tsc -p e2e/tsconfig.json",
     "start:e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 e2e/dist/**/*.spec.js",
     "build": "rimraf --glob dist && webpack"
+  },
+  "stackblitz": {
+    "startCommand": "npm run dev"
   },
   "engines": {
     "node": ">=14.15.0",

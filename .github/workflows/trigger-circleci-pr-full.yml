@@ -1,8 +1,10 @@
 name: Trigger pr_full on request
 
 on:
+  # Allow maintainers to trigger by typing "/ci full" on a PR
   issue_comment:
     types: [created]
+  # Allow maintainers to trigger by adding a label to the PR
   pull_request_target:
     types: [labeled]
 
@@ -10,6 +12,10 @@ permissions:
   contents: read
 
 jobs:
+  # Run when:
+  #  A) A new comment was added on a PR AND it contains "/ci full" AND the commenter is a trusted association
+  #  OR
+  #  B) A label "ci:full" was added to the PR
   trigger:
     if: >
       (github.event_name == 'issue_comment' &&
@@ -17,10 +23,10 @@ jobs:
        contains(github.event.comment.body, '/ci full') &&
        (github.event.comment.author_association == 'MEMBER' ||
         github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'COLLABORATOR')))
-      || (github.event_name == 'pull_request_target' &&
-          github.event.action == 'labeled' &&
-          github.event.label.name == 'ci:full')
+        github.event.comment.author_association == 'COLLABORATOR')) ||
+      (github.event_name == 'pull_request_target' &&
+       github.event.action == 'labeled' &&
+       github.event.label.name == 'ci:full')
     runs-on: ubuntu-latest
     steps:
       - name: Resolve PR head ref
@@ -29,8 +35,13 @@ jobs:
         with:
           script: |
             const prNum = context.payload.pull_request?.number || context.issue.number;
-            const { data: pr } = await github.rest.pulls.get({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNum });
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNum
+            });
             core.setOutput('branch', pr.head.ref);
+
       - name: Trigger CircleCI pipeline (pr_full)
         env:
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}

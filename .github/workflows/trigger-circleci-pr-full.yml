@@ -1,4 +1,4 @@
-name: CI: trigger pr_full on request
+name: Trigger pr_full on request
 
 on:
   issue_comment:

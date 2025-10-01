@@ -9,6 +9,7 @@ on:
     types: [submitted]
   pull_request_review_comment:
     types: [created]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,35 +17,67 @@ permissions:
 
 jobs:
   trigger:
-    if: >
-      (github.event_name == 'issue_comment' &&
-       github.event.issue.pull_request &&
-       contains(github.event.comment.body, '/ci full') &&
-       (github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'COLLABORATOR')) ||
-      (github.event_name == 'pull_request_review' &&
-       contains(github.event.review.body || '', '/ci full') &&
-       (github.event.review.author_association == 'MEMBER' ||
-        github.event.review.author_association == 'OWNER' ||
-        github.event.review.author_association == 'COLLABORATOR')) ||
-      (github.event_name == 'pull_request_review_comment' &&
-       contains(github.event.comment.body, '/ci full') &&
-       (github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'COLLABORATOR')) ||
-      (github.event_name == 'pull_request_target' &&
-       github.event.action == 'labeled' &&
-       github.event.label.name == 'ci:full')
-
     runs-on: ubuntu-latest
+
     steps:
-      - name: Resolve PR info
-        id: head
+      - name: Decide whether to trigger pr_full
+        id: decide
         uses: actions/github-script@v7
         with:
           script: |
-            const ev = context.eventName;
+            const isMember = (assoc) => ['MEMBER','OWNER','COLLABORATOR'].includes(assoc || '');
+            let ok = false;
+            let why = 'no match';
+
+            switch (context.eventName) {
+              case 'issue_comment': {
+                const body = context.payload.comment?.body || '';
+                const assoc = context.payload.comment?.author_association || '';
+                const isPR = Boolean(context.payload.issue?.pull_request);
+                ok = isPR && body.includes('/ci full') && isMember(assoc);
+                why = `issue_comment: isPR=${isPR} assoc=${assoc} bodyMatch=${body.includes('/ci full')}`;
+                break;
+              }
+              case 'pull_request_review': {
+                const body = context.payload.review?.body || '';
+                const assoc = context.payload.review?.author_association || '';
+                ok = body.includes('/ci full') && isMember(assoc);
+                why = `pull_request_review: assoc=${assoc} bodyMatch=${body.includes('/ci full')}`;
+                break;
+              }
+              case 'pull_request_review_comment': {
+                const body = context.payload.comment?.body || '';
+                const assoc = context.payload.comment?.author_association || '';
+                ok = body.includes('/ci full') && isMember(assoc);
+                why = `pull_request_review_comment: assoc=${assoc} bodyMatch=${body.includes('/ci full')}`;
+                break;
+              }
+              case 'pull_request_target': {
+                const label = context.payload.label?.name || '';
+                ok = context.payload.action === 'labeled' && label === 'ci:full';
+                why = `pull_request_target: label=${label}`;
+                break;
+              }
+              case 'workflow_dispatch': {
+                ok = true;
+                why = 'manual dispatch';
+                break;
+              }
+            }
+
+            core.info(`decision: ${why}`);
+            core.setOutput('should', ok ? 'true' : 'false');
+
+            if (!ok) {
+              core.info('Skipping: conditions not met');
+            }
+
+      - name: Resolve PR info
+        id: head
+        if: steps.decide.outputs.should == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
             const prNum =
               context.payload.pull_request?.number ??
               context.issue?.number;
@@ -67,16 +100,17 @@ jobs:
             core.setOutput('is_fork', String(isFork));
             core.setOutput('pr', String(pr.number));
 
-            core.info(`PR #${pr.number}: head ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha})`);
+            core.info(`PR #${pr.number}: head ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha}), isFork=${isFork}`)
 
-      - name: Guard: show note for fork PRs
-        if: steps.head.outputs.is_fork == 'true'
+      - name: Notice for fork PRs
+        if: steps.decide.outputs.should == 'true' && steps.head.outputs.is_fork == 'true'
         run: |
           echo "::notice::This PR comes from a fork (${GITHUB_REPOSITORY} != ${{ github.event.pull_request.head.repo.full_name }}).
           CircleCI's pipeline trigger API requires a branch in the base repo; the trigger may fail.
-          Workarounds: push the branch to the base repo, or have a maintainer mirror the branch."
+          Workarounds: push/mirror the branch to the base repo."
 
       - name: Trigger CircleCI pipeline (pr_full)
+        if: steps.decide.outputs.should == 'true'
         env:
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
           BRANCH: ${{ steps.head.outputs.branch }}

@@ -725,6 +725,14 @@ workflows:
           requires:
             - pr_lite_install
 
+      - unit_test_esm:
+          <<: *filter_only_topic
+          name: pr_lite_test_esm
+          npm_command: "test-chrome"
+          install_chrome: true
+          requires:
+            - pr_lite_build
+
       - unit_test_esm_node:
           <<: *filter_only_topic
           name: pr_lite_test_node

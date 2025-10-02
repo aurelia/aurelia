@@ -74,6 +74,111 @@ export class ShoppingCart {
 </div>
 ```
 
+### Decorator `computedFrom`
+
+For some reason, it's more preferrable to specify dependencies of a getter manually, rather than automatically tracked on read,
+you can use the decorator `@computedFrom` to declare the dependencies, like the following example:
+
+```ts
+import { computedFrom } from 'aurelia';
+
+export class ShoppingCart {
+  items: CartItem[] = [];
+
+  // we only care when there's a change in the number of items
+  // but not when the price or quantity of each item changes
+  @computedFrom('items.length')
+  get total() {
+    // This computed property automatically updates when items change
+    return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  }
+
+  // other code ...
+}
+```
+
+You can also specify multiple properties as dependencies, like the following example:
+
+```ts
+import { computedFrom } from 'aurelia';
+
+export class ShoppingCart {
+  items: CartItem[] = [];
+  gst = .1;
+
+  // we only care when there's a change in the number of items
+  // but not when the price or quantity of each item changes
+  @computedFrom('items.length', 'gst')
+  get total() {
+    // This computed property automatically updates when items change
+    return this.items.reduce((sum, item) => sum + (item.price * this.gst * item.quantity), 0);
+  }
+
+  // other code ...
+}
+```
+
+Basides the above basic usages, the `computedFrom` decorator also supports a few more options, depending on the needs of an application.
+
+#### Flush timing with `flush`
+
+Like how you can specify flush mode of computed getter with `@computed({ flush: 'sync' })`, flush mode of `@computedFrom` can also be done in a similar way,
+like the following example:
+
+```ts
+import { computedFrom } from 'aurelia';
+
+export class ShoppingCart {
+  items: CartItem[] = [];
+  gst = .1;
+
+  // we only care when there's a change in the number of items
+  // but not when the price or quantity of each item changes
+  @computedFrom({
+    deps: ['items.length', 'gst'],
+    flush: 'sync'
+  })
+  get total() {
+    // This computed property automatically updates when items change
+    return this.items.reduce((sum, item) => sum + (item.price * this.gst * item.quantity), 0);
+  }
+
+  // other code ...
+}
+```
+
+#### Deep observation with `deep`
+
+Sometimes you also want to automatically observe all properties of an object recursively, regardless at what level, `deep` option on the `@computedFrom` decorator
+can be used to achieve this goal, like the following example:
+
+```ts
+import { computedFrom } from 'aurelia';
+
+export class ShoppingCart {
+  _cart = {
+    items = [],
+    gst = .1,
+  }
+
+  // we only care when there's a change in the number of items
+  // but not when the price or quantity of each item changes
+  @computedFrom({
+    deps: ['_cart'],
+    deep: true,
+  })
+  get total() {
+    // This computed property automatically updates when items change
+    return this._cart.items.reduce((sum, item) => sum + (item.price * this._cart.gst * item.quantity), 0);
+  }
+
+  // other code ...
+}
+```
+
+Now whenever `_cart.items[].price` or `_cart.items[].quantity` (or whatever else properties on each element in the `items` array),
+or `_cart.gst` changes, the `total` is considered dirty.
+
 ## Deep Observation
 
 Aurelia can observe nested object changes:

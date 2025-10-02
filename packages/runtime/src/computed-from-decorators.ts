@@ -1,9 +1,11 @@
-import { isArray, isObject, isString } from '@aurelia/kernel';
+import { isArray, isMap, isObject, isSet, isString } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from './errors';
-import { AccessorType, atObserver, IObserver, ISubscriber, ISubscriberCollection, ISubscriberRecord } from './interfaces';
+import { AccessorType, atObserver, IConnectable, IObserver, ISubscriber, ISubscriberCollection, ISubscriberRecord } from './interfaces';
 import { IObserverLocator } from './observer-locator';
 import { queueTask } from './queue';
 import { subscriberCollection } from './subscriber-collection';
+import { rtObjectAssign } from './utilities';
+import { unwrap } from './proxy-observation';
 
 type ClassGetterFunction<T> = (target: () => unknown, context: ClassGetterDecoratorContext<T>) => void;
 
@@ -26,18 +28,21 @@ export function computedFrom<TThis extends object>(...dependencies: (keyof TThis
 export function computedFrom<TThis extends object>(...dependencies: (string | symbol)[]): ClassGetterFunction<TThis>;
 export function computedFrom<TThis extends object>(config: {
   dependencies: (keyof TThis)[];
-  options?: { flush?: 'sync' | 'async' };
+  flush?: 'sync' | 'async';
+  deep?: boolean;
 }): ClassGetterFunction<TThis>;
 export function computedFrom<TThis extends object>(config: {
   dependencies: (string | symbol)[];
-  options?: { flush?: 'sync' | 'async' };
+  flush?: 'sync' | 'async';
+  deep?: boolean;
 }): ClassGetterFunction<TThis>;
 export function computedFrom<
   TThis extends object
 >(
   args: (keyof TThis) | (string | symbol) | {
     dependencies: (keyof TThis | (string | symbol))[];
-    options?: { flush?: 'sync' | 'async' };
+    flush?: 'sync' | 'async';
+    deep?: boolean;
   },
   ...rest: (keyof TThis | string | symbol)[]
 ) {
@@ -47,7 +52,10 @@ export function computedFrom<
   }
   const cache = new WeakMap<object, ComputedFromObserver>();
 
-  const options = (isObject(args) && !isArray(args)) ? args.options : {} as const;
+  const options: {
+    flush?: 'sync' | 'async';
+    deep?: boolean;
+  } = (isObject(args) && !isArray(args)) ? args : {};
   const dependencies = (isObject(args) && !isArray(args)) ? args.dependencies : [args, ...rest];
 
   return function decorator(
@@ -73,7 +81,8 @@ export function computedFrom<
           target,
           requestor,
           dependencies as (string | symbol)[],
-          options?.flush ?? 'async'
+          options.flush ?? 'async',
+          options.deep === true
         );
         cache.set(obj, observer);
       }
@@ -81,7 +90,7 @@ export function computedFrom<
       return observer;
     }
 
-    return Object.assign(function (this: TThis) {
+    return rtObjectAssign(function (this: TThis) {
       const observer = getObsever(this, null);
       return observer == null ? target.call(this) : observer.getValue();
     }, {
@@ -105,7 +114,7 @@ function testComputed() {
       return 2;
     }
 
-    @computedFrom({ dependencies: ['prop2'], options: { flush: 'async' } })
+    @computedFrom({ dependencies: ['prop2'], flush: 'async' })
     public get prop3(): number {
       return 2;
     }
@@ -122,21 +131,28 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
   public doNotCache?: boolean | undefined;
   /** @internal */
   private _value: unknown = void 0;
-  private _observers: IObserver[] = [];
+  private readonly _observers: IObserver[] = [];
   /** @internal */
   private _queued = false;
+  /** @internal */
+  private _started = false;
 
   public constructor(
     private readonly obj: object,
     private readonly getter: () => unknown,
     private readonly oL: IObserverLocator,
     private readonly dependencies: (string | symbol)[],
-    private readonly flush: 'sync' | 'async'
+    private readonly flush: 'sync' | 'async',
+    private readonly deep: boolean
   ) {
   }
 
   public getValue(): unknown {
-    return this.getter.call(this.obj);
+    if (!this._started) {
+      return this._eval();
+    }
+    return this._value;
+    // return this._evalCount === -1 ? this.getter.call(this.obj) : this._value;
   }
 
   public setValue(_newValue: unknown): void {
@@ -159,10 +175,35 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
     });
   }
 
+  public handleCollectionChange(): void {
+    if (this.flush === 'sync') {
+      this._doFlush();
+      return;
+    }
+
+    if (this._queued) {
+      return;
+    }
+    this._queued = true;
+    queueTask(() => {
+      this._queued = false;
+      this._doFlush();
+    });
+  }
+
+  /** @internal */
+  private _eval() {
+    return this.getter.call(this.obj);
+  }
+
   /** @internal */
   private _doFlush() {
+    if (!this._started) {
+      return;
+    }
+
     const oldValue = this._value;
-    const value = this.getValue();
+    const value = this._eval();
 
     this._stop();
     this._observe();
@@ -177,12 +218,21 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
 
   /** @internal */
   private _observe() {
-    this._observers = this.dependencies.map(dep => {
-      const obs = isString(dep)
+    const observers = this._observers;
+    this.dependencies.forEach(dep => {
+      let obs: IObserver = isString(dep)
         ? this.oL.getExpressionObserver(this.obj, dep)
         : this.oL.getObserver(this.obj, dep);
+      observers.push(obs);
       obs.subscribe(this);
-      return obs;
+      obs.useFlush?.(this.flush);
+
+      if (this.deep) {
+        obs = observeDeep(obs.getValue(), this.oL);
+        observers.push(obs);
+        obs.subscribe(this);
+        obs.useFlush?.(this.flush);
+      }
     });
   }
 
@@ -197,132 +247,60 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
   public subscribe(subscriber: ISubscriber): void {
     if (this.subs.add(subscriber) && this.subs.count === 1) {
       this._observe();
+      this._started = true;
+      this._value = this._eval();
     }
   }
 
   public unsubscribe(subscriber: ISubscriber): void {
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this._stop();
+      this._started = false;
+      this._value = void 0;
     }
   }
 }
 
-// function observeDeep(obj: object, requestor: IObserverLocator) {
-//   function walk(obj: unknown) {
-//     if (!isObject(obj)) {
-//       return;
-//     }
-//     if (isArray(obj)) {
-//       for (let i = 0; i < obj.length; i++) {
-//         walk(obj[i]);
-//       }
-//       return;
-//     }
-//     if (isMap(obj) || isSet(obj)) {
-//       obj.forEach((v, k) => {
-//         walk(v);
-//       });
-//       return;
-//     }
-//     for (const key of Object.keys(obj)) {
-//       walk((obj as Record<string, unknown>)[key]);
-//     }
-//   }
+function observeDeep(obj: unknown, requestor: IObserverLocator) {
+  function walk(obj: unknown, connectable: IConnectable) {
+    const raw = unwrap(obj);
 
-//   requestor.getObserver(obj, (obj => {
-//     if (isArray(obj)) {
-//       obj.
-//     }
-//   }));
-// }
-
-class DeepComputedFromObserver implements IObserver, ISubscriberCollection {
-  /** @internal */
-  public static mixed = false;
-  /** @internal */
-  public subs!: ISubscriberRecord<ISubscriber>;
-
-  public type: AccessorType = atObserver;
-  public doNotCache?: boolean | undefined;
-  /** @internal */
-  private _value: unknown = void 0;
-  private _observers: IObserver[] | null = null;
-  /** @internal */
-  private _queued = false;
-
-  public constructor(
-    private readonly obj: object,
-    private readonly getter: () => unknown,
-    private readonly requestor: IObserverLocator,
-    private readonly dependencies: (string | symbol)[],
-    private readonly flush: 'sync' | 'async'
-  ) {
-  }
-
-  public getValue(): unknown {
-    return this.getter.call(this.obj);
-  }
-
-  public setValue(_newValue: unknown): void {
-    throw new Error(`Computed property is read-only.`);
-  }
-
-  public handleChange(): void {
-    if (this.flush === 'sync') {
-      this._doFlush();
+    if (!isObject(raw)) {
       return;
     }
 
-    if (this._queued) {
-      return;
-    }
-    this._queued = true;
-    queueTask(() => {
-      this._queued = false;
-      this._doFlush();
-    });
-  }
-
-  /** @internal */
-  private _doFlush() {
-    const oldValue = this._value;
-    const value = this.getValue();
-    if (oldValue === value) {
+    if (isArray(raw)) {
+      connectable.observeCollection(raw);
+      for (let i = 0; i < raw.length; i++) {
+        walk(raw[i], connectable);
+      }
       return;
     }
 
-    this._value = value;
-    this.subs.notify(value, oldValue);
-  }
+    if (isMap(raw)) {
+      connectable.observeCollection(raw);
+      for (const [k, v] of raw) {
+        walk(k, connectable);
+        walk(v, connectable);
+      }
+      return;
+    }
 
-  /** @internal */
-  private _start() {
-    this._observers = this.dependencies.map(dep => {
-      const obs = isString(dep)
-        ? this.requestor.getExpressionObserver(this.obj, dep)
-        : this.requestor.getObserver(this.obj, dep);
-      obs.subscribe(this);
-      return obs;
-    });
-  }
+    if (isSet(raw)) {
+      connectable.observeCollection(raw);
+      for (const v of raw) {
+        walk(v, connectable);
+      }
+      return;
+    }
 
-  /** @internal */
-  private _stop() {
-    this._observers?.forEach(obs => {
-      obs.unsubscribe(this);
-    });
-    this._observers = null;
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this._start();
+    for (const key of Object.keys(raw)) {
+      connectable.observe(raw, key);
+      walk((raw as Record<string, unknown>)[key], connectable);
     }
   }
 
-  public unsubscribe(subscriber: ISubscriber): void {
-    if (this.subs.remove(subscriber) && this.subs.count === 0) {
-      this._stop();
-    }
-  }
+  return requestor.getObserver(obj, ((obj, connectable) => {
+    walk(obj, connectable);
+  }));
 }

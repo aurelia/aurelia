@@ -378,7 +378,7 @@ export class ViewportInstructionTree {
         const node = vpa._currState === State.currIsActive ? vpa._currNode : vpa._nextNode;
         if (node == null) throw new Error('Invalid operation; nodes of the viewport agent are not set.');
 
-        parentPaths.splice(0, 0, node.instruction!.toUrlComponent());
+        parentPaths.splice(0, 0, node.instruction!.component.toUrlComponent());
         ctx = ctx.parent;
       }
       if (parentPaths[0] === '') {

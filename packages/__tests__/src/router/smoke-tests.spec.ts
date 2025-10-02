@@ -3754,7 +3754,7 @@ describe('router/smoke-tests.spec.ts', function () {
     }
 
     @route({ routes: [{ id: 'c1', path: 'c1/:id', component: C1 }] })
-    @customElement({ name: 'app', template: '<a href="#/c1/42?foo=bar#for-whatever-reason"></a><au-viewport></au-viewport>' })
+    @customElement({ name: 'app', template: '<a href="/#/c1/42?foo=bar#for-whatever-reason"></a><au-viewport></au-viewport>' })
     class App { }
 
     const { host, container } = await start({ appRoot: App, useHash: true });

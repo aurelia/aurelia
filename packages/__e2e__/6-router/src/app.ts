@@ -15,6 +15,11 @@ export class App {
     { path: 'auth', component: import('./pages/auth').then(x => x.Auth), title: 'Sign in' },
     { path: 'one', component: import('./pages/one'), title: 'One' },
     { path: 'two', component: import('./pages/two'), title: 'Two' },
+    {
+      id: 'sub',
+      path: 'sub',
+      component: import('./pages/sub/index'),
+    },
   ];
   public static inject = [IRouter, IRouterEventLoggerService];
   public message = 'Hello World!';

@@ -222,6 +222,10 @@ export {
   // DirtyCheckProperty,
   // DirtyCheckSettings,
 
+  computed,
+  computedFrom,
+  type ComputedGetterFn,
+
   ComputedObserver,
 
   IObservation,

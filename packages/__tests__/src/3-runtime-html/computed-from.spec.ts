@@ -1,4 +1,4 @@
-import { computed, computedFrom, runTasks } from '@aurelia/runtime';
+import { computedFrom, runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/computed-from.spec.ts', function () {
@@ -362,6 +362,41 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
       runTasks();
       assertText('Hey!!!');
       assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+    });
+
+    it('does not observe old dependencies when dependencies change', function () {
+      let i = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          obj = { message: 'Hello Aurelia 2!' };
+
+          @computedFrom({
+            dependencies: ['obj.message'],
+            options: { flush: 'sync' }
+          })
+          get computedMessage() {
+            i++;
+            return `${this.obj.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      const obj1 = component.obj;
+      component.obj = { message: 'Hey' };
+      assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes`);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+
+      obj1.message = 'Hola';
+      assert.strictEqual(i, 3);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `should not have called getter again`);
     });
   });
 });

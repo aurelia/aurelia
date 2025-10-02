@@ -1,15 +1,16 @@
-import { computedFrom, runTasks } from '@aurelia/runtime';
+import { computed, ICoercionConfiguration, runTasks } from '@aurelia/runtime';
+import { AppTask, bindable } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/computed-from.spec.ts', function () {
   describe('async', function () {
-    it('works with normal property dependency', function () {
+    it('works with normal property dependency', async function () {
       let i = 0;
       const { component, assertText } = createFixture(
         '${computedMessage}',
         class App {
           message = 'Hello Aurelia 2!';
-          @computedFrom('message')
+          @computed('message')
           get computedMessage() {
             i++;
             return `${this.message}!!!`;
@@ -35,7 +36,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
           m1 = 'Hello';
           m2 = 'Aurelia 2!';
 
-          @computedFrom('m1', 'm2')
+          @computed('m1', 'm2')
           get computedMessage() {
             i++;
             return `${this.m1} ${this.m2}!!!`;
@@ -62,7 +63,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           [sym1] = 'Hello Aurelia 2!';
 
-          @computedFrom(sym1)
+          @computed(sym1)
           get computedMessage() {
             i++;
             return `${this[sym1]}!!!`;
@@ -90,7 +91,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
             return `Hello Aurelia ${this.value}!`;
           }
 
-          @computedFrom('message')
+          @computed('message')
           get computedMessage() {
             i++;
             return `${this.message}!!!`;
@@ -115,7 +116,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           obj = { message: 'Hello Aurelia 2!' };
 
-          @computedFrom('obj.message')
+          @computed('obj.message')
           get computedMessage() {
             i++;
             return `${this.obj.message}!!!`;
@@ -139,7 +140,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         '${computedMessage}',
         class App {
           obj = { message: 'Hello Aurelia 2!' };
-          @computedFrom('obj.message')
+          @computed('obj.message')
           get computedMessage() {
             i++;
             return `${this.obj.message}!!!`;
@@ -164,7 +165,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           obj = { message: 'Hello Aurelia 2!' };
 
-          @computedFrom('obj.message')
+          @computed('obj.message')
           get computedMessage() {
             i++;
             return `${this.obj.message}!!!`;
@@ -195,7 +196,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         '${computedMessage}',
         class App {
           message = 'Hello Aurelia 2!';
-          @computedFrom('message')
+          @computed('message')
           get computedMessage() {
             i++;
             return `${this.message}!!!`;
@@ -227,8 +228,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           obj = { lv1: { message: 'Hello Aurelia 2!' } };
 
-          @computedFrom({
-            dependencies: ['obj'],
+          @computed({
+            deps: ['obj'],
             deep: true
           })
           get computedMessage() {
@@ -273,7 +274,7 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
           obj = { message: 'Hello Aurelia 2!' };
           notObserved = 1;
 
-          @computedFrom('obj')
+          @computed('obj')
           get computedMessage() {
             i++;
             return `${this.obj.message} ${this.notObserved}!!!`;
@@ -296,6 +297,104 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
       assertText('Hey 2!!!');
       assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes + reuse when binding evaluates`);
     });
+
+    it('works with @bindable', async function () {
+      let i = 0;
+      const changeLog: string[][] = [];
+      const { component, assertText } = createFixture(
+        '<my-app computed-message.bind="message"></my-app>',
+        class App {
+          message = 'Hello Aurelia 2!';
+        },
+        [
+          class MyApp {
+            static $au = {
+              name: 'my-app',
+              type: 'custom-element',
+              template: '<div>${computedMessage}</div>',
+            };
+
+            _m = '';
+            @bindable()
+            @computed('_m')
+            get computedMessage() {
+              i++;
+              return `${this._m}!!!`;
+            }
+
+            set computedMessage(v: string) {
+              this._m = v;
+            }
+
+            computedMessageChanged(newValue: string, oldValue: string) {
+              changeLog.push([newValue, oldValue]);
+            }
+          },
+        ],
+      );
+
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+      assertText('Hello Aurelia 2!!!!');
+      assert.deepStrictEqual(changeLog, []);
+
+      component.message = 'Hey';
+      assert.strictEqual(i, 1);
+      await Promise.resolve();
+      assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes + reuse when binding evaluates`);
+      assertText('Hey!!!');
+      assert.deepStrictEqual(changeLog, [['Hey!!!', 'Hello Aurelia 2!!!!']]);
+    });
+
+    it('works with @bindable and coercion', async function () {
+      let i = 0;
+      const changeLog: string[][] = [];
+      const { component, assertText } = createFixture(
+        '<my-app computed-message.bind="message"></my-app>',
+        class App {
+          message = 'Hello Aurelia 2!';
+        },
+        [
+          AppTask.creating(ICoercionConfiguration, c => {
+            c.enableCoercion = true;
+          }),
+          class MyApp {
+            static $au = {
+              name: 'my-app',
+              type: 'custom-element',
+              template: '<div>${computedMessage}</div>',
+            };
+
+            _m = '';
+            @bindable({ type: class {
+              static coerce(value: unknown): string {
+                return `${String(value)}$$`;
+              }
+            } })
+            @computed('_m')
+            get computedMessage() {
+              i++;
+              return `${this._m}!!!`;
+            }
+            set computedMessage(v: string) {
+              this._m = v;
+            }
+            computedMessageChanged(newValue: string, oldValue: string) {
+              changeLog.push([newValue, oldValue]);
+            }
+          },
+        ],
+      );
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+      assertText('Hello Aurelia 2!$$!!!');
+      assert.deepStrictEqual(changeLog, []);
+
+      component.message = 'Hey';
+      assert.strictEqual(i, 1);
+      await Promise.resolve();
+      assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes + reuse when binding evaluates`);
+      assertText('Hey$$!!!');
+      assert.deepStrictEqual(changeLog, [['Hey$$!!!', 'Hello Aurelia 2!$$!!!']]);
+    });
   });
 
   describe('sync', function () {
@@ -305,8 +404,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         '${computedMessage}',
         class App {
           message = 'Hello Aurelia 2!';
-          @computedFrom({
-            dependencies: ['message'],
+          @computed({
+            deps: ['message'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -334,8 +433,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
           m1 = 'Hello';
           m2 = 'Aurelia 2!';
 
-          @computedFrom({
-            dependencies: ['m1', 'm2'],
+          @computed({
+            deps: ['m1', 'm2'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -364,8 +463,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           [sym1] = 'Hello Aurelia 2!';
 
-          @computedFrom({
-            dependencies: [sym1],
+          @computed({
+            deps: [sym1],
             flush: 'sync'
           })
           get computedMessage() {
@@ -395,8 +494,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
             return `Hello Aurelia ${this.value}!`;
           }
 
-          @computedFrom({
-            dependencies: ['message'],
+          @computed({
+            deps: ['message'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -424,8 +523,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           obj = { message: 'Hello Aurelia 2!' };
 
-          @computedFrom({
-            dependencies: ['obj.message'],
+          @computed({
+            deps: ['obj.message'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -451,8 +550,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         '${computedMessage}',
         class App {
           obj = { message: 'Hello Aurelia 2!' };
-          @computedFrom({
-            dependencies: ['obj.message'],
+          @computed({
+            deps: ['obj.message'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -479,8 +578,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           obj = { message: 'Hello Aurelia 2!' };
 
-          @computedFrom({
-            dependencies: ['obj.message'],
+          @computed({
+            deps: ['obj.message'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -513,8 +612,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         '${computedMessage}',
         class App {
           message = 'Hello Aurelia 2!';
-          @computedFrom({
-            dependencies: ['message'],
+          @computed({
+            deps: ['message'],
             flush: 'sync'
           })
           get computedMessage() {
@@ -548,8 +647,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
         class App {
           obj = { lv1: { message: 'Hello Aurelia 2!' } };
 
-          @computedFrom({
-            dependencies: ['obj'],
+          @computed({
+            deps: ['obj'],
             deep: true,
             flush: 'sync'
           })
@@ -595,8 +694,8 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
           obj = { message: 'Hello Aurelia 2!' };
           notObserved = 1;
 
-          @computedFrom({
-            dependencies: ['obj'],
+          @computed({
+            deps: ['obj'],
             flush: 'sync'
           })
           get computedMessage() {

@@ -58,9 +58,6 @@ export {
   computed,
 } from './computed-decorators';
 export {
-  computedFrom,
-} from './computed-from-decorators';
-export {
   IDirtyChecker,
   DirtyChecker,
   DirtyCheckProperty,
@@ -83,7 +80,6 @@ export {
   type IObjectObservationAdapter,
   IObserverLocator,
   INodeObserverLocator,
-  IComputedObserverLocator,
   getCollectionObserver,
   ObserverLocator,
   type ObservableGetter,

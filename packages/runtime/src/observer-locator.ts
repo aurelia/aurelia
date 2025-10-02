@@ -23,6 +23,7 @@ import { computedPropInfo } from './object-property-info';
 import { getObserverLookup } from './observation-utils';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { ExpressionObserver } from './expression-observer';
+import { ControlledComputedObserver } from './controlled-computed-observer';
 
 const propertyAccessor = new PropertyAccessor();
 
@@ -59,34 +60,6 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
   }
 }
 
-export interface IComputedObserverLocator {
-  getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver;
-}
-export const IComputedObserverLocator = /*@__PURE__*/rtCreateInterface<IComputedObserverLocator>(
-  'IComputedObserverLocator',
-  x => x.singleton(class DefaultLocator implements IComputedObserverLocator {
-    public getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver {
-      const observer = new ComputedObserver(
-        obj,
-        pd.get!,
-        pd.set,
-        requestor,
-        computedPropInfo._getFlush(obj, key)
-      );
-      rtDef(obj, key, {
-        enumerable: pd.enumerable,
-        configurable: true,
-        get: rtObjectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
-        set: (/* Computed Observer */v) => {
-          observer.setValue(v);
-        },
-      });
-
-      return observer;
-    }
-  })
-);
-
 export type ExtendedPropertyDescriptor = PropertyDescriptor & {
   get?: ObservableGetter;
 };
@@ -98,7 +71,7 @@ export class ObserverLocator {
   /** @internal */ private readonly _adapters: IObjectObservationAdapter[] = [];
   /** @internal */ private readonly _dirtyChecker = resolve(IDirtyChecker);
   /** @internal */ private readonly _nodeObserverLocator = resolve(INodeObserverLocator);
-  /** @internal */ private readonly _computedObserverLocator = resolve(IComputedObserverLocator);
+  // /** @internal */ private readonly _computedObserverLocator = resolve(IComputedObserverLocator);
   /** @internal */ private readonly _expressionParser = resolve(optional(IExpressionParser));
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
@@ -154,6 +127,39 @@ export class ObserverLocator {
       this,
       this._expressionParser.parse(expression, 'IsProperty'),
       callback
+    );
+  }
+
+  public getComputedObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor): IObserver {
+    const info = computedPropInfo.get(obj, key);
+    if (info?.deps == null || info.deps.length === 0) {
+      const observer = new ComputedObserver(
+        obj,
+        pd.get!,
+        pd.set,
+        this,
+        info?.flush
+      );
+      rtDef(obj, key, {
+        enumerable: pd.enumerable,
+        configurable: true,
+        get: rtObjectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+        set: (/* Computed Observer */v) => {
+          observer.setValue(v);
+        },
+      });
+
+      return observer;
+    }
+
+    return new ControlledComputedObserver(
+      obj,
+      key,
+      pd.get!,
+      this,
+      info.deps,
+      info.flush ?? 'async',
+      info.deep === true
     );
   }
 
@@ -219,7 +225,7 @@ export class ObserverLocator {
       return obs == null
         ? pd.configurable
           // ? this._createComputedObserver(obj, key, pd, true)
-          ? this._computedObserverLocator.getObserver(obj, key, pd, this)
+          ? this.getComputedObserver(obj, key, pd)
           : this._dirtyChecker.createProperty(obj, key)
         : obs;
     }

@@ -223,7 +223,6 @@ export {
   // DirtyCheckSettings,
 
   computed,
-  computedFrom,
   type ComputedGetterFn,
 
   ComputedObserver,

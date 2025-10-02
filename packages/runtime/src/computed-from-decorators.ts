@@ -122,6 +122,130 @@ class ComputedFromObserver implements IObserver, ISubscriberCollection {
   public doNotCache?: boolean | undefined;
   /** @internal */
   private _value: unknown = void 0;
+  private _observers: IObserver[] = [];
+  /** @internal */
+  private _queued = false;
+
+  public constructor(
+    private readonly obj: object,
+    private readonly getter: () => unknown,
+    private readonly oL: IObserverLocator,
+    private readonly dependencies: (string | symbol)[],
+    private readonly flush: 'sync' | 'async'
+  ) {
+  }
+
+  public getValue(): unknown {
+    return this.getter.call(this.obj);
+  }
+
+  public setValue(_newValue: unknown): void {
+    throw new Error(`Computed property is read-only.`);
+  }
+
+  public handleChange(): void {
+    if (this.flush === 'sync') {
+      this._doFlush();
+      return;
+    }
+
+    if (this._queued) {
+      return;
+    }
+    this._queued = true;
+    queueTask(() => {
+      this._queued = false;
+      this._doFlush();
+    });
+  }
+
+  /** @internal */
+  private _doFlush() {
+    const oldValue = this._value;
+    const value = this.getValue();
+
+    this._stop();
+    this._observe();
+
+    if (oldValue === value) {
+      return;
+    }
+
+    this._value = value;
+    this.subs.notify(value, oldValue);
+  }
+
+  /** @internal */
+  private _observe() {
+    this._observers = this.dependencies.map(dep => {
+      const obs = isString(dep)
+        ? this.oL.getExpressionObserver(this.obj, dep)
+        : this.oL.getObserver(this.obj, dep);
+      obs.subscribe(this);
+      return obs;
+    });
+  }
+
+  /** @internal */
+  private _stop() {
+    this._observers.forEach(obs => {
+      obs.unsubscribe(this);
+    });
+    this._observers.length = 0;
+  }
+
+  public subscribe(subscriber: ISubscriber): void {
+    if (this.subs.add(subscriber) && this.subs.count === 1) {
+      this._observe();
+    }
+  }
+
+  public unsubscribe(subscriber: ISubscriber): void {
+    if (this.subs.remove(subscriber) && this.subs.count === 0) {
+      this._stop();
+    }
+  }
+}
+
+// function observeDeep(obj: object, requestor: IObserverLocator) {
+//   function walk(obj: unknown) {
+//     if (!isObject(obj)) {
+//       return;
+//     }
+//     if (isArray(obj)) {
+//       for (let i = 0; i < obj.length; i++) {
+//         walk(obj[i]);
+//       }
+//       return;
+//     }
+//     if (isMap(obj) || isSet(obj)) {
+//       obj.forEach((v, k) => {
+//         walk(v);
+//       });
+//       return;
+//     }
+//     for (const key of Object.keys(obj)) {
+//       walk((obj as Record<string, unknown>)[key]);
+//     }
+//   }
+
+//   requestor.getObserver(obj, (obj => {
+//     if (isArray(obj)) {
+//       obj.
+//     }
+//   }));
+// }
+
+class DeepComputedFromObserver implements IObserver, ISubscriberCollection {
+  /** @internal */
+  public static mixed = false;
+  /** @internal */
+  public subs!: ISubscriberRecord<ISubscriber>;
+
+  public type: AccessorType = atObserver;
+  public doNotCache?: boolean | undefined;
+  /** @internal */
+  private _value: unknown = void 0;
   private _observers: IObserver[] | null = null;
   /** @internal */
   private _queued = false;

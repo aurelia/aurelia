@@ -188,6 +188,37 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
       assertText('Hey!!!');
       assert.strictEqual(i, 3, `should not have called getter again`);
     });
+
+    it('stops observing when unbound', function () {
+      let i = 0;
+      const { component, assertText, stop } = createFixture(
+        '${computedMessage}',
+        class App {
+          message = 'Hello Aurelia 2!';
+          @computedFrom('message')
+          get computedMessage() {
+            i++;
+            return `${this.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      component.message = 'Hey';
+      assert.strictEqual(i, 1);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+
+      void stop();
+
+      component.message = 'Hola';
+      runTasks();
+      assertText('');
+      assert.strictEqual(i, 3, `should not have called getter again`);
+    });
   });
 
   describe('sync', function () {
@@ -396,6 +427,40 @@ describe('3-runtime-html/computed-from.spec.ts', function () {
       assert.strictEqual(i, 3);
       runTasks();
       assertText('Hey!!!');
+      assert.strictEqual(i, 3, `should not have called getter again`);
+    });
+
+    it('stops observing when unbound', function () {
+      let i = 0;
+      const { component, assertText, stop } = createFixture(
+        '${computedMessage}',
+        class App {
+          message = 'Hello Aurelia 2!';
+          @computedFrom({
+            dependencies: ['message'],
+            options: { flush: 'sync' }
+          })
+          get computedMessage() {
+            i++;
+            return `${this.message}!!!`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia 2!!!!');
+      assert.strictEqual(i, 1, `should have called getter exactly once`);
+
+      component.message = 'Hey';
+      assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes`);
+      runTasks();
+      assertText('Hey!!!');
+      assert.strictEqual(i, 3, `1 initial + 2nd when computed observer changes + 3rd when binding evaluates`);
+
+      void stop();
+
+      component.message = 'Hola';
+      runTasks();
+      assertText('');
       assert.strictEqual(i, 3, `should not have called getter again`);
     });
   });

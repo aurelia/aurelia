@@ -137,6 +137,7 @@ Every repeat iteration provides rich contextual information:
 | `$even` | `boolean` | `true` for even indices (0, 2, 4...) |
 | `$odd` | `boolean` | `true` for odd indices (1, 3, 5...) |
 | `$length` | `number` | Total number of items |
+| `$previous` | `any \| null` | Previous iteration's item (opt-in, see below) |
 | `$parent` | `object` | Parent binding context |
 
 ### Nested Repeats and $parent
@@ -156,6 +157,146 @@ Access parent contexts in nested structures:
   </div>
 </div>
 ```
+
+### Accessing Previous Items with $previous
+
+The `$previous` contextual property provides access to the previous iteration's item, enabling powerful comparison and rendering patterns. This is an **opt-in feature** that must be explicitly enabled to avoid any performance overhead.
+
+**Basic usage:**
+```html
+<!-- Enable with previous.bind: true -->
+<div repeat.for="item of items; previous.bind: true">
+  <div class="item">
+    ${item.name}
+    <span if.bind="$previous">
+      (Previous: ${$previous.name})
+    </span>
+  </div>
+</div>
+```
+
+**Key characteristics:**
+- `$previous` is `null` for the first item
+- `$previous` is `undefined` when the feature is not enabled
+- Zero overhead when not enabled - no memory or performance cost
+- Works with all collection types (arrays, Maps, Sets, etc.)
+- Compatible with keyed repeats
+
+#### Section Headers and Dividers
+
+A common use case is rendering section headers only when data changes:
+
+```typescript
+export class ProductList {
+  products = [
+    { category: 'Electronics', name: 'Laptop' },
+    { category: 'Electronics', name: 'Mouse' },
+    { category: 'Books', name: 'JavaScript Guide' },
+    { category: 'Books', name: 'TypeScript Handbook' }
+  ];
+}
+```
+
+```html
+<!-- Show category header only when it changes -->
+<div repeat.for="product of products; previous.bind: true">
+  <h2 if.bind="product.category !== $previous?.category">
+    ${product.category}
+  </h2>
+  <div class="product">${product.name}</div>
+</div>
+```
+
+**Output:**
+```
+Electronics
+  Laptop
+  Mouse
+Books
+  JavaScript Guide
+  TypeScript Handbook
+```
+
+#### Comparison and Change Indicators
+
+Highlight changes from previous values:
+
+```typescript
+export class StockTracker {
+  prices = [
+    { time: '09:00', price: 100 },
+    { time: '09:01', price: 102 },
+    { time: '09:02', price: 98 },
+    { time: '09:03', price: 98 }
+  ];
+}
+```
+
+```html
+<table>
+  <tr repeat.for="entry of prices; previous.bind: true">
+    <td>${entry.time}</td>
+    <td class="${entry.price > $previous?.price ? 'up' : 
+                  entry.price < $previous?.price ? 'down' : ''}">
+      $${entry.price}
+      <span if.bind="$previous && entry.price !== $previous.price">
+        ${entry.price > $previous.price ? '↑' : '↓'}
+      </span>
+    </td>
+  </tr>
+</table>
+```
+
+#### Combining with Keys
+
+You can use both `key` and `previous` together:
+
+```html
+<!-- Multiple iterator properties separated by semicolons -->
+<div repeat.for="item of items; key: id; previous.bind: true">
+  <div class="item-${item.id}">
+    ${item.name}
+    <span if.bind="$previous">
+      Changed from: ${$previous.name}
+    </span>
+  </div>
+</div>
+```
+
+#### Conditional Enabling
+
+Enable `$previous` conditionally based on view model properties:
+
+```typescript
+export class ConfigurableList {
+  items = [...];  
+  showComparisons = true; // Toggle feature on/off
+}
+```
+
+```html
+<!-- Enable based on component state -->
+<div repeat.for="item of items; previous.bind: showComparisons">
+  <!-- $previous is only available when showComparisons is true -->
+</div>
+```
+
+#### Performance Considerations
+
+**When NOT enabled:**
+- Zero memory overhead - `$previous` property is never created
+- Negligible CPU cost - single conditional check per item
+- No impact on existing applications
+
+**When enabled:**
+- One reference per item (approximately 8 bytes on 64-bit systems)
+- Minimal CPU cost - just storing a reference
+- No impact on rendering performance
+
+**Best practices:**
+- Only enable when needed - use `previous.bind: true` only on repeats that need it
+- Use with static option for best performance: `previous: true` instead of `previous.bind: expression`
+- Consider disabling for large lists if not actively used
 
 ## Data Types and Collections
 

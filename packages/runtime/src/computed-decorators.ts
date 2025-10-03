@@ -14,7 +14,7 @@ type ClassGetterFunction<T> = (target: () => unknown, context: ClassGetterDecora
  *
  * ```ts
  * export class MyElement {
- *  \@computedFrom('value')
+ *  \@computed('value')
  *   private value = 1;
  *   public get prop(): number {
  *     return this.value;
@@ -44,12 +44,6 @@ export function computed<
   },
   ...rest: (keyof TThis | string | symbol)[]
 ) {
-  // if (!ControlledComputedObserver.mixed) {
-  //   ControlledComputedObserver.mixed = true;
-  //   subscriberCollection(ControlledComputedObserver, null!);
-  // }
-  // const cache = new WeakMap<object, ControlledComputedObserver>();
-
   const options: ComputedPropertyInfo = isObject(args) ? args as ComputedPropertyInfo : {};
   if (!isObject(args)) {
     options.deps = [args, ...rest] as (string | symbol)[];
@@ -62,7 +56,7 @@ export function computed<
     // just be helpful for blind JS usages
     /* istanbul ignore next */
     if (context.kind !== 'getter') {
-      throw createMappedError(ErrorNames.computedFrom_not_getter, context.name);
+      throw createMappedError(ErrorNames.computed_not_getter, context.name);
     }
 
     context.addInitializer(function (this: object) {
@@ -114,7 +108,7 @@ function testComputed() {
       return 2;
     }
 
-    @computed({ deps: ['prop2'], flush: 'async' })
+    @computed({ deps: ['prop2', 'prop5'], flush: 'async' })
     public get prop3(): number {
       return 2;
     }

@@ -190,6 +190,9 @@ export class ShoppingCart {
 Now whenever `_cart.items[].price` or `_cart.items[].quantity` (or whatever else properties on each element in the `items` array),
 or `_cart.gst` changes, the `total` is considered dirty.
 
+> [!WARNING]
+> `deep` observation doesn't observe non-existent properties, which means newly added properties won't trigger any changes notification. Replace the entire object instead.
+
 ## Deep Observation
 
 Aurelia can observe nested object changes:

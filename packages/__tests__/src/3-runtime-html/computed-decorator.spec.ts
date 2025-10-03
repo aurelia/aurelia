@@ -2,7 +2,7 @@ import { computed, ICoercionConfiguration, runTasks } from '@aurelia/runtime';
 import { AppTask, bindable } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/computed-from.spec.ts', function () {
+describe('3-runtime-html/computed-decorator.spec.ts', function () {
   describe('async', function () {
     it('works with normal property dependency', async function () {
       let i = 0;

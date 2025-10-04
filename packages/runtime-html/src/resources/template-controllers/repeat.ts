@@ -85,7 +85,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
   /** @internal */ private _hasDestructuredLocal: boolean = false;
-  /** @internal */ private _contextualExpr?: IsBindingBehavior;
+  /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
@@ -568,17 +568,17 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       if (indexMap[i] === -2) {
         view.nodes.link(next?.nodes ?? _location);
         view.setLocation(_location);
-        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems!, this.contextual);
+        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems, this.contextual);
         ret = view.activate(view, $controller, _scopes[i]);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || i !== seq[j]) {
         view.nodes.link(next?.nodes ?? _location);
-        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems!, this.contextual);
+        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems, this.contextual);
         view.nodes.insertBefore(view.location!);
       } else {
-        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems!, this.contextual);
+        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems, this.contextual);
         --j;
       }
     }
@@ -688,7 +688,8 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $middle: boolean;
   $last: boolean;
   $length: number; // new in v2, there are a few requests, not sure if it should stay
-  $previous?: unknown | null; // opt-in: previous iteration's item (null for first, undefined when disabled)
+  $__items__?: unknown[]; // opt-in: the array being iterated (undefined when disabled)
+  $previous?: unknown; // opt-in: previous iteration's item (null for first, undefined when disabled)
 }
 
 class RepeatOverrideContext implements IRepeatOverrideContext {
@@ -707,37 +708,22 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
   public get $last(): boolean {
     return this.$index === this.$length - 1;
   }
-  public get $previous(): unknown | null | undefined {
-    const self = this as unknown as IIndexable;
-    const contextualEnabled = (self.__contextual as boolean) ?? true;
-    if (!contextualEnabled) {
-      return void 0;
-    }
-    const getter = self.__getPrevItem as ((idx: number) => unknown | null) | null | undefined;
-    if (typeof this.$index !== 'number') {
-      return void 0;
-    }
-    if (this.$index === 0) {
-      return null;
-    }
-    return getter ? getter(this.$index) : void 0;
+  public get $previous(): unknown {
+    return this.$__items__?.[this.$index - 1];
   }
 
   public constructor(
     public readonly $index: number = 0,
     public readonly $length: number = 1,
+    public readonly $__items__: unknown[] | undefined = undefined,
   ) {}
 }
 
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number, items: unknown[] | undefined, contextual: boolean): void => {
   oc.$index = index;
   oc.$length = length;
-  const anyOc = oc as unknown as IIndexable;
-  anyOc.__contextual = contextual;
-  if (contextual && items !== void 0) {
-    anyOc.__getPrevItem = (idx: number) => idx === 0 ? null : items[idx - 1];
-  } else {
-    anyOc.__getPrevItem = null;
+  if (contextual) {
+    oc.$__items__ = items;
   }
 };
 

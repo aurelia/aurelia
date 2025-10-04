@@ -368,5 +368,56 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
       runTasks();
       assert.strictEqual(v, 1);
     });
+
+    it('with getObserver on getter - simple observation', function () {
+      const { sut } = createFixture();
+      const obj = {
+        value: 1,
+        get prop() {
+          return 1;
+        }
+      };
+      let v = 0;
+      Object.assign(Object.getOwnPropertyDescriptor(obj, 'prop').get, {
+        getObserver(obj, requestor) {
+          return requestor?.getObserver(obj, 'value');
+        }
+      });
+      sut.getObserver(obj, 'prop').subscribe({
+        handleChange: (newV: number) => v = newV,
+      });
+      obj.value = 2;
+      runTasks();
+      assert.strictEqual(v, 2);
+    });
+
+    it('with getObserver on getter - getter observation', function () {
+      const { sut } = createFixture();
+      const obj = {
+        _value: 1,
+        _factor: 1,
+        get value() {
+          return this._value * this._factor;
+        },
+        get prop() {
+          return 1;
+        }
+      };
+      let v = 0;
+      Object.assign(Object.getOwnPropertyDescriptor(obj, 'prop').get, {
+        getObserver(obj, requestor) {
+          return requestor?.getObserver(obj, 'value');
+        }
+      });
+      sut.getObserver(obj, 'prop').subscribe({
+        handleChange: (newV: number) => v = newV,
+      });
+      obj._value = 2;
+      runTasks();
+      assert.strictEqual(v, 2);
+      obj._factor = 2;
+      runTasks();
+      assert.strictEqual(v, 4);
+    });
   });
 });

@@ -1,15 +1,12 @@
-import { areEqual, isFunction, resolve } from '@aurelia/kernel';
-import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
+import { isFunction, resolve } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import { connectable, IObserverLocatorBasedConnectable, type IObserverRecord } from './connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
 import { rtCreateInterface } from './utilities';
 
-import { astEvaluate } from './ast.eval';
-import { mixinNoopAstEvaluator } from './ast.utilities';
 import { createMappedError, ErrorNames } from './errors';
 import type { ICollectionSubscriber, IConnectable, ISubscriber } from './interfaces';
-import { Scope } from './scope';
 
 export interface IObservation {
   /**
@@ -124,12 +121,7 @@ export class Observation implements IObservation {
         // throw or ignore?
       }
     };
-    const observer = new ExpressionObserver(
-      Scope.create(obj),
-      this.oL,
-      this._parser.parse(expression, 'IsProperty'),
-      handleChange,
-    );
+    const observer = this.oL.getExpressionObserver(obj, expression, handleChange);
     const run = () => {
       if (running) return;
       running = true;
@@ -237,68 +229,5 @@ class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscribe
     this.stopped = true;
     this.obs.clearAll();
   };
-}
-
-interface ExpressionObserver extends IObserverLocatorBasedConnectable { }
-
-class ExpressionObserver implements IObserverLocatorBasedConnectable,
-  ISubscriber,
-  ICollectionSubscriber {
-
-  static {
-    connectable(ExpressionObserver, null!);
-    mixinNoopAstEvaluator(ExpressionObserver);
-  }
-
-  /** @internal */
-  private _value: unknown = void 0;
-
-  // see Listener binding for explanation
-  /** @internal */
-  public readonly boundFn = false;
-
-  /** @internal */
-  private readonly ast: IsBindingBehavior;
-
-  /** @internal */
-  private readonly _callback: (value: unknown, oldValue: unknown) => void;
-
-  /** @internal */
-  private readonly _scope: Scope;
-
-  public constructor(
-    scope: Scope,
-    public oL: IObserverLocator,
-    expression: IsBindingBehavior,
-    callback: (value: unknown, oldValue: unknown) => void,
-  ) {
-    this._scope = scope;
-    this.ast = expression;
-    this._callback = callback;
-  }
-
-  public handleChange(): void {
-    this.run();
-  }
-
-  public handleCollectionChange(): void {
-    this.run();
-  }
-
-  public run(): void {
-    this.obs.version++;
-    const oldValue = this._value;
-    const value = astEvaluate(this.ast, this._scope, this, this);
-    this.obs.clear();
-    if (!areEqual(value, oldValue)) {
-      this._value = value;
-      this._callback.call(void 0, value, oldValue);
-    }
-  }
-
-  public stop(): void {
-    this.obs.clearAll();
-    this._value = void 0;
-  }
 }
 

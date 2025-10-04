@@ -1,17 +1,21 @@
 import { isSymbol } from '@aurelia/kernel';
 
 /** @internal */
+export type ComputedPropertyInfo = {
+  flush?: 'sync' | 'async';
+  deps?: (string | symbol)[];
+  deep?: boolean;
+};
+
+/** @internal */
 export const computedPropInfo = (() => {
-  const map = new WeakMap<object, Map<string | symbol, { flush: 'sync' | 'async' }>>();
+  const map = new WeakMap<object, Map<string | symbol, ComputedPropertyInfo>>();
   const normalizeKey = (key: PropertyKey): string | symbol => {
     return isSymbol(key) ? key : String(key);
   };
   return {
     get: (obj: object, key: PropertyKey) => map.get(obj)?.get(normalizeKey(key)),
-    _getFlush: (obj: object, key: PropertyKey): 'sync' | 'async' | undefined => {
-      return map.get(obj)?.get(normalizeKey(key))?.flush;
-    },
-    set: (obj: object, key: PropertyKey, value: { flush: 'sync' | 'async' }) => {
+    set: (obj: object, key: PropertyKey, value: ComputedPropertyInfo) => {
       if (!map.has(obj)) {
         map.set(obj, new Map());
       }

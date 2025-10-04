@@ -73,7 +73,7 @@ export class ComputedObserver<T extends object> implements
   private _coercionConfig?: ICoercionConfiguration = void 0;
 
   /** @internal */
-  private readonly _flush: 'sync' | 'async';
+  private _flush: 'sync' | 'async';
 
   /**
    * The getter this observer is wrapping
@@ -144,6 +144,11 @@ export class ComputedObserver<T extends object> implements
 
   public useCallback(callback: (newValue: unknown, oldValue: unknown) => void) {
     this._callback = callback;
+    return true;
+  }
+
+  public useFlush(flush: 'sync' | 'async') {
+    this._flush = flush;
     return true;
   }
 

@@ -143,6 +143,10 @@ export class OptimizedComponent {
 }
 ```
 
+#### Manual computed dependencies declaration
+
+[Read more on `@computed` decorator here](../essentials/reactivity.md#decorator-computed).
+
 ### Watch Performance Optimization
 
 #### Efficient Watch Expressions

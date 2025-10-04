@@ -70,6 +70,9 @@ export {
   type EffectRunFunc,
 } from './observation';
 export {
+  getObserverLookup,
+} from './observation-utils';
+export {
   type IObservableDefinition,
   observable,
 } from './observable';
@@ -77,10 +80,8 @@ export {
   type IObjectObservationAdapter,
   IObserverLocator,
   INodeObserverLocator,
-  IComputedObserverLocator,
   getCollectionObserver,
   ObserverLocator,
-  getObserverLookup,
   type ObservableGetter,
 } from './observer-locator';
 export {

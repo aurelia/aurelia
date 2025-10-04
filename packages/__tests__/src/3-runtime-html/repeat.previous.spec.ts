@@ -1,7 +1,6 @@
 import { tasksSettled } from '@aurelia/runtime';
 import { CustomElement } from '@aurelia/runtime-html';
-import {  
-  assert,
+import {
   createFixture,
 } from '@aurelia/testing';
 
@@ -193,8 +192,8 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('nested repeats: inner $previous does not interfere with outer', async function () {
       const { assertText } = createFixture(
         `<div repeat.for="outer of outers; previous.bind: true"><span>\${$previous ?? 'null'}:\${outer}</span><div repeat.for="inner of inners; previous.bind: true">[\${$previous ?? 'null'}-\${inner}]</div></div>`,
-        class { 
-          outers = ['A', 'B']; 
+        class {
+          outers = ['A', 'B'];
           inners = [1, 2];
         }
       );
@@ -261,7 +260,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('$previous can be enabled via expression (previous.bind: someBoolean)', async function () {
       const { assertText } = createFixture(
         `<div repeat.for="item of items; previous.bind: enablePrevious">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
-        class { 
+        class {
           items = ['a', 'b', 'c'];
           enablePrevious = true;
         }
@@ -272,7 +271,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('$previous remains disabled when expression evaluates to false', async function () {
       const { assertText } = createFixture(
         `<div repeat.for="item of items; previous.bind: enablePrevious">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
-        class { 
+        class {
           items = ['a', 'b', 'c'];
           enablePrevious = false;
         }
@@ -311,8 +310,8 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('$previous works with nested <template> repeats', async function () {
       const { assertText } = createFixture(
         `<template><template repeat.for="outer of outers; previous.bind: true"><span>Outer: \${$previous ?? 'null'}:\${outer}|</span><template repeat.for="inner of inners; previous.bind: true">Inner[\${$previous ?? 'null'}-\${inner}]</template></template></template>`,
-        class { 
-          outers = ['A', 'B']; 
+        class {
+          outers = ['A', 'B'];
           inners = [1, 2];
         }
       );
@@ -335,7 +334,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('$previous works with <template> and if.bind combination', async function () {
       const { assertText, component } = createFixture(
         `<template><template repeat.for="item of items; previous.bind: true"><span if.bind="item.show">\${$previous?.value ?? 'null'}:\${item.value} </span></template></template>`,
-        class { 
+        class {
           items = [
             { value: 'a', show: true },
             { value: 'b', show: true },
@@ -376,8 +375,8 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
         class { items = ['x', 'y', 'z']; },
         [
           CustomElement.define(
-            { 
-              name: 'my-repeater', 
+            {
+              name: 'my-repeater',
               template: '<div repeat.for="item of items; previous.bind: true">\${$previous ?? "null"}:\${item} </div>',
               bindables: ['items']
             },
@@ -394,8 +393,8 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
         class { items = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }]; },
         [
           CustomElement.define(
-            { 
-              name: 'my-item', 
+            {
+              name: 'my-item',
               template: '[\${prevId}→\${data.id}]',
               bindables: ['data', 'prevId']
             },
@@ -419,7 +418,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('previous.bind is evaluated once (not reactive) when toggling a boolean', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="item of items; previous.bind: showPrevious">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
-        class { 
+        class {
           items = ['a', 'b', 'c'];
           showPrevious = true;
         }
@@ -441,7 +440,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('previous.bind evaluates once even if the bound property changes', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="item of items; previous.bind: config.enablePrevious">\${typeof $previous === 'undefined' ? 'X' : ($previous ?? 'N')}-\${item}|</div>`,
-        class { 
+        class {
           items = ['1', '2', '3'];
           config = { enablePrevious: false };
         }
@@ -457,7 +456,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('previous.bind remains effective across array mutations (non-reactive config)', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="item of items; previous.bind: enabled">\${$previous ?? 'null'}:\${item} </div>`,
-        class { 
+        class {
           items = ['a', 'b'];
           enabled = true;
         }
@@ -534,7 +533,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('$previous with keyed repeat and complex object keys', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="item of items; key: code; previous.bind: true">\${$previous?.code ?? 'START'}→\${item.code}|\${item.label} </div>`,
-        class { 
+        class {
           items = [
             { code: 'US', label: 'USA' },
             { code: 'UK', label: 'United Kingdom' },
@@ -554,7 +553,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     it('$previous with keyed repeat works with Set values', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="item of items; key: id; previous.bind: true">\${$previous?.id ?? 'null'}→\${item.id} </div>`,
-        class { 
+        class {
           items = new Set([{ id: 1 }, { id: 2 }, { id: 3 }]);
         }
       );

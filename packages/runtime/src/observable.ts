@@ -5,9 +5,9 @@ import { currentConnectable } from './connectable-switcher';
 import { areEqual, emptyObject, isFunction, type Constructable, type IIndexable } from '@aurelia/kernel';
 import type { InterceptorFunc, IObservable } from './interfaces';
 import type { ObservableGetter } from './observer-locator';
-import type { SetterObserver } from './setter-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { ErrorNames, createMappedError } from './errors';
+import { getObserverLookup } from './observation-utils';
 
 export interface IObservableDefinition {
   name?: PropertyKey;
@@ -20,14 +20,6 @@ type ObservableFieldDecorator<TFThis, TValue> = (target: undefined, context: Cla
 type ObservableClassDecorator<TCThis extends Constructable> = (target: TCThis, context: ClassDecoratorContext<TCThis>) => void;
 
 export const observable = /*@__PURE__*/(() => {
-
-  function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | SetterNotifier> {
-    if (obj.$observers === void 0) {
-      rtDef(obj, '$observers', { value: {} });
-      // todo: define in a weakmap
-    }
-    return obj.$observers as IIndexable<{}, SetterObserver | SetterNotifier>;
-  }
 
   const noValue: unknown = {};
   // for
@@ -140,7 +132,7 @@ export const observable = /*@__PURE__*/(() => {
     initialValue: () => unknown,
     set: InterceptorFunc | undefined,
   ): SetterNotifier {
-    const lookup = getObserversLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
+    const lookup = getObserverLookup(obj);
     let notifier = lookup[key as string] as SetterNotifier;
     if (notifier == null) {
       const $initialValue = initialValue();

@@ -418,6 +418,7 @@ For the ease of migration, the `@noView` and `@inlineView` decorators are made a
     <input value.bind="value">
     ```
     This is automatically applied to `.bind`/`.one-time`/`.to-view`/`.from-view`/`.two-way`/`.attr` binding commands.
+* `@computedFrom` decorator should be imported from `@aurelia/compat-v1` package, though dependencies of getters are tracked automatically via Proxy, it's not necessary to use `@computedFrom` unless an application wants to control how to track.
 
 ## Plugins:
 

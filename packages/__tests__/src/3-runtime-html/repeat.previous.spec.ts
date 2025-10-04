@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { tasksSettled } from '@aurelia/runtime';
 import { CustomElement } from '@aurelia/runtime-html';
 import {
@@ -7,17 +8,17 @@ import {
 describe('3-runtime-html/repeat.previous.spec.ts', function () {
   describe('$previous contextual property', function () {
 
-    it('$previous is null for first item when previous.bind: true', async function () {
+    it('$previous is null for first item (contextual: true)', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous === null ? 'null' : $previous}:\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous === null ? 'null' : $previous}:\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null:a a:b b:c ');
     });
 
-    it('$previous is undefined when previous.bind is not used', async function () {
+    it('$previous is undefined when contextual: false', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items">\${typeof $previous}:\${item} </div>`,
+        `<div repeat.for="item of items; contextual: false">\${typeof $previous}:\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('undefined:a undefined:b undefined:c ');
@@ -25,7 +26,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous tracks previous item in array of primitives', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = [1, 2, 3, 4]; }
       );
       assertText('null-1 1-2 2-3 3-4 ');
@@ -33,7 +34,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous tracks previous object in array', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous?.value ?? 'null'}-\${item.value} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous?.value ?? 'null'}-\${item.value} </div>`,
         class { items = [{ value: 'a' }, { value: 'b' }, { value: 'c' }]; }
       );
       assertText('null-a a-b b-c ');
@@ -41,7 +42,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after push()', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'b']; }
       );
       assertText('null-a a-b ');
@@ -54,7 +55,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after unshift()', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['b', 'c']; }
       );
       assertText('null-b b-c ');
@@ -67,7 +68,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after splice() insert', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'c']; }
       );
       assertText('null-a a-c ');
@@ -80,7 +81,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after splice() remove', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null-a a-b b-c ');
@@ -93,7 +94,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after pop()', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null-a a-b b-c ');
@@ -106,7 +107,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after shift()', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null-a a-b b-c ');
@@ -119,7 +120,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after reverse()', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null-a a-b b-c ');
@@ -132,7 +133,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly after sort()', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = [3, 1, 2]; }
       );
       assertText('null-3 3-1 1-2 ');
@@ -145,7 +146,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with Map collection', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="[key, value] of items; previous.bind: true">\${$previous?.[0] ?? 'null'}:\${key}-\${value} </div>`,
+        `<div repeat.for=\"[key, value] of items; contextual: true\">\${$previous?.[0] ?? 'null'}:\${key}-\${value} </div>`,
         class { items = new Map([['a', 1], ['b', 2], ['c', 3]]); }
       );
       assertText('null:a-1 a:b-2 b:c-3 ');
@@ -153,7 +154,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with Set collection', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = new Set(['x', 'y', 'z']); }
       );
       assertText('null-x x-y y-z ');
@@ -161,7 +162,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with number iteration', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = 4; }
       );
       assertText('null-0 0-1 1-2 2-3 ');
@@ -169,7 +170,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with keyed repeat (key.bind)', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true">\${$previous?.id ?? 'null'}:\${item.id}-\${item.name} </div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\">\${$previous?.id ?? 'null'}:\${item.id}-\${item.name} </div>`,
         class { items = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }]; }
       );
       assertText('null:1-a 1:2-b 2:3-c ');
@@ -183,7 +184,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with destructured locals (array destructuring)', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="[key, value] of items; previous.bind: true">P:\${$previous?.[0] ?? 'X'}/K:\${key}/V:\${value}|</div>`,
+        `<div repeat.for=\"[key, value] of items; contextual: true\">P:\${$previous?.[0] ?? 'X'}/K:\${key}/V:\${value}|</div>`,
         class { items = new Map([['a', 1], ['b', 2], ['c', 3]]); }
       );
       assertText('P:X/K:a/V:1|P:a/K:b/V:2|P:b/K:c/V:3|');
@@ -191,7 +192,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('nested repeats: inner $previous does not interfere with outer', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="outer of outers; previous.bind: true"><span>\${$previous ?? 'null'}:\${outer}</span><div repeat.for="inner of inners; previous.bind: true">[\${$previous ?? 'null'}-\${inner}]</div></div>`,
+        `<div repeat.for=\"outer of outers; contextual: true\"><span>\${$previous ?? 'null'}:\${outer}</span><div repeat.for=\"inner of inners; contextual: true\">[\${$previous ?? 'null'}-\${inner}]</div></div>`,
         class {
           outers = ['A', 'B'];
           inners = [1, 2];
@@ -204,7 +205,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('section divider use case: render headers when section changes', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true"><h2 if.bind="item.section !== $previous?.section">Section: \${item.section}</h2><div>\${item.name}</div></div>`,
+        `<div repeat.for=\"item of items; contextual: true\"><h2 if.bind=\"item.section !== $previous?.section\">Section: \${item.section}</h2><div>\${item.name}</div></div>`,
         class {
           items = [
             { section: 'A', name: 'Item 1' },
@@ -221,7 +222,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('section divider updates correctly after sort', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true"><h2 if.bind="item.section !== $previous?.section">Section: \${item.section}</h2><div>\${item.name}</div></div>`,
+        `<div repeat.for=\"item of items; contextual: true\"><h2 if.bind=\"item.section !== $previous?.section\">Section: \${item.section}</h2><div>\${item.name}</div></div>`,
         class {
           items = [
             { section: 'A', name: 'Item 1' },
@@ -241,25 +242,25 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
       assertText('Section: AItem 1Item 3Section: BItem 2');
     });
 
-    it('$previous works with static previous: true (without bind)', async function () {
+    it('$previous works with static contextual: true (without bind)', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous: true">\${$previous ?? 'null'}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null-a a-b b-c ');
     });
 
-    it('$previous is disabled with previous: false', async function () {
+    it('$previous is disabled with contextual: false', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous: false">\${typeof $previous}:\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: false\">\${typeof $previous}:\${item} </div>`,
         class { items = ['a', 'b']; }
       );
       assertText('undefined:a undefined:b ');
     });
 
-    it('$previous can be enabled via expression (previous.bind: someBoolean)', async function () {
+    it('$previous can be enabled via expression (contextual.bind: someBoolean)', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: enablePrevious">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual.bind: enablePrevious\">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
         class {
           items = ['a', 'b', 'c'];
           enablePrevious = true;
@@ -270,7 +271,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous remains disabled when expression evaluates to false', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: enablePrevious">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual.bind: enablePrevious\">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
         class {
           items = ['a', 'b', 'c'];
           enablePrevious = false;
@@ -281,7 +282,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with empty array', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${item}</div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${item}</div>`,
         class { items: string[] = []; }
       );
       assertText('');
@@ -289,7 +290,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with single item', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}:\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}:\${item} </div>`,
         class { items = ['only']; }
       );
       assertText('null:only ');
@@ -301,7 +302,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with <template> element repeat', async function () {
       const { assertText } = createFixture(
-        `<template><template repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </template></template>`,
+        `<template><template repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </template></template>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null-a a-b b-c ');
@@ -309,7 +310,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with nested <template> repeats', async function () {
       const { assertText } = createFixture(
-        `<template><template repeat.for="outer of outers; previous.bind: true"><span>Outer: \${$previous ?? 'null'}:\${outer}|</span><template repeat.for="inner of inners; previous.bind: true">Inner[\${$previous ?? 'null'}-\${inner}]</template></template></template>`,
+        `<template><template repeat.for=\"outer of outers; contextual: true\"><span>Outer: \${$previous ?? 'null'}:\${outer}|</span><template repeat.for=\"inner of inners; contextual: true\">Inner[\${$previous ?? 'null'}-\${inner}]</template></template></template>`,
         class {
           outers = ['A', 'B'];
           inners = [1, 2];
@@ -320,7 +321,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous updates correctly in <template> after array mutation', async function () {
       const { assertText, component } = createFixture(
-        `<template><template repeat.for="item of items; previous.bind: true">\${$previous ?? 'null'}-\${item} </template></template>`,
+        `<template><template repeat.for=\"item of items; contextual: true\">\${$previous ?? 'null'}-\${item} </template></template>`,
         class { items = ['x', 'y']; }
       );
       assertText('null-x x-y ');
@@ -333,7 +334,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works with <template> and if.bind combination', async function () {
       const { assertText, component } = createFixture(
-        `<template><template repeat.for="item of items; previous.bind: true"><span if.bind="item.show">\${$previous?.value ?? 'null'}:\${item.value} </span></template></template>`,
+        `<template><template repeat.for=\"item of items; contextual: true\"><span if.bind=\"item.show\">\${$previous?.value ?? 'null'}:\${item.value} </span></template></template>`,
         class {
           items = [
             { value: 'a', show: true },
@@ -357,7 +358,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous works when repeating custom elements', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for="item of items; previous.bind: true"><my-element value.bind="item" prev.bind="$previous"></my-element></div>`,
+        `<div repeat.for=\"item of items; contextual: true\"><my-element value.bind=\"item\" prev.bind=\"$previous\"></my-element></div>`,
         class { items = ['a', 'b', 'c']; },
         [
           CustomElement.define(
@@ -377,7 +378,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
           CustomElement.define(
             {
               name: 'my-repeater',
-              template: '<div repeat.for="item of items; previous.bind: true">\${$previous ?? "null"}:\${item} </div>',
+              template: '<div repeat.for=\"item of items; contextual: true\">\${$previous ?? "null"}:\${item} </div>',
               bindables: ['items']
             },
             class { items: any; }
@@ -389,7 +390,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with custom element and keyed repeat', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true"><my-item data.bind="item" prev-id.bind="$previous?.id ?? 'null'"></my-item></div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\"><my-item data.bind=\"item\" prev-id.bind=\"$previous?.id ?? 'null'\"></my-item></div>`,
         class { items = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }]; },
         [
           CustomElement.define(
@@ -415,9 +416,9 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
     // Tests for dynamic enabling/disabling of $previous
     // ======================================================================
 
-    it('previous.bind is evaluated once (not reactive) when toggling a boolean', async function () {
+    it('contextual.bind is evaluated once (not reactive) when toggling a boolean', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: showPrevious">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual.bind: showPrevious\">\${typeof $previous === 'undefined' ? 'undef' : ($previous ?? 'null')}-\${item} </div>`,
         class {
           items = ['a', 'b', 'c'];
           showPrevious = true;
@@ -437,9 +438,9 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
       assertText('null-a a-b b-c ');
     });
 
-    it('previous.bind evaluates once even if the bound property changes', async function () {
+    it('contextual.bind evaluates once even if the bound property changes', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: config.enablePrevious">\${typeof $previous === 'undefined' ? 'X' : ($previous ?? 'N')}-\${item}|</div>`,
+        `<div repeat.for=\"item of items; contextual.bind: config.enablePrevious\">\${typeof $previous === 'undefined' ? 'X' : ($previous ?? 'N')}-\${item}|</div>`,
         class {
           items = ['1', '2', '3'];
           config = { enablePrevious: false };
@@ -453,9 +454,9 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
       assertText('X-1|X-2|X-3|');
     });
 
-    it('previous.bind remains effective across array mutations (non-reactive config)', async function () {
+    it('contextual.bind remains effective across array mutations (non-reactive config)', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; previous.bind: enabled">\${$previous ?? 'null'}:\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual.bind: enabled\">\${$previous ?? 'null'}:\${item} </div>`,
         class {
           items = ['a', 'b'];
           enabled = true;
@@ -490,7 +491,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with keyed repeat tracks correct items after reorder', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true">\${$previous?.id ?? 'null'}→\${item.id}(\${item.name}) </div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\">\${$previous?.id ?? 'null'}→\${item.id}(\${item.name}) </div>`,
         class { items = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }]; }
       );
       assertText('null→1(a) 1→2(b) 2→3(c) ');
@@ -504,7 +505,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with keyed repeat handles insertions correctly', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true">[\${$previous?.id ?? 'X'}::\${item.id}]</div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\">[\${$previous?.id ?? 'X'}::\${item.id}]</div>`,
         class { items = [{ id: 1, name: 'a' }, { id: 3, name: 'c' }]; }
       );
       assertText('[X::1][1::3]');
@@ -518,7 +519,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with keyed repeat handles deletions correctly', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true">(\${$previous?.id ?? '-'})→(\${item.id})</div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\">(\${$previous?.id ?? '-'})→(\${item.id})</div>`,
         class { items = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }, { id: 4, name: 'd' }]; }
       );
       assertText('(-)→(1)(1)→(2)(2)→(3)(3)→(4)');
@@ -532,7 +533,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with keyed repeat and complex object keys', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: code; previous.bind: true">\${$previous?.code ?? 'START'}→\${item.code}|\${item.label} </div>`,
+        `<div repeat.for=\"item of items; key: code; contextual: true\">\${$previous?.code ?? 'START'}→\${item.code}|\${item.label} </div>`,
         class {
           items = [
             { code: 'US', label: 'USA' },
@@ -552,7 +553,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with keyed repeat works with Set values', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true">\${$previous?.id ?? 'null'}→\${item.id} </div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\">\${$previous?.id ?? 'null'}→\${item.id} </div>`,
         class {
           items = new Set([{ id: 1 }, { id: 2 }, { id: 3 }]);
         }
@@ -570,7 +571,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous with keyed repeat maintains correct tracking during mixed operations', async function () {
       const { assertText, component } = createFixture(
-        `<div repeat.for="item of items; key: id; previous.bind: true">[\${$previous?.id ?? 'NULL'}→\${item.id}::\${item.name}]</div>`,
+        `<div repeat.for=\"item of items; key: id; contextual: true\">[\${$previous?.id ?? 'NULL'}→\${item.id}::\${item.name}]</div>`,
         class { items = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }]; }
       );
       assertText('[NULL→1::a][1→2::b][2→3::c]');

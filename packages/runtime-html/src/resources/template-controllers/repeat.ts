@@ -86,7 +86,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
   /** @internal */ private _hasDestructuredLocal: boolean = false;
   /** @internal */ private _enablePrevious: boolean = false;
-  /** @internal */ private _previousExpr?: IsBindingBehavior;
+  /** @internal */ private readonly _previousExpr?: IsBindingBehavior;
 
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
@@ -96,15 +96,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
     const iteratorProps = (instruction.props[0] as IteratorBindingInstruction).props;
-    
+
     for (let i = 0, ii = iteratorProps.length; i < ii; ++i) {
       const prop = iteratorProps[i];
       if (prop === void 0) {
         continue;
       }
-      
+
       const { to, value, command } = prop;
-      
       if (to === 'key') {
         if (command === null) {
           this.key = value;
@@ -116,8 +115,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       } else if (to === 'previous') {
         if (command === null) {
           // Static value: previous: true or previous: false
-          // Handle string 'false' and 'true' as well as boolean values
-          this._enablePrevious = value === 'false' || value === false ? false : !!value;
+          // When command is null, value is always a string
+          this._enablePrevious = value === 'false' ? false : !!value;
         } else if (command === 'bind') {
           // Expression: previous.bind: someExpression
           this._previousExpr = resolve(IExpressionParser).parse(value, etIsProperty);
@@ -164,7 +163,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     // Evaluate previous.bind expression if present (one-time evaluation at bind)
     if (this._previousExpr !== void 0) {
-      this._enablePrevious = !!astEvaluate(this._previousExpr, this.$controller.scope, binding, null);
+      const result = astEvaluate(this._previousExpr, this.$controller.scope, binding, null);
+      this._enablePrevious = result != null && result !== false;
     }
   }
 

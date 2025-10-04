@@ -103,6 +103,7 @@ export const enum ErrorNames {
   repeat_non_iterable = 777,
   repeat_non_countable = 778,
   repeat_mismatch_length = 814,
+  repeat_invalid_contextual_binding_command = 821,
 
   portal_invalid_insert_position = 779,
 
@@ -230,6 +231,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.repeat_non_iterable]: `Unsupported: [repeat] cannot iterate over {{0:toString}}`,
   [ErrorNames.repeat_non_countable]: `Unsupported: [repeat] cannot count {{0:toString}}`,
   [ErrorNames.repeat_mismatch_length]: `[repeat] encountered an error: number of views != number of items {{0:join(!=)}}`,
+  [ErrorNames.repeat_invalid_contextual_binding_command]: `Invalid command "{{0}}" usage with [repeat.for] option "contextual". Only "bind" or static assignment is supported.`,
 
   [ErrorNames.portal_invalid_insert_position]: 'Invalid portal insertion position: {{0}}',
 

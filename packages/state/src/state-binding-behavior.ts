@@ -14,18 +14,16 @@ export class StateBindingBehavior {
 
   public bind(scope: Scope, binding: IBinding, storeLocator?: StoreLocator): void {
     const isStateBinding = binding instanceof StateBinding;
-    const store = storeLocator == null
-      ? this._defaultStore as IStore<object>
-      : this._storeManager.getStore(storeLocator);
-    scope = isStateBinding ? scope : createStateBindingScope(store.getState(), scope);
+    const store = storeLocator == null ? this._defaultStore : this._storeManager.getStore(storeLocator);
+    const effectiveScope = isStateBinding ? scope : createStateBindingScope(store.getState(), scope);
 
     if (!isStateBinding) {
       let subscriber = bindingStateSubscriberMap.get(binding);
       if (subscriber == null) {
-        subscriber = new StateSubscriber(binding, scope, store);
+        subscriber = new StateSubscriber(binding, effectiveScope, store);
         bindingStateSubscriberMap.set(binding, subscriber);
       } else {
-        subscriber._wrappedScope = scope;
+        subscriber._wrappedScope = effectiveScope;
         subscriber._store = store;
       }
 
@@ -35,7 +33,7 @@ export class StateBindingBehavior {
         // eslint-disable-next-line no-console
         console.warn(`Binding ${binding.constructor.name} does not support "state" binding behavior`);
       }
-      binding.useScope?.(scope);
+      binding.useScope?.(effectiveScope);
       void Promise.resolve().then(() => subscriber!.handleStateChange(store.getState()));
     }
   }

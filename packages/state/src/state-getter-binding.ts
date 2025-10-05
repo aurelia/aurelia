@@ -1,5 +1,4 @@
-
-import { IDisposable, IIndexable, IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, type Writable } from '@aurelia/kernel';
 import type { IsAssign, IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
@@ -22,7 +21,7 @@ import { isStoreInstance } from './store-manager';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateGetterBinding extends IObserverLocatorBasedConnectable, IServiceLocator { }
+export interface StateGetterBinding extends IObserverLocatorBasedConnectable { }
 export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
 

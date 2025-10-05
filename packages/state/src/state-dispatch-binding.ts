@@ -1,6 +1,6 @@
 
 import { type Writable, type IServiceLocator } from '@aurelia/kernel';
-import type { IsBindingBehavior } from '@aurelia/expression-parser';
+import type { IsAssign, IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
   type IObserverLocatorBasedConnectable,
@@ -19,7 +19,10 @@ import {
 import {
   type IStoreSubscriber,
   type IStore,
+  type StoreLocator,
+  IStoreManager,
 } from './interfaces';
+import { isStoreInstance } from './store-manager';
 import { createStateBindingScope } from './state-utilities';
 
 /**
@@ -51,22 +54,31 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
 
   public strict: boolean;
 
-  /** @internal */ private readonly _store: IStore<object>;
+  /** @internal */ private readonly _storeManager: IStoreManager;
+  /** @internal */ private readonly _staticStoreLocator?: StoreLocator;
+  /** @internal */ private readonly _storeLocatorExpression?: IsAssign;
+  /** @internal */ private _store?: IStore<object>;
 
   public constructor(
     locator: IServiceLocator,
     expr: IsBindingBehavior,
     target: HTMLElement,
     prop: string,
-    store: IStore<object>,
+    storeManager: IStoreManager,
+    storeLocator: StoreLocator | IsAssign | undefined,
     strict: boolean,
   ) {
     this.l = locator;
-    this._store = store;
+    this._storeManager = storeManager;
     this.ast = expr;
     this._target = target;
     this._targetProperty = prop;
     this.strict = strict;
+    if (storeLocator != null && typeof storeLocator === 'object' && '$kind' in storeLocator) {
+      this._storeLocatorExpression = storeLocator as IsAssign;
+    } else if (storeLocator != null) {
+      this._staticStoreLocator = storeLocator as StoreLocator;
+    }
   }
 
   public callSource(e: Event) {
@@ -74,7 +86,7 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     scope.overrideContext.$event = e;
     const value = astEvaluate(this.ast, scope, this, null);
     delete scope.overrideContext.$event;
-    void this._store.dispatch(value);
+    void this._store!.dispatch(value);
   }
 
   public handleEvent(e: Event) {
@@ -86,9 +98,10 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
       return;
     }
     astBind(this.ast, _scope, this);
-    this._scope = createStateBindingScope(this._store.getState(), _scope);
+    const store = this._store = this._resolveStore(_scope);
+    this._scope = createStateBindingScope(store.getState(), _scope);
     this._target.addEventListener(this._targetProperty, this);
-    this._store.subscribe(this);
+    store.subscribe(this);
     this.isBound = true;
   }
 
@@ -101,12 +114,36 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     astUnbind(this.ast, this._scope!, this);
     this._scope = void 0;
     this._target.removeEventListener(this._targetProperty, this);
-    this._store.unsubscribe(this);
+    const store = this._store;
+    if (store != null) {
+      store.unsubscribe(this);
+      this._store = void 0;
+    }
   }
 
   public handleStateChange(state: object): void {
     const scope = this._scope!;
     const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
     scope.bindingContext = overrideContext.bindingContext = state;
+  }
+
+  /** @internal */
+  private _resolveStore(scope: Scope): IStore<object> {
+    if (this._storeLocatorExpression != null) {
+      const evaluatedLocator = astEvaluate(this._storeLocatorExpression, scope, this, null);
+      if (isStoreInstance(evaluatedLocator)) {
+        return evaluatedLocator;
+      }
+      return this._storeManager.getStore(evaluatedLocator as StoreLocator);
+    }
+
+    const locator = this._staticStoreLocator;
+    if (locator == null) {
+      return this._storeManager.getStore();
+    }
+    if (isStoreInstance(locator)) {
+      return locator;
+    }
+    return this._storeManager.getStore(locator);
   }
 }

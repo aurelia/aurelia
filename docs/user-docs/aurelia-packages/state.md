@@ -114,6 +114,37 @@ Aurelia
 If you are familiar with Redux, you'll find this plugin familiar. The most obvious difference will be around the action handler (similar to reducer in Redux) function signature.
 {% endhint %}
 
+#### Multiple stores
+
+Large applications often need more than a single global store. You can register additional stores by providing either a `storeName` (string alias) or a `storeKey` (DI key) when calling `StateDefaultConfiguration.init`:
+
+```ts
+import { singleton } from '@aurelia/kernel';
+import { IStoreManager, StateDefaultConfiguration } from '@aurelia/state';
+
+Aurelia.register(
+  // Default store – available through IStore for backwards compatibility
+  StateDefaultConfiguration.init({ counter: 0 }, counterHandler),
+
+  // Named store – resolved as "users"
+  StateDefaultConfiguration.init({ users: [] }, { storeName: 'users' }, usersHandler),
+
+  // Store tied to a custom DI key
+  StateDefaultConfiguration.init({ catalog: [] }, { storeKey: CatalogStore }, catalogHandler),
+);
+
+@singleton()
+export class DataService {
+  public constructor(@IStoreManager private readonly stores: IStoreManager) {}
+
+  public get usersStore() {
+    return this.stores.getStore<{ users: User[] }>('users');
+  }
+}
+```
+
+The first registered store (or any store configured with `isDefault: true`) continues to resolve via `IStore`, ensuring existing code keeps working. Named or keyed stores can be retrieved through `IStoreManager` or directly addressed from templates, as shown in the next section.
+
 ## Template binding
 
 ### With `.state` and `.dispatch` commands
@@ -151,6 +182,42 @@ Note: by default, bindings created from `.state` and `.dispatch` commands will o
 // access the property `prefix` on the view model, and `keywords` property on the global state
 <input value.state="$parent.prefix + keywords">
 ```
+
+### Targeting specific stores
+
+Use the `& store:'name'` helper to bind against a non-default store:
+
+```html
+<div textcontent.state="users.length & store:'users'"></div>
+<button click.dispatch="{ type: 'reload' } & store:'users'">Reload users</button>
+```
+
+Binding behaviors accept the store locator as their first argument:
+
+```html
+<span textcontent.bind="name & state:'users'"></span>
+```
+
+You can supply store instances or DI keys instead of strings when needed.
+
+### Using `@fromState` with named stores
+
+The `@fromState` decorator now supports an optional first argument for selecting a store:
+
+```ts
+import { fromState } from '@aurelia/state';
+
+class UsersPanel {
+  @fromState('users', state => state.list)
+  public users!: User[];
+
+  // Falls back to the default store
+  @fromState(state => state.counter)
+  public counter!: number;
+}
+```
+
+Pass a store instance or DI key when you need finer grained control.
 
 ### Promise and Observable Support
 

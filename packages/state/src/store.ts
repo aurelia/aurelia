@@ -1,15 +1,8 @@
-import { all, IContainer, ILogger, isPromise, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
-import { IActionHandler, IState, IStore, IStoreSubscriber, IStateMiddleware, MiddlewarePlacement, IMiddlewareSettings } from './interfaces';
+import { ILogger, isPromise, onResolve } from '@aurelia/kernel';
+import { IActionHandler, IStore, IStoreSubscriber, IStateMiddleware, MiddlewarePlacement, IMiddlewareSettings } from './interfaces';
 import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
 export class Store<T extends object, TAction = unknown> implements IStore<T> {
-  public static register(c: IContainer) {
-    c.register(
-      Registration.singleton(this, this),
-      Registration.aliasTo(this, IStore),
-    );
-  }
-
   /** @internal */ private readonly _initialState: any;
   /** @internal */ private _state: any;
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
@@ -19,12 +12,20 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   /** @internal */ private _dispatching = false;
   /** @internal */ private readonly _dispatchQueues: TAction[] = [];
   /** @internal */ private readonly _getDevTools: () => IDevToolsExtension;
+  /** @internal */ private readonly _name?: string;
 
-  public constructor() {
-    this._initialState = this._state = resolve(optional(IState)) ?? new State() as T;
-    this._handlers = resolve(all(IActionHandler));
-    this._logger = resolve(ILogger);
-    this._getDevTools = resolve(lazy(IDevToolsExtension));
+  public constructor(
+    initialState: T,
+    handlers: readonly IActionHandler<T>[],
+    logger: ILogger,
+    getDevTools: () => IDevToolsExtension,
+    name?: string,
+  ) {
+    this._initialState = this._state = initialState ?? new State() as T;
+    this._handlers = handlers;
+    this._logger = logger;
+    this._getDevTools = getDevTools;
+    this._name = name;
   }
 
   public subscribe(subscriber: IStoreSubscriber<T>): void {
@@ -204,7 +205,9 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     if (!hasDevTools) {
       throw new Error('Devtools extension is not available');
     }
-    options.name ??= 'Aurelia State plugin';
+    if (options.name == null) {
+      options.name = this._name != null ? `Aurelia State: ${this._name}` : 'Aurelia State plugin';
+    }
 
     const devTools = extension.connect(options);
     devTools.init(this._initialState);

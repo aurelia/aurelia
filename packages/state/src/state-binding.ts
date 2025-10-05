@@ -20,9 +20,13 @@ import {
   type IBinding,
 } from '@aurelia/runtime-html';
 import {
-  IStore,
-  type IStoreSubscriber
+  type IStore,
+  type IStoreSubscriber,
+  type StoreLocator,
+  IStoreManager
 } from './interfaces';
+import { isStoreInstance } from './store-manager';
+import type { IsAssign } from '@aurelia/expression-parser';
 import { createStateBindingScope } from './state-utilities';
 
 /**
@@ -51,7 +55,10 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
 
-  /** @internal */ private readonly _store: IStore<object>;
+  /** @internal */ private readonly _storeManager: IStoreManager;
+  /** @internal */ private readonly _staticStoreLocator?: StoreLocator;
+  /** @internal */ private readonly _storeLocatorExpression?: IsAssign;
+  /** @internal */ private _store?: IStore<object>;
   /** @internal */ private _targetObserver!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
@@ -73,17 +80,23 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
-    store: IStore<object>,
+    storeManager: IStoreManager,
+    storeLocator: StoreLocator | IsAssign | undefined,
     strict: boolean,
   ) {
     this._controller = controller;
     this.l = locator;
-    this._store = store;
+    this._storeManager = storeManager;
     this.oL = observerLocator;
     this.ast = ast;
     this.target = target;
     this.targetProperty = prop;
     this.strict = strict;
+    if (storeLocator != null && typeof storeLocator === 'object' && '$kind' in storeLocator) {
+      this._storeLocatorExpression = storeLocator as IsAssign;
+    } else if (storeLocator != null) {
+      this._staticStoreLocator = storeLocator as StoreLocator;
+    }
   }
 
   public updateTarget(value: unknown) {
@@ -121,13 +134,14 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       return;
     }
     this._targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
-    this._store.subscribe(this);
+    const store = this._store = this._resolveStore(_scope);
     this.updateTarget(this._value = astEvaluate(
       this.ast,
-      this._scope = createStateBindingScope(this._store.getState(), _scope),
+      this._scope = createStateBindingScope(store.getState(), _scope),
       this,
       this.mode > BindingMode.oneTime ? this : null),
     );
+    store.subscribe(this);
     this.isBound = true;
   }
 
@@ -140,7 +154,11 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
     this._scope = void 0;
-    this._store.unsubscribe(this);
+    const store = this._store;
+    if (store != null) {
+      store.unsubscribe(this);
+      this._store = void 0;
+    }
   }
 
   public handleChange(newValue: unknown): void {
@@ -157,7 +175,8 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   public handleStateChange(): void {
     if (!this.isBound) return;
 
-    const state = this._store.getState();
+    const store = this._store ?? this._resolveStore(this._scope!);
+    const state = store.getState();
     const _scope = this._scope!;
     const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
     _scope.bindingContext = overrideContext.bindingContext = state;
@@ -173,6 +192,26 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     }
     this._value = value;
     this.updateTarget(value);
+  }
+
+  /** @internal */
+  private _resolveStore(scope: Scope): IStore<object> {
+    if (this._storeLocatorExpression != null) {
+      const evaluatedLocator = astEvaluate(this._storeLocatorExpression, scope, this, null);
+      if (isStoreInstance(evaluatedLocator)) {
+        return evaluatedLocator;
+      }
+      return this._storeManager.getStore(evaluatedLocator as StoreLocator);
+    }
+
+    const locator = this._staticStoreLocator;
+    if (locator == null) {
+      return this._storeManager.getStore();
+    }
+    if (isStoreInstance(locator)) {
+      return locator;
+    }
+    return this._storeManager.getStore(locator);
   }
 
   /** @internal */

@@ -1,4 +1,4 @@
-import { type IRegistry, type IDisposable } from '@aurelia/kernel';
+import { type IRegistry, type IDisposable, type Key } from '@aurelia/kernel';
 import { IDevToolsOptions } from './interfaces-devtools';
 import { createInterface } from './state-utilities';
 
@@ -47,6 +47,22 @@ export interface IStore<T extends object, TAction = unknown> {
 }
 
 export const IState = /*@__PURE__*/createInterface<object>('IState');
+
+export type StoreLocator = undefined | string | Key | IStore<object>;
+
+export interface IStoreRegistration {
+  name?: string;
+  key?: Key;
+  isDefault?: boolean;
+}
+
+export interface IStoreManager {
+  register<T extends object>(store: IStore<T>, info?: IStoreRegistration): void;
+  getStore<T extends object>(locator?: StoreLocator): IStore<T>;
+  tryGetStore<T extends object>(locator?: StoreLocator): IStore<T> | undefined;
+}
+
+export const IStoreManager = /*@__PURE__*/createInterface<IStoreManager>('IStoreManager');
 
 export type IRegistrableAction = IActionHandler & IRegistry;
 

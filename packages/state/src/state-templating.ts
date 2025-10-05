@@ -1,5 +1,12 @@
 import { camelCase, resolve } from '@aurelia/kernel';
-import { IExpressionParser, ExpressionType, type IsBindingBehavior } from '@aurelia/expression-parser';
+import {
+  BindingBehaviorExpression,
+  ExpressionType,
+  IExpressionParser,
+  PrimitiveLiteralExpression,
+  type IsAssign,
+  type IsBindingBehavior,
+} from '@aurelia/expression-parser';
 import {
   IObserverLocator,
 } from '@aurelia/runtime';
@@ -16,7 +23,7 @@ import {
   type IInstruction,
   type BindingCommandStaticAuDefinition
 } from '@aurelia/template-compiler';
-import { IStore } from './interfaces';
+import { IStoreManager } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchBinding } from './state-dispatch-binding';
 
@@ -54,7 +61,8 @@ export class DispatchBindingCommand implements BindingCommandInstance {
 
   public build(info: ICommandBuildInfo): IInstruction {
     const attr = info.attr;
-    return new DispatchBindingInstruction(attr.target, attr.rawValue);
+    const value = attr.rawValue;
+    return new DispatchBindingInstruction(attr.target, value);
   }
 }
 
@@ -63,21 +71,24 @@ export class StateBindingInstruction {
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
+    public store?: StoreInstructionArg,
   ) {}
 }
+
+type StoreInstructionArg = string | IsAssign;
 
 export class DispatchBindingInstruction {
   public readonly type = 'sd';
   public constructor(
     public from: string,
     public ast: string | IsBindingBehavior,
+    public store?: StoreInstructionArg,
   ) {}
 }
 
 export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindingInstructionRenderer implements IRenderer {
   public readonly target = 'sb';
-
-  /** @internal */ public readonly _stateContainer = resolve(IStore);
+  /** @internal */ public readonly _storeManager = resolve(IStoreManager);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -87,7 +98,9 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
+    let ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
+    const { expression, store } = extractStoreLocator(ast);
+    ast = expression;
 
     renderingCtrl.addBinding(new StateBinding(
       renderingCtrl,
@@ -96,7 +109,8 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
       ast,
       target,
       instruction.to,
-      this._stateContainer,
+      this._storeManager,
+      store,
       renderingCtrl.strict ?? false,
     ));
   }
@@ -104,7 +118,7 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
 
 export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer implements IRenderer {
   public readonly target = 'sd';
-  /** @internal */ public readonly _stateContainer = resolve(IStore);
+  /** @internal */ public readonly _storeManager = resolve(IStoreManager);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -113,13 +127,16 @@ export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class D
     platform: IPlatform,
     exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.ast, 'IsProperty');
+    let expr = ensureExpression(exprParser, instruction.ast, 'IsProperty');
+    const { expression, store } = extractStoreLocator(expr);
+    expr = expression;
     renderingCtrl.addBinding(new StateDispatchBinding(
       renderingCtrl.container,
       expr,
       target,
       instruction.from,
-      this._stateContainer,
+      this._storeManager,
+      store,
       renderingCtrl.strict ?? false,
     ));
   }
@@ -130,4 +147,32 @@ function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, ex
     return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;
   }
   return srcOrExpr as Exclude<TFrom, string>;
+}
+
+function extractStoreLocator(expression: IsBindingBehavior): { expression: IsBindingBehavior; store?: StoreInstructionArg } {
+  const behaviors: BindingBehaviorExpression[] = [];
+  let leaf: IsBindingBehavior = expression;
+
+  while (leaf instanceof BindingBehaviorExpression) {
+    behaviors.push(leaf);
+    leaf = leaf.expression as IsBindingBehavior;
+  }
+
+  let storeArg: StoreInstructionArg | undefined;
+  let rebuilt: IsBindingBehavior = leaf;
+
+  for (let i = behaviors.length - 1; i >= 0; --i) {
+    const behavior = behaviors[i];
+    if (storeArg === undefined && behavior.name === 'store') {
+      const arg = behavior.args[0];
+      storeArg = arg instanceof PrimitiveLiteralExpression && typeof arg.value === 'string'
+        ? arg.value
+        : arg;
+      continue;
+    }
+
+    rebuilt = new BindingBehaviorExpression(rebuilt, behavior.name, behavior.args);
+  }
+
+  return { expression: rebuilt, store: storeArg };
 }

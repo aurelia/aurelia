@@ -10,7 +10,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
 
     it('$previous is null for first item (contextual: true)', async function () {
       const { assertText } = createFixture(
-        `<div repeat.for=\"item of items; contextual: true\">\${$previous === null ? 'null' : $previous}:\${item} </div>`,
+        `<div repeat.for=\"item of items; contextual: true\">\${$previous === undefined ? 'null' : $previous}:\${item} </div>`,
         class { items = ['a', 'b', 'c']; }
       );
       assertText('null:a a:b b:c ');
@@ -266,7 +266,7 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
           enablePrevious = true;
         }
       );
-      assertText('null-a a-b b-c ');
+      assertText('undef-a a-b b-c ');
     });
 
     it('$previous remains disabled when expression evaluates to false', async function () {
@@ -425,17 +425,17 @@ describe('3-runtime-html/repeat.previous.spec.ts', function () {
         }
       );
       // Initially enabled
-      assertText('null-a a-b b-c ');
+      assertText('undef-a a-b b-c ');
 
       // Disable $previous (should not affect already bound repeat)
       component.showPrevious = false;
       await tasksSettled();
-      assertText('null-a a-b b-c ');
+      assertText('undef-a a-b b-c ');
 
       // Re-enable $previous (still no change)
       component.showPrevious = true;
       await tasksSettled();
-      assertText('null-a a-b b-c ');
+      assertText('undef-a a-b b-c ');
     });
 
     it('contextual.bind evaluates once even if the bound property changes', async function () {

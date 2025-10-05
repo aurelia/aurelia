@@ -688,7 +688,7 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $middle: boolean;
   $last: boolean;
   $length: number; // new in v2, there are a few requests, not sure if it should stay
-  $__items__?: unknown[]; // opt-in: the array being iterated (undefined when disabled)
+  __items__?: unknown[]; // opt-in: the array being iterated (undefined when disabled)
   $previous?: unknown; // opt-in: previous iteration's item (null for first, undefined when disabled)
 }
 
@@ -709,13 +709,13 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
     return this.$index === this.$length - 1;
   }
   public get $previous(): unknown {
-    return this.$__items__?.[this.$index - 1];
+    return this.__items__?.[this.$index - 1];
   }
 
   public constructor(
     public readonly $index: number = 0,
     public readonly $length: number = 1,
-    public readonly $__items__: unknown[] | undefined = undefined,
+    public readonly __items__: unknown[] | undefined = undefined,
   ) {}
 }
 
@@ -723,7 +723,7 @@ const setContextualProperties = (oc: IRepeatOverrideContext, index: number, leng
   oc.$index = index;
   oc.$length = length;
   if (contextual) {
-    oc.$__items__ = items;
+    oc.__items__ = items;
   }
 };
 

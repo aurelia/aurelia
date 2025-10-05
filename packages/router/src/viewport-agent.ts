@@ -46,7 +46,6 @@ export class ViewportAgent {
   /** @internal */ public _nextNode: RouteNode | null = null;
 
   /** @internal */ private _currTransition: Transition | null = null;
-  /** @internal */ private _cancellationPromise: Promise<void> | void | null = null;
 
   private constructor(
     public readonly viewport: IViewport,
@@ -201,45 +200,43 @@ export class ViewportAgent {
     b._push();
 
     const logger = /*@__PURE__*/ this._logger.scopeTo('canUnload()');
-    void onResolve(this._cancellationPromise, () => {
-      // run canUnload bottom-up
-      Batch._start(b1 => {
-        if (__DEV__) trace(logger, Events.vpaCanUnloadChildren, this);
-        for (const node of this._currNode!.children) {
-          node.context.vpa._canUnload(tr, b1);
-        }
-      })._continueWith(b1 => {
-        switch (this._currState) {
-          case State.currIsActive:
-            if (__DEV__) trace(logger, Events.vpaCanUnloadExisting, this);
-            switch (this._$plan) {
-              case 'none':
+    // run canUnload bottom-up
+    Batch._start(b1 => {
+      if (__DEV__) trace(logger, Events.vpaCanUnloadChildren, this);
+      for (const node of this._currNode!.children) {
+        node.context.vpa._canUnload(tr, b1);
+      }
+    })._continueWith(b1 => {
+      switch (this._currState) {
+        case State.currIsActive:
+          if (__DEV__) trace(logger, Events.vpaCanUnloadExisting, this);
+          switch (this._$plan) {
+            case 'none':
+              this._currState = State.currCanUnloadDone;
+              return;
+            case 'invoke-lifecycles':
+            case 'replace':
+              this._currState = State.currCanUnload;
+              b1._push();
+              Batch._start(b2 => {
+                if (__DEV__) trace(logger, Events.vpaCanUnloadSelf, this);
+                this._curCA!._canUnload(tr, this._nextNode, b2);
+              })._continueWith(() => {
+                if (__DEV__) trace(logger, Events.vpaCanUnloadFinished, this);
                 this._currState = State.currCanUnloadDone;
-                return;
-              case 'invoke-lifecycles':
-              case 'replace':
-                this._currState = State.currCanUnload;
-                b1._push();
-                Batch._start(b2 => {
-                  if (__DEV__) trace(logger, Events.vpaCanUnloadSelf, this);
-                  this._curCA!._canUnload(tr, this._nextNode, b2);
-                })._continueWith(() => {
-                  if (__DEV__) trace(logger, Events.vpaCanUnloadFinished, this);
-                  this._currState = State.currCanUnloadDone;
-                  b1._pop();
-                })._start();
-                return;
-            }
-          case State.currIsEmpty:
-            if (__DEV__) trace(logger, Events.vpaCanUnloadNone, this);
-            return;
-          default:
-            tr._handleError(new Error(`Unexpected state at canUnload of ${this}`));
-        }
-      })._continueWith(() => {
-        b._pop();
-      })._start();
-    });
+                b1._pop();
+              })._start();
+              return;
+          }
+        case State.currIsEmpty:
+          if (__DEV__) trace(logger, Events.vpaCanUnloadNone, this);
+          return;
+        default:
+          tr._handleError(new Error(`Unexpected state at canUnload of ${this}`));
+      }
+    })._continueWith(() => {
+      b._pop();
+    })._start();
   }
 
   /** @internal */
@@ -776,9 +773,8 @@ export class ViewportAgent {
       return;
     }
 
-    this._cancellationPromise = onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
+    void onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
       this._currTransition = null;
-      this._cancellationPromise = null;
       b?._pop();
     });
   }

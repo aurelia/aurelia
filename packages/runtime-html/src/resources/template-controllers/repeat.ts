@@ -446,7 +446,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes.unlink();
       scope = _scopes[i];
 
-      setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items, this.contextual);
+      setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
       ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);
@@ -565,20 +565,21 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       next = views[i + 1];
 
+      if (this.contextual) {
+        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems);
+      }
+
       if (indexMap[i] === -2) {
         view.nodes.link(next?.nodes ?? _location);
         view.setLocation(_location);
-        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems, this.contextual);
         ret = view.activate(view, $controller, _scopes[i]);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || i !== seq[j]) {
         view.nodes.link(next?.nodes ?? _location);
-        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems, this.contextual);
         view.nodes.insertBefore(view.location!);
       } else {
-        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems, this.contextual);
         --j;
       }
     }
@@ -719,12 +720,10 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
   ) {}
 }
 
-const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number, items: unknown[] | undefined, contextual: boolean): void => {
+const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number, items: unknown[] | undefined): void => {
   oc.$index = index;
   oc.$length = length;
-  if (contextual) {
-    oc.__items__ = items;
-  }
+  oc.__items__ = items;
 };
 
 export const IRepeatableHandlerResolver = /*@__PURE__*/ createInterface<IRepeatableHandlerResolver>(

@@ -709,6 +709,9 @@ export class ViewportAgent {
 
   /** @internal */
   public _cancelUpdate(b: Batch | null): void {
+    // route tree does not have an easy access to a Batch.
+    // Hence we allow passing null here.
+    // If need be, we can later think about creating a Batch from route-tree or provide it with one.
     b?._push();
     if (this._currNode !== null) {
       this._currNode.children.forEach(function (node) {

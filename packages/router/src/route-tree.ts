@@ -199,7 +199,7 @@ export class RouteNode {
   public _clearChildren(): void {
     for (const c of this.children) {
       c._clearChildren();
-      c.context.vpa._cancelUpdate();
+      c.context.vpa._cancelUpdate(null); // TODO: use a Batch
     }
     this.children.length = 0;
   }

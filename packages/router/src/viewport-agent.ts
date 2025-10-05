@@ -711,15 +711,16 @@ export class ViewportAgent {
   }
 
   /** @internal */
-  public _cancelUpdate(): void {
+  public _cancelUpdate(b: Batch | null): void {
+    b?._push();
     if (this._currNode !== null) {
       this._currNode.children.forEach(function (node) {
-        node.context.vpa._cancelUpdate();
+        node.context.vpa._cancelUpdate(b);
       });
     }
     if (this._nextNode !== null) {
       this._nextNode.children.forEach(function (node) {
-        node.context.vpa._cancelUpdate();
+        node.context.vpa._cancelUpdate(b);
       });
     }
 
@@ -770,12 +771,16 @@ export class ViewportAgent {
       }
     }
 
-    if (currentDeactivationPromise !== null && nextDeactivationPromise !== null) {
-      this._cancellationPromise = onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
-        this._currTransition = null;
-        this._cancellationPromise = null;
-      });
+    if (currentDeactivationPromise === null && nextDeactivationPromise === null) {
+      b?._pop();
+      return;
     }
+
+    this._cancellationPromise = onResolve(onResolveAll(currentDeactivationPromise, nextDeactivationPromise), () => {
+      this._currTransition = null;
+      this._cancellationPromise = null;
+      b?._pop();
+    });
   }
 
   /** @internal */

@@ -446,7 +446,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes.unlink();
       scope = _scopes[i];
 
-      setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      if (this.contextual) {
+        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
       ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);

@@ -1,5 +1,5 @@
-import { IDisposable, IIndexable, type Writable } from '@aurelia/kernel';
-import type { IsAssign, IsBindingBehavior } from '@aurelia/expression-parser';
+import { IDisposable, IIndexable, type IServiceLocator, type Writable } from '@aurelia/kernel';
+import type { IsAssign } from '@aurelia/expression-parser';
 import {
   connectable,
   IObserverLocatorBasedConnectable,
@@ -21,12 +21,19 @@ import { isStoreInstance } from './store-manager';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateGetterBinding extends IObserverLocatorBasedConnectable { }
+export interface StateGetterBinding extends IObserverLocatorBasedConnectable {
+  l: IServiceLocator;
+}
 export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
 
   /** @internal */
   private _scope?: Scope | undefined;
+
+  /** @internal */
+  public l: IServiceLocator;
+
+  public readonly get: IServiceLocator['get'];
 
   private readonly $get: (s: unknown) => unknown;
   private readonly target: IIndexable;
@@ -41,12 +48,15 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   /** @internal */ private _updateCount = 0;
 
   public constructor(
+    locator: IServiceLocator,
     target: object,
     prop: PropertyKey,
     storeManager: IStoreManager,
     storeLocator: StoreLocator | IsAssign | undefined,
     getValue: (s: unknown) => unknown,
   ) {
+    this.l = locator;
+    this.get = locator.get.bind(locator);
     this._storeManager = storeManager;
     this.$get = getValue;
     this.target = target as IIndexable;

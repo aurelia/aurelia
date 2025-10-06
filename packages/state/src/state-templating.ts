@@ -165,6 +165,9 @@ function extractStoreLocator(expression: IsBindingBehavior): { expression: IsBin
     const behavior = behaviors[i];
     if (storeArg === undefined && behavior.name === 'store') {
       const arg = behavior.args[0];
+      if (arg == null) {
+        throw new Error('The "store" binding behavior requires a store locator argument.');
+      }
       storeArg = arg instanceof PrimitiveLiteralExpression && typeof arg.value === 'string'
         ? arg.value
         : arg;

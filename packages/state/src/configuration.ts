@@ -1,5 +1,5 @@
 import { type IRegistry, IContainer, ILogger, Registration, lazy } from '@aurelia/kernel';
-import { IActionHandler, IStore, IStateMiddleware, MiddlewarePlacement, IStoreManager, IStoreRegistration } from './interfaces';
+import { IActionHandler, IStore, IStateMiddleware, MiddlewarePlacement, IStoreManager, IStoreRegistration, IState } from './interfaces';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
 import {
@@ -62,6 +62,9 @@ const createConfiguration = <T extends object>(
               registrations.push(Registration.instance(IStore, store));
             }
             registrations.push(Registration.instance(Store, store));
+            if (!container.has(IState, false)) {
+              registrations.push(Registration.instance(IState, initialState));
+            }
           }
 
           if (registrations.length > 0) {

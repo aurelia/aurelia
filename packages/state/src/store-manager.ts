@@ -17,6 +17,9 @@ export class StoreManager implements IStoreManager {
     }
 
     if (key != null) {
+      if (this.storesByKey.has(key)) {
+        throw new Error('A store with the provided key has already been registered.');
+      }
       this.storesByKey.set(key, store as IStore<object>);
     }
 

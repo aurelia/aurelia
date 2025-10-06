@@ -22,12 +22,15 @@ export class StateBindingBehavior {
       if (subscriber == null) {
         subscriber = new StateSubscriber(binding, effectiveScope, store);
         bindingStateSubscriberMap.set(binding, subscriber);
+        store.subscribe(subscriber);
       } else {
         subscriber._wrappedScope = effectiveScope;
-        subscriber._store = store;
+        if (subscriber._store !== store) {
+          subscriber._store.unsubscribe(subscriber);
+          subscriber._store = store;
+          store.subscribe(subscriber);
+        }
       }
-
-      store.subscribe(subscriber);
 
       if (__DEV__ && !binding.useScope) {
         // eslint-disable-next-line no-console

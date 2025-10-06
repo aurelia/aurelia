@@ -1469,6 +1469,24 @@ Note that using parameters and/or nested children for path generation instructio
 Those examples are avoided here for brevity.
 {% endhint %}
 
+#### Aggregate parameters with `routeParameters`
+
+When a deeply nested component needs identifiers that were captured by parent routes, call `routeParameters()` on the resolved `IRouteContext`. The helper walks up the active route hierarchy, returning a frozen object where the nearest definition wins for duplicate keys. Pass `{ includeQueryParams: true }` to merge in any query-string values as well.
+
+```ts
+import { resolve } from 'aurelia';
+import { IRouteContext } from '@aurelia/router';
+
+export class DetailsView {
+  private readonly params = resolve(IRouteContext)
+    .routeParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>({
+      includeQueryParams: true,
+    });
+}
+```
+
+Because the returned object uses the same identity for the lifetime of the navigation, you can safely cache it on the instance (as above) or read it on demand inside lifecycle hooks.
+
 ## Best Practices and Common Patterns
 
 ### When to Use Each Navigation Method

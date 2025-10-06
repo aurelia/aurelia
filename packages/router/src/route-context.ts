@@ -65,6 +65,13 @@ import { ILocationManager } from './location-manager';
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
 
+export interface RouteParametersOptions {
+  /**
+   * Include query-string values from each active route segment. Defaults to the router option `treatQueryAsParameters`.
+   */
+  includeQueryParams?: boolean;
+}
+
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
 type EagerInstruction = {
@@ -72,6 +79,8 @@ type EagerInstruction = {
   params: Params;
   children?: EagerInstruction[];
 };
+
+type RouteParameterAccumulator = Record<string, string | readonly string[] | undefined>;
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
@@ -126,6 +135,7 @@ export function createEagerInstructions(instructionOrInstructions: NavigationIns
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
 export class RouteContext {
+  private static readonly _emptyRouteParameters = Object.freeze(Object.create(null)) as Readonly<RouteParameterAccumulator>;
   /** @internal */ private readonly _childViewportAgents: ViewportAgent[] = [];
   public readonly root: IRouteContext;
   public get isRoot(): boolean {
@@ -208,6 +218,48 @@ export class RouteContext {
         .subscribe('au:router:navigation-end', () => {
           (routeConfigContext.navigationModel! as NavigationModel)._setIsActive(_router, this);
         });
+    }
+  }
+
+  public routeParameters<TParams extends Record<string, unknown> = Params>(options?: RouteParametersOptions): Readonly<TParams> {
+    const includeQueryParams = options?.includeQueryParams ?? this._router.options.treatQueryAsParameters;
+
+    const nodes: RouteNode[] = [];
+    RouteContext._collectAncestryNodes(this, nodes);
+
+    if (nodes.length === 0) {
+      return RouteContext._emptyRouteParameters as Readonly<TParams>;
+    }
+
+    const aggregated: RouteParameterAccumulator = Object.create(null);
+    let mutated = false;
+
+    for (const node of nodes.reverse()) {
+      if (includeQueryParams && node.queryParams.size > 0) {
+        const keys = new Set(node.queryParams.keys());
+        for (const key of keys) {
+          const values = node.queryParams.getAll(key);
+          if (values.length === 0) continue;
+          aggregated[key] = values.length === 1 ? values[0]! : values;
+          mutated = true;
+        }
+      }
+
+      for (const [key, value] of Object.entries(node.params)) {
+        if (value === undefined) continue;
+        aggregated[key] = value;
+        mutated = true;
+      }
+    }
+
+    return mutated
+      ? Object.freeze(aggregated) as Readonly<TParams>
+      : RouteContext._emptyRouteParameters as Readonly<TParams>;
+  }
+
+  private static _collectAncestryNodes(ctx: RouteContext | null, nodes: RouteNode[]): void {
+    for (let current = ctx; current !== null; current = current.parent as RouteContext | null) {
+      if (current._node !== null) nodes.push(current._node);
     }
   }
 

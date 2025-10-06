@@ -49,6 +49,7 @@ export {
 export {
   IRouteContext,
   RouteContext,
+  type RouteParametersOptions,
   type INavigationModel,
   type INavigationRoute,
 } from './route-context';

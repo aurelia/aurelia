@@ -795,6 +795,39 @@ workflows:
           requires:
             - pr_full_build_release
 
+  pr_bench:
+    when: << pipeline.parameters.run_pr_full >>
+    jobs:
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: pr_bench_install
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: pr_bench_build_release
+          release: true
+          requires:
+            - pr_bench_install
+
+      - tacho_benchmark_prep:
+          <<: *filter_only_topic
+          requires:
+            - pr_bench_build_release
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_startup
+          command: npm run bench:startup10k
+          requires:
+            - tacho_benchmark_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_rerender
+          command: npm run bench:rerender10k
+          requires:
+            - tacho_benchmark_prep
+
   # Runs build and tests (master)
   build_test:
     jobs:

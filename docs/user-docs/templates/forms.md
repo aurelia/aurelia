@@ -597,7 +597,7 @@ Signals provide cache invalidation and coordinated updates across components:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
-import { observable, computedFrom } from '@aurelia/runtime';
+import { observable, computed } from '@aurelia/runtime';
 import { ISignaler } from '@aurelia/runtime-html';
 
 export class SignalDrivenForm {
@@ -617,7 +617,7 @@ export class SignalDrivenForm {
   }
 
   // Expensive computed property with signal-based cache
-  @computedFrom('searchCriteria', 'searchUpdated')
+  @computed('searchCriteria', 'searchUpdated')
   get searchResults() {
     // This will only recompute when 'searchUpdated' signal is dispatched
     return this.performExpensiveSearch(this.searchCriteria);
@@ -918,7 +918,7 @@ export class PerformantFormComponent {
   selectedItems: Set<any> = new Set();
   
   // Memoized computed properties
-  @computedFrom('formData.firstName', 'formData.lastName', 'formData.email')
+  @computed('formData.firstName', 'formData.lastName', 'formData.email')
   get computedSummary() {
     // Expensive computation that only runs when dependencies change
     return this.generateFormSummary();

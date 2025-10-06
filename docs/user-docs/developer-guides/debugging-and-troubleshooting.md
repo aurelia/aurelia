@@ -392,7 +392,7 @@ Use Chrome DevTools Performance tab:
 Debug slow binding expressions:
 
 ```typescript
-import { computedFrom } from 'aurelia';
+import { computed } from 'aurelia';
 
 export class MyComponent {
   items = [];
@@ -403,7 +403,7 @@ export class MyComponent {
   }
 
   // ✓ Cached computation
-  @computedFrom('items')
+  @computed('items')
   get optimizedComputation() {
     return this.items.filter(item => /* complex logic */);
   }

@@ -56,3 +56,7 @@ export {
   inlineView,
   noView,
 } from './compat-custom-element';
+
+export {
+  computedFrom,
+} from './compat-computed-from';

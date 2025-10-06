@@ -150,6 +150,7 @@ export interface IObserver<TValue = unknown> extends IAccessor<TValue>, ISubscri
   doNotCache?: boolean;
   useCallback?(callback: (newValue: TValue, oldValue: TValue) => void): boolean;
   useCoercer?(coercer: InterceptorFunc, coercionConfig?: ICoercionConfiguration): boolean;
+  useFlush?(flush: 'sync' | 'async'): boolean;
 }
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {

@@ -1,0 +1,252 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  issue_comment:
+    types: [created]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  RELEASE_BUILD: "true"
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    outputs:
+      run_full: ${{ steps.decide.outputs.run_full }}
+      doc_only: ${{ steps.decide.outputs.doc_only }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+
+      - id: decide
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runFullViaLabel = (context.payload.pull_request?.labels || []).some(l => l.name === 'ci:full');
+            const isPR = !!context.payload.pull_request;
+            let runFull = runFullViaLabel;
+
+            // slash command
+            if (context.eventName === 'issue_comment') {
+              const body = (context.payload.comment?.body || '').trim();
+              const assoc = context.payload.comment?.author_association || '';
+              const isMember = ['MEMBER','OWNER','COLLABORATOR'].includes(assoc);
+              const isPRComment = !!context.payload.issue?.pull_request;
+              if (isPRComment && isMember && /(^|\/)ci full\b/.test(body)) runFull = true;
+            }
+
+            // doc-only detection (PR only)
+            let docOnly = false;
+            if (isPR) {
+              const base = context.payload.pull_request.base.sha;
+              const head = context.payload.pull_request.head.sha;
+              const { execSync } = require('node:child_process');
+              const out = execSync(`git diff --name-only ${base} ${head}`, { encoding: 'utf8' })
+                .split('\n').filter(Boolean);
+              const nonDoc = out.filter(p => !p.startsWith('docs/') && !p.startsWith('doc/'));
+              docOnly = out.length > 0 && nonDoc.length === 0;
+            }
+
+            core.setOutput('run_full', String(runFull));
+            core.setOutput('doc_only', String(docOnly));
+
+  install:
+    runs-on: ubuntu-latest
+    needs: [decide]
+    if: needs.decide.outputs.doc_only != 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [install]
+    if: needs.decide.outputs.doc_only != 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build:release
+      - name: Turbo cache (optional)
+        if: ${{ false }} # enable when we wire TURBO_TEAM/TURBO_TOKEN
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.sha }}
+
+  unit_browser:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.decide.outputs.doc_only != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Restore build artifacts
+        run: echo "(build artifacts already on disk from previous step)"
+      - name: Shard spec list
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p packages/__tests__
+          total=4; shard=${{ matrix.shard }}
+          find packages/__tests__/dist -type f -name "*.spec.js" | sort > all.txt
+          awk -v t=$total -v s=$shard 'NR % t == (s-1)' all.txt > packages/__tests__/tests.txt
+          echo "Shard ${shard} contains $(wc -l < packages/__tests__/tests.txt) specs"
+      - name: Run Karma (Chrome)
+        working-directory: packages/__tests__
+        run: npm run test-chrome
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: packages/__tests__/coverage/coverage-final.json
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  unit_node:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.decide.outputs.doc_only != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Split Node specs
+        shell: bash
+        working-directory: packages/__tests__
+        run: |
+          total=4; shard=${{ matrix.shard }}
+          find dist -type f -name "*.spec.js" | sort > all.txt
+          awk -v t=$total -v s=$shard 'NR % t == (s-1)' all.txt > tests.txt
+          echo "Shard ${shard} contains $(wc -l < tests.txt) specs"
+      - name: Run Node Mocha
+        working-directory: packages/__tests__
+        run: npm run ::mocha -- $(cat tests.txt)
+
+  unit_tooling_cjs:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.decide.outputs.run_full == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1,2,3,4,5,6,7,8,9,10]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Split Tooling specs
+        shell: bash
+        working-directory: packages-tooling/__tests__
+        run: |
+          total=10; shard=${{ matrix.shard }}
+          find dist/cjs -type f -name "*.spec.js" | sort > all.txt
+          awk -v t=$total -v s=$shard 'NR % t == (s-1)' all.txt > tests.txt
+          echo "Shard ${shard} contains $(wc -l < tests.txt) specs"
+      - name: Run Tooling Mocha
+        working-directory: packages-tooling/__tests__
+        run: npm run ::mocha -- $(cat tests.txt)
+
+  e2e_smoke_vite:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.decide.outputs.doc_only != 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install chromium
+      - name: Run E2E (smoke)
+        working-directory: packages/__e2e__/1-gh-issues
+        run: npm run test
+
+  e2e_full_router_and_hmr:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.decide.outputs.run_full == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install chromium
+      - name: Router suite
+        working-directory: packages/__e2e__/6-router
+        run: npm run test && npm run test:e2e:webpack
+
+  e2e_verdaccio_parcel_ts:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: needs.decide.outputs.run_full == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+
+      - name: Start Verdaccio & login
+        run: |
+          npm i -g verdaccio npm-cli-login
+          nohup verdaccio --listen 0.0.0.0:4873 &
+          sleep 5
+          npm-cli-login -u aureliaeffect -p aurelia -e aurelia@bluespire.com -r http://localhost:4873
+
+      - name: Publish all public packages to local Verdaccio
+        shell: bash
+        run: |
+          npm config set registry http://localhost:4873
+          mapfile -t WS < <(jq -r '.workspaces[]' package.json)
+          for dir in "${WS[@]}"; do
+            [[ "$dir" != packages/* || "$dir" == packages/__* ]] && continue
+            pj="$dir/package.json"; [ -f "$pj" ] || continue
+            if [[ $(jq -r '.private // false' "$pj") == "true" ]]; then continue; fi
+            echo "Publishing $(jq -r .name "$pj") to local Verdaccio"
+            (cd "$dir" && npm publish --tag dev --access public)
+          done
+
+      - name: Build & Run the app (parcel-conventions)
+        working-directory: test/verdaccio-apps/parcel-conventions
+        run: |
+          npm i --registry http://localhost:4873
+          npm run test
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: [install]
+    if: needs.decide.outputs.doc_only != 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run lint:ci && npm run lint:other:ci

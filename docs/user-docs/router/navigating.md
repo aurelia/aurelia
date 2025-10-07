@@ -1485,6 +1485,18 @@ export class DetailsView {
 }
 ```
 
+Use `mergeStrategy: 'furthest'` if you'd rather let ancestor segments win when duplicate parameter names show up.
+
+Need the full lineage instead of a single winning value? Switch to `mergeStrategy: 'append'` for ordered arrays or `mergeStrategy: 'append-by-route'` to keep a per-route map of values keyed by the configured route id (falling back to the component path when no id is present).
+
+```ts
+const allValues = routeContext.routeParameters({ mergeStrategy: 'append' });
+// allValues.id -> ['parent', 'child']
+
+const byRoute = routeContext.routeParameters({ mergeStrategy: 'append-by-route' });
+// byRoute.id -> { 'company-route': 'parent', 'details-route': 'child' }
+```
+
 Because the returned object uses the same identity for the lifetime of the navigation, you can safely cache it on the instance (as above) or read it on demand inside lifecycle hooks.
 
 ## Best Practices and Common Patterns

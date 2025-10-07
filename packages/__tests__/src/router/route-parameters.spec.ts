@@ -83,6 +83,153 @@ describe('router/route-parameters.spec.ts', function () {
       await au.stop(true);
     });
 
+    it('allows selecting which duplicate values win', async function () {
+      @customElement({ name: 'strategy-leaf', template: `<div></div>` })
+      class StrategyLeaf {
+        public static instance: StrategyLeaf | null = null;
+        public readonly nearest = resolve(IRouteContext)
+          .routeParameters<{ id: string }>();
+        public readonly furthest = resolve(IRouteContext)
+          .routeParameters<{ id: string }>({ collisionStrategy: 'furthest' });
+
+        public constructor() {
+          StrategyLeaf.instance = this;
+        }
+      }
+
+      @route({ routes: [{ path: 'leaf/:id', component: StrategyLeaf }] })
+      @customElement({ name: 'strategy-user', template: `<au-viewport></au-viewport>` })
+      class StrategyUser { }
+
+      @route({ routes: [{ path: 'user/:id', component: StrategyUser }] })
+      @customElement({ name: 'strategy-project', template: `<au-viewport></au-viewport>` })
+      class StrategyProject { }
+
+      @route({ routes: [{ path: 'project/:id', component: StrategyProject }] })
+      @customElement({ name: 'strategy-company', template: `<au-viewport></au-viewport>` })
+      class StrategyCompany { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'company/root/project/middle/user/account/leaf/final' },
+          { path: 'company/:id', component: StrategyCompany },
+        ],
+      })
+      @customElement({ name: 'strategy-root', template: `<au-viewport></au-viewport>` })
+      class StrategyRoot { }
+
+      const { au, container } = await start({ appRoot: StrategyRoot });
+      const router = container.get(IRouter);
+
+      await router.load('company/root/project/middle/user/account/leaf/final');
+
+      assert.notStrictEqual(StrategyLeaf.instance, null);
+      assert.strictEqual(StrategyLeaf.instance!.nearest.id, 'final');
+      assert.strictEqual(StrategyLeaf.instance!.furthest.id, 'root');
+
+      await au.stop(true);
+      StrategyLeaf.instance = null;
+    });
+
+    it('appends duplicate values as arrays when requested', async function () {
+      @customElement({ name: 'append-leaf', template: `<div></div>` })
+      class AppendLeaf {
+        public static instance: AppendLeaf | null = null;
+        public readonly appended = resolve(IRouteContext)
+          .routeParameters({ mergeStrategy: 'append' });
+
+        public constructor() {
+          AppendLeaf.instance = this;
+        }
+      }
+
+      @route({ routes: [{ path: 'leaf/:id', id: 'leaf-route', component: AppendLeaf }] })
+      @customElement({ name: 'append-user', template: `<au-viewport></au-viewport>` })
+      class AppendUser { }
+
+      @route({ routes: [{ path: 'user/:id', id: 'user-route', component: AppendUser }] })
+      @customElement({ name: 'append-project', template: `<au-viewport></au-viewport>` })
+      class AppendProject { }
+
+      @route({ routes: [{ path: 'project/:id', id: 'project-route', component: AppendProject }] })
+      @customElement({ name: 'append-company', template: `<au-viewport></au-viewport>` })
+      class AppendCompany { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'company/root/project/middle/user/account/leaf/final' },
+          { path: 'company/:id', id: 'company-route', component: AppendCompany },
+        ],
+      })
+      @customElement({ name: 'append-root', template: `<au-viewport></au-viewport>` })
+      class AppendRoot { }
+
+      const { au, container } = await start({ appRoot: AppendRoot });
+      const router = container.get(IRouter);
+
+      await router.load('company/root/project/middle/user/account/leaf/final');
+
+      assert.notStrictEqual(AppendLeaf.instance, null);
+      const appended = AppendLeaf.instance!.appended;
+
+      assert.deepStrictEqual(appended.id, ['root', 'middle', 'account', 'final']);
+
+      await au.stop(true);
+      AppendLeaf.instance = null;
+    });
+
+    it('can return duplicate values keyed by route id', async function () {
+      @customElement({ name: 'append-map-leaf', template: `<div></div>` })
+      class AppendMapLeaf {
+        public static instance: AppendMapLeaf | null = null;
+        public readonly mapped = resolve(IRouteContext)
+          .routeParameters({ mergeStrategy: 'append-by-route' });
+
+        public constructor() {
+          AppendMapLeaf.instance = this;
+        }
+      }
+
+      @route({ routes: [{ path: 'leaf/:id', id: 'leaf-route', component: AppendMapLeaf }] })
+      @customElement({ name: 'append-map-user', template: `<au-viewport></au-viewport>` })
+      class AppendMapUser { }
+
+      @route({ routes: [{ path: 'user/:id', id: 'user-route', component: AppendMapUser }] })
+      @customElement({ name: 'append-map-project', template: `<au-viewport></au-viewport>` })
+      class AppendMapProject { }
+
+      @route({ routes: [{ path: 'project/:id', id: 'project-route', component: AppendMapProject }] })
+      @customElement({ name: 'append-map-company', template: `<au-viewport></au-viewport>` })
+      class AppendMapCompany { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'company/root/project/middle/user/account/leaf/final' },
+          { path: 'company/:id', id: 'company-route', component: AppendMapCompany },
+        ],
+      })
+      @customElement({ name: 'append-map-root', template: `<au-viewport></au-viewport>` })
+      class AppendMapRoot { }
+
+      const { au, container } = await start({ appRoot: AppendMapRoot });
+      const router = container.get(IRouter);
+
+      await router.load('company/root/project/middle/user/account/leaf/final');
+
+      assert.notStrictEqual(AppendMapLeaf.instance, null);
+      const mapped = AppendMapLeaf.instance!.mapped;
+
+      assert.deepStrictEqual({ ...mapped.id }, {
+        'company-route': 'root',
+        'project-route': 'middle',
+        'user-route': 'account',
+        'leaf-route': 'final',
+      });
+
+      await au.stop(true);
+      AppendMapLeaf.instance = null;
+    });
+
     it('optionally includes query parameters', async function () {
       @customElement({ name: 'query-leaf', template: `<div>ready</div>` })
       class QueryLeaf {
@@ -165,7 +312,7 @@ describe('router/route-parameters.spec.ts', function () {
 
       await router.load('acme?filter=active');
 
-      assert.deepStrictEqual(QueryDefaultChild.instance?.params, {
+      assert.deepStrictEqual({ ...QueryDefaultChild.instance!.params }, {
         companyId: 'acme',
         filter: 'active',
       });
@@ -193,8 +340,8 @@ describe('router/route-parameters.spec.ts', function () {
       await router.load('99');
 
       const snapshot = FrozenChild.snapshot;
-      assert.ok(Object.isFrozen(snapshot));
-      assert.throws(() => Reflect.set(snapshot as unknown as Record<string, unknown>, 'extra', 'value'), TypeError);
+      assert.ok(Object.isFrozen(snapshot), 'routeParameters should freeze the returned object');
+      assert.strictEqual(Reflect.set(snapshot as unknown as Record<string, unknown>, 'extra', 'value'), false);
 
       await au.stop(true);
       FrozenChild.snapshot = undefined!;

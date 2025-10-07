@@ -243,7 +243,7 @@ export class RouteContext {
     }
   }
 
-  public routeParameters<
+  public getRouteParameters<
     TParams extends Record<string, unknown> = Params,
     TStrategy extends RouteParameterMergeStrategy = 'nearest',
   >(options?: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams> {

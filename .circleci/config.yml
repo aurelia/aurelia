@@ -53,6 +53,10 @@ parameters:
   run_pr_full:
     type: boolean
     default: false
+  run_bench:
+    type: boolean
+    default: false
+
 
 # # # # # # # # # # # # # # # #
 # - Executors -
@@ -827,6 +831,89 @@ workflows:
           command: npm run bench:rerender10k
           requires:
             - tacho_benchmark_prep
+
+  benchmarks:
+    when: << pipeline.parameters.run_bench >>
+    jobs:
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: bench_install
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: bench_build_release
+          release: true
+          requires:
+            - bench_install
+
+      - tacho_benchmark_prep:
+          <<: *filter_only_topic
+          name: bench_prep
+          requires:
+            - bench_build_release
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_startup10k
+          command: npm run bench:startup10k
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_startup10k_ce
+          command: npm run bench:startup10k-ce
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_rerender10k
+          command: npm run bench:rerender10k
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_rerender10k_ce
+          command: npm run bench:rerender10k-ce
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_rerender1k_big
+          command: npm run bench:rerender1k-big
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_startup1k_big
+          command: npm run bench:startup1k-big
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_update1k
+          command: npm run bench:update1k
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_repeat_keyed_expression
+          command: npm run bench:repeat-expr
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_repeat_keyed_string
+          command: npm run bench:repeat-string
+          requires:
+            - bench_prep
 
   # Runs build and tests (master)
   build_test:

@@ -141,13 +141,20 @@ jobs:
     if: needs.decide.outputs.doc_only != 'true'
     strategy:
       fail-fast: false
-      matrix: { shard: [1, 2, 3, 4] }
+      matrix:
+        shard: [1, 2, 3, 4]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+        with:
+          node-version: 22
+          cache: npm
+
       - run: npm ci
 
+      # Get the built dist/ tree (including packages/__tests__/dist)
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -155,29 +162,61 @@ jobs:
           path: .
 
       - name: Setup Chrome
+        id: chrome
         uses: browser-actions/setup-chrome@v1
-      - run: echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
+
+      - name: Export CHROME_BIN
+        shell: bash
+        run: |
+          set -euo pipefail
+          BIN="${{ steps.chrome.outputs.chrome-path }}"
+          if [[ -z "$BIN" ]]; then
+            BIN="$(command -v google-chrome-stable || command -v chromium-browser || true)"
+          fi
+          if [[ -z "$BIN" ]]; then
+            echo "::error::Could not determine Chrome binary path."
+            exit 1
+          fi
+          echo "CHROME_BIN=$BIN" >> "$GITHUB_ENV"
+          "$BIN" --version || true
 
       - name: Shard spec list
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p packages/__tests__
+
           if [[ ! -d packages/__tests__/dist ]]; then
             echo "::error::packages/__tests__/dist is missing even after artifact download."
             exit 1
           fi
-          total=4; shard=${{ matrix.shard }}
+
+          total=4
+          shard=${{ matrix.shard }}
+
+          # Build a newline list, then compress it to a single space-separated line
           find packages/__tests__/dist -type f -name "*.spec.js" | sort > all.txt || true
-          awk -v t="$total" -v s="$shard" 'NR % t == (s-1)' all.txt > packages/__tests__/tests.txt
-          count=$(wc -l < packages/__tests__/tests.txt || echo 0)
-          echo "Shard ${shard} contains ${count} specs"
+          awk -v t="$total" -v s="$shard" 'NR % t == (s-1)' all.txt > shard.txt
+
+          # Write as a single line to match karma.conf split(' ')
+          echo $(cat shard.txt) > packages/__tests__/tests.txt
+
+          # Count words (files), not lines
+          count=$(wc -w < packages/__tests__/tests.txt || echo 0)
+          echo "Shard ${shard} contains ${count} spec files"
           if [[ "$count" -eq 0 ]]; then
             echo "::error::Shard ${shard} has zero specs. Check build step or patterns."
+            echo "::group::Debug shard contents"
+            echo "all.txt:"
+            wc -l all.txt || true
+            head -n 50 all.txt || true
+            echo "shard.txt:"
+            cat shard.txt || true
+            echo "::endgroup::"
             exit 1
           fi
 
-      - name: Run Karma (Chrome)
+      - name: Run Karma (ChromeHeadlessOpt)
         working-directory: packages/__tests__
         run: npm run test-chrome
 
@@ -186,7 +225,7 @@ jobs:
         with:
           files: packages/__tests__/coverage/coverage-final.json
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }
 
   unit_node:
     runs-on: ubuntu-latest

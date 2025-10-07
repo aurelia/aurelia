@@ -45,7 +45,7 @@ describe('router/route-parameters.spec.ts', function () {
       await au.stop(true);
     });
 
-    it('prefers the closest route parameters when keys overlap', async function () {
+    it('prefers the closest route parameters by default when the parameter names collide', async function () {
       @customElement({ name: 'leaf-view', template: `<div>id:\${params.id}</div>` })
       class LeafView {
         public readonly params = resolve(IRouteContext)

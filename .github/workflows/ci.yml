@@ -225,7 +225,7 @@ jobs:
         with:
           files: packages/__tests__/coverage/coverage-final.json
         env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   unit_node:
     runs-on: ubuntu-latest

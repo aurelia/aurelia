@@ -83,7 +83,7 @@ describe('router/route-parameters.spec.ts', function () {
       await au.stop(true);
     });
 
-    it('allows selecting which duplicate values win', async function () {
+    it('allows resolving parameter name collisions', async function () {
       @customElement({ name: 'strategy-leaf', template: `<div></div>` })
       class StrategyLeaf {
         public static instance: StrategyLeaf | null = null;

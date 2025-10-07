@@ -84,13 +84,56 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+
       - run: npm run build:release
-      - name: Turbo cache (optional)
-        if: ${{ false }} # enable when we wire TURBO_TEAM/TURBO_TOKEN
-        uses: actions/cache@v4
+
+      - name: Build browser/node ESM tests
+        run: npm -w packages/__tests__ run build
+
+      - name: Build tooling CJS tests
+        run: npm -w packages-tooling/__tests__ run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          path: .turbo
-          key: turbo-${{ github.sha }}
+          name: dist-bundle
+          path: |
+            packages/__tests__/dist
+            packages/addons/dist
+            packages/aurelia/dist
+            packages/compat-v1/dist
+            packages/dialog/dist
+            packages/fetch-client/dist
+            packages/i18n/dist
+            packages/kernel/dist
+            packages/metadata/dist
+            packages/platform/dist
+            packages/platform-browser/dist
+            packages/route-recognizer/dist
+            packages/router-direct/dist
+            packages/router/dist
+            packages/expression-parser/dist
+            packages/runtime/dist
+            packages/template-compiler/dist
+            packages/runtime-html/dist
+            packages/state/dist
+            packages/store-v1/dist
+            packages/testing/dist
+            packages/ui-virtualization/dist
+            packages/validation/dist
+            packages/validation-html/dist
+            packages/validation-i18n/dist
+            packages/web-components/dist
+            packages-tooling/__tests__/dist
+            packages-tooling/au/dist
+            packages-tooling/babel-jest/dist
+            packages-tooling/http-server/dist
+            packages-tooling/parcel-transformer/dist
+            packages-tooling/plugin-conventions/dist
+            packages-tooling/plugin-gulp/dist
+            packages-tooling/ts-jest/dist
+            packages-tooling/vite-plugin/dist
+            packages-tooling/webpack-loader/dist
 
   unit_browser:
     runs-on: ubuntu-latest
@@ -98,27 +141,46 @@ jobs:
     if: needs.decide.outputs.doc_only != 'true'
     strategy:
       fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
+      matrix: { shard: [1, 2, 3, 4] }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - name: Restore build artifacts
-        run: echo "(build artifacts already on disk from previous step)"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-bundle
+          path: .
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+      - run: echo "CHROME_BIN=$CHROME_PATH" >> $GITHUB_ENV
+
       - name: Shard spec list
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p packages/__tests__
+          if [[ ! -d packages/__tests__/dist ]]; then
+            echo "::error::packages/__tests__/dist is missing even after artifact download."
+            exit 1
+          fi
           total=4; shard=${{ matrix.shard }}
-          find packages/__tests__/dist -type f -name "*.spec.js" | sort > all.txt
-          awk -v t=$total -v s=$shard 'NR % t == (s-1)' all.txt > packages/__tests__/tests.txt
-          echo "Shard ${shard} contains $(wc -l < packages/__tests__/tests.txt) specs"
+          find packages/__tests__/dist -type f -name "*.spec.js" | sort > all.txt || true
+          awk -v t="$total" -v s="$shard" 'NR % t == (s-1)' all.txt > packages/__tests__/tests.txt
+          count=$(wc -l < packages/__tests__/tests.txt || echo 0)
+          echo "Shard ${shard} contains ${count} specs"
+          if [[ "$count" -eq 0 ]]; then
+            echo "::error::Shard ${shard} has zero specs. Check build step or patterns."
+            exit 1
+          fi
+
       - name: Run Karma (Chrome)
         working-directory: packages/__tests__
         run: npm run test-chrome
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -132,21 +194,38 @@ jobs:
     if: needs.decide.outputs.doc_only != 'true'
     strategy:
       fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
+      matrix: { shard: [1, 2, 3, 4] }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-bundle
+          path: .
+
       - name: Split Node specs
         shell: bash
         working-directory: packages/__tests__
         run: |
+          set -euo pipefail
           total=4; shard=${{ matrix.shard }}
-          find dist -type f -name "*.spec.js" | sort > all.txt
-          awk -v t=$total -v s=$shard 'NR % t == (s-1)' all.txt > tests.txt
-          echo "Shard ${shard} contains $(wc -l < tests.txt) specs"
+          if [[ ! -d dist ]]; then
+            echo "::error::packages/__tests__/dist is missing."
+            exit 1
+          fi
+          find dist -type f -name "*.spec.js" | sort > all.txt || true
+          awk -v t="$total" -v s="$shard" 'NR % t == (s-1)' all.txt > tests.txt
+          count=$(wc -l < tests.txt || echo 0)
+          echo "Shard ${shard} contains ${count} specs"
+          if [[ "$count" -eq 0 ]]; then
+            echo "::error::Shard ${shard} has zero specs. Check build step or patterns."
+            exit 1
+          fi
+
       - name: Run Node Mocha
         working-directory: packages/__tests__
         run: npm run ::mocha -- $(cat tests.txt)
@@ -164,14 +243,32 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-bundle
+          path: .
+
       - name: Split Tooling specs
         shell: bash
         working-directory: packages-tooling/__tests__
         run: |
+          set -euo pipefail
           total=10; shard=${{ matrix.shard }}
-          find dist/cjs -type f -name "*.spec.js" | sort > all.txt
-          awk -v t=$total -v s=$shard 'NR % t == (s-1)' all.txt > tests.txt
-          echo "Shard ${shard} contains $(wc -l < tests.txt) specs"
+          if [[ ! -d dist/cjs ]]; then
+            echo "::error::packages-tooling/__tests__/dist/cjs is missing."
+            exit 1
+          fi
+          find dist/cjs -type f -name "*.spec.js" | sort > all.txt || true
+          awk -v t="$total" -v s="$shard" 'NR % t == (s-1)' all.txt > tests.txt
+          count=$(wc -l < tests.txt || echo 0)
+          echo "Shard ${shard} contains ${count} specs"
+          if [[ "$count" -eq 0 ]]; then
+            echo "::error::Shard ${shard} has zero specs. Check build step or patterns."
+            exit 1
+          fi
+
       - name: Run Tooling Mocha
         working-directory: packages-tooling/__tests__
         run: npm run ::mocha -- $(cat tests.txt)

@@ -1243,3 +1243,4 @@ workflows:
           branch: release
           requires:
             - request_publish_latest
+

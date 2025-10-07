@@ -1,0 +1,84 @@
+name: Trigger benchmarks on /ci bench
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide whether to trigger benchmarks
+        id: decide
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isMember = a => ['MEMBER','OWNER','COLLABORATOR'].includes(a || '');
+            const isPR = Boolean(context.payload.issue?.pull_request);
+            const body = context.payload.comment?.body || '';
+            const assoc = context.payload.comment?.author_association || '';
+
+            const ok =
+              (context.eventName === 'issue_comment' &&
+               isPR && /(^|\/)ci bench\b/.test(body) && isMember(assoc))
+              || (context.eventName === 'workflow_dispatch');
+
+            core.setOutput('should', ok ? 'true' : 'false');
+
+      - name: Resolve PR info
+        id: head
+        if: steps.decide.outputs.should == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNum =
+              context.payload.pull_request?.number ??
+              context.issue?.number;
+
+            if (!prNum) {
+              core.setFailed('No PR found for this event');
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNum
+            });
+
+            core.setOutput('branch', pr.head.ref);
+            core.setOutput('pr', String(pr.number));
+
+      - name: Trigger CircleCI pipeline (benchmarks)
+        if: steps.decide.outputs.should == 'true'
+        env:
+          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+          BRANCH: ${{ steps.head.outputs.branch }}
+        run: |
+          if [ -z "${CIRCLECI_TOKEN}" ]; then
+            echo "::error::Missing repository secret CIRCLECI_TOKEN (CircleCI personal API token)."
+            exit 1
+          fi
+
+          echo "Triggering CircleCI pipeline on ${GITHUB_REPOSITORY}@${BRANCH} with parameters.run_bench=true"
+
+          http_code=$(curl -sS -o response.json -w "%{http_code}" -X POST \
+            "https://circleci.com/api/v2/project/gh/${GITHUB_REPOSITORY}/pipeline" \
+            -H "Circle-Token: ${CIRCLECI_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"branch\":\"${BRANCH}\",\"parameters\":{\"run_bench\":true}}")
+
+          echo "HTTP ${http_code}"
+          echo "Response:"
+          cat response.json || true
+
+          if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+            echo "::error::Failed to trigger CircleCI pipeline. HTTP ${http_code}"
+            exit 1
+          fi

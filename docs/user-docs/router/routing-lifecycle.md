@@ -263,13 +263,31 @@ export class ChildOne implements IRouteViewModel {
 
 ### Accessing parent route parameters
 
-Nested routes frequently need identifiers that were captured higher in the URL such as `/company/:companyId/project/:projectId/user/:userId`. Instead of manually walking the `parent` chain, resolve `IRouteContext` and call the `routeParameters()` helper to get a merged, read-only view of every matched segment.
+If a child component needs to inspect parameters defined by its parent route, inject `IRouteContext` and use its `parent` property inside the `loading` hook.
 
 ```ts
 import { resolve } from 'aurelia';
 import { IRouteContext, type Params } from '@aurelia/router';
 
 export class ChildTwo {
+  private readonly ctx = resolve(IRouteContext);
+
+  loading(params: Params) {
+    console.log('child params', params);
+    console.log('parent params', this.ctx.parent?.params);
+  }
+}
+```
+
+See [Customize the routing context](./navigating.md#customize-the-routing-context) for more on working with `IRouteContext`.
+
+Nested routes frequently need identifiers that were captured higher in the URL such as `/company/:companyId/project/:projectId/user/:userId`. Instead of manually walking the `parent` chain, resolve `IRouteContext` and call the `routeParameters()` helper to get a merged, read-only view of every matched segment.
+
+```ts
+import { resolve } from 'aurelia';
+import { IRouteContext, type Params } from '@aurelia/router';
+
+export class ChildThree {
   private readonly params = resolve(IRouteContext)
     .routeParameters<{ companyId: string; projectId: string; userId: string }>();
 

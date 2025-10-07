@@ -178,7 +178,7 @@ describe('router/route-parameters.spec.ts', function () {
       AppendLeaf.instance = null;
     });
 
-    it('can return duplicate values keyed by route id', async function () {
+    it('returns the values as record/object, keyed by route id, for the collided paramter names with the \'append-by-route\' merge strategy', async function () {
       @customElement({ name: 'append-map-leaf', template: `<div></div>` })
       class AppendMapLeaf {
         public static instance: AppendMapLeaf | null = null;

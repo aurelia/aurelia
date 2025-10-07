@@ -1471,7 +1471,7 @@ Those examples are avoided here for brevity.
 
 #### Aggregate parameters with `routeParameters`
 
-When a deeply nested component needs identifiers that were captured by parent routes, call `routeParameters()` on the resolved `IRouteContext`. The helper walks up the active route hierarchy, returning a frozen object where the nearest definition wins for duplicate keys. Pass `{ includeQueryParams: true }` to merge in any query-string values as well.
+When a deeply nested component needs the value of the route parameters that were captured by parent routes, call `routeParameters()` on the resolved `IRouteContext`. The helper walks up the active route hierarchy, returning a frozen object where the nearest definition wins for duplicate keys. Pass `{ includeQueryParams: true }` to merge in any query-string values as well.
 
 ```ts
 import { resolve } from 'aurelia';

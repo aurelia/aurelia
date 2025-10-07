@@ -82,6 +82,11 @@
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",
     "change-package-refs:dev": "ts-node -P tsconfig.json scripts/change-package-refs.ts dev",
     "change-package-refs:release": "ts-node -P tsconfig.json scripts/change-package-refs.ts release",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish",
+    "changeset:pre:enter": "changeset pre enter dev",
+    "changeset:pre:exit": "changeset pre exit",
     "clean": "rimraf --glob dist packages/*/dist packages-tooling/*/dist test/*/dist examples/*/dist",
     "clean:tsconfig-build-cache": "rimraf --glob packages/*/dist/tsconfig.tsbuildinfo packages-tooling/*/dist/tsconfig.tsbuildinfo",
     "clean:lint": "rimraf --glob .eslintcache packages/*/.eslintcache packages-tooling/*/.eslintcache",
@@ -111,6 +116,8 @@
     "dev:tooling": "ts-node scripts/dev-tooling.ts"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.7",
     "@commitlint/cli": "19.6.1",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-node-resolve": "16.0.0",

@@ -298,7 +298,7 @@ export class ChildThree {
 }
 ```
 
-`routeParameters()` automatically prefers the closest route's keys when there are duplicates. Pass `{ mergeStrategy: 'furthest' }` to let ancestors win, `{ mergeStrategy: 'append' }` to receive arrays ordered from parent to child, or `{ mergeStrategy: 'append-by-route' }` to map each value to the route id that produced it. Combine any strategy with `includeQueryParams: true` to pull query-string data into the result—see the [`IRouteContext` API reference](./navigating.md#routecontext-api) for details.
+`routeParameters()` automatically prefers the closest route's keys when there are duplicates. Pass `{ mergeStrategy: 'furthest' }` to let ancestors win, `{ mergeStrategy: 'append' }` to receive arrays ordered from parent to child, or `{ mergeStrategy: 'per-route' }` to map each value to the route id that produced it. Combine any strategy with `includeQueryParams: true` to pull query-string data into the result—see the [`IRouteContext` API reference](./navigating.md#routecontext-api) for details.
 
 ## `canUnload`
 

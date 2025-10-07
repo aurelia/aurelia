@@ -87,10 +87,9 @@ describe('router/route-parameters.spec.ts', function () {
       @customElement({ name: 'strategy-leaf', template: `<div></div>` })
       class StrategyLeaf {
         public static instance: StrategyLeaf | null = null;
-        public readonly nearest = resolve(IRouteContext)
-          .routeParameters<{ id: string }>();
-        public readonly furthest = resolve(IRouteContext)
-          .routeParameters<{ id: string }>({ collisionStrategy: 'furthest' });
+        private readonly ctx = resolve(IRouteContext);
+        public readonly nearest = this.ctx.routeParameters<{ id: string }>();
+        public readonly furthest = this.ctx.routeParameters<{ id: string }>({ mergeStrategy: 'furthest' });
 
         public constructor() {
           StrategyLeaf.instance = this;
@@ -183,7 +182,7 @@ describe('router/route-parameters.spec.ts', function () {
       class AppendMapLeaf {
         public static instance: AppendMapLeaf | null = null;
         public readonly mapped = resolve(IRouteContext)
-          .routeParameters({ mergeStrategy: 'append-by-route' });
+          .routeParameters({ mergeStrategy: 'per-route' });
 
         public constructor() {
           AppendMapLeaf.instance = this;

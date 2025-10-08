@@ -457,9 +457,11 @@ export class ViewportAgent {
             node.context.vpa._loaded(tr, b1);
           }
           return;
+        /* istanbul ignore next */
         case State.nextIsEmpty:
           if (__DEV__) trace(logger, Events.vpaLoadedNone, this);
           return;
+        /* istanbul ignore next */
         default:
           this._unexpectedState('loaded');
       }
@@ -487,8 +489,10 @@ export class ViewportAgent {
               })._start();
               return;
           }
+        /* istanbul ignore next */
         case State.nextIsEmpty:
           return;
+        /* istanbul ignore next */
         default:
           this._unexpectedState('loaded');
       }

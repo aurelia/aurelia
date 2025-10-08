@@ -92,10 +92,12 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     this.target = target;
     this.targetProperty = prop;
     this.strict = strict;
-    if (storeLocator != null && typeof storeLocator === 'object' && '$kind' in storeLocator) {
-      this._storeLocatorExpression = storeLocator as IsAssign;
-    } else if (storeLocator != null) {
-      this._staticStoreLocator = storeLocator as StoreLocator;
+    if (storeLocator != null) {
+      if (typeof storeLocator === 'object' && '$kind' in storeLocator) {
+        this._storeLocatorExpression = storeLocator as IsAssign;
+      } else {
+        this._staticStoreLocator = storeLocator as StoreLocator;
+      }
     }
   }
 

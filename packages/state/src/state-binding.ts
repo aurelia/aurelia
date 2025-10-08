@@ -157,10 +157,8 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     this._updateCount++;
     this._scope = void 0;
     const store = this._store;
-    if (store != null) {
-      store.unsubscribe(this);
-      this._store = void 0;
-    }
+    this._store?.unsubscribe(this);
+    this._store = void 0;
   }
 
   public handleChange(newValue: unknown): void {

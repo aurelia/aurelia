@@ -101,6 +101,7 @@ export class RouterOptions {
     }).join(',')})`;
   }
 
+  /** @internal */
   private static readonly _defaultExternalUrlSchemes = Object.freeze([
     'http',
     'https',
@@ -121,6 +122,7 @@ export class RouterOptions {
   ]);
   public static readonly defaultExternalUrlSchemes: readonly string[] = RouterOptions._defaultExternalUrlSchemes;
 
+  /** @internal */
   private static _normalizeExternalUrlSchemes(input: IRouterOptions['externalUrlSchemes']): readonly string[] {
     const normalized: string[] = [];
     const seen = new Set<string>();

@@ -9,6 +9,7 @@ import {
   IHydratedParentController as HPC,
   Aurelia,
   CustomElementType,
+  lifecycleHooks,
 } from '@aurelia/runtime-html';
 import {
   IRouter,
@@ -602,6 +603,42 @@ describe('router/hook-tests.spec.ts', function () {
         assert.notStrictEqual(secondLoaded, -1, 'expected loaded-two loaded entry in history');
         assert.ok(firstLoaded > firstAttached, 'loaded-one should run after attach');
         assert.ok(secondLoaded > secondAttached, 'loaded-two should run after attach');
+
+        mgr.$dispose();
+      });
+
+      @lifecycleHooks()
+      class GlobalLoaded {
+        public static calls: string[] = [];
+        public static reset(): void {
+          this.calls = [];
+        }
+        public loaded(vm: IRouteViewModel): void {
+          GlobalLoaded.calls.push((vm as TestVM).name);
+        }
+      }
+
+      it(`invokes global loaded lifecycle hook (ticks: ${ticks})`, async function () {
+        GlobalLoaded.reset();
+        const depsWithGlobal: Constructable[] = [LoadedRoot, LoadedOne, LoadedTwo, GlobalLoaded as unknown as Constructable];
+        const { router, mgr, tearDown } = await createFixture(LoadedRoot, depsWithGlobal);
+
+        const phase1 = `('' -> 'one')#1`;
+        const phase2 = `('one' -> 'two')#2`;
+
+        mgr.setPrefix(phase1);
+        await router.load('one');
+
+        mgr.setPrefix(phase2);
+        await router.load('two');
+
+        await tearDown();
+
+        assert.deepStrictEqual(
+          GlobalLoaded.calls,
+          [`loaded-one-${suffix}`, `loaded-two-${suffix}`],
+          'global loaded lifecycle hook should run once per navigation target'
+        );
 
         mgr.$dispose();
       });

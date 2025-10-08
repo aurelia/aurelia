@@ -20,10 +20,9 @@ import {
   type IStoreSubscriber,
   type IStore,
   type StoreLocator,
-  IStoreManager,
+  IStoreRegistry,
 } from './interfaces';
-import { isStoreInstance } from './store-manager';
-import { createStateBindingScope } from './state-utilities';
+import { createStateBindingScope, isStoreInstance } from './state-utilities';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -54,7 +53,7 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
 
   public strict: boolean;
 
-  /** @internal */ private readonly _storeManager: IStoreManager;
+  /** @internal */ private readonly _storeRegistry: IStoreRegistry;
   /** @internal */ private readonly _staticStoreLocator?: StoreLocator;
   /** @internal */ private readonly _storeLocatorExpression?: IsAssign;
   /** @internal */ private _store?: IStore<object>;
@@ -64,12 +63,12 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     expr: IsBindingBehavior,
     target: HTMLElement,
     prop: string,
-    storeManager: IStoreManager,
+    storeRegistry: IStoreRegistry,
     storeLocator: StoreLocator | IsAssign | undefined,
     strict: boolean,
   ) {
     this.l = locator;
-    this._storeManager = storeManager;
+    this._storeRegistry = storeRegistry;
     this.ast = expr;
     this._target = target;
     this._targetProperty = prop;
@@ -134,16 +133,16 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
       if (isStoreInstance(evaluatedLocator)) {
         return evaluatedLocator;
       }
-      return this._storeManager.getStore(evaluatedLocator as StoreLocator);
+      return this._storeRegistry.getStore(evaluatedLocator as StoreLocator);
     }
 
     const locator = this._staticStoreLocator;
     if (locator == null) {
-      return this._storeManager.getStore();
+      return this._storeRegistry.getStore();
     }
     if (isStoreInstance(locator)) {
       return locator;
     }
-    return this._storeManager.getStore(locator);
+    return this._storeRegistry.getStore(locator);
   }
 }

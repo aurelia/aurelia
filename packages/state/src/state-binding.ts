@@ -23,11 +23,10 @@ import {
   type IStore,
   type IStoreSubscriber,
   type StoreLocator,
-  IStoreManager
+  IStoreRegistry
 } from './interfaces';
-import { isStoreInstance } from './store-manager';
+import { createStateBindingScope, isStoreInstance } from './state-utilities';
 import type { IsAssign } from '@aurelia/expression-parser';
-import { createStateBindingScope } from './state-utilities';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -55,7 +54,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
 
-  /** @internal */ private readonly _storeManager: IStoreManager;
+  /** @internal */ private readonly _storeRegistry: IStoreRegistry;
   /** @internal */ private readonly _staticStoreLocator?: StoreLocator;
   /** @internal */ private readonly _storeLocatorExpression?: IsAssign;
   /** @internal */ private _store?: IStore<object>;
@@ -80,13 +79,13 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
-    storeManager: IStoreManager,
+    storeRegistry: IStoreRegistry,
     storeLocator: StoreLocator | IsAssign | undefined,
     strict: boolean,
   ) {
     this._controller = controller;
     this.l = locator;
-    this._storeManager = storeManager;
+    this._storeRegistry = storeRegistry;
     this.oL = observerLocator;
     this.ast = ast;
     this.target = target;
@@ -157,8 +156,10 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     this._updateCount++;
     this._scope = void 0;
     const store = this._store;
-    this._store?.unsubscribe(this);
-    this._store = void 0;
+    if (store != null) {
+      store.unsubscribe(this);
+      this._store = void 0;
+    }
   }
 
   public handleChange(newValue: unknown): void {
@@ -201,17 +202,17 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       if (isStoreInstance(evaluatedLocator)) {
         return evaluatedLocator;
       }
-      return this._storeManager.getStore(evaluatedLocator as StoreLocator);
+      return this._storeRegistry.getStore(evaluatedLocator as StoreLocator);
     }
 
     const locator = this._staticStoreLocator;
     if (locator == null) {
-      return this._storeManager.getStore();
+      return this._storeRegistry.getStore();
     }
     if (isStoreInstance(locator)) {
       return locator;
     }
-    return this._storeManager.getStore(locator);
+    return this._storeRegistry.getStore(locator);
   }
 
   /** @internal */

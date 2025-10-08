@@ -1,22 +1,17 @@
 import { IDisposable, IIndexable, type IServiceLocator, type Writable } from '@aurelia/kernel';
-import type { IsAssign } from '@aurelia/expression-parser';
 import {
   connectable,
   IObserverLocatorBasedConnectable,
   Scope,
   type IOverrideContext,
-  astEvaluate,
 } from '@aurelia/runtime';
 import { IBinding } from '@aurelia/runtime-html';
 import {
   type IStore,
   type Unsubscribable,
   type IStoreSubscriber,
-  type StoreLocator,
-  IStoreManager,
 } from './interfaces';
 import { createStateBindingScope, isSubscribable } from './state-utilities';
-import { isStoreInstance } from './store-manager';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
@@ -39,9 +34,6 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   private readonly target: IIndexable;
   private readonly key: PropertyKey;
 
-  /** @internal */ private readonly _storeManager: IStoreManager;
-  /** @internal */ private readonly _staticStoreLocator?: StoreLocator;
-  /** @internal */ private readonly _storeLocatorExpression?: IsAssign;
   /** @internal */ private _store?: IStore<object>;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
@@ -51,21 +43,15 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     locator: IServiceLocator,
     target: object,
     prop: PropertyKey,
-    storeManager: IStoreManager,
-    storeLocator: StoreLocator | IsAssign | undefined,
+    store: IStore<object>,
     getValue: (s: unknown) => unknown,
   ) {
     this.l = locator;
     this.get = locator.get.bind(locator);
-    this._storeManager = storeManager;
     this.$get = getValue;
     this.target = target as IIndexable;
     this.key = prop;
-    if (storeLocator != null && typeof storeLocator === 'object' && '$kind' in storeLocator) {
-      this._storeLocatorExpression = storeLocator as IsAssign;
-    } else if (storeLocator != null) {
-      this._staticStoreLocator = storeLocator as StoreLocator;
-    }
+    this._store = store;
   }
 
   private updateTarget(value: unknown) {
@@ -100,7 +86,7 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     if (this.isBound) {
       return;
     }
-    const store = this._store = this._resolveStore(_scope);
+    const store = this._store!;
     const state = store.getState();
     this._scope = createStateBindingScope(state, _scope);
     store.subscribe(this);
@@ -128,7 +114,7 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     const _scope = this._scope!;
     const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
     _scope.bindingContext = overrideContext.bindingContext = state;
-    const store = this._store ?? this._resolveStore(_scope);
+    const store = this._store!;
     const value = this.$get(store.getState());
 
     if (value === this._value) {
@@ -149,24 +135,5 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     this._sub = void 0;
   }
 
-  /** @internal */
-  private _resolveStore(scope: Scope): IStore<object> {
-    if (this._storeLocatorExpression != null) {
-      const evaluatedLocator = astEvaluate(this._storeLocatorExpression, scope, null, null);
-      if (isStoreInstance(evaluatedLocator)) {
-        return evaluatedLocator;
-      }
-      return this._storeManager.getStore(evaluatedLocator as StoreLocator);
-    }
-
-    const locator = this._staticStoreLocator;
-    if (locator == null) {
-      return this._storeManager.getStore();
-    }
-    if (isStoreInstance(locator)) {
-      return locator;
-    }
-    return this._storeManager.getStore(locator);
-  }
 }
 connectable(StateGetterBinding, null!);

@@ -1,7 +1,7 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
 
 import { tasksSettled } from '@aurelia/runtime';
-import { StateDefaultConfiguration, fromState, createStateMemoizer, Store, IStoreManager } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, createStateMemoizer, Store, IStoreRegistry } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -1160,7 +1160,7 @@ describe('state/state.spec.ts', function () {
         )
         .build().started;
 
-      const manager = ctx.container.get(IStoreManager);
+      const manager = ctx.container.get(IStoreRegistry);
       const defaultStore = manager.getStore<{ count: number }>();
       const usersStore = manager.getStore<{ count: number }>('users');
 

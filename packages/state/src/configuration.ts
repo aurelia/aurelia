@@ -1,5 +1,5 @@
 import { type IRegistry, IContainer, ILogger, Registration, lazy } from '@aurelia/kernel';
-import { IActionHandler, IStore, IStateMiddleware, MiddlewarePlacement, IStoreManager, IStoreRegistration, IState } from './interfaces';
+import { IActionHandler, IStore, IStateMiddleware, MiddlewarePlacement, IStoreRegistry, IStoreRegistration, IState } from './interfaces';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
 import {
@@ -10,7 +10,7 @@ import {
 } from './state-templating';
 import { IDevToolsExtension, IDevToolsOptions } from './interfaces-devtools';
 import { AppTask } from '@aurelia/runtime-html';
-import { StoreManager } from './store-manager';
+import { StoreRegistry } from './store-registry';
 
 const standardRegistrations = [
   StateBindingCommand,
@@ -36,8 +36,8 @@ const createConfiguration = <T extends object>(
   const normalizedHandlers = actionHandlers.slice();
   return {
     register: (c: IContainer) => {
-      if (!c.has(IStoreManager, false)) {
-        c.register(Registration.singleton(IStoreManager, StoreManager));
+      if (!c.has(IStoreRegistry, false)) {
+        c.register(Registration.singleton(IStoreRegistry, StoreRegistry));
       }
       c.register(
         ...standardRegistrations,
@@ -71,8 +71,8 @@ const createConfiguration = <T extends object>(
             container.register(...registrations);
           }
 
-          const storeManager = container.get(IStoreManager);
-          storeManager.register(store, {
+          const storeRegistry = container.get(IStoreRegistry);
+          storeRegistry.register(store, {
             name: storeName,
             key: primaryKey,
             isDefault: isDefaultStore,

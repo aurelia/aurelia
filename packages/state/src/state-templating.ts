@@ -23,7 +23,7 @@ import {
   type IInstruction,
   type BindingCommandStaticAuDefinition
 } from '@aurelia/template-compiler';
-import { IStoreManager } from './interfaces';
+import { IStoreRegistry } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchBinding } from './state-dispatch-binding';
 
@@ -88,7 +88,7 @@ export class DispatchBindingInstruction {
 
 export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindingInstructionRenderer implements IRenderer {
   public readonly target = 'sb';
-  /** @internal */ public readonly _storeManager = resolve(IStoreManager);
+  /** @internal */ public readonly _storeRegistry = resolve(IStoreRegistry);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -109,7 +109,7 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
       ast,
       target,
       instruction.to,
-      this._storeManager,
+      this._storeRegistry,
       store,
       renderingCtrl.strict ?? false,
     ));
@@ -118,7 +118,7 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
 
 export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer implements IRenderer {
   public readonly target = 'sd';
-  /** @internal */ public readonly _storeManager = resolve(IStoreManager);
+  /** @internal */ public readonly _storeRegistry = resolve(IStoreRegistry);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -135,18 +135,20 @@ export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class D
       expr,
       target,
       instruction.from,
-      this._storeManager,
+      this._storeRegistry,
       store,
       renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
 
-function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> {
+function ensureExpression(parser: IExpressionParser, srcOrExpr: string, expressionType: ExpressionType): IsBindingBehavior;
+function ensureExpression<TExpression extends IsBindingBehavior>(parser: IExpressionParser, srcOrExpr: TExpression, expressionType: ExpressionType): TExpression;
+function ensureExpression(parser: IExpressionParser, srcOrExpr: string | IsBindingBehavior, expressionType: ExpressionType): IsBindingBehavior {
   if (typeof srcOrExpr === 'string') {
-    return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;
+    return parser.parse(srcOrExpr, expressionType);
   }
-  return srcOrExpr as Exclude<TFrom, string>;
+  return srcOrExpr;
 }
 
 function extractStoreLocator(expression: IsBindingBehavior): { expression: IsBindingBehavior; store?: StoreInstructionArg } {
@@ -155,6 +157,8 @@ function extractStoreLocator(expression: IsBindingBehavior): { expression: IsBin
 
   while (leaf instanceof BindingBehaviorExpression) {
     behaviors.push(leaf);
+    // parser AST narrows expression generically; assert to align with binding behavior traversal
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     leaf = leaf.expression as IsBindingBehavior;
   }
 

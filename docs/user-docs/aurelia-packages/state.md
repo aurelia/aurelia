@@ -119,8 +119,8 @@ If you are familiar with Redux, you'll find this plugin familiar. The most obvio
 Large applications often need more than a single global store. You can register additional stores by providing either a `storeName` (string alias) or a `storeKey` (DI key) when calling `StateDefaultConfiguration.init`:
 
 ```ts
-import { singleton } from '@aurelia/kernel';
-import { IStoreManager, StateDefaultConfiguration } from '@aurelia/state';
+import { inject, singleton } from '@aurelia/kernel';
+import { IStoreRegistry, StateDefaultConfiguration } from '@aurelia/state';
 
 Aurelia.register(
   // Default store – available through IStore for backwards compatibility
@@ -134,8 +134,9 @@ Aurelia.register(
 );
 
 @singleton()
+@inject(IStoreRegistry)
 export class DataService {
-  public constructor(@IStoreManager private readonly stores: IStoreManager) {}
+  public constructor(private readonly stores: IStoreRegistry) {}
 
   public get usersStore() {
     return this.stores.getStore<{ users: User[] }>('users');
@@ -143,7 +144,7 @@ export class DataService {
 }
 ```
 
-The first registered store (or any store configured with `isDefault: true`) continues to resolve via `IStore`, ensuring existing code keeps working. Named or keyed stores can be retrieved through `IStoreManager` or directly addressed from templates, as shown in the next section.
+The first registered store (or any store configured with `isDefault: true`) continues to resolve via `IStore`, ensuring existing code keeps working. Named or keyed stores can be retrieved through `IStoreRegistry` or directly addressed from templates, as shown in the next section. Prefer constructor injection (as above) or call `resolve(IStoreRegistry)` inside a method when you need to look up stores outside the DI lifecycle.
 
 ## Template binding
 

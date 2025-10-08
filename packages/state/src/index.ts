@@ -14,7 +14,7 @@ export {
   IState,
   IStore,
   type IStoreSubscriber,
-  IStoreManager,
+  IStoreRegistry,
   IActionHandler,
   type IRegistrableAction,
   type IStateMiddleware,
@@ -39,4 +39,4 @@ export {
 export { StateBindingBehavior } from './state-binding-behavior';
 export { fromState } from './state-decorator';
 export { createStateMemoizer, type StateMemoizer } from './state-memorizer';
-export { StoreManager } from './store-manager';
+export { StoreRegistry } from './store-registry';

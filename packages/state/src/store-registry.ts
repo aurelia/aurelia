@@ -1,7 +1,7 @@
 import type { Key } from '@aurelia/kernel';
-import { IStore, type IStoreManager, type IStoreRegistration, type StoreLocator } from './interfaces';
+import { IStore, type IStoreRegistration, type IStoreRegistry, type StoreLocator } from './interfaces';
 
-export class StoreManager implements IStoreManager {
+export class StoreRegistry implements IStoreRegistry {
   private readonly storesByName = new Map<string, IStore<object>>();
   private readonly storesByKey = new Map<Key, IStore<object>>();
   private defaultStore: IStore<object> | undefined = void 0;
@@ -39,10 +39,6 @@ export class StoreManager implements IStoreManager {
       return this.defaultStore as IStore<T>;
     }
 
-    if (isStoreInstance(locator)) {
-      return locator as IStore<T>;
-    }
-
     if (typeof locator === 'string') {
       const storeByName = this.storesByName.get(locator);
       if (storeByName == null) {
@@ -65,10 +61,4 @@ export class StoreManager implements IStoreManager {
       return void 0;
     }
   }
-}
-
-export function isStoreInstance(value: unknown): value is IStore<object> {
-  return value instanceof Object
-    && typeof (value as IStore<object>).getState === 'function'
-    && typeof (value as IStore<object>).dispatch === 'function';
 }

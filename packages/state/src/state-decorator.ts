@@ -1,6 +1,6 @@
 import { IContainer, Protocol, Registration } from '@aurelia/kernel';
 import { IHydratedComponentController, ILifecycleHooks, LifecycleHooks } from '@aurelia/runtime-html';
-import { IStoreManager, type StoreLocator } from './interfaces';
+import { IStore, IStoreRegistry, type StoreLocator } from './interfaces';
 import { StateGetterBinding } from './state-getter-binding';
 
 /**
@@ -71,10 +71,15 @@ class HydratingLifecycleHooks {
       container,
       vm,
       this.key,
-      container.get(IStoreManager),
-      this.storeLocator,
+      this.resolveStore(container),
       this.$get,
     ));
+  }
+
+  private resolveStore(container: IContainer) {
+    return this.storeLocator == null
+      ? container.get(IStore)
+      : container.get(IStoreRegistry).getStore(this.storeLocator);
   }
 }
 LifecycleHooks.define({}, HydratingLifecycleHooks);
@@ -97,10 +102,15 @@ class CreatedLifecycleHooks {
       container,
       vm,
       this.key,
-      container.get(IStoreManager),
-      this.storeLocator,
+      this.resolveStore(container),
       this.$get,
     ));
+  }
+
+  private resolveStore(container: IContainer) {
+    return this.storeLocator == null
+      ? container.get(IStore)
+      : container.get(IStoreRegistry).getStore(this.storeLocator);
   }
 }
 LifecycleHooks.define({}, CreatedLifecycleHooks);

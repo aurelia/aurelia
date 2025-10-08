@@ -442,6 +442,63 @@ export class ViewportAgent {
   }
 
   /** @internal */
+  public _loaded(tr: Transition, b: Batch): void {
+    ensureTransitionHasNotErrored(tr);
+    ensureGuardsResultIsTrue(this, tr);
+
+    b._push();
+    const logger = /*@__PURE__*/ this._logger.scopeTo('loaded()');
+
+    Batch._start(b1 => {
+      switch (this._nextState) {
+        case State.nextActivate:
+          if (__DEV__) trace(logger, Events.vpaLoadedChildren, this);
+          for (const node of this._nextNode!.children) {
+            node.context.vpa._loaded(tr, b1);
+          }
+          return;
+        case State.nextIsEmpty:
+          if (__DEV__) trace(logger, Events.vpaLoadedNone, this);
+          return;
+        default:
+          this._unexpectedState('loaded');
+      }
+    })._continueWith(b1 => {
+      switch (this._nextState) {
+        case State.nextActivate:
+          if (__DEV__) trace(logger, Events.vpaLoadedSelf, this);
+          switch (this._$plan) {
+            case 'none':
+              return;
+            case 'invoke-lifecycles':
+              b1._push();
+              Batch._start(b2 => {
+                this._curCA!._loaded(tr, this._nextNode!, b2);
+              })._continueWith(() => {
+                b1._pop();
+              })._start();
+              return;
+            case 'replace':
+              b1._push();
+              Batch._start(b2 => {
+                this._nextCA!._loaded(tr, this._nextNode!, b2);
+              })._continueWith(() => {
+                b1._pop();
+              })._start();
+              return;
+          }
+        case State.nextIsEmpty:
+          return;
+        default:
+          this._unexpectedState('loaded');
+      }
+    })._continueWith(() => {
+      if (__DEV__) trace(logger, Events.vpaLoadedFinished, this);
+      b._pop();
+    })._start();
+  }
+
+  /** @internal */
   private _deactivate(initiator: IHydratedController | null, tr: Transition, b: Batch): void {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(this, tr);

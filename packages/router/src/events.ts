@@ -37,6 +37,7 @@ export const enum Events {
   caCanLoad = 3057,
   caUnloading = 3058,
   caLoading = 3059,
+  caLoaded = 3060,
   // #endregion
   // #region location manager
   lmBaseHref = 3100,
@@ -95,13 +96,14 @@ export const enum Events {
   rtrRunCanLoad = 3262,
   rtrRunUnloading = 3263,
   rtrRunLoading = 3264,
-  rtrRunSwapping = 3265,
-  rtrRunFinalizing = 3266,
-  rtrCancelNavigationStart = 3267,
-  rtrCancelNavigationCompleted = 3268,
-  rtrNextTr = 3269,
-  rtrTrFailed = 3270,
-  rtrNoCtx = 3271,
+  rtrRunLoaded = 3265,
+  rtrRunSwapping = 3266,
+  rtrRunFinalizing = 3267,
+  rtrCancelNavigationStart = 3268,
+  rtrCancelNavigationCompleted = 3269,
+  rtrNextTr = 3270,
+  rtrTrFailed = 3271,
+  rtrNoCtx = 3272,
   // #endregion
   // #region viewport agent
   vpaCreated = 3300,
@@ -159,6 +161,10 @@ export const enum Events {
   vpaUnexpectedState = 3352,
   vpaUnexpectedGuardsResult = 3353,
   vpaCanLoadGuardsResult = 3354,
+  vpaLoadedChildren = 3355,
+  vpaLoadedSelf = 3356,
+  vpaLoadedFinished = 3357,
+  vpaLoadedNone = 3358,
   // #endregion
   // #region instruction
   instrInvalid = 3400,
@@ -208,6 +214,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.caCanLoad]: 'canLoad(next:%s) - invoking %s hooks',
   [Events.caUnloading]: 'unloading(next:%s) - invoking %s hooks',
   [Events.caLoading]: 'loading(next:%s) - invoking %s hooks',
+  [Events.caLoaded]: 'loaded(next:%s) - invoking %s hooks',
   // #endregion
 
   // #region location manager
@@ -270,6 +277,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtrRunCanLoad]: 'invoking canLoad on %s nodes',
   [Events.rtrRunUnloading]: 'invoking unloading on %s nodes',
   [Events.rtrRunLoading]: 'invoking loading on %s nodes',
+  [Events.rtrRunLoaded]: 'invoking loaded on %s nodes',
   [Events.rtrRunSwapping]: 'invoking swapping on %s nodes',
   [Events.rtrRunFinalizing]: 'finalizing transition',
   [Events.rtrCancelNavigationStart]: 'navigation %s',
@@ -316,7 +324,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.vpaDeactivateCurrent]: 'Invoking on the current component at %s',
   [Events.vpaDeactivateNone]: 'Nothing to deactivate at %s',
   [Events.vpaDeactivationRunning]: 'Already deactivating at %s',
-  [Events.vpaActivateNextScheduled]: 'Invoking canLoad(), loading() and activate() on the next component at %s',
+  [Events.vpaActivateNextScheduled]: 'Invoking canLoad(), loading(), activate() and loaded() on the next component at %s',
   [Events.vpaActivateNext]: 'Invoking on the next component at %s',
   [Events.vpaActivateNone]: 'Nothing to activate at %s',
   [Events.vpaSwapEmptyCurr]: 'Running activate on next instead, because there is nothing to deactivate at %s',
@@ -335,6 +343,10 @@ const eventMessageMap: Record<Events, string> = {
   [Events.vpaUnexpectedState]: 'Unexpected state at %s of %s',
   [Events.vpaUnexpectedGuardsResult]: 'Unexpected guardsResult %s at %s',
   [Events.vpaCanLoadGuardsResult]: 'canLoad returned redirect result %s by the component agent %s',
+  [Events.vpaLoadedChildren]: 'Invoking loaded() on children at %s',
+  [Events.vpaLoadedSelf]: 'Finished children; invoking loaded() on own component at %s',
+  [Events.vpaLoadedFinished]: 'Finished loaded() at %s',
+  [Events.vpaLoadedNone]: 'Nothing to invoke loaded() on at %s',
   // #endregion
 
   // #region instruction

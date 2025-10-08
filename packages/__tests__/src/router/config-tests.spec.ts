@@ -96,6 +96,7 @@ describe('router/config-tests.spec.ts', function () {
 
           canLoad: hookSpecsMap.canLoad.sync,
           loading: hookSpecsMap.loading.sync,
+          loaded: hookSpecsMap.loaded.sync,
           canUnload: hookSpecsMap.canUnload.sync,
           unloading: hookSpecsMap.unloading.sync,
         }),
@@ -549,8 +550,8 @@ function getAllAsyncSpecs(count: number): HookSpecs {
 
     canLoad: hookSpecsMap.canLoad.async(count),
     loading: hookSpecsMap.loading.async(count),
+    loaded: hookSpecsMap.loaded.async(count),
     canUnload: hookSpecsMap.canUnload.async(count),
     unloading: hookSpecsMap.unloading.async(count),
   });
 }
-

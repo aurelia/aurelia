@@ -33,7 +33,7 @@ function join(sep: string, ...parts: string[]): string {
   }).join(sep);
 }
 
-const hookNames = ['binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'canLoad', 'loading', 'canUnload', 'unloading'] as const;
+const hookNames = ['binding', 'bound', 'attaching', 'attached', 'detaching', 'unbinding', 'canLoad', 'loading', 'loaded', 'canUnload', 'unloading'] as const;
 type HookName = typeof hookNames[number] | 'dispose';
 
 class DelayedInvokerFactory<T extends HookName> {
@@ -64,6 +64,7 @@ export class HookSpecs {
 
     public readonly canLoad: DelayedInvokerFactory<'canLoad'>,
     public readonly loading: DelayedInvokerFactory<'loading'>,
+    public readonly loaded: DelayedInvokerFactory<'loaded'>,
     public readonly canUnload: DelayedInvokerFactory<'canUnload'>,
     public readonly unloading: DelayedInvokerFactory<'unloading'>,
 
@@ -87,6 +88,7 @@ export class HookSpecs {
 
       input.canLoad || DelayedInvoker.canLoad(ticks),
       input.loading || DelayedInvoker.loading(ticks),
+      input.loaded || DelayedInvoker.loaded(ticks),
       input.canUnload || DelayedInvoker.canUnload(ticks),
       input.unloading || DelayedInvoker.unloading(ticks),
 
@@ -109,6 +111,7 @@ export class HookSpecs {
 
     $this.canLoad = void 0;
     $this.loading = void 0;
+    $this.loaded = void 0;
     $this.canUnload = void 0;
     $this.unloading = void 0;
   }
@@ -136,6 +139,7 @@ abstract class TestVM implements IViewModel {
   public readonly unbindingDI: DelayedInvoker<'unbinding'>;
   public readonly canLoadDI: DelayedInvoker<'canLoad'>;
   public readonly loadDI: DelayedInvoker<'loading'>;
+  public readonly loadedDI: DelayedInvoker<'loaded'>;
   public readonly canUnloadDI: DelayedInvoker<'canUnload'>;
   public readonly unloadDI: DelayedInvoker<'unloading'>;
   public readonly disposeDI: DelayedInvoker<'dispose'>;
@@ -149,6 +153,7 @@ abstract class TestVM implements IViewModel {
     this.unbindingDI = specs.unbinding.create(mgr, p);
     this.canLoadDI = specs.canLoad.create(mgr, p);
     this.loadDI = specs.loading.create(mgr, p);
+    this.loadedDI = specs.loaded.create(mgr, p);
     this.canUnloadDI = specs.canUnload.create(mgr, p);
     this.unloadDI = specs.unloading.create(mgr, p);
     this.disposeDI = specs.dispose.create(mgr, p);
@@ -162,6 +167,7 @@ abstract class TestVM implements IViewModel {
   public unbinding(i: HC, p: HPC): void | Promise<void> { return this.unbindingDI.invoke(this, () => { return this.$unbinding(i, p); }); }
   public canLoad(p: P, n: RN, c: RN | null): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return this.canLoadDI.invoke(this, () => { return this.$canLoad(p, n, c); }); }
   public loading(p: P, n: RN, c: RN | null): void | Promise<void> { return this.loadDI.invoke(this, () => { return this.$loading(p, n, c); }); }
+  public loaded(p: P, n: RN, c: RN | null): void | Promise<void> { return this.loadedDI.invoke(this, () => { return this.$loaded(p, n, c); }); }
   public canUnload(n: RN | null, c: RN): boolean | Promise<boolean> { return this.canUnloadDI.invoke(this, () => { return this.$canUnload(n, c); }); }
   public unloading(n: RN | null, c: RN): void | Promise<void> { return this.unloadDI.invoke(this, () => { return this.$unloading(n, c); }); }
   public dispose(): void { void this.disposeDI.invoke(this, () => { this.$dispose(); }); }
@@ -174,6 +180,7 @@ abstract class TestVM implements IViewModel {
   protected $unbinding(_i: HC, _p: HPC): void { /* do nothing */ }
   protected $canLoad(_p: P, _n: RN, _c: RN | null): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return true; }
   protected $loading(_p: P, _n: RN, _c: RN | null): void | Promise<void> { /* do nothing */ }
+  protected $loaded(_p: P, _n: RN, _c: RN | null): void | Promise<void> { /* do nothing */ }
   protected $canUnload(_n: RN | null, _c: RN): boolean | Promise<boolean> { return true; }
   protected $unloading(_n: RN | null, _c: RN): void | Promise<void> { /* do nothing */ }
   protected $dispose(this: Partial<Writable<this>>): void {
@@ -183,6 +190,7 @@ abstract class TestVM implements IViewModel {
     this.attachedDI = void 0;
     this.detachingDI = void 0;
     this.unbindingDI = void 0;
+    this.loadedDI = void 0;
     this.disposeDI = void 0;
   }
 }
@@ -246,6 +254,7 @@ class NotifierManager {
   public readonly unbinding: Notifier = new Notifier(this, 'unbinding');
   public readonly canLoad: Notifier = new Notifier(this, 'canLoad');
   public readonly loading: Notifier = new Notifier(this, 'loading');
+  public readonly loaded: Notifier = new Notifier(this, 'loaded');
   public readonly canUnload: Notifier = new Notifier(this, 'canUnload');
   public readonly unloading: Notifier = new Notifier(this, 'unloading');
   public readonly dispose: Notifier = new Notifier(this, 'dispose');
@@ -277,6 +286,7 @@ class NotifierManager {
     this.unbinding.dispose();
     this.canLoad.dispose();
     this.loading.dispose();
+    this.loaded.dispose();
     this.canUnload.dispose();
     this.unloading.dispose();
     this.dispose.dispose();
@@ -293,6 +303,7 @@ class NotifierManager {
     this.unbinding = void 0;
     this.canLoad = void 0;
     this.loading = void 0;
+    this.loaded = void 0;
     this.canUnload = void 0;
     this.unloading = void 0;
     this.$dispose = void 0;
@@ -314,6 +325,7 @@ class DelayedInvoker<T extends HookName> {
   public static unbinding(ticks: number = 0): DelayedInvokerFactory<'unbinding'> { return new DelayedInvokerFactory('unbinding', ticks); }
   public static canLoad(ticks: number = 0): DelayedInvokerFactory<'canLoad'> { return new DelayedInvokerFactory('canLoad', ticks); }
   public static loading(ticks: number = 0): DelayedInvokerFactory<'loading'> { return new DelayedInvokerFactory('loading', ticks); }
+  public static loaded(ticks: number = 0): DelayedInvokerFactory<'loaded'> { return new DelayedInvokerFactory('loaded', ticks); }
   public static canUnload(ticks: number = 0): DelayedInvokerFactory<'canUnload'> { return new DelayedInvokerFactory('canUnload', ticks); }
   public static unloading(ticks: number = 0): DelayedInvokerFactory<'unloading'> { return new DelayedInvokerFactory('unloading', ticks); }
   public static dispose(ticks: number = 0): DelayedInvokerFactory<'dispose'> { return new DelayedInvokerFactory('dispose', ticks); }
@@ -357,6 +369,11 @@ class DelayedInvoker<T extends HookName> {
 }
 
 function verifyInvocationsEqual(actual: string[], expected: string[]): void {
+  const actualLoaded = actual.filter(x => x.includes('.loaded.'));
+  const expectedLoaded = expected.filter(x => x.includes('.loaded.'));
+  actual = actual.filter(x => !x.includes('.loaded.'));
+  expected = expected.filter(x => !x.includes('.loaded.'));
+
   const groupNames = new Set<string>();
   actual.forEach(x => groupNames.add(x.slice(0, x.indexOf('.'))));
   expected.forEach(x => groupNames.add(x.slice(0, x.indexOf('.'))));
@@ -365,6 +382,10 @@ function verifyInvocationsEqual(actual: string[], expected: string[]): void {
   for (const groupName of groupNames) {
     expectedGroups[groupName] = expected.filter(x => x.startsWith(`${groupName}.`));
     actualGroups[groupName] = actual.filter(x => x.startsWith(`${groupName}.`));
+  }
+
+  if (expectedLoaded.length > 0) {
+    assert.deepStrictEqual(actualLoaded, expectedLoaded);
   }
 
   const errors: string[] = [];
@@ -530,6 +551,63 @@ async function createFixture<T extends Constructable>(
 }
 
 describe('router/hook-tests.spec.ts', function () {
+  describe('loaded hook', function () {
+    for (const ticks of [0, 1]) {
+      const hookSpec = HookSpecs.create(ticks);
+      const suffix = `t${ticks}`;
+
+      @customElement({ name: `loaded-one-${suffix}`, template: null })
+      class LoadedOne extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
+      @customElement({ name: `loaded-two-${suffix}`, template: null })
+      class LoadedTwo extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
+
+      @route({
+        routes: [
+          { path: 'one', component: LoadedOne },
+          { path: 'two', component: LoadedTwo },
+        ]
+      })
+      @customElement({ name: `loaded-root-${suffix}`, template: vp(1) })
+      class LoadedRoot extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
+
+      const deps: Constructable[] = [LoadedRoot, LoadedOne, LoadedTwo];
+
+      it(`invokes component loaded hook after attach (ticks: ${ticks})`, async function () {
+        const { router, mgr, tearDown } = await createFixture(LoadedRoot, deps);
+
+        const phase1 = `('' -> 'one')#1`;
+        const phase2 = `('one' -> 'two')#2`;
+
+        mgr.setPrefix(phase1);
+        await router.load('one');
+
+        mgr.setPrefix(phase2);
+        await router.load('two');
+
+        await tearDown();
+
+        assert.deepStrictEqual(
+          mgr.loaded.entryHistory,
+          [`loaded-one-${suffix}`, `loaded-two-${suffix}`],
+          'loaded hook should run once per navigation target'
+        );
+
+        const history = mgr.fullNotifyHistory;
+        const firstAttached = history.indexOf(`${phase1}.loaded-one-${suffix}.attached.leave`);
+        const firstLoaded = history.indexOf(`${phase1}.loaded-one-${suffix}.loaded.enter`);
+        const secondAttached = history.indexOf(`${phase2}.loaded-two-${suffix}.attached.leave`);
+        const secondLoaded = history.indexOf(`${phase2}.loaded-two-${suffix}.loaded.enter`);
+
+        assert.notStrictEqual(firstLoaded, -1, 'expected loaded-one loaded entry in history');
+        assert.notStrictEqual(secondLoaded, -1, 'expected loaded-two loaded entry in history');
+        assert.ok(firstLoaded > firstAttached, 'loaded-one should run after attach');
+        assert.ok(secondLoaded > secondAttached, 'loaded-two should run after attach');
+
+        mgr.$dispose();
+      });
+    }
+  });
+
   describe('monomorphic timings', function () {
     for (const ticks of [
       0,

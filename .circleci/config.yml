@@ -56,6 +56,9 @@ parameters:
   run_bench:
     type: boolean
     default: false
+  run_pr_lite:
+    type: boolean
+    default: true
 
 
 # # # # # # # # # # # # # # # #
@@ -711,6 +714,7 @@ jobs:
 workflows:
   pr_lite:
     # Fast workflow for PR branches
+    when: << pipeline.parameters.run_pr_lite >>
     jobs:
       - check_doc_abort:
           <<: *filter_only_topic
@@ -1243,3 +1247,4 @@ workflows:
           branch: release
           requires:
             - request_publish_latest
+

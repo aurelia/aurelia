@@ -1485,15 +1485,15 @@ export class DetailsView {
 }
 ```
 
-Use `mergeStrategy: 'furthest'` if you'd rather let ancestor segments win when duplicate parameter names show up.
+Use `mergeStrategy: 'parent-first'` if you'd rather let ancestor segments win when duplicate parameter names show up.
 
-Need the full lineage instead of a single winning value? Switch to `mergeStrategy: 'append'` for ordered arrays or `mergeStrategy: 'per-route'` to keep a per-route map of values keyed by the configured route id (falling back to the component path when no id is present).
+Need the full lineage instead of a single winning value? Switch to `mergeStrategy: 'append'` for ordered arrays or `mergeStrategy: 'by-route'` to keep a per-route map of values keyed by the configured route id (falling back to the component path when no id is present).
 
 ```ts
 const allValues = routeContext.routeParameters({ mergeStrategy: 'append' });
 // allValues.id -> ['parent', 'child']
 
-const perRoute = routeContext.routeParameters({ mergeStrategy: 'per-route' });
+const byRoute = routeContext.routeParameters({ mergeStrategy: 'by-route' });
 // perRoute.id -> { 'company-route': 'parent', 'details-route': 'child' }
 ```
 

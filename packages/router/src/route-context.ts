@@ -67,7 +67,7 @@ export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRo
 
 export type RouteParameterValue = string | readonly string[];
 
-export type RouteParameterMergeStrategy = 'nearest' | 'furthest' | 'append' | 'per-route';
+export type RouteParameterMergeStrategy = 'child-first' | 'parent-first' | 'append' | 'by-route';
 
 /** @deprecated Use {@link RouteParameterMergeStrategy} */
 export type RouteParameterCollisionStrategy = RouteParameterMergeStrategy;
@@ -79,9 +79,9 @@ interface RouteParametersBaseOptions {
   includeQueryParams?: boolean;
 }
 
-export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'nearest'> =
-  TStrategy extends 'nearest'
-    ? RouteParametersBaseOptions & { mergeStrategy?: 'nearest' }
+export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
+  TStrategy extends 'child-first'
+    ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
     : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
@@ -97,7 +97,7 @@ type RouteParameterAccumulator = Record<string, RouteParameterValue | undefined>
 export type RouteParametersResult<TStrategy extends RouteParameterMergeStrategy, TParams extends Record<string, unknown>> =
   TStrategy extends 'append'
     ? Readonly<Record<string, readonly RouteParameterValue[]>>
-    : TStrategy extends 'per-route'
+    : TStrategy extends 'by-route'
       ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
       : Readonly<TParams>;
 
@@ -241,7 +241,7 @@ export class RouteContext {
 
   public routeParameters<
     TParams extends Record<string, unknown> = Params,
-  >(): RouteParametersResult<'nearest', TParams>;
+  >(): RouteParametersResult<'child-first', TParams>;
   public routeParameters<
     TParams extends Record<string, unknown> = Params,
     TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
@@ -251,7 +251,7 @@ export class RouteContext {
     TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
   >(options?: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams> {
     const includeQueryParams = options?.includeQueryParams ?? this._router.options.treatQueryAsParameters;
-    const mergeStrategy = (options?.mergeStrategy ?? 'nearest') as RouteParameterMergeStrategy;
+    const mergeStrategy = (options?.mergeStrategy ?? 'child-first') as RouteParameterMergeStrategy;
     const freezeValue = (value: RouteParameterValue): RouteParameterValue => {
       if (isArray(value)) {
         return Object.freeze(value.slice()) as readonly string[];
@@ -362,11 +362,11 @@ export class RouteContext {
     switch (mergeStrategy) {
       case 'append':
         return collectAppend() as RouteParametersResult<TStrategy, TParams>;
-      case 'per-route':
+      case 'by-route':
         return collectPerRoute() as RouteParametersResult<TStrategy, TParams>;
-      case 'furthest':
+      case 'parent-first':
         return collectFlat(false) as RouteParametersResult<TStrategy, TParams>;
-      case 'nearest':
+      case 'child-first':
       default:
         return collectFlat(true) as RouteParametersResult<TStrategy, TParams>;
     }

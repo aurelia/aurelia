@@ -88,8 +88,8 @@ describe('router/route-parameters.spec.ts', function () {
       class StrategyLeaf {
         public static instance: StrategyLeaf | null = null;
         private readonly ctx = resolve(IRouteContext);
-        public readonly nearest = this.ctx.routeParameters<{ id: string }>();
-        public readonly furthest = this.ctx.routeParameters<{ id: string }>({ mergeStrategy: 'furthest' });
+        public readonly childFirst = this.ctx.routeParameters<{ id: string }>();
+        public readonly parentFirst = this.ctx.routeParameters<{ id: string }>({ mergeStrategy: 'parent-first' });
 
         public constructor() {
           StrategyLeaf.instance = this;
@@ -123,8 +123,8 @@ describe('router/route-parameters.spec.ts', function () {
       await router.load('company/root/project/middle/user/account/leaf/final');
 
       assert.notStrictEqual(StrategyLeaf.instance, null);
-      assert.strictEqual(StrategyLeaf.instance!.nearest.id, 'final');
-      assert.strictEqual(StrategyLeaf.instance!.furthest.id, 'root');
+      assert.strictEqual(StrategyLeaf.instance!.childFirst.id, 'final');
+      assert.strictEqual(StrategyLeaf.instance!.parentFirst.id, 'root');
 
       await au.stop(true);
       StrategyLeaf.instance = null;
@@ -177,12 +177,12 @@ describe('router/route-parameters.spec.ts', function () {
       AppendLeaf.instance = null;
     });
 
-    it('returns the values as record/object, keyed by route id, for the collided paramter names with the \'per-route\' merge strategy', async function () {
+    it('returns the values as record/object, keyed by route id, for the collided parameter names with the \'by-route\' merge strategy', async function () {
       @customElement({ name: 'append-map-leaf', template: `<div></div>` })
       class AppendMapLeaf {
         public static instance: AppendMapLeaf | null = null;
         public readonly mapped = resolve(IRouteContext)
-          .routeParameters({ mergeStrategy: 'per-route' });
+          .routeParameters({ mergeStrategy: 'by-route' });
 
         public constructor() {
           AppendMapLeaf.instance = this;

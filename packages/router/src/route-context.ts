@@ -69,9 +69,6 @@ export type RouteParameterValue = string | readonly string[];
 
 export type RouteParameterMergeStrategy = 'child-first' | 'parent-first' | 'append' | 'by-route';
 
-/** @deprecated Use {@link RouteParameterMergeStrategy} */
-export type RouteParameterCollisionStrategy = RouteParameterMergeStrategy;
-
 interface RouteParametersBaseOptions {
   /**
    * Include query-string values from each active route segment. Defaults to the router option `treatQueryAsParameters`.
@@ -239,14 +236,14 @@ export class RouteContext {
     }
   }
 
-  public routeParameters<
+  public getRouteParameters<
     TParams extends Record<string, unknown> = Params,
   >(): RouteParametersResult<'child-first', TParams>;
-  public routeParameters<
+  public getRouteParameters<
     TParams extends Record<string, unknown> = Params,
     TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
   >(options: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams>;
-  public routeParameters<
+  public getRouteParameters<
     TParams extends Record<string, unknown> = Params,
     TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
   >(options?: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams> {

@@ -6,12 +6,12 @@ import { IRouteContext, IRouter, route } from '@aurelia/router';
 import { start } from './_shared/create-fixture.js';
 
 describe('router/route-parameters.spec.ts', function () {
-  describe('RouteContext.routeParameters', function () {
+  describe('RouteContext.getRouteParameters', function () {
     it('aggregates parameters from ancestor contexts', async function () {
       @customElement({ name: 'details-view', template: `<div>company:\${params.companyId};project:\${params.projectId};user:\${params.userId};detail:\${params.detailId}</div>` })
       class DetailsView {
         public readonly params = resolve(IRouteContext)
-          .routeParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>();
+          .getRouteParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>();
       }
 
       @route({ routes: [{ path: 'details/:detailId', component: DetailsView }] })
@@ -49,7 +49,7 @@ describe('router/route-parameters.spec.ts', function () {
       @customElement({ name: 'leaf-view', template: `<div>id:\${params.id}</div>` })
       class LeafView {
         public readonly params = resolve(IRouteContext)
-          .routeParameters<{ id: string }>();
+          .getRouteParameters<{ id: string }>();
       }
 
       @route({ routes: [{ path: 'leaf/:id', component: LeafView }] })
@@ -88,8 +88,8 @@ describe('router/route-parameters.spec.ts', function () {
       class StrategyLeaf {
         public static instance: StrategyLeaf | null = null;
         private readonly ctx = resolve(IRouteContext);
-        public readonly childFirst = this.ctx.routeParameters<{ id: string }>();
-        public readonly parentFirst = this.ctx.routeParameters<{ id: string }>({ mergeStrategy: 'parent-first' });
+        public readonly childFirst = this.ctx.getRouteParameters<{ id: string }>();
+        public readonly parentFirst = this.ctx.getRouteParameters<{ id: string }>({ mergeStrategy: 'parent-first' });
 
         public constructor() {
           StrategyLeaf.instance = this;
@@ -135,7 +135,7 @@ describe('router/route-parameters.spec.ts', function () {
       class AppendLeaf {
         public static instance: AppendLeaf | null = null;
         public readonly appended = resolve(IRouteContext)
-          .routeParameters({ mergeStrategy: 'append' });
+          .getRouteParameters({ mergeStrategy: 'append' });
 
         public constructor() {
           AppendLeaf.instance = this;
@@ -182,7 +182,7 @@ describe('router/route-parameters.spec.ts', function () {
       class AppendMapLeaf {
         public static instance: AppendMapLeaf | null = null;
         public readonly mapped = resolve(IRouteContext)
-          .routeParameters({ mergeStrategy: 'by-route' });
+          .getRouteParameters({ mergeStrategy: 'by-route' });
 
         public constructor() {
           AppendMapLeaf.instance = this;
@@ -234,7 +234,7 @@ describe('router/route-parameters.spec.ts', function () {
       class QueryLeaf {
         public static instance: QueryLeaf | null = null;
         public readonly params = resolve(IRouteContext)
-          .routeParameters<{
+          .getRouteParameters<{
             companyId: string;
             projectId: string;
             userId: string;
@@ -295,7 +295,7 @@ describe('router/route-parameters.spec.ts', function () {
       class QueryDefaultChild {
         public static instance: QueryDefaultChild | null = null;
         public readonly params = resolve(IRouteContext)
-          .routeParameters<{ companyId: string; filter: string }>();
+          .getRouteParameters<{ companyId: string; filter: string }>();
 
         public constructor() {
           QueryDefaultChild.instance = this;
@@ -325,7 +325,7 @@ describe('router/route-parameters.spec.ts', function () {
       class FrozenChild {
         public static snapshot: Readonly<{ id: string }>;
         public constructor() {
-          FrozenChild.snapshot = resolve(IRouteContext).routeParameters<{ id: string }>();
+          FrozenChild.snapshot = resolve(IRouteContext).getRouteParameters<{ id: string }>();
         }
       }
 
@@ -339,7 +339,7 @@ describe('router/route-parameters.spec.ts', function () {
       await router.load('99');
 
       const snapshot = FrozenChild.snapshot;
-      assert.ok(Object.isFrozen(snapshot), 'routeParameters should freeze the returned object');
+      assert.ok(Object.isFrozen(snapshot), 'getRouteParameters should freeze the returned object');
       assert.strictEqual(Reflect.set(snapshot as unknown as Record<string, unknown>, 'extra', 'value'), false);
 
       await au.stop(true);
@@ -350,8 +350,9 @@ describe('router/route-parameters.spec.ts', function () {
       @customElement({ name: 'no-param-child', template: '' })
       class NoParamChild {
         public static instance: NoParamChild | null = null;
-        public readonly params = resolve(IRouteContext).routeParameters();
-        public readonly repeat = resolve(IRouteContext).routeParameters();
+        private readonly ctx = resolve(IRouteContext);
+        public readonly params = this.ctx.getRouteParameters();
+        public readonly repeat = this.ctx.getRouteParameters();
 
         public constructor() {
           NoParamChild.instance = this;

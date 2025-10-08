@@ -51,7 +51,6 @@ export {
   RouteContext,
   type RouteParameterValue,
   type RouteParameterMergeStrategy,
-  type RouteParameterCollisionStrategy,
   type RouteParametersOptions,
   type INavigationModel,
   type INavigationRoute,

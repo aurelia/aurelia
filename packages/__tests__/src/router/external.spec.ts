@@ -86,14 +86,13 @@ describe('router/external.spec.ts', function () {
       await tearDown();
     });
   }
-});
 
-for (const useUrlFragmentHash of [true, false]) {
-  it(`auto-detects external href values without explicit attribute - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
-    @customElement({ name: 'a21', template: `a21${vp(1)}` })
-    class A21 {}
-    @customElement({ name: 'a22', template: `a22${vp(1)}` })
-    class A22 {}
+  for (const useUrlFragmentHash of [true, false]) {
+    it(`auto-detects external href values without explicit attribute - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
+      @customElement({ name: 'a21', template: `a21${vp(1)}` })
+      class A21 {}
+      @customElement({ name: 'a22', template: `a22${vp(1)}` })
+      class A22 {}
     @route({
       routes: [
         {
@@ -154,16 +153,16 @@ for (const useUrlFragmentHash of [true, false]) {
 
     assert.strictEqual(loadArgs.length, 1);
 
-    await tearDown();
-  });
-}
+      await tearDown();
+    });
+  }
 
-for (const useUrlFragmentHash of [true, false]) {
-  it(`respects customized external URL schemes via RouterConfiguration.customize - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
-    @customElement({ name: 'a31', template: `a31${vp(1)}` })
-    class A31 {}
-    const customScheme = 'myapp';
-    @route({
+  for (const useUrlFragmentHash of [true, false]) {
+    it(`respects customized external URL schemes via RouterConfiguration.customize - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
+      @customElement({ name: 'a31', template: `a31${vp(1)}` })
+      class A31 {}
+      const customScheme = 'myapp';
+      @route({
       routes: [
         {
           path: 'a31',
@@ -211,8 +210,9 @@ for (const useUrlFragmentHash of [true, false]) {
     assert.strictEqual(loadArgs.length, 1);
 
     await tearDown();
-  });
-}
+    });
+  }
+});
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);

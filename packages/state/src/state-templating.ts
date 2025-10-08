@@ -142,11 +142,10 @@ export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class D
   }
 }, null!);
 
-function ensureExpression(parser: IExpressionParser, srcOrExpr: string, expressionType: ExpressionType): IsBindingBehavior;
-function ensureExpression<TExpression extends IsBindingBehavior>(parser: IExpressionParser, srcOrExpr: TExpression, expressionType: ExpressionType): TExpression;
 function ensureExpression(parser: IExpressionParser, srcOrExpr: string | IsBindingBehavior, expressionType: ExpressionType): IsBindingBehavior {
   if (typeof srcOrExpr === 'string') {
-    return parser.parse(srcOrExpr, expressionType);
+    // parser.parse always returns an AST; assertion narrows to the binding-behavior shape we consume downstream
+    return parser.parse(srcOrExpr, expressionType) as IsBindingBehavior;
   }
   return srcOrExpr;
 }

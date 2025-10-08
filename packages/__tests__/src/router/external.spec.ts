@@ -158,7 +158,7 @@ describe('router/external.spec.ts', function () {
   }
 
   for (const useUrlFragmentHash of [true, false]) {
-    it(`respects customized external URL schemes via RouterConfiguration.customize - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
+    it(`treats custom schemes as external when parseable by URL - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
       @customElement({ name: 'a31', template: `a31${vp(1)}` })
       class A31 {}
       const customScheme = 'myapp';
@@ -182,7 +182,6 @@ describe('router/external.spec.ts', function () {
 
     const { router, host, tearDown } = await createFixture(Root3, [A31], getDefaultHIAConfig, () => ({
       useUrlFragmentHash,
-      externalUrlSchemes: [customScheme],
     }));
 
     const [internalLink, deepLink, httpLink] = host.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;

@@ -396,21 +396,9 @@ If you want to globally deactivate the usage of `href`, then you can customize t
 
 To disable/bypass the default handling of router for any particular `href` attribute, you can avail couple of different ways as per your need and convenience.
 
-- Point the `href` to an absolute or protocol URL such as `http:`, `https:`, `mailto:`, `tel:`, `ftp:`, `ws:`, or a protocol-relative value like `//cdn.example.com`. The router automatically treats these as external links.
+- Point the `href` to an absolute or protocol URL such as `https://`, `mailto:`, `tel:`, `ftp:`, or a protocol-relative value like `//cdn.example.com`. The router automatically treats any value that the [`URL`](https://developer.mozilla.org/docs/Web/API/URL/URL) constructor can parse without a base as external, including custom schemes such as `myapp:deep-link`.
 - Using `external` or `data-external` attribute on the `a` tag for any other cases that should bypass the router.
 - Using a non-null value for the `target`, other than the current window name, or `_self`.
-
-If you need to support additional protocols (for example `myapp:` deep links), extend the allow list when registering the router. The router merges your additions with its defaults, so you only need to specify the extra schemes:
-
-```ts
-import { RouterConfiguration } from '@aurelia/router';
-
-app.register(
-  RouterConfiguration.customize({
-    externalUrlSchemes: ['myapp'],
-  }),
-);
-```
 
 Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router ignores the routing instruction and the default handling of clicking a link takes place.
 

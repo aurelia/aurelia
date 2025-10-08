@@ -48,7 +48,6 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   /** @internal */private _isEnabled: boolean;
   /** @internal */private _instructions: ViewportInstructionTree | null = null;
   /** @internal */private _treatAsExternal: boolean = false;
-  /** @internal */private static readonly _protocolLikePrefix = /^[a-z][a-z0-9+\-.]*:\/\//i;
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -146,16 +145,17 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       return true;
     }
 
-    if (HrefCustomAttribute._protocolLikePrefix.test(trimmed)) {
+    if (/^[a-z][a-z0-9+\-.]*:\/\//i.test(trimmed)) {
       return true;
     }
 
-    const protocolEnd = trimmed.indexOf(':');
-    if (protocolEnd <= 0) {
+    try {
+      // Treat URLs that can be parsed without a base as external (absolute URLs or schemes).
+      // Relative URLs will throw and are therefore handled internally.
+      new URL(trimmed);
+      return true;
+    } catch {
       return false;
     }
-
-    const protocol = trimmed.slice(0, protocolEnd).toLowerCase();
-    return this._router.options._externalUrlSchemesSet.has(protocol);
   }
 }

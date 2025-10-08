@@ -66,13 +66,13 @@ jobs:
             exit 1
           fi
 
-          echo "Triggering CircleCI pipeline on ${GITHUB_REPOSITORY}@${BRANCH} with parameters.run_bench=true"
+          echo "Triggering CircleCI pipeline on ${GITHUB_REPOSITORY}@${BRANCH} with run_bench=true and run_pr_lite=false"
 
           http_code=$(curl -sS -o response.json -w "%{http_code}" -X POST \
             "https://circleci.com/api/v2/project/gh/${GITHUB_REPOSITORY}/pipeline" \
             -H "Circle-Token: ${CIRCLECI_TOKEN}" \
             -H "Content-Type: application/json" \
-            -d "{\"branch\":\"${BRANCH}\",\"parameters\":{\"run_bench\":true}}")
+            -d "{\"branch\":\"${BRANCH}\",\"parameters\":{\"run_bench\":true,\"run_pr_lite\":false}}")
 
           echo "HTTP ${http_code}"
           echo "Response:"

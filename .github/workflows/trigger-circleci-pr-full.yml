@@ -126,7 +126,7 @@ jobs:
             exit 1
           fi
 
-          PARAMS='{"run_pr_full":true}'
+          PARAMS="{\"run_pr_full\":true,\"run_pr_lite\":false}"
           DATA="{\"branch\":\"${BRANCH}\",\"parameters\":${PARAMS}}"
 
           echo "Triggering CircleCI on ${GITHUB_REPOSITORY}@${BRANCH}"

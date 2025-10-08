@@ -65,9 +65,17 @@ export class RouterOptions {
      * @deprecated Will be removed in the next major version.
      */
     public readonly treatQueryAsParameters: boolean,
+    /**
+     * Schemes that should be treated as external when bound to `href`.
+     * Values are normalized to lower-case without surrounding whitespace.
+     */
+    public readonly externalUrlSchemes: readonly string[],
   ) {
     this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
+    this._externalUrlSchemesSet = new Set(externalUrlSchemes);
    }
+
+  /** @internal */ public readonly _externalUrlSchemesSet: ReadonlySet<string>;
 
   public static create(input: IRouterOptions): RouterOptions {
     return new RouterOptions(
@@ -79,6 +87,7 @@ export class RouterOptions {
       input.activeClass ?? null,
       input.restorePreviousRouteTreeOnError ?? true,
       input.treatQueryAsParameters ?? false,
+      RouterOptions._normalizeExternalUrlSchemes(input.externalUrlSchemes),
     );
   }
 
@@ -90,6 +99,43 @@ export class RouterOptions {
       const value = this[key];
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
     }).join(',')})`;
+  }
+
+  private static readonly _defaultExternalUrlSchemes = Object.freeze([
+    'http',
+    'https',
+    'mailto',
+    'tel',
+    'sms',
+    'geo',
+    'ftp',
+    'ftps',
+    'ws',
+    'wss',
+    'data',
+    'file',
+    'blob',
+    'chrome',
+    'chrome-extension',
+    'javascript',
+  ]);
+  public static readonly defaultExternalUrlSchemes: readonly string[] = RouterOptions._defaultExternalUrlSchemes;
+
+  private static _normalizeExternalUrlSchemes(input: IRouterOptions['externalUrlSchemes']): readonly string[] {
+    const normalized: string[] = [];
+    const seen = new Set<string>();
+    const add = (value: unknown) => {
+      if (typeof value !== 'string') return;
+      const trimmed = value.trim().toLowerCase();
+      if (trimmed === '' || seen.has(trimmed)) return;
+      seen.add(trimmed);
+      normalized.push(trimmed);
+    };
+    for (const scheme of RouterOptions._defaultExternalUrlSchemes) add(scheme);
+    if (Array.isArray(input)) {
+      for (const scheme of input) add(scheme);
+    }
+    return Object.freeze(normalized);
   }
 }
 

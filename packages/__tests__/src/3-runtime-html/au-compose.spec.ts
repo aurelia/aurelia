@@ -30,6 +30,24 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.textContent, '');
     });
 
+    it('applies inline template surrogate attributes to the composed host when tag is provided', async function () {
+      const { appHost, tearDown } = await createFixture(
+        `<au-compose tag="div" template="<template class='message'><div>\${message}</div></template>">`,
+        class App {
+          public message = 'Hello World!';
+        }
+      ).started;
+
+      const host = appHost.children[0] as HTMLElement | undefined;
+      assert.notStrictEqual(host, void 0);
+      assert.strictEqual(host!.className, 'message');
+      assert.strictEqual(host!.textContent?.trim(), 'Hello World!');
+
+      await tearDown();
+
+      assert.strictEqual(appHost.textContent, '');
+    });
+
     // this test is a different with the rest, where the view is being recreated
     // and the composition happens again.
     // Instead of the bindings getting notified by the changes in the view model

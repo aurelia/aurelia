@@ -1,4 +1,4 @@
-import { IDisposable, IIndexable, type IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator, type Writable } from '@aurelia/kernel';
 import {
   connectable,
   IObserverLocatorBasedConnectable,
@@ -16,42 +16,32 @@ import { createStateBindingScope, isSubscribable } from './state-utilities';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateGetterBinding extends IObserverLocatorBasedConnectable {
-  l: IServiceLocator;
-}
+export interface StateGetterBinding extends IObserverLocatorBasedConnectable, IServiceLocator { }
 export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
 
   /** @internal */
   private _scope?: Scope | undefined;
 
-  /** @internal */
-  public l: IServiceLocator;
-
-  public readonly get: IServiceLocator['get'];
-
   private readonly $get: (s: unknown) => unknown;
   private readonly target: IIndexable;
   private readonly key: PropertyKey;
 
-  /** @internal */ private _store?: IStore<object>;
+  /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
 
   public constructor(
-    locator: IServiceLocator,
     target: object,
     prop: PropertyKey,
     store: IStore<object>,
     getValue: (s: unknown) => unknown,
   ) {
-    this.l = locator;
-    this.get = locator.get.bind(locator);
+    this._store = store;
     this.$get = getValue;
     this.target = target as IIndexable;
     this.key = prop;
-    this._store = store;
   }
 
   private updateTarget(value: unknown) {
@@ -86,10 +76,9 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     if (this.isBound) {
       return;
     }
-    const store = this._store!;
-    const state = store.getState();
+    const state = this._store.getState();
     this._scope = createStateBindingScope(state, _scope);
-    store.subscribe(this);
+    this._store.subscribe(this);
     this.updateTarget(this._value = this.$get(state));
     this.isBound = true;
   }
@@ -103,19 +92,14 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
     this._scope = void 0;
-    const store = this._store;
-    if (store != null) {
-      store.unsubscribe(this);
-      this._store = void 0;
-    }
+    this._store.unsubscribe(this);
   }
 
   public handleStateChange(state: object): void {
     const _scope = this._scope!;
     const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
     _scope.bindingContext = overrideContext.bindingContext = state;
-    const store = this._store!;
-    const value = this.$get(store.getState());
+    const value = this.$get(this._store.getState());
 
     if (value === this._value) {
       return;

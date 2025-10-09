@@ -68,6 +68,7 @@ class HydratingLifecycleHooks {
     const container = controller.container;
     if (controller.vmKind !== 'customElement') return;
     controller.addBinding(new StateGetterBinding(
+      container,
       vm,
       this.key,
       this.resolveStore(container),
@@ -98,6 +99,7 @@ class CreatedLifecycleHooks {
     const container = controller.container;
     if (controller.vmKind !== 'customAttribute') return;
     controller.addBinding(new StateGetterBinding(
+      container,
       vm,
       this.key,
       this.resolveStore(container),

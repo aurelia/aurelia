@@ -10,6 +10,8 @@ import {
   type IAstEvaluator,
   type Scope,
   astEvaluate,
+  astBind,
+  astUnbind,
   type IOverrideContext,
 } from '@aurelia/runtime';
 import {
@@ -51,12 +53,13 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   private readonly target: object;
   private readonly targetProperty: PropertyKey;
 
-  /** @internal */ private readonly _store: IStore<object>;
+  /** @internal */ private _store: IStore<object>;
   /** @internal */ private _targetObserver!: IAccessor;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
   /** @internal */ private readonly _controller: IBindingController;
+  /** @internal */ private _parentScope?: Scope;
 
   // see Listener binding for explanation
   /** @internal */
@@ -121,14 +124,12 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       return;
     }
     this._targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
-    this.updateTarget(this._value = astEvaluate(
-      this.ast,
-      this._scope = createStateBindingScope(this._store.getState(), _scope),
-      this,
-      this.mode > BindingMode.oneTime ? this : null),
-    );
+    this._parentScope = _scope;
+    const bindingScope = this._scope = createStateBindingScope(this._store.getState(), _scope);
+    astBind(this.ast, bindingScope, this);
     this._store.subscribe(this);
     this.isBound = true;
+    this.handleStateChange();
   }
 
   public unbind(): void {
@@ -139,8 +140,13 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     this._unsub();
     // also disregard incoming future value of promise resolution if any
     this._updateCount++;
+    const bindingScope = this._scope;
+    if (bindingScope != null) {
+      astUnbind(this.ast, bindingScope, this);
+    }
     this._scope = void 0;
     this._store.unsubscribe(this);
+    this._parentScope = void 0;
   }
 
   public handleChange(newValue: unknown): void {
@@ -173,6 +179,25 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     }
     this._value = value;
     this.updateTarget(value);
+  }
+
+  public useStore(store: IStore<object>): void {
+    if (this._store === store) {
+      return;
+    }
+    if (this.isBound) {
+      this._store.unsubscribe(this);
+      this._store = store;
+      const parent = this._parentScope!;
+      const previousScope = this._scope!;
+      astUnbind(this.ast, previousScope, this);
+      const bindingScope = this._scope = createStateBindingScope(store.getState(), parent);
+      astBind(this.ast, bindingScope, this);
+      this._store.subscribe(this);
+      this.handleStateChange();
+      return;
+    }
+    this._store = store;
   }
 
   /** @internal */

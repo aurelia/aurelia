@@ -37,6 +37,7 @@ export {
 } from './state-templating';
 
 export { StateBindingBehavior } from './state-binding-behavior';
+export { StoreBindingBehavior } from './store-binding-behavior';
 export { fromState } from './state-decorator';
 export { createStateMemoizer, type StateMemoizer } from './state-memorizer';
 export { StoreRegistry } from './store-registry';

@@ -2,10 +2,23 @@
 import { tasksSettled } from '@aurelia/runtime';
 import { CustomElement } from '@aurelia/runtime-html';
 import {
+  assert,
   createFixture,
 } from '@aurelia/testing';
 
 describe('3-runtime-html/repeat.previous.spec.ts', function () {
+  it('throws when using key with invalid command', function () {
+    assert.throws(() => createFixture('<div repeat.for="item of items; key.two-way: true">'));
+  });
+
+  it('throws when using contextual with invalid command', function () {
+    assert.throws(() => createFixture('<div repeat.for="item of items; contextual.two-way: true">'));
+  });
+
+  it('throws when using any extra unknown properties', function () {
+    assert.throws(() => createFixture('<div repeat.for="item of items; contextual: true; unknown: true">'));
+  });
+
   describe('$previous contextual property', function () {
 
     it('$previous is null for first item (contextual: true)', async function () {

@@ -98,10 +98,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (let i = 0, ii = iteratorProps.length; i < ii; ++i) {
       const prop = iteratorProps[i];
-      if (prop === void 0) {
-        continue;
-      }
-
       const { to, value, command } = prop;
       if (to === 'key') {
         if (command === null) {

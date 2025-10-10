@@ -5001,6 +5001,74 @@ describe('router/hook-tests.spec.ts', function () {
     });
   });
 
+  describe('error recovery from loaded hook', function () {
+    const ticks = 0;
+
+    function waitForQueuedTasks(queue: TaskQueue): Promise<void> {
+      queue.queueTask(() => Promise.resolve());
+      return queue.yield();
+    }
+
+    function createComponents(hookSpec: HookSpecs) {
+      @customElement({ name: 'ce-a', template: 'a' })
+      class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
+
+      @customElement({ name: 'ce-b', template: 'b' })
+      class B extends TestVM {
+        public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
+        protected $loaded(): void {
+          throw new Error('loaded hook failure');
+        }
+      }
+
+      @route({
+        routes: [
+          { path: ['', 'a'], component: A, title: 'A' },
+          { path: 'b', component: B, title: 'B' },
+        ]
+      })
+      @customElement({ name: 'my-app', template: '<au-viewport></au-viewport>' })
+      class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
+
+      return { Root, A, B };
+    }
+
+    it('restores previous route when recovery is enabled', async function () {
+      const hookSpec = HookSpecs.create(ticks);
+      const { Root, A, B } = createComponents(hookSpec);
+      const { router, mgr, tearDown, platform, host } = await createFixture(Root, [A, B]);
+      const queue = platform.taskQueue;
+
+      let phase = 'round#1';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      await router.load('a');
+      await waitForQueuedTasks(queue);
+      await platform.domQueue.yield();
+      assert.html.textContent(host, 'a', `${phase} - text`);
+
+      phase = 'round#2';
+      mgr.fullNotifyHistory.length = 0;
+      mgr.setPrefix(phase);
+      try {
+        await router.load('b');
+        assert.fail(`${phase} - expected loaded hook error`);
+      } catch (err) {
+        assert.match((err as Error).message, /loaded hook failure/, `${phase} - should propagate loaded hook error`);
+      }
+      await waitForQueuedTasks(queue);
+      await platform.domQueue.yield();
+
+      assert.html.textContent(host, 'a', `${phase} - text`);
+      const history = mgr.fullNotifyHistory.slice();
+      assert.ok(history.includes(`${phase}.ce-b.attached.enter`), `${phase} - failing component should reach attach stage`);
+      assert.ok(history.includes(`${phase}.ce-a.binding.enter`), `${phase} - previous component should be rebound after recovery`);
+
+      await tearDown();
+    });
+
+  });
+
   it('canUnload returns null/undefined -> unloading works', async function () {
 
     @customElement({ name: 'ce-a', template: 'a' })

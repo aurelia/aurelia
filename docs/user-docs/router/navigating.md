@@ -396,7 +396,8 @@ If you want to globally deactivate the usage of `href`, then you can customize t
 
 To disable/bypass the default handling of router for any particular `href` attribute, you can avail couple of different ways as per your need and convenience.
 
-- Using `external` or `data-external` attribute on the `a` tag.
+- Point the `href` to an absolute or protocol URL such as `https://`, `mailto:`, `tel:`, `ftp:`, or a protocol-relative value like `//cdn.example.com`. The router automatically treats any value that the [`URL`](https://developer.mozilla.org/docs/Web/API/URL/URL) constructor can parse without a base as external, including custom schemes such as `myapp:deep-link`.
+- Using `external` or `data-external` attribute on the `a` tag for any other cases that should bypass the router.
 - Using a non-null value for the `target`, other than the current window name, or `_self`.
 
 Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router ignores the routing instruction and the default handling of clicking a link takes place.

@@ -719,6 +719,8 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
   public constructor(
     public readonly $index: number = 0,
     public readonly $length: number = 1,
+    // maybe at some point we can turn this into $items
+    // to indicate a normalised array of any collection
     public readonly __items__: unknown[] | undefined = undefined,
   ) {}
 }

@@ -64,6 +64,10 @@ export class FileImporter {
 }
 ```
 
+{% hint style="info" %}
+Make sure the dependencies passed to `@inject` follow the same order as the constructor parameters so each argument receives the correct instance.
+{% endhint %}
+
 <!-- #### Using Compiler Metadata
 
 If you use TypeScript and have enabled metadata emission, you can leverage the TypeScript compiler to deduce the types to inject:

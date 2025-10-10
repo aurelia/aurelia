@@ -3530,6 +3530,72 @@ describe('router/hook-tests.spec.ts', function () {
             await tearDown();
           });
         }
+
+        // Reported by MaxB on Discord: https://discord.com/channels/448698263508615178/1243519563283435520/1421759783765016689
+        it('next throws error in loading - current has detaching hook', async function () {
+
+          @customElement({ name: 'ce-1', template: 'ce-1' })
+          class Ce1 {
+            public static detachingCount = 0;
+            public async detaching() {
+              Ce1.detachingCount++;
+            }
+          }
+
+          @customElement({ name: 'ce-2', template: 'ce-2' })
+          class Ce2 {
+            public static loadingCount = 0;
+            public async loading() {
+              Ce2.loadingCount++;
+              throw new Error('error in loading');
+            }
+          }
+
+          @route({ routes: [{ path: ['', 'ce-1'], component: Ce1 }, { path: 'ce-2', component: Ce2 }] })
+          @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+          class Root { }
+
+          const { router, tearDown, host, container } = await createFixture(Root, [Ce1, Ce2], LogLevel.error);
+
+          const viewport = host.querySelector('au-viewport');
+
+          // assert initial state
+          assert.html.textContent(viewport, 'ce-1', 'initial state: expected ce-1 to be loaded');
+          assert.strictEqual(Ce1.detachingCount, 0, 'initial state: expected ce-1.detaching to not have been called yet');
+          assert.strictEqual(Ce2.loadingCount, 0, 'initial state: expected ce-2.loading to not have been called yet');
+
+          // act
+          try {
+            await router.load('ce-2');
+            assert.fail(`Expected an error, but no error was thrown`);
+          } catch (err) {
+            assert.match(err.message, /error in loading/, `Expected message to match (${err.message}) matches /error in loading/`);
+          }
+
+          // wait for the tasks to be finished
+          const platform = container.get(IPlatform);
+          await platform.domQueue.yield();
+          await platform.taskQueue.yield();
+
+          // assert
+          // assert.html.textContent(viewport, 'ce-1', `Expected ce-1 to still be loaded (because ce-2 failed to load)`);
+          assert.strictEqual(Ce1.detachingCount, 1, `Expected ce-1.detaching to have been called once`);
+          assert.strictEqual(Ce2.loadingCount, 1, `Expected ce-2.loading to have been called once`);
+
+          try {
+            await tearDown();
+          } catch ($err) {
+            if (($err.message as string).includes('error in')) {
+              // The router should by default "remember" the last error and propagate it once again from the first deactivated viewport
+              // on the next shutdown attempt.
+              // This is the error we expect, so ignore it
+            } else {
+              // Re-throw anything else which would not be an expected error (e.g. "unexpected state" shouldn't happen if the router handled
+              // the last error)
+              throw $err;
+            }
+          }
+        });
       });
 
       describe('parent-child', function () {

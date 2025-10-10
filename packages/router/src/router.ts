@@ -782,33 +782,36 @@ export class Router {
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
     const all = mergeDistinct(prev, next);
-    // order doesn't matter for this operation
-    all.forEach(function (node) {
-      node.context.vpa._cancelUpdate();
-    });
-
-    this._instructions = tr.prevInstructions;
-    this._routeTree = tr.previousRouteTree;
-    this._isNavigating = false;
-    const guardsResult = tr.guardsResult;
-    this._events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
-
-    if (guardsResult === false) {
-      tr.resolve!(false);
-
-      // In case a new navigation was requested in the meantime, immediately start processing it
-      this._runNextTransition();
-    } else {
-
-      let instructions: ViewportInstructionTree;
-      if (this._navigated && (tr.erredWithUnknownRoute || (tr.error != null && this.options.restorePreviousRouteTreeOnError))) instructions = tr.prevInstructions;
-      else if (guardsResult === true) return;
-      else instructions = guardsResult;
-
-      void onResolve(this._enqueue(instructions, 'api', tr.managedState, tr), () => {
-        if (__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
+    Batch._start(b => {
+      // order doesn't matter for this operation
+      all.forEach(function (node) {
+        node.context.vpa._cancelUpdate(b);
       });
-    }
+    })._continueWith(_b => {
+
+      this._instructions = tr.prevInstructions;
+      this._routeTree = tr.previousRouteTree;
+      this._isNavigating = false;
+      const guardsResult = tr.guardsResult;
+      this._events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
+
+      if (guardsResult === false) {
+        tr.resolve!(false);
+
+        // In case a new navigation was requested in the meantime, immediately start processing it
+        this._runNextTransition();
+      } else {
+
+        let instructions: ViewportInstructionTree;
+        if (this._navigated && (tr.erredWithUnknownRoute || (tr.error != null && this.options.restorePreviousRouteTreeOnError))) instructions = tr.prevInstructions;
+        else if (guardsResult === true) return;
+        else instructions = guardsResult;
+
+        void onResolve(this._enqueue(instructions, 'api', tr.managedState, tr), () => {
+          if (__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
+        });
+      }
+    })._start();
   }
 
   /** @internal */

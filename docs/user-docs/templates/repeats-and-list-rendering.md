@@ -137,6 +137,7 @@ Every repeat iteration provides rich contextual information:
 | `$even` | `boolean` | `true` for even indices (0, 2, 4...) |
 | `$odd` | `boolean` | `true` for odd indices (1, 3, 5...) |
 | `$length` | `number` | Total number of items |
+| `$previous` | `any` | `null` | Previous iteration's item (computed; undefined when contextual is disabled) |
 | `$parent` | `object` | Parent binding context |
 
 ### Nested Repeats and $parent
@@ -156,6 +157,143 @@ Access parent contexts in nested structures:
   </div>
 </div>
 ```
+
+### Accessing Previous Items with $previous
+
+The `$previous` contextual property provides access to the previous iteration's item, enabling powerful comparison and rendering patterns. It is a computed property available by default as part of repeat's contextual values. You can disable all contextual computed values (including `$previous`) using the `contextual` option.
+
+**Basic usage:**
+```html
+<!-- $previous is enabled by default (disable with contextual: false) -->
+<div repeat.for="item of items">
+  <div class="item">
+    ${item.name}
+    <span if.bind="$previous !== null">
+      (Previous: ${$previous.name})
+    </span>
+  </div>
+</div>
+```
+
+**Key characteristics:**
+- `$previous` is `null` for the first item
+- `$previous` is `undefined` when `contextual` is disabled
+- Computed property with minimal overhead when enabled (contextual is enabled by default)
+- Works with all collection types (arrays, Maps, Sets, etc.)
+- Compatible with keyed repeats
+
+#### Section Headers and Dividers
+
+A common use case is rendering section headers only when data changes:
+
+```typescript
+export class ProductList {
+  products = [
+    { category: 'Electronics', name: 'Laptop' },
+    { category: 'Electronics', name: 'Mouse' },
+    { category: 'Books', name: 'JavaScript Guide' },
+    { category: 'Books', name: 'TypeScript Handbook' }
+  ];
+}
+```
+
+```html
+<!-- Show category header only when it changes -->
+<div repeat.for="product of products">
+  <h2 if.bind="product.category !== $previous?.category">
+    ${product.category}
+  </h2>
+  <div class="product">${product.name}</div>
+</div>
+```
+
+**Output:**
+```
+Electronics
+  Laptop
+  Mouse
+Books
+  JavaScript Guide
+  TypeScript Handbook
+```
+
+#### Comparison and Change Indicators
+
+Highlight changes from previous values:
+
+```typescript
+export class StockTracker {
+  prices = [
+    { time: '09:00', price: 100 },
+    { time: '09:01', price: 102 },
+    { time: '09:02', price: 98 },
+    { time: '09:03', price: 98 }
+  ];
+}
+```
+
+```html
+<table>
+  <tr repeat.for="entry of prices">
+    <td>${entry.time}</td>
+    <td class="${entry.price > $previous?.price ? 'up' :
+                  entry.price < $previous?.price ? 'down' : ''}">
+      $${entry.price}
+      <span if.bind="$previous && entry.price !== $previous.price">
+        ${entry.price > $previous.price ? '↑' : '↓'}
+      </span>
+    </td>
+  </tr>
+</table>
+```
+
+#### Combining with Keys
+
+`$previous` works seamlessly with keyed repeats:
+
+```html
+<!-- Multiple iterator properties separated by semicolons -->
+<div repeat.for="item of items; key: id">
+  <div class="item-${item.id}">
+    ${item.name}
+    <span if.bind="$previous">
+      Changed from: ${$previous.name}
+    </span>
+  </div>
+</div>
+```
+
+#### Conditional Contextual Properties
+
+Control contextual computed properties (including `$previous`) based on view model properties:
+
+```typescript
+export class ConfigurableList {
+  items = [...];
+  showContextual = true; // Toggle contextual on/off
+}
+```
+
+```html
+<!-- Enable/disable contextual based on component state -->
+<div repeat.for="item of items; contextual.bind: showContextual">
+  <!-- $previous is only available when contextual is true -->
+</div>
+```
+
+#### Performance Considerations
+
+**When contextual is disabled:**
+- Zero memory overhead - `$previous` is not computed
+- Negligible CPU cost - single conditional check per item
+
+**When contextual is enabled (default):**
+- Computed on demand via contextual getter
+- Minimal CPU cost
+
+**Best practices:**
+- Keep contextual enabled unless you have a strong reason to disable it
+- If needed, disable per-instance with `contextual: false` or `contextual.bind: someBoolean`
 
 ## Data Types and Collections
 

@@ -440,6 +440,7 @@
   * [Request cancellation with AbortController](aurelia-packages/fetch-client/abort-controller.md)
   * [Intercepting responses & requests](aurelia-packages/fetch-client/interceptors.md)
   * [Advanced](aurelia-packages/fetch-client/advanced.md)
+* [Addons: Rest Resource](aurelia-packages/addons/rest-resource.md)
 * [State](aurelia-packages/state.md)
 * [Store](aurelia-packages/store/README.md)
   * [Configuration and Setup](aurelia-packages/store/configuration-and-setup.md)

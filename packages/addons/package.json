@@ -54,6 +54,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@aurelia/fetch-client": "2.0.0-beta.25",
     "@aurelia/kernel": "2.0.0-beta.25",
     "@aurelia/metadata": "2.0.0-beta.25",
     "@aurelia/platform": "2.0.0-beta.25",

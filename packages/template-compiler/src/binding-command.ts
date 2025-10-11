@@ -356,16 +356,32 @@ export class ForBindingCommand implements BindingCommandInstance {
       : info.bindable.name;
     const forOf = exprParser.parse(info.attr.rawValue, 'IsIterator');
     let props: MultiAttrInstruction[] = emptyArray;
+    
+    // Parse additional iterator properties after the for-of expression.
+    // This supports multiple semicolon-separated properties like:
+    // repeat.for="item of items; key: id; previous.bind: true"
+    // Previously, only a single property was supported after the semicolon.
+    // This enhancement allows combining multiple iterator options (key, previous, etc.)
     if (forOf.semiIdx > -1) {
-      const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);
-      const i = attr.indexOf(':');
-      if (i > -1) {
-        const attrName = attr.slice(0, i).trim();
-        const attrValue = attr.slice(i + 1).trim();
-        const attrSyntax = this._attrParser.parse(attrName, attrValue);
-        props = [new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command)];
+      const attrsString = info.attr.rawValue.slice(forOf.semiIdx + 1);
+      const attrParts = attrsString.split(';');
+      const parsedProps: MultiAttrInstruction[] = [];
+      
+      for (let j = 0, jj = attrParts.length; j < jj; j++) {
+        const attrPart = attrParts[j];
+        const colonIdx = attrPart.indexOf(':');
+        
+        if (colonIdx > -1) {
+          const attrName = attrPart.slice(0, colonIdx).trim();
+          const attrValue = attrPart.slice(colonIdx + 1).trim();
+          const attrSyntax = this._attrParser.parse(attrName, attrValue);
+          parsedProps.push(new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command));
+        }
       }
+      
+      props = parsedProps;
     }
+    
     return new IteratorBindingInstruction(forOf, target, props);
   }
 }

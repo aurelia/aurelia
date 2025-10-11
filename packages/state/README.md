@@ -17,3 +17,40 @@ For our nightly builds:
 ```bash
 npm i @aurelia/state@dev
 ```
+
+## Multiple Stores
+
+Register additional stores by providing a `storeName` or `storeKey` when initializing the configuration:
+
+```ts
+import { StateDefaultConfiguration } from '@aurelia/state';
+
+Aurelia.register(
+  StateDefaultConfiguration.init({ counter: 0 }), // default store
+  StateDefaultConfiguration.init({ users: [] }, { storeName: 'users' }),
+);
+```
+
+In templates, target a specific store with the `& store:'name'` helper:
+
+```html
+<div textcontent.state="users.length & store:'users'"></div>
+<button click.dispatch="{ type: 'reload' } & store:'users'">Refresh Users</button>
+```
+
+Other integrations understand named stores as well:
+
+```ts
+import { fromState } from '@aurelia/state';
+
+class UserPanel {
+  @fromState('users', state => state.users)
+  users!: User[];
+}
+```
+
+Binding behavior accepts an argument for the store identifier:
+
+```html
+<span textcontent.bind="name & state:'users'"></span>
+```

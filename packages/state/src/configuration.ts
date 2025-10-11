@@ -1,8 +1,8 @@
-import { IContainer, Registration } from '@aurelia/kernel';
-import { IActionHandler, IState, IStore, IStateMiddleware, MiddlewarePlacement } from './interfaces';
-import { ActionHandler } from './action-handler';
+import { type IRegistry, IContainer, ILogger, Registration, lazy } from '@aurelia/kernel';
+import { IActionHandler, IStore, IStateMiddleware, MiddlewarePlacement, IStoreRegistry, IStoreRegistration, IState } from './interfaces';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
+import { StoreBindingBehavior } from './store-binding-behavior';
 import {
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
@@ -11,6 +11,7 @@ import {
 } from './state-templating';
 import { IDevToolsExtension, IDevToolsOptions } from './interfaces-devtools';
 import { AppTask } from '@aurelia/runtime-html';
+import { StoreRegistry } from './store-registry';
 
 const standardRegistrations = [
   StateBindingCommand,
@@ -20,8 +21,7 @@ const standardRegistrations = [
   DispatchBindingInstructionRenderer,
 
   StateBindingBehavior,
-
-  Store,
+  StoreBindingBehavior,
 ];
 
 export interface IMiddlewareRegistration<T = any, S = any> {
@@ -30,30 +30,63 @@ export interface IMiddlewareRegistration<T = any, S = any> {
   settings?: S;
 }
 
-const createConfiguration = <T>(
+const createConfiguration = <T extends object>(
   initialState: T,
   actionHandlers: IActionHandler<T>[],
   options: IStateConfigurationOptions = {}
 ): IStateConfiguration => {
+  const normalizedHandlers = actionHandlers.slice();
   return {
     register: (c: IContainer) => {
+      if (!c.has(IStoreRegistry, false)) {
+        c.register(Registration.singleton(IStoreRegistry, StoreRegistry));
+      }
       c.register(
-        Registration.instance(IState, initialState),
         ...standardRegistrations,
-        ...actionHandlers.map(ActionHandler.define),
         /* istanbul ignore next */
         AppTask.creating(IContainer, container => {
-          const store = container.get(IStore);
+          const logger = container.get(ILogger);
+          const getDevTools = container.get(lazy(IDevToolsExtension));
 
-          // Register middlewares if provided
+          const storeName = options.storeName;
+          const primaryKey = (options.storeKey ?? storeName ?? IStore) as IStoreRegistration['key'];
+          const isDefaultStore = options.isDefault ?? primaryKey === IStore;
+
+          const store = new Store<T, unknown>(initialState, normalizedHandlers, logger, getDevTools, typeof storeName === 'string' ? storeName : undefined);
+
+          const registrations: IRegistry[] = [];
+          if (primaryKey != null) {
+            registrations.push(Registration.instance(primaryKey, store));
+          }
+
+          if (isDefaultStore) {
+            if (primaryKey !== IStore) {
+              registrations.push(Registration.instance(IStore, store));
+            }
+            registrations.push(Registration.instance(Store, store));
+            if (!container.has(IState, false)) {
+              registrations.push(Registration.instance(IState, initialState));
+            }
+          }
+
+          if (registrations.length > 0) {
+            container.register(...registrations);
+          }
+
+          const storeRegistry = container.get(IStoreRegistry);
+          storeRegistry.register(store, {
+            name: storeName,
+            key: primaryKey,
+            isDefault: isDefaultStore,
+          });
+
           if (options.middlewares) {
             for (const middlewareReg of options.middlewares) {
               store.registerMiddleware(middlewareReg.middleware, middlewareReg.placement, middlewareReg.settings);
             }
           }
 
-          const devTools = container.get(IDevToolsExtension);
-          if (options.devToolsOptions?.disable !== true && devTools != null) {
+          if (options.devToolsOptions?.disable !== true && container.has(IDevToolsExtension, true)) {
             store.connectDevTools(options.devToolsOptions ?? {});
           }
         })
@@ -81,6 +114,9 @@ export interface IStateConfiguration {
 export interface IStateConfigurationOptions {
   devToolsOptions?: IDevToolsOptions;
   middlewares?: IMiddlewareRegistration[];
+  storeName?: string;
+  storeKey?: IStoreRegistration['key'];
+  isDefault?: boolean;
 }
 
 export interface IConfigurationInit {

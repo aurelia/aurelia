@@ -1,6 +1,6 @@
 import { IContainer, Protocol, Registration } from '@aurelia/kernel';
 import { IHydratedComponentController, ILifecycleHooks, LifecycleHooks } from '@aurelia/runtime-html';
-import { IStore } from './interfaces';
+import { IStore, IStoreRegistry, type StoreLocator } from './interfaces';
 import { StateGetterBinding } from './state-getter-binding';
 
 /**
@@ -16,7 +16,18 @@ import { StateGetterBinding } from './state-getter-binding';
  */
 export function fromState<T, K = unknown>(
   getValue: (state: T) => K
+): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void);
+export function fromState<T, K = unknown>(
+  storeLocator: StoreLocator,
+  getValue: (state: T) => K
+): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void);
+export function fromState<T, K = unknown>(
+  storeOrGetter: StoreLocator | ((state: T) => K),
+  maybeGetter?: (state: T) => K
 ): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void) {
+  const hasStoreLocator = typeof maybeGetter === 'function';
+  const storeLocator = hasStoreLocator ? storeOrGetter as StoreLocator : void 0;
+  const getValue = (hasStoreLocator ? maybeGetter : storeOrGetter) as (state: T) => K;
   return function (
     target: unknown,
     context: ClassFieldDecoratorContext<unknown,K> | ClassSetterDecoratorContext<unknown, K>,
@@ -32,8 +43,8 @@ export function fromState<T, K = unknown>(
     // However, the hooks checks how the component is used and adds only a single binding.
     // Improvement idea: add a way to declare the target types for the hooks and lazily create the hooks only for those types (sort of hook factory?).
     dependencies.push(
-      new HydratingLifecycleHooks(getValue, key),
-      new CreatedLifecycleHooks(getValue, key)
+      new HydratingLifecycleHooks(getValue, key, storeLocator),
+      new CreatedLifecycleHooks(getValue, key, storeLocator)
     );
   };
 }
@@ -44,6 +55,7 @@ class HydratingLifecycleHooks {
   public constructor(
     private readonly $get: (s: any) => unknown,
     private readonly key: PropertyKey,
+    private readonly storeLocator?: StoreLocator,
   ) {
 
   }
@@ -56,11 +68,18 @@ class HydratingLifecycleHooks {
     const container = controller.container;
     if (controller.vmKind !== 'customElement') return;
     controller.addBinding(new StateGetterBinding(
+      container,
       vm,
       this.key,
-      container.get(IStore),
+      this.resolveStore(container),
       this.$get,
     ));
+  }
+
+  private resolveStore(container: IContainer) {
+    return this.storeLocator == null
+      ? container.get(IStore)
+      : container.get(IStoreRegistry).getStore(this.storeLocator);
   }
 }
 LifecycleHooks.define({}, HydratingLifecycleHooks);
@@ -69,6 +88,7 @@ class CreatedLifecycleHooks {
   public constructor(
     private readonly $get: (s: any) => unknown,
     private readonly key: PropertyKey,
+    private readonly storeLocator?: StoreLocator,
   ) {}
 
   public register(c: IContainer) {
@@ -79,11 +99,18 @@ class CreatedLifecycleHooks {
     const container = controller.container;
     if (controller.vmKind !== 'customAttribute') return;
     controller.addBinding(new StateGetterBinding(
+      container,
       vm,
       this.key,
-      container.get(IStore),
+      this.resolveStore(container),
       this.$get,
     ));
+  }
+
+  private resolveStore(container: IContainer) {
+    return this.storeLocator == null
+      ? container.get(IStore)
+      : container.get(IStoreRegistry).getStore(this.storeLocator);
   }
 }
 LifecycleHooks.define({}, CreatedLifecycleHooks);

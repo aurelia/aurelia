@@ -1,5 +1,4 @@
-
-import { IDisposable, IIndexable, IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
   IObserverLocatorBasedConnectable,
@@ -8,9 +7,9 @@ import {
 } from '@aurelia/runtime';
 import { IBinding } from '@aurelia/runtime-html';
 import {
-  IStore,
+  type IStore,
   type Unsubscribable,
-  type IStoreSubscriber
+  type IStoreSubscriber,
 } from './interfaces';
 import { createStateBindingScope, isSubscribable } from './state-utilities';
 
@@ -28,17 +27,26 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   private readonly target: IIndexable;
   private readonly key: PropertyKey;
 
-  /** @internal */ private readonly _store: IStore<object>;
+  /** @internal */ private _store: IStore<object>;
   /** @internal */ private _value: unknown = void 0;
   /** @internal */ private _sub?: IDisposable | Unsubscribable | (() => void) = void 0;
   /** @internal */ private _updateCount = 0;
+  /** @internal */ private _parentScope?: Scope;
+
+  /** @internal */
+  public l: IServiceLocator;
+
+  public readonly get: IServiceLocator['get'];
 
   public constructor(
+    locator: IServiceLocator,
     target: object,
     prop: PropertyKey,
     store: IStore<object>,
     getValue: (s: unknown) => unknown,
   ) {
+    this.l = locator;
+    this.get = locator.get.bind(locator);
     this._store = store;
     this.$get = getValue;
     this.target = target as IIndexable;
@@ -78,6 +86,7 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
       return;
     }
     const state = this._store.getState();
+    this._parentScope = _scope;
     this._scope = createStateBindingScope(state, _scope);
     this._store.subscribe(this);
     this.updateTarget(this._value = this.$get(state));
@@ -94,6 +103,7 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     this._updateCount++;
     this._scope = void 0;
     this._store.unsubscribe(this);
+    this._parentScope = void 0;
   }
 
   public handleStateChange(state: object): void {
@@ -109,6 +119,23 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     this.updateTarget(value);
   }
 
+  public useStore(store: IStore<object>): void {
+    if (this._store === store) {
+      return;
+    }
+    if (this.isBound) {
+      this._store.unsubscribe(this);
+      this._store = store;
+      const parent = this._parentScope!;
+      const state = store.getState();
+      this._scope = createStateBindingScope(state, parent);
+      this._store.subscribe(this);
+      this.updateTarget(this._value = this.$get(state));
+      return;
+    }
+    this._store = store;
+  }
+
   /** @internal */
   private _unsub() {
     if (typeof this._sub === 'function') {
@@ -119,5 +146,6 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     }
     this._sub = void 0;
   }
+
 }
 connectable(StateGetterBinding, null!);

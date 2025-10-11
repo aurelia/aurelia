@@ -222,29 +222,27 @@ export class MyClass {
 
 #### Example
 
-If you have multiple instances of a service registered under the same key, last will ensure that you get the most recently registered instance:
+If you have multiple instances of a service registered under the same key, `last` will ensure that you get the most recently registered instance:
 
 ```typescript
-import { DI, IContainer, last, Registration } from 'aurelia';
+import { DI, last, Registration } from 'aurelia';
 
 const container = DI.createContainer();
 container.register(Registration.instance(MyService, new MyService('instance1')));
 container.register(Registration.instance(MyService, new MyService('instance2')));
 container.register(Registration.instance(MyService, new MyService('instance3')));
 
-const myClass = container.get(last(MyService));
-console.log(myClass.service); // Outputs: instance3
+const latestService = container.get(last(MyService));
+console.log(latestService?.name); // Logs the values from `instance3`
 ```
 
-In this example, `myClass.service` will be the instance of MyService registered last (i.e., `instance3`).
-
-If no instances are registered under the specified key, the last resolver will return undefined:
+If no instances are registered under the specified key, the `last` resolver will return `undefined`:
 
 ```typescript
 const container = DI.createContainer();
 
-const myClass = container.get(last(MyClass));
-console.log(myClass.service); // Outputs: undefined
+const maybeService = container.get(last(MyService));
+console.log(maybeService); // undefined
 ```
 
 ## Custom Resolvers
@@ -254,13 +252,15 @@ You can create custom resolvers by implementing the `IResolver` interface. Custo
 ### Example of a Custom Resolver
 
 ```typescript
-import { IResolver, IContainer, inject } from 'aurelia';
+import { inject } from 'aurelia';
+import type { IContainer, IResolver } from 'aurelia';
 
-class MyCustomResolver<T> implements IResolver {
-  $isResolver: true;
-  constructor(private key: new (...args: any[]) => T) {}
+class MyCustomResolver<T> implements IResolver<T> {
+  public readonly $isResolver = true;
 
-  resolve(handler: IContainer, requestor: IContainer): T {
+  public constructor(private readonly key: new (...args: any[]) => T) {}
+
+  public resolve(handler: IContainer, requestor: IContainer): T {
     // Custom resolution logic here
     return new this.key();
   }
@@ -269,7 +269,7 @@ class MyCustomResolver<T> implements IResolver {
 // Usage
 @inject(new MyCustomResolver(MyService))
 export class MyClass {
-  constructor(private service: MyService) {
+  public constructor(private readonly service: MyService) {
     // service is resolved using MyCustomResolver
   }
 }

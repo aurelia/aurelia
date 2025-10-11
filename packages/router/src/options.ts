@@ -67,7 +67,7 @@ export class RouterOptions {
     public readonly treatQueryAsParameters: boolean,
   ) {
     this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
-   }
+  }
 
   public static create(input: IRouterOptions): RouterOptions {
     return new RouterOptions(
@@ -91,6 +91,7 @@ export class RouterOptions {
       return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
     }).join(',')})`;
   }
+
 }
 
 export interface INavigationOptions extends Partial<NavigationOptions> { }

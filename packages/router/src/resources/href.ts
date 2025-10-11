@@ -47,11 +47,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   /** @internal */private _isInitialized: boolean = false;
   /** @internal */private _isEnabled: boolean;
   /** @internal */private _instructions: ViewportInstructionTree | null = null;
-
-  /** @internal */
-  private get _isExternal(): boolean {
-    return this._el.hasAttribute('external') || this._el.hasAttribute('data-external');
-  }
+  /** @internal */private _treatAsExternal: boolean = false;
 
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -92,14 +88,18 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public valueChanged(newValue: unknown): void {
+    const treatAsExternal = this._resolveIsExternal(newValue);
+    this._treatAsExternal = treatAsExternal;
     if (newValue == null) {
       this._instructions = null;
       this._el.removeAttribute('href');
     } else {
-      if (!this._isExternal) {
+      if (!treatAsExternal) {
         const router = this._router;
         const instructions = this._instructions = router.createViewportInstructions(newValue, { context: this._ctx });
         newValue = instructions.toUrl(false, router.options._urlParser, true);
+      } else {
+        this._instructions = null;
       }
       this._el.setAttribute('href', newValue as string);
     }
@@ -114,7 +114,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     // Ensure this is an ordinary left-button click
     if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
       // on an internally managed link
-      || this._isExternal
+      || this._treatAsExternal
       || !this._isEnabled
       || this._instructions === null
     ) {
@@ -124,5 +124,38 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     e.preventDefault();
     // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
     void this._router.load(this._instructions, { context: this._ctx });
+  }
+
+  /** @internal */
+  private _resolveIsExternal(value: unknown): boolean {
+    if (this._el.hasAttribute('external') || this._el.hasAttribute('data-external')) {
+      return true;
+    }
+
+    if (typeof value !== 'string') {
+      return false;
+    }
+
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      return false;
+    }
+
+    if (trimmed.startsWith('//')) {
+      return true;
+    }
+
+    if (/^[a-z][a-z0-9+\-.]*:\/\//i.test(trimmed)) {
+      return true;
+    }
+
+    try {
+      // Treat URLs that can be parsed without a base as external (absolute URLs or schemes).
+      // Relative URLs will throw and are therefore handled internally.
+      new URL(trimmed);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

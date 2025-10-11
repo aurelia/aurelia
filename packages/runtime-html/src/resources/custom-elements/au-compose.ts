@@ -313,8 +313,8 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: template,
         });
-        const compiledDef = this._rendering.compile(targetDef, childCtn);
-        const viewFactory = this._rendering.getViewFactory(compiledDef, childCtn);
+        const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
+        const compiledDef = viewFactory.def
         const controller = Controller.$view(
           viewFactory,
           $controller

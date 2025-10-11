@@ -30,6 +30,24 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.textContent, '');
     });
 
+    it('applies inline template surrogate attributes to the composed host when tag is provided', async function () {
+      const { appHost, assertClass, assertText } = await createFixture(
+        `<au-compose tag="div" template="<template class='message'><div>\${message}</div></template>">`,
+        class App {
+          public message = 'Hello World!';
+        }
+      ) // .started; we dont need this, it's a thennable return for createFixture
+      // we also don't need to await, since there's no promise in the app
+      // au compose doesn't make an app async if its composition doesn't return a promise
+
+      assertClass('div', 'message');
+      assertText('Hello World!');
+
+      await tearDown();
+
+      assert.strictEqual(appHost.textContent, '');
+    });
+
     // this test is a different with the rest, where the view is being recreated
     // and the composition happens again.
     // Instead of the bindings getting notified by the changes in the view model

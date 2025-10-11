@@ -49,6 +49,9 @@ export {
 export {
   IRouteContext,
   RouteContext,
+  type RouteParameterValue,
+  type RouteParameterMergeStrategy,
+  type RouteParametersOptions,
   type INavigationModel,
   type INavigationRoute,
 } from './route-context';

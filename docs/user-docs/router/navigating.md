@@ -1470,6 +1470,36 @@ Note that using parameters and/or nested children for path generation instructio
 Those examples are avoided here for brevity.
 {% endhint %}
 
+#### Aggregate parameters with `getRouteParameters`
+
+When a deeply nested component needs the value of the route parameters that were captured by parent routes, call `getRouteParameters()` on the resolved `IRouteContext`. The helper walks up the active route hierarchy, returning a frozen object where the nearest definition wins for duplicate keys. Pass `{ includeQueryParams: true }` to merge in any query-string values as well.
+
+```ts
+import { resolve } from 'aurelia';
+import { IRouteContext } from '@aurelia/router';
+
+export class DetailsView {
+  private readonly params = resolve(IRouteContext)
+    .getRouteParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>({
+      includeQueryParams: true,
+    });
+}
+```
+
+Use `mergeStrategy: 'parent-first'` if you'd rather let ancestor segments win when duplicate parameter names show up.
+
+Need the full lineage instead of a single winning value? Switch to `mergeStrategy: 'append'` for ordered arrays or `mergeStrategy: 'by-route'` to keep a per-route map of values keyed by the configured route id (falling back to the component path when no id is present).
+
+```ts
+const allValues = routeContext.getRouteParameters({ mergeStrategy: 'append' });
+// allValues.id -> ['parent', 'child']
+
+const byRoute = routeContext.getRouteParameters({ mergeStrategy: 'by-route' });
+// perRoute.id -> { 'company-route': 'parent', 'details-route': 'child' }
+```
+
+Because the returned object uses the same identity for the lifetime of the navigation, you can safely cache it on the instance (as above) or read it on demand inside lifecycle hooks.
+
 ## Best Practices and Common Patterns
 
 ### When to Use Each Navigation Method

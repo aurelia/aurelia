@@ -12,7 +12,7 @@ Transition plan can be configured using the `transitionPlan` property in the [ro
 The allowed values are `replace`, `invoke-lifecycles`, `none` or a function that returns one of these values.
 
 - `replace`: This instructs the router to completely remove the current component and create a new one, behaving as if the component is changed. This is the default behavior if the parameters are changed.
-- `invoke-lifecycles`: This instructs the router to call the lifecycle hooks (`canUnload`, `canLoad`, `unloading` and `loading`) of the component.
+- `invoke-lifecycles`: This instructs the router to call the lifecycle hooks (`canUnload`, `canLoad`, `unloading`, `loading`, and `loaded`) of the component.
 - `none`: Does nothing. This is the default behavior, when nothing is changed.
 
 ## How does it work

@@ -18,6 +18,7 @@ export interface ITestRouteViewModel extends IRouteViewModel {
 
   canLoad(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   loading(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
+  loaded(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
   canUnload(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
   unloading(next: RouteNode | null, current: RouteNode): void | Promise<void>;
 }
@@ -40,6 +41,7 @@ export class HookSpecs {
 
     public readonly canLoad: IHookSpec<'canLoad'>,
     public readonly loading: IHookSpec<'loading'>,
+    public readonly loaded: IHookSpec<'loaded'>,
     public readonly canUnload: IHookSpec<'canUnload'>,
     public readonly unloading: IHookSpec<'unloading'>,
   ) {}
@@ -60,6 +62,7 @@ export class HookSpecs {
 
       input.canLoad ?? hookSpecsMap.canLoad.sync,
       input.loading ?? hookSpecsMap.loading.sync,
+      input.loaded ?? hookSpecsMap.loaded.sync,
       input.canUnload ?? hookSpecsMap.canUnload.sync,
       input.unloading ?? hookSpecsMap.unloading.sync,
     );
@@ -80,6 +83,7 @@ export class HookSpecs {
 
     $this.canLoad = void 0;
     $this.loading = void 0;
+    $this.loaded = void 0;
     $this.canUnload = void 0;
     $this.unloading = void 0;
   }
@@ -107,6 +111,7 @@ const hookNames = [
 
   'canLoad',
   'loading',
+  'loaded',
   'canUnload',
   'unloading',
 ] as const;
@@ -238,6 +243,20 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
+  public loaded(
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null,
+  ): void | Promise<void> {
+    return this.specs.loaded.invoke(
+      this,
+      () => {
+        this.hia.loaded.notify(this.name);
+        return this.$loaded(params, next, current);
+      },
+    );
+  }
+
   public canUnload(
     next: RouteNode | null,
     current: RouteNode,
@@ -314,6 +333,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   protected $loading(
+    _params: Params,
+    _next: RouteNode,
+    _current: RouteNode | null,
+  ): void | Promise<void> {
+    // do nothing
+  }
+
+  protected $loaded(
     _params: Params,
     _next: RouteNode,
     _current: RouteNode | null,

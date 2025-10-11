@@ -693,6 +693,11 @@ export class Router {
           b._push();
           this._cancelNavigation(tr);
         }
+      })._continueWith(b => {
+        if (__DEV__) trace(logger, Events.rtrRunLoaded, next.length);
+        for (const node of next) {
+          node.context.vpa._loaded(tr, b);
+        }
       })._continueWith(() => {
         if (__DEV__) trace(logger, Events.rtrRunFinalizing);
         // order doesn't matter for this operation

@@ -302,7 +302,6 @@ jobs:
             - packages/platform/dist
             - packages/platform-browser/dist
             - packages/route-recognizer/dist
-            - packages/router-direct/dist
             - packages/router/dist
             - packages/expression-parser/dist
             - packages/runtime/dist
@@ -1001,12 +1000,6 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_only_master
-          name: e2e_router_direct
-          path: "packages/__e2e__/5-router-direct"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_only_master
           name: e2e_i18n
           path: "packages/__e2e__/4-i18n"
           requires:
@@ -1180,12 +1173,6 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router_none_history_with_hash
           path: "packages/__e2e__/10-router-none-history-with-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_direct
-          path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:

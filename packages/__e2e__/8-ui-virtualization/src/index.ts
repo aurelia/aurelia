@@ -1,4 +1,4 @@
-import { RouterConfiguration } from '@aurelia/router-direct';
+import { RouterConfiguration } from '@aurelia/router';
 import Aurelia from 'aurelia';
 import { MyApp } from './my-app';
 import { DefaultVirtualizationConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';

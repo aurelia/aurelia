@@ -22,7 +22,7 @@ The router accepts the following configuration options through `RouterConfigurat
 | `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
 | `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
 
-> Pass a partial options object—the router merges your values with the defaults so you only specify what changes. If you need to adjust settings later, resolve `IRouterOptions` from DI and mutate it at runtime. Unlike `RouterConfiguration.customize` in `@aurelia/router-direct`, this overload does not accept a callback—use app tasks or register your own startup code if you need to defer `router.start()`.
+> Pass a partial options object—the router merges your values with the defaults so you only specify what changes. If you need to adjust settings later, resolve `IRouterOptions` from DI and mutate it at runtime. To defer `router.start()`, use app tasks or register your own startup code that resolves `IRouter`.
 
 ## Choose between hash and pushState routing using `useUrlFragmentHash`
 
@@ -495,8 +495,7 @@ This can help debug or log your router's runtime state. See the [ICurrentRoute d
 When the `treatQueryAsParameters` property in the router configuration is set to `true`, the router will treat query parameters as path parameters. The default value is `false`.
 
 {% hint style="warning" %}
-This is a temporary option to help developers transitioning from `router-direct` to `router`.
-It will be removed in the future version.
+This option remains for legacy compatibility and will be removed in a future version. Prefer handling query parameters explicitly via `queryParams`.
 {% endhint %}
 
 ## Advanced Configuration Scenarios

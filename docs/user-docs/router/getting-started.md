@@ -3,6 +3,14 @@
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 Here is a basic example of routing in an Aurelia application using `router`.
 
+{% hint style="warning" %}
+`@aurelia/router` is now Aurelia’s only router. Projects that previously used `@aurelia/router-direct` should import from `@aurelia/router` and follow the patterns described here. The API covers the same component-driven scenarios (static route tables, direct `load` instructions, etc.) without needing a second package.
+{% endhint %}
+
+{% hint style="tip" %}
+Want the short version? The [router quick reference](./quick-reference.md) lists the most common setup and navigation patterns before you dive into the full guide.
+{% endhint %}
+
 The following getting started guide assumes you have an Aurelia application already created. If not, [consult our Quick Start](../getting-started/quick-install-guide.md) to get Aurelia installed in minutes.
 
 ## Installation

@@ -4,6 +4,8 @@
 
 A quick reference for different aspects of Aurelia with minimal explanation.
 
+For routing-specific shortcuts go to the [router quick reference](../router/quick-reference.md); it distills the most common `@aurelia/router` recipes from this page and the deeper guides.
+
 ## Bootstrapping
 
 ### Simple

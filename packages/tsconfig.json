@@ -10,8 +10,6 @@
     { "path": "platform" },
     { "path": "platform-browser" },
     { "path": "router" },
-    // { "path": "router-html" },
-    { "path": "router-direct" },
     { "path": "route-recognizer" },
     { "path": "runtime" },
     { "path": "runtime-html" },

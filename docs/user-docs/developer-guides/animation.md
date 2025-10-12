@@ -270,7 +270,7 @@ export class MyApp {
 
 ## Router Transition Animations
 
-For page transitions when navigating between routes, Aurelia provides powerful lifecycle hooks that enable smooth animations. For comprehensive coverage of router animations, see the dedicated [Router Animation](../router-direct/router-animation.md) guide.
+For page transitions when navigating between routes, Aurelia provides powerful lifecycle hooks that enable smooth animations. Start with the [router transition plan guide](../router/transition-plans.md) for patterns that coordinate view swaps.
 
 ### Quick Router Animation Example
 
@@ -823,4 +823,4 @@ You can implement animations in two ways:
 - **Use `will-change`** - Hint the browser about upcoming animations
 - **Cancel Animations** - Always clean up animations in `detaching` or `disposing`
 
-This comprehensive guide covers the essential animation techniques available in Aurelia applications. For router-specific animations, be sure to check the [Router Animation](../router-direct/router-animation.md) documentation for detailed examples and patterns.
+This comprehensive guide covers the essential animation techniques available in Aurelia applications. For router-specific animations, lean on [router transition plans](../router/transition-plans.md) and lifecycle hooks to orchestrate view swaps.

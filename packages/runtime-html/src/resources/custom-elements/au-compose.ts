@@ -314,7 +314,7 @@ export class AuCompose {
           template: template,
         });
         const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
-        const compiledDef = viewFactory.def
+        const compiledDef = this._rendering.compile(viewFactory.def, childCtn);
         const controller = Controller.$view(
           viewFactory,
           $controller

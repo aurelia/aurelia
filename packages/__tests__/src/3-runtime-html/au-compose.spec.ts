@@ -31,7 +31,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     it('applies inline template surrogate attributes to the composed host when tag is provided', async function () {
-      const { appHost, assertClass, assertText } = await createFixture(
+      const { appHost, assertClass, assertText, tearDown } = await createFixture(
         `<au-compose tag="div" template="<template class='message'><div>\${message}</div></template>">`,
         class App {
           public message = 'Hello World!';
@@ -40,7 +40,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       // we also don't need to await, since there's no promise in the app
       // au compose doesn't make an app async if its composition doesn't return a promise
 
-      assertClass('div', 'message');
+      assertClass('.message', 'message');
       assertText('Hello World!');
 
       await tearDown();

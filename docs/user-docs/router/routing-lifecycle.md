@@ -281,6 +281,25 @@ export class ChildTwo {
 }
 ```
 
+Nested routes frequently need identifiers that were captured higher in the URL such as `/company/:companyId/project/:projectId/user/:userId`. Instead of manually walking the `parent` chain, resolve `IRouteContext` and call the `getRouteParameters()` helper to get a merged, read-only view of every matched segment.
+
+```ts
+import { resolve } from 'aurelia';
+import { IRouteContext, type Params } from '@aurelia/router';
+
+export class ChildThree {
+  private readonly params = resolve(IRouteContext)
+    .getRouteParameters<{ companyId: string; projectId: string; userId: string }>();
+
+  loading(params: Params) {
+    console.log('child-only params', params);
+    console.log('all params', this.params);
+  }
+}
+```
+
+`getRouteParameters()` automatically prefers the closest route's keys when there are duplicates. Pass `{ mergeStrategy: 'parent-first' }` to let ancestors win, `{ mergeStrategy: 'append' }` to receive arrays ordered from parent to child, or `{ mergeStrategy: 'by-route' }` to map each value to the route id that produced it. Combine any strategy with `includeQueryParams: true` to pull query-string data into the result—see the [`IRouteContext` API reference](./navigating.md#routecontext-api) for details.
+
 See [Customize the routing context](./navigating.md#customize-the-routing-context) for more on working with `IRouteContext`.
 
 ## `loaded`

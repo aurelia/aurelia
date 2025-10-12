@@ -96,6 +96,7 @@ describe('router/config-tests.spec.ts', function () {
 
           canLoad: hookSpecsMap.canLoad.sync,
           loading: hookSpecsMap.loading.sync,
+          loaded: hookSpecsMap.loaded.sync,
           canUnload: hookSpecsMap.canUnload.sync,
           unloading: hookSpecsMap.unloading.sync,
         }),
@@ -210,7 +211,7 @@ describe('router/config-tests.spec.ts', function () {
                 yield `start.root2.attaching`;
                 yield `start.root2.attached`;
 
-                yield* prepend(phase1, t1c, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached');
+                yield* prepend(phase1, t1c, 'canLoad', 'loading', 'binding', 'bound', 'attaching', 'attached', 'loaded');
 
                 for (const [phase, { $t1c, $t2c }] of [
                   [phase2, { $t1c: t1c, $t2c: t2c }],
@@ -223,7 +224,7 @@ describe('router/config-tests.spec.ts', function () {
                   yield `${phase}.${$t2c}.loading`;
 
                   yield* prepend(phase, $t1c, 'detaching', 'unbinding', 'dispose');
-                  yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached');
+                  yield* prepend(phase, $t2c, 'binding', 'bound', 'attaching', 'attached', 'loaded');
                 }
 
                 yield `stop.${t4c}.detaching`;
@@ -549,8 +550,8 @@ function getAllAsyncSpecs(count: number): HookSpecs {
 
     canLoad: hookSpecsMap.canLoad.async(count),
     loading: hookSpecsMap.loading.async(count),
+    loaded: hookSpecsMap.loaded.async(count),
     canUnload: hookSpecsMap.canUnload.async(count),
     unloading: hookSpecsMap.unloading.async(count),
   });
 }
-

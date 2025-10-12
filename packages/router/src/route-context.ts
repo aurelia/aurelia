@@ -65,6 +65,22 @@ import { ILocationManager } from './location-manager';
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
 
+export type RouteParameterValue = string | readonly string[];
+
+export type RouteParameterMergeStrategy = 'child-first' | 'parent-first' | 'append' | 'by-route';
+
+interface RouteParametersBaseOptions {
+  /**
+   * Include query-string values from each active route segment. Defaults to the router option `treatQueryAsParameters`.
+   */
+  includeQueryParams?: boolean;
+}
+
+export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
+  TStrategy extends 'child-first'
+    ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
+    : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
+
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
 type EagerInstruction = {
@@ -72,6 +88,15 @@ type EagerInstruction = {
   params: Params;
   children?: EagerInstruction[];
 };
+
+type RouteParameterAccumulator = Record<string, RouteParameterValue | undefined>;
+
+export type RouteParametersResult<TStrategy extends RouteParameterMergeStrategy, TParams extends Record<string, unknown>> =
+  TStrategy extends 'append'
+    ? Readonly<Record<string, readonly RouteParameterValue[]>>
+    : TStrategy extends 'by-route'
+      ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
+      : Readonly<TParams>;
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
@@ -208,6 +233,139 @@ export class RouteContext {
         .subscribe('au:router:navigation-end', () => {
           (routeConfigContext.navigationModel! as NavigationModel)._setIsActive(_router, this);
         });
+    }
+  }
+
+  public getRouteParameters<
+    TParams extends Record<string, unknown> = Params,
+  >(): RouteParametersResult<'child-first', TParams>;
+  public getRouteParameters<
+    TParams extends Record<string, unknown> = Params,
+    TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
+  >(options: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams>;
+  public getRouteParameters<
+    TParams extends Record<string, unknown> = Params,
+    TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
+  >(options?: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams> {
+    const includeQueryParams = options?.includeQueryParams ?? this._router.options.treatQueryAsParameters;
+    const mergeStrategy = (options?.mergeStrategy ?? 'child-first') as RouteParameterMergeStrategy;
+    const freezeValue = (value: RouteParameterValue): RouteParameterValue => {
+      if (isArray(value)) {
+        return Object.freeze(value.slice()) as readonly string[];
+      }
+      return value;
+    };
+
+    const forEachNodeValue = (
+      node: RouteNode,
+      visit: (key: string, value: RouteParameterValue) => void,
+    ): void => {
+      if (includeQueryParams) {
+        const seenKeys = new Set<string>();
+        for (const key of node.queryParams.keys()) {
+          if (seenKeys.has(key)) continue;
+          seenKeys.add(key);
+          const values = node.queryParams.getAll(key);
+          if (values.length === 0) continue;
+          visit(key, values.length === 1 ? values[0]! : values);
+        }
+      }
+
+      for (const [key, value] of Object.entries(node.params)) {
+        if (value === undefined) continue;
+        visit(key, value);
+      }
+    };
+
+    const collectFlat = (preferNearest: boolean): Readonly<Record<string, unknown>> => {
+      const aggregated: RouteParameterAccumulator = Object.create(null);
+      let mutated = false;
+
+      for (let current: RouteContext | null = this; current !== null; current = current.parent as RouteContext | null) {
+        const node = current._node;
+        if (node === null) continue;
+
+        forEachNodeValue(node, (key, value) => {
+          if (preferNearest && Object.prototype.hasOwnProperty.call(aggregated, key)) return;
+          aggregated[key] = freezeValue(value);
+          mutated = true;
+        });
+      }
+
+      return mutated
+        ? Object.freeze(aggregated) as Readonly<Record<string, unknown>>
+        : emptyObject as Readonly<Record<string, unknown>>;
+    };
+
+    const collectAppend = (): Readonly<Record<string, readonly RouteParameterValue[]>> => {
+      let accumulator: Record<string, RouteParameterValue[]> | undefined;
+      let mutated = false;
+
+      for (let current: RouteContext | null = this; current !== null; current = current.parent as RouteContext | null) {
+        const node = current._node;
+        if (node === null) continue;
+
+        const target = accumulator ?? (accumulator = Object.create(null) as Record<string, RouteParameterValue[]>);
+        forEachNodeValue(node, (key, value) => {
+          const bucket = target[key] ?? (target[key] = []);
+          bucket.unshift(freezeValue(value));
+          mutated = true;
+        });
+      }
+
+      if (!mutated || accumulator === void 0) {
+        return emptyObject as Readonly<Record<string, readonly RouteParameterValue[]>>;
+      }
+
+      const result = Object.create(null) as Record<string, readonly RouteParameterValue[]>;
+      for (const key of Object.keys(accumulator)) {
+        result[key] = Object.freeze(accumulator[key]) as readonly RouteParameterValue[];
+      }
+      return Object.freeze(result);
+    };
+
+    const collectPerRoute = (): Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>> => {
+      const resolveRouteIdentifier = (node: RouteNode): string => {
+        const cfg = node.context.routeConfigContext.config;
+        return cfg.id ?? node.context.routeConfigContext._friendlyPath;
+      };
+
+      let accumulator: Record<string, Record<string, RouteParameterValue>> | undefined;
+      let mutated = false;
+
+      for (let current: RouteContext | null = this; current !== null; current = current.parent as RouteContext | null) {
+        const node = current._node;
+        if (node === null) continue;
+
+        const target = accumulator ?? (accumulator = Object.create(null) as Record<string, Record<string, RouteParameterValue>>);
+        const routeId = resolveRouteIdentifier(node);
+        forEachNodeValue(node, (key, value) => {
+          (target[key] ?? (target[key] = Object.create(null)))[routeId] = freezeValue(value);
+          mutated = true;
+        });
+      }
+
+      if (!mutated || accumulator === void 0) {
+        return emptyObject as Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>;
+      }
+
+      const result = Object.create(null) as Record<string, Readonly<Record<string, RouteParameterValue>>>;
+      for (const key of Object.keys(accumulator)) {
+        result[key] = Object.freeze(accumulator[key]);
+      }
+      return Object.freeze(result);
+    };
+
+    switch (mergeStrategy) {
+      case 'append':
+        return collectAppend() as RouteParametersResult<TStrategy, TParams>;
+      case 'by-route':
+        return collectPerRoute() as RouteParametersResult<TStrategy, TParams>;
+      case 'parent-first':
+        return collectFlat(false) as RouteParametersResult<TStrategy, TParams>;
+      case 'child-first':
+      default:
+        return collectFlat(true) as RouteParametersResult<TStrategy, TParams>;
     }
   }
 

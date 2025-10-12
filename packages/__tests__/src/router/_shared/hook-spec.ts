@@ -56,6 +56,7 @@ export const hookSpecsMap = {
 
   canLoad: getHookSpecs('canLoad'),
   loading: getHookSpecs('loading'),
+  loaded: getHookSpecs('loaded'),
   canUnload: getHookSpecs('canUnload'),
   unloading: getHookSpecs('unloading'),
 };

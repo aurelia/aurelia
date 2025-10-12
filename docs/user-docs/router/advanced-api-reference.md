@@ -366,7 +366,16 @@ export class CompositeLifecycleHook implements IRouteViewModel {
     const promises = this.hooks
       .filter(hook => hook.loading)
       .map(hook => hook.loading!(params, next, current));
-    
+
+    await Promise.all(promises);
+  }
+
+  async loaded(params: Params, next: RouteNode, current: RouteNode | null): Promise<void> {
+    // Run all loaded hooks in parallel
+    const promises = this.hooks
+      .filter(hook => hook.loaded)
+      .map(hook => hook.loaded!(params, next, current));
+
     await Promise.all(promises);
   }
 }

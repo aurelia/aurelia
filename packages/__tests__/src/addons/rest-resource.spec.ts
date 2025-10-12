@@ -75,6 +75,14 @@ describe('addons/rest-resource.spec.ts', function () {
 
       if (request.method === 'GET' && pathname === '/api/widgets') {
         const values = Array.from(db.values());
+        if (url.searchParams.get('format') === 'broken') {
+          return new Response('not json', {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+            },
+          });
+        }
         return jsonResponse(values);
       }
 
@@ -306,5 +314,64 @@ describe('addons/rest-resource.spec.ts', function () {
     const clientWithPolicy = client.withPolicies(policy);
     await assert.rejects(() => clientWithPolicy.getOne(999));
     assert.strictEqual(errors.length, 1);
+  });
+
+  it('invokes error policies when the serializer throws', async function () {
+    const errors: unknown[] = [];
+    const policy: RestResourcePolicy = {
+      onError(ctx) {
+        errors.push(ctx.error);
+      },
+    };
+
+    const clientWithPolicy = client.withPolicies(policy);
+
+    await assert.rejects(() => clientWithPolicy.list({ query: { format: 'broken' } }));
+    assert.strictEqual(errors.length, 1);
+    assert.ok(errors[0] instanceof Error, 'serializer failure should surface as Error');
+  });
+
+  it('applies stacked policies that mutate headers, body, and query data', async function () {
+    const seenHeaders: string[] = [];
+    const combined = client.withPolicies(
+      {
+        onRequest(ctx) {
+          const headers = new Headers(ctx.request.init?.headers ?? undefined);
+          headers.set('x-policy-one', '1');
+          ctx.setRequest({
+            init: { ...(ctx.request.init ?? {}), headers },
+            body: { ...(ctx.request.body as Record<string, unknown>), policy: 'stacked' },
+            query: { ...(ctx.request.query ?? {}), trace: 'true' },
+          });
+        },
+        onResponse(ctx) {
+          ctx.setData({ ...(ctx.data as Record<string, unknown>), marker: 'mutated' });
+        },
+      },
+      {
+        onRequest(ctx) {
+          const headers = new Headers(ctx.request.init?.headers ?? undefined);
+          headers.set('x-policy-two', '2');
+          ctx.setRequest({
+            init: { ...(ctx.request.init ?? {}), headers },
+          });
+          seenHeaders.push(headers.get('x-policy-one') ?? '');
+        },
+      },
+    );
+
+    const created = await combined.create({ name: 'Policy' });
+
+    assert.strictEqual((created as any).marker, 'mutated');
+    assert.strictEqual((created as any).policy, 'stacked');
+    const postRequest = requests.find(r => r.request.method === 'POST');
+    assert.notStrictEqual(postRequest, undefined);
+    assert.strictEqual(postRequest!.request.headers.get('x-policy-one'), '1');
+    assert.strictEqual(postRequest!.request.headers.get('x-policy-two'), '2');
+    const body = JSON.parse(postRequest!.bodyText ?? '{}') as Record<string, unknown>;
+    assert.strictEqual(body.policy, 'stacked');
+    const url = new URL(postRequest!.request.url);
+    assert.strictEqual(url.searchParams.get('trace'), 'true');
+    assert.strictEqual(seenHeaders[0], '1');
   });
 });

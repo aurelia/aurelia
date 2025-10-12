@@ -207,7 +207,7 @@ export interface IRouteConfig {
    * How to behave when this component scheduled to be loaded again in the same viewport:
    *
    * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed  (default if only the parameters have changed).
-   * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading` and `loading`.
+   * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unloading`, `loading` and `loaded`.
    * - `none`: does nothing (default if nothing has changed for the viewport).
    */
   readonly transitionPlan?: TransitionPlanOrFunc | null;

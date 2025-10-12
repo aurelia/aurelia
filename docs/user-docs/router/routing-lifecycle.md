@@ -21,6 +21,7 @@ If you are working with components you are rendering, implementing `IRouteViewMo
 | --- | --- | --- | --- |
 | `canLoad` | Before the component is activated | Gate routes, redirect, hydrate parameters | `boolean`/`NavigationInstruction`/`Promise` |
 | `loading` | After navigation is approved but before render | Fetch data, set up state, start animations | `void`/`Promise<void>` |
+| `loaded` | After the component is activated and swapped into view | Fire analytics, scroll, kick off post-render effects | `void`/`Promise<void>` |
 | `canUnload` | Before the current component is deactivated | Prevent leaving, confirm unsaved changes | `boolean`/`Promise<boolean>` |
 | `unloading` | Before the component is removed | Persist drafts, dispose resources, log analytics | `void`/`Promise<void>` |
 
@@ -46,13 +47,14 @@ export class MyComponent implements IRouteViewModel {
     | NavigationInstruction[]
     | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   loading?(params: Params, next: RouteNode, current: RouteNode | null, options: INavigationOptions): void | Promise<void>;
+  loaded?(params: Params, next: RouteNode, current: RouteNode | null, options: INavigationOptions): void | Promise<void>;
   canUnload?(next: RouteNode | null, current: RouteNode, options: INavigationOptions): boolean | Promise<boolean>;
   unloading?(next: RouteNode | null, current: RouteNode, options: INavigationOptions): void | Promise<void>;
 }
 ```
 
 Using the `canLoad` and `canUnload` hooks you can determine whether to allow or disallow navigation to and from a route respectively.
-The `loading` and `unloading` hooks are meant to be used for performing setup and clean up activities respectively for a view.
+The `loading`, `loaded`, and `unloading` hooks are meant to be used for performing setup, post-activation work, and clean up activities respectively for a view.
 Note that all of these hooks can return a promise, which will be awaited by the router pipeline.
 These hooks are discussed in details in the following section.
 
@@ -280,6 +282,30 @@ export class ChildTwo {
 ```
 
 See [Customize the routing context](./navigating.md#customize-the-routing-context) for more on working with `IRouteContext`.
+
+## `loaded`
+
+The `loaded` hook runs after the router has activated your component, swapped it into the viewport, and scheduled any nested children. At this stage the DOM for the route is in place, making it a safe spot to start animations, set focus, send analytics, or kick off work that depends on rendered layout.
+
+```typescript
+import { IRouteViewModel, Params, RouteNode, INavigationOptions } from '@aurelia/router';
+import { customElement } from '@aurelia/runtime-html';
+
+@customElement({
+  name: 'product-page',
+  template: `...
+    <button class="buy">Buy now</button>
+  `
+})
+export class ProductPage implements IRouteViewModel {
+  public loaded(params: Params, _next: RouteNode, _current: RouteNode | null, _options: INavigationOptions) {
+    console.log('Product page fully loaded', params.id);
+    this.$controller.host.querySelector<HTMLButtonElement>('button.buy')?.focus();
+  }
+}
+```
+
+Just like `loading`, returning a promise keeps the navigation paused until the hook resolves, ensuring that post-activation work completes before the router signals navigation end.
 
 ## `canUnload`
 

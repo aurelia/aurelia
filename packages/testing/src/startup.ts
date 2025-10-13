@@ -6,6 +6,7 @@ import { assert } from './assert';
 import { hJsx } from './h';
 import { TestContext } from './test-context';
 import { getVisibleText } from './specialized-assertions';
+import { createDomQueryHelpers, type QueryRoot } from './dom-queries';
 
 const fixtureHooks = new EventAggregator();
 export const onFixtureCreated = <T extends object>(callback: (fixture: IFixture<T>) => unknown) => {
@@ -106,28 +107,9 @@ export function createFixture<T extends object>(
 
   let tornCount = 0;
 
-  const getBy: Document['querySelector'] = (selector: string): HTMLElement => {
-    const elements = host.querySelectorAll<HTMLElement>(selector);
-    if (elements.length > 1) {
-      throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found`);
-    }
-    if (elements.length === 0) {
-      throw new Error(`No element found for selector: "${selector}"`);
-    }
-    return elements[0];
-  };
-  function getAllBy(selector: string) {
-    return Array.from(host.querySelectorAll<HTMLElement>(selector));
-  }
-  function queryBy(selector: string) {
-    const elements = host.querySelectorAll<HTMLElement>(selector);
-    if (elements.length > 1) {
-      throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found`);
-    }
-    return elements.length === 0 ? null : elements[0];
-  }
+  const { getBy, getAllBy, queryBy, getByTestId, getAllByTestId, queryByTestId } = createDomQueryHelpers(host);
   function strictQueryBy(selector: string, queryErrorSuffixMessage: string = ''): HTMLElement {
-    const elements = host.querySelectorAll<HTMLElement>(selector);
+    const elements = getAllBy<HTMLElement>(selector);
     if (elements.length > 1) {
       throw new Error(`There is more than 1 element with selector "${selector}": ${elements.length} found${queryErrorSuffixMessage ? ` ${queryErrorSuffixMessage}` : ''}`);
     }
@@ -377,6 +359,9 @@ export function createFixture<T extends object>(
     public getBy = getBy;
     public getAllBy = getAllBy;
     public queryBy = queryBy;
+    public getByTestId = getByTestId;
+    public getAllByTestId = getAllByTestId;
+    public queryByTestId = queryByTestId;
     public assertText = assertText;
     public assertTextContain = assertTextContain;
     public assertHtml = assertHtml;
@@ -458,6 +443,18 @@ export interface IFixture<T> {
   queryBy<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
   queryBy<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
   queryBy<E extends HTMLElement = HTMLElement>(selectors: string): E | null;
+  /**
+   * Returns the first element matching the given `data-testid` attribute, and throws if not found or duplicated
+   */
+  getByTestId<E extends HTMLElement = HTMLElement>(testId: string, root?: QueryRoot): E;
+  /**
+   * Returns all elements matching the given `data-testid` attribute.
+   */
+  getAllByTestId<E extends HTMLElement = HTMLElement>(testId: string, root?: QueryRoot): E[];
+  /**
+   * Returns the first element matching the given `data-testid` attribute, or null if none found.
+   */
+  queryByTestId<E extends HTMLElement = HTMLElement>(testId: string, root?: QueryRoot): E | null;
 
   /**
    * Assert the text content of the current application host equals to a given string

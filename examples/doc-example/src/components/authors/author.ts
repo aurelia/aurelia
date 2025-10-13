@@ -7,21 +7,21 @@ import { Information } from './information';
 @customElement({
   name: 'author',
   template: `
-    <h3 data-test="author-element-author-name">\${author.name}</h3>
-    <div data-test="author-element-birth-year">Born: \${author.born}</div>
+    <h3 data-testid="author-element-author-name">\${author.name}</h3>
+    <div data-testid="author-element-birth-year">Born: \${author.born}</div>
     <div>Books:
       <ul>
-        <li repeat.for="book of author.books"><a data-test="author-element-book-link" href="book(\${book.id})">\${book.title}</a></li>
+        <li repeat.for="book of author.books"><a data-testid="author-element-book-link" href="book(\${book.id})">\${book.title}</a></li>
       </ul>
     </div>
     <div class="info">
-      <label><input type="checkbox" data-test="author-element-hide-tabs-checkbox" checked.two-way="hideTabs">Hide author tabs (adds/removes with an <strong>if</strong>)</label><br>
+      <label><input type="checkbox" data-testid="author-element-hide-tabs-checkbox" checked.two-way="hideTabs">Hide author tabs (adds/removes with an <strong>if</strong>)</label><br>
     </div>
     <div class="info">
       <a goto="authors">Authors</a>
     </div>
     <div if.bind="!hideTabs">
-      <au-nav data-test="author-menu" name="author-menu"></au-nav>
+      <au-nav data-testid="author-menu" name="author-menu"></au-nav>
       <au-viewport no-scope name="author-tabs" default="author-details(\${author.id})" used-by="about-authors,author-details,information,login-special" no-history></au-viewport>
     </div>
   `,

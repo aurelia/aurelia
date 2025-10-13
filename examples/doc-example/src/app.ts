@@ -7,8 +7,8 @@ import { State } from './state';
   name: 'app',
   template: `
     <div class="info">
-      <label><input data-test="timed-out-checkbox" type="checkbox" checked.two-way="state.timedOut">Timed out</label><br>
-      <label><input data-test="special-timed-out-checkbox" type="checkbox" checked.two-way="state.specialTimedOut"><i>Special</i> timed out</label><br>
+      <label><input data-testid="timed-out-checkbox" type="checkbox" checked.two-way="state.timedOut">Timed out</label><br>
+      <label><input data-testid="special-timed-out-checkbox" type="checkbox" checked.two-way="state.specialTimedOut"><i>Special</i> timed out</label><br>
     </div>
     <div><a href="login" goto="login"><span>login</span></a></div>
     <div><a href="\${link}"><span>A changing link</span></a></div>

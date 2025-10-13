@@ -67,7 +67,7 @@ describe('router/resources/load.spec.ts', function () {
       name: 'about-view',
       template: `
     about
-    <a data-test="about-home" load="home">Go Home</a>`
+    <a data-testid="about-home" load="home">Go Home</a>`
     })
     class AboutView {
       public static lastInstance: AboutView | null = null;
@@ -86,8 +86,8 @@ describe('router/resources/load.spec.ts', function () {
       template: `
     member details
     <nav>
-      <a data-test="details-parent-admins" load="../admins">Parent Admins</a>
-      <a data-test="details-root-about" load="../../about">Root About</a>
+      <a data-testid="details-parent-admins" load="../admins">Parent Admins</a>
+      <a data-testid="details-root-about" load="../../about">Root About</a>
     </nav>`
     })
     class MemberDetailsView {
@@ -113,10 +113,10 @@ describe('router/resources/load.spec.ts', function () {
       template: `
     members
     <nav>
-      <a data-test="members-admins" load="admins">Admins</a>
-      <a data-test="members-about" load="about">About</a>
-      <a data-test="members-parent-about" load="../about">Parent About</a>
-      <a data-test="members-root-home" load="/home">Root Home</a>
+      <a data-testid="members-admins" load="admins">Admins</a>
+      <a data-testid="members-about" load="about">About</a>
+      <a data-testid="members-parent-about" load="../about">Parent About</a>
+      <a data-testid="members-root-home" load="/home">Root Home</a>
     </nav>
     <au-viewport></au-viewport>`
     })
@@ -147,8 +147,8 @@ describe('router/resources/load.spec.ts', function () {
       template: `
     users
     <nav>
-      <a data-test="users-members" load="members">Members</a>
-      <a data-test="users-admins" load="admins">Admins</a>
+      <a data-testid="users-members" load="members">Members</a>
+      <a data-testid="users-admins" load="admins">Admins</a>
     </nav>
     <au-viewport></au-viewport>`
     })
@@ -167,9 +167,9 @@ describe('router/resources/load.spec.ts', function () {
       name: 'app-root',
       template: `
     <nav>
-      <a data-test="root-home" load="home">Home</a>
-      <a data-test="root-about" load="about">About</a>
-      <a data-test="root-users" load="users/members">Users</a>
+      <a data-testid="root-home" load="home">Home</a>
+      <a data-testid="root-about" load="about">About</a>
+      <a data-testid="root-users" load="users/members">Users</a>
     </nav>
     <au-viewport></au-viewport>`
     })
@@ -187,7 +187,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('about'), true, 'navigate to about');
     await queue.yield();
 
-    let anchor = host.querySelector<HTMLAnchorElement>('[data-test="about-home"]')!;
+    let anchor = host.querySelector<HTMLAnchorElement>('[data-testid="about-home"]')!;
     anchor.click();
     await queue.yield();
     assert.match(location.path, /home$/);
@@ -195,7 +195,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('users/members'), true, 'navigate to users/members');
     await queue.yield();
 
-    anchor = host.querySelector<HTMLAnchorElement>('[data-test="members-admins"]')!;
+    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-admins"]')!;
     anchor.click();
     await queue.yield();
     assert.match(location.path, /users\/admins$/);
@@ -204,7 +204,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const membersCtx = MembersView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-test="members-about"]')!;
+    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-about"]')!;
     assert.match(anchor.href, /about$/);
     assert.strictEqual(await router.load('about', { context: membersCtx }), true, 'load about from members');
     await queue.yield();
@@ -238,7 +238,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const membersCtxAgain = MembersView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-test="members-parent-about"]')!;
+    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-parent-about"]')!;
     assert.strictEqual(await router.load('../about', { context: membersCtxAgain }), true, 'load ../about from members');
     await queue.yield();
     assert.match(location.path, /about$/);
@@ -247,7 +247,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const membersCtxFinal = MembersView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-test="members-root-home"]')!;
+    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-root-home"]')!;
     assert.match(anchor.href ?? '', /\/home$/);
     assert.strictEqual(await router.load('/home', { context: membersCtxFinal }), true, 'load /home from members');
     await queue.yield();
@@ -257,7 +257,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const detailsCtx = MemberDetailsView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-test="details-parent-admins"]')!;
+    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="details-parent-admins"]')!;
     anchor.click();
     await queue.yield();
     assert.match(location.path, /users\/admins$/, 'details parent admins click');
@@ -273,7 +273,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('users/members/details'), true, 'restore member details for anchor click');
     await queue.yield();
 
-    anchor = host.querySelector<HTMLAnchorElement>('[data-test="details-root-about"]')!;
+    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="details-root-about"]')!;
     anchor.click();
     await queue.yield();
     assert.match(location.path, /about$/, 'details root about via anchor');
@@ -297,7 +297,7 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({
       name: 'dashboard-view',
       template: `
-    <a data-test="multi" load="summary@main+details@aside">Load Both</a>
+    <a data-testid="multi" load="summary@main+details@aside">Load Both</a>
     <au-viewport name="main"></au-viewport>
     <au-viewport name="aside"></au-viewport>`
     })
@@ -319,7 +319,7 @@ describe('router/resources/load.spec.ts', function () {
     const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
-    const anchor = host.querySelector<HTMLAnchorElement>('[data-test="multi"]')!;
+    const anchor = host.querySelector<HTMLAnchorElement>('[data-testid="multi"]')!;
     anchor.click();
     await queue.yield();
     const text = host.textContent ?? '';

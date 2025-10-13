@@ -5,8 +5,8 @@ import { UsersRepository } from '../../repositories/users';
   name: 'chat-users',
   template: `
     <ul>
-      <li data-test="chat-users-element-item" repeat.for="user of users">
-        <a data-test="chat-users-element-links" href="chat-user(\${user.id})">\${user.id} (\${user.name})</a>
+      <li data-testid="chat-users-element-item" repeat.for="user of users">
+        <a data-testid="chat-users-element-links" href="chat-user(\${user.id})">\${user.id} (\${user.name})</a>
       </li>
     </ul>
   `

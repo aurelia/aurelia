@@ -9,9 +9,9 @@ import { Constructable } from '@aurelia/kernel';
   template: `
     <h3>Authors</h3>
     <ul>
-      <li data-test="authors-element-item" repeat.for="author of authors">
-        <a data-test="authors-element-author-link" href="\${author.name}" goto.bind="{ component: Author, parameters: \`\${author.id}\` }">\${author.name}</a>
-        <ul><li data-test="authors-element-book-name" repeat.for="book of author.books">\${book.title}</li></ul>
+      <li data-testid="authors-element-item" repeat.for="author of authors">
+        <a data-testid="authors-element-author-link" href="\${author.name}" goto.bind="{ component: Author, parameters: \`\${author.id}\` }">\${author.name}</a>
+        <ul><li data-testid="authors-element-book-name" repeat.for="book of author.books">\${book.title}</li></ul>
       </li>
     </ul>
   `

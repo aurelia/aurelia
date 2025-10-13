@@ -1,7 +1,7 @@
 import { Constructable, LogLevel, Registration, ILogConfig, DI, LoggerConfiguration, ConsoleSink, IContainer, Resolved, IPlatform, Class } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
 import { IRouterOptions, RouterConfiguration, IRouter, HistoryStrategy } from '@aurelia/router';
-import { TestContext } from '@aurelia/testing';
+import { TestContext, createDomQueryHelpers } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { TestRouterConfiguration } from './configuration.js';
@@ -117,5 +117,19 @@ export async function start<TAppRoot>({ appRoot, useHash = false, registrations 
 
   await au.app({ component: appRoot, host }).start();
   const rootVm = au.root.controller.viewModel as TAppRoot;
-  return { host, au, container, rootVm };
+
+  const { getBy, getAllBy, queryBy, getByTestId, getAllByTestId, queryByTestId } = createDomQueryHelpers(host);
+
+  return {
+    host,
+    au,
+    container,
+    rootVm,
+    getBy,
+    getAllBy,
+    queryBy,
+    getByTestId,
+    getAllByTestId,
+    queryByTestId,
+  };
 }

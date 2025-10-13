@@ -11,7 +11,7 @@ import { Books } from './books/books';
   template: `
     <div class="\${router.isNavigating ? 'routing' : ''}" style="--primary-color: \${color}">
       <div>
-        <au-nav data-test="main-menu" name="main-menu"></au-nav>
+        <au-nav data-testid="main-menu" name="main-menu"></au-nav>
         <span class="loader \${router.isNavigating ? 'routing' : ''}">&nbsp;</span>
       </div>
       <div class="info">
@@ -21,16 +21,16 @@ import { Books } from './books/books';
         and the navigation is rolled back after 2 seconds.)
       </div>
       <div class="info">
-        <label><input data-test="no-delay-checkbox" type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
-        <label><input data-test="allow-enter-author-details-checkbox" type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
+        <label><input data-testid="no-delay-checkbox" type="checkbox" checked.two-way="state.noDelay">Disable loading delays for components</label><br>
+        <label><input data-testid="allow-enter-author-details-checkbox" type="checkbox" checked.two-way="state.allowEnterAuthorDetails">Allow entering <i>Author details</i></label><br>
       </div>
       <div class="info" style="background-color: var(--primary-color)">
-        <select data-test="info-background-color-select" value.two-way="color">
+        <select data-testid="info-background-color-select" value.two-way="color">
           <option value="lightblue">Light blue</option>
           <option value="lightgreen">Light green</option>
         <select>
         <div style="display: inline-block;">
-          The background is in the --primary-color: <span data-test="info-background-color">\${color}</span>.
+          The background is in the --primary-color: <span data-testid="info-background-color">\${color}</span>.
         </div>
       </div>
       <au-viewport no-scope name="lists" used-by="authors,books" default="authors"></au-viewport>

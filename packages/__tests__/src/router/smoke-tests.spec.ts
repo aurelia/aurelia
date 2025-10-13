@@ -2264,8 +2264,9 @@ describe('router/smoke-tests.spec.ts', function () {
   <nav>
     <a ${attr}="gc11">gc11</a>
     <a ${attr}="gc12">gc12</a>
-    <a ${attr}="c2">c2 (doesn't work)</a>
-    <a ${attr}="../c2">../c2 (works)</a>
+    <a ${attr}="c2" data-test="c1-to-c2">c2</a>
+    <a ${attr}="../c2" data-test="c1-to-parent-c2">../c2</a>
+    <a ${attr}="missing" data-test="c1-to-missing">missing</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -2290,8 +2291,9 @@ describe('router/smoke-tests.spec.ts', function () {
   <nav>
     <a ${attr}="gc21">gc21</a>
     <a ${attr}="gc22">gc22</a>
-    <a ${attr}="c1">c1 (doesn't work)</a>
-    <a ${attr}="../c1">../c1 (works)</a>
+    <a ${attr}="c1" data-test="c2-to-c1">c1</a>
+    <a ${attr}="../c1" data-test="c2-to-parent-c1">../c1</a>
+    <a ${attr}="missing" data-test="c2-to-missing">missing</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -2344,45 +2346,61 @@ describe('router/smoke-tests.spec.ts', function () {
       let childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
-      let [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
-      a2.click();
+      const c1Anchors = Array.from(rootVp.querySelectorAll('c-one nav a')) as HTMLAnchorElement[];
+      const gc12Link = c1Anchors.find(a => a.textContent?.includes('gc12'))!;
+      const parentLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-parent-c2"]')!;
+      const missingLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-missing"]')!;
+      const directSiblingLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-c2"]')!;
+
+      gc12Link.click();
       queue.flush();
       await queue.yield();
 
       assert.html.textContent(childVp, 'gc12');
 
-      nf.click();
+      missingLink.click();
       queue.flush();
       await queue.yield();
 
       assert.html.textContent(childVp, 'nf');
 
-      f.click();
+      parentLink.click();
       queue.flush();
       await queue.yield();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc21', host.textContent);
 
-      [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
-      a2.click();
+      const c2Anchors = Array.from(rootVp.querySelectorAll('c-two nav a')) as HTMLAnchorElement[];
+      const gc22Link = c2Anchors.find(a => a.textContent?.includes('gc22'))!;
+      const parentLinkFromC2 = rootVp.querySelector<HTMLAnchorElement>('c-two [data-test="c2-to-parent-c1"]')!;
+      const missingLinkFromC2 = rootVp.querySelector<HTMLAnchorElement>('c-two [data-test="c2-to-missing"]')!;
+
+      gc22Link.click();
       queue.flush();
       await queue.yield();
 
       assert.html.textContent(childVp, 'gc22');
 
-      nf.click();
+      missingLinkFromC2.click();
       queue.flush();
       await queue.yield();
 
       assert.html.textContent(childVp, 'nf');
 
-      f.click();
+      parentLinkFromC2.click();
       queue.flush();
       await queue.yield();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
+
+      directSiblingLink.click();
+      queue.flush();
+      await queue.yield();
+
+      childVp = rootVp.querySelector('au-viewport');
+      assert.html.textContent(childVp, 'gc21');
 
       await au.stop(true);
       assert.areTaskQueuesEmpty();

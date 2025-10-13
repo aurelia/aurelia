@@ -175,7 +175,7 @@ describe('router/resources/load.spec.ts', function () {
     })
     class AppRoot { }
 
-    const { au, host, container } = await start({
+    const { au, host, container, getByTestId } = await start({
       appRoot: AppRoot,
       registrations: [HomeView, AboutView, UsersView, MembersView, AdminsView, MemberDetailsView, UserView],
     });
@@ -187,7 +187,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('about'), true, 'navigate to about');
     await queue.yield();
 
-    let anchor = host.querySelector<HTMLAnchorElement>('[data-testid="about-home"]')!;
+    let anchor = getByTestId<HTMLAnchorElement>('about-home');
     anchor.click();
     await queue.yield();
     assert.match(location.path, /home$/);
@@ -195,7 +195,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('users/members'), true, 'navigate to users/members');
     await queue.yield();
 
-    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-admins"]')!;
+    anchor = getByTestId<HTMLAnchorElement>('members-admins');
     anchor.click();
     await queue.yield();
     assert.match(location.path, /users\/admins$/);
@@ -204,7 +204,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const membersCtx = MembersView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-about"]')!;
+    anchor = getByTestId<HTMLAnchorElement>('members-about');
     assert.match(anchor.href, /about$/);
     assert.strictEqual(await router.load('about', { context: membersCtx }), true, 'load about from members');
     await queue.yield();
@@ -238,7 +238,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const membersCtxAgain = MembersView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-parent-about"]')!;
+    anchor = getByTestId<HTMLAnchorElement>('members-parent-about');
     assert.strictEqual(await router.load('../about', { context: membersCtxAgain }), true, 'load ../about from members');
     await queue.yield();
     assert.match(location.path, /about$/);
@@ -247,7 +247,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const membersCtxFinal = MembersView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="members-root-home"]')!;
+    anchor = getByTestId<HTMLAnchorElement>('members-root-home');
     assert.match(anchor.href ?? '', /\/home$/);
     assert.strictEqual(await router.load('/home', { context: membersCtxFinal }), true, 'load /home from members');
     await queue.yield();
@@ -257,7 +257,7 @@ describe('router/resources/load.spec.ts', function () {
     await queue.yield();
 
     const detailsCtx = MemberDetailsView.lastInstance!.ctx;
-    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="details-parent-admins"]')!;
+    anchor = getByTestId<HTMLAnchorElement>('details-parent-admins');
     anchor.click();
     await queue.yield();
     assert.match(location.path, /users\/admins$/, 'details parent admins click');
@@ -273,7 +273,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('users/members/details'), true, 'restore member details for anchor click');
     await queue.yield();
 
-    anchor = host.querySelector<HTMLAnchorElement>('[data-testid="details-root-about"]')!;
+    anchor = getByTestId<HTMLAnchorElement>('details-root-about');
     anchor.click();
     await queue.yield();
     assert.match(location.path, /about$/, 'details root about via anchor');
@@ -312,14 +312,14 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'multi-root', template: `<au-viewport></au-viewport>` })
     class MultiRoot { }
 
-    const { au, host, container } = await start({
+    const { au, host, container, getByTestId } = await start({
       appRoot: MultiRoot,
       registrations: [DashboardView, SummaryView, DetailsView],
     });
     const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
-    const anchor = host.querySelector<HTMLAnchorElement>('[data-testid="multi"]')!;
+    const anchor = getByTestId<HTMLAnchorElement>('multi');
     anchor.click();
     await queue.yield();
     const text = host.textContent ?? '';

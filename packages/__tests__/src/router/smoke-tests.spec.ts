@@ -2346,13 +2346,25 @@ describe('router/smoke-tests.spec.ts', function () {
       let childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
-      const rootNavAnchors = Array.from(host.querySelectorAll<HTMLAnchorElement>('my-app > nav a'));
-      const rootToC2 = rootNavAnchors.find(a => a.textContent?.includes('C2'))!;
-      const rootToC1 = rootNavAnchors.find(a => a.textContent?.includes('C1'))!;
+      const getRootLink = (text: string) => {
+        const links = Array.from(host.querySelectorAll<HTMLAnchorElement>('my-app > nav a'));
+        const link = links.find(a => a.textContent?.includes(text));
+        assert.notStrictEqual(link, undefined, `expected root link for ${text}`);
+        return link!;
+      };
+      const getChildLink = (selector: string) => {
+        const link = rootVp.querySelector<HTMLAnchorElement>(selector);
+        assert.notStrictEqual(link, null, `expected child link ${selector}`);
+        return link!;
+      };
 
-      const c1Anchors = Array.from(rootVp.querySelectorAll('c-one nav a')) as HTMLAnchorElement[];
-      const gc12Link = c1Anchors.find(a => a.textContent?.includes('gc12'))!;
-      const missingLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-missing"]')!;
+      const rootToC2 = getRootLink('C2');
+      const rootToC1 = getRootLink('C1');
+
+      const gc12LinkLookup = Array.from(rootVp.querySelectorAll<HTMLAnchorElement>('c-one nav a')).find(a => a.textContent?.includes('gc12'));
+      assert.notStrictEqual(gc12LinkLookup, undefined, 'expected gc12 link');
+      const gc12Link = gc12LinkLookup!;
+      const missingLink = getChildLink('c-one [data-test="c1-to-missing"]');
 
       gc12Link.click();
       queue.flush();
@@ -2375,9 +2387,10 @@ describe('router/smoke-tests.spec.ts', function () {
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc21', host.textContent);
 
-      const c2Anchors = Array.from(rootVp.querySelectorAll('c-two nav a')) as HTMLAnchorElement[];
-      const gc22Link = c2Anchors.find(a => a.textContent?.includes('gc22'))!;
-      const missingLinkFromC2 = rootVp.querySelector<HTMLAnchorElement>('c-two [data-test="c2-to-missing"]')!;
+      const gc22LinkLookup = Array.from(rootVp.querySelectorAll<HTMLAnchorElement>('c-two nav a')).find(a => a.textContent?.includes('gc22'));
+      assert.notStrictEqual(gc22LinkLookup, undefined, 'expected gc22 link');
+      const gc22Link = gc22LinkLookup!;
+      const missingLinkFromC2 = getChildLink('c-two [data-test="c2-to-missing"]');
 
       gc22Link.click();
       queue.flush();
@@ -2400,7 +2413,7 @@ describe('router/smoke-tests.spec.ts', function () {
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
-      const directSiblingLinkAfterReturn = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-c2"]')!;
+      const directSiblingLinkAfterReturn = getChildLink('c-one [data-test="c1-to-c2"]');
       directSiblingLinkAfterReturn.click();
       queue.flush();
       await queue.yield();

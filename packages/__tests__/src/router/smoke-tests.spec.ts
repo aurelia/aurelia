@@ -2333,7 +2333,7 @@ describe('router/smoke-tests.spec.ts', function () {
 <au-viewport></au-viewport>` })
       class Root { }
 
-      const { au, container, host, getBy, getByTestId } = await start({
+      const { au, container, host, getBy, getAllBy, getByTestId } = await start({
         appRoot: Root,
         registrations: [
           NotFound,
@@ -2342,7 +2342,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
       const queue = container.get(IPlatform).domQueue;
 
-      const rootVp = getBy<HTMLElement>('au-viewport');
+      const [rootVp] = getAllBy<HTMLElement>('au-viewport');
       let childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 

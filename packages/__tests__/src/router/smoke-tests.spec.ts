@@ -2346,11 +2346,13 @@ describe('router/smoke-tests.spec.ts', function () {
       let childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
+      const rootNavAnchors = Array.from(host.querySelectorAll<HTMLAnchorElement>('my-app > nav a'));
+      const rootToC2 = rootNavAnchors.find(a => a.textContent?.includes('C2'))!;
+      const rootToC1 = rootNavAnchors.find(a => a.textContent?.includes('C1'))!;
+
       const c1Anchors = Array.from(rootVp.querySelectorAll('c-one nav a')) as HTMLAnchorElement[];
       const gc12Link = c1Anchors.find(a => a.textContent?.includes('gc12'))!;
-      const parentLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-parent-c2"]')!;
       const missingLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-missing"]')!;
-      const directSiblingLink = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-c2"]')!;
 
       gc12Link.click();
       queue.flush();
@@ -2362,9 +2364,11 @@ describe('router/smoke-tests.spec.ts', function () {
       queue.flush();
       await queue.yield();
 
-      assert.html.textContent(childVp, 'nf');
+      childVp = rootVp.querySelector('au-viewport');
+      assert.strictEqual(childVp, null);
+      assert.html.textContent(rootVp, 'nf');
 
-      parentLink.click();
+      rootToC2.click();
       queue.flush();
       await queue.yield();
 
@@ -2373,7 +2377,6 @@ describe('router/smoke-tests.spec.ts', function () {
 
       const c2Anchors = Array.from(rootVp.querySelectorAll('c-two nav a')) as HTMLAnchorElement[];
       const gc22Link = c2Anchors.find(a => a.textContent?.includes('gc22'))!;
-      const parentLinkFromC2 = rootVp.querySelector<HTMLAnchorElement>('c-two [data-test="c2-to-parent-c1"]')!;
       const missingLinkFromC2 = rootVp.querySelector<HTMLAnchorElement>('c-two [data-test="c2-to-missing"]')!;
 
       gc22Link.click();
@@ -2386,16 +2389,19 @@ describe('router/smoke-tests.spec.ts', function () {
       queue.flush();
       await queue.yield();
 
-      assert.html.textContent(childVp, 'nf');
+      childVp = rootVp.querySelector('au-viewport');
+      assert.strictEqual(childVp, null);
+      assert.html.textContent(rootVp, 'nf');
 
-      parentLinkFromC2.click();
+      rootToC1.click();
       queue.flush();
       await queue.yield();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
-      directSiblingLink.click();
+      const directSiblingLinkAfterReturn = rootVp.querySelector<HTMLAnchorElement>('c-one [data-test="c1-to-c2"]')!;
+      directSiblingLinkAfterReturn.click();
       queue.flush();
       await queue.yield();
 

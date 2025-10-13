@@ -2326,8 +2326,8 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({
         name: 'my-app',
         template: `<nav>
-  <a ${attr}="c1">C1</a>
-  <a ${attr}="c2">C2</a>
+  <a ${attr}="c1" data-test="root-c1">C1</a>
+  <a ${attr}="c2" data-test="root-c2">C2</a>
 </nav>
 
 <au-viewport></au-viewport>` })
@@ -2346,10 +2346,9 @@ describe('router/smoke-tests.spec.ts', function () {
       let childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
-      const getRootLink = (text: string) => {
-        const links = Array.from(host.querySelectorAll<HTMLAnchorElement>('my-app > nav a'));
-        const link = links.find(a => a.textContent?.includes(text));
-        assert.notStrictEqual(link, undefined, `expected root link for ${text}`);
+      const getRootLink = (selector: string) => {
+        const link = host.querySelector<HTMLAnchorElement>(selector);
+        assert.notStrictEqual(link, null, `expected root link ${selector}`);
         return link!;
       };
       const getChildLink = (selector: string) => {
@@ -2358,8 +2357,8 @@ describe('router/smoke-tests.spec.ts', function () {
         return link!;
       };
 
-      const rootToC2 = getRootLink('C2');
-      const rootToC1 = getRootLink('C1');
+      const rootToC2 = getRootLink('[data-test="root-c2"]');
+      const rootToC1 = getRootLink('[data-test="root-c1"]');
 
       const gc12LinkLookup = Array.from(rootVp.querySelectorAll<HTMLAnchorElement>('c-one nav a')).find(a => a.textContent?.includes('gc12'));
       assert.notStrictEqual(gc12LinkLookup, undefined, 'expected gc12 link');

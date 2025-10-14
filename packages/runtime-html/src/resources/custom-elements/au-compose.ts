@@ -313,10 +313,12 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: template,
         });
-        const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
+        const compiledDef = this._rendering.compile(targetDef, childCtn);
+        const viewFactory = this._rendering.getViewFactory(compiledDef, childCtn);
         const controller = Controller.$view(
           viewFactory,
-          $controller
+          $controller,
+          compositionHost,
         );
         const scope = this.scopeBehavior === 'auto'
           ? Scope.fromParent(this.parent.scope, comp)
@@ -326,7 +328,7 @@ export class AuCompose {
         if (compositionLocation == null) {
           // only spread the bindings if there is an actual host
           // otherwise we may accidentally do unnecessary work
-          this._createSpreadBindings(compositionHost, targetDef, aucomposeCapturedAttrs).forEach(b => controller.addBinding(b));
+          this._createSpreadBindings(compositionHost, viewFactory.def, aucomposeCapturedAttrs).forEach(b => controller.addBinding(b));
         } else {
           controller.setLocation(compositionLocation);
         }

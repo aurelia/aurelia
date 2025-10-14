@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { Registration, noop, resolve } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 import {
   INode,
   customElement,
@@ -10,15 +10,14 @@ import {
   IDialogSettings,
   IDialogGlobalSettings,
   DialogConfiguration,
-  DialogDefaultConfiguration,
-  DefaultDialogGlobalSettings,
+  DialogConfigurationClassic,
   DialogCancelError,
   IDialogDom,
   IDialogController,
   DialogController,
-  DefaultDialogDom,
+  DialogDomClassic,
   DialogService,
-  IDialogDomAnimator,
+  DialogRenderOptionsClassic,
 } from '@aurelia/dialog';
 import {
   createFixture,
@@ -42,43 +41,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       assert.includes((error as Error).message, 'AUR0904');
     });
 
-    it('throws when customize without any implementation', async function () {
-      let error: unknown = void 0;
-      try {
-        const { startPromise } = createFixture('', class App { }, [DialogConfiguration.customize(noop, [])]);
-        await startPromise;
-      } catch (err) {
-        error = err;
-      }
-      assert.notStrictEqual(error, void 0);
-      // assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
-      assert.includes((error as Error).message, 'AUR0009:InterfaceSymbol<IDialogGlobalSettings>');
-    });
-
-    it('reuses previous registration', async function () {
-      let customized = false;
-      const { ctx, startPromise } = createFixture(
-        '',
-        class App { },
-        [
-          DialogDefaultConfiguration.customize(settings => {
-            customized = true;
-            assert.instanceOf(settings, DefaultDialogGlobalSettings);
-          })
-        ]
-      );
-
-      await startPromise;
-      const dialogService = ctx.container.get(IDialogService);
-      await dialogService.open({
-        component: () => ({}),
-        template: () => '<div>Hello world</div>'
-      });
-      assert.strictEqual(customized, true);
-    });
-
     it('allows injection of both IDialogService and DialogService', function () {
-      const { container } = createFixture('', class { }, [DialogDefaultConfiguration]);
+      const { container } = createFixture('', class { }, [DialogConfigurationClassic]);
       assert.strictEqual(
         container.get(IDialogService),
         container.get(DialogService)
@@ -88,13 +52,13 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
   describe('on deactivation', function () {
     it('throws when it fails to cleanup', async function () {
-      const { ctx, startPromise, tearDown } = createFixture('', class App { }, [DialogDefaultConfiguration]);
+      const { ctx, startPromise, tearDown } = createFixture('', class App { }, [DialogConfigurationClassic]);
 
       await startPromise;
       const dialogService = ctx.container.get(IDialogService);
 
       let canDeactivate = false;
-      await dialogService.open({
+      await dialogService.open<DialogRenderOptionsClassic>({
         component: () => ({
           canDeactivate: () => canDeactivate
         }),
@@ -122,7 +86,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'throws on invalid configuration',
         afterStarted: async (_, dialogService) => {
           let error: DialogCancelError<unknown>;
-          await dialogService.open({}).catch(err => error = err);
+          await dialogService.open<DialogRenderOptionsClassic>({}).catch(err => error = err);
           assert.includes(error.message, 'AUR0903');
           // assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
         }
@@ -130,12 +94,12 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'works with @inject(IDialogController, IDialogDom, INode)',
         afterStarted: async (_, dialogService) => {
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             component: () => class {
               public static inject = [IDialogController, IDialogDom, INode];
               public constructor(
                 controller: DialogController,
-                dialogDom: DefaultDialogDom,
+                dialogDom: DialogDomClassic,
                 node: Element
               ) {
                 assert.strictEqual(controller['dom'], dialogDom);
@@ -148,7 +112,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'allows both @inject(DialogController) and @inject(IDialogController)',
         afterStarted: async (_, dialogService) => {
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             component: () => class {
               public static inject = [DialogController, IDialogController];
               public constructor(
@@ -162,10 +126,28 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
+        title: 'distinguishes between a custom element constructor and a normal function',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const expected = 'hello world';
+          const Klass = CustomElement.define({ name: 'any', template: 'hello world' }, class {
+            public static inject = [IDialogController];
+            public constructor(controller: IDialogController) {
+              assert.strictEqual(controller.settings.component, this.constructor);
+            }
+          });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
+            component: Klass,
+          });
+          assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), expected);
+          void dialog.ok();
+          await dialog.closed;
+        }
+      },
+      {
         title: 'works with promise component',
         afterStarted: async (_, dialogService) => {
           let activated = false;
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             component: () => new Promise(r => {
               setTimeout(() => r({ activate: () => activated = true }), 0);
             })
@@ -176,7 +158,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'works with promise template',
         afterStarted: async ({ ctx }, dialogService) => {
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             template: () => new Promise(r => {
               setTimeout(() => r('<p>hello world 1234'), 0);
             })
@@ -187,7 +169,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'hasOpenDialog with 1 dialog',
         afterStarted: async (_, dialogService) => {
-          const { dialog: controller } = await dialogService.open({ template: '' });
+          const { dialog: controller } = await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           assert.strictEqual(dialogService.controllers.length, 1);
           void controller.ok();
           await controller.closed;
@@ -197,9 +179,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'hasOpenDialog with more than 1 dialog',
         afterStarted: async (_, dialogService) => {
-          const { dialog: dialog1 } = await dialogService.open({ template: '' });
+          const { dialog: dialog1 } = await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           assert.strictEqual(dialogService.controllers.length, 1);
-          const { dialog: dialog2 } = await dialogService.open({ template: '' });
+          const { dialog: dialog2 } = await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           assert.strictEqual(dialogService.controllers.length, 2);
           void dialog1.ok();
           await dialog1.closed;
@@ -210,22 +192,24 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
-        title: 'should create new settings by merging the default settings and the provided ones',
+        title: 'should create new settings by merging the default options and the provided ones',
         afterStarted: async ({ ctx }, dialogService) => {
-          const overrideSettings: IDialogSettings = {
+          const overrideSettings: IDialogSettings<DialogRenderOptionsClassic> = {
             rejectOnCancel: true,
-            lock: true,
-            keyboard: ['Escape'],
-            overlayDismiss: true,
+            options: {
+              lock: true,
+              keyboard: ['Escape'],
+              overlayDismiss: true,
+            }
           };
-          const { dialog: controller } = await dialogService.open({
+          const { dialog: controller } = await dialogService.open<DialogRenderOptionsClassic>({
             ...overrideSettings,
             component: () => Object.create(null),
           });
-          const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings), ...overrideSettings };
-          const actualSettings = { ...controller.settings };
-          delete actualSettings.component;
-          assert.deepStrictEqual(actualSettings, expectedSettings);
+          const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings).options, ...overrideSettings.options };
+          const actualOptions = { ...controller.settings.options as object };
+          // delete actualSettings.component;
+          assert.deepStrictEqual(actualOptions, expectedSettings);
         }
       },
       {
@@ -233,7 +217,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ ctx }, dialogService) => {
           const overrideSettings = { component: () => ({}), model: 'model data' };
           const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings) };
-          await dialogService.open(overrideSettings);
+          await dialogService.open<DialogRenderOptionsClassic>(overrideSettings);
           const actualSettings = { ...ctx.container.get(IDialogGlobalSettings) };
           assert.deepStrictEqual(actualSettings, expectedSettings);
         }
@@ -253,7 +237,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             }
           }
 
-          const result = await dialogService.open({
+          const result = await dialogService.open<DialogRenderOptionsClassic>({
             component: () => TestElement
           });
           assert.strictEqual(result.wasCancelled, false);
@@ -268,7 +252,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'resolves to "IOpenDialogResult" with [canActivate: false + rejectOnCancel: false]',
         afterStarted: async ({ ctx }, dialogService) => {
           let canActivateCallCount = 0;
-          const result = await dialogService.open({
+          const result = await dialogService.open<DialogRenderOptionsClassic>({
             rejectOnCancel: false,
             template: 'hello world',
             component: () => class TestElement {
@@ -288,7 +272,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ ctx }, dialogService) => {
           let canActivateCallCount = 0;
           let error: DialogCancelError<unknown>;
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             rejectOnCancel: true,
             template: 'hello world',
             component: () => class TestElement {
@@ -312,7 +296,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const expectedError = new Error('Expected error.');
           let canActivateCallCount = 0;
           let error: DialogCancelError<unknown>;
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello world',
             component: () => class TestElement {
               public canActivate() {
@@ -343,7 +327,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             }
           }
 
-          const result = await dialogService.open({
+          const result = await dialogService.open<DialogRenderOptionsClassic>({
             component: () => TestElement
           });
           assert.strictEqual(result.wasCancelled, false);
@@ -359,7 +343,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'resolves: "IDialogCloseResult" when: .ok()',
         afterStarted: async (_, dialogService) => {
-          const { dialog } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           const expectedValue = 'expected ok output';
           await dialog.ok(expectedValue);
           const result = await dialog.closed;
@@ -370,7 +354,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'resolves: "IDialogCloseResult" when: .cancel() + rejectOnCancel: false',
         afterStarted: async (_, dialogService) => {
-          const { dialog } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           const expectedOutput = 'expected cancel output';
           let error: DialogCancelError<unknown>;
           let errorCaughtCount = 0;
@@ -388,7 +372,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'rejects: "IDialogCancelError" when: .cancel() + rejectOnCancel: true',
         afterStarted: async (_, dialogService) => {
-          const { dialog } = await dialogService.open({ template: '', rejectOnCancel: true });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: '', rejectOnCancel: true });
           const expectedValue = 'expected cancel error output';
           let error: DialogCancelError<unknown>;
           let errorCaughtCount = 0;
@@ -407,7 +391,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'gets rejected with provided error when ".error" closed',
         afterStarted: async (_, dialogService) => {
-          const { dialog } = await dialogService.open({ template: '' });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           const expectedError = new Error('expected test error');
           let error: DialogCancelError<unknown>;
           let errorCaughtCount = 0;
@@ -425,7 +409,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: '.closeAll() with 1 dialog',
         afterStarted: async (_, dialogService) => {
-          await dialogService.open({ template: '' });
+          await dialogService.open<DialogRenderOptionsClassic>({ template: '' });
           assert.strictEqual(dialogService.controllers.length, 1);
           const unclosedController = await dialogService.closeAll();
           assert.strictEqual(dialogService.controllers.length, 0);
@@ -436,9 +420,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: '.closeAll() with more than 1 dialog',
         afterStarted: async (_, dialogService) => {
           await Promise.all([
-            dialogService.open({ template: '' }),
-            dialogService.open({ template: '' }),
-            dialogService.open({ template: '' }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: '' }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: '' }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: '' }),
           ]);
           assert.strictEqual(dialogService.controllers.length, 3);
           const unclosedController = await dialogService.closeAll();
@@ -450,9 +434,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: '.closeAll() with one dialog open',
         afterStarted: async (_, dialogService) => {
           await Promise.all([
-            dialogService.open({ template: '' }),
-            dialogService.open({ template: '' }),
-            dialogService.open({
+            dialogService.open<DialogRenderOptionsClassic>({ template: '' }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: '' }),
+            dialogService.open<DialogRenderOptionsClassic>({
               component: () => class App {
                 private deactivateCount = 0;
                 public canDeactivate() {
@@ -474,7 +458,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'closes dialog when clicking on overlay with lock: false',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog } = await dialogService.open({ template: 'Hello world', lock: false });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false } });
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
           overlay.click();
@@ -486,10 +470,25 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
+        title: 'does not close dialog when clicking on overlay with lock: undefined',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world' });
+          assert.strictEqual((dialog.settings.options as DialogRenderOptionsClassic).lock, true);
+          assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
+          const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
+          overlay.click();
+          await Promise.any([
+            dialog.closed,
+            new Promise(r => setTimeout(r, 50)),
+          ]);
+          assert.strictEqual(dialogService.controllers.length, 1);
+        }
+      },
+      {
         title: 'does not close dialog when clicking on overlay with lock: true',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog } = await dialogService.open({ template: 'Hello world' });
-          assert.strictEqual(dialog.settings.lock, true);
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: true } });
+          assert.strictEqual((dialog.settings.options as DialogRenderOptionsClassic).lock, true);
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const overlay = ctx.doc.querySelector('au-dialog-overlay') as HTMLElement;
           overlay.click();
@@ -503,7 +502,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not close dialog when clicking inside dialog host with lock: false',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog } = await dialogService.open({ template: 'Hello world', lock: false });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false } });
           assert.strictEqual(ctx.doc.querySelector('au-dialog-container').textContent, 'Hello world');
           const host = ctx.doc.querySelector('div') as HTMLElement;
           host.click();
@@ -518,8 +517,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'closes the latest open dialog when hitting ESC key',
         afterStarted: async ({ ctx }, dialogService) => {
           const [{ dialog: dialog1 }, { dialog: dialog2 }] = await Promise.all([
-            dialogService.open({ template: 'Hello world', lock: false }),
-            dialogService.open({ template: 'Hello world', lock: false })
+            dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false } }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false } })
           ]);
           const cancelSpy1 = createSpy(dialog1, 'cancel', true);
           const cancelSpy2 = createSpy(dialog2, 'cancel', true);
@@ -541,8 +540,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'closes with keyboard: ["Enter", "Escape"] setting',
         afterStarted: async ({ ctx }, dialogService) => {
           const [{ dialog: dialog1 }, { dialog: dialog2 }] = await Promise.all([
-            dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] }),
-            dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] })
+            dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false, keyboard: ['Enter', 'Escape'] } }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false, keyboard: ['Enter', 'Escape'] } })
           ]);
           const cancelSpy1 = createSpy(dialog1, 'ok', true);
           const cancelSpy2 = createSpy(dialog2, 'cancel', true);
@@ -564,8 +563,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'does not close the latest open dialog when hitting ESC key when lock:true',
         afterStarted: async ({ ctx }, dialogService) => {
           const [{ dialog: dialog1 }, { dialog: dialog2 }] = await Promise.all([
-            dialogService.open({ template: 'Hello world', lock: false }),
-            dialogService.open({ template: 'Hello world', lock: true })
+            dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false } }),
+            dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: true } }),
           ]);
           const cancelSpy1 = createSpy(dialog1, 'cancel', true);
           const cancelSpy2 = createSpy(dialog2, 'cancel', true);
@@ -586,8 +585,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'closes on Enter with keyboard:Enter regardless lock:[value]',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog: dialog1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter'] });
-          const { dialog: dialog2 } = await dialogService.open({ template: 'Hello world', lock: true, keyboard: ['Enter'] });
+          const { dialog: dialog1 } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false, keyboard: ['Enter'] } });
+          const { dialog: dialog2 } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: true, keyboard: ['Enter'] } });
           const okSpy1 = createSpy(dialog1, 'ok', true);
           const okSpy2 = createSpy(dialog2, 'ok', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Escape' }));
@@ -611,7 +610,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'does not response to keys that are not [Escape]/[Enter]',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog: controller1 } = await dialogService.open({ template: 'Hello world', lock: false, keyboard: ['Enter', 'Escape'] });
+          const { dialog: controller1 } = await dialogService.open<DialogRenderOptionsClassic>({ template: 'Hello world', options: { lock: false, keyboard: ['Enter', 'Escape'] } });
           const okSpy1 = createSpy(controller1, 'ok', true);
           ctx.wnd.dispatchEvent(new ctx.wnd.KeyboardEvent('keydown', { key: 'Tab' }));
           assert.strictEqual(okSpy1.calls.length, 0);
@@ -657,7 +656,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             };
           });
 
-          const { dialog } = await dialogService.open({ component: () => MyDialog });
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({ component: () => MyDialog });
           assert.deepStrictEqual(lifecycles, [
             'constructor',
             'canActivate',
@@ -695,7 +694,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           let click1CallCount = 0;
           let click2CallCount = 0;
           await Promise.all([
-            dialogService.open({
+            dialogService.open<DialogRenderOptionsClassic>({
               component: () => class MyClass1 {
                 public onClick() {
                   click1CallCount++;
@@ -703,7 +702,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
               },
               template: '<button data-dialog-btn click.delegate="onClick()">'
             }),
-            dialogService.open({
+            dialogService.open<DialogRenderOptionsClassic>({
               component: () => class MyClass2 {
                 public onClick() {
                   click2CallCount++;
@@ -728,7 +727,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           let canActivateCalled = false;
           let activateCalled = false;
           const model = {};
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             model,
             component: () => class {
               public canActivate($model: unknown) {
@@ -748,7 +747,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'works with .whenClosed() shortcut',
         afterStarted: async (_, dialogService) => {
-          const openPromise = dialogService.open({
+          const openPromise = dialogService.open<DialogRenderOptionsClassic>({
             template: () => 'Hello'
           });
           const whenClosedPromise = openPromise.whenClosed(result => result.value);
@@ -764,7 +763,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'it renders to a specific host',
         afterStarted: async ({ ctx, appHost }, dialogService) => {
           const dialogHost = appHost.appendChild(ctx.createElement('div'));
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             host: dialogHost,
             template: '<p>Hello world</p>'
           });
@@ -775,7 +774,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         title: 'registers only first deactivation value',
         afterStarted: async (_, dialogService) => {
           let resolve: (value?: unknown) => unknown;
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             component: () => ({
               deactivate: () => new Promise(r => { resolve = r; })
             })
@@ -794,7 +793,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'assigns the dialog controller to "$dialog" property for view only dialog',
         afterStarted: async ({ ctx }, dialogService) => {
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world <button click.trigger="$dialog.ok(1)"></button>'
           });
           const spy = createSpy(dialog, 'ok', true);
@@ -807,7 +806,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           let isSet = false;
           let $dialog: IDialogController;
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             component: () => ({
               set $dialog(dialog: IDialogController) {
                 isSet = true;
@@ -824,7 +823,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           let isSet = false;
           let $dialog: IDialogController;
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             component: () => CustomElement.define({
               name: 'hello-world',
               template: 'Hello 123'
@@ -841,52 +840,43 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       },
       {
         title: 'sets correct zindex from global settings',
-        afterStarted: async (appCreationResult, dialogService) => {
-          appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
-          await dialogService.open({
+        afterStarted: async ({ container, appHost, assertStyles }, dialogService) => {
+          (container.get(IDialogGlobalSettings).options as DialogRenderOptionsClassic).startingZIndex = 1;
+          await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello',
-            host: appCreationResult.appHost
+            host: appHost
           });
-          appCreationResult.assertStyles('au-dialog-container', { zIndex: '1' });
+          assertStyles('au-dialog-container', { zIndex: '1' });
         },
         browserOnly: true,
       },
       {
         title: 'lets zindex from open override global settings',
-        afterStarted: async (appCreationResult, dialogService) => {
-          appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
-          await dialogService.open({
+        afterStarted: async ({ container, appHost, assertStyles }, dialogService) => {
+          (container.get(IDialogGlobalSettings).options as DialogRenderOptionsClassic).startingZIndex = 1;
+          await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello',
-            host: appCreationResult.appHost,
-            startingZIndex: 2
+            host: appHost,
+            options: { startingZIndex: 2 }
           });
-          appCreationResult.assertStyles('au-dialog-container', { zIndex: '2' });
+          assertStyles('au-dialog-container', { zIndex: '2' });
         },
         browserOnly: true,
       },
       {
-        title: 'animates correctly',
+        title: 'handles long animation',
         afterStarted: async (_, dialogService) => {
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             template: '<div style="width: 300px; height: 300px; background: red;">Hello world',
             component: () => class MyDialog {
-              public static get inject() { return [INode]; }
-              public constructor(private readonly host: Element) {}
-
               public attaching() {
-                const animation = this.host.animate?.(
-                  [{ transform: 'translateY(0px)' }, { transform: 'translateY(-300px)' }],
-                  { duration: 100 },
-                );
-                return animation?.finished;
+                // pretend to be animating in
+                return new Promise<void>(resolve => setTimeout(resolve, 100));
               }
 
               public detaching() {
-                const animation = this.host.animate?.(
-                  [{ transform: 'translateY(-300px)' }, { transform: 'translateY(0)' }],
-                  { duration: 100 },
-                );
-                return animation?.finished;
+                // pretend to be animating out
+                return new Promise<void>(resolve => setTimeout(resolve, 100));
               }
             },
           });
@@ -900,13 +890,14 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const contentHost = platform.document.createElement('hahaha');
           let disposed = 0;
           const host = platform.document.createElement('host-here');
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
             renderer: {
-              render(host, _settings) {
+              render(host, _controller, _settings) {
                 host.append(overlay, contentHost);
                 return {
                   overlay,
+                  root: contentHost,
                   contentHost,
                   dispose() {
                     disposed = 1;
@@ -930,12 +921,13 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const contentHost = platform.document.createElement('div');
           const host = platform.document.createElement('host-here');
           let i = 0;
-          const { dialog } = await dialogService.open({
+          const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
             renderer: {
-              render(_host, _settings) {
+              render(_host, _controller, _settings) {
                 return {
                   overlay,
+                  root: contentHost,
                   contentHost,
                   show() { i = 1; },
                   hide() { i = 2; },
@@ -951,19 +943,18 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         },
       },
 
-      // #region animator
+      // #region animation hook
       {
-        title: 'allows custom animator',
-        afterStarted: async ({ container }, dialogService) => {
+        title: 'allows custom animation hooks in open',
+        afterStarted: async (_, dialogService) => {
           let i = 0;
 
-          container.register(Registration.instance(IDialogDomAnimator, {
-            show(_dom: IDialogDom) { i = 1; },
-            hide(_dom: IDialogDom) { i = 2; }
-          }));
-
-          const result = await dialogService.open({
+          const result = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
+            options: {
+              show(_dom: IDialogDom) { i = 1; },
+              hide(_dom: IDialogDom) { i = 2; },
+            }
           });
           assert.strictEqual(i, 1);
 
@@ -972,21 +963,21 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
-        title: 'uses animator from provided animator instead of the global one',
+        title: 'uses hooks from open call instead of the global one',
         afterStarted: async ({ container }, dialogService) => {
           let i = 0;
 
-          container.register(Registration.instance(IDialogDomAnimator, {
+          Object.assign(container.get(IDialogGlobalSettings), {
             show(_dom: IDialogDom) { throw new Error('??'); },
             hide(_dom: IDialogDom) { throw new Error('??'); },
-          }));
+          });
 
-          const result = await dialogService.open({
+          const result = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
-            container: container.createChild().register(Registration.instance(IDialogDomAnimator, {
-              show(_dom: IDialogDom) { i = 3; },
-              hide(_dom: IDialogDom) { i = 4; }
-            }))
+            options: {
+                show(_dom: IDialogDom) { i = 3; },
+                hide(_dom: IDialogDom) { i = 4; }
+            },
           });
           assert.strictEqual(i, 3);
 
@@ -995,16 +986,16 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
-        title: 'calls deactivate before animator.hide',
+        title: 'calls deactivate before hide option hook',
         afterStarted: async ({ container }, dialogService) => {
           const calls: string[] = [];
 
-          container.register(Registration.instance(IDialogDomAnimator, {
+          Object.assign(container.get(IDialogGlobalSettings).options as DialogRenderOptionsClassic, {
             show(_dom: IDialogDom) { },
             hide(_dom: IDialogDom) { calls.push('hide'); },
-          }));
+          });
 
-          const result = await dialogService.open({
+          const result = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
             component: () => ({
               deactivate() { calls.push('deactivate'); }
@@ -1016,12 +1007,14 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.deepEqual(calls, ['deactivate', 'hide']);
         }
       },
+
+      // #region form
       {
         title: 'calls prevent default on form submit event',
         async afterStarted(appCreationResult, dialogService) {
           let submit: () => void;
           let e: SubmitEvent;
-          await dialogService.open({
+          await dialogService.open<DialogRenderOptionsClassic>({
             template: '<form submit.trigger="onSubmit($event)"><button>Submit</button></form>',
             component: () => class {
               dom = resolve(IDialogDom);
@@ -1045,7 +1038,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       if (browserOnly && isNode()) continue;
       const $it = only ? it.only : it;
       $it(title, async function () {
-        const creationResult = createFixture('', class App { }, [delegateSyntax, DialogDefaultConfiguration]);
+        const creationResult = createFixture('', class App { }, [delegateSyntax, DialogConfigurationClassic]);
         const { ctx, tearDown, startPromise } = creationResult;
         await startPromise;
         const dialogService = ctx.container.get(IDialogService);

@@ -1,3 +1,7 @@
+---
+description: Learn how to define and register services with Aurelia's dependency injection container.
+---
+
 # Creating Injectable Services
 
 ## Overview
@@ -114,16 +118,40 @@ export class PaymentProcessor {
 export type IPaymentProcessor = PaymentProcessor;
 ```
 
-You can then use this type for injection and for defining the shape of your service without having to declare all methods explicitly:
+You can then use this type for injection and for defining the shape of your service without having to declare all methods explicitly. The important thing to remember is that a TypeScript `type` alias is removed during compilation. That means `IPaymentProcessor` exists only for tooling and static analysis—there is no runtime token by that name. When you ask the container for an instance, supply the class (or another runtime value) as the key:
 
 ```typescript
 import { resolve } from 'aurelia';
+import { PaymentProcessor } from './payment-processor';
+import type { IPaymentProcessor } from './payment-processor';
 
-export class CheckoutService {
-  private paymentProcessor: IPaymentProcessor = resolve(IPaymentProcessor);
-  // Use paymentProcessor
+export class CheckoutWorkflow {
+  private readonly paymentProcessor: IPaymentProcessor = resolve(PaymentProcessor);
+
+  completeCheckout(amount: number) {
+    this.paymentProcessor.processPayment(amount);
+  }
 }
 ```
+
+If you'd rather rely on constructor injection, pair the runtime token with the `@inject` decorator while keeping the parameter typed as the alias:
+
+```typescript
+import { inject } from 'aurelia';
+import { PaymentProcessor } from './payment-processor';
+import type { IPaymentProcessor } from './payment-processor';
+
+@inject(PaymentProcessor)
+export class CheckoutController {
+  constructor(private readonly paymentProcessor: IPaymentProcessor) {}
+
+  completeCheckout(amount: number) {
+    this.paymentProcessor.processPayment(amount);
+  }
+}
+```
+
+This pattern keeps the runtime registration focused on `PaymentProcessor` while exposing the alias everywhere else for enhanced editor and refactoring support.
 
 ## Conclusion
 

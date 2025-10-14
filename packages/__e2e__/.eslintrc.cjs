@@ -18,7 +18,10 @@ module.exports = {
       'import/no-nodejs-modules': 'off',
       'import/no-extraneous-dependencies': 'off',
       'no-console': 'off',
-      '@typescript-eslint/no-explicit-any': 'off'
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      'no-await-in-loop': 'off',
+      'max-lines-per-function': 'off',
     }
   }]
 };

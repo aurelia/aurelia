@@ -1,181 +1,128 @@
-/**
- *
- * NOTE: This file is still WIP and will go through at least one more iteration of refactoring, commenting and clean up!
- * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
- *
- */
-
 export {
-  Endpoint,
-  type IConnectedCustomElement,
-  type IEndpointOptions,
-} from './endpoints/endpoint';
-
-export {
-  EndpointContent,
-} from './endpoints/endpoint-content';
-
-export {
-  FoundRoute,
-} from './found-route';
-
-export {
-  // ILinkHandlerOptions,
-  // AnchorEventInfo,
-
-  ILinkHandler,
-  LinkHandler,
-} from './resources/link-handler';
-
-export {
-  InstructionParameters,
-  type Parameters,
-} from './instructions/instruction-parameters';
-
-export {
-  // Navigation,
-  type ComponentAppellation,
-  type IRouteableComponent,
-  type RouteableComponentType,
-  type IRoutingInstruction,
-  type LoadInstruction,
-  type ReloadBehavior,
-} from './interfaces';
-
-export {
-  Navigation,
-  NavigationFlags,
-} from './navigation';
-
-export {
-  NavigationCoordinator,
-  type NavigationState,
-} from './navigation-coordinator';
-
-export {
-  // IStoredNavigatorEntry,
-  // INavigatorEntry,
-  type INavigatorOptions,
-  type INavigatorState,
-  type INavigatorStore,
-  type INavigatorViewer,
-  Navigator,
-} from './navigator';
-
-export {
-  Runner,
-  Step,
-} from './utilities/runner';
-
-// export {
-//   QueueItem,
-//   IQueueOptions,
-//   Queue,
-// } from './utilities/queue';
-
-export {
-  type IRoute,
-  Route,
-} from './route';
-
-export {
-  route,
-} from './decorators/route';
-
-export {
-  RouteRecognizer,
-  type IConfigurableRoute,
-  ConfigurableRoute,
-  RecognizedRoute,
-  Endpoint as RecognizerEndpoint,
-} from './route-recognizer';
-
-export {
-  IRouter,
-  Router,
-
-  RouterStartEvent,
-  RouterStopEvent,
-  RouterNavigationStartEvent,
-  RouterNavigationEndEvent,
-  RouterNavigationCancelEvent,
-  RouterNavigationCompleteEvent,
-  RouterNavigationErrorEvent,
-} from './router';
-
-export {
-  type IRouterOptions,
-  type ITitleOptions,
-  RouterOptions,
-} from './router-options';
-
-export {
-  Routes,
-  routes,
-} from './decorators/routes';
-
-export {
-  RoutingHook,
-  type RoutingHookType,
-  type IRoutingHookDefinition,
-  type RoutingHookFunction,
-  type RoutingHookIdentity,
-  type RoutingHookParameter,
-  type RoutingHookResult,
-  type IRoutingHookOptions,
-  type RoutingHookTarget,
-  type BeforeNavigationHookFunction,
-  type TransformFromUrlHookFunction,
-  type TransformToUrlHookFunction,
-  type TransformTitleHookFunction,
-} from './routing-hook';
-
-export {
-  RoutingInstruction,
-} from './instructions/routing-instruction';
-
-export {
-  type TransitionAction,
-  RoutingScope,
-} from './routing-scope';
-
-export {
-  Viewport,
-} from './endpoints/viewport';
-
-export {
-  type IViewportOptions,
-  ViewportOptions,
-} from './endpoints/viewport-options';
-
-export {
-  type IViewportScopeOptions,
-  ViewportScope,
-} from './endpoints/viewport-scope';
-
-export {
-  ViewportContent,
-} from './endpoints/viewport-content';
-
-export {
-  ViewportScopeContent,
-} from './endpoints/viewport-scope-content';
+  type IViewport,
+} from './resources/viewport';
 
 export {
   RouterConfiguration,
-  IRouterConfiguration,
   RouterRegistration,
   DefaultComponents,
   DefaultResources,
+  ViewportCustomElement,
   ViewportCustomElementRegistration,
-  ViewportScopeCustomElementRegistration,
+  LoadCustomAttribute,
   LoadCustomAttributeRegistration,
+  HrefCustomAttribute,
   HrefCustomAttributeRegistration,
+  type IRouterConfigurationOptions,
 } from './configuration';
 
-export { ViewportCustomElement } from './resources/viewport';
-export { ViewportScopeCustomElement } from './resources/viewport-scope';
-export { LoadCustomAttribute } from './resources/load';
-export { HrefCustomAttribute } from './resources/href';
-export { ConsideredActiveCustomAttribute } from './resources/considered-active';
+export {
+  type IRouteViewModel,
+} from './component-agent';
 
+export {
+  type RouteableComponent,
+  type NavigationInstruction,
+  type IViewportInstruction,
+  type Params,
+  type ViewportInstruction,
+  type ITypedNavigationInstruction,
+  type ITypedNavigationInstruction_string,
+  type ITypedNavigationInstruction_ViewportInstruction,
+  type ITypedNavigationInstruction_CustomElementDefinition,
+  type ITypedNavigationInstruction_Promise,
+  type ITypedNavigationInstruction_IRouteViewModel,
+  NavigationStrategy,
+} from './instructions';
+
+export {
+  ILocationManager,
+} from './location-manager';
+
+export {
+  RouteConfig,
+  Route,
+  type RouteType,
+  route,
+} from './route';
+
+export {
+  IRouteContext,
+  RouteContext,
+  type RouteParameterValue,
+  type RouteParameterMergeStrategy,
+  type RouteParametersOptions,
+  type INavigationModel,
+  type INavigationRoute,
+} from './route-context';
+
+export {
+  AST,
+  RouteExpression,
+  CompositeSegmentExpression,
+  ScopedSegmentExpression,
+  SegmentGroupExpression,
+  SegmentExpression,
+  ComponentExpression,
+  ViewportExpression,
+  ParameterListExpression,
+  ParameterExpression,
+  type ExpressionKind,
+} from './route-expression';
+
+export {
+  type IRouteNodeInitializationOptions,
+  RouteNode,
+  RouteTree,
+} from './route-tree';
+
+export {
+  isManagedState,
+  toManagedState,
+  IRouter,
+  Router,
+  Transition,
+} from './router';
+
+export {
+  IRouterOptions,
+  type INavigationOptions,
+  RouterOptions,
+  NavigationOptions,
+  type HistoryStrategy,
+  type FallbackFunction,
+  type Routeable,
+  type IRouteConfig,
+  type IChildRouteConfig,
+} from './options';
+
+export {
+  AuNavId,
+  type ManagedState,
+  IRouterEvents,
+  type RouterEvent,
+  LocationChangeEvent,
+  NavigationStartEvent,
+  NavigationEndEvent,
+  NavigationCancelEvent,
+  NavigationErrorEvent,
+} from './router-events';
+
+export {
+  IStateManager,
+} from './state-manager';
+
+export {
+  ViewportAgent,
+} from './viewport-agent';
+
+export {
+  type IUrlParser,
+  pathUrlParser,
+  fragmentUrlParser,
+} from './url-parser';
+
+export {
+  ICurrentRoute,
+  type ParameterInformation,
+} from './current-route';

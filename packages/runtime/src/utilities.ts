@@ -19,7 +19,6 @@ export const rtDef = Reflect.defineProperty;
 /** @internal */
 export function rtDefineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T {
   rtDef(obj, key, {
-    enumerable: false,
     configurable: true,
     writable: true,
     value
@@ -40,6 +39,9 @@ export function ensureProto<T extends object, K extends keyof T>(
 
 /** @internal */ export const rtObjectAssign = Object.assign;
 /** @internal */ export const rtObjectFreeze = Object.freeze;
+
+/** @internal */ export const getProto = Object.getPrototypeOf;
+/** @internal */ export const getOwnPropDesc = Object.getOwnPropertyDescriptor;
 // this is used inside template literal, since TS errs without String(...value)
 /** @internal */ export const rtSafeString = String;
 /** @internal */ export const rtCreateInterface = DI.createInterface;

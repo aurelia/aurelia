@@ -1,4 +1,5 @@
-import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter } from '@aurelia/route-recognizer';
+import { Writable } from '@aurelia/kernel';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
 describe('router/route-recognizer.spec.ts', function () {
@@ -2758,6 +2759,90 @@ describe('router/route-recognizer.spec.ts', function () {
       ],
     },
     // #endregion
+
+    // #region constrained routes
+    {
+      routes: [
+        ['a/:id{{^\\d+$}}', [new Parameter('id', false, false, /^\d+$/)]],
+        ['b/:tab{{^(foo|bar)$}}', [new Parameter('tab', false, false, /^(foo|bar)$/)]],
+        ['c/:id{{^\\d+$}}?', [new Parameter('id', true, false, /^\d+$/)]],
+        ['d/:id{{^\\d+$}}/:tab{{^(foo|bar)$}}?', [new Parameter('id', false, false, /^\d+$/), new Parameter('tab', true, false, /^(foo|bar)$/)]],
+        ['e/:id{{^\\d+$}}?/:tab{{^(foo|bar)$}}?', [new Parameter('id', true, false, /^\d+$/), new Parameter('tab', true, false, /^(foo|bar)$/)]],
+        [':id{{^\\d+$}}/f', [new Parameter('id', false, false, /^\d+$/)]],
+        ['g/:id{{^\\d+$}}/h', [new Parameter('id', false, false, /^\d+$/)]],
+        ['i/:tab{{foo|bar}}', [new Parameter('tab', false, false, /foo|bar/)]],
+        ['j/:tab{{^(foo|bar)}}', [new Parameter('tab', false, false, /^(foo|bar)/)]],
+        ['k/:tab{{(foo|bar)$}}', [new Parameter('tab', false, false, /(foo|bar)$/)]],
+      ],
+      tests: [
+        ['a', null, null],
+        ['a/42', 'a/:id{{^\\d+$}}', { id: '42' }],
+        ['a/foo', null, null],
+        ['a/f42', null, null],
+
+        ['a/42f', null, null],
+        ['b/foo', 'b/:tab{{^(foo|bar)$}}', { tab: 'foo' }],
+        ['b/bar', 'b/:tab{{^(foo|bar)$}}', { tab: 'bar' }],
+        ['b/fizz', null, null],
+        ['b/foobar', null, null],
+        ['b/barfoo', null, null],
+        ['b/foof', null, null],
+        ['b/ffoo', null, null],
+        ['b/barf', null, null],
+        ['b/fbar', null, null],
+
+        ['c/42', 'c/:id{{^\\d+$}}?', { id: '42' }],
+        ['c', 'c/:id{{^\\d+$}}?', { id: void 0 }],
+        ['c/foo', null, null],
+
+        ['d', null, null],
+        ['d/42', 'd/:id{{^\\d+$}}/:tab{{^(foo|bar)$}}?', { id: '42', tab: void 0 }],
+        ['d/42/foo', 'd/:id{{^\\d+$}}/:tab{{^(foo|bar)$}}?', { id: '42', tab: 'foo' }],
+        ['d/42/bar', 'd/:id{{^\\d+$}}/:tab{{^(foo|bar)$}}?', { id: '42', tab: 'bar' }],
+        ['d/foo/42', null, null],
+        ['d/bar/42', null, null],
+
+        ['e', 'e/:id{{^\\d+$}}?/:tab{{^(foo|bar)$}}?', { id: void 0, tab: void 0 }],
+        ['e/42', 'e/:id{{^\\d+$}}?/:tab{{^(foo|bar)$}}?', { id: '42', tab: void 0 }],
+        ['e/42/foo', 'e/:id{{^\\d+$}}?/:tab{{^(foo|bar)$}}?', { id: '42', tab: 'foo' }],
+        ['e/42/bar', 'e/:id{{^\\d+$}}?/:tab{{^(foo|bar)$}}?', { id: '42', tab: 'bar' }],
+        ['e/foo/42', null, null],
+        ['e/bar/42', null, null],
+
+        ['f', null, null],
+        ['42/f', ':id{{^\\d+$}}/f', { id: '42' }],
+        ['foo/f', null, null],
+        ['f42/f', null, null],
+        ['42f/f', null, null],
+
+        ['g', null, null],
+        ['g/42/h', 'g/:id{{^\\d+$}}/h', { id: '42' }],
+        ['g/foo/h', null, null],
+        ['g/f42/h', null, null],
+        ['g/42f/h', null, null],
+
+        ['i/foo', 'i/:tab{{foo|bar}}', { tab: 'foo' }],
+        ['i/bar', 'i/:tab{{foo|bar}}', { tab: 'bar' }],
+        ['i/fizz', null, null],
+        ['i/foobar', 'i/:tab{{foo|bar}}', { tab: 'foobar' }],
+        ['i/barfoo', 'i/:tab{{foo|bar}}', { tab: 'barfoo' }],
+        ['i/foof', 'i/:tab{{foo|bar}}', { tab: 'foof' }],
+        ['i/ffoo', 'i/:tab{{foo|bar}}', { tab: 'ffoo' }],
+        ['i/barf', 'i/:tab{{foo|bar}}', { tab: 'barf' }],
+        ['i/fbar', 'i/:tab{{foo|bar}}', { tab: 'fbar' }],
+
+        ['k/foo', 'k/:tab{{(foo|bar)$}}', { tab: 'foo' }],
+        ['k/bar', 'k/:tab{{(foo|bar)$}}', { tab: 'bar' }],
+        ['k/fizz', null, null],
+        ['k/foobar', 'k/:tab{{(foo|bar)$}}', { tab: 'foobar' }],
+        ['k/barfoo', 'k/:tab{{(foo|bar)$}}', { tab: 'barfoo' }],
+        ['k/foof', null, null],
+        ['k/ffoo', 'k/:tab{{(foo|bar)$}}', { tab: 'ffoo' }],
+        ['k/barf', null, null],
+        ['k/fbar', 'k/:tab{{(foo|bar)$}}', { tab: 'fbar' }],
+      ]
+    }
+    // #endregion
   ];
 
   for (const hasLeadingSlash of [true, false]) {
@@ -2777,7 +2862,7 @@ describe('router/route-recognizer.spec.ts', function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
-                  sut.add({ path: route, handler: null });
+                  sut.add({ path: route, handler: null }, false);
                 }
 
                 // Act
@@ -2794,7 +2879,7 @@ describe('router/route-recognizer.spec.ts', function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
-                  sut.add({ path: route, handler: null });
+                  sut.add({ path: route, handler: null }, false);
                 }
 
                 const params = { ...$params };
@@ -2812,6 +2897,88 @@ describe('router/route-recognizer.spec.ts', function () {
               });
             }
           }
+        }
+      }
+    }
+  }
+
+  for (const hasLeadingSlash of [true, false]) {
+    for (const hasTrailingSlash of [true, false]) {
+      for (const reverseAdd of [true, false]) {
+        const $routes: [string, Parameter[], boolean][] = [
+          ['', [], true],
+          ['a', [], true],
+          ['b/:1', [new Parameter('1', false, false, null)], true],
+          ['b/:1/*2', [new Parameter('1', false, false, null), new Parameter('2', true, true, null)], false],
+        ];
+        const tests: [string, string | null, Record<string, string> | null][] = [
+          ['b/1', 'b/:1', { 1: '1' }],
+          ['b/1/2', 'b/:1/*2', { 1: '1', 2: '2' }],
+          ['b/1/2/3', 'b/:1/*2', { 1: '1', 2: '2/3' }],
+          ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }],
+        ];
+
+        const routes = reverseAdd ? $routes.slice().reverse() : $routes;
+        for (const [path, match, $params] of tests) {
+          const leading = hasLeadingSlash ? '/' : '';
+          const trailing = hasTrailingSlash ? '/' : '';
+
+          let title = `should`;
+          const input = `${leading}${path}${trailing}`;
+          title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x[0]}'`).join(',')}]`;
+
+          it(title, function () {
+            // Arrange
+            const sut = new RouteRecognizer();
+            for (const [route] of routes) {
+              sut.add({ path: route, handler: null }, true);
+            }
+
+            for (const [route, parameters, residueAdded] of routes) {
+              const endpoint = sut.getEndpoint(route);
+              assert.notEqual(endpoint, null);
+              assert.deepStrictEqual(endpoint.params, parameters);
+              const residueEndpoint = sut.getEndpoint(`${route}/*${RESIDUE}`);
+              assert.strictEqual(endpoint.residualEndpoint, residueEndpoint);
+              if(residueAdded) {
+                assert.notEqual(residueEndpoint, null);
+              } else {
+                assert.equal(residueEndpoint, null);
+              }
+            }
+
+            const params = { ...$params };
+            const configurableRoute = new ConfigurableRoute(match, false, null);
+            let parameters: Parameter[];
+            let residueEndpoint: Endpoint<any> | null = null;
+            if(match.endsWith(`/*${RESIDUE}`)) {
+              const $match = match.substring(0, match.length - (RESIDUE.length + 2));
+              parameters = [
+                ...routes.find(([route]) => route === $match)[1],
+                new Parameter(RESIDUE, true, true, null),
+              ];
+            } else {
+              const route = routes.find(([route]) => route === match);
+              parameters = route[1];
+              if (route[2]) {
+                residueEndpoint = new Endpoint(
+                  new ConfigurableRoute(`${route[0]}/*${RESIDUE}`, false, null),
+                  [...parameters, new Parameter(RESIDUE, true, true, null)]
+                );
+              }
+            }
+            const endpoint = new Endpoint(configurableRoute, parameters);
+            (endpoint as Writable<Endpoint<any>>).residualEndpoint = residueEndpoint;
+            const expected = new RecognizedRoute(endpoint, params);
+
+            // Act
+            const actual1 = sut.recognize(path);
+            const actual2 = sut.recognize(path);
+
+            // Assert
+            assert.deepStrictEqual(actual1, actual2, `consecutive calls should return the same result`);
+            assert.deepStrictEqual(actual1, expected);
+          });
         }
       }
     }

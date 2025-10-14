@@ -270,7 +270,7 @@ export class MyApp {
 
 ## Router Transition Animations
 
-For page transitions when navigating between routes, Aurelia provides powerful lifecycle hooks that enable smooth animations. For comprehensive coverage of router animations, see the dedicated [Router Animation](../routing/router-animation.md) guide.
+For page transitions when navigating between routes, Aurelia provides powerful lifecycle hooks that enable smooth animations. For comprehensive coverage of router animations, see the dedicated [Router Animation](../router-direct/router-animation.md) guide.
 
 ### Quick Router Animation Example
 
@@ -279,38 +279,43 @@ import { lifecycleHooks } from '@aurelia/runtime-html';
 
 @lifecycleHooks()
 export class SlideAnimationHooks {
+  private element: HTMLElement;
+  private backwards = false;
+
   public created(vm, controller): void {
-    vm.element = controller.host;
+    this.element = controller.host;
   }
 
   public loading(vm, _params, _instruction, navigation) {
-    vm.backwards = navigation.navigation.back;
+    this.backwards = navigation.navigation.back;
   }
 
   public unloading(vm, _instruction, navigation) {
-    vm.backwards = navigation.navigation.back;
+    this.backwards = navigation.navigation.back;
   }
 
-  public attaching(vm) {
-    return this.slideIn(vm.element, vm.backwards ? 'left' : 'right');
+  public attaching(vm): Promise<void> {
+    return this.slideIn(this.element, this.backwards ? 'left' : 'right');
   }
 
-  public detaching(vm) {
-    return this.slideOut(vm.element, vm.backwards ? 'right' : 'left');
+  public detaching(vm): Promise<void> {
+    return this.slideOut(this.element, this.backwards ? 'right' : 'left');
   }
 
-  private slideIn(element: Element, from: 'left' | 'right'): Promise<void> {
-    const animation = element.animate({
-      transform: [`translateX(${from === 'left' ? '-' : ''}100%)`, 'translateX(0)']
-    }, { duration: 300, easing: 'ease-out' });
+  private slideIn(element: HTMLElement, from: 'left' | 'right'): Promise<void> {
+    const animation = element.animate([
+      { transform: `translateX(${from === 'left' ? '-' : ''}100%)` },
+      { transform: 'translateX(0)' }
+    ], { duration: 300, easing: 'ease-out', fill: 'forwards' });
 
     return animation.finished;
   }
 
-  private slideOut(element: Element, to: 'left' | 'right'): Promise<void> {
-    const animation = element.animate({
-      transform: ['translateX(0)', `translateX(${to === 'left' ? '-' : ''}100%)`]
-    }, { duration: 300, easing: 'ease-in' });
+  private slideOut(element: HTMLElement, to: 'left' | 'right'): Promise<void> {
+    const animation = element.animate([
+      { transform: 'translateX(0)' },
+      { transform: `translateX(${to === 'left' ? '-' : ''}100%)` }
+    ], { duration: 300, easing: 'ease-in', fill: 'forwards' });
 
     return animation.finished;
   }
@@ -360,6 +365,54 @@ export class FadeCard {
         return animation.finished;
     }
 }
+```
+
+### Using Lifecycle Hooks for External Animation Control
+
+For more complex animation scenarios, you can use Aurelia's lifecycle hooks system to create reusable animation controllers:
+
+```typescript
+import { lifecycleHooks } from '@aurelia/runtime-html';
+
+@lifecycleHooks()
+export class FadeAnimationHooks {
+    private element: HTMLElement;
+
+    created(vm, controller): void {
+        this.element = controller.host;
+    }
+
+    attaching(vm): Promise<void> {
+        return this.element.animate([
+            { opacity: 0, transform: 'scale(0.8)' },
+            { opacity: 1, transform: 'scale(1)' }
+        ], {
+            duration: 300,
+            easing: 'ease-out',
+            fill: 'forwards'
+        }).finished;
+    }
+
+    detaching(vm): Promise<void> {
+        return this.element.animate([
+            { opacity: 1, transform: 'scale(1)' },
+            { opacity: 0, transform: 'scale(0.8)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished;
+    }
+}
+```
+
+Then register the hooks in your app configuration:
+
+```typescript
+import { FadeAnimationHooks } from './fade-animation-hooks';
+
+Aurelia.register(FadeAnimationHooks);
+```
 ```
 
 ## Web Animations API
@@ -544,6 +597,94 @@ export class GSAPExample {
 }
 ```
 
+## Template Controller Animations
+
+Template controllers like `if`, `repeat`, and `with` create and destroy DOM elements dynamically. You can animate these transitions using lifecycle hooks:
+
+### Animating Conditional Content
+
+```typescript
+@lifecycleHooks()
+export class ConditionalAnimationHooks {
+    private element: HTMLElement;
+
+    created(vm, controller): void {
+        this.element = controller.host;
+    }
+
+    attaching(vm): Promise<void> {
+        // Animate in when if.bind becomes true
+        this.element.style.opacity = '0';
+        return this.element.animate([
+            { opacity: 0, transform: 'translateY(-10px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+        ], {
+            duration: 250,
+            easing: 'ease-out',
+            fill: 'forwards'
+        }).finished;
+    }
+
+    detaching(vm): Promise<void> {
+        // Animate out when if.bind becomes false
+        return this.element.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-10px)' }
+        ], {
+            duration: 200,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished;
+    }
+}
+```
+
+```html
+<div if.bind="showContent">Content that animates in/out</div>
+```
+
+### Animating Repeated Items
+
+For `repeat.for` items, you can animate individual items as they're added or removed:
+
+```typescript
+export class ListItem {
+    private element: HTMLElement;
+
+    created(controller) {
+        this.element = controller.host;
+    }
+
+    attaching(): Promise<void> {
+        // Animate new items sliding in
+        return this.element.animate([
+            { opacity: 0, transform: 'translateX(-20px) scale(0.8)' },
+            { opacity: 1, transform: 'translateX(0) scale(1)' }
+        ], {
+            duration: 300,
+            easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            fill: 'forwards'
+        }).finished;
+    }
+
+    detaching(): Promise<void> {
+        // Animate items sliding out when removed
+        return this.element.animate([
+            { opacity: 1, transform: 'translateX(0) scale(1)' },
+            { opacity: 0, transform: 'translateX(20px) scale(0.8)' }
+        ], {
+            duration: 250,
+            easing: 'ease-in',
+            fill: 'forwards'
+        }).finished;
+    }
+}
+```
+
+```html
+<list-item repeat.for="item of items" model.bind="item"></list-item>
+```
+
 ## Advanced Patterns
 
 ### Animation Composition
@@ -598,4 +739,88 @@ export class SequenceAnimation {
 }
 ```
 
-This comprehensive guide covers the essential animation techniques available in Aurelia applications. For router-specific animations, be sure to check the [Router Animation](../routing/router-animation.md) documentation for detailed examples and patterns.
+## Lifecycle Hook Reference
+
+Aurelia provides several lifecycle hooks that are perfect for animations:
+
+| Hook | When Called | Best For |
+|------|------------|----------|
+| `created` | After view model construction | Element reference setup |
+| `binding` | Before data binding | Pre-animation setup |
+| `bound` | After data binding | Data-dependent animation setup |
+| `attaching` | Before DOM attachment | Enter animations |
+| `attached` | After DOM attachment | Animations requiring DOM measurements |
+| `detaching` | Before DOM removal | Exit animations |
+| `unbinding` | Before data unbinding | Cleanup animations |
+
+### Animation Timing Best Practices
+
+1. **Return Promises** - Always return animation promises from lifecycle hooks:
+   ```typescript
+   attaching(): Promise<void> {
+     return this.element.animate(/* ... */).finished;
+   }
+   ```
+
+2. **Handle Interruptions** - Cancel animations if components are destroyed:
+   ```typescript
+   export class AnimatedComponent {
+     private currentAnimation: Animation | null = null;
+
+     attaching(): Promise<void> {
+       this.currentAnimation = this.element.animate(/* ... */);
+       return this.currentAnimation.finished;
+     }
+
+     detaching(): Promise<void> {
+       this.currentAnimation?.cancel();
+       this.currentAnimation = this.element.animate(/* ... */);
+       return this.currentAnimation.finished;
+     }
+   }
+   ```
+
+3. **Coordinate Complex Animations** - Use `Promise.all()` for simultaneous animations:
+   ```typescript
+   attaching(): Promise<void> {
+     return Promise.all([
+       this.animateBackground(),
+       this.animateContent(),
+       this.animateControls()
+     ]).then(() => void 0);
+   }
+   ```
+
+## Framework Integration Notes
+
+### Lifecycle Hooks vs Component Methods
+
+You can implement animations in two ways:
+
+1. **Component methods** - Directly in your view model:
+   ```typescript
+   export class MyComponent {
+     attaching(): Promise<void> {
+       return this.animateIn();
+     }
+   }
+   ```
+
+2. **Lifecycle hooks** - External animation controllers:
+   ```typescript
+   @lifecycleHooks()
+   export class MyAnimationHooks {
+     attaching(vm): Promise<void> {
+       return this.animateIn(vm.element);
+     }
+   }
+   ```
+
+### Performance Considerations
+
+- **GPU Acceleration** - Use `transform` and `opacity` for best performance
+- **Batch DOM Reads** - Minimize layout thrashing by batching measurements
+- **Use `will-change`** - Hint the browser about upcoming animations
+- **Cancel Animations** - Always clean up animations in `detaching` or `disposing`
+
+This comprehensive guide covers the essential animation techniques available in Aurelia applications. For router-specific animations, be sure to check the [Router Animation](../router-direct/router-animation.md) documentation for detailed examples and patterns.

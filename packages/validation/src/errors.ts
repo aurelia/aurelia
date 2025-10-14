@@ -3,7 +3,12 @@
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+  ? (code: ErrorNames, ...details: unknown[]) => {
+    const paddedCode = String(code).padStart(4, '0');
+    const message = getMessageByCode(code, ...details);
+    const link = `https://docs.aurelia.io/developer-guides/error-messages/4100-to-4106/aur${paddedCode}`;
+    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+  }
   : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}:${details.map(String)}`);
 
 _START_CONST_ENUM();
@@ -19,6 +24,11 @@ export const enum ErrorNames {
   hydrate_rule_not_an_array = 4104,
   hydrate_rule_unsupported = 4105,
   hydrate_rule_invalid_name = 4106,
+
+  group_rule_no_scope = 4107,
+  group_rule_invalid_execution_result = 4108,
+
+  invalid_rule_execution_result = 4109,
 }
 _END_CONST_ENUM();
 
@@ -33,6 +43,10 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.hydrate_rule_not_an_array]: 'The ruleset has to be an array of serialized property rule objects',
   [ErrorNames.hydrate_rule_unsupported]: `Unsupported rule {{0}}`,
   [ErrorNames.hydrate_rule_invalid_name]: 'The property name needs to be a non-empty string, encountered: {{0}}',
+
+  [ErrorNames.group_rule_no_scope]: 'GroupRule cannot be executed without a scope.',
+  [ErrorNames.group_rule_invalid_execution_result]: 'GroupRule execution result is invalid.',
+  [ErrorNames.invalid_rule_execution_result]: 'Invalid rule execution result.',
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

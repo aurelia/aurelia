@@ -63,8 +63,8 @@ jobs:
             packages/platform/dist
             packages/platform-browser/dist
             packages/route-recognizer/dist
+            packages/router-direct/dist
             packages/router/dist
-            packages/router-lite/dist
             packages/runtime/dist
             packages/runtime-html/dist
             packages/state/dist
@@ -88,7 +88,7 @@ jobs:
   bench_startup:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: build
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -104,7 +104,7 @@ jobs:
       #     key: ${{ runner.os }}-build-deps-${{ hashFiles('**/package-lock.json') }}
       #     restore-keys: |
       #       ${{ runner.os }}-build-deps-
-      
+
       # - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       #   name: Missing deps, reinstalling the state of node modules
       #   run: npm install
@@ -131,6 +131,7 @@ jobs:
   bench_rerender:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -154,6 +155,7 @@ jobs:
   bench_update:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -217,7 +219,7 @@ jobs:
   #         "runtime",
   #         "runtime-html",
   #         "router",
-  #         "router-lite",
+  #         "router-direct",
   #         "i18n",
   #         "validation",
   #       ]

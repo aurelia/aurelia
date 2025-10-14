@@ -27,7 +27,7 @@ See what you are getting yourself into before you continue. There is a working e
 
 Before going any further, you should be familiar with some basic Aurelia concepts and some fundamental Javascript ones. While **these are not hard prerequisites**, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax/overview.md).
 * You have familiarized yourself with [components in Aurelia](../components/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it; you just need to be familiar with its existence and why it matters in Aurelia.
 
@@ -225,7 +225,7 @@ Let's now quickly add in some styling for our todo component. Open up `todo-comp
 
 ## Create the todo item component using HTML only
 
-We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet `todo-item.html`. Let's create that right now.
+We have created our main todo component, but you might have noticed we were importing a file that doesn't exist yet: `todo-item.html`. Let's create that right now.
 
 For this component, we are going to be creating an HTML-only component. It means it'll just be HTML. No view model needed:
 
@@ -241,7 +241,7 @@ For this component, we are going to be creating an HTML-only component. It means
 </div>
 ```
 
-* **Lines 1,2 & 3:** The bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTogo` bindable is interesting because it is bindable for a function that gets passed in.
+* **Lines 1, 2 & 3:** The bindable attribute allows us to specify bindable properties for our custom element. This allows us to bind to these values and read them inside of our view. The `deleteTodo` bindable is interesting because it is bindable for a function that gets passed in.
 * **Line 5:** we use the `.class` binding to add a class to our element of `completed` if the `todo.completed` property is true or remove it if it's false.
 * **Line 6:** We bind the native checkbox `checked` event to the `completed` property, which sets it to true or false
 * **Line 7:** We are making our paragraph element a `contenteditable` element, which allows it to be edited (it doesn't save, but we can temporarily edit our text). We also display the text value using our interpolation `${}`

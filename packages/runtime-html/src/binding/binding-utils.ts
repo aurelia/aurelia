@@ -1,6 +1,5 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
-import { ITask } from '@aurelia/platform';
-import { type ISubscriber, astEvaluate, type Scope } from '@aurelia/runtime';
+import { type ISubscriber, astEvaluate, type Scope, queueAsyncTask, Task } from '@aurelia/runtime';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
 import { BindingBehavior, BindingBehaviorInstance } from '../resources/binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../resources/value-converter';
@@ -40,7 +39,13 @@ export class BindingTargetSubscriber implements ISubscriber {
   }
 
   public flush() {
-    this.b.updateSource(this._value);
+    // when the owning binding is unbound, there's cases where this subscriber still queued
+    // and will be flushed
+    // adding this check so that it does flush at an inappropriate time
+    // todo: maybe consider a way to dequeue this as well if necessary
+    if (this.b.isBound) {
+      this.b.updateSource(this._value);
+    }
   }
 
   // deepscan-disable-next-line
@@ -211,6 +216,9 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
   };
 })();
 
+/**
+ * A synchronous queue used internally for ensuring update source are not called depth first
+ */
 export interface IFlushable {
   flush(): void;
 }
@@ -266,17 +274,16 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
    * A helper for creating rated limited functions for binding. For internal use only
    */
   const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
-    let limiterTask: ITask | undefined;
-    let task: ITask | undefined;
+    let limiterTask: Task | undefined;
+    let task: Task | undefined;
     let latestValue: unknown;
     let isPending = false;
-    const taskQueue = opts.queue;
     const callOriginalCallback = () => callOriginal(latestValue);
     const fn = (v: unknown) => {
       latestValue = v;
       if (binding.isBound) {
         task = limiterTask;
-        limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay });
+        limiterTask = queueAsyncTask(callOriginalCallback, { delay: opts.delay });
         task?.cancel();
       } else {
         callOriginalCallback();
@@ -303,13 +310,12 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
    * A helper for creating rated limited functions for binding. For internal use only
    */
   const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
-    let limiterTask: ITask | undefined;
-    let task: ITask | undefined;
+    let limiterTask: Task | undefined;
+    let task: Task | undefined;
     let last: number = 0;
     let elapsed = 0;
     let latestValue: unknown;
     let isPending = false;
-    const taskQueue = opts.queue;
     const now = () => opts.now();
     const callOriginalCallback = () => callOriginal(latestValue);
     const fn = (v: unknown) => {
@@ -322,7 +328,7 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
           callOriginalCallback();
         } else {
           // Queue the new one before canceling the old one, to prevent early yield
-          limiterTask = taskQueue.queueTask(() => {
+          limiterTask = queueAsyncTask(() => {
             last = now();
             callOriginalCallback();
           }, { delay: opts.delay - elapsed });

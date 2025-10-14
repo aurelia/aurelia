@@ -18,6 +18,19 @@ export {
 } from './scope';
 
 export {
+  queueTask,
+  queueAsyncTask,
+  queueRecurringTask,
+  getRecurringTasks,
+  runTasks,
+  tasksSettled,
+  Task,
+  RecurringTask,
+  TaskAbortError,
+  type TaskStatus,
+} from './queue';
+
+export {
   type IObserverLocatorBasedConnectable,
   type IObserverRecord,
   connectable,
@@ -42,6 +55,9 @@ export {
   type ComputedGetterFn,
 } from './computed-observer';
 export {
+  computed,
+} from './computed-decorators';
+export {
   IDirtyChecker,
   DirtyChecker,
   DirtyCheckProperty,
@@ -54,6 +70,9 @@ export {
   type EffectRunFunc,
 } from './observation';
 export {
+  getObserverLookup,
+} from './observation-utils';
+export {
   type IObservableDefinition,
   observable,
 } from './observable';
@@ -61,10 +80,8 @@ export {
   type IObjectObservationAdapter,
   IObserverLocator,
   INodeObserverLocator,
-  IComputedObserverLocator,
   getCollectionObserver,
   ObserverLocator,
-  getObserverLookup,
   type ObservableGetter,
 } from './observer-locator';
 export {

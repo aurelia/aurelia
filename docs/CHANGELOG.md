@@ -3,6 +3,70 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.25"></a>
+# 2.0.0-beta.25 (2025-07-10)
+
+### BREAKING CHANGES:
+
+* **binding:** computed observers notify changes asynchronously by default (#2188) ([f874ccc](https://github.com/aurelia/aurelia/commit/f874ccc))
+
+    this commit changes the way computed observer behave, with regards to change notification. It'll now wait for the next tick
+    before sending out notification to subscribers about its changes. Since this is an observer, where access to platform is limited
+    and often does not make sense, a new tick based queue has been introduced to replace the existing raf based one.
+
+    To use the new queue, import it from aurelia runtime package during beta 25, and in beta 26, it'll be moved to the surrogate aurelia package
+    The new queue related exports are:
+    ```
+    Task,
+    tasksSettled,
+    TaskAbortError,
+    TaskStatus,
+    runTasks,
+    RecurringTask,
+    getRecurringTasks,
+    queueTask,
+    queueAsyncTask,
+    queueRecurringTask,
+    ```
+* **dialog:** add standard html dialog renderer (#2145) ([9aab108](https://github.com/aurelia/aurelia/commit/9aab108))
+
+    This commit adds a new dialog renderer that renders the standard `<dialog>` element, and makes it the default renderer.
+    This commit also changes the dialog rendering process, now animation can simply be done through `show`/`hide` either globally or per dialog `.open()` call
+    making the plugin simpler to use.
+
+    Change details:
+    * Dialog dom property overlay is now optional, since not all dialog needs an overlay, having it optional allows renderer to skip populating this altogether.
+    * Rename export DefaultDialogConfiguration -> DialogConfigurationClassic, this is because it's no longer the default implementation
+    * Remove IDialogEventManager, this now becomes a private implementation of the classic dialog configuration, different dialog configuration may not need it
+    * Remove IDialogAnimator, animation now can be done via show/hide property on settings.options (either global, or per dialog open() call)
+
+### Features:
+
+* **queue:** impl queueRecurringTask (#2195) ([ea874a1](https://github.com/aurelia/aurelia/commit/ea874a1))
+* **state:** add middleware support (#2181) ([2c98a2e](https://github.com/aurelia/aurelia/commit/2c98a2e))
+* **state:** adds memoized selector creator (#2193) ([f6b42af](https://github.com/aurelia/aurelia/commit/f6b42af))
+* **router-lite:** path generation (#2158) ([b7f8fd5](https://github.com/aurelia/aurelia/commit/b7f8fd5))
+* **runtime-html:** add value converter context (#2159) ([2fda2b5](https://github.com/aurelia/aurelia/commit/2fda2b5))
+
+
+### Bug Fixes:
+
+* **au-compose:** dont re-compose when detached (#2203) ([94b62ac](https://github.com/aurelia/aurelia/commit/94b62ac))
+* **binding:** interpolation correctly react to array mutation (#2202) ([15fa2a6](https://github.com/aurelia/aurelia/commit/15fa2a6))
+* **binding:** don't update source when unbound (#2201) ([dc019f8](https://github.com/aurelia/aurelia/commit/dc019f8))
+* **vite:** detect production build mode better (#2194) ([e483a92](https://github.com/aurelia/aurelia/commit/e483a92))
+* **queue:** prevent task cancellation from triggering unhandledRejection (#2192) ([aac94fd](https://github.com/aurelia/aurelia/commit/aac94fd))
+* **runtime:** don't wrap non-configurable and non-writable object properties (#2191) ([bb03139](https://github.com/aurelia/aurelia/commit/bb03139))
+* **runtime-html:** prevent unnecessary DOM manipulation in repeater (#2183) ([1fd536b](https://github.com/aurelia/aurelia/commit/1fd536b))
+* **i18n:** Add isBound check in TranslationBinding.handleChange to prevent AUR0203 (#2171) ([2dd7323](https://github.com/aurelia/aurelia/commit/2dd7323))
+* **route-recognizer:** uri component decoding (#2162) ([23d83f0](https://github.com/aurelia/aurelia/commit/23d83f0))
+
+
+### Docs:
+
+* **errors:** additional errors from aur0652 to 0757 ([9889291](https://github.com/aurelia/aurelia/commit/9889291))
+* **docs:** mermaid fix ([9432f08](https://github.com/aurelia/aurelia/commit/9432f08))
+
 <a name="2.0.0-beta.24"></a>
 # 2.0.0-beta.24 (2025-04-27)
 

@@ -1,3 +1,7 @@
+---
+description: Use bindable property setters to transform incoming values before Aurelia applies them.
+---
+
 # Bindable setter
 
 In some cases, you want to make an impact on the value that is binding. For such a scenario you can use the possibility of new `set`.

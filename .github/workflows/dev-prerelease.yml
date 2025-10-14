@@ -1,0 +1,67 @@
+name: Dev Pre-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "enter or exit dev pre-mode"
+        type: choice
+        required: true
+        options: [enter, exit]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release-dev
+  cancel-in-progress: false
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - run: npm ci
+
+      - name: Switch pre-mode
+        if: inputs.action == 'enter'
+        run: |
+          npx changeset pre enter dev
+          git config user.email "aurelia@bluespire.com"
+          git config user.name "AureliaEffect"
+          git add .changeset/pre.json
+          git commit -m "ci: enter dev pre-mode"
+          git push
+
+      - name: Switch back to normal mode
+        if: inputs.action == 'exit'
+        run: |
+          npx changeset pre exit
+          git config user.email "aurelia@bluespire.com"
+          git config user.name "AureliaEffect"
+          git add .changeset/pre.json
+          git commit -m "ci: exit dev pre-mode"
+          git push
+
+      - run: npm run build:release
+
+      - name: Publish (dev channel) if pre-mode is on
+        uses: changesets/action@v1
+        with:
+          publish: npm run changeset:publish -- --tag dev
+          title: "release(dev): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

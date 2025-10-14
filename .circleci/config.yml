@@ -1,7 +1,6 @@
 version: 2.1
 
 orbs:
-  common: aurelia/common@volatile
   browser-tools: circleci/browser-tools@1.4.7
 
 # # # # # # # # # # # # # # # #
@@ -24,6 +23,8 @@ map-2: &filter_only_master
     branches:
       only:
         - master
+    tags:
+      ignore: /.*/
 
 map-3: &filter_only_release
   filters:
@@ -31,20 +32,14 @@ map-3: &filter_only_release
       only:
         - release
 
-map-4: &filter_only_develop
-  filters:
-    branches:
-      only:
-        - develop
-
-map-5: &filter_only_tag
+map-4: &filter_only_tag
   filters:
     branches:
       ignore: /.*/
     tags:
       only: /^v[0-9]+(\.[0-9]+)*(-[\w]+\.[0-9]+)?$/
 
-map-6: &filter_only_topic
+map-5: &filter_only_topic
   filters:
     branches:
       ignore:
@@ -53,6 +48,18 @@ map-6: &filter_only_topic
         - release
     tags:
       ignore: /.*/
+
+parameters:
+  run_pr_full:
+    type: boolean
+    default: false
+  run_bench:
+    type: boolean
+    default: false
+  run_pr_lite:
+    type: boolean
+    default: true
+
 
 # # # # # # # # # # # # # # # #
 # - Executors -
@@ -81,20 +88,32 @@ executors:
     docker:
       - image: "cimg/node:22.12.0-browsers"
 
-  docker_playwright_jammy:
-    docker:
-      - image: mcr.microsoft.com/playwright:v1.39.0-jammy
-
-  docker_verdaccio:
-    working_directory: *working_dir
-    resource_class: large
-    docker:
-      - image: "oven/bun"
-
 # # # # # # # # # # # # # # # #
 # - Commands -
 # # # # # # # # # # # # # # # #
 commands:
+
+  setup_verdaccio:
+    parameters:
+      email:
+        type: string
+        default: "aurelia@bluespire.com"
+      username:
+        type: string
+        default: "aureliaeffect"
+      password:
+        type: string
+        default: "aurelia"
+      registry:
+        type: string
+        default: "http://localhost:4873"
+    steps:
+      - run: sudo npm i -g verdaccio npm-cli-login
+      - run:
+          name: "verdaccio"
+          background: true
+          command: verdaccio
+      - run: npm-cli-login -u <<parameters.username>> -p <<parameters.password>> -e <<parameters.email>> -r <<parameters.registry>>
 
   checkout_install:
     parameters:
@@ -118,8 +137,8 @@ commands:
               - <<parameters.install_drivers>>
               - <<parameters.install_chrome>>
           steps:
-          - browser-tools/install-chrome
-          - browser-tools/install-chromedriver
+            - browser-tools/install-chrome
+            - browser-tools/install-chromedriver
       - when:
           condition:
             and:
@@ -128,7 +147,6 @@ commands:
           steps:
             - browser-tools/install-firefox
             - browser-tools/install-geckodriver
-      - run: echo 'export PREFERRED_WORKSPACE_MANAGER=yarn' >> $BASH_ENV
       - when:
           condition: <<parameters.install>>
           steps:
@@ -136,10 +154,6 @@ commands:
 
   checkout_install_build_bundle_publish_verdaccio:
     parameters:
-      from:
-        type: string
-      to:
-        type: string
       channel:
         type: string
       suffix:
@@ -149,26 +163,15 @@ commands:
         type: string
         default: "http://localhost:4873"
     steps:
-      - common/configure_git
-      # - checkout_install:
-      #     install_drivers: false
       - checkout
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
           key: cache-{{ .Revision }}-build-true
-      # - run: npm run build:release
-      # - run: npm run change-tsconfigs:invert
-      # - run: npm run build:release
-      # - run: npm run change-tsconfigs:restore
-      # - run: npm run generate-native-modules
-      - clean_merge_commit_dist:
-          from: << parameters.from >>
-          to: << parameters.to >>
-          channel: << parameters.channel >>
-          suffix: << parameters.suffix >>
-      - common/setup_verdaccio
+      - run: npm run generate-native-modules
+      - run: npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
+      - setup_verdaccio
       - run: npm config set registry << parameters.registry >>
       - run: npm run publish:<< parameters.channel >>
 
@@ -275,7 +278,11 @@ jobs:
             equal: [false, << parameters.release >>]
           steps:
             - run: npm run build
-      - run: << parameters.command >>
+      - when:
+          condition:
+            equal: [false, << parameters.release >>]
+          steps:
+            - run: << parameters.command >>
       - when:
           condition: << parameters.generate_native_modules >>
           steps:
@@ -295,8 +302,8 @@ jobs:
             - packages/platform/dist
             - packages/platform-browser/dist
             - packages/route-recognizer/dist
+            - packages/router-direct/dist
             - packages/router/dist
-            - packages/router-lite/dist
             - packages/expression-parser/dist
             - packages/runtime/dist
             - packages/template-compiler/dist
@@ -342,10 +349,6 @@ jobs:
           install_chrome: <<parameters.install_chrome>>
           install_firefox: <<parameters.install_firefox>>
           install: false
-      # instead of doing the following 2 commands
-      # # - checkout_install
-      # # - run: npm run build
-      # just restore some cache from previous steps
       - restore_cache:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
@@ -353,10 +356,6 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
-            # the following 2 lines work, but the test break on this mode, not in local though
-            # it's quite hard to debug on this mode so not using for now
-            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
-            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
             echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name)
             echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name) > packages/__tests__/tests.txt
       - run:
@@ -365,7 +364,6 @@ jobs:
             cd packages/__tests__
             npm run << parameters.npm_command >>
           no_output_timeout: "5m"
-
       - when:
           condition: << parameters.coverage >>
           steps:
@@ -373,12 +371,6 @@ jobs:
                 name: "Process coverage for Codecov"
                 command: |
                   node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
-                when: always
-            - store_test_results:
-                path: packages/__tests__/coverage
-            - store_artifacts:
-                path: packages/__tests__/coverage/test-results.xml
-                destination: test-results
 
   unit_test_esm_node:
     executor: docker_circleci
@@ -397,10 +389,6 @@ jobs:
       - run:
           name: "Split test glob"
           command: |
-            # # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename)
-            # # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=filename) > packages/__tests__/tests.txt
-            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name)
-            # echo $(circleci tests glob "packages/__tests__/dist/**/*.spec.js" | circleci tests split --split-by=name) > packages/__tests__/tests.txt
             cd packages/__tests__
             echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings)
             echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings) > tests.txt
@@ -429,11 +417,6 @@ jobs:
       - restore_cache:
           name: "Restore build artifacts"
           key: cache-{{ .Revision }}-build-true
-      # - run: npm run build
-      # - run: npm run change-tsconfigs:invert
-      # - run: npm run build
-      # - run: npm run change-tsconfigs:restore
-      # - run: npm run change-package-refs:release -- none
       - when:
           condition: << parameters.submodules >>
           steps:
@@ -498,12 +481,7 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
-      # - run: set -o pipefail && npm run build:release
-      # - run: set -o pipefail && npm run change-tsconfigs:invert
-      # - run: set -o pipefail && npm run build:release
-      # - run: set -o pipefail && npm run change-tsconfigs:restore
       - run: set -o pipefail && npm run generate-native-modules
       - clean_merge_commit_dist:
           from: << parameters.from >>
@@ -546,6 +524,9 @@ jobs:
     parameters:
       path:
         type: string
+      run_webpack:
+        type: boolean
+        default: false
     steps:
       - checkout_install:
           install_drivers: false
@@ -555,7 +536,6 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
       - run:
           name: "Run e2e script"
@@ -564,52 +544,15 @@ jobs:
             npx playwright install chromium
             npm run test
           no_output_timeout: "1m"
-
-  e2e_safari:
-    macos:
-      xcode: 14.2.0
-    parameters:
-      path:
-        type: string
-    steps:
-      - checkout
-      - restore_cache:
-          key: cache-mac-{{ checksum "package-lock.json" }}-install
-      - run: |
-          # cache restored
-          if [[ $(ls -l node_modules | grep -c ^d) -gt 10 ]]; then
-            exit 0
-          else
-            npm ci
-          fi
-      - save_cache:
-          key: cache-mac-{{ checksum "package-lock.json" }}-install
-          paths:
-            - node_modules
-            - packages/__tests__/node_modules
-
-            - packages-tooling/__tests__/node_modules
-            - packages-tooling/au/node_modules
-            - packages-tooling/babel-jest/node_modules
-            - packages-tooling/http-server/node_modules
-            - packages-tooling/parcel-transformer/node_modules
-            - packages-tooling/plugin-conventions/node_modules
-            - packages-tooling/plugin-gulp/node_modules
-            - packages-tooling/ts-jest/node_modules
-            - packages-tooling/vite-plugin/node_modules
-            - packages-tooling/webpack-loader/node_modules
-      # instead of doing the following 2 commands
-      # - checkout_install
-      # just restore some cache from previous steps
-      # - run: chown -R $USER:$USER /home/circleci
-      - run: npm run build:release
-      - run:
-          name: "Run e2e script"
-          working_directory: << parameters.path >>
-          command: |
-            npx playwright install webkit
-            npm run test
-          no_output_timeout: "1m"
+      - when:
+          condition: << parameters.run_webpack >>
+          steps:
+            - run:
+                name: "Run e2e webpack"
+                working_directory: << parameters.path >>
+                command: |
+                  npm run test:e2e:webpack
+                no_output_timeout: "1m"
 
   # Standalone playwright test jobs
   e2e_verdaccio:
@@ -628,8 +571,6 @@ jobs:
         default: "http://localhost:4873"
     steps:
       - checkout_install_build_bundle_publish_verdaccio:
-          from: ${CIRCLE_BRANCH}
-          to: develop
           channel: dev
           suffix: "-${CIRCLE_BUILD_NUM}"
       - when:
@@ -665,7 +606,6 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
       - run:
           name: "bench prep dep"
@@ -698,7 +638,6 @@ jobs:
           key: cache-{{ checksum "package-lock.json" }}-install
       - restore_cache:
           name: "Restore build artifacts"
-          # build-true = build + generate native modules
           key: cache-{{ .Revision }}-build-true
       - restore_cache:
           name: "Restore benchmark artifacts"
@@ -725,10 +664,18 @@ jobs:
             curl -L "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" \
               -o jq
             chmod +x jq
-            url="https://api.github.com/repos/org/repo/pulls/$CIRCLE_PR_NUMBER?access_token=$GITHUB_TOKEN"
-            TARGET_BRANCH=$(curl "$url" | ./jq '.base.ref' | tr -d '"')
-            echo "Target branch: $TARGET_BRANCH"
-            COMMIT_RANGE=$(echo "$CIRCLE_SHA1..$TARGET_BRANCH")
+
+            url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls/${CIRCLE_PR_NUMBER}"
+            echo "Querying GitHub: $url"
+
+            if [[ -n "${GITHUB_TOKEN}" ]]; then
+              TARGET_BRANCH=$(curl -H "Authorization: token ${GITHUB_TOKEN}" -H "User-Agent: circleci" "${url}" | ./jq '.base.ref' | tr -d '"')
+            else
+              TARGET_BRANCH=$(curl -H "User-Agent: circleci" "${url}" | ./jq '.base.ref' | tr -d '"')
+            fi
+
+            echo "Target branch: ${TARGET_BRANCH}"
+            COMMIT_RANGE="${CIRCLE_SHA1}..${TARGET_BRANCH}"
           fi
 
           echo "Normalized commit range: $COMMIT_RANGE"
@@ -739,262 +686,429 @@ jobs:
           if [[ $(git diff --name-only $COMMIT_RANGE | grep -v '*' -c) -gt 0 ]] && [[ $(git diff --name-only $COMMIT_RANGE | grep -v '^doc' -c) -eq 0 ]]; then
             echo "There is only doc work, cancelling workflow $CIRCLE_WORKFLOW_ID ..."
             curl --request POST \
-              --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN
-
+              --url "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/cancel?circle-token=$CIRCLE_API_TOKEN"
           else
             echo "There are more than doc changes, running workflow $CIRCLE_WORKFLOW_ID..."
           fi
+
+  publish_dev_from_master:
+    executor: docker_release
+    steps:
+      - checkout
+      - restore_cache:
+          name: "Restore dependencies"
+          key: cache-{{ checksum "package-lock.json" }}-install
+      - restore_cache:
+          name: "Restore build artifacts"
+          key: cache-{{ .Revision }}-build-true
+      - run: npm run generate-native-modules
+      - run: npm run bump-version:dev
+      - run:
+          name: "Authenticate with npm registry"
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+      - run: npm run publish:dev
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
 # # # # # # # # # # # # # # # #
 workflows:
-  # Runs build and tests
-  # Triggered by push to master or topic branches
+  pr_lite:
+    # Fast workflow for PR branches
+    when: << pipeline.parameters.run_pr_lite >>
+    jobs:
+      - check_doc_abort:
+          <<: *filter_only_topic
+          name: pr_lite_check_doc
+
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: pr_lite_install
+          requires:
+            - pr_lite_check_doc
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: pr_lite_build
+          release: true
+          requires:
+            - pr_lite_install
+
+      - unit_test_esm:
+          <<: *filter_only_topic
+          name: pr_lite_test_esm
+          npm_command: "test-chrome"
+          install_chrome: true
+          requires:
+            - pr_lite_build
+
+      - unit_test_esm_node:
+          <<: *filter_only_topic
+          name: pr_lite_test_node
+          requires:
+            - pr_lite_build
+
+      - e2e_test:
+          <<: *filter_only_topic
+          name: pr_lite_e2e_smoke_vite
+          path: "packages/__e2e__/1-gh-issues"
+          requires:
+            - pr_lite_build
+
+  pr_full:
+    when: << pipeline.parameters.run_pr_full >>
+    jobs:
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: pr_full_install
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: pr_full_build_release
+          release: true
+          requires:
+            - pr_full_install
+
+      - unit_test_esm:
+          <<: *filter_only_topic
+          name: pr_full_test_chrome
+          npm_command: "test-chrome"
+          install_chrome: true
+          requires:
+            - pr_full_build_release
+
+      - unit_test_esm_node:
+          <<: *filter_only_topic
+          name: pr_full_test_node
+          requires:
+            - pr_full_build_release
+
+      - unit_test_cjs:
+          <<: *filter_only_topic
+          name: pr_full_test_toolings
+          requires:
+            - pr_full_build_release
+
+      - e2e_test:
+          <<: *filter_only_topic
+          name: pr_full_e2e_hmr_vite
+          path: "packages/__e2e__/2-hmr-vite"
+          requires:
+            - pr_full_build_release
+
+      - e2e_test:
+          <<: *filter_only_topic
+          name: pr_full_e2e_router
+          path: "packages/__e2e__/6-router"
+          run_webpack: true
+          requires:
+            - pr_full_build_release
+
+  pr_bench:
+    when: << pipeline.parameters.run_pr_full >>
+    jobs:
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: pr_bench_install
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: pr_bench_build_release
+          release: true
+          requires:
+            - pr_bench_install
+
+      - tacho_benchmark_prep:
+          <<: *filter_only_topic
+          requires:
+            - pr_bench_build_release
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_startup
+          command: npm run bench:startup10k
+          requires:
+            - tacho_benchmark_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_rerender
+          command: npm run bench:rerender10k
+          requires:
+            - tacho_benchmark_prep
+
+  benchmarks:
+    when: << pipeline.parameters.run_bench >>
+    jobs:
+      - checkout_install_cache:
+          <<: *filter_only_topic
+          name: bench_install
+
+      - build_and_cache:
+          <<: *filter_only_topic
+          name: bench_build_release
+          release: true
+          requires:
+            - bench_install
+
+      - tacho_benchmark_prep:
+          <<: *filter_only_topic
+          name: bench_prep
+          requires:
+            - bench_build_release
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_startup10k
+          command: npm run bench:startup10k
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_startup10k_ce
+          command: npm run bench:startup10k-ce
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_rerender10k
+          command: npm run bench:rerender10k
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_rerender10k_ce
+          command: npm run bench:rerender10k-ce
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_rerender1k_big
+          command: npm run bench:rerender1k-big
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_startup1k_big
+          command: npm run bench:startup1k-big
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_update1k
+          command: npm run bench:update1k
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_repeat_keyed_expression
+          command: npm run bench:repeat-expr
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_repeat_keyed_string
+          command: npm run bench:repeat-string
+          requires:
+            - bench_prep
+
+  # Runs build and tests (master)
   build_test:
     jobs:
       - check_doc_abort:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
       - checkout_install_cache:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: checkout_install
           requires:
-              - check_doc_abort
-      # - build_and_cache:
-      #     <<: *filter_ignore_develop_release
-      #     name: build_dev
-      #     requires:
-      #         - checkout_install
+            - check_doc_abort
       - build_and_cache:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: build_release
-          command: npm run build:release
           release: true
           requires:
-              - checkout_install
+            - checkout_install
       - unit_test_esm:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: test_chrome
           npm_command: "test-chrome"
           install_chrome: true
           requires:
             - build_release
-      # - unit_test_esm:
-      #     <<: *filter_ignore_develop_release
-      #     name: test_firefox
-      #     npm_command: "test-firefox"
-      #     install_firefox: true
-      #     coverage: false
-      #     requires:
-      #       - build_release
       - unit_test_esm_node:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: test_node
           requires:
             - build_release
       - unit_test_cjs:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: test_toolings
           requires:
             - build_release
-
       - lint_packages:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           requires:
             - checkout_install
-
       - e2e_verdaccio:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_verdaccio_parcel_ts
           path: "test/verdaccio-apps/parcel-conventions"
           requires:
             - build_release
-
-      # no longer necessary since the changes related to fragment adoption has been reverted
-      # though keeping it around for a bit longer in case there's a need again
-      # - e2e_safari:
-      #     <<: *filter_ignore_develop_release
-      #     name: safari16_select
-      #     path: "packages/__e2e__/select-safari16"
-      #     requires:
-      #       - check_doc_abort
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_gh_issues
           path: "packages/__e2e__/1-gh-issues"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_hmr_vite
           path: "packages/__e2e__/2-hmr-vite"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_vite_wo_convention
           path: "packages/__e2e__/9-vite-wo-convention"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_hmr_webpack
           path: "packages/__e2e__/3-hmr-webpack"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_lite
-          path: "packages/__e2e__/6-router-lite"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_lite_none_history_with_hash
-          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_router
-          path: "packages/__e2e__/5-router"
+          path: "packages/__e2e__/6-router"
+          run_webpack: true
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
+          name: e2e_router_none_history_with_hash
+          path: "packages/__e2e__/10-router-none-history-with-hash"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_only_master
+          name: e2e_router_direct
+          path: "packages/__e2e__/5-router-direct"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_only_master
           name: e2e_i18n
           path: "packages/__e2e__/4-i18n"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_validation_issue_2025
           path: "packages/__e2e__/11-validation"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_type_check
           path: "packages/__e2e__/12-type-check"
           requires:
             - build_release
       - e2e_test:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: e2e_virtual_repeat
           path: "packages/__e2e__/8-ui-virtualization"
           requires:
             - build_release
       - tacho_benchmark_prep:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           requires:
             - build_release
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_startup
           command: npm run bench:startup10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_startup___custom_element
           command: npm run bench:startup10k-ce
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_rerender
           command: npm run bench:rerender10k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_rerender__custom_element
           command: npm run bench:rerender10k-ce
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_rerender1k-big-template
           command: npm run bench:rerender1k-big
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_startup1k-big-template
           command: npm run bench:startup1k-big
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_update
           command: npm run bench:update1k
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_repeat_keyed_expression
           command: npm run bench:repeat-expr
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
-          <<: *filter_ignore_develop_release
+          <<: *filter_only_master
           name: benchmark_repeat_keyed_string
           command: npm run bench:repeat-string
           requires:
             - tacho_benchmark_prep
 
-      # - e2e_verdaccio:
-      #     <<: *filter_ignore_develop_release
-      #     name: webpack_vanilla_ts
-      #     path: "examples/jit-webpack-vanilla-ts"
-      #     requires:
-      #       - build_release
-      - merge_and_dist:
-          <<: *filter_only_master
-          name: merge_and_dist_master
-          requires:
-            - build_release
-            - test_chrome
-            # - test_firefox
-            - test_node
-            - test_toolings
-            # - lint_packages
-            - e2e_verdaccio_parcel_ts
-            - e2e_gh_issues
-            - e2e_hmr_vite
-            - e2e_hmr_webpack
-            - e2e_router_lite
-            - e2e_router
-            - e2e_i18n
-          from: master
-          to: develop
-          channel: dev
-          push: true
-          merge_topic: false
-      - merge_and_dist:
-          <<: *filter_only_topic
-          name: merge_and_dist_topic
-          from: master
-          to: develop
-          channel: dev
-          dist_file_name: merge_and_dist_topic
-          requires:
-            - build_release
-
       - request_publish_dev:
           <<: *filter_only_master
           type: approval
           no_output_timeout: 20m
-      - publish_npm:
-          <<: *filter_only_master
-          name: publish_npm_dev
-          channel: dev
-          branch: develop
-          swap: true
-          requires:
-            - request_publish_dev
-            - merge_and_dist_master
 
+      - publish_dev_from_master:
+          <<: *filter_only_master
+          name: publish_dev_from_master
+          requires:
+            - build_release
+            - test_chrome
+            - test_node
+            - test_toolings
+            - e2e_verdaccio_parcel_ts
+            - e2e_gh_issues
+            - e2e_hmr_vite
+            - e2e_hmr_webpack
+            - e2e_router
+            - e2e_router_direct
+            - e2e_i18n
+            - request_publish_dev
 
   # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
   # Triggered by push to tag
@@ -1003,18 +1117,14 @@ workflows:
       - checkout_install_cache:
           <<: *filter_only_tag
           name: checkout_install
-      # - build_and_cache:
-      #     <<: *filter_only_tag
-      #     name: build_release
-      #     requires:
-      #       - checkout_install
+
       - build_and_cache:
           <<: *filter_only_tag
           name: build_release
-          command: npm run build:release
           release: true
           requires:
             - checkout_install
+
       - unit_test_esm:
           <<: *filter_only_tag
           name: test_chrome
@@ -1022,19 +1132,13 @@ workflows:
           install_chrome: true
           requires:
             - build_release
-      # - unit_test_esm:
-      #     <<: *filter_only_tag
-      #     name: test_firefox
-      #     npm_command: "test-firefox"
-      #     install_firefox: true
-      #     coverage: false
-      #     requires:
-      #       - build_release
+
       - unit_test_esm_node:
           <<: *filter_only_tag
           name: test_node
           requires:
             - build_release
+
       - unit_test_cjs:
           <<: *filter_only_tag
           name: test_toolings
@@ -1067,20 +1171,21 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router_lite
-          path: "packages/__e2e__/6-router-lite"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_lite_none_history_with_hash
-          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
           name: e2e_router
-          path: "packages/__e2e__/5-router"
+          path: "packages/__e2e__/6-router"
+          run_webpack: true
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_none_history_with_hash
+          path: "packages/__e2e__/10-router-none-history-with-hash"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct
+          path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:
@@ -1108,26 +1213,18 @@ workflows:
           requires:
             - build_release
 
-      # - lint_packages:
-      #     <<: *filter_only_tag
-      #     requires:
-      #       - checkout_install
-
       - merge_and_dist:
           <<: *filter_only_tag
           requires:
-            # build release to get the build artifacts
             - build_release
-            # and the rest for testings
             - test_chrome
-            # - test_firefox
             - test_node
             - test_toolings
             - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
-            - e2e_router_lite
             - e2e_router
+            - e2e_router_direct
             - e2e_i18n
           from: $CIRCLE_TAG
           to: release
@@ -1140,7 +1237,6 @@ workflows:
   # Triggered by push to release branch
   publish_latest:
     jobs:
-      # artifacts are already prepared and committed by the tag workflow, so only approval + publish remains
       - request_publish_latest:
           <<: *filter_only_release
           type: approval
@@ -1151,3 +1247,4 @@ workflows:
           branch: release
           requires:
             - request_publish_latest
+

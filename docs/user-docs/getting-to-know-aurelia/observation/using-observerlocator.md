@@ -1,3 +1,7 @@
+---
+description: Tap into Aurelia's observerLocator to watch low-level property changes manually.
+---
+
 # Using observerLocator
 
 The Observer Locator API allows you to watch properties in your components for changes without the need for using the `@observable` decorator. In most cases, manual observation will not be required using this API, but it is there if you want it.
@@ -53,6 +57,8 @@ observer.unsubscribe(subscriber)
 
 ## Getting an observer of an expression
 
+### Using a getter
+
 It's not always sufficient to observe a single property on an object, and it's sometimes more desirable to return a computed value from the source so that subscribers of an observer don't have to perform any logic dealing with the updated values.
 An example of this is the follow observation of `firstName` and `lastName` to notify full name:
 
@@ -82,6 +88,26 @@ const observer = observerLocator.getObserver(obj, obj => `${obj.firstName} ${obj
   handleChange: fullname => alert(fullname)
 });
 ```
+
+### Using an expression
+
+Sometimes we want to have the ability to observe a complex expression, but without having to write all those functions and parenthesis. We can use the `getObserverExpression` API for this purpose.
+
+For the same example of `firstName` and `lastName` to notify full name:
+
+```ts
+const obj = { firstName: '', lastName: '' };
+
+const observer = observerLocator.getExpressionObserver(obj, '`${firstName} ${lastName}`').subscribe({
+  handleChange(newFullname) {
+    console.log(`New fullname is:`, newFullname);
+  }
+});
+```
+
+{% hint %}
+An expression cannot starts with square brackets to indicate computed property access, like this: `[0].abc`. Use `$this[0].abc` instead.
+{% endhint %}
 
 {% hint %}
 Sometimes it's more desirable to work with a higher level API, for this consider using [watch](./effect-observation.md#watch-effect)

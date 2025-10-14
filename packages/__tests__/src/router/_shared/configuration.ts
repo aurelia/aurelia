@@ -1,17 +1,17 @@
-import { ConsoleSink, IContainer, IRegistry, LogLevel, LoggerConfiguration, Registration } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
-import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
-import { MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+import { Class, ConsoleSink, IContainer, IRegistry, ISink, LogLevel, LoggerConfiguration, Registration } from '@aurelia/kernel';
+import { IRouterOptions } from '@aurelia/router';
+import { AppTask, IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
+import { MockBrowserHistoryLocation } from '@aurelia/testing';
 
 export const TestRouterConfiguration = {
-  for(ctx: TestContext, logLevel: LogLevel = LogLevel.debug): IRegistry {
+  for(logLevel: LogLevel = LogLevel.warn, sinks: Class<ISink>[] = [ConsoleSink]): IRegistry {
     return {
       register(container: IContainer): void {
         container.register(
           LoggerConfiguration.create({
             level: logLevel,
             colorOptions: 'no-colors',
-            sinks: [ConsoleSink],
+            sinks,
           }),
         );
 
@@ -19,11 +19,20 @@ export const TestRouterConfiguration = {
         container.register(
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
-          AppTask.hydrating(IRouter, router => {
-            mockBrowserHistoryLocation.changeCallback = async (ev) => { router.viewer.handlePopStateEvent(ev); };
-          }),
         );
       },
     };
   },
 };
+
+export function getLocationChangeHandlerRegistration(): IRegistry {
+  return AppTask.hydrated(IContainer, container => {
+    const useHash = container.get(IRouterOptions).useUrlFragmentHash;
+    const window = container.get(IWindow);
+    const mockBrowserHistoryLocation = container.get<MockBrowserHistoryLocation>(IHistory);
+    mockBrowserHistoryLocation.changeCallback = () => {
+      window.dispatchEvent(useHash ? Object.assign(new HashChangeEvent('hashchange'), { state: mockBrowserHistoryLocation.state }) : new PopStateEvent('popstate', { state: mockBrowserHistoryLocation.state }));
+      return Promise.resolve();
+    };
+  });
+}

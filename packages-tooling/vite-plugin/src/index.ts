@@ -38,7 +38,6 @@ export default function au(options: {
         'platform-browser',
         'aurelia',
         'fetch-client',
-        'router-lite',
         'router',
         'kernel',
         'metadata',
@@ -51,7 +50,7 @@ export default function au(options: {
         'runtime',
         'template-compiler',
         'runtime-html',
-        'router-lite',
+        'router-direct',
       ].reduce((aliases, pkg) => {
         const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
         try {
@@ -63,9 +62,14 @@ export default function au(options: {
     },
   };
 
+  let $config!: import('vite').ResolvedConfig;
+
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
     enforce: pre ? 'pre' : 'post',
+    configResolved(config) {
+      $config = config;
+    },
     async transform(code, id) {
       if (!filter(id)) return;
       // .$au.ts = .html
@@ -80,9 +84,9 @@ export default function au(options: {
         hmrModule: 'import.meta',
         getHmrCode,
         transformHtmlImportSpecifier: (s) => {
-          return this.meta.watchMode
-            ? s
-            : s.replace(/\.html$/, '.$au.ts');
+          return $config.mode === 'production'
+            ? s.replace(/\.html$/, '.$au.ts')
+            : s;
         },
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
@@ -141,6 +145,7 @@ import {
   IHydrationContext as $$IHC,
   PropertyBinding as $$PB,
   ContentBinding as $$CB,
+  refs as $$refs,
 } from '@aurelia/runtime-html';
 
 // @ts-ignore
@@ -235,13 +240,14 @@ if (${moduleText}.hot) {
       controller.definition = newDefinition;
       console.log('assigning', JSON.stringify(Object.entries(values)));
       Object.assign(controller.viewModel, values);
+      controller.deactivate(controller, controller.parent ?? null, 0);
+      $$refs.clear(h);
       if (controller._hydrateCustomElement) {
         controller._hydrateCustomElement(hydrationInst, hydrationContext);
       } else {
         controller.hE(hydrationInst, hydrationContext);
       }
       h.parentNode.replaceChild(controller.host, h);
-      controller.deactivate(controller, controller.parent ?? null, 0);
       controller.activate(controller, controller.parent ?? null, 0);
     });
   }

@@ -1,6 +1,5 @@
 import {
   DI,
-  IServiceLocator,
   type IContainer,
   type IFactory,
   type Constructable,
@@ -14,11 +13,11 @@ import {
 } from '@aurelia/expression-parser';
 import {
   astEvaluate,
+  queueAsyncTask,
   IConnectable,
   type Scope,
 } from '@aurelia/runtime';
 import {
-  IPlatform,
   PropertyBinding,
 } from '@aurelia/runtime-html';
 import {
@@ -28,6 +27,7 @@ import {
   ValidationResult,
   IValidator,
   ValidateInstruction,
+  isGroupRule,
   type IValidationRule,
   type IValidateable,
 } from '@aurelia/validation';
@@ -314,8 +314,6 @@ export class ValidationController implements IValidationController {
 
   public readonly validator: IValidator = resolve(IValidator);
   private readonly parser: IExpressionParser = resolve(IExpressionParser);
-  private readonly platform: IPlatform = resolve(IPlatform);
-  private readonly locator: IServiceLocator = resolve(IServiceLocator);
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
     this.objects.set(object, rules);
@@ -397,14 +395,26 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.platform.domQueue.queueTask(async () => {
+    const task = queueAsyncTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
           async (x) => this.validator.validate(x)
         ));
         const newResults = results.reduce(
           (acc, resultSet) => {
-            acc.push(...resultSet);
+            // Instead of adding the entire resultSet to the accumulator (or simple flattening), we ensure there are no duplicates.
+            // Duplicate result set is possible when grouped rules are involved.
+            // For example, when we have a group rule for prop1, prop2, and prop3 and *everything* is validated,
+            // then the group rule validation result for every property of the group will produce the same result.
+            // Thus, for our example, when everything is validated, we will end up with 9 results: 3 identical results for each of prop1, prop2, and prop3.
+            // While that is alright in the core of the validation, given the nature of the grouped validation,
+            // when we are in the realm of UI (HTML) we don't want to show the same error multiple times.
+            // Therefore, we filter out the duplicates here.
+            for (const result of resultSet) {
+              if (acc.findIndex(x => x.propertyName === result.propertyName && x.rule === result.rule) === -1) {
+                acc.push(result);
+              }
+            }
             return acc;
           },
           []);
@@ -481,7 +491,7 @@ export class ValidationController implements IValidationController {
             .map(([
               { validationRules, messageProvider, property },
               rules
-            ]) => new PropertyRule(this.locator, validationRules, messageProvider, property, [rules]))
+            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
         ))
       );
     }
@@ -499,7 +509,7 @@ export class ValidationController implements IValidationController {
 
     return x => !x.isManual
       && x.object === instruction.object
-      && (propertyName === void 0 || x.propertyName === propertyName)
+      && (propertyName === void 0 || x.propertyName === propertyName || isGroupRule(x.rule!))
       && (
         rules === void 0
         || rules.includes(x.propertyRule!)

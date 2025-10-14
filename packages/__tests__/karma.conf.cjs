@@ -36,7 +36,7 @@ module.exports =
   const testFilePatterns = cliArgs.length > 0
     ? cliArgs.flatMap(arg => [
         `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
-        `${baseUrl}/**/${arg}/**/*.spec.js`,
+        `${baseUrl}/**/*${arg}*/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
   const circleCiParallelismGlob = fs.existsSync('./tests.txt')
@@ -425,8 +425,8 @@ const testDirs = [
   'fetch-client',
   'i18n',
   'integration',
+  'router-direct',
   'router',
-  'router-lite',
   'state',
   'store-v1',
   'validation',
@@ -445,8 +445,8 @@ const packageNames = [
   'platform',
   'platform-browser',
   'route-recognizer',
+  'router-direct',
   'router',
-  'router-lite',
   'expression-parser',
   'runtime',
   'template-compiler',

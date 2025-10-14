@@ -1,130 +1,413 @@
 ---
 description: >-
-  Learn how to use Aurelia with existing HTML (inside of other frameworks and
-  libraries), hydrating server-generated HTML or running multiple instances of
-  Aurelia in your application.
+  Learn how to use Aurelia's enhance feature to add interactivity to existing HTML,
+  integrate with other frameworks, hydrate server-rendered content, and create
+  multiple Aurelia instances in your application.
 ---
 
 # Enhance
 
-## An introduction to enhance
+## What is Enhancement?
 
-Enhancement in Aurelia allows for integrating Aurelia’s capabilities with existing DOM elements or dynamically inserted HTML content. This feature is particularly useful in scenarios where the application is not entirely built with Aurelia, such as when integrating with server-rendered pages or dynamically generated content.
+Enhancement allows you to bring Aurelia's data binding, templating, and component features to existing DOM content without replacing it entirely. Instead of starting with an empty element and rendering into it, enhancement takes existing HTML and makes it "Aurelia-aware".
 
-The [startup sections](app-configuration-and-startup.md) showed how to start Aurelia for an empty root node. While that's the most frequent use case, there might be other scenarios where we would like to work with an existing DOM tree with Aurelia.
+This is perfect for:
+- **Progressive enhancement** of server-rendered pages
+- **Integration** with existing applications or other frameworks  
+- **Widget development** where you control specific sections of a page
+- **Content Management Systems** where you want to add interactivity to generated content
+- **Legacy application modernization** done incrementally
 
-### Basic Syntax and Key Points
+The [startup sections](app-configuration-and-startup.md) showed how to start Aurelia for empty elements. Enhancement lets you work with existing DOM trees instead.
 
-The basic usage of `enhance` is straightforward:
+> **Before you start:** Review [App configuration and startup](app-configuration-and-startup.md) to understand the standard bootstrap flow; enhancement builds on those concepts.
+
+## Understanding What Gets Enhanced
+
+When you enhance an element, Aurelia treats that element as if it were the template of a custom element. The existing HTML becomes the "template" and your component object becomes the "view model" that provides data and behavior.
+
+### Basic Enhancement Syntax
 
 ```typescript
+// Using the convenience method (recommended)
+const enhanceRoot = await Aurelia.enhance({
+  host: document.querySelector('#my-content'),
+  component: { message: 'Hello World' }
+});
+
+// Using instance method  
 const au = new Aurelia();
-await au.enhance({ host, component: MyComponent });
+const enhanceRoot = await au.enhance({
+  host: document.querySelector('#my-content'),
+  component: { message: 'Hello World' }
+});
 ```
 
-Key Points to Understand:
+### Component Types: Classes, Instances, or Objects
 
-1. **Anonymous Custom Element Hydration:** The enhancement treats the target node as an anonymous custom element, allowing Aurelia to apply its behavior to the existing DOM structure.
-2. **Component Flexibility:** The component parameter in enhance can be a custom element class, a class instance, or an object literal. If a class is provided, it's instantiated by Aurelia's dependency injection container, which can be either provided or automatically created.
-3. **Host Element:** The host is typically an existing DOM node that is not yet under Aurelia's control. It's crucial to note that `enhance ' neither detaches nor attaches the `host` to the DOM. Existing event handlers on the `host` or its descendants remain unaffected.
-4. **Controller Deactivation:** an `enhance` call results in an application root that requires manual deactivation or integration into an existing controller hierarchy for automatic framework management.
-
-Example of deactivating an application root:
+You can enhance with three different component types:
 
 ```typescript
-const root = au.enhance({ host, component });
-root.deactivate();
+// 1. Plain object (most common for simple cases)
+const enhanceRoot = await Aurelia.enhance({
+  host: element,
+  component: {
+    message: 'Hello',
+    items: [1, 2, 3],
+    handleClick() { 
+      console.log('Clicked!'); 
+    }
+  }
+});
+
+// 2. Class instance (when you need constructor logic)
+class MyViewModel {
+  message = 'Hello';
+  constructor() {
+    // initialization logic
+  }
+}
+const enhanceRoot = await Aurelia.enhance({
+  host: element,
+  component: new MyViewModel()
+});
+
+// 3. Custom element class (for reusable components)
+@customElement({ name: 'my-widget' })
+class MyWidget {
+  @bindable message: string;
+}
+const enhanceRoot = await Aurelia.enhance({
+  host: element,
+  component: MyWidget
+});
 ```
 
-## Enhancing During Application Startup
+### Key Enhancement Concepts
 
-Enhance can be particularly useful during application startup, especially when integrating Aurelia into an existing web page or alongside other frameworks.
+1. **Existing DOM is preserved**: Enhancement doesn't replace your HTML - it makes it interactive
+2. **Existing event handlers remain**: Any JavaScript event listeners you've already attached stay functional  
+3. **Manual lifecycle management**: You're responsible for calling `deactivate()` when done
+4. **Template compilation**: Aurelia compiles the existing HTML for bindings and directives
 
-Let's create an `index.html` file containing some HTML markup you would encounter if you generated an Aurelia application using `npx makes aurelia` or other means.
+### Proper Cleanup
 
-Pay attention to the contents of the `<body>` as there is a container called `app` as well as some HTML tags `<my-app>`
+Always clean up enhanced content to prevent memory leaks:
 
-{% code title="index.html" %}
+```typescript
+const enhanceRoot = await Aurelia.enhance({ host, component });
+
+// Later, when you're done:
+await enhanceRoot.deactivate();
+```
+
+## Practical Enhancement Examples
+
+### Server-Rendered Content Enhancement
+
+Suppose your server renders this HTML:
+
 ```html
-<body>
-  <div id="app">
-    <my-app></my-app>
+<!-- Server-rendered content -->
+<div id="user-profile">
+  <h2>Welcome back!</h2>
+  <div class="stats">
+    <span>Loading user data...</span>
   </div>
-</body>
+  <button id="refresh-btn">Refresh</button>
+</div>
 ```
-{% endcode %}
 
-Now, let's enhance our application by using the `enhance`API inside of `main.ts`
+You can enhance it to make it interactive:
 
 ```typescript
 import Aurelia from 'aurelia';
-import { MyApp } from './my-app';
-try {
-Aurelia
-  .register(MyApp)
-  .enhance({
-      host: document.querySelector('div#app'),
-      component: {},
-  });
-} catch (error) {
-  console.error(error);
+
+// Your existing server-rendered element
+const profileElement = document.querySelector('#user-profile');
+
+// Enhance with Aurelia interactivity
+const enhanceRoot = await Aurelia.enhance({
+  host: profileElement,
+  component: {
+    username: 'Loading...',
+    loginCount: 0,
+    
+    async created() {
+      // Load user data when component initializes
+      const userData = await fetch('/api/user/profile').then(r => r.json());
+      this.username = userData.username;
+      this.loginCount = userData.loginCount;
+    },
+    
+    refreshData() {
+      this.created(); // Reload data
+    }
+  }
+});
+
+// Update your HTML to use bindings:
+// <h2>Welcome back, ${username}!</h2>
+// <div class="stats">
+//   <span>Login count: ${loginCount}</span>
+// </div>
+// <button click.delegate="refreshData()">Refresh</button>
+```
+
+### Widget Integration Example
+
+Create interactive widgets within existing pages:
+
+```html
+<!-- Existing page content -->
+<div class="article">
+  <h1>My Blog Post</h1>
+  <p>Some content...</p>
+  
+  <!-- Widget placeholder -->
+  <div id="comment-widget">
+    <h3>Comments</h3>
+    <div class="loading">Loading comments...</div>
+  </div>
+</div>
+```
+
+```typescript
+// Enhance just the comment widget
+const commentWidget = document.querySelector('#comment-widget');
+
+const enhanceRoot = await Aurelia.enhance({
+  host: commentWidget,
+  component: {
+    comments: [],
+    newComment: '',
+    
+    async created() {
+      this.comments = await this.loadComments();
+    },
+    
+    async loadComments() {
+      return fetch('/api/comments/123').then(r => r.json());
+    },
+    
+    async addComment() {
+      if (!this.newComment.trim()) return;
+      
+      await fetch('/api/comments', {
+        method: 'POST',
+        body: JSON.stringify({ text: this.newComment }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      this.newComment = '';
+      this.comments = await this.loadComments();
+    }
+  }
+});
+
+// Update HTML to:
+// <div id="comment-widget">
+//   <h3>Comments (${comments.length})</h3>
+//   <div repeat.for="comment of comments">
+//     <p>${comment.text}</p>
+//   </div>
+//   <div>
+//     <input value.bind="newComment" placeholder="Add comment...">
+//     <button click.delegate="addComment()">Post</button>
+//   </div>
+// </div>
+```
+
+## Dynamic Content Enhancement
+
+Enhancement is perfect for content that gets added to the page after initial load.
+
+### Enhancing Dynamically Loaded Content
+
+```typescript
+import { Aurelia, resolve } from 'aurelia';
+
+export class DynamicContentComponent {
+  private enhancedRoots: Array<any> = [];
+  
+  constructor(private au = resolve(Aurelia)) {}
+
+  async loadMoreContent() {
+    // Load HTML from server
+    const response = await fetch('/api/content/next-page');
+    const htmlContent = await response.text();
+    
+    // Create container for new content
+    const container = document.createElement('div');
+    container.innerHTML = htmlContent;
+    document.querySelector('#content-area').appendChild(container);
+    
+    // Enhance the new content
+    const enhanceRoot = await this.au.enhance({
+      host: container,
+      component: {
+        currentUser: this.currentUser,
+        likePost: (postId) => this.likePost(postId),
+        sharePost: (postId) => this.sharePost(postId)
+      }
+    });
+    
+    // Keep track for cleanup
+    this.enhancedRoots.push(enhanceRoot);
+  }
+  
+  // Clean up when component is destroyed
+  async unbinding() {
+    for (const root of this.enhancedRoots) {
+      await root.deactivate();
+    }
+    this.enhancedRoots = [];
+  }
 }
 ```
-Or if your component has one of its lifecycle return a promise:
-```typescript
-import Aurelia from 'aurelia';
-import { MyApp } from './my-app';
 
-;(async () => {
-  try {
-    await Aurelia
-      .register(MyApp)
-      .enhance({
-          host: document.querySelector('div#app'),
-          component: {},
-      });
-  } catch (error) {
-    console.error(error);
-  }
-})();
-```
-
-We first wrap our async code in an anonymous async function. This allows us to catch errors and throw them to the console if enhancement fails, but take note of the `enhance` call itself. We supply the host element (in our case, it's a DIV with an ID of `app` as the host).
-
-Above our `enhance` call, we register our main component, `MyApp`, the initial component our application will render.
-
-{% hint style="warning" %}
-Pay attention to what you are enhancing. Please make sure you are enhancing the container and not the component itself. It's an easy mistake, and we have seen some developers get caught on.
-{% endhint %}
-
-This approach will work for existing applications as well. Say you have a WordPress website and want to create an Aurelia application on a specific page. You could create a container and pass the element to the `host` on the `enhance` call.
-
-## Enhancing on the fly within components
-
-While using the `enhance` during registration, the `enhance` API is convenient for situations where you want to control how an Aurelia application is enhanced. There are times when you want to enhance HTML programmatically from within components. This may be HTML loaded from the server or elements created on the fly.
-
-In the following example, we query our markup for an `item-list` element and insert some Aurelia-specific markup into it (a repeater).
+### Enhancing Modal or Dialog Content
 
 ```typescript
-import Aurelia, { IAurelia, resolve } from 'aurelia';
+export class ModalService {
+  private currentModal: any = null;
+  
+  async showModal(contentHtml: string, viewModel: any) {
+    // Create modal element
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <button class="close" click.delegate="closeModal()">&times;</button>
+        ${contentHtml}
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
 
-export class MyApp {
-  items = [1, 2, 3];
-
-  constructor(private readonly au = resolve(Aurelia)) {}
-
-  attached() {
-    const itemList = document.getElementById('item-list');
-    itemList.innerHTML = "<div repeat.for='item of items'>${item}</div>";
-
-    this.au.enhance({
-      component: { items: this.items },
-      host: itemList,
+    // Enhance the modal content
+    this.currentModal = await Aurelia.enhance({
+      host: modal,
+      component: {
+        ...viewModel,
+        closeModal: () => this.closeModal()
+      }
     });
   }
+  
+  async closeModal() {
+    if (this.currentModal) {
+      await this.currentModal.deactivate();
+      document.querySelector('.modal')?.remove();
+      this.currentModal = null;
+    }
+  }
 }
 ```
 
-As you can see, we are dynamically injecting some HTML into an existing element. Because this is being done after Aurelia has already compiled the view, it would not work. This is why we must call `enhance` to tell Aurelia to parse our inserted HTML.
+## Advanced Enhancement Patterns
 
-You can use this approach to enhance HTML inserted into the page after initial compilation, which is perfect for server-generated code.
+### Using Custom Containers
+
+When you need specific services or configurations for enhanced content:
+
+```typescript
+import { DI, Registration } from '@aurelia/kernel';
+import { LoggerConfiguration, LogLevel } from 'aurelia';
+
+// Create custom container for widget
+const widgetContainer = DI.createContainer()
+  .register(
+    Registration.singleton('ApiService', MyApiService),
+    LoggerConfiguration.create({ level: LogLevel.debug })
+  );
+
+const enhanceRoot = await Aurelia.enhance({
+  host: document.querySelector('#my-widget'),
+  component: MyWidget,
+  container: widgetContainer  // Use custom container
+});
+```
+
+### Lifecycle Hooks in Enhanced Components
+
+Enhanced components support all standard Aurelia lifecycle hooks:
+
+```typescript
+const enhanceRoot = await Aurelia.enhance({
+  host: element,
+  component: {
+    data: null,
+    
+    // Called when component is being set up
+    created() {
+      console.log('Component created');
+    },
+    
+    // Called before data binding starts
+    binding() {
+      console.log('Starting data binding');
+    },
+    
+    // Called after data binding completes
+    bound() {
+      console.log('Data binding complete');
+    },
+    
+    // Called when component is being attached to DOM
+    attaching() {
+      console.log('Attaching to DOM');
+    },
+    
+    // Called after component is attached to DOM
+    attached() {
+      console.log('Attached to DOM - ready for user interaction');
+      // Good place for focus, animations, etc.
+    },
+    
+    // Called when component is being removed
+    detaching() {
+      console.log('Detaching from DOM');
+    },
+    
+    // Called when data bindings are being torn down
+    unbinding() {
+      console.log('Unbinding data');
+      // Cleanup subscriptions, timers, etc.
+    }
+  }
+});
+```
+
+## Common Enhancement Patterns
+
+### Progressive Enhancement Checklist
+
+1. **Identify enhancement targets**: Elements that need interactivity
+2. **Preserve existing functionality**: Don't break existing event handlers
+3. **Plan your data flow**: How will data get to enhanced components?
+4. **Handle cleanup**: Always deactivate when done
+5. **Test without JavaScript**: Ensure basic functionality works without enhancement
+
+### Best Practices
+
+- **Start small**: Enhance specific widgets before entire sections
+- **Use meaningful component objects**: Include methods and properties that make sense
+- **Handle errors gracefully**: Enhancement might fail if DOM structure changes
+- **Document what gets enhanced**: Make it clear to other developers
+- **Consider performance**: Don't enhance too many elements at once
+
+### When NOT to Use Enhancement
+
+- **New applications**: Use regular `Aurelia.app()` for greenfield projects
+- **Full page control**: When you control the entire page, standard app startup is simpler
+- **Simple static content**: If content doesn't need interactivity
+- **Performance critical sections**: Enhancement has overhead compared to pre-compiled templates
+
+Enhancement shines when you need to add Aurelia's power to existing content without rebuilding everything from scratch.
+
+## Next steps
+
+- Use [dynamic composition](dynamic-composition.md) when you need to render different components inside an enhanced region.
+- Combine enhancement with [watching data](watching-data.md) to react to model changes in legacy markup.
+- Explore [portalling elements](portalling-elements.md) for UI that needs to escape its original DOM location.

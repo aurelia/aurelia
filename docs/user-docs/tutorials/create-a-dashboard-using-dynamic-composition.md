@@ -24,7 +24,7 @@ The dashboard will be comprised of a handful of different widgets and by leverag
 
 Before going any further, you should be familiar with some basic Aurelia concepts as well as some fundamental Javascript ones as well. While these are not hard prerequisites, please know that some concepts used in this tutorial out of context might be confusing or difficult to understand.
 
-* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax/overview.md).
 * You have familiarized yourself with [components in Aurelia](../components/components.md).
 * You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to be a master of it, just familiar with its existence and why it matters in Aurelia.
 
@@ -132,7 +132,7 @@ Now, we create a `dog-component.html` file inside of the `components` directory:
 </div>
 ```
 
-If you have [read up on the promise controller](../templates/template-syntax.md#using-promise-bindings-inside-of-a-repeat.for), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch` will be triggered and pass our error.
+If you have [read up on the promise controller](../templates/template-syntax/template-promises.md), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch` will be triggered and pass our error.
 
 ## Base styling
 
@@ -389,7 +389,7 @@ We now need the markup for our component. Create a new file called `notes-compon
     <button type="button" click.trigger="addNote()">Add note</button>
 
     <ul class="notes">
-        <li repeat.for="text of notes">${text} <button type="button" class="delete-btn" click.delegate="removeNote($index)">x</button></li>
+        <li repeat.for="text of notes">${text} <button type="button" class="delete-btn" click.trigger="removeNote($index)">x</button></li>
     </ul>
 
 </div>
@@ -398,8 +398,7 @@ We now need the markup for our component. Create a new file called `notes-compon
 * `value.bind="note"` binds the native `value` attribute on our textarea to the class property called `note` we also disable spellchecking in this field
 * We add in a button with `click.trigger="addNote()"` which will call the `addNote` function every time the button is clicked
 * We then create an unordered list where we loop over the `notes` array and display the value
-* Inside of the `li` we also have a button with a `click.delegate` we use a delegate here because we don't know how big the list will be and delegation will create one event listener, not multiple.
-* On the `click.delegate` we call `removeNote` and pass in the current index value from the loop accessible via the special property `$index`
+* On the `click.trigger` we call `removeNote` and pass in the current index value from the loop accessible via the special property `$index`
 
 Unlike other components, we need some specific styles for our notes component. Because conventions rock, Aurelia will automatically look for a `.css` file for any components you create. By creating a file called `notes-component.css` alongside the other files, Aurelia will see this and automatically import it for us.
 

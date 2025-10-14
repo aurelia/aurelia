@@ -1,4 +1,4 @@
-import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, createLookup } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, optional, noop } from '@aurelia/kernel';
 import { ArrayObserver, getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { SetObserver, getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign } from './utilities';
+import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign, getOwnPropDesc, getProto } from './utilities';
 
 import type {
   Collection,
@@ -19,6 +19,11 @@ import type {
   CollectionObserver,
 } from './interfaces';
 import { ErrorNames, createMappedError } from './errors';
+import { computedPropInfo } from './object-property-info';
+import { getObserverLookup } from './observation-utils';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionObserver } from './expression-observer';
+import { ControlledComputedObserver } from './controlled-computed-observer';
 
 const propertyAccessor = new PropertyAccessor();
 
@@ -55,40 +60,19 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
   }
 }
 
-export interface IComputedObserverLocator {
-  getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver;
-}
-export const IComputedObserverLocator = /*@__PURE__*/rtCreateInterface<IComputedObserverLocator>(
-  'IComputedObserverLocator',
-  x => x.singleton(class DefaultLocator implements IComputedObserverLocator {
-    public getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver {
-      const observer = new ComputedObserver(obj, pd.get!, pd.set, requestor, true);
-      rtDef(obj, key, {
-        enumerable: pd.enumerable,
-        configurable: true,
-        get: rtObjectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
-        set: (/* Computed Observer */v) => {
-          observer.setValue(v);
-        },
-      });
-
-      return observer;
-    }
-  })
-);
-
 export type ExtendedPropertyDescriptor = PropertyDescriptor & {
   get?: ObservableGetter;
 };
 export type ObservableGetter = PropertyDescriptor['get'] & {
-  getObserver?(obj: unknown): IObserver;
+  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
 };
 
 export class ObserverLocator {
   /** @internal */ private readonly _adapters: IObjectObservationAdapter[] = [];
   /** @internal */ private readonly _dirtyChecker = resolve(IDirtyChecker);
   /** @internal */ private readonly _nodeObserverLocator = resolve(INodeObserverLocator);
-  /** @internal */ private readonly _computedObserverLocator = resolve(IComputedObserverLocator);
+  // /** @internal */ private readonly _computedObserverLocator = resolve(IComputedObserverLocator);
+  /** @internal */ private readonly _expressionParser = resolve(optional(IExpressionParser));
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this._adapters.push(adapter);
@@ -104,7 +88,7 @@ export class ObserverLocator {
       return new PrimitiveObserver(obj as Primitive, isFunction(key) ? '' : key);
     }
     if (isFunction(key)) {
-      return new ComputedObserver(obj, key, void 0, this, true);
+      return new ComputedObserver(obj, key, void 0, this);
     }
     const lookup = getObserverLookup(obj);
     let observer = lookup[key];
@@ -127,6 +111,56 @@ export class ObserverLocator {
     }
 
     return propertyAccessor;
+  }
+
+  public getExpressionObserver(
+    obj: object,
+    expression: string,
+    callback: (newValue: unknown, oldValue: unknown) => void = noop
+  ): ExpressionObserver {
+    if (this._expressionParser == null) {
+      throw new Error('No available parser');
+    }
+
+    return ExpressionObserver.create(
+      obj,
+      this,
+      this._expressionParser.parse(expression, 'IsProperty'),
+      callback
+    );
+  }
+
+  public getComputedObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor): IObserver {
+    const info = computedPropInfo.get(obj, key);
+    if (info?.deps == null || info.deps.length === 0) {
+      const observer = new ComputedObserver(
+        obj,
+        pd.get!,
+        pd.set,
+        this,
+        info?.flush
+      );
+      rtDef(obj, key, {
+        enumerable: pd.enumerable,
+        configurable: true,
+        get: rtObjectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+        set: (/* Computed Observer */v) => {
+          observer.setValue(v);
+        },
+      });
+
+      return observer;
+    }
+
+    return new ControlledComputedObserver(
+      obj,
+      key,
+      pd.get!,
+      this,
+      info.deps,
+      info.flush ?? 'async',
+      info.deep === true
+    );
   }
 
   public getArrayObserver(observedArray: unknown[]): ICollectionObserver<'array'> {
@@ -184,14 +218,14 @@ export class ObserverLocator {
     if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
       let obs: IObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
       if (obs == null) {
-        obs = (pd.get?.getObserver)?.(obj);
+        obs = (pd.get?.getObserver)?.(obj, this);
       }
 
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return obs == null
         ? pd.configurable
           // ? this._createComputedObserver(obj, key, pd, true)
-          ? this._computedObserverLocator.getObserver(obj, key, pd, this)
+          ? this.getComputedObserver(obj, key, pd)
           : this._dirtyChecker.createProperty(obj, key)
         : obs;
     }
@@ -256,16 +290,3 @@ export const getCollectionObserver: {
   return obs;
 };
 
-const getProto = Object.getPrototypeOf;
-const getOwnPropDesc = Object.getOwnPropertyDescriptor;
-
-export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
-  let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
-  if (lookup === void 0) {
-    rtDef(instance, '$observers', {
-      enumerable: false,
-      value: lookup = createLookup(),
-    });
-  }
-  return lookup;
-};

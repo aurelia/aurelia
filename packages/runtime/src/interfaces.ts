@@ -150,6 +150,7 @@ export interface IObserver<TValue = unknown> extends IAccessor<TValue>, ISubscri
   doNotCache?: boolean;
   useCallback?(callback: (newValue: TValue, oldValue: TValue) => void): boolean;
   useCoercer?(coercer: InterceptorFunc, coercionConfig?: ICoercionConfiguration): boolean;
+  useFlush?(flush: 'sync' | 'async'): boolean;
 }
 
 export type AccessorOrObserver = (IAccessor | IObserver) & {
@@ -165,6 +166,20 @@ export type AccessorOrObserver = (IAccessor | IObserver) & {
   deletedIndices: number[];
   deletedItems: T[];
   isIndexMap: true;
+};
+
+export const hasChanges = (indexMap: IndexMap) => {
+  if (indexMap.deletedIndices.length > 0) {
+    return true;
+  }
+
+  for (let i = 0; i < indexMap.length; ++i) {
+    if (indexMap[i] !== i) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export function copyIndexMap<T = unknown>(

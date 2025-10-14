@@ -1,6 +1,6 @@
 import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n';
-import { IContainer, Registration } from '@aurelia/kernel';
-import { assert, TestContext } from '@aurelia/testing';
+import { IContainer, newInstanceForScope, Registration, resolve, toArray } from '@aurelia/kernel';
+import { assert, createFixture, getVisibleText, TestContext } from '@aurelia/testing';
 import {
   IValidationMessageProvider,
   IValidationRules,
@@ -18,6 +18,8 @@ import {
 import { LocalizedValidationController, LocalizedValidationControllerFactory, LocalizedValidationMessageProvider, ValidationI18nConfiguration } from '@aurelia/validation-i18n';
 import { Spy } from '../Spy.js';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
+import { tasksSettled } from '@aurelia/runtime';
+import { Flight } from '../validation/_test-resources.js';
 
 describe('validation-i18n/localization.spec.ts', function () {
   describe('validation-i18n', function () {
@@ -232,7 +234,7 @@ describe('validation-i18n/localization.spec.ts', function () {
     async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {
       controllerSpy.clearCallRecords();
       target.dispatchEvent(new ctx.Event(event));
-      await platform.domQueue.yield();
+      await tasksSettled();
       controllerSpy.methodCalledTimes('validateBinding', callCount);
       controllerSpy.methodCalledTimes('validate', callCount);
     }
@@ -240,7 +242,7 @@ describe('validation-i18n/localization.spec.ts', function () {
     async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy, locale: string = 'de') {
       const i18n = container.get(I18N);
       await i18n.setLocale(locale);
-      await platform.domQueue.yield();
+      await tasksSettled();
       controllerSpy.methodCalledTimes('validate', 1);
     }
 
@@ -564,5 +566,145 @@ describe('validation-i18n/localization.spec.ts', function () {
         template: `<input type="text" value.two-way="person4.name & validate">`
       }
     );
+
+    it('shows group validation errors correctly', async function () {
+      const currentDate = new Date('2025-07-20T00:00:00Z');
+
+      const translationEn = {
+        required: '${$displayName} is required.',
+        flight: {
+          direction: 'Invalid flight direction',
+          timeTravel: 'No time travel possible',
+          backToPast: 'Not possible to go back in time',
+          noReturnOneWay: 'One way flight has no return',
+        }
+      };
+
+      const translationDe = {
+        required: '${$displayName} ist erforderlich.',
+        flight: {
+          direction: 'Ungültige Flugrichtung',
+          timeTravel: 'Keine Zeitreise möglich',
+          backToPast: 'Rückkehr in die Vergangenheit nicht möglich',
+          noReturnOneWay: 'Einzelne Reise hat keine Rückkehr',
+        }
+      };
+
+      for (const locale of ['en', 'de']) {
+
+        const isEn = locale === 'en';
+        const translation = isEn ? translationEn : translationDe;
+
+        const { stop, component, appHost, ctx } = await createFixture(
+          ` <validation-container>
+              <input id="target1" type="text" value.two-way="flight.direction & validate">
+            </validation-container>
+            <validation-container>
+              <input id="target2" type="text" value.two-way="flight.departureDate & validate">
+            </validation-container>
+            <validation-container>
+              <input id="target3" type="text" value.two-way="flight.returnDate & validate">
+            </validation-container>
+            `,
+          class App {
+            private readonly flight = new Flight();
+            private readonly validationRules: IValidationRules = resolve(IValidationRules);
+            public readonly controller: IValidationController = resolve(newInstanceForScope(IValidationController));
+
+            public constructor() {
+              this.validationRules
+                .on(this.flight)
+                .ensure('direction')
+                .required()
+                .ensureGroup(
+                  ['direction', 'departureDate', 'returnDate'],
+                  (direction: 'one-way' | 'round-trip', departureDate: Date | string | undefined, returnDate: Date | string | undefined) => {
+                    // if the direction is not yet specified, we don't have to validate anything
+                    if (!direction) return true;
+                    const $departureDate = departureDate ? new Date(departureDate) : undefined;
+                    const $returnDate = returnDate ? new Date(returnDate) : undefined;
+                    switch (direction) {
+                      case 'round-trip':
+                        return $departureDate > $returnDate
+                          ? { property: 'departureDate', message: 'flight.backToPast' }
+                          : true;
+                      case 'one-way':
+                        if ($departureDate < currentDate) return { property: 'departureDate', message: 'flight.timeTravel' };
+                        if ($returnDate) return { property: 'returnDate', message: 'flight.noReturnOneWay' };
+                        return true;
+                      default:
+                        return { property: 'direction', message: 'flight.direction' };
+                    }
+                  });
+            }
+
+            public unbinding() {
+              this.validationRules.off();
+            }
+          },
+          [
+            ValidationI18nConfiguration,
+            I18nConfiguration.customize(options => {
+              options.initOptions.lng = locale;
+              options.initOptions.resources = {
+                en: { translation: translationEn },
+                de: { translation: translationDe },
+              };
+            })
+          ]
+        ).started;
+
+        await component.controller.validate();
+
+        const containers = toArray(appHost.querySelectorAll('validation-container'));
+
+        assert.deepStrictEqual(getErrors(), [[isEn ? 'direction is required.' : 'direction ist erforderlich.'], [], []], 'round#1');
+
+        const [directionInput, departureInput, returnInput] = toArray(appHost.querySelectorAll('input'));
+
+        // invalid direction
+        directionInput.value = 'invalid';
+        await triggerEvent(directionInput);
+        assert.deepStrictEqual(getErrors(), [[translation.flight.direction], [], []], 'round#2');
+
+        // one-way - departure date in past
+        directionInput.value = 'one-way';
+        departureInput.value = '2025-07-19T00:00:00Z';
+        await triggerEvent(directionInput);
+        await triggerEvent(departureInput);
+        assert.deepStrictEqual(getErrors(), [[], [translation.flight.timeTravel], []], 'round#3');
+
+        // one-way - return date set
+        departureInput.value = '2025-07-21T00:00:00Z';
+        returnInput.value = '2025-07-19T00:00:00Z';
+        await triggerEvent(departureInput);
+        await triggerEvent(returnInput);
+        assert.deepStrictEqual(getErrors(), [[], [], [translation.flight.noReturnOneWay]], 'round#4');
+
+        // round-trip
+        directionInput.value = 'round-trip';
+        await triggerEvent(directionInput);
+        assert.deepStrictEqual(getErrors(), [[], [translation.flight.backToPast], []], 'round#5');
+
+        // round-trip - valid dates
+        returnInput.value = '2025-07-23T00:00:00Z';
+        await triggerEvent(returnInput);
+        assert.deepStrictEqual(getErrors(), [[], [], []], 'round#6');
+
+        await stop(true);
+
+        function getErrors() {
+          return toArray(
+            containers.map(container => toArray(container.shadowRoot.querySelectorAll('span')))
+          ).map((els) => toArray(els).map(el => getVisibleText(el, true)));
+        }
+
+        async function triggerEvent(target: HTMLElement) {
+          target.dispatchEvent(new ctx.Event('input'));
+          target.dispatchEvent(new ctx.Event('focusout'));
+          await tasksSettled();
+        }
+      }
+    });
   });
 });

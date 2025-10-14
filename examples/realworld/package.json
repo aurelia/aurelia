@@ -9,12 +9,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "aurelia": "2.0.0-beta.24",
+    "aurelia": "2.0.0-beta.25",
     "marked": "^4.0.14"
   },
   "type": "module",
   "devDependencies": {
-    "@aurelia/testing": "2.0.0-beta.24",
+    "@aurelia/testing": "2.0.0-beta.25",
     "@types/mocha": "10.0.0",
     "@types/node": "^20.16.10",
     "css-loader": "^6.7.1",
@@ -24,16 +24,20 @@
     "rimraf": "^3.0.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.3.0",
-    "typescript": "5.4.2",
+    "typescript": "5.9.2",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.0.4"
   },
   "scripts": {
+    "dev": "webpack-dev-server",
     "start": "webpack-dev-server",
     "build:e2e": "tsc -p e2e/tsconfig.json",
     "start:e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 e2e/dist/**/*.spec.js",
     "build": "rimraf --glob dist && webpack"
+  },
+  "stackblitz": {
+    "startCommand": "npm run dev"
   },
   "engines": {
     "node": ">=14.15.0",

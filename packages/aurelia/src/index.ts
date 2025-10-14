@@ -54,16 +54,6 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  type ITask,
-  Platform,
-  type QueueTaskOptions,
-  Task,
-  TaskAbortError,
-  TaskQueue,
-  type TaskStatus
-} from '@aurelia/platform';
-
-export {
   all,
   DI,
   IContainer,
@@ -232,6 +222,9 @@ export {
   // DirtyCheckProperty,
   // DirtyCheckSettings,
 
+  computed,
+  type ComputedGetterFn,
+
   ComputedObserver,
 
   IObservation,
@@ -298,6 +291,16 @@ export {
 
   type IndexMap,
   Scope,
+
+  queueTask,
+  queueAsyncTask,
+  queueRecurringTask,
+  getRecurringTasks,
+  runTasks,
+  Task,
+  RecurringTask,
+  TaskAbortError,
+  type TaskStatus,
 
 } from '@aurelia/runtime';
 

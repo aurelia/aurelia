@@ -1,3 +1,4 @@
+import { runTasks } from '@aurelia/runtime';
 import {
   ValueConverter,
 } from '@aurelia/runtime-html';
@@ -14,7 +15,7 @@ describe('3-runtime-html/array-length-observer.spec.ts', function () {
   });
 
   it('works when bound with input number', function () {
-    const { getBy, component, type, flush } = createFixture(
+    const { getBy, component, type } = createFixture(
       `<input value.bind="items.length | number" input.trigger="logChange($event)" />`,
       class TestClass {
         items = Array.from({ length: 10 }, (_, idx) => {
@@ -38,12 +39,9 @@ describe('3-runtime-html/array-length-observer.spec.ts', function () {
     assert.strictEqual(component.items.length, 0);
     assert.deepStrictEqual(component.logs, ['00']);
     assert.strictEqual(inputEl.value, '00');
-    flush();
-    assert.strictEqual(inputEl.value, '0');
 
     component.items.push({ name: 'i-0', value: 1 });
-    assert.strictEqual(inputEl.value, '0');
-    flush();
+    runTasks();
     assert.strictEqual(inputEl.value, '1');
 
     // todo: issues with not being able to catch error in chrome
@@ -52,7 +50,7 @@ describe('3-runtime-html/array-length-observer.spec.ts', function () {
     // assert.strictEqual(component.items.length, 1);
     // assert.deepStrictEqual(component.logs, ['00', 'aa']);
     // assert.strictEqual(inputEl.value, 'aa');
-    // flush();
+    // runTasks();
     // assert.strictEqual(inputEl.value, 'aa');
   });
 

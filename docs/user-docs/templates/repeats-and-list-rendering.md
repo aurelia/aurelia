@@ -1,17 +1,19 @@
 ---
 description: >-
-  Learn how to work with collections of data like arrays and maps. The
-  repeat.for functionality allows you to loop over collections of data and work
-  with their contents similar to a Javascript for loop.
+  Master list rendering in Aurelia with repeat.for. Learn efficient data binding,
+  performance optimization, advanced patterns, and real-world techniques for
+  dynamic collections including arrays, maps, sets, and custom data structures.
 ---
 
 # List Rendering
 
-Aurelia’s templating system offers a robust way to work with collections—be they arrays, sets, maps, or even ranges. The `repeat.for` binding provides a declarative approach to iterating over data, creating scopes for each iteration, and optimizing DOM updates. This guide explains the intricacies of list rendering in detail.
+The `repeat.for` binding is Aurelia's powerful list rendering mechanism that creates highly optimized, reactive displays of collection data. It intelligently tracks changes, minimizes DOM updates, and provides rich contextual information for sophisticated data presentation.
 
-## The `repeat.for` Binding
+## Core Concepts
 
-At its core, `repeat.for` acts like a template-based `for...of` loop. It iterates over a collection and creates a new rendering context for each item. For example:
+### The `repeat.for` Binding
+
+`repeat.for` creates a template instance for each item in a collection, similar to a `for...of` loop but with intelligent DOM management:
 
 ```html
 <ul>
@@ -21,265 +23,815 @@ At its core, `repeat.for` acts like a template-based `for...of` loop. It iterate
 </ul>
 ```
 
-This snippet tells Aurelia to:
-- Loop over each element in the `items` collection.
-- Assign the current element to a local variable named `item`.
-- Render the element (here, displaying `item.name`) for each iteration.
-
 **JavaScript Analogy:**
-
 ```js
 for (let item of items) {
+  // Aurelia creates DOM element for each item
   console.log(item.name);
 }
 ```
 
-## Keyed Iteration for Efficient DOM Updates
+### Change Detection and Updates
 
-When working with dynamic collections, it’s crucial to minimize unnecessary DOM operations. Aurelia allows you to specify a unique key for each item in the collection. This key helps the framework:
-- **Track Changes:** By comparing key values, Aurelia can identify which items have been added, removed, or reordered.
-- **Optimize Updates:** Only the modified elements are updated, preserving performance.
-- **Maintain State:** DOM elements (e.g., with user input or focus) retain their state even if their order changes.
-
-### Syntax Examples
-
-You can declare the key using either literal or binding syntax:
-
-```html
-<!-- Literal syntax -->
-<ul>
-  <li repeat.for="item of items; key: id">
-    ${item.name}
-  </li>
-</ul>
-
-<!-- Bound syntax -->
-<ul>
-  <li repeat.for="item of items; key.bind: item.id">
-    ${item.name}
-  </li>
-</ul>
-```
-
-**Guidelines for Keys:**
-- **Uniqueness:** Use a property that uniquely identifies each item (like an `id`).
-- **Stability:** Avoid using array indices if the collection order can change.
-
-## Contextual Properties in Repeats
-
-Inside a `repeat.for` block, Aurelia exposes several contextual properties that give you more control over the rendering logic:
-
-- **`$index`**: The zero-based index of the current iteration.
-- **`$first`**: A boolean that is `true` on the first iteration.
-- **`$last`**: A boolean that is `true` on the final iteration.
-- **`$even` / `$odd`**: Flags indicating whether the current index is even or odd, which is useful for styling alternating rows.
-- **`$length`**: The total number of items in the collection.
-- **`$parent`**: A reference to the parent binding context. This is especially useful in nested repeaters.
-
-### Example Usage
-
-```html
-<ul>
-  <li repeat.for="item of items">
-    Index: ${$index} — Name: ${item.name} <br>
-    Is first? ${$first} | Is last? ${$last} <br>
-    Even? ${$even} | Odd? ${$odd} <br>
-    Total items: ${$length}
-  </li>
-</ul>
-```
-
-For nested repeats, you can access the outer scope with `$parent`:
-
-```html
-<ul>
-  <li repeat.for="item of items">
-    Outer index: ${$parent.$index}
-  </li>
-</ul>
-```
-
-## Working with Arrays
-
-Arrays are the most common data source for repeats. Here’s an example component and its template:
-
-**Component (my-component.ts):**
+Aurelia automatically observes collection changes and updates the DOM efficiently:
 
 ```typescript
 export class MyComponent {
-  items = [
-    { name: 'John' },
-    { name: 'Bill' }
+  items = [{ name: 'John' }, { name: 'Jane' }];
+
+  addItem() {
+    // Aurelia detects this change and updates DOM
+    this.items.push({ name: 'Bob' });
+  }
+
+  updateFirst() {
+    // This change is also detected
+    this.items[0] = { name: 'Johnny' };
+  }
+}
+```
+
+**Important:** Use array mutating methods (`push`, `pop`, `splice`, `reverse`, `sort`) for automatic detection. Direct index assignment works but requires the array reference to change for detection.
+
+## Performance Optimization with Keys
+
+### Why Keys Matter
+
+Without keys, Aurelia recreates DOM elements when collections change. With keys, it reuses existing elements:
+
+```html
+<!-- Without keys: recreates all DOM on reorder -->
+<div repeat.for="user of users">
+  <input value.bind="user.name">
+</div>
+
+<!-- With keys: preserves DOM and form state -->
+<div repeat.for="user of users; key.bind: user.id">
+  <input value.bind="user.name">
+</div>
+```
+
+### Key Strategies
+
+**Property-based keys (recommended):**
+```html
+<!-- Use stable, unique properties -->
+<li repeat.for="product of products; key.bind: product.id">
+  ${product.name}
+</li>
+```
+
+**Literal property keys (more efficient):**
+```html
+<!-- Avoids expression evaluation -->
+<li repeat.for="product of products; key: id">
+  ${product.name}
+</li>
+```
+
+**Expression-based keys (flexible but slower):**
+```html
+<!-- For complex key logic -->
+<li repeat.for="item of items; key.bind: item.category + '-' + item.id">
+  ${item.name}
+</li>
+```
+
+### When to Use Keys
+
+- **Dynamic collections** where items are added, removed, or reordered
+- **Form inputs** to preserve user input during updates
+- **Stateful components** to maintain component state
+- **Large lists** for performance optimization
+- **Sortable/filterable lists**
+
+**Avoid keys when:**
+- Collection is static or append-only
+- Items are simple primitives without DOM state
+- Performance testing shows no benefit
+
+## Contextual Properties
+
+Every repeat iteration provides rich contextual information:
+
+```html
+<div repeat.for="item of items">
+  <span class="index">Item ${$index + 1} of ${$length}</span>
+  <span class="status">
+    ${$first ? 'First' : $last ? 'Last' : $middle ? 'Middle' : ''}
+  </span>
+  <div class="item ${$even ? 'even' : 'odd'}">
+    ${item.name}
+  </div>
+</div>
+```
+
+### Complete Property Reference
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `$index` | `number` | Zero-based index (0, 1, 2...) |
+| `$first` | `boolean` | `true` for the first item |
+| `$last` | `boolean` | `true` for the last item |
+| `$middle` | `boolean` | `true` for items that aren't first or last |
+| `$even` | `boolean` | `true` for even indices (0, 2, 4...) |
+| `$odd` | `boolean` | `true` for odd indices (1, 3, 5...) |
+| `$length` | `number` | Total number of items |
+| `$previous` | `any` | `null` | Previous iteration's item (computed; undefined when contextual is disabled) |
+| `$parent` | `object` | Parent binding context |
+
+### Nested Repeats and $parent
+
+Access parent contexts in nested structures:
+
+```html
+<div repeat.for="department of departments">
+  <h2>${department.name}</h2>
+  <div repeat.for="employee of department.employees">
+    <span>
+      Dept: ${$parent.department.name},
+      Employee #${$index + 1}: ${employee.name}
+    </span>
+    <!-- Access root context -->
+    <span>Company: ${$parent.$parent.companyName}</span>
+  </div>
+</div>
+```
+
+### Accessing Previous Items with $previous
+
+The `$previous` contextual property provides access to the previous iteration's item, enabling powerful comparison and rendering patterns. It is a computed property available by default as part of repeat's contextual values. You can disable all contextual computed values (including `$previous`) using the `contextual` option.
+
+**Basic usage:**
+```html
+<!-- $previous is enabled by default (disable with contextual: false) -->
+<div repeat.for="item of items">
+  <div class="item">
+    ${item.name}
+    <span if.bind="$previous !== null">
+      (Previous: ${$previous.name})
+    </span>
+  </div>
+</div>
+```
+
+**Key characteristics:**
+- `$previous` is `null` for the first item
+- `$previous` is `undefined` when `contextual` is disabled
+- Computed property with minimal overhead when enabled (contextual is enabled by default)
+- Works with all collection types (arrays, Maps, Sets, etc.)
+- Compatible with keyed repeats
+
+#### Section Headers and Dividers
+
+A common use case is rendering section headers only when data changes:
+
+```typescript
+export class ProductList {
+  products = [
+    { category: 'Electronics', name: 'Laptop' },
+    { category: 'Electronics', name: 'Mouse' },
+    { category: 'Books', name: 'JavaScript Guide' },
+    { category: 'Books', name: 'TypeScript Handbook' }
   ];
 }
 ```
 
-**Template (my-component.html):**
-
 ```html
-<ul>
-  <li repeat.for="item of items">
-    ${item.name}
-  </li>
-</ul>
+<!-- Show category header only when it changes -->
+<div repeat.for="product of products">
+  <h2 if.bind="product.category !== $previous?.category">
+    ${product.category}
+  </h2>
+  <div class="product">${product.name}</div>
+</div>
 ```
 
-> **Note:** Aurelia tracks changes in arrays when you use array methods like `push`, `pop`, or `splice`. Direct assignments (e.g., `array[index] = value`) won’t trigger change detection.
-
-## Generating Ranges
-
-`repeat.for` isn’t limited to collections—it can also generate a sequence of numbers. For instance, to create a countdown:
-
-```html
-<p repeat.for="i of 10">
-  ${10 - i}
-</p>
-<p>Blast Off!</p>
+**Output:**
+```
+Electronics
+  Laptop
+  Mouse
+Books
+  JavaScript Guide
+  TypeScript Handbook
 ```
 
-This iterates 10 times and computes `10 - i` on each pass.
+#### Comparison and Change Indicators
 
-## Iterating Sets
-
-Sets are handled much like arrays. The syntax remains the same, though the underlying collection is a `Set`.
-
-**Component (repeater-template.ts):**
+Highlight changes from previous values:
 
 ```typescript
-export class RepeaterTemplate {
-  friends: Set<string> = new Set(['Alice', 'Bob', 'Carol', 'Dana']);
+export class StockTracker {
+  prices = [
+    { time: '09:00', price: 100 },
+    { time: '09:01', price: 102 },
+    { time: '09:02', price: 98 },
+    { time: '09:03', price: 98 }
+  ];
 }
 ```
 
-**Template (repeater-template.html):**
-
 ```html
-<template>
-  <p repeat.for="friend of friends">
-    Hello, ${friend}!
-  </p>
-</template>
+<table>
+  <tr repeat.for="entry of prices">
+    <td>${entry.time}</td>
+    <td class="${entry.price > $previous?.price ? 'up' :
+                  entry.price < $previous?.price ? 'down' : ''}">
+      $${entry.price}
+      <span if.bind="$previous && entry.price !== $previous.price">
+        ${entry.price > $previous.price ? '↑' : '↓'}
+      </span>
+    </td>
+  </tr>
+</table>
 ```
 
-## Iterating Maps
+#### Combining with Keys
 
-Maps offer a powerful way to iterate key-value pairs. Aurelia lets you deconstruct the map entry directly in the template.
+`$previous` works seamlessly with keyed repeats:
 
-**Component (repeater-template.ts):**
+```html
+<!-- Multiple iterator properties separated by semicolons -->
+<div repeat.for="item of items; key: id">
+  <div class="item-${item.id}">
+    ${item.name}
+    <span if.bind="$previous">
+      Changed from: ${$previous.name}
+    </span>
+  </div>
+</div>
+```
+
+#### Conditional Contextual Properties
+
+Control contextual computed properties (including `$previous`) based on view model properties:
 
 ```typescript
-export class RepeaterTemplate {
-  friends = new Map([
-    ['Hello', { name: 'Alice' }],
-    ['Hola', { name: 'Bob' }],
-    ['Ni Hao', { name: 'Carol' }],
-    ['Molo', { name: 'Dana' }]
+export class ConfigurableList {
+  items = [...];
+  showContextual = true; // Toggle contextual on/off
+}
+```
+
+```html
+<!-- Enable/disable contextual based on component state -->
+<div repeat.for="item of items; contextual.bind: showContextual">
+  <!-- $previous is only available when contextual is true -->
+</div>
+```
+
+#### Performance Considerations
+
+**When contextual is disabled:**
+- Zero memory overhead - `$previous` is not computed
+- Negligible CPU cost - single conditional check per item
+
+**When contextual is enabled (default):**
+- Computed on demand via contextual getter
+- Minimal CPU cost
+
+**Best practices:**
+- Keep contextual enabled unless you have a strong reason to disable it
+- If needed, disable per-instance with `contextual: false` or `contextual.bind: someBoolean`
+
+## Data Types and Collections
+
+### Arrays
+
+The most common and optimized collection type:
+
+```typescript
+export class ProductList {
+  products = [
+    { id: 1, name: 'Laptop', price: 999 },
+    { id: 2, name: 'Mouse', price: 25 }
+  ];
+
+  sortByPrice() {
+    // Aurelia detects and updates DOM
+    this.products.sort((a, b) => a.price - b.price);
+  }
+}
+```
+
+```html
+<div repeat.for="product of products; key.bind: product.id">
+  <h3>${product.name}</h3>
+  <span class="price">${product.price | currency}</span>
+</div>
+```
+
+### Sets
+
+Useful for unique collections:
+
+```typescript
+export class TagManager {
+  selectedTags = new Set(['javascript', 'typescript']);
+
+  toggleTag(tag: string) {
+    if (this.selectedTags.has(tag)) {
+      this.selectedTags.delete(tag);
+    } else {
+      this.selectedTags.add(tag);
+    }
+  }
+}
+```
+
+```html
+<div repeat.for="tag of selectedTags">
+  <span class="tag">${tag}</span>
+</div>
+```
+
+### Maps
+
+Perfect for key-value pairs:
+
+```typescript
+export class LocalizationDemo {
+  translations = new Map([
+    ['en', 'Hello'],
+    ['es', 'Hola'],
+    ['fr', 'Bonjour']
   ]);
 }
 ```
 
-**Template (repeater-template.html):**
-
 ```html
-<p repeat.for="[greeting, friend] of friends">
-  ${greeting}, ${friend.name}!
-</p>
+<!-- Destructure map entries -->
+<div repeat.for="[language, greeting] of translations">
+  <strong>${language}:</strong> ${greeting}
+</div>
+
+<!-- Or access as entry object -->
+<div repeat.for="entry of translations">
+  <strong>${entry[0]}:</strong> ${entry[1]}
+</div>
 ```
 
-Here, `[greeting, friend]` splits each map entry so you can access both the key (greeting) and value (friend).
+### Number Ranges
 
-## Iterating Objects via Value Converters
+Generate sequences quickly:
 
-Objects aren’t directly iterable in Aurelia. To iterate over an object’s properties, convert it into an iterable format using a value converter.
+```html
+<!-- Create pagination -->
+<nav>
+  <a repeat.for="page of totalPages"
+     href="/products?page=${page + 1}">
+    ${page + 1}
+  </a>
+</nav>
 
-### Creating a Keys Value Converter
+<!-- Star ratings -->
+<div class="rating">
+  <span repeat.for="star of 5"
+        class="star ${star < rating ? 'filled' : ''}">
+    ★
+  </span>
+</div>
+```
+
+## Advanced Patterns
+
+### Destructuring Declarations
+
+Extract multiple values in the repeat declaration:
 
 ```typescript
-// resources/value-converters/keys.ts
-export class KeysValueConverter {
-  toView(obj: object): string[] {
-    return Reflect.ownKeys(obj) as string[];
+export class OrderHistory {
+  orders = [
+    { id: 1, items: [{ name: 'Coffee', qty: 2 }] },
+    { id: 2, items: [{ name: 'Tea', qty: 1 }] }
+  ];
+}
+```
+
+```html
+<!-- Destructure objects -->
+<div repeat.for="{ id, items } of orders">
+  Order #${id}: ${items.length} items
+</div>
+
+<!-- Destructure arrays -->
+<div repeat.for="[index, value] of arrayOfPairs">
+  ${index}: ${value}
+</div>
+```
+
+### Integration with Other Template Controllers
+
+**Conditional rendering within repeats:**
+```html
+<div repeat.for="user of users">
+  <div if.bind="user.isActive">
+    <strong>${user.name}</strong> - Active
+  </div>
+  <div else>
+    <em>${user.name}</em> - Inactive
+  </div>
+</div>
+```
+
+**Nested conditionals and repeats:**
+```html
+<div repeat.for="category of categories">
+  <h2>${category.name}</h2>
+  <div if.bind="category.products.length > 0">
+    <div repeat.for="product of category.products; key.bind: product.id">
+      ${product.name}
+    </div>
+  </div>
+  <p else>No products in this category</p>
+</div>
+```
+
+### Working with Async Data
+
+Handle loading states and async operations:
+
+```typescript
+export class AsyncDataExample {
+  items: Item[] = [];
+  isLoading = true;
+  error: string | null = null;
+
+  async attached() {
+    try {
+      this.items = await this.dataService.getItems();
+    } catch (err) {
+      this.error = err.message;
+    } finally {
+      this.isLoading = false;
+    }
   }
 }
 ```
 
-### Using the Converter in a Template
-
 ```html
-<import from="resources/value-converters/keys"></import>
+<div if.bind="isLoading">
+  <spinner></spinner> Loading...
+</div>
 
-<p repeat.for="key of friends | keys">
-  ${key}, ${friends[key].name}!
-</p>
+<div else>
+  <div if.bind="error">
+    <div class="error">Error: ${error}</div>
+  </div>
+
+  <div else>
+    <div if.bind="items.length === 0">
+      <p>No items found</p>
+    </div>
+
+    <div else>
+      <div repeat.for="item of items; key.bind: item.id">
+        ${item.name}
+      </div>
+    </div>
+  </div>
+</div>
 ```
 
-The `keys` converter transforms the object into an array of its keys, making it iterable by `repeat.for`.
+### Complex Object Iteration
 
-## Custom Collection Handling with Repeat Handlers
-
-Aurelia’s repeat system is extensible. If you need to iterate over non-standard collections (like HTMLCollections, NodeLists, or FileLists), you can create a custom repeat handler by implementing the `IRepeatableHandler` interface.
-
-### Custom Handler Example
+Use value converters for non-standard collections:
 
 ```typescript
-import Aurelia, { Registration, IRepeatableHandler } from 'aurelia';
+// Object keys converter
+export class KeysValueConverter {
+  toView(obj: Record<string, any>): string[] {
+    return obj ? Object.keys(obj) : [];
+  }
+}
 
-class ArrayLikeHandler implements IRepeatableHandler {
-  static register(container) {
-    Registration.singleton(IRepeatableHandler, ArrayLikeHandler).register(container);
+// Object entries converter
+export class EntriesValueConverter {
+  toView(obj: Record<string, any>): [string, any][] {
+    return obj ? Object.entries(obj) : [];
+  }
+}
+```
+
+```html
+<!-- Iterate object keys -->
+<div repeat.for="key of settings | keys">
+  <label>${key}:</label>
+  <input value.bind="settings[key]">
+</div>
+
+<!-- Iterate object entries -->
+<div repeat.for="[key, value] of configuration | entries">
+  <strong>${key}:</strong> ${value}
+</div>
+```
+
+## Performance Best Practices
+
+### Optimizing Large Lists
+
+**Use keyed iteration:**
+```html
+<!-- Enables efficient DOM reuse -->
+<div repeat.for="item of largeList; key.bind: item.id">
+  ${item.name}
+</div>
+```
+
+**Consider virtual scrolling for very large lists:**
+```html
+<!-- Use ui-virtualization for very large collecitons of items -->
+<div virtual-repeat.for="item of hugeList">
+  ${item.name}
+</div>
+```
+
+This requires using the virtual repeat plugin.
+
+### Memory Management
+
+**Avoid memory leaks in complex scenarios:**
+```typescript
+export class ListComponent {
+  private subscription?: IDisposable;
+
+  attached() {
+    // Subscribe to external data changes
+    this.subscription = this.dataService.changes.subscribe(
+      items => this.items = items
+    );
   }
 
-  handles(value: any): boolean {
-    return 'length' in value && typeof value.length === 'number';
+  detaching() {
+    // Clean up subscriptions
+    this.subscription?.dispose();
+  }
+}
+```
+
+## Custom Collection Handlers
+
+### Built-in Handlers
+
+Aurelia includes handlers for:
+- **Arrays** (`Array`, `[]`)
+- **Sets** (`Set`)
+- **Maps** (`Map`)
+- **Numbers** (`5` → creates range 0-4)
+- **Array-like objects** (NodeList, HTMLCollection, etc.)
+- **Null/undefined** (renders nothing)
+
+### Creating Custom Handlers
+
+For specialized collections:
+
+```typescript
+import { IRepeatableHandler, Registration } from 'aurelia';
+
+// Custom handler for immutable lists
+class ImmutableListHandler implements IRepeatableHandler {
+  handles(value: unknown): boolean {
+    return value && typeof value === 'object' && 'size' in value && 'get' in value;
   }
 
-  iterate(items: any, callback: (item: any, index: number) => void): void {
-    for (let i = 0, len = items.length; i < len; i++) {
-      callback(items[i], i);
+  iterate(value: any, func: (item: unknown, index: number) => void): void {
+    for (let i = 0; i < value.size; i++) {
+      func(value.get(i), i);
     }
   }
 }
 
+// Register the handler
 Aurelia.register(
-  ArrayLikeHandler,
-  // other registrations
+  Registration.singleton(IRepeatableHandler, ImmutableListHandler)
 ).app(MyApp).start();
 ```
 
-> **Tip:** Aurelia provides a default `ArrayLikeHandler` you can import directly:
-> ```typescript
-> import Aurelia, { ArrayLikeHandler } from 'aurelia';
-> ```
+### Observable Collections
 
-### Custom Handler Resolver
-
-If you need to override the default order in which Aurelia selects a repeat handler, you can implement your own `IRepeatableHandlerResolver`:
+Create reactive custom collections:
 
 ```typescript
-class MyRepeatableHandlerResolver {
-  resolve(value: any) {
-    if (typeof value?.length === 'number') {
-      return {
-        iterate(items, callback) {
-          for (let i = 0; i < items.length; ++i) {
-            callback(items[i], i, items);
-          }
-        }
-      };
-    }
-    throw new Error('The repeater supports only array-like objects.');
+import { CollectionObserver, ICollectionObserver } from '@aurelia/runtime';
+
+class ReactiveCustomCollection {
+  private _items: any[] = [];
+  private _observer?: ICollectionObserver;
+
+  get items() { return this._items; }
+
+  add(item: any) {
+    this._items.push(item);
+    this._observer?.handleCollectionChange(/* change details */);
+  }
+
+  // Implement observable pattern...
+}
+```
+
+## Troubleshooting Common Issues
+
+### Issue: Changes Not Reflecting
+
+**Problem:** Direct array index assignment doesn't trigger updates
+```typescript
+// This won't update the DOM
+this.items[0] = newItem;
+```
+
+**Solution:** Use array methods or replace the array
+```typescript
+// These will update the DOM
+this.items.splice(0, 1, newItem);
+// or
+this.items = [...this.items.slice(0, 0), newItem, ...this.items.slice(1)];
+```
+
+### Issue: Form State Lost on Reorder
+
+**Problem:** Input values disappear when list is reordered
+```html
+<!-- No keys = DOM recreation -->
+<div repeat.for="item of items">
+  <input value.bind="item.name">
+</div>
+```
+
+**Solution:** Use stable keys
+```html
+<!-- Keys preserve DOM elements -->
+<div repeat.for="item of items; key.bind: item.id">
+  <input value.bind="item.name">
+</div>
+```
+
+### Issue: Performance with Large Lists
+
+**Problem:** Slow rendering with 1000+ items
+
+**Solutions:**
+1. **Use virtual scrolling** for very large lists
+2. **Implement pagination** or infinite scroll
+3. **Optimize templates** - minimize complex expressions
+4. **Use keys** to enable DOM reuse
+
+### Issue: Memory Leaks
+
+**Problem:** Components not disposing properly
+
+**Solution:** Clean up in lifecycle hooks
+```typescript
+export class MyComponent {
+  detaching() {
+    // Dispose of subscriptions, timers, etc.
+    this.cleanup();
   }
 }
 ```
 
-This custom resolver can redefine how different collection types are handled by the repeater.
+## Real-World Examples
 
-## Summary
+### Dynamic Product Catalog
 
-Aurelia 2’s list rendering capabilities are both powerful and flexible:
-- **Versatile Iteration:** Work with arrays, sets, maps, ranges, and even objects (via converters).
-- **Efficient Updates:** Use keyed iteration to minimize DOM changes.
-- **Contextual Data:** Access properties like `$index`, `$first`, `$last`, `$even`, `$odd`, `$length`, and `$parent` for richer templates.
-- **Extensibility:** Create custom handlers and resolvers to support any iterable data structure.
+```typescript
+export class ProductCatalog {
+  products: Product[] = [];
+  filteredProducts: Product[] = [];
+  searchTerm = '';
+  selectedCategory = '';
 
-Mastering these features enables you to build dynamic, efficient UIs that handle complex data sets with ease.
+  searchTermChanged() {
+    this.filterProducts();
+  }
+
+  categoryChanged() {
+    this.filterProducts();
+  }
+
+  private filterProducts() {
+    this.filteredProducts = this.products.filter(product => {
+      const matchesSearch = !this.searchTerm ||
+        product.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesCategory = !this.selectedCategory ||
+        product.category === this.selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }
+}
+```
+
+```html
+<div class="filters">
+  <input value.bind="searchTerm" placeholder="Search products...">
+  <select value.bind="selectedCategory">
+    <option value="">All Categories</option>
+    <option repeat.for="category of categories"
+            value.bind="category">${category}</option>
+  </select>
+</div>
+
+<div class="product-grid">
+  <div repeat.for="product of filteredProducts; key.bind: product.id"
+       class="product-card">
+    <img src.bind="product.image" alt.bind="product.name">
+    <h3>${product.name}</h3>
+    <p class="price">${product.price | currency}</p>
+    <button click.trigger="addToCart(product)">Add to Cart</button>
+  </div>
+</div>
+
+<div if.bind="filteredProducts.length === 0" class="no-results">
+  No products found matching your criteria.
+</div>
+```
+
+### Data Table with Sorting
+
+```typescript
+export class DataTable {
+  data: TableRow[] = [];
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  sort(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.data.sort((a, b) => {
+      const aVal = a[column];
+      const bVal = b[column];
+      const modifier = this.sortDirection === 'asc' ? 1 : -1;
+
+      return aVal < bVal ? -modifier : aVal > bVal ? modifier : 0;
+    });
+  }
+}
+```
+
+```html
+<table class="data-table">
+  <thead>
+    <tr>
+      <th repeat.for="column of columns"
+          click.trigger="sort(column.key)"
+          class="${sortColumn === column.key ? 'sorted ' + sortDirection : ''}">
+        ${column.title}
+        <span if.bind="sortColumn === column.key"
+              class="sort-indicator">
+          ${sortDirection === 'asc' ? '↑' : '↓'}
+        </span>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr repeat.for="row of data; key.bind: row.id">
+      <td repeat.for="column of columns">
+        ${row[column.key] | column.converter}
+      </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+## TypeScript Integration
+
+### Type-Safe Repeats
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  isActive: boolean;
+}
+
+export class UserList {
+  users: User[] = [];
+
+  // Type-safe filtering
+  get activeUsers(): User[] {
+    return this.users.filter(user => user.isActive);
+  }
+
+  // Type-safe operations
+  toggleUserStatus(user: User): void {
+    user.isActive = !user.isActive;
+  }
+}
+```
+
+```html
+<!-- TypeScript provides intellisense and type checking -->
+<div repeat.for="user of activeUsers; key.bind: user.id">
+  <span>${user.name}</span> <!-- ✓ TypeScript knows user.name exists -->
+  <span>${user.email}</span> <!-- ✓ Type safe -->
+  <button click.trigger="toggleUserStatus(user)">
+    ${user.isActive ? 'Deactivate' : 'Activate'}
+  </button>
+</div>
+```

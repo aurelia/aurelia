@@ -3,9 +3,9 @@ import { type AccessorType, type IObserver, type ISubscriberCollection, type IOb
 import { subscriberCollection } from './subscriber-collection';
 import { rtCreateInterface } from './utilities';
 
-import type { ITask } from '@aurelia/platform';
 import type { IIndexable } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from './errors';
+import { queueRecurringTask, RecurringTask } from './queue';
 
 export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = /*@__PURE__*/ rtCreateInterface<IDirtyChecker>('IDirtyChecker', __DEV__
@@ -58,7 +58,7 @@ export class DirtyChecker {
   private readonly tracked: DirtyCheckProperty[] = [];
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _task: RecurringTask | null = null;
   /** @internal */
   private _elapsedFrames: number = 0;
 
@@ -79,7 +79,7 @@ export class DirtyChecker {
     this.tracked.push(property);
 
     if (this.tracked.length === 1) {
-      this._task = this.p.taskQueue.queueTask(this.check, { persistent: true });
+      this._task = queueRecurringTask(this.check, { interval: 0 });
     }
   }
 

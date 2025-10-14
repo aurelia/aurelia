@@ -1,5 +1,6 @@
-import { IServiceLocator, newInstanceForScope, resolve } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IPlatform, customElement } from '@aurelia/runtime-html';
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
+import { Aurelia, CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   IValidationRules,
@@ -10,9 +11,9 @@ import {
   ControllerValidateResult,
   IValidationController,
   ValidationController,
-  ValidationResultsSubscriber,
   ValidationEvent,
   ValidationHtmlConfiguration,
+  ValidationResultsSubscriber,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util.js';
 import { Person } from '../validation/_test-resources.js';
@@ -87,7 +88,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
     }
     const $it = createSpecFunction(runTest);
 
-    $it('injection of validation controller is done properly', function ({ host }) {
+    $it('injection of validation controller is done properly', async function ({ host }) {
       const vcRootEl: HTMLElement = host.querySelector('vc-root');
       const vcRootVm: VcRoot = CustomElement.for(vcRootEl).viewModel as any;
 
@@ -124,7 +125,6 @@ describe('validation-html/validation-controller.spec.ts', function () {
       public person2: Person = new Person((void 0)!, (void 0)!);
       public person2rules: PropertyRule[];
 
-      public locator: IServiceLocator = resolve(IServiceLocator);
       public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
       public readonly validationRules: IValidationRules = resolve(IValidationRules);
       public constructor() {
@@ -264,7 +264,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         text: '{ object, propertyName, rules }',
         getValidationInstruction: (app: App) => {
           const { validationRules, messageProvider, property, $rules: [[required,]] } = app.person2rules[1];
-          const rule = new PropertyRule(app.locator, validationRules, messageProvider, property, [[required]]);
+          const rule = new PropertyRule(validationRules, messageProvider, property, [[required]]);
           return new ValidateInstruction(app.person2, void 0, [rule]);
         },
         assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {
@@ -357,12 +357,12 @@ describe('validation-html/validation-controller.spec.ts', function () {
     ];
     for (const { text, property } of testData1) {
       $it(`lets add custom error - ${text}`,
-        async function ({ app: { controller: sut, person1 }, platform, host }) {
+        async function ({ app: { controller: sut, person1 }, host }) {
           const subscriber = new FooSubscriber();
           const msg = 'foobar';
           sut.addSubscriber(subscriber);
           sut.addError(msg, person1, property);
-          platform.domQueue.flush();
+          await tasksSettled();
 
           const result = sut.results.find((r) => r.object === person1 && r.propertyName === property);
           assert.notEqual(result, void 0);
@@ -389,19 +389,19 @@ describe('validation-html/validation-controller.spec.ts', function () {
       );
 
       $it(`lets remove custom error - ${text}`,
-        async function ({ app: { controller: sut, person1 }, platform, host }) {
+        async function ({ app: { controller: sut, person1 }, host }) {
           const subscriber = new FooSubscriber();
           const msg = 'foobar';
           sut.addSubscriber(subscriber);
           const result = sut.addError(msg, person1, property);
-          platform.domQueue.flush();
+          await tasksSettled();
           assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
           const events = subscriber.notifications;
           events.splice(0);
 
           sut.removeError(result);
-          platform.domQueue.flush();
+          await tasksSettled();
 
           assert.equal(events.length, 1);
           assert.equal(events[0].kind, 'reset');
@@ -420,12 +420,12 @@ describe('validation-html/validation-controller.spec.ts', function () {
     }
 
     $it(`lets remove error`,
-      async function ({ app: { controller: sut, person1 }, platform, host }) {
+      async function ({ app: { controller: sut, person1 }, host }) {
         const subscriber = new FooSubscriber();
         const msg = 'Name is required.';
         sut.addSubscriber(subscriber);
         await sut.validate();
-        platform.domQueue.flush();
+        await tasksSettled();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
         const result = sut.results.find((r) => r.object === person1 && r.propertyName === 'name' && !r.valid);
@@ -433,7 +433,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         events.splice(0);
 
         sut.removeError(result);
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assert.equal(events.length, 1);
         assert.equal(events[0].kind, 'reset');
@@ -480,10 +480,10 @@ describe('validation-html/validation-controller.spec.ts', function () {
     );
 
     $it(`revalidateErrors does not remove the manually added errors - w/o pre-existing errors`,
-      async function ({ app: { controller: sut, person1 }, platform, host }) {
+      async function ({ app: { controller: sut, person1 }, host }) {
         const msg = 'foobar';
         const result = sut.addError(msg, person1);
-        platform.domQueue.flush();
+        await tasksSettled();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
         await sut.revalidateErrors();

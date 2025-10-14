@@ -1,3 +1,7 @@
+---
+description: Understand Aurelia's dependency injection concepts and why containers simplify application structure.
+---
+
 # Dependency Injection (DI)
 
 Dependency Injection (DI) is a design pattern that allows for creating objects dependent on other objects (their dependencies) without creating those dependencies themselves. It's a way of achieving loose coupling between classes and their dependencies. Aurelia provides a powerful and flexible DI system that can greatly simplify the process of wiring up the various parts of your application.
@@ -59,6 +63,10 @@ export class FileImporter {
   }
 }
 ```
+
+{% hint style="info" %}
+Make sure the dependencies passed to `@inject` follow the same order as the constructor parameters so each argument receives the correct instance.
+{% endhint %}
 
 <!-- #### Using Compiler Metadata
 
@@ -202,13 +210,43 @@ Remember, `resolve` must be used within an active DI container context.
 
 ## Migrating from v1 to v2
 
-For those migrating from Aurelia 1, most concepts remain the same, but it is recommended to use `DI.createInterface` to create injection tokens for better forward compatibility and consumer friendliness.
+For those migrating from Aurelia 1, most concepts remain the same, but it is recommended to create explicit injection tokens with `DI.createInterface` for better forward compatibility and consumer friendliness.
+
+```typescript
+import { DI } from 'aurelia';
+
+export interface ApiClient {
+  get<T>(path: string): Promise<T>;
+}
+
+// `IApiClient` is a token value returned by `DI.createInterface`, not a TS interface.
+export const IApiClient = DI.createInterface<ApiClient>('IApiClient', x => x.singleton(ApiClient));
+```
+
+The `IApiClient` constant is what you register with the container and later ask for. When you call `DI.createInterface` you can optionally provide a default registration callback, as shown above, so that the token is automatically wired to a concrete implementation the first time it is requested. If you prefer to register manually you can omit the second argument and use `Registration.singleton(IApiClient, ApiClient)` instead.
 
 ## Injecting an Interface
 
-You can inject an interface using either the decorator or the token directly:
+You can inject an interface token using either the decorator or the token directly:
 
 ```typescript
+import { inject } from 'aurelia';
+import type { ApiClient } from './api-client';
+import { IApiClient } from './tokens';
+
+@inject(IApiClient)
+export class MyComponent {
+  constructor(private readonly api: ApiClient) {
+    // Use `this.api` here
+  }
+}
+```
+
+At present you need the `@inject` decorator so that Aurelia knows which token to supply at runtime. Metadata-based injection without the decorator is planned, which is why you may see examples that look like the following:
+
+```typescript
+import { resolve } from 'aurelia';
+
 export class MyComponent {
   private api: IApiClient = resolve(IApiClient);
 }
@@ -218,6 +256,8 @@ export class MyComponent {
   constructor(private api: IApiClient) {}
 }
 ```
+
+When you inject via `resolve`, remember that you are resolving the token value. In the example above `IApiClient` refers to the token exported from your application code, not to a TypeScript-only interface declaration.
 
 ## Registration Types
 

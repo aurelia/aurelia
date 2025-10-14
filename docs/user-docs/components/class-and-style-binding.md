@@ -464,7 +464,7 @@ export class ThemeManager {
 <div style.bind="themeVariables" class="theme-container">
   <button
     style="background: var(--primary-color); color: var(--text-color)"
-    click.delegate="toggleTheme()">
+    click.trigger="toggleTheme()">
     Toggle Theme
   </button>
 </div>

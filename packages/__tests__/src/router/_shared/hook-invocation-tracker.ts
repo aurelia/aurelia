@@ -14,6 +14,7 @@ export type HookName = (
 
   'canLoad' |
   'loading' |
+  'loaded' |
   'canUnload' |
   'unloading'
 );
@@ -41,9 +42,9 @@ export class HookInvocationTracker {
     this._promise = new Promise(resolve => this.$resolve = resolve);
   }
 
-  public notify(componentName: string, step: string = ''): void {
+  public notify(componentName: string): void {
     this.notifyHistory.push(componentName);
-    this.aggregator.notify(componentName, step, this);
+    this.aggregator.notify(componentName, this);
   }
 
   public resolve(): void {
@@ -111,18 +112,15 @@ export class HookInvocationAggregator {
 
   public readonly canLoad: HookInvocationTracker = new HookInvocationTracker(this, 'canLoad');
   public readonly loading: HookInvocationTracker = new HookInvocationTracker(this, 'loading');
+  public readonly loaded: HookInvocationTracker = new HookInvocationTracker(this, 'loaded');
   public readonly canUnload: HookInvocationTracker = new HookInvocationTracker(this, 'canUnload');
   public readonly unloading: HookInvocationTracker = new HookInvocationTracker(this, 'unloading');
 
   public notify(
     componentName: string,
-    step: string,
     tracker: HookInvocationTracker,
   ): void {
-    let label = `${this.phase}:${componentName}.${tracker.methodName}`;
-    if (step) {
-      label += `.${step}`;
-    }
+    const label = `${this.phase}.${componentName}.${tracker.methodName}`;
     this.notifyHistory.push(label);
 
     if (this.config.resolveLabels.includes(label)) {
@@ -144,6 +142,7 @@ export class HookInvocationAggregator {
     this.$$dispose.dispose();
     this.canLoad.dispose();
     this.loading.dispose();
+    this.loaded.dispose();
     this.canUnload.dispose();
     this.unloading.dispose();
 
@@ -161,6 +160,7 @@ export class HookInvocationAggregator {
     $this.$$dispose = void 0;
     $this.canLoad = void 0;
     $this.loading = void 0;
+    $this.loaded = void 0;
     $this.canUnload = void 0;
     $this.unloading = void 0;
   }

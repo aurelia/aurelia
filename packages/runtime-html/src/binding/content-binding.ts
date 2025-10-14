@@ -4,6 +4,7 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
+  queueTask,
 } from '@aurelia/runtime';
 import { Controller, IHydratedController, activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
@@ -24,10 +25,6 @@ import { IsExpression } from '@aurelia/expression-parser';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 import { IRenderLocation, convertToRenderLocation, registerHostNode } from '../dom';
 import { registerResolver } from '../utilities-di';
-
-const queueTaskOptions: QueueTaskOptions = {
-  preempt: true,
-};
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -54,7 +51,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   public _scope?: Scope;
 
   /** @internal */
-  public _task: ITask | null = null;
+  public _isQueued: boolean = false;
 
   /**
    * A semi-private property used by connectable mixin
@@ -62,8 +59,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
    * @internal
    */
   public readonly oL: IObserverLocator;
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -86,7 +81,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
@@ -95,7 +89,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     this.l = locator;
     this._controller = controller;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
@@ -150,70 +143,52 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-    if (newValue === this._value) {
-      // in a frequent update, e.g collection mutation in a loop
-      // value could be changing frequently and previous update task may be stale at this point
-      // cancel if any task going on because the latest value is already the same
-      this._task?.cancel();
-      this._task = null;
-      return;
-    }
-    const shouldQueueFlush = this._controller.state !== activating;
-    if (shouldQueueFlush) {
-      this._queueUpdate(newValue);
-    } else {
-      this.updateTarget(newValue);
-    }
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+      this.obs.clear();
+
+      if (newValue !== this._value) {
+        this.updateTarget(newValue);
+      }
+    });
   }
 
   public handleCollectionChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.obs.version++;
-    const v = this._value = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-    if (isArray(v)) {
-      this.observeCollection(v);
-    }
-    const shouldQueueFlush = this._controller.state !== activating;
-    if (shouldQueueFlush) {
-      this._queueUpdate(v);
-    } else {
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      const v = this._value = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+      this.obs.clear();
+
+      if (isArray(v)) {
+        this.observeCollection(v);
+      }
       this.updateTarget(v);
-    }
+    });
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
 
     const v = this._value = astEvaluate(
       this.ast,
@@ -230,10 +205,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
 
     astUnbind(this.ast, this._scope!, this);
@@ -261,19 +233,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     // this.updateTarget('');
     this._scope = void 0;
     this.obs.clearAll();
-    this._task?.cancel();
-    this._task = null;
-  }
-
-  // queue a force update
-  /** @internal */
-  private _queueUpdate(newValue: unknown): void {
-    const task = this._task;
-    this._task = this._taskQueue.queueTask(() => {
-      this._task = null;
-      this.updateTarget(newValue);
-    }, queueTaskOptions);
-    task?.cancel();
   }
 
   /** @internal */

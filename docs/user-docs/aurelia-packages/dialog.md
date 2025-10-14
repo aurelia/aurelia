@@ -1,131 +1,346 @@
 ---
-description: The basics of the dialog plugin for Aurelia.
+description: The Aurelia dialog plugin - a modular system bridging Aurelia with various UI framework dialog implementations.
 ---
 
 # Dialog
 
 ## Introduction
 
-This article covers the dialog plugin for Aurelia. This plugin is created for showing dialogs (sometimes referred to as modals) in our application. The plugin supports the use of dynamic content for all aspects and is easily configurable / overridable.
+The Aurelia dialog plugin is a modular and pluggable system that serves as a bridge between Aurelia and different UI framework dialog implementations. Rather than being a single dialog implementation, it provides an extensible architecture where different renderers can be plugged in to support various dialog styles and behaviors.
+
+The plugin comes with two built-in renderer implementations:
+- Standard: Uses the modern HTML5 `<dialog>` element
+- Classic: A light DOM implementation similar to Aurelia v1 (ideal for migration)
+
+The modular design makes it easy to create custom renderers for specific UI frameworks or design requirements.
 
 {% hint style="success" %}
 **Here's what you'll learn...**
 
-* How to install & configure the plugin
-* How to use default dialog service
-* How to enhance & replace parts of the default implementations
-* The lifeycle of a dialog
+* How to install & configure the plugin with different renderers
+* Understanding the modular renderer architecture
+* How to use the Standard and Classic implementations
+* How to create your own custom dialog renderer
+* Advanced configuration and lifecycle management
+{% endhint %}
+
+## Plugin Architecture
+
+The dialog plugin is built around a modular renderer system that bridges Aurelia with any UI framework:
+
+```mermaid
+graph TB
+    App[Your Application] --> DS[IDialogService]
+    DS --> DC[IDialogController]
+    DC --> Renderer{Choose Renderer}
+
+    Renderer --> Standard[Standard Renderer<br/>HTML5 dialog]
+    Renderer --> Classic[Classic Renderer<br/>Light DOM]
+    Renderer --> Custom[Custom Renderer<br/>Material/Bootstrap/etc]
+
+    Standard --> SDOM[DialogDomStandard<br/>dialog > div]
+    Classic --> CDOM[DialogDomClassic<br/>container > overlay + div]
+    Custom --> MDOM[Your IDialogDom<br/>Any structure]
+
+    SDOM --> Component[Your Dialog Component]
+    CDOM --> Component
+    MDOM --> Component
+```
+
+### Core Interfaces
+
+| Interface | Purpose | Implementation |
+|-----------|---------|----------------|
+| `IDialogService` | Main API for opening/managing dialogs | Single service per app |
+| `IDialogController` | Controls individual dialog instances | One per dialog |
+| `IDialogDomRenderer<TOptions>` | Pluggable renderer interface | Standard, Classic, or Custom |
+| `IDialogDom` | Dialog DOM abstraction | Renderer-specific implementation |
+
+{% hint style="success" %}
+**Modular Benefits**
+- Choose between built-in renderers (Standard, Classic)
+- Create custom renderers for specific UI frameworks
+- Mix different renderers within the same application
+- Migrate gradually from v1 dialog implementations
 {% endhint %}
 
 ## Installing The Plugin
 
-There's a set of default implementations for the main interfaces of the Dialog plugin, which includes:
+Aurelia provides three configuration options for the dialog plugin:
 
-* `IDialogService`
-* `IDialogGlobalSettings`
-* `IDialogDomRenderer`
-* `IDialogEventManager`
-* `IDialogAnimator` (only used by the default `DialogDomRenderer`)
+### Option 1: Standard Configuration (Recommended)
 
-These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
+Uses the modern HTML5 `<dialog>` element with native modal behavior:
 
 ```typescript
-import { DialogDefaultConfiguration } from '@aurelia/dialog';
+import { DialogConfigurationStandard } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
-Aurelia.register(DialogDefaultConfiguration).app(MyApp).start();
+Aurelia.register(DialogConfigurationStandard).app(MyApp).start();
 ```
 
-### Configuring the Plugin
+Best for: New applications, modern browsers, native accessibility features
 
-The export `DialogDefaultConfiguration` is a preset of default behaviors & implementations that are done in a way suitable to most common scenarios.
+### Option 2: Classic Configuration (Migration-Friendly)
 
-If it's desirable to change some of the behaviors or implementations of we can either change the first or the 2nd parameter of the `customize` function on this object.
-
-An example of changing the behavior for configuring the global settings is:
+Uses a light DOM implementation similar to Aurelia v1:
 
 ```typescript
-Aurelia.register(DialogDefaultConfiguration.customize(globalSettings => {
-  // change global settings ...
-})).app(MyApp).start()
+import { DialogConfigurationClassic } from '@aurelia/dialog';
+import { Aurelia } from 'aurelia';
+
+Aurelia.register(DialogConfigurationClassic).app(MyApp).start();
 ```
+
+Best for: Migrating from Aurelia v1, custom styling requirements, older browser support
+
+### Option 3: Base Configuration (Custom Renderer)
+
+Provides the core infrastructure without a default renderer:
+
+```typescript
+import { DialogConfiguration } from '@aurelia/dialog';
+import { Aurelia } from 'aurelia';
+
+Aurelia.register(DialogConfiguration.customize(settings => {
+  // Register your custom renderer here
+  settings.renderer = MyCustomRenderer;
+})).app(MyApp).start();
+```
+
+Best for: Custom UI framework integration, specific design requirements
+
+## Choosing the Right Configuration
+
+Use this guide to select the best dialog configuration for your project:
+
+{% tabs %}
+{% tab title="Decision Matrix" %}
+
+| Factor | Standard | Classic | Custom |
+|--------|----------|---------|---------|
+| Browser Support | Modern (dialog support) | All browsers | Depends on implementation |
+| Accessibility | Built-in | Manual setup | Manual setup |
+| Styling Control | Limited backdrop | Full control | Full control |
+| Animation Support | Via callbacks | Via callbacks | Full control |
+| Migration from v1 | Requires changes | Minimal changes | Complete rewrite |
+| UI Framework Integration | Limited | Some styling | Perfect integration |
+
+{% endtab %}
+
+{% tab title="Use Cases" %}
+
+Choose Standard When:
+- Building a new application
+- Modern browser support is acceptable
+- You want native accessibility features
+- Simple styling requirements
+- You prefer web standards
+
+Choose Classic When:
+- Migrating from Aurelia v1
+- Need full styling control
+- Supporting older browsers
+- Complex z-index management required
+- Custom event handling needed
+
+Choose Custom When:
+- Integrating with UI frameworks (Material, Bootstrap, Ant Design)
+- Specific design system requirements
+- Need complete control over DOM structure
+- Building reusable dialog library
+- Advanced animation requirements
+
+{% endtab %}
+
+{% tab title="Performance" %}
+
+```mermaid
+graph TD
+    Standard[Standard Renderer] --> StdPerf{Performance}
+    Classic[Classic Renderer] --> ClsPerf{Performance}
+    Custom[Custom Renderer] --> CustPerf{Performance}
+
+    StdPerf --> StdPros["Smaller bundle<br/>Native optimizations<br/>Minimal DOM"]
+    StdPerf --> StdCons["Limited control<br/>Browser-dependent"]
+
+    ClsPerf --> ClsPros["Predictable behavior<br/>Full control<br/>Well-tested"]
+    ClsPerf --> ClsCons["More DOM elements<br/>Custom event system"]
+
+    CustPerf --> CustPros["Optimized for use case<br/>Framework-specific optimizations"]
+    CustPerf --> CustCons["Implementation dependent<br/>Potential bloat"]
+```
+
+{% endtab %}
+{% endtabs %}
+
+### Global Configuration
+
+Each configuration can be customized to set global defaults for all dialogs. Call `.customize()` on your chosen configuration:
+
+{% tabs %}
+{% tab title="Standard Configuration" %}
+
+Configure global defaults for the Standard renderer:
+
+```typescript
+import { DialogConfigurationStandard } from '@aurelia/dialog';
+import { Aurelia } from 'aurelia';
+
+Aurelia
+  .register(DialogConfigurationStandard.customize((settings) => {
+    // Global service settings
+    settings.rejectOnCancel = true; // Treat cancellation as promise rejection
+
+    // Global Standard renderer options
+    settings.options.modal = true; // Always open as modal by default
+    settings.options.show = (dom) => {
+      // Custom show animation for all dialogs
+      return dom.root.animate([
+        { transform: 'scale(0.8)', opacity: 0 },
+        { transform: 'scale(1)', opacity: 1 }
+      ], { duration: 200 }).finished;
+    };
+    settings.options.hide = (dom) => {
+      // Custom hide animation for all dialogs
+      return dom.root.animate([
+        { transform: 'scale(1)', opacity: 1 },
+        { transform: 'scale(0.8)', opacity: 0 }
+      ], { duration: 200 }).finished;
+    };
+    settings.options.overlayStyle = 'background: rgba(0, 0, 0, 0.6)';
+  }))
+  .app(MyApp)
+  .start();
+```
+{% endtab %}
+{% tab title="Classic Configuration" %}
+
+Configure global defaults for the Classic renderer:
+
+```typescript
+import { DialogConfigurationClassic } from '@aurelia/dialog';
+import { Aurelia } from 'aurelia';
+
+Aurelia
+  .register(DialogConfigurationClassic.customize((settings) => {
+    // Global service settings
+    settings.rejectOnCancel = true; // Treat cancellation as promise rejection
+
+    // Global Classic renderer options
+    settings.options.lock = false; // Allow ESC key and overlay clicks
+    settings.options.overlayDismiss = true; // Click outside to close
+    settings.options.keyboard = ['Escape', 'Enter']; // Keys that close dialog
+    settings.options.startingZIndex = 2000; // Higher z-index for overlays
+    settings.options.show = (dom) => {
+      // Custom show animation
+      return dom.contentHost.animate([
+        { transform: 'translateY(-50px)', opacity: 0 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], { duration: 300 }).finished;
+    };
+    settings.options.hide = (dom) => {
+      // Custom hide animation
+      return dom.contentHost.animate([
+        { transform: 'translateY(0)', opacity: 1 },
+        { transform: 'translateY(-50px)', opacity: 0 }
+      ], { duration: 300 }).finished;
+    };
+  }))
+  .app(MyApp)
+  .start();
+```
+{% endtab %}
+{% endtabs %}
 
 If it's desirable to change some of the default implementations, we can **instead** use the export named `DialogConfiguration` and pass in the list of implementation for the main interfaces:
 
 ```typescript
 import { DialogConfiguration } from '@aurelia/dialog';
 
-Aurelia.register(DialogConfiguration.customize(settings => {
-
-}, [
-  // all custom implementation
-  MyDialogService,
-  MyDialogRenderer,
-  MyDialogGlobalSettings,
-  MyDialogEventManager,
-  MyDialogAnimator,
-]))
+Aurelia
+  .register(DialogConfiguration.customize(
+    settings => {
+      // customize settings here if needed
+    }))
+  .app(MyApp)
+  .start();
 ```
 
-If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
-
-```typescript
-import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings, DefaultDialogEventManager } from '@aurelia/dialog';
-
-Aurelia.register(DialogConfiguration.customize(settings => {
-
-}, [
-  // use default dialog service
-  DialogService,
-  // BYO dialog dom renderer
-  MyDialogRenderer,
-  // use default dialog global settings
-  DefaultDialogGlobalSettings,
-  // use default dialog event manager
-  DefaultDialogEventManager,
-]))
-```
-
-## Using The Default Implementation
+## Using The Default Implementations
 
 ### The Dialog Settings
 
-There are two levels where dialog behavior can be configured:
+There are two levels where dialog behaviors can be configured:
 
 * Global level via `IDialogGlobalSettings`
-* Single dialog level via property `settings` on a dialog controller.
+* Single dialog level via dialog service `.open()` call, or the property `settings` on a dialog controller.
 
 Normally, the global settings would be changed during the app startup/or before, while the single dialog settings would be changed during the contruction of the dialog view model, via the `open` method.
 
-An example of configuring the **global** dialog settings:
+1. An example of configuring the **global** dialog settings:
+    - For the standard implementation:
+        Make all dialogs, by default:
+        * show as modal
+        * has some basic animation in & out
 
-Make all dialogs, by default:
+        ```ts
+        Aurelia
+          .reigster(DialogConfigurationStandard.customize((settings) => {
+            settings.options.modal = true;
+            settings.options.show = (dom) => dom.root.animate(...);
+            settings.options.hide = (dom) => dom.root.animate(...);
+          }))
+          .app(MyApp)
+          .start();
+        ```
+    - For the classic implementation:
+        Make all dialogs, by default:
+        * not dismissable by clicking outside of it, or hitting the ESC key
+        * have starting CSS `z-index` of 5
+        *   if not locked, closable by hitting the `ESC` key
 
-* not dismissable by clicking outside of it, or hitting the ESC key
-* have starting CSS `z-index` of 5
-*   if not locked, closable by hitting the `ESC` key
+            ```ts
+            Aurelia
+              .register(DialogConfigurationClassic.customize((settings) => {
+                settings.options.lock = true;
+                settings.options.startingZIndex = 5;
+                settings.options.keyboard = true;
+              }))
+              .app(MyApp)
+              .start();
+            ```
 
-    ```typescript
-    Aurelia.register(DialogDefaultConfiguration.customize(settings => {
-      settings.lock = true;
-      settings.startingZIndex = 5;
-      settings.keyboard = true;
-    })).app(MyApp).start()
-    ```
+2. An example of configuring a single dialog, via `open` method of the dialog service:
+    - For the standard implementation:
+        Displaying an alert dialog
 
-An example of configuring a single dialog, via `open` method of the dialog service:
+        ```ts
+        dialogService.open({
+          component: Alert,
+          options: {
+            // block the entire screen with this alert box
+            modal: true,
+            show: dom => dom.root.animate(...),
+            hide: dom => dom.root.animate(...)
+          }
+        })
+        ```
 
-Displaying an alert dialog, which has `z-index` value as 10 to stay on top of all other dialogs, and will be dismissed when the user hits the `ESC` key.
+    - For the classic implementation:
+        Displaying an alert dialog, which has `z-index` value as 10 to stay on top of all other dialogs, and will be dismissed when the user hits the `ESC` key.
 
-```typescript
-dialogService.open({
-  component: () => Alert,
-  lock: false,
-  startingZIndex: 10,
-})
-```
+        ```typescript
+        dialogService.open({
+          component: Alert,
+          options: {
+            lock: false,
+            startingZIndex: 10,
+          }
+        });
+        ```
 
-The settings that are available in the `open` method of the dialog service:
+The main settings that are available in the `open` method of the dialog service:
 
 * `component` can be class reference or instance, or a function that resolves to such, or a promise of such.
 * `template` can be HTML elements, string or a function that resolves to such, or a promise of such.
@@ -133,24 +348,120 @@ The settings that are available in the `open` method of the dialog service:
 * `host` allows providing the element which will parent the dialog - if not provided the document body will be used.
 * `renderer` allows providing a custom renderer to be used, instead of the pre-registered one. This allows a single dialog service to be able to use multiple renderers for different purposes: default for modals, and a different one for notifications, alert etc...
 * `container` allows specifying the DI Container instance to be used for the dialog. If not provided a new child container will be created from the root one.
-* `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
-* `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
-* `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
 * `rejectOnCancel` is a boolean that must be set to `true` if cancellations should be treated as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
+* `options` options passed to the renderer.
 
-The default global settings has the following values:
+## Renderer Options Reference
 
-* `lock` is true
-* `startingZIndex` is `1000`
-* `rejectOnCancel` is `false`
+Each renderer supports different configuration options. Here are the complete option sets:
 
-{% hint style="warning" %}
-If `rejectOnCancel` behavior is desired, it should only be applied to individual dialog via `open` method of the dialog service.
-{% endhint %}
+### Standard Renderer Options (`DialogRenderOptionsStandard`)
 
-### The Dialog Service APIs
+```typescript
+interface DialogRenderOptionsStandard {
+  modal?: boolean;                                    // Default: true
+  overlayStyle?: string | Partial<CSSStyleDeclaration>;
+  show?: (dom: DialogDomStandard) => void | Promise<void>;
+  hide?: (dom: DialogDomStandard) => void | Promise<void>;
+  closedby?: 'any' | 'closerequest' | 'none';
+}
+```
 
-The interface that a dialog service should follow:
+Option Details:
+- `modal`: Controls whether the dialog opens as modal (`showModal()`) or modeless (`show()`). Modal dialogs block interaction with the rest of the page and display a backdrop.
+- `overlayStyle`: CSS styling for the `::backdrop` pseudo-element (only applies when `modal: true`). Can be a CSS string or style object.
+- `show`: Animation callback called when dialog is shown. Return a Promise to wait for animations.
+- `hide`: Animation callback called when dialog is hidden. Return a Promise to wait for animations.
+- `closedby`: HTML5 dialog attribute controlling which user actions can close the dialog. See [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog#closedby).
+
+Default Global Settings:
+```typescript
+{
+  modal: true,
+  rejectOnCancel: false
+}
+```
+
+### Classic Renderer Options (`DialogRenderOptionsClassic`)
+
+```typescript
+interface DialogRenderOptionsClassic {
+  lock?: boolean;                                     // Default: true
+  keyboard?: DialogActionKey[];                       // ['Escape', 'Enter'] when lock: false, [] when lock: true
+  mouseEvent?: 'click' | 'mouseup' | 'mousedown';    // Default: 'click'
+  overlayDismiss?: boolean;                           // Default: !lock
+  startingZIndex?: number;                            // Default: 1000
+  show?: (dom: DialogDomClassic) => void | Promise<void>;
+  hide?: (dom: DialogDomClassic) => void | Promise<void>;
+}
+
+type DialogActionKey = 'Escape' | 'Enter';
+```
+
+Option Details:
+- `lock`: When `true`, prevents dialog dismissal via ESC key or overlay clicks. Takes precedence over `keyboard` and `overlayDismiss`.
+- `keyboard`: Array of keys that close the dialog. `'Escape'` cancels, `'Enter'` confirms. When `lock: false`, defaults to `['Enter', 'Escape']`. When `lock: true`, defaults to `[]`.
+- `mouseEvent`: Which mouse event type triggers overlay dismiss logic.
+- `overlayDismiss`: When `true`, clicking outside the dialog cancels it. Defaults to `!lock` value.
+- `startingZIndex`: Base z-index for dialog wrapper and overlay elements.
+- `show`/`hide`: Animation callbacks with access to `DialogDomClassic` instance.
+
+Default Global Settings:
+```typescript
+{
+  lock: true,
+  startingZIndex: 1000,
+  rejectOnCancel: false
+}
+```
+
+### DOM Structure Comparison
+
+{% tabs %}
+{% tab title="Standard Renderer" %}
+Uses the native HTML5 `<dialog>` element:
+
+```html
+<dialog>                    <!-- HTMLDialogElement, root -->
+  <div>                     <!-- contentHost -->
+    <!-- Your component content renders here -->
+  </div>
+</dialog>
+```
+
+Characteristics:
+- Native modal behavior with `showModal()`
+- Built-in ESC key handling
+- Native `::backdrop` pseudo-element
+- Accessibility features built-in
+- Limited styling control of backdrop
+{% endtab %}
+
+{% tab title="Classic Renderer" %}
+Uses traditional light DOM elements:
+
+```html
+<au-dialog-container>       <!-- wrapper/root -->
+  <au-dialog-overlay>       <!-- overlay for backdrop -->
+  </au-dialog-overlay>
+  <div>                     <!-- contentHost -->
+    <!-- Your component content renders here -->
+  </div>
+</au-dialog-container>
+```
+
+Characteristics:
+- Full styling control over all elements
+- Custom event management system
+- Z-index stacking control
+- Compatible with older browsers
+- Similar to Aurelia v1 behavior
+{% endtab %}
+{% endtabs %}
+
+## Service & Controller APIs
+
+### IDialogService Interface
 
 ```typescript
 interface IDialogService {
@@ -158,26 +469,26 @@ interface IDialogService {
 
   /**
    * Opens a new dialog.
-   *
    * @param settings - Dialog settings for this dialog instance.
-   * @returns Promise A promise that settles when the dialog is closed.
+   * @returns DialogOpenPromise - Promise resolving to dialog controller and open result
    */
-  open(settings?: IDialogSettings): DialogOpenPromise;
+  open<TOptions, TModel = any, TComponent extends object = any>(
+    settings: IDialogSettings<TOptions, TModel, TComponent>
+  ): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
-   *
-   * @returns Promise<DialogController[]> All controllers whose close operation was cancelled.
+   * @returns Promise<IDialogController[]> - Controllers whose close operation was cancelled
    */
   closeAll(): Promise<IDialogController[]>;
 }
 ```
 
-The interface that a dialog controller should follow:
+### IDialogController Interface
 
 ```typescript
 interface IDialogController {
-  readonly settings: Readonly<ILoadedDialogSettings>;
+  readonly settings: IDialogLoadedSettings;
   /**
    * A promise that will be fulfilled once this dialog has been closed
    */
@@ -189,7 +500,74 @@ interface IDialogController {
 }
 ```
 
-An important feature of the dialog plugin is that it is possible to resolve and close (using `cancel`/`ok`/`error` methods) a dialog in the same context where it's open.
+### DialogOpenPromise Interface
+
+The `open()` method returns a special promise with additional methods:
+
+```typescript
+interface DialogOpenPromise extends Promise<DialogOpenResult> {
+  /**
+   * Add a callback that will be invoked when a dialog has been closed
+   */
+  whenClosed<TResult1, TResult2>(
+    onfulfilled?: (value: DialogCloseResult) => TResult1 | Promise<TResult1>,
+    onrejected?: (reason: unknown) => TResult2 | Promise<TResult2>
+  ): Promise<TResult1 | TResult2>;
+}
+```
+
+### Dialog Settings Interface
+
+Complete settings interface with all available options:
+
+```typescript
+interface IDialogSettings<TOptions = any, TModel = any, TComponent extends object = object> {
+  /**
+   * Custom renderer for the dialog
+   */
+  renderer?: Constructable<IDialogDomRenderer<TOptions>> | IDialogDomRenderer<TOptions>;
+
+  /**
+   * Component constructor, instance, or function returning component/promise
+   */
+  component?: CustomElementType<Constructable<TComponent>>
+    | Constructable<TComponent>
+    | (() => (Constructable<TComponent> | TComponent | Promise<TComponent | Constructable<TComponent>>));
+
+  /**
+   * Template string, Element, or function returning template/promise
+   */
+  template?: string | Element | Promise<string | Element>
+    | (() => string | Element | Promise<string | Element>);
+
+  /**
+   * Data passed to component lifecycle hooks
+   */
+  model?: TModel;
+
+  /**
+   * Element that will parent the dialog (defaults to document.body)
+   */
+  host?: Element;
+
+  /**
+   * DI container for dialog creation (child container created if not provided)
+   */
+  container?: IContainer;
+
+  /**
+   * Renderer-specific configuration options
+   */
+  options?: TOptions;
+
+  /**
+   * When true, cancellation is treated as promise rejection
+   */
+  rejectOnCancel?: boolean;
+}
+```
+
+An important feature of the dialog plugin is that it is possible to resolve and close a dialog (using `cancel`/`ok`/`error` methods on the controller) in the same context where it's open.
 
 *   Example of controlling the opening and closing of a dialog in promise style:
 
@@ -427,135 +805,452 @@ Note that the `contentHost` property on a `DefaultDialogDom` object is the same 
 
 #### Styling the overlay
 
-By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
+1. For the standard implementation
 
-```typescript
-import { resolve } from 'aurelia';
-import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+    The overlay of a `<dialog>` element is only "rendered" when it's shown as modal. Which means the following example will not "trigger" any overlay:
 
-export class MyDialog {
-  constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
-    dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-  }
-}
-```
-
-#### Use your own Dialog Renderer
-
-There are two ways to use your own dialog renderer: register your own default dialog renderer, or specify the renderer via `renderer` setting of dialog service `.open()`.
-
-1. To register your own default dialog renderer, you can follow the below example:
-
-    ```typescript
-    import { Registration } from 'aurelia';
-    import { IDialogRenderer } from '@aurelia/dialog';
-
-    export class MyDialogRenderer {
-      static register(container) {
-        Registration.singleton(IDialogRenderer, MyDialogRenderer).register(container);
-      }
-
-      render(host, settings) {
-        const overlay = document.createElement('dialog-overlay');
-        const contentHost = document.createElement('dialog-content-host');
-        host.appendChild(overlay);
-        host.appendChild(contentHost);
-        return {
-          overlay,
-          contentHost,
-          dispose() {
-            host.removeChild(overlay);
-            host.removeChild(contentHost);
-          }
-        }
-      }
-    }
-    ```
-    Notice the returned object of the `render()` method, it should satisfy the interface of an `IDialogDom`:
-    ```typescript
-    interface IDialogDom extends IDisposable {
-      readonly overlay: HTMLElement;
-      readonly contentHost: HTMLElement;
-      show?(): void | Promise<void>;
-      hide?(): void | Promise<void>;
-    }
-    ```
-2. To specify the renderer via `renderer` setting in the dialog service open call, you can follow the below example:
-
-    ```typescript
-    ...
+    ```ts
     dialogService.open({
-      template: '<div>hey there</div>',
-      renderer: {
-        render(host, settings) {
-          const overlay = document.createElement('dialog-overlay');
-          const contentHost = document.createElement('dialog-content-host');
-          host.appendChild(overlay);
-          host.appendChild(contentHost);
-          return {
-            overlay,
-            contentHost,
-            dispose() {
-              host.removeChild(overlay);
-              host.removeChild(contentHost);
-            }
-          }
-        }
+      component: Alert,
+      options: {
+        overlayStyle: 'rgba(0,0,0,0.5)'
       }
     })
     ```
-    Notice the object given to the `renderer` property, it should satisfy the interface of an `IDialogDomRenderer`:
-    ```typescript
-    interface IDialogDomRenderer {
-      render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
+    as `options.modal` value is not `true`.
+
+    When `options.modal` is `true`, the overlay can be specified using `options.overlayStyle` like the following example:
+
+    ```ts
+    dialogService.open({
+      component: Alert,
+      options: {
+        modal: true,
+        overlayStyle: 'rgba(0,0,0,0.5)'
+      }
+    })
+    ```
+
+    Note that the overlay of a modal dialog dom can also be configured from the dialog dom itself, like the following example:
+
+    ```ts
+    import { resolve } from 'aurelia';
+    import { IDialogDom, DialogDomStandard } from '@aurelia/dialog';
+
+    export class MyDialog {
+      constructor(dialogDom = resolve(IDialogDom) as DialogDomStandard) {
+        dialogDom.setOverlayStyle("rgba(0, 0, 0, 0.5)");
+      }
     }
     ```
 
-### Animation
+2. For the classic implementation
 
-#### Using the `IDialogDomAnimator`
+    By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
 
-If you use the default implementation of the interface `IDialogRenderer`, then the interface `IDialogDomAnimator` can be used to register an animator responsible for animating the default dialog dom.
+    ```typescript
+    import { resolve } from 'aurelia';
+    import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
 
-An `IDialogDomAnimator` implementation should satisfy the following interface:
+    export class MyDialog {
+      constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
+        dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      }
+    }
+    ```
+
+## Creating Custom Dialog Renderers
+
+The dialog plugin's modular architecture makes it easy to create custom renderers for specific UI frameworks, design systems, or unique requirements. A renderer is responsible for creating the DOM structure and managing the dialog's presentation.
+
+### Understanding the Renderer Interface
+
+All dialog renderers must implement the `IDialogDomRenderer<TOptions>` interface:
+
 ```typescript
-interface IDialogDomAnimator {
-  show(dom: IDialogDom): void | Promise<void>;
-  hide(dom: IDialogDom): void | Promise<void>;
+interface IDialogDomRenderer<TOptions = any> {
+  render(dialogHost: Element, controller: IDialogController, options: TOptions): IDialogDom;
 }
 ```
 
-An example implementation would look like the following:
+The renderer's `render` method returns an `IDialogDom` object that provides the dialog's DOM structure:
+
 ```typescript
-class MyDialogDomAnimator implements IDialogDomAnimator {
-  show(dom) {
-    return dom.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
+interface IDialogDom extends IDisposable {
+  readonly contentHost: HTMLElement;    // Container for dialog content
+  show?(): void | Promise<void>;        // Optional show animation
+  hide?(): void | Promise<void>;        // Optional hide animation
+}
+```
+
+Note: The `IDialogDom` interface only requires `contentHost`. The Standard and Classic implementations extend this with their own properties (`root`, `overlay`, etc.).
+
+### Example: Creating a Material Design Renderer
+
+Let's create a custom renderer that follows Material Design principles:
+
+```typescript
+import { DI, IDisposable } from 'aurelia';
+import { IDialogDomRenderer, IDialogDom, IDialogController } from '@aurelia/dialog';
+
+// Define custom options for your renderer
+interface MaterialDialogOptions {
+  elevation?: 1 | 2 | 3 | 4 | 5;
+  fullscreen?: boolean;
+  persistent?: boolean;
+  showBackdrop?: boolean;
+}
+
+// Custom DOM implementation
+class MaterialDialogDom implements IDialogDom {
+  // IDialogDom interface requirement
+  public readonly contentHost: HTMLElement;
+
+  // Additional properties for this implementation
+  public readonly root: HTMLElement;
+  public readonly overlay: HTMLElement | null;
+
+  constructor(
+    root: HTMLElement,
+    overlay: HTMLElement | null,
+    contentHost: HTMLElement,
+    private readonly host: Element,
+    private readonly options: MaterialDialogOptions
+  ) {
+    this.root = root;
+    this.overlay = overlay;
+    this.contentHost = contentHost;
   }
-  hide(dom) {
-    return dom.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 });
+
+  async show(): Promise<void> {
+    // Material Design entrance animation
+    const animation = this.root.animate([
+      {
+        transform: 'translateY(100px) scale(0.8)',
+        opacity: 0
+      },
+      {
+        transform: 'translateY(0) scale(1)',
+        opacity: 1
+      }
+    ], {
+      duration: 225,
+      easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+    });
+
+    if (this.overlay) {
+      this.overlay.animate([
+        { opacity: 0 },
+        { opacity: 1 }
+      ], { duration: 150 });
+    }
+
+    await animation.finished;
+  }
+
+  async hide(): Promise<void> {
+    // Material Design exit animation
+    const animation = this.root.animate([
+      {
+        transform: 'translateY(0) scale(1)',
+        opacity: 1
+      },
+      {
+        transform: 'translateY(100px) scale(0.8)',
+        opacity: 0
+      }
+    ], {
+      duration: 195,
+      easing: 'cubic-bezier(0.4, 0.0, 1, 1)'
+    });
+
+    if (this.overlay) {
+      this.overlay.animate([
+        { opacity: 1 },
+        { opacity: 0 }
+      ], { duration: 195 });
+    }
+
+    await animation.finished;
+  }
+
+  dispose(): void {
+    this.host.removeChild(this.root);
+    if (this.overlay) {
+      this.host.removeChild(this.overlay);
+    }
   }
 }
 
-// ...
-// usage:
-import { Registration } from 'aurelia';
-import { IDialogDomAnimator } from '@aurelia/dialog';
+// Custom renderer implementation
+export class MaterialDialogRenderer implements IDialogDomRenderer<MaterialDialogOptions> {
+  render(host: Element, controller: IDialogController, options: MaterialDialogOptions): IDialogDom {
+    // Create backdrop if requested
+    let overlay: HTMLElement | null = null;
+    if (options.showBackdrop !== false) {
+      overlay = document.createElement('div');
+      overlay.className = 'material-dialog-backdrop';
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.32);
+        z-index: 1000;
+      `;
 
-Aurelia
-  .register(Registration.singleton(IDialogDomAnimator, MyDialogDomAnimator))
-  .app(...)
-  .start();
+      // Handle backdrop clicks
+      if (!options.persistent) {
+        overlay.addEventListener('click', () => controller.cancel());
+      }
+
+      host.appendChild(overlay);
+    }
+
+    // Create main dialog container
+    const root = document.createElement('div');
+    root.className = 'material-dialog-container';
+    root.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+      min-width: 280px;
+      max-width: 560px;
+      max-height: calc(100vh - 64px);
+    `;
+
+    // Create content host with Material Design styling
+    const contentHost = document.createElement('div');
+    contentHost.className = 'material-dialog-content';
+
+    const elevation = options.elevation || 3;
+    const boxShadow = [
+      '0 3px 1px -2px rgba(0,0,0,.2)',
+      '0 2px 2px 0 rgba(0,0,0,.14)',
+      '0 1px 5px 0 rgba(0,0,0,.12)'
+    ][elevation - 1] || '0 8px 10px 1px rgba(0,0,0,.14)';
+
+    contentHost.style.cssText = `
+      background: white;
+      border-radius: 4px;
+      box-shadow: ${boxShadow};
+      overflow: hidden;
+      ${options.fullscreen ? 'width: 100vw; height: 100vh; border-radius: 0;' : ''}
+    `;
+
+    root.appendChild(contentHost);
+    host.appendChild(root);
+
+    // Handle ESC key for non-persistent dialogs
+    if (!options.persistent) {
+      const handleKeydown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          controller.cancel();
+        }
+      };
+      document.addEventListener('keydown', handleKeydown);
+
+      // Clean up listener when dialog is disposed
+      const originalDispose = MaterialDialogDom.prototype.dispose;
+      MaterialDialogDom.prototype.dispose = function() {
+        document.removeEventListener('keydown', handleKeydown);
+        originalDispose.call(this);
+      };
+    }
+
+    return new MaterialDialogDom(root, overlay, contentHost, host, options);
+  }
+
+  // Registration helper
+  static register(container: any) {
+    return container.register(
+      DI.createInterface<IDialogDomRenderer>('IDialogDomRenderer', x => x.singleton(MaterialDialogRenderer))
+    );
+  }
+}
 ```
 
-If you wished to use a different animators for different `dialogService.open()` calls (modal vs notification etc...), you can do so via the container option in the `dialogService.open()` call, per the following example:
+### Registering Your Custom Renderer
+
+There are several ways to use your custom renderer:
+
+#### 1. As the Default Renderer
+
+Replace the default renderer globally:
+
+```typescript
+import { DialogConfiguration } from '@aurelia/dialog';
+import { MaterialDialogRenderer } from './material-dialog-renderer';
+
+Aurelia.register(
+  DialogConfiguration.customize(settings => {
+    settings.renderer = MaterialDialogRenderer;
+    // Set default options for your renderer
+    settings.options = {
+      elevation: 2,
+      showBackdrop: true,
+      persistent: false
+    };
+  })
+).app(MyApp).start();
+```
+
+#### 2. Per-Dialog Renderer
+
+Use a specific renderer for individual dialogs:
 
 ```typescript
 dialogService.open({
-  container: someContainer.creadChild().register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
-  // or like the following,
-  // but beware that if the same container is used then the resolution will be to the first registration
-  container: someContainer.register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
-  ...
+  component: MyDialogComponent,
+  renderer: new MaterialDialogRenderer(),
+  options: {
+    elevation: 4,
+    fullscreen: false,
+    persistent: true
+  }
+});
+```
+
+#### 3. Multiple Renderer Support
+
+Register multiple renderers and choose them based on dialog type:
+
+```typescript
+// In your dialog service wrapper
+class MyDialogService {
+  constructor(private dialogService: IDialogService) {}
+
+  openAlert(message: string) {
+    return this.dialogService.open({
+      template: `<div>${message}</div>`,
+      renderer: new MaterialDialogRenderer(),
+      options: { elevation: 1, persistent: false }
+    });
+  }
+
+  openModal(component: any, model?: any) {
+    return this.dialogService.open({
+      component,
+      model,
+      renderer: new MaterialDialogRenderer(),
+      options: { elevation: 3, showBackdrop: true }
+    });
+  }
+
+  openFullscreen(component: any, model?: any) {
+    return this.dialogService.open({
+      component,
+      model,
+      renderer: new MaterialDialogRenderer(),
+      options: { fullscreen: true, persistent: true }
+    });
+  }
+}
+```
+
+### Best Practices for Custom Renderers
+
+1. **TypeScript Support**: Define strong types for your renderer options
+2. **Accessibility**: Ensure proper ARIA attributes and focus management
+3. **Animation**: Use CSS animations or Web Animations API for smooth transitions
+4. **Responsive Design**: Handle different screen sizes appropriately
+5. **Cleanup**: Always implement proper disposal in the `dispose()` method
+6. **Event Handling**: Handle keyboard and mouse events according to your design system
+7. **Consistent API**: Keep the same patterns as built-in renderers for familiarity
+
+This modular approach allows you to integrate any UI framework (Bootstrap, Ant Design, Chakra UI, etc.) or create completely custom dialog behaviors while leveraging Aurelia's powerful dialog lifecycle management.
+
+## Error Handling & Promise Rejection
+
+The dialog system includes comprehensive error handling for different scenarios:
+
+### DialogCancelError vs DialogCloseError
+
+When `rejectOnCancel: true` is set, cancellations and errors result in different error types:
+
+```typescript
+interface DialogError<T> extends Error {
+  wasCancelled: boolean;
+  value?: T;
+}
+
+// When user cancels dialog (ESC, overlay click, controller.cancel())
+type DialogCancelError<T> = DialogError<T> & { wasCancelled: true };
+
+// When dialog.error() is called
+type DialogCloseError<T> = DialogError<T> & { wasCancelled: false };
+```
+
+### Example: Handling Different Outcomes
+
+```typescript
+try {
+  const result = await dialogService.open({
+    component: ConfirmDialog,
+    model: { message: "Delete this item?" },
+    rejectOnCancel: true
+  });
+
+  // If we reach here, user clicked OK
+  console.log('Confirmed:', result.dialog.closed);
+
+} catch (error) {
+  if (error.wasCancelled) {
+    // User cancelled (ESC, overlay click, Cancel button)
+    console.log('User cancelled dialog');
+  } else {
+    // Error occurred (dialog.error() was called)
+    console.error('Dialog error:', error);
+  }
+}
+```
+
+### Using whenClosed for Non-Rejecting Pattern
+
+If you prefer not to use try/catch, use `whenClosed()`:
+
+```typescript
+dialogService.open({
+  component: MyDialog,
+  rejectOnCancel: false  // Default
+}).whenClosed(result => {
+  if (result.status === 'ok') {
+    console.log('Dialog confirmed:', result.value);
+  } else if (result.status === 'cancel') {
+    console.log('Dialog cancelled:', result.value);
+  } else if (result.status === 'error') {
+    console.log('Dialog error occurred:', result.value);
+  }
+});
+```
+
+## Animation
+
+#### Using the `IDialogDomAnimator`
+
+If you use either the default implementations of the interface `IDialogRenderer`, then the in/out animations of a dialog can be configured via `show`/`hide`
+the options settings, like the following examples:
+
+1. Global animations for all dialogs:
+
+```typescript
+Aurelia.register(DialogStandardConfiguration.customize(settings => {
+  settings.options.show = (dom) => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
+}))
+```
+
+2. Different animation per dialog `.open()`
+
+```typescript
+dialogService.open({
+  component: SuccessNotification,
+  options: {
+    show: dom => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 }),
+    hide: dom => dom.root.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 }),
+  }
 })
 ```
 
@@ -592,49 +1287,6 @@ export class MyDialog {
 }
 ```
 
-### The Default Dialog Event Manager
-
-Any implemetattion of `IDialogEventManager` should follow the following interface:
-
-```typescript
-interface IDialogEventManager {
-  add(controller: IDialogController, dom: IDialogDom): IDisposable;
-}
-```
-
-The default implementation of `IDialogEventManager` is `DefaultDialogEventManager`. It will listen to the keyboard `keydown` event on the window object, 
-and close off the last open dialog. It's also responsible for adding a click listener to the overlay of a dialog dom to close off the associated dialog.
-
-### Using your own dialog event manager
-
-If you wish to handle dialog events differently, you can register your implementation with the interface key `IDialogEventManager`, like the following examples:
-```typescript
-import { Registration } from 'aurelia';
-import { IDialogEventManager, IDialogController, IDialogDom } from '@aurelia/dialog';
-
-export class MyDialogEventManager {
-  static register(container) {
-    Registration.singleton(IDialogEventManager, this).register(container);
-  }
-
-  add(controller: IDialogController, dom: IDialogDom): void {
-    if (controller.settings.renderer === ...) {
-      // manage this
-    } else {
-      // don't manage this
-    }
-
-    dom.overlay.addEventListener('...', callback);
-
-    return {
-      dispose: () => {
-        dom.overlay.removeEventListener('...', callback);
-      }
-    }
-  }
-}
-```
-
 ### Component Lifecycles With The Dialog Plugin
 
 In adition to the lifecycle hooks defined in the core templating, the `dialog` defines additional ones. All dialog specific hooks can return a `Promise`, that resolves to the appropriate value for the hook, and will be awaited.
@@ -651,13 +1303,15 @@ This hook can be used to do any necessary init work. The hook is invoked with on
 
 This hook can be used to cancel the closing of a dialog. To do so return `false` - `null` and `undefined` will be coerced to `true`. The passed in result parameter has a property `status`, indicating if the dialog was closed or cancelled, or the deactivation process itself has been aborted, and an `value` property with the dialog result which can be manipulated before dialog deactivation.
 
-The `DialogCloseResult` has the following interface (simplified):
+The `DialogCloseResult` has the following interface:
 
 ```typescript
-interface DialogCloseResult {
-  readonly status: 'Ok' | 'Cancel' | 'Abort' | 'Error';
-  readonly value?: unknown;
+class DialogCloseResult<T extends DialogDeactivationStatuses = DialogDeactivationStatuses, TVal = unknown> {
+  readonly status: T;
+  readonly value?: TVal;
 }
+
+type DialogDeactivationStatuses = 'ok' | 'error' | 'cancel' | 'abort';
 ```
 
 > Warning When the `error` method of a `DialogController` is called this hook will be skipped.
@@ -666,80 +1320,216 @@ interface DialogCloseResult {
 
 This hook can be used to do any clean up work. The hook is invoked with one result parameter that has a property `status`, indicating if the dialog was closed (`Ok`) or cancelled (`Cancel`), and an `value` property with the dialog result.
 
-#### Order of Invocation
+#### Lifecycle Execution Order
 
-Each dialog instance goes through the full lifecycle once.
+Each dialog instance goes through the complete lifecycle once:
 
-\--- activation phase:
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant DS as DialogService
+    participant DC as DialogController
+    participant Component as Dialog Component
+    participant Renderer as Renderer
 
-1. `constructor()`
-2. `.canActivate()` - `dialog` _specific_
-3. `.activate()` - `dialog` _specific_
-4. `hydrating`
-5. `hydrated`
-6. `.created()`
-7. `.binding()`
-8. `.bound()`
-9. `attaching`
-10. `attached`
+    App->>DS: open(settings)
+    DS->>DC: create controller
+    DS->>Renderer: render(host, controller, options)
+    Renderer-->>DS: IDialogDom
+    DS->>Component: constructor()
 
-\--- deactivation phase:
+    Note over Component: Activation Phase
+    DS->>Component: canActivate(model)?
+    Component-->>DS: boolean/Promise<boolean>
+    DS->>Component: activate(model)
+    DS->>Component: hydrating → hydrated → created
+    DS->>Component: binding → bound
+    DS->>Component: attaching → attached
+    DS->>Renderer: dom.show()
+    DS-->>App: DialogOpenPromise
 
-1. `.canDeactivate()` - `dialog` _specific_
-2. `.deactivate()` - `dialog` _specific_
-3. `.detaching()`
-4. `.unbinding()`
+    Note over Component: Dialog is open and interactive
 
-## V1 Dialog Migration
+    App->>DC: ok() / cancel() / error()
 
-* `viewModel` setting in `DialogService.prototype.open` is changed to `component`.
-* `view` setting in `DialogService.prototype.open` is changed to `template`.
-* `keyboard` setting in `DialogService.prototype.open` is changed to accept an array of `Enter`/`Escape` only. Boolean variants are no longer valid. In the future, the API may become less strict.
-*   The resolved of `DialogService.prototype.open` is changed from:
+    Note over Component: Deactivation Phase
+    DC->>Component: canDeactivate(result)?
+    Component-->>DC: boolean/Promise<boolean>
+    DC->>Component: deactivate(result)
+    DC->>Renderer: dom.hide()
+    DC->>Component: detaching → unbinding
+    DC->>Renderer: dom.dispose()
+    DC-->>App: Promise<DialogCloseResult>
+```
 
-    ```typescript
-      interface DialogOpenResult {
-        wasCancelled: boolean;
-        controller: DialogController;
-        closeResult: Promise<DialogCloseResult>;
-      }
-    ```
+{% hint style="info" %}
+**Lifecycle Hooks:**
+- Dialog-specific: `canActivate`, `activate`, `canDeactivate`, `deactivate`
+- Aurelia core: `constructor`, `hydrating`, `hydrated`, `created`, `binding`, `bound`, `attaching`, `attached`, `detaching`, `unbinding`
+{% endhint %}
 
-    to:
+## Aurelia v1 to v2 Migration
 
-    ```typescript
-      interface DialogOpenResult {
-        wasCancelled: boolean;
-        dialog: IDialogController;
-      }
-    ```
-*   `closeResult` is removed from the returned object. Uses `closed` property on the dialog controller instead, example of open a dialog with hello world text, and automaticlly close after 2 seconds:
+{% hint style="info" %}
+The Aurelia v1 dialog implementation is available as the **Classic configuration** in v2, making migration straightforward.
+{% endhint %}
 
-    ```typescript
-      dialogService
-        .open({ template: 'hello world' })
-        .then(({ dialog }) => {
-          setTimeout(() => { dialog.ok() }, 2000)
-          return dialog.closed
-        });
-    ```
-*   The interface of dialog close results is changed from:
+### Quick Migration Steps
 
-    ```typescript
-      interface DialogCloseResult {
-        wasCancelled: boolean;
-        output?: unknown;
-      }
-    ```
+1. Change your registration:
+   ```typescript
+   // v1
+   .plugin(PLATFORM.moduleName('aurelia-dialog'))
 
-    to:
+   // v2
+   .register(DialogConfigurationClassic)
+   ```
 
-    ```typescript
-      interface DialogCloseResult {
-        status: DialogDeactivationStatus;
-        value?: unknown;
-      }
-    ```
-* The dialog controller is assigned to property `$dialog` (v2) on the view model, instead of property `controller` (v1)
+2. Update property names:
+   | v1 Property | v2 Property | Notes |
+   |-------------|-------------|-------|
+   | `viewModel` | `component` | Same functionality |
+   | `view` | `template` | Same functionality |
+   | `controller` | `$dialog` | Property on view model |
+   | `closeResult` | `dialog.closed` | Now a promise on controller |
 
-TODO: links to advanced examples/playground
+3. Move renderer options:
+   ```typescript
+   // v1 - options on dialog settings
+   dialogService.open({
+     viewModel: MyDialog,
+     lock: true,
+     keyboard: true,
+     overlayDismiss: false
+   });
+
+   // v2 - options moved to 'options' object
+   dialogService.open({
+     component: MyDialog,
+     options: {
+       lock: true,
+       keyboard: ['Escape', 'Enter'],
+       overlayDismiss: false
+     }
+   });
+   ```
+
+### Breaking Changes Detail
+
+{% tabs %}
+{% tab title="API Changes" %}
+
+DialogService.open() Changes:
+```typescript
+// v1 Result
+interface DialogOpenResult {
+  wasCancelled: boolean;
+  controller: DialogController;
+  closeResult: Promise<DialogCloseResult>;
+}
+
+// v2 Result
+interface DialogOpenResult {
+  wasCancelled: boolean;
+  dialog: IDialogController;        // renamed from 'controller'
+  // closeResult removed - use dialog.closed instead
+}
+```
+
+DialogCloseResult Changes:
+```typescript
+// v1
+interface DialogCloseResult {
+  wasCancelled: boolean;
+  output?: unknown;
+}
+
+// v2
+interface DialogCloseResult {
+  status: 'ok' | 'cancel' | 'error' | 'abort';  // more specific
+  value?: unknown;                               // renamed from 'output'
+}
+```
+{% endtab %}
+
+{% tab title="Keyboard Options" %}
+
+Boolean to Array Format:
+```typescript
+// v1 - Boolean options
+{
+  keyboard: true,    // Allow ESC to close
+  keyboard: false,   // No keyboard interaction
+  keyboard: 'Enter'  // String format
+}
+
+// v2 - Array format only
+{
+  keyboard: ['Escape'],        // ESC cancels dialog
+  keyboard: ['Enter'],         // ENTER confirms dialog
+  keyboard: ['Enter', 'Escape'], // Both keys work
+  keyboard: []                 // No keyboard interaction
+}
+```
+
+{% hint style="warning" %}
+Boolean and string variants for `keyboard` are no longer supported in v2.
+{% endhint %}
+{% endtab %}
+
+{% tab title="Component Integration" %}
+
+Controller Property:
+```typescript
+// v1 - 'controller' property
+export class MyDialog {
+  controller: DialogController;  // Injected automatically
+
+  close() {
+    this.controller.ok('result');
+  }
+}
+
+// v2 - '$dialog' property
+export class MyDialog {
+  $dialog: IDialogController;    // Assigned automatically
+
+  close() {
+    this.$dialog.ok('result');
+  }
+}
+```
+
+TypeScript Support:
+```typescript
+// v2 - Implement interface for type safety
+import { IDialogCustomElementViewModel } from '@aurelia/dialog';
+
+export class MyDialog implements IDialogCustomElementViewModel {
+  readonly $dialog: IDialogController;  // Type-safe property
+}
+```
+{% endtab %}
+{% endtabs %}
+
+### Complete Migration Example
+
+```mermaid
+graph LR
+    V1[Aurelia v1 Dialog] --> Classic[v2 Classic Configuration]
+    Classic --> Standard[v2 Standard Configuration]
+    Classic --> Custom[v2 Custom Renderer]
+
+    style V1 fill:#ffebee
+    style Classic fill:#e8f5e8
+    style Standard fill:#e3f2fd
+    style Custom fill:#f3e5f5
+```
+
+{% hint style="success" %}
+**Migration Strategy:**
+1. Start with `DialogConfigurationClassic` for immediate compatibility
+2. Test all existing dialogs work correctly
+3. Gradually migrate to `DialogConfigurationStandard` for modern features
+4. Consider custom renderers for UI framework integration
+{% endhint %}

@@ -71,6 +71,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   public items: Items<C>;
   public key: null | string | IsBindingBehavior = null;
+  public contextual: boolean = true;
 
   /** @internal */ private _oldViews: ISyntheticView[] = [];
   /** @internal */ private _scopes: Scope[] = [];
@@ -84,6 +85,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
   /** @internal */ private _hasDestructuredLocal: boolean = false;
+  /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
@@ -92,9 +94,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
-    const keyProp = (instruction.props[0] as IteratorBindingInstruction).props[0];
-    if (keyProp !== void 0) {
-      const { to, value, command } = keyProp;
+    const iteratorProps = (instruction.props[0] as IteratorBindingInstruction).props;
+
+    for (let i = 0, ii = iteratorProps.length; i < ii; ++i) {
+      const prop = iteratorProps[i];
+      const { to, value, command } = prop;
       if (to === 'key') {
         if (command === null) {
           this.key = value;
@@ -102,6 +106,17 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this.key = resolve(IExpressionParser).parse(value, etIsProperty);
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
+        }
+      } else if (to === 'contextual') {
+        if (command === null) {
+          // Static value: contextual: true | false
+          // When command is null, value is always a string
+          this.contextual = value === 'false' ? false : !!value;
+        } else if (command === 'bind') {
+          // Expression: contextual.bind: someExpression (evaluated once at bind)
+          this._contextualExpr = resolve(IExpressionParser).parse(value, etIsProperty);
+        } else {
+          throw createMappedError(ErrorNames.repeat_invalid_contextual_binding_command, command);
         }
       } else {
         throw createMappedError(ErrorNames.repeat_extraneous_binding, to);
@@ -139,6 +154,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const dec = forOf.declaration;
     if(!(this._hasDestructuredLocal = dec.$kind === 'ArrayDestructuring' || dec.$kind === 'ObjectDestructuring')) {
       this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
+    }
+
+    // Evaluate contextual.bind expression if present (one-time evaluation at bind)
+    if (this._contextualExpr !== void 0) {
+      const result = astEvaluate(this._contextualExpr, this.$controller.scope, binding, null);
+      this.contextual = result != null && result !== false;
     }
   }
 
@@ -421,7 +442,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes.unlink();
       scope = _scopes[i];
 
-      setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen);
+      if (this.contextual) {
+        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
       ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);
@@ -540,20 +564,21 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       next = views[i + 1];
 
-      view.nodes.link(next?.nodes ?? _location);
+      if (this.contextual) {
+        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems);
+      }
 
       if (indexMap[i] === -2) {
+        view.nodes.link(next?.nodes ?? _location);
         view.setLocation(_location);
-        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen);
         ret = view.activate(view, $controller, _scopes[i]);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
-      } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen);
+      } else if (j < 0 || i !== seq[j]) {
+        view.nodes.link(next?.nodes ?? _location);
         view.nodes.insertBefore(view.location!);
       } else {
-        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen);
         --j;
       }
     }
@@ -575,7 +600,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     if (views !== void 0) {
       for (let i = 0, ii = views.length; i < ii; ++i) {
-        if (views[i].accept(visitor) === true) {
+        const result = views[i].accept(visitor);
+        if (result === true) {
           return true;
         }
       }
@@ -662,6 +688,8 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $middle: boolean;
   $last: boolean;
   $length: number; // new in v2, there are a few requests, not sure if it should stay
+  __items__?: unknown[]; // opt-in: the array being iterated (undefined when disabled)
+  $previous?: unknown; // opt-in: previous iteration's item (null for first, undefined when disabled)
 }
 
 class RepeatOverrideContext implements IRepeatOverrideContext {
@@ -680,16 +708,23 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
   public get $last(): boolean {
     return this.$index === this.$length - 1;
   }
+  public get $previous(): unknown {
+    return this.__items__?.[this.$index - 1];
+  }
 
   public constructor(
     public readonly $index: number = 0,
     public readonly $length: number = 1,
+    // maybe at some point we can turn this into $items
+    // to indicate a normalised array of any collection
+    public readonly __items__: unknown[] | undefined = undefined,
   ) {}
 }
 
-const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
+const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number, items: unknown[] | undefined): void => {
   oc.$index = index;
   oc.$length = length;
+  oc.__items__ = items;
 };
 
 export const IRepeatableHandlerResolver = /*@__PURE__*/ createInterface<IRepeatableHandlerResolver>(
@@ -929,6 +964,7 @@ const createScope = (
   if (hasDestructuredLocal) {
     const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
     astAssign(forOf.declaration, scope, binding, null, item);
+    return scope;
   }
   return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext());
 };

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "aurelia/aurelia"
+    }
+  ],
+  "commit": false,
+  "access": "public",
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "packages/__tests__",
+    "packages/__e2e__/*",
+    "benchmarks",
+    "examples/*",
+    "packages-tooling/__tests__"
+  ],
+  "linked": [
+    [
+      "aurelia",
+      "@aurelia/*"
+    ]
+  ]
+}

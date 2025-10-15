@@ -20,7 +20,8 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -32,7 +33,20 @@ jobs:
 
       - run: npm run build:release
 
-      - name: Changesets – create release PR or publish
+      # --- If pre-mode is ON (".changeset/pre.json" exists) -> publish to npm@dev
+      - name: Changesets – prerelease (dev)
+        if: ${{ hashFiles('.changeset/pre.json') != '' }}
+        uses: changesets/action@v1
+        with:
+          publish: npm run changeset:publish -- --tag dev
+          title: "release(dev): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # --- If pre-mode is OFF -> publish to npm@latest
+      - name: Changesets – stable (latest)
+        if: ${{ hashFiles('.changeset/pre.json') == '' }}
         uses: changesets/action@v1
         with:
           publish: npm run changeset:publish

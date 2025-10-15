@@ -22,7 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -31,8 +32,9 @@ jobs:
 
       - run: npm ci
 
-      - name: Check current pre-mode
+      - name: Detect current pre-mode
         id: pre
+        shell: bash
         run: |
           if [ -f .changeset/pre.json ]; then
             echo "current=on" >> "$GITHUB_OUTPUT"
@@ -40,25 +42,33 @@ jobs:
             echo "current=off" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Enter pre-mode
-        if: inputs.action == 'enter' && steps.pre.outputs.current == 'off'
-        run: npx changeset pre enter dev
-
-      - name: Exit pre-mode
-        if: inputs.action == 'exit' && steps.pre.outputs.current == 'on'
-        run: npx changeset pre exit
+      # Toggle pre-mode only when a change is needed; also compute PR metadata
+      - name: Toggle and set PR metadata
+        id: meta
+        if: ${{ (inputs.action == 'enter' && steps.pre.outputs.current == 'off') || (inputs.action == 'exit' && steps.pre.outputs.current == 'on') }}
+        shell: bash
+        run: |
+          if [ "${{ inputs.action }}" = "enter" ]; then
+            npx changeset pre enter dev
+            echo "branch=ci/pre/enter-dev" >> "$GITHUB_OUTPUT"
+            echo "title=ci: enter dev pre-mode" >> "$GITHUB_OUTPUT"
+          else
+            npx changeset pre exit
+            echo "branch=ci/pre/exit-dev" >> "$GITHUB_OUTPUT"
+            echo "title=ci: exit dev pre-mode" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: No-op (already in requested state)
-        if: (inputs.action == 'enter' && steps.pre.outputs.current == 'on') || (inputs.action == 'exit' && steps.pre.outputs.current == 'off')
-        run: echo "Repo is already '${{ steps.pre.outputs.current }}' – nothing to change."
+        if: ${{ (inputs.action == 'enter' && steps.pre.outputs.current == 'on') || (inputs.action == 'exit' && steps.pre.outputs.current == 'off') }}
+        run: echo "Repo is already '${{ steps.pre.outputs.current }}' - nothing to change."
 
       - name: Open PR
-        if: (inputs.action == 'enter' && steps.pre.outputs.current == 'off') || (inputs.action == 'exit' && steps.pre.outputs.current == 'on')
+        if: ${{ (inputs.action == 'enter' && steps.pre.outputs.current == 'off') || (inputs.action == 'exit' && steps.pre.outputs.current == 'on') }}
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: ${{ inputs.action == 'enter' && 'ci: enter dev pre-mode' || 'ci: exit dev pre-mode' }}
-          title: ${{ inputs.action == 'enter' && 'ci: enter dev pre-mode' || 'ci: exit dev pre-mode' }}
-          branch: ${{ inputs.action == 'enter' && 'ci/pre/enter-dev' || 'ci/pre/exit-dev' }}
+          commit-message: ${{ steps.meta.outputs.title }}
+          title: ${{ steps.meta.outputs.title }}
+          branch: ${{ steps.meta.outputs.branch }}
           body: |
             Automated PR to ${{ inputs.action }} dev pre-release mode.
           labels: ci, release

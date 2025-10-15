@@ -12,17 +12,14 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
 
 concurrency:
   group: release-dev
   cancel-in-progress: false
 
 jobs:
-  prerelease:
+  toggle-pre:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
@@ -30,38 +27,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
           cache: npm
 
       - run: npm ci
 
-      - name: Switch pre-mode
-        if: inputs.action == 'enter'
+      - name: Check current pre-mode
+        id: pre
         run: |
-          npx changeset pre enter dev
-          git config user.email "aurelia@bluespire.com"
-          git config user.name "AureliaEffect"
-          git add .changeset/pre.json
-          git commit -m "ci: enter dev pre-mode"
-          git push
+          if [ -f .changeset/pre.json ]; then
+            echo "current=on" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=off" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Switch back to normal mode
-        if: inputs.action == 'exit'
-        run: |
-          npx changeset pre exit
-          git config user.email "aurelia@bluespire.com"
-          git config user.name "AureliaEffect"
-          git add .changeset/pre.json
-          git commit -m "ci: exit dev pre-mode"
-          git push
+      - name: Enter pre-mode
+        if: inputs.action == 'enter' && steps.pre.outputs.current == 'off'
+        run: npx changeset pre enter dev
 
-      - run: npm run build:release
+      - name: Exit pre-mode
+        if: inputs.action == 'exit' && steps.pre.outputs.current == 'on'
+        run: npx changeset pre exit
 
-      - name: Publish (dev channel) if pre-mode is on
-        uses: changesets/action@v1
+      - name: No-op (already in requested state)
+        if: (inputs.action == 'enter' && steps.pre.outputs.current == 'on') || (inputs.action == 'exit' && steps.pre.outputs.current == 'off')
+        run: echo "Repo is already '${{ steps.pre.outputs.current }}' – nothing to change."
+
+      - name: Open PR
+        if: (inputs.action == 'enter' && steps.pre.outputs.current == 'off') || (inputs.action == 'exit' && steps.pre.outputs.current == 'on')
+        uses: peter-evans/create-pull-request@v6
         with:
-          publish: npm run changeset:publish -- --tag dev
-          title: "release(dev): version packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          commit-message: ${{ inputs.action == 'enter' && 'ci: enter dev pre-mode' || 'ci: exit dev pre-mode' }}
+          title: ${{ inputs.action == 'enter' && 'ci: enter dev pre-mode' || 'ci: exit dev pre-mode' }}
+          branch: ${{ inputs.action == 'enter' && 'ci/pre/enter-dev' || 'ci/pre/exit-dev' }}
+          body: |
+            Automated PR to ${{ inputs.action }} dev pre-release mode.
+          labels: ci, release
+          delete-branch: true

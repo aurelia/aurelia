@@ -67,11 +67,11 @@ jobs:
         run: echo "NPM_CONFIG_DRY_RUN=true" >> "$GITHUB_ENV"
 
       # --- Dev prerelease path (publishes with dist-tag 'dev')
-      - name: Changesets – prerelease (dev)
+      - name: Changesets – prerelease
         if: ${{ steps.decide.outputs.lane == 'dev' }}
         uses: changesets/action@v1
         with:
-          publish: npm run changeset:publish -- --tag dev
+          publish: npm run changeset:publish
           title: "release(dev): version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

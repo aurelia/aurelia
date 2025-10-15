@@ -11,14 +11,7 @@ scalar-1: &working_dir ~/repo
 # # # # # # # # # # # # # # # #
 # - Map variables -
 # # # # # # # # # # # # # # # #
-map-1: &filter_ignore_develop_release
-  filters:
-    branches:
-      ignore:
-        - develop
-        - release
-
-map-2: &filter_only_master
+map-1: &filter_only_master
   filters:
     branches:
       only:
@@ -26,20 +19,7 @@ map-2: &filter_only_master
     tags:
       ignore: /.*/
 
-map-3: &filter_only_release
-  filters:
-    branches:
-      only:
-        - release
-
-map-4: &filter_only_tag
-  filters:
-    branches:
-      ignore: /.*/
-    tags:
-      only: /^v[0-9]+(\.[0-9]+)*(-[\w]+\.[0-9]+)?$/
-
-map-5: &filter_only_topic
+map-2: &filter_only_topic
   filters:
     branches:
       ignore:
@@ -60,12 +40,10 @@ parameters:
     type: boolean
     default: true
 
-
 # # # # # # # # # # # # # # # #
 # - Executors -
 # # # # # # # # # # # # # # # #
 executors:
-
   docker_circleci:
     parameters:
       node:
@@ -75,12 +53,6 @@ executors:
     resource_class: large
     docker:
       - image: "cimg/node:<< parameters.node >>-browsers"
-
-  docker_release:
-    working_directory: *working_dir
-    resource_class: large
-    docker:
-      - image: "cimg/node:22.12.0"
 
   docker_circleci_bench:
     working_directory: *working_dir
@@ -92,7 +64,6 @@ executors:
 # - Commands -
 # # # # # # # # # # # # # # # #
 commands:
-
   setup_verdaccio:
     parameters:
       email:
@@ -174,49 +145,6 @@ commands:
       - setup_verdaccio
       - run: npm config set registry << parameters.registry >>
       - run: npm run publish:<< parameters.channel >>
-
-  clean_merge_commit_dist:
-    parameters:
-      from:
-        type: string
-      to:
-        type: string
-      channel:
-        type: string
-      suffix:
-        type: string
-        default: ""
-      message:
-        type: string
-        default: "chore(all): add latest build artifacts"
-      merge_topic:
-        type: boolean
-        default: true
-      bump_version:
-        type: boolean
-        default: true
-    steps:
-      - run: set -o pipefail && git add packages/*/dist packages-tooling/*/dist --force && git status
-      - run: set -o pipefail && git stash && git status
-      - when:
-          condition: << parameters.merge_topic >>
-          steps:
-            - run: set -o pipefail && git checkout << parameters.from >> && git status
-            - run: set -o pipefail && git merge ${CIRCLE_BRANCH}
-      - run: set -o pipefail && git checkout << parameters.to >> && git status
-      - run: set -o pipefail && git reset --hard origin/<< parameters.to >> && git status
-      - run: set -o pipefail && git merge << parameters.from >> --no-ff --no-edit -Xtheirs && git status
-      - run: set -o pipefail && rm -rf packages/*/dist packages-tooling/*/dist && git status
-      - run: set -o pipefail && git add . && git status
-      - run: set -o pipefail && git checkout stash -- . && git status
-      - run: set -o pipefail && git add packages/*/dist packages-tooling/*/dist --force && git status
-      # - run: set -o pipefail && npm run change-package-refs:release -- none
-      - when:
-          condition: << parameters.bump_version >>
-          steps:
-            - run: set -o pipefail && npm run bump-version:<< parameters.channel >> -- << parameters.suffix >>
-      - run: set -o pipefail && git add . && git status
-      - run: set -o pipefail && git commit --allow-empty -m "<< parameters.message >>" && git status
 
 # # # # # # # # # # # # # # # #
 # - Jobs -
@@ -450,74 +378,6 @@ jobs:
       - run: npm run lint:ci
       - run: npm run lint:other:ci
 
-  merge_and_dist:
-    executor: docker_release
-    parameters:
-      from:
-        type: string
-      to:
-        type: string
-      channel:
-        type: string
-      push:
-        type: boolean
-        default: false
-      merge_topic:
-        type: boolean
-        default: true
-      bump_version:
-        type: boolean
-        default: true
-      dist_file_name:
-        type: string
-        default: dist
-    steps:
-      - run: git config --global user.email "aurelia@bluespire.com"
-      - run: git config --global user.name "AureliaEffect"
-      - run: git config --global core.mergeoptions "--no-edit"
-      - checkout
-      - restore_cache:
-          name: "Restore dependencies"
-          key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-true
-      - run: set -o pipefail && npm run generate-native-modules
-      - clean_merge_commit_dist:
-          from: << parameters.from >>
-          to: << parameters.to >>
-          channel: << parameters.channel >>
-          merge_topic: << parameters.merge_topic >>
-          bump_version: << parameters.bump_version >>
-      - when:
-          condition: << parameters.push >>
-          steps:
-            - run: git push origin << parameters.to >>
-
-  publish_npm:
-    executor: docker_release
-    parameters:
-      channel:
-        type: string
-      branch:
-        type: string
-      swap:
-        type: boolean
-        default: false
-    steps:
-      - checkout_install:
-          install_drivers: false
-      - run: git checkout -- .
-      - when:
-          condition: << parameters.swap >>
-          steps:
-            - run: git checkout << parameters.branch >>
-            - run: git pull
-      - run:
-          name: "Authenticate with registry"
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run: npm run publish:<< parameters.channel >>
-
   # e2e hmr
   e2e_test:
     executor: docker_circleci
@@ -690,23 +550,6 @@ jobs:
           else
             echo "There are more than doc changes, running workflow $CIRCLE_WORKFLOW_ID..."
           fi
-
-  publish_dev_from_master:
-    executor: docker_release
-    steps:
-      - checkout
-      - restore_cache:
-          name: "Restore dependencies"
-          key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-true
-      - run: npm run generate-native-modules
-      - run: npm run bump-version:dev
-      - run:
-          name: "Authenticate with npm registry"
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-      - run: npm run publish:dev
 
 # # # # # # # # # # # # # # # #
 # - Workflows -
@@ -1087,164 +930,3 @@ workflows:
           command: npm run bench:repeat-string
           requires:
             - tacho_benchmark_prep
-
-      - request_publish_dev:
-          <<: *filter_only_master
-          type: approval
-          no_output_timeout: 20m
-
-      - publish_dev_from_master:
-          <<: *filter_only_master
-          name: publish_dev_from_master
-          requires:
-            - build_release
-            - test_chrome
-            - test_node
-            - test_toolings
-            - e2e_verdaccio_parcel_ts
-            - e2e_gh_issues
-            - e2e_hmr_vite
-            - e2e_hmr_webpack
-            - e2e_router
-            - e2e_router_direct
-            - e2e_i18n
-            - request_publish_dev
-
-  # Runs build and tests, and pushes the built artifacts to the release branch (which then triggers publish_latest)
-  # Triggered by push to tag
-  build_test_push_release:
-    jobs:
-      - checkout_install_cache:
-          <<: *filter_only_tag
-          name: checkout_install
-
-      - build_and_cache:
-          <<: *filter_only_tag
-          name: build_release
-          release: true
-          requires:
-            - checkout_install
-
-      - unit_test_esm:
-          <<: *filter_only_tag
-          name: test_chrome
-          npm_command: "test-chrome"
-          install_chrome: true
-          requires:
-            - build_release
-
-      - unit_test_esm_node:
-          <<: *filter_only_tag
-          name: test_node
-          requires:
-            - build_release
-
-      - unit_test_cjs:
-          <<: *filter_only_tag
-          name: test_toolings
-          requires:
-            - build_release
-
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_gh_issues
-          path: "packages/__e2e__/1-gh-issues"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_hmr_vite
-          path: "packages/__e2e__/2-hmr-vite"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_vite_wo_convention
-          path: "packages/__e2e__/9-vite-wo-convention"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_hmr_webpack
-          path: "packages/__e2e__/3-hmr-webpack"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router
-          path: "packages/__e2e__/6-router"
-          run_webpack: true
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_none_history_with_hash
-          path: "packages/__e2e__/10-router-none-history-with-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_direct
-          path: "packages/__e2e__/5-router-direct"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_i18n
-          path: "packages/__e2e__/4-i18n"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_validation_issue_2025
-          path: "packages/__e2e__/11-validation"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_type_check
-          path: "packages/__e2e__/12-type-check"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_virtual_repeat
-          path: "packages/__e2e__/8-ui-virtualization"
-          requires:
-            - build_release
-
-      - merge_and_dist:
-          <<: *filter_only_tag
-          requires:
-            - build_release
-            - test_chrome
-            - test_node
-            - test_toolings
-            - e2e_gh_issues
-            - e2e_hmr_vite
-            - e2e_hmr_webpack
-            - e2e_router
-            - e2e_router_direct
-            - e2e_i18n
-          from: $CIRCLE_TAG
-          to: release
-          channel: latest
-          push: true
-          merge_topic: false
-          bump_version: false
-
-  # Asks for manual approval and then publishes from the release branch to npm@latest
-  # Triggered by push to release branch
-  publish_latest:
-    jobs:
-      - request_publish_latest:
-          <<: *filter_only_release
-          type: approval
-      - publish_npm:
-          <<: *filter_only_release
-          name: publish_npm_latest
-          channel: latest
-          branch: release
-          requires:
-            - request_publish_latest
-

@@ -1,6 +1,6 @@
 {
   "mode": "exit",
-  "tag": "dev",
+  "tag": "beta",
   "initialVersions": {
     "@aurelia/benchmarks": "2.0.0-beta.25",
     "@examples/1kcomponents": "0.8.0",

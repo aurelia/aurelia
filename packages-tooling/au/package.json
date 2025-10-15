@@ -41,6 +41,8 @@
     "build": "rollup -c",
     "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "rollup -c -w",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest",
     "rollup": "rollup -c",
     "postrollup": "tsc --emitDeclarationOnly",
     "build:packages": "npm run rollup"

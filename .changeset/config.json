@@ -15,5 +15,12 @@
       "aurelia",
       "@aurelia/*"
     ]
+  ],
+  "ignore": [
+    "@__e2e__/*",
+    "@examples/*",
+    "@aurelia/__tests__",
+    "@aurelia/__tests__cjs",
+    "@aurelia/benchmarks"
   ]
 }

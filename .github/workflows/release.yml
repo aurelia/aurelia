@@ -1,8 +1,17 @@
-name: Release (latest)
+name: Release (manual)
 
 on:
-  push:
-    branches: [master]
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Which lane to publish?"
+        type: choice
+        options: [auto, dev, latest]
+        default: auto
+      dry_run:
+        description: "Do not actually publish to npm"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -10,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-latest
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -31,11 +40,33 @@ jobs:
 
       - run: npm ci
 
+      - name: Decide lane
+        id: decide
+        shell: bash
+        run: |
+          # detect pre-mode by presence of .changeset/pre.json
+          if [ -f .changeset/pre.json ]; then PRE=on; else PRE=off; fi
+
+          # normalize input -> effective lane
+          case "${{ inputs.lane }}" in
+            dev)    LANE=dev ;;
+            latest) LANE=latest ;;
+            auto)   if [ "$PRE" = "on" ]; then LANE=dev; else LANE=latest; fi ;;
+          esac
+
+          echo "pre=$PRE"   >> "$GITHUB_OUTPUT"
+          echo "lane=$LANE" >> "$GITHUB_OUTPUT"
+
       - run: npm run build:release
 
-      # --- If pre-mode is ON (".changeset/pre.json" exists) -> publish to npm@dev
+      # Optional: dry-run for npm publish
+      - name: Enable npm dry-run
+        if: ${{ inputs.dry_run }}
+        run: echo "NPM_CONFIG_DRY_RUN=true" >> "$GITHUB_ENV"
+
+      # --- Dev prerelease path (publishes with dist-tag 'dev')
       - name: Changesets – prerelease (dev)
-        if: ${{ hashFiles('.changeset/pre.json') != '' }}
+        if: ${{ steps.decide.outputs.lane == 'dev' }}
         uses: changesets/action@v1
         with:
           publish: npm run changeset:publish -- --tag dev
@@ -44,9 +75,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # --- If pre-mode is OFF -> publish to npm@latest
+      # --- Stable path (publishes with dist-tag 'latest')
       - name: Changesets – stable (latest)
-        if: ${{ hashFiles('.changeset/pre.json') == '' }}
+        if: ${{ steps.decide.outputs.lane == 'latest' }}
         uses: changesets/action@v1
         with:
           publish: npm run changeset:publish

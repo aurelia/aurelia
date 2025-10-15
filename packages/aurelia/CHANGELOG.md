@@ -1,21 +1,21 @@
 # Change Log
 
-## 2.0.0-dev.26
+## 2.0.0-beta.26
 
 ### Patch Changes
 
 - [#2284](https://github.com/aurelia/aurelia/pull/2284) [`2cf6539`](https://github.com/aurelia/aurelia/commit/2cf6539164e1684da31e91e64255801d619f378e) Thanks [@fkleuver](https://github.com/fkleuver)! - Catch up for initial migration to changeset
 
 - Updated dependencies []:
-  - @aurelia/expression-parser@2.0.0-dev.26
-  - @aurelia/fetch-client@2.0.0-dev.26
-  - @aurelia/kernel@2.0.0-dev.26
-  - @aurelia/metadata@2.0.0-dev.26
-  - @aurelia/platform@2.0.0-dev.26
-  - @aurelia/platform-browser@2.0.0-dev.26
-  - @aurelia/runtime@2.0.0-dev.26
-  - @aurelia/runtime-html@2.0.0-dev.26
-  - @aurelia/template-compiler@2.0.0-dev.26
+  - @aurelia/expression-parser@2.0.0-beta.26
+  - @aurelia/fetch-client@2.0.0-beta.26
+  - @aurelia/kernel@2.0.0-beta.26
+  - @aurelia/metadata@2.0.0-beta.26
+  - @aurelia/platform@2.0.0-beta.26
+  - @aurelia/platform-browser@2.0.0-beta.26
+  - @aurelia/runtime@2.0.0-beta.26
+  - @aurelia/runtime-html@2.0.0-beta.26
+  - @aurelia/template-compiler@2.0.0-beta.26
 
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.

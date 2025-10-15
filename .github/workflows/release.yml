@@ -9,7 +9,7 @@ on:
         options: [auto, dev, latest]
         default: auto
       dry_run:
-        description: "Do not actually publish to npm"
+        description: "Plan only (open/update Version PR); do not publish"
         type: boolean
         default: false
 
@@ -29,6 +29,7 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       HUSKY: "0"
       HUSKY_SKIP_HOOKS: "1"
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,29 +62,45 @@ jobs:
 
       - run: npm run build:release
 
-      # Optional: dry-run for npm publish
-      - name: Enable npm dry-run
+      # -------------------------------
+      # PLAN PHASE (no publish)
+      # -------------------------------
+      # On dry_run, only create/update the Version Packages PR.
+      - name: Changesets – plan (no publish)
         if: ${{ inputs.dry_run }}
-        run: echo "NPM_CONFIG_DRY_RUN=true" >> "$GITHUB_ENV"
-
-      # --- Dev prerelease path (publishes with dist-tag 'dev')
-      - name: Changesets – prerelease (dev)
-        if: ${{ steps.decide.outputs.lane == 'dev' }}
         uses: changesets/action@v1
         with:
-          publish: npm run changeset:publish -- --tag dev
-          title: "release(dev): version packages"
+          # No 'publish' input here → only opens/updates the Version PR
+          title: "release(${{ steps.decide.outputs.lane }}): version packages"
+          commit: "ci(release): version packages (${{ steps.decide.outputs.lane }})"
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # -------------------------------
+      # PUBLISH PHASE (actual publish)
+      # -------------------------------
+      # When NOT dry_run, publish according to the decided lane.
+      - name: Changesets – prerelease publish
+        if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'dev' }}
+        uses: changesets/action@v1
+        with:
+          publish: npm run changeset:publish
+          title: "release(prerelease): version packages"
+          commit: "ci(release): version packages (prerelease)"
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # --- Stable path (publishes with dist-tag 'latest')
-      - name: Changesets – stable (latest)
-        if: ${{ steps.decide.outputs.lane == 'latest' }}
+      - name: Changesets – stable publish (latest)
+        if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'latest' }}
         uses: changesets/action@v1
         with:
           publish: npm run changeset:publish
           title: "release: version packages"
+          commit: "ci(release): version packages (latest)"
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -20,7 +20,6 @@ export default defineConfig({
         'runtime',
         'template-compiler',
         'runtime-html',
-        'router-direct',
       ].reduce((map, pkg) => {
         const name = `@aurelia/${pkg}`;
         map[name] = resolve(__dirname, `../../../node_modules/${name}/dist/esm/index.dev.mjs`);

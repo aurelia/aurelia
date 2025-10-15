@@ -2,11 +2,9 @@
 description: Understand the @aurelia/router package, its core concepts, and how to navigate the rest of the routing documentation.
 ---
 
-# @aurelia/router
+# Router overview
 
-Aurelia's primary router gives you a declarative, component-first navigation system with strong type safety, multi-viewport layouts, and deep integration with dependency injection. If you have used Angular's router or the classic Aurelia 1 router, the mental model will feel familiar: define a route table, map URLs to components, nest layouts, guard navigation, lazy-load feature areas, and respond to lifecycle events. The Aurelia router stays HTML-friendly and convention-driven, letting you compose navigation without wrapper modules or excessive configuration.
-
-> Still deciding between routers? Start with [Choosing the right Aurelia router](./choosing-a-router.md).
+Aurelia ships a single, fully featured router that gives you a declarative, component-first navigation system with strong type safety, multi-viewport layouts, and deep integration with dependency injection. If you have used Angular's router or the classic Aurelia 1 router, the mental model will feel familiar: define a route table, map URLs to components, nest layouts, guard navigation, lazy-load feature areas, and respond to lifecycle events. The Aurelia router stays HTML-friendly and convention-driven, letting you compose navigation without wrapper modules or excessive configuration.
 
 ## Highlights
 
@@ -19,6 +17,8 @@ Aurelia's primary router gives you a declarative, component-first navigation sys
 Refer to the package README for release notes and API exports: [`packages/router/README.md`](../../../../packages/router/README.md).
 
 ## Choose the right guide
+
+Need the shortcuts before the tour? Keep the [router quick reference](../../router/quick-reference.md) open beside you—it covers the everyday patterns this section builds on.
 
 Work through the topics in this order when you are new to the router:
 
@@ -57,12 +57,9 @@ Keep the [live StackBlitz examples](https://stackblitz.com/@Sayan751/collections
 | Persist and observe route state | Inject `ICurrentRoute` / `IRouter` | [Router state management](../../router/router-state-management.md) |
 | Customize transitions | Provide a `transitionPlan` or set per-route strategies | [Transition plans](../../router/transition-plans.md) |
 
-## Router vs. router-direct
-
-Use the standard `@aurelia/router` when you want a centrally managed route tree, multiple viewports, or explicit lifecycle control. The [`@aurelia/router-direct` guides](./router-direct.md) describe a component-driven option that minimizes up-front configuration by letting each feature declare its own routes. Both routers can coexist in the same documentation set, but they solve different problems, so pick the router that matches your app's navigation style.
-
 ## Where to go next
 
 - Explore targeted recipes in the [developer guides](../../developer-guides/routing/configured-routing.md).
 - Pair routing with state management via [the store plugin](../../aurelia-packages/store/README.md) or your preferred data layer.
 - Review the [router package CHANGELOG](../../../../packages/router/CHANGELOG.md) when upgrading between versions.
+- Migrating from `@aurelia/router-direct`? Start with [component-owned route definitions](../../router/configuring-routes.md#component-owned-route-definitions-router-direct-parity) for a side-by-side mapping.

@@ -77,6 +77,65 @@ export class MyApp {
 
 As the re-written example shows, you can convert the properties in the options object used for the `@route` decorator into `static` properties in the view model class.
 
+## Component-owned route definitions (router-direct parity)
+
+If you are migrating from `@aurelia/router-direct`, the same component-centric patterns now live in `@aurelia/router`. You can keep route metadata on the component, compose direct navigation instructions, and register hooks exactly as before—only the import path changes.
+
+### Keep routes beside the component
+
+- Use `@route(...)` on a component class for the most concise syntax.
+- Prefer `static title`, `static routes`, and friends if you’d rather avoid decorators.
+- Call `getRouteConfig()` when you need to compute routes dynamically at runtime.
+
+```ts
+import { customElement } from '@aurelia/runtime-html';
+import template from './feature-view.html';
+import { OverviewPage } from './overview';
+import { SettingsPage } from './settings';
+
+@customElement({ name: 'feature-view', template })
+export class FeatureView {
+  static title = 'Feature area';
+  static routes = [
+    { path: ['', 'overview'], component: OverviewPage, title: 'Overview' },
+    { path: 'settings', component: SettingsPage, title: 'Settings' },
+  ];
+}
+```
+
+The router reads these static definitions the first time the component is loaded, mirroring router-direct’s behaviour. Parent shells can still override or extend child routes by supplying their own `@route` metadata or `getRouteConfig`.
+
+### Use direct `load` instructions
+
+Declarative `load` attributes and imperative `router.load(...)` invocations accept the same string instruction syntax that router-direct popularised:
+
+```html
+<a load="settings">Settings</a>
+<a load="overview@main+help@aside">Two viewports</a>
+<a load="../reports">Sibling navigation</a>
+```
+
+```ts
+await this.router.load('team@left+details(id=42)@right', {
+  context: this,                  // navigate relative to this component
+  queryParams: { tab: 'info' },
+});
+```
+
+Every instruction form—named viewports (`@aside`), lists (`['users', 'reports']`), or typed component references—works identically under `@aurelia/router`.
+
+### Hooks and lifecycle
+
+Global hooks (`router.addHooks`), component lifecycle (`canLoad`, `loading`, `canUnload`, `unloading`), and the navigation coordinator are all part of the standard router. Move your existing hook implementations across unchanged other than the import upgrade to `@aurelia/router`.
+
+### Migration checklist
+
+1. Replace imports from `@aurelia/router-direct` with `@aurelia/router`.
+2. Ensure your app bootstrap registers `RouterConfiguration` from `@aurelia/router`.
+3. Keep component route metadata, `load` instructions, and hook implementations as they are—the router recognises them natively.
+
+With these adjustments the direct-routing workflow is fully covered by the core router, making a single, well-documented package the source of truth.
+
 Apart from the static API including the `@route` decorator, there is also an instance-level hook named `getRouteConfig` that you can use to configure your routes.
 This is shown in the example below.
 

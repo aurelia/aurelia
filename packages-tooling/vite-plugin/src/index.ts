@@ -50,7 +50,6 @@ export default function au(options: {
         'runtime',
         'template-compiler',
         'runtime-html',
-        'router-direct',
       ].reduce((aliases, pkg) => {
         const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
         try {

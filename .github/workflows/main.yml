@@ -63,7 +63,6 @@ jobs:
             packages/platform/dist
             packages/platform-browser/dist
             packages/route-recognizer/dist
-            packages/router-direct/dist
             packages/router/dist
             packages/runtime/dist
             packages/runtime-html/dist
@@ -219,7 +218,6 @@ jobs:
   #         "runtime",
   #         "runtime-html",
   #         "router",
-  #         "router-direct",
   #         "i18n",
   #         "validation",
   #       ]

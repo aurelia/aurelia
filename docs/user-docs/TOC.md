@@ -74,46 +74,29 @@
   * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
   * [Enhance](getting-to-know-aurelia/enhance.md)
 * Routing
-  * [Choosing a router](getting-to-know-aurelia/routing/choosing-a-router.md)
-  * @aurelia/router
-    * [Overview](getting-to-know-aurelia/routing/aurelia-router.md)
-    * Fundamentals
-      * [Getting started](router/getting-started.md)
-      * [Router configuration](router/router-configuration.md)
-      * [Defining routes](router/configuring-routes.md)
-      * [Viewports](router/viewports.md)
-    * Navigation
-      * [Navigating](router/navigating.md)
-      * [Navigation model](router/navigation-model.md)
-      * [Current route](router/current-route.md)
-    * Lifecycle & Events
-      * [Routing lifecycle](router/routing-lifecycle.md)
-      * [Router hooks](router/router-hooks.md)
-      * [Router events](router/router-events.md)
-    * Advanced
-      * [Router state management](router/router-state-management.md)
-      * [Transition plans](router/transition-plans.md)
-      * [Error handling](router/error-handling.md)
-      * [Advanced API reference](router/advanced-api-reference.md)
-    * Support
-      * [Testing guide](router/testing-guide.md)
-      * [Troubleshooting](router/troubleshooting.md)
-  * @aurelia/router-direct
-    * [Overview](getting-to-know-aurelia/routing/router-direct.md)
-    * Fundamentals
-      * [Getting Started](router-direct/getting-started.md)
-      * [Creating Routes](router-direct/creating-routes.md)
-      * [Viewports](router-direct/viewports.md)
-      * [Router Tutorial](router-direct/router-tutorial.md)
-    * Navigation & Lifecycle
-      * [Navigating](router-direct/navigating.md)
-      * [Routing Lifecycle](router-direct/routing-lifecycle.md)
-      * [Route hooks](router-direct/router-hooks.md)
-      * [Route Events](router-direct/route-events.md)
-    * Advanced
-      * [Router animation](router-direct/router-animation.md)
-      * [Router Recipes](router-direct/router-recipes.md)
-      * [Differences from v1](router-direct/differences-from-v1.md)
+  * [Router overview](getting-to-know-aurelia/routing/aurelia-router.md)
+  * Fundamentals
+    * [Quick reference](router/quick-reference.md)
+    * [Getting started](router/getting-started.md)
+    * [Router configuration](router/router-configuration.md)
+    * [Defining routes](router/configuring-routes.md)
+    * [Viewports](router/viewports.md)
+  * Navigation
+    * [Navigating](router/navigating.md)
+    * [Navigation model](router/navigation-model.md)
+    * [Current route](router/current-route.md)
+  * Lifecycle & Events
+    * [Routing lifecycle](router/routing-lifecycle.md)
+    * [Router hooks](router/router-hooks.md)
+    * [Router events](router/router-events.md)
+  * Advanced
+    * [Router state management](router/router-state-management.md)
+    * [Transition plans](router/transition-plans.md)
+    * [Error handling](router/error-handling.md)
+    * [Advanced API reference](router/advanced-api-reference.md)
+  * Support
+    * [Testing guide](router/testing-guide.md)
+    * [Troubleshooting](router/troubleshooting.md)
 * Composition patterns
   * [Components](getting-to-know-aurelia/components/README.md)
     * [Creating components](getting-to-know-aurelia/components/creating-components/consuming-a-custom-element.md)

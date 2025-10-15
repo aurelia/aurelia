@@ -91,6 +91,8 @@
     "lint:other": "eslint --cache --ext .js,.ts scripts",
     "lint:other:ci": "eslint --cache --ext .js,.ts --quiet --report-unused-disable-directives scripts",
     "generate-native-modules": "ts-node -P tsconfig.json scripts/generate-native-modules.ts",
+    "publish:dev": "ts-node scripts/publish.ts dev --esm",
+    "publish:latest": "npx ts-node scripts/publish.ts latest --esm",
     "bump-version:dev": "npx ts-node -P tsconfig.json scripts/bump-version.ts dev",
     "bump-version:latest": "ts-node -P tsconfig.json scripts/bump-version.ts latest",
     "check-dependencies": "ts-node -P tsconfig.json scripts/check-dependencies.ts",

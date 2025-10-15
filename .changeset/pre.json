@@ -63,5 +63,7 @@
     "@aurelia/validation-i18n": "2.0.0-beta.25",
     "@aurelia/web-components": "2.0.0-beta.25"
   },
-  "changesets": []
+  "changesets": [
+    "short-webs-sell"
+  ]
 }

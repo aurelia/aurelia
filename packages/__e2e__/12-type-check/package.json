@@ -22,7 +22,7 @@
     "@aurelia/route-recognizer": "2.0.0-beta.25",
     "@aurelia/runtime-html": "2.0.0-beta.25",
     "@aurelia/runtime": "2.0.0-beta.25",
-    "aurelia": "2.0.0-beta.25"
+    "aurelia": "2.0.0-dev.26"
   },
   "devDependencies": {
     "@aurelia/webpack-loader": "2.0.0-beta.25",

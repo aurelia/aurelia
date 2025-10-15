@@ -21,7 +21,7 @@
     "test:debugger": "cross-env PWDEBUG=1 playwright test"
   },
   "dependencies": {
-    "aurelia": "2.0.0-beta.25",
+    "aurelia": "2.0.0-dev.26",
     "@aurelia/kernel": "2.0.0-beta.25",
     "@aurelia/metadata": "2.0.0-beta.25",
     "@aurelia/platform": "2.0.0-beta.25",

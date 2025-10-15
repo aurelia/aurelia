@@ -4,7 +4,6 @@ import { type IBinding, BindingBehavior } from '@aurelia/runtime-html';
 import { IStore, type IStoreSubscriber, IStoreRegistry, type StoreLocator } from './interfaces';
 import { StateBinding } from './state-binding';
 import { createStateBindingScope, isStoreInstance } from './state-utilities';
-import { getStoreOverride, clearStoreOverride } from './store-binding-behavior';
 
 type BindingStateRecord = {
   store: IStore<object>;
@@ -20,8 +19,7 @@ export class StateBindingBehavior {
 
   public bind(scope: Scope, binding: IBinding, storeLocator?: StoreLocator | IStore<object>): void {
     const isStateBinding = binding instanceof StateBinding;
-    const override = getStoreOverride(binding);
-    const store = override ?? this._resolveStore(storeLocator);
+    const store = this._resolveStore(storeLocator);
     const effectiveScope = isStateBinding ? scope : createStateBindingScope(store.getState(), scope);
 
     if (!isStateBinding) {
@@ -41,7 +39,6 @@ export class StateBindingBehavior {
       record.store.unsubscribe(record.subscriber);
       bindingStateRecordMap.delete(binding);
     }
-    clearStoreOverride(binding);
   }
 
   private _resolveStore(locator?: StoreLocator | IStore<object>): IStore<object> {

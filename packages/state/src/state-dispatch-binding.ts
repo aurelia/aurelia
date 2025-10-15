@@ -51,8 +51,7 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
 
   public strict: boolean;
 
-  /** @internal */ private _store: IStore<object>;
-  /** @internal */ private _parentScope?: Scope;
+  /** @internal */ private readonly _store: IStore<object>;
 
   public constructor(
     locator: IServiceLocator,
@@ -88,7 +87,6 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     }
     astBind(this.ast, _scope, this);
     this._scope = createStateBindingScope(this._store.getState(), _scope);
-    this._parentScope = _scope;
     this._target.addEventListener(this._targetProperty, this);
     this._store.subscribe(this);
     this.isBound = true;
@@ -104,28 +102,11 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     this._scope = void 0;
     this._target.removeEventListener(this._targetProperty, this);
     this._store.unsubscribe(this);
-    this._parentScope = void 0;
   }
 
   public handleStateChange(state: object): void {
     const scope = this._scope!;
     const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
     scope.bindingContext = overrideContext.bindingContext = state;
-  }
-
-  public useStore(store: IStore<object>): void {
-    if (this._store === store) {
-      return;
-    }
-    if (this.isBound) {
-      this._store.unsubscribe(this);
-      this._store = store;
-      const parent = this._parentScope!;
-      this._scope = createStateBindingScope(store.getState(), parent);
-      this._store.subscribe(this);
-      this.handleStateChange(store.getState());
-      return;
-    }
-    this._store = store;
   }
 }

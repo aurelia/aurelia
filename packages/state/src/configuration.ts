@@ -2,7 +2,6 @@ import { type IRegistry, IContainer, ILogger, Registration, lazy } from '@aureli
 import { IActionHandler, IStore, IStateMiddleware, MiddlewarePlacement, IStoreRegistry, IStoreRegistration, IState } from './interfaces';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
-import { StoreBindingBehavior } from './store-binding-behavior';
 import {
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
@@ -21,7 +20,6 @@ const standardRegistrations = [
   DispatchBindingInstructionRenderer,
 
   StateBindingBehavior,
-  StoreBindingBehavior,
 ];
 
 export interface IMiddlewareRegistration<T = any, S = any> {

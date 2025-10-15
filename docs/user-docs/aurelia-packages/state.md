@@ -186,11 +186,11 @@ Note: by default, bindings created from `.state` and `.dispatch` commands will o
 
 ### Targeting specific stores
 
-Use the `& store:'name'` helper to bind against a non-default store:
+Use the `& state:'name'` helper to bind against a non-default store:
 
 ```html
-<div textcontent.state="users.length & store:'users'"></div>
-<button click.dispatch="{ type: 'reload' } & store:'users'">Reload users</button>
+<div textcontent.state="users.length & state:'users'"></div>
+<button click.dispatch="{ type: 'reload' } & state:'users'">Reload users</button>
 ```
 
 Binding behaviors accept the store locator as their first argument:

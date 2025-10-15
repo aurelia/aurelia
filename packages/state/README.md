@@ -31,11 +31,11 @@ Aurelia.register(
 );
 ```
 
-In templates, target a specific store with the `& store:'name'` helper:
+In templates, target a specific store with the `& state:'name'`:
 
 ```html
-<div textcontent.state="users.length & store:'users'"></div>
-<button click.dispatch="{ type: 'reload' } & store:'users'">Refresh Users</button>
+<div textcontent.state="users.length & state:'users'"></div>
+<button click.dispatch="{ type: 'reload' } & state:'users'">Refresh Users</button>
 ```
 
 Other integrations understand named stores as well:

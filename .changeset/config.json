@@ -22,5 +22,9 @@
     "@aurelia/__tests__",
     "@aurelia/__tests__cjs",
     "@aurelia/benchmarks"
-  ]
+  ],
+  "privatePackages": {
+    "version": false,
+    "tag": false
+  }
 }

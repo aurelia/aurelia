@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      HUSKY: "0"
+      HUSKY_SKIP_HOOKS: "1"
     steps:
       - uses: actions/checkout@v4
         with:

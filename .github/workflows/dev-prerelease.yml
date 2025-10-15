@@ -12,56 +12,64 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
 
 concurrency:
   group: release-dev
   cancel-in-progress: false
 
 jobs:
-  prerelease:
+  toggle-pre:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
           cache: npm
 
       - run: npm ci
 
-      - name: Switch pre-mode
-        if: inputs.action == 'enter'
+      - name: Detect current pre-mode
+        id: pre
+        shell: bash
         run: |
-          npx changeset pre enter dev
-          git config user.email "aurelia@bluespire.com"
-          git config user.name "AureliaEffect"
-          git add .changeset/pre.json
-          git commit -m "ci: enter dev pre-mode"
-          git push
+          if [ -f .changeset/pre.json ]; then
+            echo "current=on" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=off" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Switch back to normal mode
-        if: inputs.action == 'exit'
+      # Toggle pre-mode only when a change is needed; also compute PR metadata
+      - name: Toggle and set PR metadata
+        id: meta
+        if: ${{ (inputs.action == 'enter' && steps.pre.outputs.current == 'off') || (inputs.action == 'exit' && steps.pre.outputs.current == 'on') }}
+        shell: bash
         run: |
-          npx changeset pre exit
-          git config user.email "aurelia@bluespire.com"
-          git config user.name "AureliaEffect"
-          git add .changeset/pre.json
-          git commit -m "ci: exit dev pre-mode"
-          git push
+          if [ "${{ inputs.action }}" = "enter" ]; then
+            npx changeset pre enter dev
+            echo "branch=ci/pre/enter-dev" >> "$GITHUB_OUTPUT"
+            echo "title=ci: enter dev pre-mode" >> "$GITHUB_OUTPUT"
+          else
+            npx changeset pre exit
+            echo "branch=ci/pre/exit-dev" >> "$GITHUB_OUTPUT"
+            echo "title=ci: exit dev pre-mode" >> "$GITHUB_OUTPUT"
+          fi
 
-      - run: npm run build:release
+      - name: No-op (already in requested state)
+        if: ${{ (inputs.action == 'enter' && steps.pre.outputs.current == 'on') || (inputs.action == 'exit' && steps.pre.outputs.current == 'off') }}
+        run: echo "Repo is already '${{ steps.pre.outputs.current }}' - nothing to change."
 
-      - name: Publish (dev channel) if pre-mode is on
-        uses: changesets/action@v1
+      - name: Open PR
+        if: ${{ (inputs.action == 'enter' && steps.pre.outputs.current == 'off') || (inputs.action == 'exit' && steps.pre.outputs.current == 'on') }}
+        uses: peter-evans/create-pull-request@v6
         with:
-          publish: npm run changeset:publish -- --tag dev
-          title: "release(dev): version packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          commit-message: ${{ steps.meta.outputs.title }}
+          title: ${{ steps.meta.outputs.title }}
+          branch: ${{ steps.meta.outputs.branch }}
+          body: |
+            Automated PR to ${{ inputs.action }} dev pre-release mode.
+          labels: ci, release
+          delete-branch: true

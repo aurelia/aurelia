@@ -1,4 +1,6 @@
 {
+  "name": "@aurelia/benchmarks",
+  "private": true,
   "scripts": {
     "build": "npm run build:local && npm run build:latest",
     "build:local": "cd local && npm run build",

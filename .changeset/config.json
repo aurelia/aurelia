@@ -10,17 +10,17 @@
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "packages/__tests__",
-    "packages/__e2e__/*",
-    "benchmarks",
-    "examples/*",
-    "packages-tooling/__tests__"
-  ],
   "linked": [
     [
       "aurelia",
       "@aurelia/*"
     ]
+  ],
+  "ignore": [
+    "@__e2e__/*",
+    "@examples/*",
+    "@aurelia/__tests__",
+    "@aurelia/__tests__cjs",
+    "@aurelia/benchmarks"
   ]
 }

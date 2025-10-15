@@ -7,7 +7,7 @@ import {
   IRenderLocation,
   bindable,
 } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { ICompositionController } from '@aurelia/runtime-html/dist/types/resources/custom-elements/au-compose';
 import {
   assert,
@@ -26,6 +26,40 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.textContent, 'hello world');
 
       void stop(true);
+
+      assert.strictEqual(appHost.textContent, '');
+    });
+
+    it('renders template only component surrogate attributes to the composed host', async function () {
+      const { appHost, assertClass, assertText, stop } = await createFixture(
+        `<au-compose tag="main" template="<template class='message'>\${message}</template>">`,
+        class App {
+          public message = 'Hello World!';
+        }
+      ).started;
+
+      assertClass('main', 'message');
+      assertText('Hello World!');
+
+      await stop();
+
+      assert.strictEqual(appHost.textContent, '');
+    });
+
+    it('renders surrogate attributes first for template only component', async function () {
+      const { appHost, assertAttr, stop } = await createFixture(
+        `<au-compose tag="main" template="<template data-id.one-time='(prop || (prop = 0))'><div data-id.one-time='++prop'></div></template>">`,
+        class App {
+          public message = 'Hello World!';
+        }
+      ).started;
+
+      runTasks();
+
+      assertAttr('main', 'data-id', '0');
+      assertAttr('div', 'data-id', '1');
+
+      await stop();
 
       assert.strictEqual(appHost.textContent, '');
     });

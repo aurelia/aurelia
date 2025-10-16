@@ -146,25 +146,31 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
   /** @internal */
   public _getTransitionPlan(cur: RouteNode, next: RouteNode, overridingTransitionPlan: TransitionPlan | null) {
-    if (hasSamePath(cur, next)
-      && shallowEquals(cur.params, next.params)
-      && hasSameQuery(cur.queryParams, next.queryParams)
-    ) {
-      return 'none';
+    let plan: TransitionPlan;
+    const samePath = hasSamePath(cur, next);
+    const sameParams = shallowEquals(cur.params, next.params);
+    const sameQuery = hasSameQuery(cur.queryParams, next.queryParams);
+    if (samePath && sameParams && sameQuery) {
+      plan = 'none';
+    } else if (samePath && sameParams) {
+      if (overridingTransitionPlan != null) {
+        plan = overridingTransitionPlan;
+      } else {
+        const configuredPlan = this.transitionPlan;
+        plan = configuredPlan != null
+          ? (typeof configuredPlan === 'function' ? configuredPlan(cur, next) : configuredPlan)
+          : 'none';
+      }
+    } else if (overridingTransitionPlan != null) {
+      plan = overridingTransitionPlan;
+    } else {
+      const configuredPlan = this.transitionPlan;
+      plan = configuredPlan != null
+        ? (typeof configuredPlan === 'function' ? configuredPlan(cur, next) : configuredPlan)
+        : 'replace';
     }
 
-    if (overridingTransitionPlan != null) {
-      return overridingTransitionPlan;
-    }
-
-    const configuredPlan = this.transitionPlan;
-    if (configuredPlan != null) {
-      return typeof configuredPlan === 'function'
-        ? configuredPlan(cur, next)
-        : configuredPlan;
-    }
-
-    return 'replace';
+    return plan;
 
     function hasSameQuery(a: Readonly<URLSearchParams>, b: Readonly<URLSearchParams>): boolean {
       if (a === b) return true;

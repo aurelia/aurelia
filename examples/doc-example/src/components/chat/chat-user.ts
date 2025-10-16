@@ -4,9 +4,9 @@ import { UsersRepository } from '../../repositories/users';
 @customElement({
   name: 'chat-user',
   template: `
-    <p data-test="chat-user-element-title">Chatting with <strong>\${user.id} (\${user.name})</strong><p>
+    <p data-testid="chat-user-element-title">Chatting with <strong>\${user.id} (\${user.name})</strong><p>
     <p>You: Hello!</p>
-    <p><input data-test="chat-user-element-input"></p>
+    <p><input data-testid="chat-user-element-input"></p>
   `
 })
 export class ChatUser {

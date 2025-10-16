@@ -8,14 +8,14 @@ import { RedirectInformation } from './redirect-information';
 @customElement({
   name: 'book',
   template: `
-    <h3 data-test="book-element-book-name">\${book.title}</h3>
-    <div data-test="book-element-publish-year">Published: \${book.year}</div>
+    <h3 data-testid="book-element-book-name">\${book.title}</h3>
+    <div data-testid="book-element-publish-year">Published: \${book.year}</div>
     <div>Author(s):
       <ul>
-        <li repeat.for="author of book.authors"><a data-test="book-element-author-link" href="author(\${author.id})">\${author.name}</a></li>
+        <li repeat.for="author of book.authors"><a data-testid="book-element-author-link" href="author(\${author.id})">\${author.name}</a></li>
       </ul>
     </div>
-    <au-nav data-test="book-menu" name="book-menu"></au-nav>
+    <au-nav data-testid="book-menu" name="book-menu"></au-nav>
     <au-viewport no-scope name="book-tabs" default="book-details(\${book.id})" used-by="about-books,book-details,information,redirect-information,redirect-about" no-link></au-viewport>
   `,
   dependencies: [

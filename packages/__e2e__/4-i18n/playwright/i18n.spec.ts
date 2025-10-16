@@ -297,33 +297,33 @@ test.describe('i18n', () => {
 
   test.describe('with custom elements', () => {
     test('can pass interpolated translations to custom elements bindables', async ({ page }) => {
-      await assertContent(page, '[data-test-id=\'custom-element-interpolated\'] div', en.simple.text);
+      await assertContent(page, '[data-testid=\'custom-element-interpolated\'] div', en.simple.text);
     });
 
     test('can bind to custom elements attributes', async ({ page }) => {
-      await assertContent(page, '[data-test-id=\'custom-element-target-bindable\'] div', en.simple.text);
+      await assertContent(page, '[data-testid=\'custom-element-target-bindable\'] div', en.simple.text);
     });
 
     test('should support params', async ({ page }) => {
-      await assertContent(page, '[data-test-id=\'custom-element-with-params\'] div', en.itemWithCount_other.replace('{{count}}', '0'));
+      await assertContent(page, '[data-testid=\'custom-element-with-params\'] div', en.itemWithCount_other.replace('{{count}}', '0'));
     });
 
     test('should support locale changes', async ({ page }) => {
       await changeCurrentLocaleToDe(page);
-      await assertContent(page, '[data-test-id=\'custom-element-target-bindable\'] div', de.simple.text);
+      await assertContent(page, '[data-testid=\'custom-element-target-bindable\'] div', de.simple.text);
     });
   });
 
   test.describe('treating missing keys', () => {
     test('should by default replace the content with the missing key name', async ({ page }) => {
-      await assertContent(page, '[data-test-id=\'missing-key\']', 'missing-key');
+      await assertContent(page, '[data-testid=\'missing-key\']', 'missing-key');
     });
 
     test('should allow to keep original content if key not found', async ({ page, baseURL }) => {
       await page.goto(`${baseURL}?skipkey=true`!, { waitUntil: 'domcontentloaded' });
       await page.reload();
 
-      await assertContent(page, '[data-test-id=\'missing-key\']', 'non-translated text');
+      await assertContent(page, '[data-testid=\'missing-key\']', 'non-translated text');
 
       await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
       await page.reload();

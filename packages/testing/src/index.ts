@@ -24,6 +24,11 @@ export {
   onFixtureCreated,
 } from './startup';
 export {
+  createDomQueryHelpers,
+  type IDomQueryHelpers,
+  type QueryRoot,
+} from './dom-queries';
+export {
   TestContext,
   PLATFORM,
   PLATFORMRegistration,

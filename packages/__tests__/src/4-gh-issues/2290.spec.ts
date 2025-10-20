@@ -3,7 +3,6 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('4-gh-issues/2290.spec.ts', function () {
   it('does not react to property change when owning binding is in deactivation', async function () {
-    const logs = [];
     const { component, assertText } = createFixture(
       '<el if.bind="show">',
       class App {
@@ -24,7 +23,6 @@ describe('4-gh-issues/2290.spec.ts', function () {
     );
 
     assertText('hello');
-    logs.length = 0;
 
     component.show = false;
     const hadTasksPromise = await tasksSettled();
@@ -73,7 +71,6 @@ describe('4-gh-issues/2290.spec.ts', function () {
   });
 
   it('does not react to collection change when owning binding is in deactivation', async function () {
-    const logs = [];
     const { assertText, stop } = createFixture(
       '<div>${text}</div>',
       class App {
@@ -86,7 +83,6 @@ describe('4-gh-issues/2290.spec.ts', function () {
     );
 
     assertText('hello');
-    logs.length = 0;
 
     void stop();
     const hadTasksPromise = await tasksSettled();

@@ -700,6 +700,7 @@ export class RouteConfigContext {
     /** @internal */ public readonly _rootContainer: IContainer,
     /** @internal */ private readonly _options: Readonly<IRouterOptions>,
   ) {
+    const recognizer = this._recognizer = new RouteRecognizer();
     if (parent === null) {
       this.root = this;
       this.path = [this];
@@ -708,12 +709,12 @@ export class RouteConfigContext {
       this.root = parent.root;
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
+      recognizer.appendTo(parent._recognizer);
     }
     this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
     this._moduleLoader = _rootContainer.get(IModuleLoader);
-    this._recognizer = new RouteRecognizer();
 
     if (this._options.useNavigationModel) {
       this._navigationModel = new NavigationModel([]);

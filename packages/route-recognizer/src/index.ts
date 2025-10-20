@@ -73,6 +73,7 @@ class Candidate<T> {
     private readonly states: AnyState<T>[],
     private readonly skippedStates: DynamicState<T>[],
     private readonly result: RecognizeResult<T>,
+    private readonly routeRecognizer: RouteRecognizer<T>,
   ) {
     this.head = states[states.length - 1];
     // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
@@ -80,10 +81,10 @@ class Candidate<T> {
   }
 
   public advance(ch: string): void {
-    const { chars, states, skippedStates, result } = this;
+    const { chars, states, skippedStates, result, routeRecognizer } = this;
     let stateToAdd: AnyState<T> | null = null;
 
-    let matchCount = 0;
+    let matched = false;
     const state = states[states.length - 1];
 
     function $process(
@@ -91,7 +92,8 @@ class Candidate<T> {
       skippedState: DynamicState<T> | null,
     ): void {
       if (nextState.isMatch(ch)) {
-        if (++matchCount === 1) {
+        if (!matched) {
+          matched = true;
           stateToAdd = nextState;
         } else {
           result.add(
@@ -100,6 +102,7 @@ class Candidate<T> {
               states.concat(nextState),
               skippedState === null ? skippedStates : skippedStates.concat(skippedState),
               result,
+              routeRecognizer,
             ),
           );
         }
@@ -141,7 +144,7 @@ class Candidate<T> {
       }
     }
 
-    if (matchCount === 0) {
+    if (!matched) {
       result.remove(this);
     }
   }
@@ -342,8 +345,11 @@ class RecognizeResult<T> {
     return this.candidates.length === 0;
   }
 
-  public constructor(rootState: SeparatorState<T>) {
-    this.candidates = [new Candidate([''], [rootState], [], this)];
+  public constructor(
+    rootState: SeparatorState<T>,
+    routeRecognizer: RouteRecognizer<T>,
+  ) {
+    this.candidates = [new Candidate([''], [rootState], [], this, routeRecognizer)];
   }
 
   public getSolution(): Candidate<T> | null {
@@ -385,6 +391,7 @@ export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
   private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
   private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
+  private readonly children: RouteRecognizer<T>[] = [];
 
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
     let params: readonly Parameter[];
@@ -483,7 +490,7 @@ export class RouteRecognizer<T> {
       path = path.slice(0, -1);
     }
 
-    const result = new RecognizeResult(this.rootState);
+    const result = new RecognizeResult(this.rootState, this);
     for (let i = 0, ii = path.length; i < ii; ++i) {
       const ch = path.charAt(i);
       result.advance(ch);
@@ -506,6 +513,10 @@ export class RouteRecognizer<T> {
 
   public getEndpoint(path: string): Endpoint<T> | null {
     return this.endpointLookup.get(path) ??  null;
+  }
+
+  public appendTo(parent: RouteRecognizer<T>): void {
+    parent.children.push(this);
   }
 }
 

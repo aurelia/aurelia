@@ -20,6 +20,7 @@ import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
+import { activated } from '../templating/controller';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -99,13 +100,13 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public handleChange(): void {
-    if (!this.isBound) return;
+    if (!this.isBound || this._controller.state > activated) return;
     if (this._isQueued) return;
     this._isQueued = true;
 
     queueTask(() => {
       this._isQueued = false;
-      if (!this.isBound) return;
+      if (!this.isBound || this._controller.state > activated) return;
 
       this.obs.version++;
       const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
@@ -118,13 +119,13 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public handleCollectionChange(): void {
-    if (!this.isBound) return;
+    if (!this.isBound || this._controller.state > activated) return;
     if (this._isQueued) return;
     this._isQueued = true;
 
     queueTask(() => {
       this._isQueued = false;
-      if (!this.isBound) return;
+      if (!this.isBound || this._controller.state > activated) return;
 
       this.obs.version++;
       const v = this._value = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);

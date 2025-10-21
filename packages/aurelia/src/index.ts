@@ -658,7 +658,6 @@ export {
   // StyleElementStyles,
   // IShadowDOMStyles,
   // IShadowDOMGlobalStyles
-
   // StandardConfiguration,
 
   ILifecycleHooks,

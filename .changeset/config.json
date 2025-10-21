@@ -10,17 +10,52 @@
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "packages/__tests__",
-    "packages/__e2e__/*",
-    "benchmarks",
-    "examples/*",
-    "packages-tooling/__tests__"
-  ],
-  "linked": [
+  "fixed": [
     [
       "aurelia",
-      "@aurelia/*"
+      "@aurelia/addons",
+      "@aurelia/compat-v1",
+      "@aurelia/dialog",
+      "@aurelia/expression-parser",
+      "@aurelia/fetch-client",
+      "@aurelia/i18n",
+      "@aurelia/kernel",
+      "@aurelia/metadata",
+      "@aurelia/platform",
+      "@aurelia/platform-browser",
+      "@aurelia/route-recognizer",
+      "@aurelia/router",
+      "@aurelia/router-direct",
+      "@aurelia/runtime",
+      "@aurelia/runtime-html",
+      "@aurelia/state",
+      "@aurelia/store-v1",
+      "@aurelia/template-compiler",
+      "@aurelia/testing",
+      "@aurelia/ui-virtualization",
+      "@aurelia/validation",
+      "@aurelia/validation-html",
+      "@aurelia/validation-i18n",
+      "@aurelia/web-components",
+      "@aurelia/babel-jest",
+      "@aurelia/http-server",
+      "@aurelia/parcel-transformer",
+      "@aurelia/plugin-conventions",
+      "@aurelia/plugin-gulp",
+      "@aurelia/ts-jest",
+      "@aurelia/vite-plugin",
+      "@aurelia/webpack-loader"
     ]
-  ]
+  ],
+  "ignore": [
+    "@__e2e__/*",
+    "@examples/*",
+    "@aurelia/__tests__",
+    "@aurelia/__tests__cjs",
+    "@aurelia/benchmarks"
+  ],
+  "privatePackages": {
+    "version": false,
+    "tag": false
+  }
 }

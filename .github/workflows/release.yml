@@ -1,8 +1,17 @@
-name: Release (latest)
+name: Release (manual)
 
 on:
-  push:
-    branches: [master]
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Which lane to publish?"
+        type: choice
+        options: [auto, dev, latest]
+        default: auto
+      dry_run:
+        description: "Plan only (open/update Version PR); do not publish"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -10,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-latest
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -18,9 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      HUSKY: "0"
+      HUSKY_SKIP_HOOKS: "1"
+
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -30,13 +43,64 @@ jobs:
 
       - run: npm ci
 
+      - name: Decide lane
+        id: decide
+        shell: bash
+        run: |
+          # detect pre-mode by presence of .changeset/pre.json
+          if [ -f .changeset/pre.json ]; then PRE=on; else PRE=off; fi
+
+          # normalize input -> effective lane
+          case "${{ inputs.lane }}" in
+            dev)    LANE=dev ;;
+            latest) LANE=latest ;;
+            auto)   if [ "$PRE" = "on" ]; then LANE=dev; else LANE=latest; fi ;;
+          esac
+
+          echo "pre=$PRE"   >> "$GITHUB_OUTPUT"
+          echo "lane=$LANE" >> "$GITHUB_OUTPUT"
+
       - run: npm run build:release
 
-      - name: Changesets – create release PR or publish
+      # -------------------------------
+      # PLAN PHASE (no publish)
+      # -------------------------------
+      # On dry_run, only create/update the Version Packages PR.
+      - name: Changesets – plan (no publish)
+        if: ${{ inputs.dry_run }}
+        uses: changesets/action@v1
+        with:
+          # No 'publish' input here → only opens/updates the Version PR
+          title: "release(${{ steps.decide.outputs.lane }}): version packages"
+          commit: "ci(release): version packages (${{ steps.decide.outputs.lane }})"
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # -------------------------------
+      # PUBLISH PHASE (actual publish)
+      # -------------------------------
+      # When NOT dry_run, publish according to the decided lane.
+      - name: Changesets – prerelease publish
+        if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'dev' }}
+        uses: changesets/action@v1
+        with:
+          publish: npm run changeset:publish
+          title: "release(prerelease): version packages"
+          commit: "ci(release): version packages (prerelease)"
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Changesets – stable publish (latest)
+        if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'latest' }}
         uses: changesets/action@v1
         with:
           publish: npm run changeset:publish
           title: "release: version packages"
+          commit: "ci(release): version packages (latest)"
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

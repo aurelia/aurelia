@@ -310,12 +310,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    * @param viewFactory - todo(comment)
    * @param flags - todo(comment)
    * @param parentController - the parent controller to connect the created view with. Used in activation
+   * @param host - when it's desirable to associate a synthetic view with a host node during hydration,
+   * it's possible to do so if a host is given here.
    *
    * Semi private API
    */
   public static $view(
     viewFactory: IViewFactory,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
+    host: HTMLElement | null = null,
   ): ISyntheticView {
     const controller = new Controller(
       /* container      */viewFactory.container,
@@ -323,7 +326,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* definition     */null,
       /* viewFactory    */viewFactory,
       /* viewModel      */null,
-      /* host           */null,
+      /* host           */host,
       /* location       */null
     );
     controller.parent = parentController ?? null;
@@ -492,7 +495,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* controller */this as ISyntheticView,
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
       /* definition */this._compiledDef,
-      /* host       */void 0,
+      /* host       */this.host,
     );
   }
 

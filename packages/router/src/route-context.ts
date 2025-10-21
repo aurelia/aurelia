@@ -563,8 +563,6 @@ export class RouteContext {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
-    let contextChanged = false;
-
     if (!isArray(instructionOrInstructions)) {
       instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
     } else {
@@ -589,13 +587,9 @@ export class RouteContext {
       const isVpInstr = isPartialViewportInstruction(instr);
       let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
       if (typeof $instruction === 'string' && context !== null) {
-        const prevContext = context;
         const normalized = normalizeNavigationInstruction(this, $instruction, context as RouteContext);
         $instruction = normalized.instruction;
         context = normalized.context;
-        if (normalized.contextChanged || prevContext !== context) {
-          contextChanged = true;
-        }
       }
       if (isVpInstr) {
         (instr as Writable<IViewportInstruction>).component = $instruction;
@@ -651,16 +645,14 @@ export class RouteContext {
 interface NormalizedNavigationInstruction {
   instruction: string;
   context: RouteContext;
-  contextChanged: boolean;
 }
 
 function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: string, startContext: RouteContext): NormalizedNavigationInstruction {
   let instruction = rawInstruction.trim();
   let context = startContext;
-  let contextChanged = false;
 
   if (instruction.length === 0) {
-    return { instruction, context, contextChanged };
+    return { instruction, context };
   }
 
   if (instruction.startsWith('/') && !instruction.startsWith('//')) {
@@ -668,71 +660,60 @@ function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: str
     const root = owner.root as RouteContext;
     if (context !== root) {
       context = root;
-      contextChanged = true;
     }
   }
 
   const dotResult = consumeLeadingDotSegments(instruction, context);
   instruction = dotResult.path;
-  if (dotResult.context !== context) {
-    context = dotResult.context;
-  }
-  contextChanged = contextChanged || dotResult.changed;
+  context = dotResult.context;
 
   const recognitionCandidate = extractRecognitionCandidate(instruction);
   if (recognitionCandidate !== null) {
     const resolvedContext = resolveContextThroughRecognition(recognitionCandidate, context);
     if (resolvedContext !== context) {
       context = resolvedContext;
-      contextChanged = true;
     }
   }
 
-  return { instruction, context, contextChanged };
+  return { instruction, context };
 }
 
 function stripLeadingSlashes(value: string): string {
-  let index = 0;
-  while (index < value.length && value.charCodeAt(index) === 47 /* / */) {
-    index++;
-  }
-  return value.slice(index);
+  return value.replace(/^\/+/, '');
 }
 
-function consumeLeadingDotSegments(path: string, startContext: RouteContext): { path: string; context: RouteContext; changed: boolean } {
-  let working = path;
-  let context = startContext;
-  let changed = false;
-
-  while (working.length > 0) {
-    if (working.startsWith('../')) {
-      working = working.slice(3);
-      if (!context.isRoot) {
-        context = context.parent as RouteContext;
-      }
-      changed = true;
-      continue;
-    }
-    if (working === '..') {
-      working = '';
-      if (!context.isRoot) {
-        context = context.parent as RouteContext;
-      }
-      changed = true;
-      continue;
-    }
-    if (working.startsWith('./')) {
-      working = working.slice(2);
-      continue;
-    }
-    if (working === '.') {
-      working = '';
-      continue;
-    }
-    break;
+function consumeLeadingDotSegments(path: string, startContext: RouteContext): { path: string; context: RouteContext } {
+  // Resolve simple no-op cases without looping. `.foo` stays unchanged – only standalone dot segments are treated as navigation hints.
+  if (path === '.') {
+    return { path: '', context: startContext };
+  }
+  if (path.startsWith('./') && !path.startsWith('../')) {
+    return consumeLeadingDotSegments(path.slice(2), startContext);
   }
 
-  return { path: working, context, changed };
+  if (!path.startsWith('..')) {
+    return { path, context: startContext };
+  }
+
+  let working = path;
+  let context = startContext;
+
+  while (working.startsWith('../') || working === '..') {
+    if (!context.isRoot) {
+      context = context.parent as RouteContext;
+    }
+
+    if (working === '..') {
+      return { path: '', context };
+    }
+
+    working = working.slice(3);
+    if (working.length === 0) {
+      return { path: '', context };
+    }
+  }
+
+  return { path: working, context };
 }
 
 function extractRecognitionCandidate(path: string): string | null {
@@ -762,6 +743,13 @@ function extractRecognitionCandidate(path: string): string | null {
   return candidate.trim();
 }
 
+/**
+ * Find the nearest ancestor context that owns the first segment of the navigation token.
+ *
+ * This is the minimal amount of look-ahead needed so instructions such as `load="about"`
+ * issued from deeply nested components can still resolve to a sibling or root route without
+ * forcing every caller to sprinkle `../` prefixes.
+ */
 function resolveContextThroughRecognition(path: string, startContext: RouteContext): RouteContext {
   if (path.length === 0) return startContext;
 

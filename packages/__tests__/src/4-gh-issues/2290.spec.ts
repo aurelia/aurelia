@@ -160,17 +160,17 @@ describe('4-gh-issues/2290.spec.ts', function () {
   it('interpolation binding does not process queued update if its controller is deactivating', async function () {
     const logs = [];
     const { component, assertText, stop } = createFixture(
-      '<div ref="div" textcontent="my ${message}"></div>',
+      '<div ref="div" prop="my ${message}"></div>',
       class App {
         message = '';
         div!: HTMLDivElement;
 
         bound() {
           // simulate attribute binding
-          Object.defineProperty(this.div, 'textContent', {
+          Object.defineProperty(this.div, 'prop', {
             set: (value) => {
               logs.push('set text');
-              this.div.innerText = value;
+              this.div.textContent = value;
             },
             configurable: true,
             enumerable: true,

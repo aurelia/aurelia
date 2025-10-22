@@ -103,7 +103,7 @@ describe('4-gh-issues/2290.spec.ts', function () {
     );
 
     const textNode = getBy('div').firstChild as Text;
-    const originalTextContent = Object.getOwnPropertyDescriptor(Text.prototype, 'textContent');
+    const originalTextContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
     Object.defineProperty(textNode, 'textContent', {
       get() {
         return originalTextContent!.get!.call(this);
@@ -128,5 +128,34 @@ describe('4-gh-issues/2290.spec.ts', function () {
     component.text.push('hi');
     await Promise.resolve();
     assert.deepEqual(logs, []);
+    assertText('hello');
+  });
+
+  it('interpolation binding does not update when its controller is deactivating', async function () {
+    const { component, assertText } = createFixture(
+      '<el if.bind="show"></el>',
+      class App {
+        message = 'hi';
+        show = true;
+      },
+      [class El {
+        static $au = {
+          type: 'custom-element',
+          name: 'el',
+          template: '<div textcontent="my ${prop}"></div>',
+        };
+        prop = 'hello';
+
+        detaching() {
+          this.prop = 'goodbye';
+        }
+      }]
+    );
+
+    assertText('my hello');
+
+    component.show = false;
+    const hadTasksPromise = await tasksSettled();
+    assert.strictEqual(hadTasksPromise, false);
   });
 });

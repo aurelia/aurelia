@@ -21,7 +21,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-import { activating } from '../templating/controller';
+import { activated, activating } from '../templating/controller';
 import { atLayout } from '../utilities';
 
 // a pseudo binding to manage multiple InterpolationBinding s
@@ -79,7 +79,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 
   /** @internal */
   public _handlePartChange() {
-    if (!this.isBound) return;
+    if (!this.isBound || this._controller.state > activated) return;
 
     const shouldQueue = this._controller.state !== activating && (this._targetObserver.type & atLayout) > 0;
 

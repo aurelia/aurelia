@@ -89,7 +89,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 
       queueTask(() => {
         this._isQueued = false;
-        if (!this.isBound) return;
+        if (!this.isBound || this._controller.state > activated) return;
 
         this.updateTarget();
       });

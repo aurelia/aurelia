@@ -43,14 +43,13 @@ describe('4-gh-issues/2290.spec.ts', function () {
     );
 
     const textNode = getBy('div').firstChild as Text;
-    const originalTextContent = Object.getOwnPropertyDescriptor(Text.prototype, 'textContent');
     Object.defineProperty(textNode, 'textContent', {
       get() {
-        return originalTextContent!.get!.call(this);
+        return this.value;
       },
       set(value) {
         logs.push('set text');
-        originalTextContent!.set!.call(this, value);
+        this.value = value;
       },
       configurable: true,
       enumerable: true,
@@ -103,20 +102,19 @@ describe('4-gh-issues/2290.spec.ts', function () {
     );
 
     const textNode = getBy('div').firstChild as Text;
-    const originalTextContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
     Object.defineProperty(textNode, 'textContent', {
       get() {
-        return originalTextContent!.get!.call(this);
+        return this.value;
       },
       set(value) {
         logs.push('set text');
-        originalTextContent!.set!.call(this, value);
+        this.value = value;
       },
       configurable: true,
       enumerable: true,
     });
     assertText('hello');
-    logs.length = 0;
+    assert.deepEqual(logs, []);
 
     // stop in the next tick to ensure sure a task is queued from changing .text
     // and also app is stopped before the queued task is run
@@ -157,5 +155,51 @@ describe('4-gh-issues/2290.spec.ts', function () {
     component.show = false;
     const hadTasksPromise = await tasksSettled();
     assert.strictEqual(hadTasksPromise, false);
+  });
+
+  it('interpolation binding does not process queued update if its controller is deactivating', async function () {
+    const logs = [];
+    const { component, assertText, stop } = createFixture(
+      '<div ref="div" textcontent="my ${message}"></div>',
+      class App {
+        message = '';
+        div!: HTMLDivElement;
+
+        bound() {
+          // simulate attribute binding
+          Object.defineProperty(this.div, 'textContent', {
+            set: (value) => {
+              logs.push('set text');
+              this.div.innerText = value;
+            },
+            configurable: true,
+            enumerable: true,
+          });
+        }
+
+        // need this to delay the deactivation
+        detaching() {
+          return Promise.resolve();
+        }
+      },
+    );
+
+    component.message = 'hi';
+    await Promise.resolve();
+
+    assertText('my hi');
+    assert.deepEqual(logs, ['set text']);
+    logs.length = 0;
+
+    // stop in the next tick to ensure sure a task is queued from changing .prop
+    // and also app is stopped before the queued task is run
+    // the queue callback still runs but it won't do anything
+    // this needs to combine with the detaching promise above to ensure binding is not yet unbound, only controller is deactivating
+    void Promise.resolve().then(() => {
+      void stop();
+    });
+    component.message = 'ho';
+    await Promise.resolve();
+    assert.deepEqual(logs, []);
   });
 });

@@ -78,6 +78,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public handleChange(): void {
+    // todo: let binding may also need to stop handling change during deactivation like other bindings
     if (!this.isBound) return;
     this.obs.version++;
     this._value = astEvaluate(this.ast, this._scope!, this, this);

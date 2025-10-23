@@ -15,7 +15,8 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
-import { IBinding } from './interfaces-bindings';
+import { IBinding, IBindingController } from './interfaces-bindings';
+import { activated } from '../templating/controller';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -58,8 +59,11 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   public readonly boundFn = false;
 
   public strict: boolean;
+  /** @internal */
+  private readonly _controller: IBindingController;
 
   public constructor(
+    controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsExpression,
@@ -71,6 +75,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this.oL = observerLocator;
     this.strict = strict;
     this._toBindingContext = toBindingContext;
+    this._controller = controller;
   }
 
   public updateTarget() {
@@ -78,8 +83,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public handleChange(): void {
-    // todo: let binding may also need to stop handling change during deactivation like other bindings
-    if (!this.isBound) return;
+    if (!this.isBound || this._controller.state > activated) return;
     this.obs.version++;
     this._value = astEvaluate(this.ast, this._scope!, this, this);
     this.obs.clear();

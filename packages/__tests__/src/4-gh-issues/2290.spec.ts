@@ -202,4 +202,41 @@ describe('4-gh-issues/2290.spec.ts', function () {
     await Promise.resolve();
     assert.deepEqual(logs, []);
   });
+
+  it('let binding does not update when its controller is deactivating', async function () {
+    const logs = [];
+    const { component } = createFixture(
+      '<el if.bind="show"></el>',
+      class App {
+        show = true;
+      },
+      [class El {
+        static $au = {
+          type: 'custom-element',
+          name: 'el',
+          template: '<let prop.bind="m1 + m2" to-binding-context></let>',
+        };
+
+        m1 = 'h1';
+        m2 = 'h2';
+
+        set prop(v) {
+          logs.push('set prop');
+        }
+
+        // need this to delay the deactivation
+        detaching() {
+          this.m1 = 'h11';
+        }
+      }]
+    );
+
+    assert.deepEqual(logs, ['set prop']);
+
+    component.show = false;
+
+    const hadTasksPromise = await tasksSettled();
+    assert.strictEqual(hadTasksPromise, false);
+    assert.deepEqual(logs, ['set prop']);
+  });
 });

@@ -709,7 +709,7 @@ export class RouteConfigContext {
       this.root = parent.root;
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
-      recognizer.appendTo(parent._recognizer);
+      if (this._options.useEagerLoading) parent._recognizer.append(recognizer);
     }
     this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
@@ -1043,15 +1043,15 @@ export class RouteConfigContext {
     }
   }
 
-  public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
+  public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute[] | null {
     if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteConfigContext = this;
     let _continue = true;
-    let result: RecognizedRoute<RouteConfig | Promise<RouteConfig>> | null = null;
+    let results: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
     while (_continue) {
-      result = _current._recognizer.recognize(path);
-      if (result === null) {
+      results = _current._recognizer.recognize(path);
+      if (results === null) {
         if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
       } else {
@@ -1059,12 +1059,12 @@ export class RouteConfigContext {
       }
     }
 
-    return new $RecognizedRoute(
-      result!,
-      Reflect.has(result!.params, RESIDUE)
-        ? (result!.params[RESIDUE] ?? null)
+    return results!.map(result => new $RecognizedRoute(
+      result,
+      Reflect.has(result.params, RESIDUE)
+        ? (result.params[RESIDUE] ?? null)
         : null
-    );
+    ));
   }
 
   private static readonly _lookup: RouteConfigLookup = new WeakMap();

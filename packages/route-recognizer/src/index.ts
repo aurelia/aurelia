@@ -97,8 +97,11 @@ class Candidate<T> {
         let highestDegree = 0;
         let childRoutes: RecognizedRoute<T>[] = [];
         let fullyMatched = false;
-        if (nextState.segment?.kind === SegmentKind.residue) {
-          // we hit the residue segement
+        if (nextState.segment?.kind === SegmentKind.residue
+          && nextState.prevState?.isSeparator
+          && nextState.prevState?.prevState?.endpoint !== null
+        ) {
+          // we hit the residue segement after a definitive endpoint
           // this is a good opportunity to traverse into child recognizers
           for (const childRecognizer of routeRecognizer.children) {
 
@@ -555,8 +558,9 @@ export class RouteRecognizer<T> {
     return this.endpointLookup.get(path) ?? null;
   }
 
-  public appendTo(parent: RouteRecognizer<T>): void {
-    parent.children.push(this);
+  public append(child: RouteRecognizer<T>): void {
+    this.children.push(child);
+    this.cache.clear();
   }
 }
 

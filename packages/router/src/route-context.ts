@@ -649,11 +649,9 @@ export class RouteContext {
 export interface IRouteConfigContext extends RouteConfigContext { }
 export class RouteConfigContext {
 
-  public readonly container: IContainer;
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ public _childRoutesConfigured: boolean = false;
-  /** @internal */ private readonly _moduleLoader: IModuleLoader;
 
   public readonly root: IRouteConfigContext;
   public get isRoot(): boolean {
@@ -697,8 +695,10 @@ export class RouteConfigContext {
     public readonly parent: IRouteConfigContext | null,
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
-    parentContainer: IContainer,
-    private readonly _router: IRouter,
+    /** @internal */ public readonly _rootContainer: IContainer,
+    /** @internal */ private readonly _router: IRouter,
+    /** @internal */ private readonly _moduleLoader: IModuleLoader,
+    logger: ILogger,
   ) {
     if (parent === null) {
       this.root = this;
@@ -709,12 +709,8 @@ export class RouteConfigContext {
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
     }
-    this._logger = parentContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
+    this._logger = logger.scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
-
-    this._moduleLoader = parentContainer.get(IModuleLoader);
-
-    this.container = parentContainer.createChild();
 
     this._recognizer = new RouteRecognizer();
 
@@ -977,7 +973,7 @@ export class RouteConfigContext {
       const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
       return onResolve(
         onResolve(
-          this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.container, this.config, this),
+          this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.config, this),
           x => onResolve(x.allResolved, () => x)
         ),
         $routeConfigContext => {
@@ -1046,10 +1042,6 @@ export class RouteConfigContext {
         ? (result!.params[RESIDUE] ?? null)
         : null
     );
-  }
-
-  public dispose(): void {
-    this.container.dispose();
   }
 }
 

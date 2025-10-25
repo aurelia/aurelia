@@ -1,4 +1,4 @@
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction, IModuleLoader } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
@@ -191,6 +191,7 @@ export class Router {
   /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
+  /** @internal */ private readonly _moduleLoader: IModuleLoader = resolve(IModuleLoader);
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
@@ -377,7 +378,7 @@ export class Router {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
     return onResolve(
-      this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, container, parentRouteConfig, parentContext?.routeConfigContext ?? null),
+      this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null),
       rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {
@@ -413,7 +414,6 @@ export class Router {
     $rdConfig: RouteConfig | null,
     componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,
-    container: IContainer,
     parentRouteConfig: RouteConfig | null,
     parentRouteConfigContext: RouteConfigContext | null,
   ): RouteConfigContext | Promise<RouteConfigContext> {
@@ -439,8 +439,10 @@ export class Router {
           parentRouteConfigContext,
           componentDefinition,
           rdConfig,
-          container,
+          this._container.root,
           this,
+          this._moduleLoader,
+          this._logger,
         );
         this._routeConfigLookup.set(rdConfig, routeConfigContext);
         return routeConfigContext;

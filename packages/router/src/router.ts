@@ -378,7 +378,7 @@ export class Router {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
     return onResolve(
-      RouteConfigContext.getOrCreate($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null, container.root, this.options.useNavigationModel),
+      RouteConfigContext.getOrCreate($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null, container.root, this.options),
       rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {

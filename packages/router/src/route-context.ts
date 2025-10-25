@@ -47,6 +47,7 @@ import {
   IChildRouteConfig,
   Routeable,
   INavigationOptions,
+  IRouterOptions,
 } from './options';
 import { IViewport } from './resources/viewport';
 import { noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -692,12 +693,12 @@ export class RouteConfigContext {
     return this._allResolved;
   }
 
-  public constructor(
+  private constructor(
     public readonly parent: IRouteConfigContext | null,
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
     /** @internal */ public readonly _rootContainer: IContainer,
-    /** @internal */ private readonly _useNavigationModel: boolean,
+    /** @internal */ private readonly _options: Readonly<IRouterOptions>,
   ) {
     if (parent === null) {
       this.root = this;
@@ -714,7 +715,7 @@ export class RouteConfigContext {
     this._moduleLoader = _rootContainer.get(IModuleLoader);
     this._recognizer = new RouteRecognizer();
 
-    if (_useNavigationModel) {
+    if (this._options.useNavigationModel) {
       this._navigationModel = new NavigationModel([]);
     } else {
       this._navigationModel = null;
@@ -973,7 +974,7 @@ export class RouteConfigContext {
       const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
       return onResolve(
         onResolve(
-          RouteConfigContext.getOrCreate(parentConfig, parentDefn, null, this.config, this, this._rootContainer, this._useNavigationModel),
+          RouteConfigContext.getOrCreate(parentConfig, parentDefn, null, this.config, this, this._rootContainer, this._options),
           x => onResolve(x.allResolved, () => x)
         ),
         $routeConfigContext => {
@@ -1052,7 +1053,7 @@ export class RouteConfigContext {
     parentRouteConfig: RouteConfig | null,
     parentRouteConfigContext: RouteConfigContext | null,
     rootContainer: IContainer,
-    useNavigationModel: boolean,
+    options: Readonly<IRouterOptions>,
   ): RouteConfigContext | Promise<RouteConfigContext> {
     return onResolve(
       // In case of navigation strategy, get the route config for the resolved component directly.
@@ -1077,7 +1078,7 @@ export class RouteConfigContext {
           componentDefinition,
           rdConfig,
           rootContainer,
-          useNavigationModel,
+          options,
         );
         this._lookup.set(rdConfig, routeConfigContext);
         return routeConfigContext;

@@ -378,7 +378,7 @@ export class Router {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
     return onResolve(
-      this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null),
+      RouteConfigContext.getOrCreate($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null, container.root, this.options.useNavigationModel),
       rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {
@@ -406,46 +406,6 @@ export class Router {
           ),
         );
         return routeContext;
-      }
-    );
-  }
-
-  public getRouteConfigContext(
-    $rdConfig: RouteConfig | null,
-    componentDefinition: CustomElementDefinition,
-    componentInstance: IRouteViewModel | null,
-    parentRouteConfig: RouteConfig | null,
-    parentRouteConfigContext: RouteConfigContext | null,
-  ): RouteConfigContext | Promise<RouteConfigContext> {
-    return onResolve(
-      // In case of navigation strategy, get the route config for the resolved component directly.
-      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
-      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
-      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
-        ? $rdConfig
-        : resolveRouteConfiguration(
-          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-          false,
-          parentRouteConfig,
-          null,
-          parentRouteConfigContext,
-        ),
-      rdConfig => {
-        let routeConfigContext = this._routeConfigLookup.get(rdConfig);
-        if (routeConfigContext != null) return routeConfigContext;
-
-        routeConfigContext = new RouteConfigContext(
-          parentRouteConfigContext,
-          componentDefinition,
-          rdConfig,
-          this._container.root,
-          this,
-          this._moduleLoader,
-          this._logger,
-        );
-        this._routeConfigLookup.set(rdConfig, routeConfigContext);
-        return routeConfigContext;
       }
     );
   }

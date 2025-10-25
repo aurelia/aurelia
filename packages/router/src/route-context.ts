@@ -649,6 +649,7 @@ export class RouteContext {
 export interface IRouteConfigContext extends RouteConfigContext { }
 export class RouteConfigContext {
 
+  /** @internal */ private readonly _moduleLoader: IModuleLoader;
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ public _childRoutesConfigured: boolean = false;
@@ -696,9 +697,7 @@ export class RouteConfigContext {
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
     /** @internal */ public readonly _rootContainer: IContainer,
-    /** @internal */ private readonly _router: IRouter,
-    /** @internal */ private readonly _moduleLoader: IModuleLoader,
-    logger: ILogger,
+    /** @internal */ private readonly _useNavigationModel: boolean,
   ) {
     if (parent === null) {
       this.root = this;
@@ -709,12 +708,13 @@ export class RouteConfigContext {
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
     }
-    this._logger = logger.scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
+    this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
+    this._moduleLoader = _rootContainer.get(IModuleLoader);
     this._recognizer = new RouteRecognizer();
 
-    if (_router.options.useNavigationModel) {
+    if (_useNavigationModel) {
       this._navigationModel = new NavigationModel([]);
     } else {
       this._navigationModel = null;
@@ -973,7 +973,7 @@ export class RouteConfigContext {
       const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
       return onResolve(
         onResolve(
-          this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.config, this),
+          RouteConfigContext.getOrCreate(parentConfig, parentDefn, null, this.config, this, this._rootContainer, this._useNavigationModel),
           x => onResolve(x.allResolved, () => x)
         ),
         $routeConfigContext => {
@@ -1041,6 +1041,47 @@ export class RouteConfigContext {
       Reflect.has(result!.params, RESIDUE)
         ? (result!.params[RESIDUE] ?? null)
         : null
+    );
+  }
+
+  private static readonly _lookup: RouteConfigLookup = new WeakMap();
+  public static getOrCreate(
+    $rdConfig: RouteConfig | null,
+    componentDefinition: CustomElementDefinition,
+    componentInstance: IRouteViewModel | null,
+    parentRouteConfig: RouteConfig | null,
+    parentRouteConfigContext: RouteConfigContext | null,
+    rootContainer: IContainer,
+    useNavigationModel: boolean,
+  ): RouteConfigContext | Promise<RouteConfigContext> {
+    return onResolve(
+      // In case of navigation strategy, get the route config for the resolved component directly.
+      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
+      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
+        ? $rdConfig
+        : resolveRouteConfiguration(
+          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+          false,
+          parentRouteConfig,
+          null,
+          parentRouteConfigContext,
+        ),
+      rdConfig => {
+        let routeConfigContext = this._lookup.get(rdConfig);
+        if (routeConfigContext != null) return routeConfigContext;
+
+        routeConfigContext = new RouteConfigContext(
+          parentRouteConfigContext,
+          componentDefinition,
+          rdConfig,
+          rootContainer,
+          useNavigationModel,
+        );
+        this._lookup.set(rdConfig, routeConfigContext);
+        return routeConfigContext;
+      }
     );
   }
 }
@@ -1177,3 +1218,5 @@ class NavigationRoute implements INavigationRoute {
     this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
   }
 }
+
+type RouteConfigLookup = WeakMap<RouteConfig, RouteConfigContext>;

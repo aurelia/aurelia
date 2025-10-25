@@ -779,9 +779,13 @@ export class RouteConfigContext {
     this._childRoutesConfigured = true;
 
     if (allPromises.length > 0) {
-      this._allResolved = Promise.all(allPromises).then(() => {
-        this._allResolved = null;
-      });
+      this._allResolved = Promise.all(allPromises)
+        .then(() => this._options.enableEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0)
+        .then(() => {
+          this._allResolved = null;
+        });
+    } else if (this._options.enableEagerLoading) {
+      this._allResolved = onResolve(this._eagerLoadChildRouteConfigContext(), () => { this._allResolved = null; });
     }
   }
 
@@ -808,6 +812,22 @@ export class RouteConfigContext {
       caseSensitive,
       handler,
     }, true);
+  }
+
+  private async _eagerLoadChildRouteConfigContext(): Promise<void> {
+    const childRoutes = this.childRoutes as RouteConfig[];
+    const len = childRoutes.length;
+    if (len === 0) return;
+
+    const childRouteConfigPromises: (void | Promise<void>)[] = [];
+    for (let i = 0; i < len; i++) {
+      const childRoute = childRoutes[i];
+      if (childRoute.redirectTo != null) continue;
+      const parentComponent = childRoute.component;
+      const defn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
+      childRouteConfigPromises.push(onResolve(RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options), noop));
+    }
+    await Promise.all(childRouteConfigPromises);
   }
 
   /** @internal */

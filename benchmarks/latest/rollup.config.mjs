@@ -2,12 +2,13 @@ import { defineConfig } from 'rollup';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import alias from '@rollup/plugin-alias';
+import fs from 'node:fs';
 import path from 'path';
 import url from 'url';
 
 // const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-const aliases = [
+const packageNames = [
   'kernel',
   'metadata',
   'expression-parser',
@@ -16,10 +17,24 @@ const aliases = [
   'runtime-html',
   'platform',
   'platform-browser',
-].map(name => ({
-  find: `@aurelia/${name}`,
-  replacement: path.resolve(__dirname, `node_modules/@aurelia/${name}/dist/esm/index.mjs`)
-}));
+];
+
+const resolveAlias = name => {
+  const localPath = path.resolve(__dirname, `node_modules/@aurelia/${name}/dist/esm/index.mjs`);
+  const workspacePath = path.resolve(__dirname, `../../node_modules/@aurelia/${name}/dist/esm/index.mjs`);
+  const replacement = [localPath, workspacePath].find(candidate => fs.existsSync(candidate));
+
+  if (!replacement) {
+    throw new Error(`Unable to locate build output for @aurelia/${name}. Please run npm install at the repository root.`);
+  }
+
+  return {
+    find: `@aurelia/${name}`,
+    replacement
+  };
+};
+
+const aliases = packageNames.map(resolveAlias);
 
 export default defineConfig([{
   input: '../app-repeat-view',

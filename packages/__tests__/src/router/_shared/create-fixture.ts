@@ -97,18 +97,19 @@ type RouterTestStartOptions<TAppRoot> = {
   historyStrategy?: HistoryStrategy;
   activeClass?: string | null;
   treatQueryAsParameters?: boolean;
+  useEagerLoading?: boolean;
 };
 
 /**
  * Simpler fixture creation.
  */
-export async function start<TAppRoot>({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace', activeClass, treatQueryAsParameters }: RouterTestStartOptions<TAppRoot>) {
+export async function start<TAppRoot>({ appRoot, useHash = false, registrations = [], historyStrategy = 'replace', activeClass, treatQueryAsParameters, useEagerLoading = false }: RouterTestStartOptions<TAppRoot>) {
   const ctx = TestContext.create();
   const { container } = ctx;
 
   container.register(
     TestRouterConfiguration.for(LogLevel.warn),
-    RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy, activeClass, treatQueryAsParameters }),
+    RouterConfiguration.customize({ useUrlFragmentHash: useHash, historyStrategy, activeClass, treatQueryAsParameters, useEagerLoading }),
     ...registrations,
   );
 

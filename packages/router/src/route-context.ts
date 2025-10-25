@@ -780,11 +780,11 @@ export class RouteConfigContext {
 
     if (allPromises.length > 0) {
       this._allResolved = Promise.all(allPromises)
-        .then(() => this._options.enableEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0)
+        .then(() => this._options.useEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0)
         .then(() => {
           this._allResolved = null;
         });
-    } else if (this._options.enableEagerLoading) {
+    } else if (this._options.useEagerLoading) {
       this._allResolved = onResolve(this._eagerLoadChildRouteConfigContext(), () => { this._allResolved = null; });
     }
   }
@@ -814,6 +814,7 @@ export class RouteConfigContext {
     }, true);
   }
 
+  /** @internal */
   private async _eagerLoadChildRouteConfigContext(): Promise<void> {
     const childRoutes = this.childRoutes as RouteConfig[];
     const len = childRoutes.length;

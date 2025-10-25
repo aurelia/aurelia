@@ -13,6 +13,7 @@ import {
   MaybePromise,
   isArray,
   Writable,
+  isPromise,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -49,6 +50,7 @@ import {
   IChildRouteConfig,
   Routeable,
   INavigationOptions,
+  IRouterOptions,
 } from './options';
 import { IViewport } from './resources/viewport';
 import { noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -61,7 +63,7 @@ import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings, mergeQueryParams } from './util';
 import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialViewportInstruction } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
-import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
+import { Events, debug, error, getMessage, logAndThrow, trace, warn } from './events';
 import { ILocationManager } from './location-manager';
 
 export interface IRouteContext extends RouteContext { }
@@ -80,8 +82,8 @@ interface RouteParametersBaseOptions {
 
 export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
   TStrategy extends 'child-first'
-    ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
-    : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
+  ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
+  : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
@@ -95,10 +97,10 @@ type RouteParameterAccumulator = Record<string, RouteParameterValue | undefined>
 
 export type RouteParametersResult<TStrategy extends RouteParameterMergeStrategy, TParams extends Record<string, unknown>> =
   TStrategy extends 'append'
-    ? Readonly<Record<string, readonly RouteParameterValue[]>>
-    : TStrategy extends 'by-route'
-      ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
-      : Readonly<TParams>;
+  ? Readonly<Record<string, readonly RouteParameterValue[]>>
+  : TStrategy extends 'by-route'
+  ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
+  : Readonly<TParams>;
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
@@ -193,6 +195,10 @@ export class RouteContext {
 
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
+
+  public get options(): Readonly<IRouterOptions> {
+    return this._router.options;
+  }
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -547,7 +553,7 @@ export class RouteContext {
    */
   public generateRootedPath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
     return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, null, true),
       vit => {
         const options = this._router.options;
         const relativePath = vit.toUrl(true, options._urlParser, false);
@@ -574,7 +580,7 @@ export class RouteContext {
    */
   public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, null, true),
       // Note that even though this method is for generating relative paths, one can still generate a rooted path using this method.
       // For example, when instructions like `../sibling-route` is used and the parent of the current context is the root context.
       // In such cases, the upward crawl of context will happen, and thus the deciding factor will be if the ViewportInstructionTree
@@ -584,9 +590,9 @@ export class RouteContext {
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
@@ -607,6 +613,7 @@ export class RouteContext {
       routerOptions,
       NavigationOptions.create(routerOptions, { ...options, context }),
       this.root,
+      parentRoutePath,
       traverseChildren as true,
     );
 
@@ -676,11 +683,10 @@ export class RouteContext {
 export interface IRouteConfigContext extends RouteConfigContext { }
 export class RouteConfigContext {
 
-  public readonly container: IContainer;
+  /** @internal */ private readonly _moduleLoader: IModuleLoader;
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ public _childRoutesConfigured: boolean = false;
-  /** @internal */ private readonly _moduleLoader: IModuleLoader;
 
   public readonly root: IRouteConfigContext;
   public get isRoot(): boolean {
@@ -720,33 +726,49 @@ export class RouteConfigContext {
     return this._allResolved;
   }
 
-  public constructor(
+  /** @internal */
+  private _parentPaths: string[] | null = null;
+  private get parentPaths(): string[] | null {
+    if (!this._options.useEagerLoading) return null;
+    if (this._parentPaths !== null) return this._parentPaths;
+
+    // collect the parent paths first to prepend it to the child paths
+    // traverse bottom-up and and at every level do a cartesian product and reassign the parentPaths array
+    let parentPaths: string[] = [''];
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let current: IRouteConfigContext | null = this;
+    while (current.parent !== null) {
+      parentPaths = current.config.path.flatMap(p => parentPaths.map(pp => pp.length === 0 ? p : `${p}/${pp}`));
+      current = current.parent;
+    }
+    return this._parentPaths = parentPaths.filter(p => p.length > 0);
+  }
+
+  private constructor(
     public readonly parent: IRouteConfigContext | null,
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
-    parentContainer: IContainer,
-    private readonly _router: IRouter,
+    /** @internal */ public readonly _rootContainer: IContainer,
+    /** @internal */ private readonly _options: Readonly<IRouterOptions>,
   ) {
     if (parent === null) {
       this.root = this;
       this.path = [this];
       this._friendlyPath = component.name;
+      this._recognizer = new RouteRecognizer();
     } else {
       this.root = parent.root;
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
+      this._recognizer = _options.useEagerLoading ? parent._recognizer : new RouteRecognizer();
     }
-    this._logger = parentContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
+    this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
-    this._moduleLoader = parentContainer.get(IModuleLoader);
+    this._moduleLoader = _rootContainer.get(IModuleLoader);
 
-    this.container = parentContainer.createChild();
-
-    this._recognizer = new RouteRecognizer();
-
-    if (_router.options.useNavigationModel) {
-      this._navigationModel = new NavigationModel([]);
+    if (this._options.useNavigationModel) {
+      this._navigationModel = new NavigationModel(this.parentPaths);
     } else {
       this._navigationModel = null;
     }
@@ -772,6 +794,22 @@ export class RouteConfigContext {
       this._childRoutesConfigured = getRouteConfig == null ? true : typeof getRouteConfig !== 'function';
       return;
     }
+
+    if (__DEV__ && !this._options.useEagerLoading) {
+      // issues: #2259, #2273
+      const parameterized = config.path.find(p => {
+        const parts = p.split('/');
+        const len = parts.length;
+        if (len === 0) return false;
+        const lastPart = parts[len - 1];
+        return lastPart.startsWith(':') || lastPart.startsWith('*');
+      });
+      const $static = config.path.find(p => !p.includes(':') && !p.includes('*'));
+      if (parameterized != null && $static != null) {
+        warn(this._logger, Events.rcParamterizedPathHasChildren, config.path);
+      }
+    }
+
     const navModel = this._navigationModel;
     const hasNavModel = navModel !== null;
     let i = 0;
@@ -809,9 +847,13 @@ export class RouteConfigContext {
     this._childRoutesConfigured = true;
 
     if (allPromises.length > 0) {
-      this._allResolved = Promise.all(allPromises).then(() => {
-        this._allResolved = null;
-      });
+      this._allResolved = Promise.all(allPromises)
+        .then(() => this._options.useEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0)
+        .then(() => {
+          this._allResolved = null;
+        });
+    } else if (this._options.useEagerLoading) {
+      this._allResolved = onResolve(this._eagerLoadChildRouteConfigContext(), () => { this._allResolved = null; });
     }
   }
 
@@ -833,11 +875,44 @@ export class RouteConfigContext {
 
   /** @internal */
   private _$addRoute(path: string, caseSensitive: boolean, handler: RouteConfig | Promise<RouteConfig>): void {
-    this._recognizer.add({
-      path,
-      caseSensitive,
-      handler,
-    }, true);
+    if (__DEV__ && path === '') {
+      warn(this._logger, Events.rcUnexpectedEmptyPathForEagerLoading, isPromise(handler) ? 'Promise' : handler);
+    }
+    const parentPaths = this.parentPaths;
+    const len = parentPaths?.length ?? 0;
+    if (parentPaths === null || len === 0) {
+      this._recognizer.add({ path, caseSensitive, handler }, true);
+      return;
+    }
+
+    for (let i = 0; i < len; i++) {
+      const parentPath = parentPaths[i]!;
+      this._recognizer.add({ path, caseSensitive, handler }, true, parentPath);
+    }
+  }
+
+  /** @internal */
+  private async _eagerLoadChildRouteConfigContext(): Promise<void> {
+    const childRoutes = this.childRoutes as RouteConfig[];
+    const len = childRoutes.length;
+    if (len === 0) return;
+
+    const childRouteConfigPromises: (void | Promise<void>)[] = [];
+    for (let i = 0; i < len; i++) {
+      const childRoute = childRoutes[i];
+      if (childRoute.redirectTo != null) continue;
+      const parentComponent = childRoute.component;
+      const defn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
+
+      // avoid self-recursion
+      if (defn === this.component) continue;
+
+      childRouteConfigPromises.push(onResolve(
+        RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options),
+        noop
+      ));
+    }
+    await Promise.all(childRouteConfigPromises);
   }
 
   /** @internal */
@@ -882,12 +957,20 @@ export class RouteConfigContext {
   }
 
   /** @internal */
-  public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
-  public _generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren?: boolean): PathGenerationResult | Promise<PathGenerationResult> | null {
+  public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }, parentRoutePath: string | null): PathGenerationResult;
+  public _generateViewportInstruction(instruction: { component: string; params: Params }, parentRoutePath: string | null): PathGenerationResult | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null): PathGenerationResult | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren?: boolean): PathGenerationResult | Promise<PathGenerationResult> | null {
     if (!isEagerInstruction(instruction)) return null;
+    if (!this._options.useEagerLoading) parentRoutePath = null;
+    else if (parentRoutePath == null) {
+      if (this.isRoot) parentRoutePath = '';
+      else {
+        const configuredPaths = this.config.path;
+        parentRoutePath = configuredPaths.find(p => p.length) ?? null;
+      }
+    }
     traverseChildren ??= false;
     const component = instruction.component;
     let paths: string[] | undefined;
@@ -958,7 +1041,7 @@ export class RouteConfigContext {
     };
 
     function core(path: string): EagerResolutionResult | null {
-      const endpoint = recognizer.getEndpoint(path);
+      const endpoint = recognizer.getEndpoint((parentRoutePath?.length ?? 0) > 0 ? `${parentRoutePath}/${path}` : path);
       if (endpoint === null) {
         errors.push(`No endpoint found for the path: '${path}'.`);
         return null;
@@ -995,7 +1078,7 @@ export class RouteConfigContext {
     }
 
     // traverse the children
-    async function generateChildrenInstructions(this: RouteConfigContext, parentConfig: RouteConfig): Promise<{ instructions: ViewportInstruction[]; query: Record<string, string | string[]> }> {
+    async function generateChildrenInstructions(this: RouteConfigContext, parentConfig: RouteConfig, parentPath: string): Promise<{ instructions: ViewportInstruction[]; query: Record<string, string | string[]> }> {
       const children = (instruction as IExtendedViewportInstruction).children;
       const numChildren = children?.length ?? 0;
       if (numChildren === 0) return { instructions: emptyArray, query: emptyObject };
@@ -1004,7 +1087,7 @@ export class RouteConfigContext {
       const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
       return onResolve(
         onResolve(
-          this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.container, this.config, this),
+          RouteConfigContext.getOrCreate(parentConfig, parentDefn, null, this.config, this, this._rootContainer, this._options),
           x => onResolve(x.allResolved, () => x)
         ),
         $routeConfigContext => {
@@ -1016,6 +1099,7 @@ export class RouteConfigContext {
             promises[i] = onResolve(
               $routeConfigContext._generateViewportInstruction(
                 isPartialViewportInstruction(child) ? { ...child, params: child.params ?? emptyObject } : { component: child, params: emptyObject },
+                parentPath,
                 traverseChildren as true
               ),
               eagerVi => {
@@ -1033,12 +1117,16 @@ export class RouteConfigContext {
     function createPathGenerationResult(this: RouteConfigContext, result: Exclude<ReturnType<typeof core>, null>): PathGenerationResult | Promise<PathGenerationResult> {
       return onResolve(
         (traverseChildren
-          ? generateChildrenInstructions.call(this, result.endpoint.route.handler as RouteConfig) as Promise<{ instructions: NavigationInstruction[]; query: Record<string, string | string[]> }>
+          ? generateChildrenInstructions.call(
+            this,
+            result.endpoint.route.handler as RouteConfig,
+            parentRoutePath != null && parentRoutePath.length > 0 ? `${parentRoutePath}/${result.endpoint.route.path}` : result.endpoint.route.path
+          ) as Promise<{ instructions: NavigationInstruction[]; query: Record<string, string | string[]> }>
           : { instructions: (instruction as IViewportInstruction).children, query: emptyObject }),
         ({ instructions: children, query: $query }) => {
           return {
             vi: ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.path, result.consumed), null),
               component: result.path,
               children,
               viewport: (instruction as IViewportInstruction).viewport,
@@ -1051,15 +1139,16 @@ export class RouteConfigContext {
     }
   }
 
-  public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
+  public recognize(path: string, searchAncestor: boolean = false, relativeTo: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null): $RecognizedRoute[] | null {
     if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteConfigContext = this;
     let _continue = true;
-    let result: RecognizedRoute<RouteConfig | Promise<RouteConfig>> | null = null;
+    let results: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
     while (_continue) {
-      result = _current._recognizer.recognize(path);
-      if (result === null) {
+      results = _current._recognizer.recognize(path, relativeTo);
+      if (results === null) {
         if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
       } else {
@@ -1067,16 +1156,53 @@ export class RouteConfigContext {
       }
     }
 
-    return new $RecognizedRoute(
-      result!,
-      Reflect.has(result!.params, RESIDUE)
-        ? (result!.params[RESIDUE] ?? null)
+    return results!.map(result => new $RecognizedRoute(
+      result,
+      Reflect.has(result.params, RESIDUE)
+        ? (result.params[RESIDUE] ?? null)
         : null
-    );
+    ));
   }
 
-  public dispose(): void {
-    this.container.dispose();
+  private static readonly _lookup: RouteConfigLookup = new WeakMap();
+  public static getOrCreate(
+    $rdConfig: RouteConfig | null,
+    componentDefinition: CustomElementDefinition,
+    componentInstance: IRouteViewModel | null,
+    parentRouteConfig: RouteConfig | null,
+    parentRouteConfigContext: RouteConfigContext | null,
+    rootContainer: IContainer,
+    options: Readonly<IRouterOptions>,
+  ): RouteConfigContext | Promise<RouteConfigContext> {
+    return onResolve(
+      // In case of navigation strategy, get the route config for the resolved component directly.
+      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
+      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
+        ? $rdConfig
+        : resolveRouteConfiguration(
+          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+          false,
+          parentRouteConfig,
+          null,
+          parentRouteConfigContext,
+        ),
+      rdConfig => {
+        let routeConfigContext = this._lookup.get(rdConfig);
+        if (routeConfigContext != null) return routeConfigContext;
+
+        routeConfigContext = new RouteConfigContext(
+          parentRouteConfigContext,
+          componentDefinition,
+          rdConfig,
+          rootContainer,
+          options,
+        );
+        this._lookup.set(rdConfig, routeConfigContext);
+        return routeConfigContext;
+      }
+    );
   }
 }
 
@@ -1084,7 +1210,11 @@ export class $RecognizedRoute {
   public constructor(
     public readonly route: RecognizedRoute<RouteConfig | Promise<RouteConfig>>,
     public readonly residue: string | null,
-  ) { }
+  ) {
+    if (residue?.startsWith('/') === true) {
+      this.residue = residue.slice(1);
+    }
+  }
 
   public toString(): string {
     if (!__DEV__) return 'RR';
@@ -1107,8 +1237,9 @@ export interface INavigationModel {
 // Usage of classical interface pattern is intentional.
 class NavigationModel implements INavigationModel {
   private _promise: Promise<void> | void = void 0;
+  public readonly routes: NavigationRoute[] = [];
   public constructor(
-    public readonly routes: NavigationRoute[],
+    /** @internal */ private readonly _parentPaths: string[] | null,
   ) { }
 
   public resolve(): Promise<void> | void {
@@ -1130,7 +1261,7 @@ class NavigationModel implements INavigationModel {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
       if ((route.nav ?? false) && route.redirectTo === null) {
-        routes.push(NavigationRoute._create(route));
+        routes.push(NavigationRoute._create(route, this._parentPaths));
       }
       return;
     }
@@ -1140,7 +1271,7 @@ class NavigationModel implements INavigationModel {
     promise = this._promise = onResolve(this._promise, () =>
       onResolve(route, rdConfig => {
         if (rdConfig.nav && rdConfig.redirectTo === null) {
-          routes[index] = NavigationRoute._create(rdConfig);
+          routes[index] = NavigationRoute._create(rdConfig, this._parentPaths);
         }
         if (this._promise === promise) {
           for (let i = this.routes.length - 1; i >= 0; --i) {
@@ -1171,15 +1302,17 @@ class NavigationRoute implements INavigationRoute {
     public readonly path: string[],
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly data: Record<string, unknown>,
+    /** @internal */ private readonly _parentPaths: string[] | null,
   ) { }
 
   /** @internal */
-  public static _create(rdConfig: RouteConfig) {
+  public static _create(rdConfig: RouteConfig, parentPaths: string[] | null) {
     return new NavigationRoute(
       rdConfig.id,
       ensureArrayOfStrings(rdConfig.path ?? emptyArray),
       rdConfig.title,
       rdConfig.data,
+      parentPaths
     );
   }
 
@@ -1192,7 +1325,13 @@ class NavigationRoute implements INavigationRoute {
     let trees = this._trees;
     if (trees === null) {
       const routerOptions = router.options;
-      trees = this._trees = this.path.map(p => {
+
+      // cross product parent paths and own paths to create all possible full paths
+      const paths = this._parentPaths === null || this._parentPaths.length === 0
+        ? this.path
+        : this._parentPaths.flatMap(pp => this.path.map(p => pp.length === 0 ? p : `${pp}/${p}`));
+
+      trees = this._trees = paths.map(p => {
         const ep = context.routeConfigContext._recognizer.getEndpoint(p);
         if (ep === null) throw new Error(getMessage(Events.nmNoEndpoint, p));
         return new ViewportInstructionTree(
@@ -1200,7 +1339,7 @@ class NavigationRoute implements INavigationRoute {
           false,
           [
             ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, p, emptyObject), null),
               component: p,
             })
           ],
@@ -1212,3 +1351,5 @@ class NavigationRoute implements INavigationRoute {
     this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
   }
 }
+
+type RouteConfigLookup = WeakMap<RouteConfig, RouteConfigContext>;

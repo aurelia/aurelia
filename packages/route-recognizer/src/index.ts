@@ -1,3 +1,16 @@
+import type { Writable } from '@aurelia/kernel';
+
+interface IHandler {
+  path: string[];
+}
+
+function isIHandler(value: unknown): value is IHandler {
+  return value != null
+    && typeof value === 'object'
+    && Array.isArray((value as IHandler).path)
+    ;
+}
+
 export interface IConfigurableRoute<T> {
   readonly path: string;
   readonly caseSensitive?: boolean;
@@ -10,7 +23,7 @@ export class Parameter {
     public readonly isOptional: boolean,
     public readonly isStar: boolean,
     public readonly pattern: RegExp | null,
-  ){}
+  ) { }
 
   public satisfiesPattern(value: string): boolean {
     if (this.pattern === null) return true;
@@ -24,7 +37,7 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
     public readonly path: string,
     public readonly caseSensitive: boolean,
     public handler: T,
-  ) {}
+  ) { }
 }
 
 export class Endpoint<T> {
@@ -39,7 +52,7 @@ export class Endpoint<T> {
   public constructor(
     public readonly route: ConfigurableRoute<T>,
     public readonly params: readonly Parameter[],
-  ) {}
+  ) { }
 
   public equalsOrResidual(other: Endpoint<T> | null | undefined): boolean {
     return other != null && this === other || this._residualEndpoint === other;
@@ -48,8 +61,10 @@ export class Endpoint<T> {
 
 export class RecognizedRoute<T> {
   public readonly params: Readonly<Record<string, string | undefined>>;
+  public readonly path: string;
   public constructor(
     public readonly endpoint: Endpoint<T>,
+    path: string,
     params: Readonly<Record<string, string | undefined>>,
   ) {
     const $params: Record<string, string | undefined> = Object.create(null);
@@ -58,18 +73,50 @@ export class RecognizedRoute<T> {
       $params[key] = value != null ? decodeURIComponent(value) : value;
     }
     this.params = Object.freeze($params);
+
+    const residue = this.params[RESIDUE];
+    if ((residue?.length ?? 0) > 0 && path.endsWith(residue!)) {
+      path = path.slice(0, -residue!.length);
+    }
+    path = path.startsWith('/') ? path.slice(1) : path;
+    path = path.endsWith('/') ? path.slice(0, -1) : path;
+    this.path = path;
+  }
+
+  /** @internal */
+  public _importFrom(route: RecognizedRoute<T>): void {
+    const params: Record<string, string | undefined> = Object.create(null);
+    for (const key in this.params) {
+      params[key] = this.params[key];
+    }
+    for (const key in route.params) {
+      params[key] = route.params[key];
+    }
+    (this as Writable<RecognizedRoute<T>>).params = Object.freeze(params);
+  }
+
+  /** @internal */
+  public _getFirstNonEmptyPath(): string {
+    let path: string | null = this.path;
+    if (path.length !== 0) return path;
+
+    const handler = this.endpoint.route.handler;
+    path = isIHandler(handler) ? handler.path.find(p => p.length > 0) ?? null : null;
+    if (path !== null) return path;
+    throw new Error(`No non-empty path found`);
   }
 }
 
 class Candidate<T> {
+  public childRoutes: RecognizedRoute<T>[] = [];
   public head: AnyState<T>;
   public endpoint: Endpoint<T>;
-  private params: Record<string, string | undefined> | null = null;
+  private recognizedResult: [RecognizedRoute<T>[], AnyState<T>] | null = null;
   private isConstrained: boolean = false;
   private satisfiesConstraints: boolean | null = null;
 
   public constructor(
-    private readonly chars: string[],
+    /** @internal */ public readonly chars: string[],
     private readonly states: AnyState<T>[],
     private readonly skippedStates: DynamicState<T>[],
     private readonly result: RecognizeResult<T>,
@@ -173,50 +220,52 @@ class Candidate<T> {
     }
     collectSkippedStates(this.skippedStates, this.head);
     if (!this.isConstrained) return true;
-    this._getParams();
+    this._getRoutes();
     return this.satisfiesConstraints!;
   }
 
   /** @internal */
-  public _getParams(): Record<string, string | undefined> {
-    let params = this.params;
-    if (params != null) return params;
-    const { states, chars, endpoint } = this;
+  public _getRoutes(): [RecognizedRoute<T>[], AnyState<T>] | null {
+    let result = this.recognizedResult;
+    if (result != null) return result;
+    const { states, chars } = this;
 
-    params = {};
     this.satisfiesConstraints = true;
-    // First initialize all properties with undefined so they all exist (even if they're not filled, e.g. non-matched optional params)
-    for (const param of endpoint.params) {
-      params[param.name] = void 0;
-    }
+    const routes: RecognizedRoute<T>[] = [];
 
-    for (let i = 0, ii = states.length; i < ii; ++i) {
+    let curentEndpointRequirements: EndpointRequirement<T> | null = null;
+    for (let i = states.length - 1, ii = 0; i >= ii; --i) {
       const state = states[i];
-      if (state.isDynamic) {
-        const segment = state.segment;
-        const name = segment.name;
-        if (params[name] === void 0) {
-          params[name] = chars[i];
-        } else {
-          params[name] += chars[i];
+      // should create the parent route if
+      // - the state has an endpoint, and
+      // - the endpoint handler is different from the current endpoint handler, and
+      // - all the requirements of the current endpoint have been fulfilled
+      const createNewRoute = state.endpoint !== null
+        && (curentEndpointRequirements === null
+          || curentEndpointRequirements.isDifferentEndpoint(state.endpoint)
+          && curentEndpointRequirements.isFulfilled()
+        );
+      if (createNewRoute) {
+        if (curentEndpointRequirements !== null) {
+          routes.unshift(curentEndpointRequirements.toRecognizedRoute());
         }
-
-        // check for constraint if this state's segment is constrained
-        // and the state is the last dynamic state in a series of dynamic states.
-        // null fallback is used, as a star segment can also be a dynamic segment, but without a pattern.
-        const checkConstraint = state.isConstrained
-          && !Object.is(states[i + 1]?.segment, segment);
-
-        if (!checkConstraint) continue;
-
-        this.satisfiesConstraints = this.satisfiesConstraints && state.satisfiesConstraint(params[name]!);
+        curentEndpointRequirements = new EndpointRequirement(state);
       }
+
+      if (curentEndpointRequirements === null) continue;
+      this.satisfiesConstraints = this.satisfiesConstraints && curentEndpointRequirements.consume(state, chars[i], states[i - 1]);
     }
 
-    if(this.satisfiesConstraints) {
-      this.params = params;
+    if (curentEndpointRequirements !== null && curentEndpointRequirements.isDifferentRecognizedRoute(routes[0])) {
+      routes.unshift(curentEndpointRequirements.toRecognizedRoute());
     }
-    return params;
+
+    if (routes.length > 1 && routes[0].path === '') routes.shift();
+
+    if (this.satisfiesConstraints) {
+      this.recognizedResult = result = [routes, this.head];
+    }
+    return result;
   }
 
   /**
@@ -327,6 +376,97 @@ class Candidate<T> {
   }
 }
 
+/** @internal */
+class EndpointRequirement<T> {
+
+  /** @internal */ private readonly _endpoint: Endpoint<T>;
+  /** @internal */ private readonly _parameters: Record<string, [value: string | undefined, isRequired: boolean, isFulfilled: boolean]> = Object.create(null);
+  /** @internal */ private readonly _staticSegements: [name: string, accumulated: string, isFulfilled: boolean][] = [];
+  /** @internal */ private _path = '';
+
+  /** @internal */
+  public constructor(
+    state: AnyState<T>,
+  ) {
+    if (state.endpoint == null) throw new Error('Invalid state; endpoint is required.');
+
+    const endpoint = this._endpoint = state.endpoint!;
+
+    for (const param of endpoint.params) {
+      this._parameters[param.name] = [void 0, !param.isOptional, false];
+    }
+
+    for (const part of endpoint.route.path.split('/').filter(p => isNotEmpty(p) && !p.startsWith(':') && !p.startsWith('*'))) {
+      this._staticSegements.push([part, '', false]);
+    }
+  }
+
+  /** @internal */
+  public consume(state: AnyState<T>, char: string, previousState: AnyState<T> | undefined): boolean {
+    this._path = char + this._path;
+
+    if (state.isDynamic) {
+      const segment = state.segment;
+      const name = segment.name;
+      const parameter = this._parameters[name];
+      if (parameter[0] === void 0) {
+        parameter[0] = char;
+        if (parameter[1]) parameter[2] = true;
+      } else {
+        parameter[0] = char + parameter[0];
+      }
+
+      // check for constraint if this state's segment is constrained
+      // and the state is the last dynamic state in a series of dynamic states.
+      // null fallback is used, as a star segment can also be a dynamic segment, but without a pattern.
+      const checkConstraint = state.isConstrained
+        && !Object.is(previousState?.segment, segment);
+
+      if (!checkConstraint) return true;
+
+      return state.satisfiesConstraint(parameter[0]);
+    }
+
+    if (this._staticSegements.length > 0 && char !== '' && char !== '/') {
+      const lastIncompleteStaticSegment = this._staticSegements.findLast(s => !s[2]);
+      if (lastIncompleteStaticSegment == null) throw createError(`Unexpected state`); // unlikely to happen; but safe-guarding
+      lastIncompleteStaticSegment[1] = char + lastIncompleteStaticSegment[1];
+      lastIncompleteStaticSegment[2] = (state.segment as StaticSegment<T>).caseSensitive
+        ? lastIncompleteStaticSegment[0] === lastIncompleteStaticSegment[1]
+        : lastIncompleteStaticSegment[0].toLowerCase() === lastIncompleteStaticSegment[1].toLowerCase();
+    }
+    return true;
+  }
+
+  /** @internal */
+  public isFulfilled(): boolean {
+    for (const [, isRequired, isFulfilled] of Object.values(this._parameters)) {
+      if (isRequired && !isFulfilled) return false;
+    }
+
+    return this._staticSegements.length === 0 || this._staticSegements[0][2];
+  }
+
+  /** @internal */
+  public toRecognizedRoute(): RecognizedRoute<T> {
+    const params: Record<string, string | undefined> = Object.create(null);
+    for (const key in this._parameters) {
+      params[key] = this._parameters[key][0];
+    }
+    return new RecognizedRoute<T>(this._endpoint, this._path, params);
+  }
+
+  /** @internal */
+  public isDifferentRecognizedRoute(value: RecognizedRoute<T> | null | undefined): boolean {
+    return this.isDifferentEndpoint(value?.endpoint);
+  }
+
+  /** @internal */
+  public isDifferentEndpoint(value: Endpoint<T> | null | undefined): boolean {
+    return value == null || this._endpoint.route.handler !== value.route.handler;
+  }
+}
+
 function hasEndpoint<T>(candidate: Candidate<T>): boolean {
   return candidate.head.endpoint !== null;
 }
@@ -342,7 +482,7 @@ class RecognizeResult<T> {
     return this.candidates.length === 0;
   }
 
-  public constructor(rootState: SeparatorState<T>) {
+  public constructor(rootState: AnyState<T>) {
     this.candidates = [new Candidate([''], [rootState], [], this)];
   }
 
@@ -365,7 +505,7 @@ class RecognizeResult<T> {
     this.candidates.splice(this.candidates.indexOf(candidate), 1);
   }
 
-  public advance(ch: string): void {
+  public advance(ch: string): void | true {
     const candidates = this.candidates.slice();
 
     for (const candidate of candidates) {
@@ -383,26 +523,26 @@ const routeParameterPattern = /^:(?<name>[^?\s{}]+)(?:\{\{(?<constraint>.+)\}\})
 
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
-  private readonly cache: Map<string, RecognizedRoute<T> | null> = new Map<string, RecognizedRoute<T> | null>();
+  private readonly cache: Map<string, [RecognizedRoute<T>[], AnyState<T>] | null> = new Map<string, [RecognizedRoute<T>[], AnyState<T>] | null>();
   private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
 
-  public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
+  public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false, parentPath: string | null = null): void {
     let params: readonly Parameter[];
     let endpoint: Endpoint<T>;
     if (routeOrRoutes instanceof Array) {
       for (const route of routeOrRoutes) {
-        endpoint = this.$add(route, false);
+        endpoint = this.$add(route, false, parentPath);
         params = endpoint.params;
         // add residue iff the last parameter is not a star segment.
         if (!addResidue || (params[params.length - 1]?.isStar ?? false)) continue;
-        endpoint.residualEndpoint = this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true);
+        endpoint.residualEndpoint = this.$add({ ...route, path: `${route.path}/*${RESIDUE}` }, true, parentPath);
       }
     } else {
-      endpoint = this.$add(routeOrRoutes, false);
+      endpoint = this.$add(routeOrRoutes, false, parentPath);
       params = endpoint.params;
       // add residue iff the last parameter is not a star segment.
       if (addResidue && !(params[params.length - 1]?.isStar ?? false)) {
-        endpoint.residualEndpoint = this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true);
+        endpoint.residualEndpoint = this.$add({ ...routeOrRoutes, path: `${routeOrRoutes.path}/*${RESIDUE}` }, true, parentPath);
       }
     }
 
@@ -410,19 +550,22 @@ export class RouteRecognizer<T> {
     this.cache.clear();
   }
 
-  private $add(route: IConfigurableRoute<T>, addResidue: boolean): Endpoint<T> {
-    const path = route.path;
+  private $add(route: IConfigurableRoute<T>, addResidue: boolean, parentPath: string | null): Endpoint<T> {
+    const path = parentPath === null ? route.path : `${parentPath}/${route.path}`;
     const lookup = this.endpointLookup;
-    if(lookup.has(path)) throw createError(`Cannot add duplicate path '${path}'.`);
-    const $route = new ConfigurableRoute(path, route.caseSensitive === true, route.handler);
+    if (lookup.has(path)) throw createError(`Cannot add duplicate path '${path}'.`);
+    const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
 
     // Normalize leading, trailing and double slashes by ignoring empty segments
     const parts = path === '' ? [''] : path.split('/').filter(isNotEmpty);
     const params: Parameter[] = [];
 
     let state = this.rootState as AnyState<T>;
+    const numParentParts = parentPath === null ? 0 : parentPath.split('/').filter(isNotEmpty).length;
+    const numParts = parts.length;
 
-    for (const part of parts) {
+    for (let i = 0; i < numParts; ++i) {
+      const part = parts[i];
       // Each segment always begins with a slash, so we represent this with a non-segment state
       state = state.append(null, '/');
 
@@ -435,7 +578,9 @@ export class RouteRecognizer<T> {
           if (name === RESIDUE) throw new Error(`Invalid parameter name; usage of the reserved parameter name '${RESIDUE}' is used.`);
           const constraint = match?.groups?.constraint;
           const pattern: RegExp | null = constraint != null ? new RegExp(constraint) : null;
-          params.push(new Parameter(name, isOptional, false, pattern));
+          if (i >= numParentParts) {
+            params.push(new Parameter(name, isOptional, false, pattern));
+          }
           state = new DynamicSegment<T>(name, isOptional, pattern).appendTo(state);
           break;
         }
@@ -448,7 +593,9 @@ export class RouteRecognizer<T> {
           } else {
             kind = SegmentKind.star;
           }
-          params.push(new Parameter(name, true, true, null));
+          if (i >= numParentParts) {
+            params.push(new Parameter(name, true, true, null));
+          }
           state = new StarSegment<T>(name, kind).appendTo(state);
           break;
         }
@@ -466,15 +613,55 @@ export class RouteRecognizer<T> {
     return endpoint;
   }
 
-  public recognize(path: string): RecognizedRoute<T> | null {
-    let result = this.cache.get(path);
-    if (result === void 0) {
-      this.cache.set(path, result = this.$recognize(path));
+  public recognize(path: string, relativeTo: RecognizedRoute<T>[] | null = null): RecognizedRoute<T>[] | null {
+    const cache = this.cache;
+    let result: [RecognizedRoute<T>[], AnyState<T>] | null | undefined;
+
+    if (relativeTo == null) {
+      result = cache.get(path);
+      if (result !== void 0) return result?.[0] ?? null;
+
+      cache.set(path, result = this.$recognize(path, this.rootState));
+      return result?.[0] ?? null;
     }
-    return result;
+
+    // check for cached result first
+    const parentPath = relativeTo.reduce((acc, curr) => acc.length ? `${acc}/${curr._getFirstNonEmptyPath()}` : curr._getFirstNonEmptyPath(), '');
+    const combinedPath = combinePaths(parentPath, path);
+
+    result = cache.get(combinedPath);
+    if (result !== void 0) return result === null ? null : result[0].slice(relativeTo.length);
+
+    // no cached result, try recognizing parent first
+    let parentResult = cache.get(parentPath);
+    if (parentResult === null) return null;
+    if (parentResult === void 0) {
+      parentResult = this.$recognize(parentPath, this.rootState);
+      if (parentResult === null) return null;
+    }
+
+    const relativeResult = this.$recognize(path, parentResult[1]);
+    if (relativeResult === null) return null;
+
+    let routes = relativeResult[0];
+    if (routes.length > 1 && routes[0].path === '') routes = routes.slice(1);
+
+    return routes;
+
+    function combinePaths(parentPath: string, childPath: string): string {
+      if (parentPath === '') return childPath;
+      if (childPath === '') return parentPath;
+      if (parentPath.endsWith('/'))
+        return childPath.startsWith('/')
+          ? parentPath + childPath.slice(1)
+          : parentPath + childPath;
+      return childPath.startsWith('/')
+        ? parentPath + childPath
+        : `${parentPath}/${childPath}`;
+    }
   }
 
-  private $recognize(path: string): RecognizedRoute<T> | null {
+  private $recognize(path: string, relativeToState: AnyState<T>): [RecognizedRoute<T>[], AnyState<T>] | null {
     if (!path.startsWith('/')) {
       path = `/${path}`;
     }
@@ -483,7 +670,7 @@ export class RouteRecognizer<T> {
       path = path.slice(0, -1);
     }
 
-    const result = new RecognizeResult(this.rootState);
+    const result = new RecognizeResult(relativeToState);
     for (let i = 0, ii = path.length; i < ii; ++i) {
       const ch = path.charAt(i);
       result.advance(ch);
@@ -498,14 +685,11 @@ export class RouteRecognizer<T> {
       return null;
     }
 
-    const { endpoint } = candidate;
-    const params = candidate._getParams();
-
-    return new RecognizedRoute<T>(endpoint, params);
+    return candidate._getRoutes();
   }
 
   public getEndpoint(path: string): Endpoint<T> | null {
-    return this.endpointLookup.get(path) ??  null;
+    return this.endpointLookup.get(path) ?? null;
   }
 }
 
@@ -684,7 +868,7 @@ class StaticSegment<T> {
   public constructor(
     public readonly value: string,
     public readonly caseSensitive: boolean,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): StaticState<T> {
     const { value, value: { length } } = this;
@@ -759,7 +943,7 @@ class StarSegment<T> {
   public constructor(
     public readonly name: string,
     public readonly kind: SegmentKind.star | SegmentKind.residue,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): StarState<T> {
     state = state.append(

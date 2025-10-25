@@ -96,7 +96,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     } else {
       if (!treatAsExternal) {
         const router = this._router;
-        const instructions = this._instructions = router.createViewportInstructions(newValue, { context: this._ctx });
+        const instructions = this._instructions = router.createViewportInstructions(newValue, { context: this._ctx }, null);
         newValue = instructions.toUrl(false, router.options._urlParser, true);
       } else {
         this._instructions = null;

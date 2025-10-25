@@ -65,6 +65,7 @@ export class RouterOptions {
      * @deprecated Will be removed in the next major version.
      */
     public readonly treatQueryAsParameters: boolean,
+    public readonly useEagerLoading: boolean,
   ) {
     this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
   }
@@ -79,6 +80,7 @@ export class RouterOptions {
       input.activeClass ?? null,
       input.restorePreviousRouteTreeOnError ?? true,
       input.treatQueryAsParameters ?? false,
+      input.useEagerLoading ?? false
     );
   }
 

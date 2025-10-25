@@ -47,6 +47,7 @@ import {
   IChildRouteConfig,
   Routeable,
   INavigationOptions,
+  IRouterOptions,
 } from './options';
 import { IViewport } from './resources/viewport';
 import { noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -191,6 +192,10 @@ export class RouteContext {
 
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
+
+  public get options(): Readonly<IRouterOptions> {
+    return this._router.options;
+  }
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -649,11 +654,10 @@ export class RouteContext {
 export interface IRouteConfigContext extends RouteConfigContext { }
 export class RouteConfigContext {
 
-  public readonly container: IContainer;
+  /** @internal */ private readonly _moduleLoader: IModuleLoader;
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ public _childRoutesConfigured: boolean = false;
-  /** @internal */ private readonly _moduleLoader: IModuleLoader;
 
   public readonly root: IRouteConfigContext;
   public get isRoot(): boolean {
@@ -693,13 +697,14 @@ export class RouteConfigContext {
     return this._allResolved;
   }
 
-  public constructor(
+  private constructor(
     public readonly parent: IRouteConfigContext | null,
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
-    parentContainer: IContainer,
-    private readonly _router: IRouter,
+    /** @internal */ public readonly _rootContainer: IContainer,
+    /** @internal */ private readonly _options: Readonly<IRouterOptions>,
   ) {
+    this._recognizer = new RouteRecognizer();
     if (parent === null) {
       this.root = this;
       this.path = [this];
@@ -709,16 +714,12 @@ export class RouteConfigContext {
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
     }
-    this._logger = parentContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
+    this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
-    this._moduleLoader = parentContainer.get(IModuleLoader);
+    this._moduleLoader = _rootContainer.get(IModuleLoader);
 
-    this.container = parentContainer.createChild();
-
-    this._recognizer = new RouteRecognizer();
-
-    if (_router.options.useNavigationModel) {
+    if (this._options.useNavigationModel) {
       this._navigationModel = new NavigationModel([]);
     } else {
       this._navigationModel = null;
@@ -782,9 +783,13 @@ export class RouteConfigContext {
     this._childRoutesConfigured = true;
 
     if (allPromises.length > 0) {
-      this._allResolved = Promise.all(allPromises).then(() => {
-        this._allResolved = null;
-      });
+      this._allResolved = Promise.all(allPromises)
+        .then(() => this._options.useEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0)
+        .then(() => {
+          this._allResolved = null;
+        });
+    } else if (this._options.useEagerLoading) {
+      this._allResolved = onResolve(this._eagerLoadChildRouteConfigContext(), () => { this._allResolved = null; });
     }
   }
 
@@ -811,6 +816,30 @@ export class RouteConfigContext {
       caseSensitive,
       handler,
     }, true);
+  }
+
+  /** @internal */
+  private async _eagerLoadChildRouteConfigContext(): Promise<void> {
+    const childRoutes = this.childRoutes as RouteConfig[];
+    const len = childRoutes.length;
+    if (len === 0) return;
+
+    const childRouteConfigPromises: (void | Promise<void>)[] = [];
+    for (let i = 0; i < len; i++) {
+      const childRoute = childRoutes[i];
+      if (childRoute.redirectTo != null) continue;
+      const parentComponent = childRoute.component;
+      const defn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
+
+      // avoid self-recursion
+      if (defn === this.component) continue;
+
+      childRouteConfigPromises.push(onResolve(
+        RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options),
+        context => this._recognizer.append(context._recognizer)
+      ));
+    }
+    await Promise.all(childRouteConfigPromises);
   }
 
   /** @internal */
@@ -977,7 +1006,7 @@ export class RouteConfigContext {
       const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
       return onResolve(
         onResolve(
-          this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.container, this.config, this),
+          RouteConfigContext.getOrCreate(parentConfig, parentDefn, null, this.config, this, this._rootContainer, this._options),
           x => onResolve(x.allResolved, () => x)
         ),
         $routeConfigContext => {
@@ -1011,7 +1040,7 @@ export class RouteConfigContext {
         ({ instructions: children, query: $query }) => {
           return {
             vi: ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.path, result.consumed), null),
               component: result.path,
               children,
               viewport: (instruction as IViewportInstruction).viewport,
@@ -1024,15 +1053,15 @@ export class RouteConfigContext {
     }
   }
 
-  public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
+  public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute[] | null {
     if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteConfigContext = this;
     let _continue = true;
-    let result: RecognizedRoute<RouteConfig | Promise<RouteConfig>> | null = null;
+    let results: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
     while (_continue) {
-      result = _current._recognizer.recognize(path);
-      if (result === null) {
+      results = _current._recognizer.recognize(path);
+      if (results === null) {
         if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
       } else {
@@ -1040,16 +1069,53 @@ export class RouteConfigContext {
       }
     }
 
-    return new $RecognizedRoute(
-      result!,
-      Reflect.has(result!.params, RESIDUE)
-        ? (result!.params[RESIDUE] ?? null)
+    return results!.map(result => new $RecognizedRoute(
+      result,
+      Reflect.has(result.params, RESIDUE)
+        ? (result.params[RESIDUE] ?? null)
         : null
-    );
+    ));
   }
 
-  public dispose(): void {
-    this.container.dispose();
+  private static readonly _lookup: RouteConfigLookup = new WeakMap();
+  public static getOrCreate(
+    $rdConfig: RouteConfig | null,
+    componentDefinition: CustomElementDefinition,
+    componentInstance: IRouteViewModel | null,
+    parentRouteConfig: RouteConfig | null,
+    parentRouteConfigContext: RouteConfigContext | null,
+    rootContainer: IContainer,
+    options: Readonly<IRouterOptions>,
+  ): RouteConfigContext | Promise<RouteConfigContext> {
+    return onResolve(
+      // In case of navigation strategy, get the route config for the resolved component directly.
+      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
+      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
+        ? $rdConfig
+        : resolveRouteConfiguration(
+          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+          false,
+          parentRouteConfig,
+          null,
+          parentRouteConfigContext,
+        ),
+      rdConfig => {
+        let routeConfigContext = this._lookup.get(rdConfig);
+        if (routeConfigContext != null) return routeConfigContext;
+
+        routeConfigContext = new RouteConfigContext(
+          parentRouteConfigContext,
+          componentDefinition,
+          rdConfig,
+          rootContainer,
+          options,
+        );
+        this._lookup.set(rdConfig, routeConfigContext);
+        return routeConfigContext;
+      }
+    );
   }
 }
 
@@ -1173,7 +1239,7 @@ class NavigationRoute implements INavigationRoute {
           false,
           [
             ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, p, emptyObject), null),
               component: p,
             })
           ],
@@ -1185,3 +1251,5 @@ class NavigationRoute implements INavigationRoute {
     this._isActive = trees.some(vit => router.routeTree.contains(vit, true));
   }
 }
+
+type RouteConfigLookup = WeakMap<RouteConfig, RouteConfigContext>;

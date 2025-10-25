@@ -2,7 +2,7 @@ import type { IIndexable } from '@aurelia/kernel';
 import { isCustomElementViewModel, type PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './options';
-import type { IExtendedViewportInstruction, IViewportInstruction, Params, RouteableComponent } from './instructions';
+import type { IExtendedViewportInstruction, IRecognizedRouteInstruction, IViewportInstruction, Params, RouteableComponent } from './instructions';
 import { NavigationStrategy } from './instructions';
 import { tryStringify } from './util';
 import { Events, getMessage } from './events';
@@ -54,6 +54,10 @@ export function isPartialViewportInstruction(value: RouteableComponent | IViewpo
     isNotNullishOrTypeOrViewModel(value) &&
     Object.prototype.hasOwnProperty.call(value, 'component') === true
   );
+}
+
+export function isRecognizedRouteInstruction(value: RouteableComponent | IViewportInstruction | null | undefined): value is IRecognizedRouteInstruction {
+  return (value as IViewportInstruction).recognizedRoute != null;
 }
 
 export function expectType(expected: string, prop: string, value: unknown): never {

@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
+import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResourceKeyFor, IContainer } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { defaultViewportName, ITypedNavigationInstruction_Component, ITypedNavigationInstruction_NavigationStrategy, IViewportInstruction, NavigationInstructionType, NavigationStrategy, TypedNavigationInstruction, ViewportInstruction } from './instructions';
@@ -374,7 +374,7 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
 
       const dependencies = context.component.dependencies;
       let component = dependencies.find(d => isPartialCustomElementDefinition(d) && d.name === instruction.value) as CustomElementDefinition | PartialCustomElementDefinition
-        ?? CustomElement.find(context.container, instruction.value);
+        ?? CustomElement.find(context._rootContainer, instruction.value);
       if (component === null) throw new Error(getMessage(Events.rtNoComponent, instruction.value, context));
 
       if (!(component instanceof CustomElementDefinition)) {

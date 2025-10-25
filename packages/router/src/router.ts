@@ -1,4 +1,4 @@
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction, IModuleLoader } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
@@ -191,6 +191,7 @@ export class Router {
   /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
+  /** @internal */ private readonly _moduleLoader: IModuleLoader = resolve(IModuleLoader);
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
@@ -377,7 +378,7 @@ export class Router {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
     return onResolve(
-      this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, container, parentRouteConfig, parentContext?.routeConfigContext ?? null),
+      RouteConfigContext.getOrCreate($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null, container.root, this.options),
       rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {
@@ -405,45 +406,6 @@ export class Router {
           ),
         );
         return routeContext;
-      }
-    );
-  }
-
-  public getRouteConfigContext(
-    $rdConfig: RouteConfig | null,
-    componentDefinition: CustomElementDefinition,
-    componentInstance: IRouteViewModel | null,
-    container: IContainer,
-    parentRouteConfig: RouteConfig | null,
-    parentRouteConfigContext: RouteConfigContext | null,
-  ): RouteConfigContext | Promise<RouteConfigContext> {
-    return onResolve(
-      // In case of navigation strategy, get the route config for the resolved component directly.
-      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
-      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
-      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
-        ? $rdConfig
-        : resolveRouteConfiguration(
-          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-          false,
-          parentRouteConfig,
-          null,
-          parentRouteConfigContext,
-        ),
-      rdConfig => {
-        let routeConfigContext = this._routeConfigLookup.get(rdConfig);
-        if (routeConfigContext != null) return routeConfigContext;
-
-        routeConfigContext = new RouteConfigContext(
-          parentRouteConfigContext,
-          componentDefinition,
-          rdConfig,
-          container,
-          this,
-        );
-        this._routeConfigLookup.set(rdConfig, routeConfigContext);
-        return routeConfigContext;
       }
     );
   }
@@ -857,12 +819,12 @@ function updateNode(
     //   - create instructions, and
     //   - add the compiled nodes from those to children of the node.
     return onResolve(
-      onResolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
+      onResolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi, ctx.options))),
       () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
         const vp = vpa.viewport;
         const component = vp.default;
         if (component === null) return acc;
-        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, }), ctx.options));
         return acc;
       }, [] as (void | Promise<void>)[]))
     );

@@ -18,9 +18,9 @@ import {
 } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';
-import { RouteType } from './route';
+import { RouteConfig, RouteType } from './route';
 import { type $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
-import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
+import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, isRecognizedRouteInstruction, shallowEquals } from './validation';
 import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
@@ -56,6 +56,8 @@ export type RouteableComponent = RouteType | (() => RouteType) | Promise<IModule
 export type Params = { [key: string]: string | undefined };
 
 export type IExtendedViewportInstruction = IViewportInstruction & { readonly open?: number; readonly close?: number };
+
+export type IRecognizedRouteInstruction = IExtendedViewportInstruction & { readonly recognizedRoute: $RecognizedRoute };
 
 export interface IViewportInstruction {
   /**

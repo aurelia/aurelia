@@ -6,7 +6,7 @@ import { start } from './_shared/create-fixture.js';
 describe('router/eager-loading.spec.ts', function () {
 
   // issue #2273
-  it('navigating to parent/child route works when parent is configured with paths: ["parent", "parent/:id"]', async function () {
+  it('enables navigating to parent/child route works when parent is configured with paths: ["parent", "parent/:id"]', async function () {
 
     @route('child/:id')
     @customElement({ name: 'chi-ld', template: 'child ${id}' })

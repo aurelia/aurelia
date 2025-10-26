@@ -504,7 +504,7 @@ export function createAndAppendNodes(
 
           const numRecognizedChildren = childrenRoutes.length;
           if (numRecognizedChildren > 0) {
-            vi.children.splice(0, vi.children.length, ...childrenRoutes.map((recognizedRoute) => ViewportInstruction.create({ recognizedRoute, component: recognizedRoute.route.endpoint.route.handler })));
+            vi.children.splice(0, vi.children.length, ...childrenRoutes.map((recognizedRoute) => ViewportInstruction.create({ recognizedRoute, component: recognizedRoute.route.path })));
           } else {
             let addResidue = !noResidue;
             for (let i = 0; i < collapse; ++i) {
@@ -739,6 +739,7 @@ function createFallbackNode(
         new ConfigurableRoute(rc.path[0], rc.caseSensitive, rc),
         []
       ),
+      rc.path[0],
       emptyObject
     ),
     null);

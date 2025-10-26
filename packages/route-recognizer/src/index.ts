@@ -10,7 +10,7 @@ export class Parameter {
     public readonly isOptional: boolean,
     public readonly isStar: boolean,
     public readonly pattern: RegExp | null,
-  ){}
+  ) { }
 
   public satisfiesPattern(value: string): boolean {
     if (this.pattern === null) return true;
@@ -24,7 +24,7 @@ export class ConfigurableRoute<T> implements IConfigurableRoute<T> {
     public readonly path: string,
     public readonly caseSensitive: boolean,
     public handler: T,
-  ) {}
+  ) { }
 }
 
 export class Endpoint<T> {
@@ -39,7 +39,7 @@ export class Endpoint<T> {
   public constructor(
     public readonly route: ConfigurableRoute<T>,
     public readonly params: readonly Parameter[],
-  ) {}
+  ) { }
 
   public equalsOrResidual(other: Endpoint<T> | null | undefined): boolean {
     return other != null && this === other || this._residualEndpoint === other;
@@ -50,6 +50,7 @@ export class RecognizedRoute<T> {
   public readonly params: Readonly<Record<string, string | undefined>>;
   public constructor(
     public readonly endpoint: Endpoint<T>,
+    public readonly path: string,
     params: Readonly<Record<string, string | undefined>>,
   ) {
     const $params: Record<string, string | undefined> = Object.create(null);
@@ -71,7 +72,7 @@ class Candidate<T> {
   private fullyMatches: boolean = false;
 
   public constructor(
-    private readonly chars: string[],
+    /** @internal */ public readonly chars: string[],
     private readonly states: AnyState<T>[],
     private readonly skippedStates: DynamicState<T>[],
     private readonly result: RecognizeResult<T>,
@@ -124,12 +125,10 @@ class Candidate<T> {
           }
         }
 
-        if (!matched) {
+        if (fullyMatched) {
           matched = true;
-          stateToAdd = nextState;
-        } else {
           const candidate = new Candidate(
-            chars.concat(ch),
+            chars,
             states.concat(nextState),
             skippedState === null ? skippedStates : skippedStates.concat(skippedState),
             result,
@@ -138,8 +137,23 @@ class Candidate<T> {
           candidate.childRoutes = childRoutes;
           candidate.fullyMatches = fullyMatched;
           result.add(candidate);
+          return true;
         }
-        if (fullyMatched) return true;
+
+        if (!matched) {
+          matched = true;
+          stateToAdd = nextState;
+        } else {
+          result.add(
+            new Candidate(
+              chars.concat(ch),
+              states.concat(nextState),
+              skippedState === null ? skippedStates : skippedStates.concat(skippedState),
+              result,
+              routeRecognizer,
+            )
+          );
+        }
       }
 
       if (state.segment === null && nextState.isOptional && nextState.nextStates !== null) {
@@ -158,13 +172,11 @@ class Candidate<T> {
       }
     }
 
-    if (state.isDynamic) {
-      const fullyProcessed = $process(state, null);
-      if (fullyProcessed === true) return fullyProcessed;
-    }
+    if (state.isDynamic && $process(state, null) === true) return true;
+
     if (state.nextStates !== null) {
       for (const nextState of state.nextStates) {
-        $process(nextState, null);
+        if ($process(nextState, null) === true) return true;
       }
     }
 
@@ -251,7 +263,7 @@ class Candidate<T> {
       }
     }
 
-    if(this.satisfiesConstraints) {
+    if (this.satisfiesConstraints) {
       this.params = params;
     }
     return params;
@@ -524,7 +536,8 @@ export class RouteRecognizer<T> {
   }
 
   private $recognize(path: string): RecognizedRoute<T>[] | null {
-    if (!path.startsWith('/')) {
+    const originalPathIsWithoutPreceedingSlash = !path.startsWith('/');
+    if (originalPathIsWithoutPreceedingSlash) {
       path = `/${path}`;
     }
 
@@ -550,8 +563,10 @@ export class RouteRecognizer<T> {
 
     const { endpoint } = candidate;
     const params = candidate._getParams();
+    let consumedPath = candidate.chars.join('');
+    if (originalPathIsWithoutPreceedingSlash && consumedPath.startsWith('/')) consumedPath = consumedPath.slice(1);
 
-    return [new RecognizedRoute<T>(endpoint, params), ...candidate.childRoutes];
+    return [new RecognizedRoute<T>(endpoint, consumedPath, params), ...candidate.childRoutes];
   }
 
   public getEndpoint(path: string): Endpoint<T> | null {
@@ -739,7 +754,7 @@ class StaticSegment<T> {
   public constructor(
     public readonly value: string,
     public readonly caseSensitive: boolean,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): StaticState<T> {
     const { value, value: { length } } = this;
@@ -814,7 +829,7 @@ class StarSegment<T> {
   public constructor(
     public readonly name: string,
     public readonly kind: SegmentKind.star | SegmentKind.residue,
-  ) {}
+  ) { }
 
   public appendTo(state: AnyState<T>): StarState<T> {
     state = state.append(

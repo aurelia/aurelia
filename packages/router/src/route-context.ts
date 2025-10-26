@@ -700,7 +700,7 @@ export class RouteConfigContext {
     /** @internal */ public readonly _rootContainer: IContainer,
     /** @internal */ private readonly _options: Readonly<IRouterOptions>,
   ) {
-    const recognizer = this._recognizer = new RouteRecognizer();
+    this._recognizer = new RouteRecognizer();
     if (parent === null) {
       this.root = this;
       this.path = [this];
@@ -709,7 +709,6 @@ export class RouteConfigContext {
       this.root = parent.root;
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
-      if (this._options.useEagerLoading) parent._recognizer.append(recognizer);
     }
     this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
@@ -827,7 +826,10 @@ export class RouteConfigContext {
       if (childRoute.redirectTo != null) continue;
       const parentComponent = childRoute.component;
       const defn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
-      childRouteConfigPromises.push(onResolve(RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options), noop));
+      childRouteConfigPromises.push(onResolve(
+        RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options),
+        context => this._recognizer.append(context._recognizer)
+      ));
     }
     await Promise.all(childRouteConfigPromises);
   }
@@ -1030,7 +1032,7 @@ export class RouteConfigContext {
         ({ instructions: children, query: $query }) => {
           return {
             vi: ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.path, result.consumed), null),
               component: result.path,
               children,
               viewport: (instruction as IViewportInstruction).viewport,
@@ -1229,7 +1231,7 @@ class NavigationRoute implements INavigationRoute {
           false,
           [
             ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, emptyObject), null),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(ep, p, emptyObject), null),
               component: p,
             })
           ],

@@ -819,12 +819,12 @@ function updateNode(
     //   - create instructions, and
     //   - add the compiled nodes from those to children of the node.
     return onResolve(
-      onResolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi))),
+      onResolveAll(...vit.children.map(vi => createAndAppendNodes(log, node, vi, ctx.options))),
       () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
         const vp = vpa.viewport;
         const component = vp.default;
         if (component === null) return acc;
-        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, })));
+        acc.push(createAndAppendNodes(log, node, ViewportInstruction.create({ component, viewport: vp.name, }), ctx.options));
         return acc;
       }, [] as (void | Promise<void>)[]))
     );

@@ -48,9 +48,10 @@ export class Endpoint<T> {
 
 export class RecognizedRoute<T> {
   public readonly params: Readonly<Record<string, string | undefined>>;
+  public readonly path: string;
   public constructor(
     public readonly endpoint: Endpoint<T>,
-    public readonly path: string,
+    path: string,
     params: Readonly<Record<string, string | undefined>>,
   ) {
     const $params: Record<string, string | undefined> = Object.create(null);
@@ -59,6 +60,10 @@ export class RecognizedRoute<T> {
       $params[key] = value != null ? decodeURIComponent(value) : value;
     }
     this.params = Object.freeze($params);
+
+    path = path.startsWith('/') ? path.slice(1) : path;
+    path = path.endsWith('/') ? path.slice(0, -1) : path;
+    this.path = path;
   }
 }
 
@@ -108,15 +113,16 @@ class Candidate<T> {
 
             // the routes in the array are returned bottom up; the last route is the deepest child
             const $childRoutes = childRecognizer.recognize(rest);
-            if ($childRoutes === null) continue;
+            if ($childRoutes === null || $childRoutes.length === 0) continue;
             const currentDegree = $childRoutes.length;
-            if (currentDegree > highestDegree) {
+            const noResidue = !(RESIDUE in $childRoutes[currentDegree - 1].params);
+            if (currentDegree > highestDegree || noResidue) {
               highestDegree = currentDegree;
               childRoutes = $childRoutes;
 
               // look at the last route from the array; if there is no residue, stop.
               // we stop at the first fully matched route(s).
-              if (!(RESIDUE in childRoutes[highestDegree - 1].params)) {
+              if (noResidue) {
                 // no residue, stop traversing
                 fullyMatched = true;
                 break;
@@ -298,11 +304,11 @@ class Candidate<T> {
    * This will bring the candidate with the highest score to the first position of the array.
    */
   public compareTo(b: Candidate<T>): -1 | 1 | 0 {
-    // early terminations case #1 - fully matched
-    if (this.fullyMatches !== b.fullyMatches) return this.fullyMatches ? -1 : 1;
-
-    // early terminations case #2 - degree
+    // early terminations case #1 - degree
     if (this.childRoutes.length !== b.childRoutes.length) return this.childRoutes.length > b.childRoutes.length ? -1 : 1;
+
+    // early terminations case #2 - fully matched
+    if (this.fullyMatches !== b.fullyMatches) return this.fullyMatches ? -1 : 1;
 
     const statesA = this.states;
     const statesB = b.states;

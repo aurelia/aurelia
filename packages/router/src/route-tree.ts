@@ -41,6 +41,7 @@ import {
   UnknownRouteError,
 } from './router';
 import {
+  IRouterOptions,
   type NavigationOptions,
 } from './options';
 import { mergeURLSearchParams } from './util';
@@ -377,6 +378,7 @@ export function createAndAppendNodes(
   log: ILogger,
   node: RouteNode,
   vi: ViewportInstruction,
+  options: Readonly<IRouterOptions>,
 ): void | Promise<void> {
   log.trace(`createAndAppendNodes(node:%s,vi:%s`, node, vi);
 
@@ -390,7 +392,7 @@ export function createAndAppendNodes(
         // falls through
         case '.':
           return onResolveAll(...vi.children.map(childVI => {
-            return createAndAppendNodes(log, node, childVI);
+            return createAndAppendNodes(log, node, childVI, options);
           }));
         default: {
           log.trace(`createAndAppendNodes invoking createNode`);
@@ -498,9 +500,13 @@ export function createAndAppendNodes(
 
           // readjust the children wrt. the residue
           (rr as Writable<$RecognizedRoute>).residue = null;
-          (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
-            ? path
-            : path.slice(0, -(residue.length + 1));
+
+          // need to find a way to avoid this complication
+          (vi.component as Writable<ITypedNavigationInstruction_string>).value = options.useEagerLoading
+            ? rr.route.path
+            : noResidue
+              ? path
+              : path.slice(0, -(residue.length + 1));
 
           const numRecognizedChildren = childrenRoutes.length;
           if (numRecognizedChildren > 0) {

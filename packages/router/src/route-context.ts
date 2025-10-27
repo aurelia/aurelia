@@ -193,6 +193,10 @@ export class RouteContext {
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
 
+  public get options(): Readonly<IRouterOptions> {
+    return this._router.options;
+  }
+
   public constructor(
     viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,

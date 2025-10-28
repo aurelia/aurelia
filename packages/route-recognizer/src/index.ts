@@ -113,9 +113,15 @@ class Candidate<T> {
 
             // the routes in the array are returned bottom up; the last route is the deepest child
             const $childRoutes = childRecognizer.recognize(rest);
+
+            // eliminate some obvious non-matches
             if ($childRoutes === null || $childRoutes.length === 0) continue;
+
             const currentDegree = $childRoutes.length;
-            const noResidue = !(RESIDUE in $childRoutes[currentDegree - 1].params);
+            const residue = $childRoutes[currentDegree - 1].params[RESIDUE];
+            const noResidue = residue == null;
+            if (!noResidue && residue === rest) continue;
+
             if (currentDegree > highestDegree || noResidue) {
               highestDegree = currentDegree;
               childRoutes = $childRoutes;
@@ -172,7 +178,7 @@ class Candidate<T> {
         }
         if (separator.nextStates !== null) {
           for (const $nextState of separator.nextStates) {
-            $process($nextState, nextState);
+            if ($process($nextState, nextState) === true) return true;
           }
         }
       }

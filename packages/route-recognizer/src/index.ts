@@ -120,7 +120,7 @@ class Candidate<T> {
             const currentDegree = $childRoutes.length;
             const residue = $childRoutes[currentDegree - 1].params[RESIDUE];
             const noResidue = residue == null;
-            if (!noResidue && residue === rest) continue;
+            if (!noResidue && residue === rest.replaceAll(/^\/|\/$/g, '')) continue;
 
             if (currentDegree > highestDegree || noResidue) {
               highestDegree = currentDegree;
@@ -140,7 +140,7 @@ class Candidate<T> {
         if (fullyMatched) {
           matched = true;
           const candidate = new Candidate(
-            chars,
+            chars.slice(),
             states.concat(nextState),
             skippedState === null ? skippedStates : skippedStates.concat(skippedState),
             result,
@@ -178,7 +178,7 @@ class Candidate<T> {
         }
         if (separator.nextStates !== null) {
           for (const $nextState of separator.nextStates) {
-            if ($process($nextState, nextState) === true) return true;
+            $process($nextState, nextState);
           }
         }
       }
@@ -188,7 +188,7 @@ class Candidate<T> {
 
     if (state.nextStates !== null) {
       for (const nextState of state.nextStates) {
-        if ($process(nextState, null) === true) return true;
+        $process(nextState, null);
       }
     }
 

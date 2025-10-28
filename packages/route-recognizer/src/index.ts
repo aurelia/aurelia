@@ -106,6 +106,7 @@ class Candidate<T> {
         if (nextState.segment?.kind === SegmentKind.residue
           && nextState.prevState?.isSeparator
           && nextState.prevState?.endpoint !== null
+          && nextState.prevState.endpoint.route.path !== '' // do we need to handle this in some other way?
         ) {
           // we hit the residue segement after a definitive endpoint
           // this is a good opportunity to traverse into child recognizers
@@ -285,19 +286,19 @@ class Candidate<T> {
   public _getRoutes(trimPrecedingSlash: boolean): RecognizedRoute<T>[] {
     let path = this.chars.join('');
     const params = this._getParams();
-    // const childRoutes = this.childRoutes;
-    // const numChildren = childRoutes.length;
+    const childRoutes = this.childRoutes;
+    const numChildren = childRoutes.length;
 
-    // if (numChildren > 0) {
-    //   // remove the child route paths from the consumed path
-    //   const childPath = childRoutes.reduce((p, r) => `${p}/${r.path}`, '');
-    //   path = path.slice(0, path.length - childPath.length);
-    // }
+    if (numChildren > 0) {
+      // remove the child route paths from the consumed path
+      const childPath = childRoutes.reduce((p, r) => `${p}/${r.path}`, '');
+      path = path.slice(0, path.length - childPath.length);
+    }
 
-    // const residue = params[RESIDUE];
-    // if (residue != null) {
-    //   path = path.slice(0, path.length - residue.length);
-    // }
+    const residue = params[RESIDUE];
+    if (residue != null) {
+      path = path.slice(0, path.length - residue.length);
+    }
 
     if (trimPrecedingSlash && path.startsWith('/')) path = path.slice(1);
     if (path.endsWith('/')) path = path.slice(0, -1);

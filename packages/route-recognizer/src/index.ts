@@ -119,9 +119,9 @@ class Candidate<T> {
 
             const currentDegree = $childRoutes.length;
             const residue = $childRoutes[currentDegree - 1].params[RESIDUE];
-            const noResidue = residue == null;
-            if (!noResidue && residue === rest.replaceAll(/^\/|\/$/g, '')) continue;
+            if (residue === rest.replaceAll(/^\/|\/$/g, '')) continue;
 
+            const noResidue = residue == null;
             if (currentDegree > highestDegree || noResidue) {
               highestDegree = currentDegree;
               childRoutes = $childRoutes;
@@ -279,6 +279,30 @@ class Candidate<T> {
       this.params = params;
     }
     return params;
+  }
+
+  /** @internal */
+  public _getRoutes(trimPrecedingSlash: boolean): RecognizedRoute<T>[] {
+    let path = this.chars.join('');
+    const params = this._getParams();
+    const childRoutes = this.childRoutes;
+    const numChildren = childRoutes.length;
+
+    if (numChildren > 0) {
+      // remove the child route paths from the consumed path
+      const childPath = childRoutes.reduce((p, r) => `${p}/${r.path}`, '');
+      path = path.slice(0, path.length - childPath.length);
+    }
+
+    const residue = params[RESIDUE];
+    if (residue != null) {
+      path = path.slice(0, path.length - residue.length);
+    }
+
+    if (trimPrecedingSlash && path.startsWith('/')) path = path.slice(1);
+    if (path.endsWith('/')) path = path.slice(0, -1);
+
+    return [new RecognizedRoute<T>(this.endpoint, path, params), ...this.childRoutes];
   }
 
   /**
@@ -573,12 +597,7 @@ export class RouteRecognizer<T> {
       return null;
     }
 
-    const { endpoint } = candidate;
-    const params = candidate._getParams();
-    let consumedPath = candidate.chars.join('');
-    if (originalPathIsWithoutPreceedingSlash && consumedPath.startsWith('/')) consumedPath = consumedPath.slice(1);
-
-    return [new RecognizedRoute<T>(endpoint, consumedPath, params), ...candidate.childRoutes];
+    return candidate._getRoutes(originalPathIsWithoutPreceedingSlash);
   }
 
   public getEndpoint(path: string): Endpoint<T> | null {

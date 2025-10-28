@@ -178,7 +178,7 @@ class Candidate<T> {
         }
         if (separator.nextStates !== null) {
           for (const $nextState of separator.nextStates) {
-            $process($nextState, nextState);
+            if ($process($nextState, nextState) === true) return true;
           }
         }
       }
@@ -188,7 +188,7 @@ class Candidate<T> {
 
     if (state.nextStates !== null) {
       for (const nextState of state.nextStates) {
-        $process(nextState, null);
+        if ($process(nextState, null) === true) return true;
       }
     }
 

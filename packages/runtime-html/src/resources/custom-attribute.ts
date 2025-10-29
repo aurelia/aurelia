@@ -176,9 +176,9 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
     if (!container.has(key, false)) {
       container.register(
-        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
-        aliasRegistration($Type, key),
-        ...aliases.map(alias => aliasRegistration($Type, getAttributeKeyFrom(alias)))
+        // container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+        singletonRegistration(key, $Type),
+        ...aliases.map(alias => aliasRegistration(key, getAttributeKeyFrom(alias)))
       );
     } /* istanbul ignore next */ else {
       if (CustomAttributeDefinition.warnDuplicate) {

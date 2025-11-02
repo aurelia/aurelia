@@ -651,4 +651,6 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  // TODO(Sayan): add test to ensure that error is thrown when eager-loading and navigation strategy are used together, as these are essentially 2 conflicting settings
 });

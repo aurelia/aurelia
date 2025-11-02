@@ -830,6 +830,10 @@ export class RouteConfigContext {
       if (childRoute.redirectTo != null) continue;
       const parentComponent = childRoute.component;
       const defn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
+
+      // avoid self-recursion
+      if (defn === this.component) continue;
+
       childRouteConfigPromises.push(onResolve(
         RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options),
         context => this._recognizer.append(context._recognizer)

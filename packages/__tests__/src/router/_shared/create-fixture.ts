@@ -90,7 +90,7 @@ export async function createFixture<T extends Constructable>(
   };
 }
 
-type RouterTestStartOptions<TAppRoot> = {
+export type RouterTestStartOptions<TAppRoot> = {
   appRoot: Class<TAppRoot>;
   useHash?: boolean;
   registrations?: any[];

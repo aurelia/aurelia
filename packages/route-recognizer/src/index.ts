@@ -169,17 +169,45 @@ class Candidate<T> {
         }
       }
 
-      if (state.segment === null && nextState.isOptional && nextState.nextStates !== null) {
-        if (nextState.nextStates.length > 1) {
-          throw createError(`${nextState.nextStates.length} nextStates`);
-        }
-        const separator = nextState.nextStates[0];
-        if (!separator.isSeparator) {
-          throw createError(`Not a separator`);
-        }
-        if (separator.nextStates !== null) {
-          for (const $nextState of separator.nextStates) {
-            if ($process($nextState, nextState) === true) return true;
+      if (state.segment === null && nextState.isOptional) {
+        if (nextState.nextStates !== null) {
+          if (nextState.nextStates.length > 1) {
+            throw createError(`${nextState.nextStates.length} nextStates`);
+          }
+          const separator = nextState.nextStates[0];
+          if (!separator.isSeparator) {
+            throw createError(`Not a separator`);
+          }
+          if (separator.nextStates !== null) {
+            for (const $nextState of separator.nextStates) {
+              if ($process($nextState, nextState) === true) return true;
+            }
+          }
+        } else if (routeRecognizer.children.length > 0 && nextState.segment?.kind === SegmentKind.dynamic) {
+          if (rest.startsWith('/')) {
+            const remainder = rest.slice(1);
+            if (remainder.length > 0) {
+              for (const childRecognizer of routeRecognizer.children) {
+                const childRoutes = childRecognizer.recognize(remainder);
+                if (childRoutes === null || childRoutes.length === 0) continue;
+
+                const childResidue = childRoutes[childRoutes.length - 1].params[RESIDUE];
+                if (childResidue === remainder) continue;
+
+                matched = true;
+                const candidate = new Candidate(
+                  chars.slice(),
+                  states.concat(nextState),
+                  skippedStates.concat(nextState),
+                  result,
+                  routeRecognizer,
+                );
+                candidate.childRoutes = childRoutes;
+                candidate.fullyMatches = childResidue == null;
+                result.add(candidate);
+                return true;
+              }
+            }
           }
         }
       }
@@ -295,7 +323,41 @@ class Candidate<T> {
       path = path.slice(0, path.length - childPath.length);
     }
 
-    const residue = params[RESIDUE];
+    const endpointParams = this.endpoint.params;
+    let residue = params[RESIDUE];
+    if (endpointParams.length >= 2) {
+      const residueDescriptor = endpointParams[endpointParams.length - 1];
+      if (residueDescriptor.name === RESIDUE) {
+        const precedingDescriptor = endpointParams[endpointParams.length - 2];
+        if (!precedingDescriptor.isStar && precedingDescriptor.name !== RESIDUE) {
+          const paramName = precedingDescriptor.name;
+          const paramValue = params[paramName];
+          if (typeof paramValue === 'string' && paramValue.length > 0 && this.routeRecognizer.children.length > 0) {
+            const hasExistingResidue = residue != null && residue.length > 0;
+            const combined = hasExistingResidue
+              ? `${paramValue}/${residue}`
+              : paramValue;
+            let matchesChild = false;
+            for (const childRecognizer of this.routeRecognizer.children) {
+              const childRoutes = childRecognizer.recognize(combined);
+              if (childRoutes === null || childRoutes.length === 0) continue;
+              const childResidue = childRoutes[childRoutes.length - 1].params[RESIDUE];
+              if (childResidue === combined) continue;
+              matchesChild = true;
+              break;
+            }
+
+            if (matchesChild) {
+              residue = params[RESIDUE] = combined;
+              if (precedingDescriptor.isOptional || hasExistingResidue) {
+                params[paramName] = void 0;
+              }
+            }
+          }
+        }
+      }
+    }
+
     if (residue != null) {
       path = path.slice(0, path.length - residue.length);
     }

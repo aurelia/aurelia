@@ -652,5 +652,26 @@ describe('router/navigation-strategy.spec.ts', function () {
     await au.stop(true);
   });
 
-  // TODO(Sayan): add test to ensure that error is thrown when eager-loading and navigation strategy are used together, as these are essentially 2 conflicting settings
+  it('does not work with eager loading', async function () {
+    @route({
+      routes: [
+        C1,
+        C2,
+        C3,
+        {
+          path: '',
+          component: new NavigationStrategy(() => { throw new Error('Unexpected invocation'); })
+        }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    try {
+      await start({ appRoot: Root, useEagerLoading: true });
+      assert.fail('expected error');
+    } catch (er) {
+      assert.match(er.message, /AUR3558/);
+    }
+  });
 });

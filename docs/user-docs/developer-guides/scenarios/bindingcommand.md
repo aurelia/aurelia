@@ -10,7 +10,7 @@ The Aurelia binding language provides commands like `.bind`, `.one-way`, `.trigg
 
 Although the out-of-box binding language is sufficient for most use cases, Aurelia also provides a way to extend the binding language so that developers can create their own incredible stuff when needed.
 
-In this article, we will build an example to demonstrate how to introduce your own binding commands using the `@bindingCommand` decorator.
+In this article, we will build an example to demonstrate how to introduce your own binding commands using the `@bindingCommand` decorator from the template compiler.
 
 ## Binding command
 
@@ -20,20 +20,20 @@ To understand it better, we start our discussion with the template compiler. The
 
 ## Creating a custom binding command
 
-To create a binding command, we use the `@bindingCommand` decorator with a command name on a class that implements the following interface:
+To create a binding command, decorate a class with `@bindingCommand` and implement the following interface:
 
 ```typescript
 interface BindingCommandInstance {
-  type: CommandType;
+  ignoreAttr: boolean;
   build(info: ICommandBuildInfo, parser: IExpressionParser, mapper: IAttrMapper): IInstruction;
 }
 ```
 
-A binding command must return `true` from the `ignoreAttr` property. This tells the template compiler that the binding command takes over the processing of the attribute, so the template compiler will not try to check further whether it's a custom attribute, custom element bindable etc...
+When the template compiler encounters an attribute, it first lets custom elements or attributes claim it. Only when no bindable handles the attribute does it look up a binding command whose name matches the parsed instruction. Setting `ignoreAttr = true` tells the compiler that your command consumes the attribute as-is and it should not keep probing for other handlers. Built-in commands like `.two-way` keep this value `false`, whereas specialized commands such as `.attr` set it to `true` so they can short-circuit the remaining checks.
 
 The more interesting part of the interface is the `build` method. The template compiler calls this method to build binding instructions. The `info` parameter contains information about the element, the attribute name, the bindable definition (if present), and the custom element/attribute definition (if present). The `parser` parameter is used to parse the attribute value into an expression. The `mapper` parameter of [type `IAttrMapper`](./attributemapper.md) is used to determine the binding mode, the target property name, etc. (for more information, refer to the [documentation](./extending-templating-syntax.md)). In short, here comes your logic to convert the attribute information into a binding instruction.
 
-For our example, we want to create a binding command that can trigger a handler when custom events such as `bs.foo.bar`, `bs.fizz.bizz` etc. is fired, and we want the following syntax:
+For our example, we want to create a binding command that can trigger a handler when custom events such as `bs.foo.bar`, `bs.fizz.bizz` etc. are fired, and we want the following syntax:
 
 ```html
 <div foo.bar.bs="ev => handleCustomEvent(ev)"></div>
@@ -48,28 +48,27 @@ instead of
 We first create a class that implements the `BindingCommandInstance` interface to do that.
 
 ```typescript
-import { IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser } from 'aurelia';
 import {
   BindingCommandInstance,
   ICommandBuildInfo,
-  IInstruction,
   ListenerBindingInstruction,
   bindingCommand,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 
 @bindingCommand('bs')
 export class BsBindingCommand implements BindingCommandInstance {
-  public ignoreAttr = true;
+  public ignoreAttr = true; // we fully own attributes that end with .bs
 
   public build(
     info: ICommandBuildInfo,
-    exprParser: IExpressionParser
-  ): IInstruction {
+    exprParser: IExpressionParser,
+  ) {
     return new ListenerBindingInstruction(
       /* from           */ exprParser.parse(info.attr.rawValue, 'IsFunction'),
       /* to             */ `bs.${info.attr.target}`,
       /* preventDefault */ true,
-      /* capture        */ false
+      /* capture        */ false,
     );
   }
 }
@@ -82,33 +81,17 @@ To register the custom binding command, it needs to be registered with the depen
 ### Registering the custom binding command
 
 ```typescript
-import { IContainer } from 'aurelia';
-import { BsBindingCommand } from './bs-binding-command';
-
-export function registerBindingCommands(container: IContainer) {
-  // Register our custom command with Aurelia's DI container
-  container.register(BsBindingCommand);
-}
-```
-
-This function can then be called wherever you configure your Aurelia application, so that the compiler knows about your custom command.
-
-#### How to load the custom command
-
-In your `main.ts` (or equivalent entry point) where you configure Aurelia, you can call the `registerBindingCommands` function. For example:
-
-```typescript
 import Aurelia from 'aurelia';
-import { registerBindingCommands } from './register';
+import { BsBindingCommand } from './bs-binding-command';
 import { MyRoot } from './my-root';
 
 Aurelia
+  .register(BsBindingCommand)
   .app(MyRoot)
-  .register(registerBindingCommands)
   .start();
 ```
 
-This ensures that when Aurelia boots, it's aware of your new binding command.
+Because `@bindingCommand` wires up the resource metadata, registering the class is all the compiler needs to find it.
 
 #### Why `ignoreAttr = true`?
 

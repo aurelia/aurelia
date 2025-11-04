@@ -102,7 +102,7 @@ module.exports = {
 **src/components/product-list.ts:**
 
 ```typescript
-import { customElement, bindable } from 'aurelia';
+import { customElement, bindable } from '@aurelia/runtime-html';
 
 export interface Product {
   id: number;
@@ -113,17 +113,15 @@ export interface Product {
 @customElement({
   name: 'product-list',
   template: `
-    <template>
-      <div class="product-grid">
-        <div class="product-card" repeat.for="product of products">
-          <h3>\${product.name}</h3>
-          <p>$\${product.price}</p>
-          <button click.trigger="selectProduct(product)">
-            View Details
-          </button>
-        </div>
+    <div class="product-grid">
+      <div class="product-card" repeat.for="product of products">
+        <h3>\${product.name}</h3>
+        <p>$\${product.price}</p>
+        <button click.trigger="selectProduct(product)">
+          View Details
+        </button>
       </div>
-    </template>
+    </div>
   `
 })
 export class ProductList {
@@ -139,7 +137,7 @@ export class ProductList {
 **src/product-module.ts:**
 
 ```typescript
-import { IContainer, IRegistry } from 'aurelia';
+import { IContainer, IRegistry } from '@aurelia/kernel';
 import { ProductList } from './components/product-list';
 import { ProductDetail } from './components/product-detail';
 
@@ -206,18 +204,17 @@ module.exports = {
 **src/components/micro-frontend-loader.ts:**
 
 ```typescript
-import { customElement, bindable, IContainer } from 'aurelia';
+import { customElement, bindable } from '@aurelia/runtime-html';
+import { IContainer } from '@aurelia/kernel';
 
 @customElement({
   name: 'micro-frontend-loader',
   template: `
-    <template>
-      <div if.bind="loading">Loading micro-frontend...</div>
-      <div if.bind="error" class="error">
-        Failed to load micro-frontend: \${error}
-      </div>
-      <div if.bind="!loading && !error" ref="container"></div>
-    </template>
+    <div if.bind="loading">Loading micro-frontend...</div>
+    <div if.bind="error" class="error">
+      Failed to load micro-frontend: \${error}
+    </div>
+    <div if.bind="!loading && !error" ref="container"></div>
   `
 })
 export class MicroFrontendLoader {
@@ -304,16 +301,14 @@ export class MyApp {
 **src/views/products-shell.html:**
 
 ```html
-<template>
-  <div class="products-page">
-    <h2>Products (Micro-frontend)</h2>
-    <micro-frontend-loader
-      remote-name="productApp"
-      module-name="ProductList"
-      component-name="ProductList">
-    </micro-frontend-loader>
-  </div>
-</template>
+<div class="products-page">
+  <h2>Products (Micro-frontend)</h2>
+  <micro-frontend-loader
+    remote-name="productApp"
+    module-name="ProductList"
+    component-name="ProductList">
+  </micro-frontend-loader>
+</div>
 ```
 
 ## Vite Module Federation
@@ -403,21 +398,19 @@ export default defineConfig({
 **src/components/micro-frontend-boundary.ts:**
 
 ```typescript
-import { customElement, bindable } from 'aurelia';
+import { customElement, bindable } from '@aurelia/runtime-html';
 
 @customElement({
   name: 'micro-frontend-boundary',
   template: `
-    <template>
-      <div if.bind="hasError" class="error-boundary">
-        <h3>Something went wrong</h3>
-        <p>\${errorMessage}</p>
-        <button click.trigger="retry()">Retry</button>
-      </div>
-      <div if.bind="!hasError">
-        <slot></slot>
-      </div>
-    </template>
+    <div if.bind="hasError" class="error-boundary">
+      <h3>Something went wrong</h3>
+      <p>\${errorMessage}</p>
+      <button click.trigger="retry()">Retry</button>
+    </div>
+    <div if.bind="!hasError">
+      <slot></slot>
+    </div>
   `
 })
 export class MicroFrontendBoundary {
@@ -446,7 +439,7 @@ export class MicroFrontendBoundary {
 **src/services/micro-frontend-state.ts:**
 
 ```typescript
-import { IEventAggregator, singleton } from 'aurelia';
+import { IEventAggregator, singleton } from '@aurelia/kernel';
 
 export interface MicroFrontendMessage {
   source: string;
@@ -499,19 +492,19 @@ preloadModules();
 ### Lazy Loading Strategy
 
 ```typescript
+import { customElement, bindable } from '@aurelia/runtime-html';
+
 @customElement({
   name: 'lazy-micro-frontend',
   template: `
-    <template>
-      <div class="intersection-observer" ref="trigger">
-        <div if.bind="visible">
-          <micro-frontend-loader
-            remote-name.bind="remoteName"
-            module-name.bind="moduleName">
-          </micro-frontend-loader>
-        </div>
+    <div class="intersection-observer" ref="trigger">
+      <div if.bind="visible">
+        <micro-frontend-loader
+          remote-name.bind="remoteName"
+          module-name.bind="moduleName">
+        </micro-frontend-loader>
       </div>
-    </template>
+    </div>
   `
 })
 export class LazyMicroFrontend {

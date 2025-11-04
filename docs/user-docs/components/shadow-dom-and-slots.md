@@ -1,23 +1,43 @@
 ---
 description: >-
-  Learn how to work with slots to work with the concept of dynamic slot
-  placeholders in your custom elements.
+  Learn how to project content into custom elements using native slots and au-slot, and how to observe and react to slot changes.
 ---
 
-# Slotted content
+# Slotted Content
 
-In Aurelia, we have two ways to project content into custom elements. In the case of Shadow DOM, we can use `<slot>` and for situations where Shadow DOM is not desirable, we have `<au-slot>`
+Aurelia provides two ways to project content into custom elements:
 
-## Slot
+- **`<slot>`** - Native Web Components slot that requires Shadow DOM
+- **`<au-slot>`** - Aurelia's slot implementation that works without Shadow DOM
 
-When working with Shadow DOM-enabled components, the `<slot>` element is a web platform native way to allow content projection into components. In some instances, the `<slot>` element will not be the right choice, and you will need to consider [`<au-slot>` (referenced below)](#au-slot) instead.
+This guide focuses on slot usage, observation, and advanced patterns. For detailed information about configuring Shadow DOM, styling, and constraints, see the [Shadow DOM guide](shadow-dom.md).
+
+## Native Slots (`<slot>`)
+
+The `<slot>` element is the browser-native way to project content into Shadow DOM components.
 
 {% hint style="warning" %}
-The slot element will only work when Shadow DOM is enabled for your component. Attempting to use the slot element with it disabled will throw an error in the console.
+Native `<slot>` elements **require Shadow DOM**. Attempting to use `<slot>` without enabling Shadow DOM will throw a compilation error: `Template compilation error: detected a usage of "<slot>" element without specifying shadow DOM options`.
+
+For content projection without Shadow DOM, use [`<au-slot>`](#au-slot) instead.
 {% endhint %}
 
-In the case of a fictional but realistic example, we have a modal element. The user can provide content which is rendered inside of the element.
+### Enabling Shadow DOM for Slots
 
+Before using `<slot>`, enable Shadow DOM on your component:
+
+{% tabs %}
+{% tab title="modal.ts" %}
+```typescript
+import { customElement, useShadowDOM } from 'aurelia';
+
+@customElement('au-modal')
+@useShadowDOM()
+export class AuModal {}
+```
+{% endtab %}
+
+{% tab title="modal.html" %}
 ```html
 <div class="modal">
     <div class="modal-inner">
@@ -25,20 +45,20 @@ In the case of a fictional but realistic example, we have a modal element. The u
     </div>
 </div>
 ```
-
-Assuming this is a Shadow DOM-enabled component, all is well. We have a custom element that allows for content to be used inside of it.
+{% endtab %}
+{% endtabs %}
 
 Because we named our component `au-modal` we will then use it like this:
 
 ```html
 <au-modal>
-    <div slot>
+    <div>
         <p>Modal content inside of the modal</p>
     </div>
 </au-modal>
 ```
 
-Notice how we use the attribute `slot` on our content being passed in? This tells Aurelia to project our content into the default slot. Custom elements can have multiple slots, so how do we tell Aurelia where to project our content?
+Notice how we add `slot="content"` to the projected node? This tells Aurelia to send that markup to the `<slot name="content">` target. When you target the default slot you omit the `slot` attribute entirely. Custom elements can have multiple slots, so how do we tell Aurelia where to project our content?
 
 ### Named slots
 
@@ -56,7 +76,7 @@ Now, to use our element with a named slot, you can do this:
 
 ```html
 <au-modal>
-    <div slot="name">
+    <div slot="content">
         <p>Modal content inside of the modal</p>
     </div>
 </au-modal>
@@ -101,8 +121,10 @@ class MyApp {
 In case where it's not desirable to go to listen to projection change at the targets (`<slot>` elements), it's also possible to listen to projection at the source with `@children` decorator. Decorating a property on a custom element class with `@children` decorator will setup mutation observer to notify of any changes, like the following example:
 {% code title="my-details.ts" overflow="wrap" lineNumbers="true" %}
 ```typescript
+import { children } from 'aurelia';
+
 export class MyDetails {
-  @children('div') divs
+  @children('div') divs: HTMLElement[];
 }
 ```
 {% endcode %}
@@ -146,10 +168,11 @@ export class MyItem {
 {% endcode %}
 {% code title="my-list.ts" overflow="wrap" lineNumbers="true" %}
 ```typescript
+import { children } from 'aurelia';
 import { MyItem } from './my-item';
 
 export class MyList {
-  @children('my-item') items: MyItem[]
+  @children('my-item') items: MyItem[];
 }
 ```
 {% endcode %}
@@ -168,14 +191,15 @@ As `items` property is decorated with `@children('my-item')`, its values is alwa
 
 {% code title="my-list.ts" overflow="wrap" lineNumbers="true" %}
 ```typescript
+import { children } from 'aurelia';
 import { MyItem } from './my-item';
 
 export class MyList {
   @children({
     query: 'my-item',
-    map: (node, component) => node
+    map: (node) => node
   })
-  items: MyItem[]
+  items: HTMLElement[];
 }
 ```
 {% endcode %}
@@ -288,9 +312,38 @@ Another important point to note is that the usage of `[au-slot]` attribute is su
   <div>
     <div au-slot></div>
   </div>
-<my-element>
+</my-element>
 ```
 {% endcode %}
+
+### Using `[au-slot]` with template controllers
+
+You can combine `[au-slot]` with Aurelia template controllers such as `if.bind`, `repeat.for`, or your own custom controllers. During compilation Aurelia moves the slotted content into projection templates before it runs those controllers, so the control-flow logic still executes exactly where you expect it to.
+
+{% code title="my-card.html" %}
+```html
+<au-slot name="actions"></au-slot>
+<ul>
+  <au-slot name="items"></au-slot>
+</ul>
+```
+{% endcode %}
+
+{% code title="app.html" %}
+```html
+<my-card>
+  <div au-slot="actions" if.bind="showActions">
+    <button click.trigger="dismiss()">Dismiss</button>
+  </div>
+
+  <template au-slot="items" repeat.for="item of items">
+    <li>${item}</li>
+  </template>
+</my-card>
+```
+{% endcode %}
+
+The compiler handles both `if.bind` and `repeat.for` on the slotted projections, so you do not need to wrap them inside extra `<template>` tags unless you prefer that style.
 
 **Inject the projected slot information**
 
@@ -311,10 +364,10 @@ import { resolve } from 'aurelia';
 import { IAuSlotsInfo } from '@aurelia/runtime-html';
 
 class MyElement {
-  public constructor(
-    public readonly slotInfo: IAuSlotsInfo = resolve(IAuSlotsInfo),
-  ) {
-    console.log(slotInfo.projectedSlots);
+  private readonly slotInfo = resolve(IAuSlotsInfo);
+
+  binding() {
+    console.log(this.slotInfo.projectedSlots);
   }
 }
 ```
@@ -333,7 +386,7 @@ class MyElement {
 {% endtab %}
 {% endtabs %}
 
-The followingrk would be logged to the console for the instances of `my-element`.
+The following would be logged to the console for the instances of `my-element`.
 
 ```html
 // my_element_instance_1
@@ -713,6 +766,10 @@ In the example above, we replace the 'content' template of the grid, defined in 
 Note that `$host` allows us to access whatever the `<au-slot/>` element exposes, and this value can be changed to enable powerful scenarios. Without the `$host` it might not have been easy to provide a template for the repeater from the outside.
 
 {% hint style="info" %}
+`expose.bind` is reactive. Updating the bound object (for example, when an inner input changes) immediately updates the `$host` object that all projected templates see.
+{% endhint %}
+
+{% hint style="info" %}
 The last example is also interesting from another aspect. It shows that many parts of the grid can be replaced with projection while working with a grid. This includes the header of the grid (`au-slot="header"`), the template column of the grid (`au-slot="content"`), or even the whole grid itself (`au-slot="grid"`).
 {% endhint %}
 
@@ -962,4 +1019,5 @@ export class MySummaryElement {
 - The callback pass to slotchange of `<au-slot>` will be call with an `undefined` this, so you should either give it a lambda expression, or a function like the example above.
 - The nodes passed to the 2nd parameter of the `slotchange` callback will always be the latest list of nodes.
 - the `slotchange` callback doesn't fire if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
+- `slotchange` is independent of `@slotted`; you can bind it even if you do not observe the slot contents elsewhere.
 {% endhint %}

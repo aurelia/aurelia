@@ -93,6 +93,16 @@ You should see "Hello World!" displayed in your browser. The development server 
 - **Ready for more?** Explore our [developer guides](../developer-guides/README.md) and [tutorials](../tutorials/README.md)
 - **Need help?** Check out [troubleshooting](../developer-guides/debugging-and-troubleshooting.md)
 
+## Recommended Reading
+
+Want deeper context after the quick start? These guides build on the concepts introduced here:
+
+- **Component basics** – Understand how views and view-models pair up plus when to use imports vs. global registration in [Component essentials](../essentials/components.md).
+- **Project structure & conventions** – See how the scaffolded files fit together in the [Complete guide's project structure section](complete-guide.md#step-2-project-structure).
+- **Template syntax & binding** – Explore binding commands, loops, and conditionals in the [template syntax overview](../templates/template-syntax/overview.md).
+- **Dependency injection** – Learn how Aurelia's DI container works and when to call `resolve()` in the [DI overview](../getting-to-know-aurelia/dependency-injection-di/overview.md).
+- **Routing** – When you need multiple pages, follow the [router getting started guide](../router/getting-started.md) to add navigation.
+
 ## Core Concepts (Optional Reading)
 
 Aurelia is built on familiar web technologies with a few key concepts:

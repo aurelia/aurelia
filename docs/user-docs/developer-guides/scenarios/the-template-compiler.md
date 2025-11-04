@@ -23,9 +23,9 @@ import Aurelia, { TemplateCompilerHooks } from 'aurelia';
 Aurelia
   .register(TemplateCompilerHooks.define(class {
     compiling(template: HTMLElement) {
-      element.querySelector('table').setAttribute(someAttribute, someValue);
+      template.querySelector('table')?.setAttribute(someAttribute, someValue);
     }
-  }))
+  }));
 ```
 
 ### With decorator
@@ -94,25 +94,23 @@ If your application uses feature flags to toggle features on and off, you may wa
 import Aurelia, { TemplateCompilerHooks } from 'aurelia';
 
 class FeatureFlagHook {
-  constructor(private featureFlags: Record<string, boolean>) {}
-
   compiling(template: HTMLElement) {
     const featureElements = template.querySelectorAll('[data-feature]');
     for (const element of featureElements) {
-      const featureName = element.getAttribute('data-feature');
-      if (!this.featureFlags[featureName]) {
-        element.parentNode.removeChild(element);
+      const featureName = element.getAttribute('data-feature') ?? '';
+      if (!activeFeatureFlags[featureName]) {
+        element.remove();
       }
     }
   }
 }
 
-const activeFeatureFlags = {
+const activeFeatureFlags: Record<string, boolean> = {
   'new-ui': true,
   'beta-feature': false
 };
 
-Aurelia.register(TemplateCompilerHooks.define(new FeatureFlagHook(activeFeatureFlags)))
+Aurelia.register(TemplateCompilerHooks.define(FeatureFlagHook))
   .app(MyApp)
   .start();
 ```
@@ -145,7 +143,7 @@ class FormFieldHook {
   }
 }
 
-Aurelia.register(TemplateCompilerHooks.define(new FormFieldHook()))
+Aurelia.register(TemplateCompilerHooks.define(FormFieldHook))
   .app(MyApp)
   .start();
 ```
@@ -170,7 +168,7 @@ class AriaRoleHook {
   }
 }
 
-Aurelia.register(TemplateCompilerHooks.define(new AriaRoleHook()))
+Aurelia.register(TemplateCompilerHooks.define(AriaRoleHook))
   .app(MyApp)
   .start();
 ```
@@ -194,7 +192,7 @@ class CSPHook {
   }
 }
 
-Aurelia.register(TemplateCompilerHooks.define(new CSPHook()))
+Aurelia.register(TemplateCompilerHooks.define(CSPHook))
   .app(MyApp)
   .start();
 ```
@@ -217,7 +215,7 @@ class LazyLoadingHook {
   }
 }
 
-Aurelia.register(TemplateCompilerHooks.define(new LazyLoadingHook()))
+Aurelia.register(TemplateCompilerHooks.define(LazyLoadingHook))
   .app(MyApp)
   .start();
 ```
@@ -231,8 +229,10 @@ If your application supports multiple themes, you can use a template compiler ho
 ```typescript
 import Aurelia, { TemplateCompilerHooks } from 'aurelia';
 
+const userSelectedTheme = 'dark'; // For example, a dark theme
+
 class ThemeClassHook {
-  constructor(private currentTheme: string) {}
+  private readonly currentTheme = userSelectedTheme;
 
   compiling(template: HTMLElement) {
     const rootElement = template.querySelector(':root');
@@ -242,8 +242,7 @@ class ThemeClassHook {
   }
 }
 
-const userSelectedTheme = 'dark'; // For example, a dark theme
-Aurelia.register(TemplateCompilerHooks.define(new ThemeClassHook(userSelectedTheme)))
+Aurelia.register(TemplateCompilerHooks.define(ThemeClassHook))
   .app(MyApp)
   .start();
 ```

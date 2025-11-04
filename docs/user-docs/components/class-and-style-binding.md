@@ -663,7 +663,6 @@ The syntax is mostly the same, with some improvements:
 ### Browser Support
 
 All binding features work in modern browsers. For older browsers:
-- CSS custom properties require a polyfill for IE11
 - Shadow DOM requires a polyfill for older browsers
 - CSS Modules work everywhere (they're processed at build time)
 

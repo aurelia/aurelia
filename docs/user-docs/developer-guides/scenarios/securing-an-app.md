@@ -1,5 +1,7 @@
 # Securing an app
 
+Quick security tips for Aurelia 2 applications. For comprehensive security guidance, see the **[Security Guide](../security.md)**.
+
 ## Introduction
 
 The first rule of securing client-side applications is: the client cannot be trusted. Your backend should never trust the input from the front end under any circumstance. Malicious individuals often know how to use browser debug tools and manually craft HTTP requests to your backend.&#x20;
@@ -7,6 +9,12 @@ The first rule of securing client-side applications is: the client cannot be tru
 You may even find yourself in a situation where a disgruntled employee (or former employee), an engineer with intimate knowledge of the system, is seeking revenge by attempting a malicious attack.
 
 **Your primary mechanism for securing any SPA application, Aurelia or otherwise, is to work hard at securing your backend services.**
+
+{% hint style="info" %}
+**Comprehensive Security Guide Available**
+
+This recipe provides basic security tips. For in-depth coverage of XSS prevention, authentication patterns, authorization with route guards, CSRF protection, CSP configuration, and more, see the **[Security Guide](../security.md)**.
+{% endhint %}
 
 {% hint style="warning" %}
 **Security Advice**
@@ -83,3 +91,16 @@ Again, most of this comes down to server-side implementation. Here are a few bas
 * Never log sensitive data.
 * Consider timing out logins or auth tokens. You can provide refresh mechanisms to help the user experience.
 * Configure server insight tooling so that threats can be detected earlier.
+
+## See Also
+
+For comprehensive security guidance covering:
+- **XSS Prevention**: Template sanitization, innerHTML binding, expression parser security
+- **Authentication Patterns**: Creating auth services, token management, login flows
+- **Authorization**: Route guards, role-based access control, canLoad hooks
+- **CSRF Protection**: Token patterns, SameSite cookies
+- **Content Security Policy**: CSP configuration for Aurelia apps
+- **Secure Token Storage**: HttpOnly cookies vs sessionStorage best practices
+- **Input Validation**: Client and server-side validation patterns
+
+See the **[Security Guide](../security.md)**.

@@ -97,7 +97,7 @@ import {
   NavigationCancelEvent,
   NavigationErrorEvent,
 } from '@aurelia/router';
-import { IDisposable, resolve } from 'aurelia';
+import { IDisposable, resolve } from '@aurelia/kernel';
 
 export class NavigationService implements IDisposable {
   private readonly subscriptions: IDisposable[] = [];
@@ -192,6 +192,62 @@ export class BasicNavigationService {
 
 ## Practical Use Cases and Examples
 
+### Leverage managed history state
+
+The router stores a tiny object inside every browser history entry it creates. That object always contains an `au-nav-id` field (exported as `AuNavId`) so the router can determine whether a later `popstate` represents a backward or forward navigation. You can read and extend that managed state through the router events API.
+
+#### Read managed state when navigation starts
+
+```typescript
+import { IRouterEvents, NavigationStartEvent } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class NavigationStateLogger {
+  private readonly events = resolve(IRouterEvents);
+
+  public constructor() {
+    this.events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
+      if (event.managedState) {
+        console.log('Entry id:', event.managedState['au-nav-id']);
+        console.log('Custom payload:', event.managedState['filters']);
+      }
+    });
+  }
+}
+```
+
+- The `managedState` payload is populated for both API-driven and browser-driven navigations, but only browser-triggered events will contain data you previously stored in `history.state`.
+- The `au-nav-id` key is required—always merge existing state instead of overwriting it.
+- See [Router state management](./router-state-management.md#managed-history-entries-au-nav-id-and-managedstate) for end-to-end scenarios, including persisting filters or scroll depth.
+
+#### Store additional metadata per history entry
+
+```typescript
+import { IRouterEvents, NavigationEndEvent } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class HistoryMetadataWriter {
+  private readonly events = resolve(IRouterEvents);
+
+  public constructor() {
+    this.events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
+      const nextState = {
+        ...(window.history.state ?? {}),
+        filters: this.getActiveFilters(),
+        updatedAt: Date.now(),
+      };
+      window.history.replaceState(nextState, document.title);
+    });
+  }
+
+  private getActiveFilters() {
+    return { tab: 'inbox' };
+  }
+}
+```
+
+The router will emit the same metadata the next time that history entry is restored, allowing you to resume UI state in `NavigationStartEvent` or `NavigationEndEvent` handlers.
+
 ### Global Loading Indicator
 
 Show a loading spinner during navigation:
@@ -199,7 +255,7 @@ Show a loading spinner during navigation:
 ```typescript
 import { resolve } from '@aurelia/kernel';
 import { customElement, observable } from '@aurelia/runtime-html';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
+import { IRouter, IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
 
 @customElement({
   name: 'loading-app',
@@ -226,6 +282,7 @@ import { IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aureli
 export class LoadingApp {
   @observable isNavigating: boolean = false;
   @observable breadcrumbs: string[] = [];
+  private readonly router = resolve(IRouter);
 
   private readonly subscriptions = [
     resolve(IRouterEvents).subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
@@ -235,7 +292,7 @@ export class LoadingApp {
 
     resolve(IRouterEvents).subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
       this.isNavigating = false;
-      this.updateBreadcrumbs(event.finalInstructions);
+      this.updateBreadcrumbs();
       console.log(`Navigation completed: ${event.finalInstructions.toUrl()}`);
     }),
 
@@ -250,9 +307,15 @@ export class LoadingApp {
     })
   ];
 
-  private updateBreadcrumbs(instructions: ViewportInstructionTree): void {
-    // Extract route titles for breadcrumb navigation
-    this.breadcrumbs = instructions.root.children.map(child => child.title || 'Unknown');
+  private updateBreadcrumbs(): void {
+    const routeTree = this.router.routeTree;
+    const separator = ' › ';
+    this.breadcrumbs = routeTree.root.children
+      .map(node => {
+        const title = node.getTitle(separator);
+        const path = node.computeAbsolutePath();
+        return title ?? (path.length > 0 ? path : 'Unknown');
+      });
   }
 
   private handleNavigationError(error: unknown): void {
@@ -272,11 +335,12 @@ Track navigation events for analytics:
 
 ```typescript
 import { singleton, resolve } from '@aurelia/kernel';
-import { IRouterEvents, NavigationEndEvent, LocationChangeEvent } from '@aurelia/router';
+import { IRouter, IRouterEvents, NavigationEndEvent, LocationChangeEvent } from '@aurelia/router';
 
 @singleton
 export class AnalyticsService {
   private readonly startTimes = new Map<number, number>();
+  private readonly router = resolve(IRouter);
 
   public constructor() {
     const events = resolve(IRouterEvents);
@@ -300,7 +364,7 @@ export class AnalyticsService {
 
   private trackPageView(event: NavigationEndEvent): void {
     const url = event.finalInstructions.toUrl();
-    const title = this.extractPageTitle(event.finalInstructions);
+    const title = this.extractPageTitle();
     
     // Send to analytics service (Google Analytics, Adobe Analytics, etc.)
     if (typeof gtag !== 'undefined') {
@@ -337,8 +401,8 @@ export class AnalyticsService {
     }
   }
 
-  private extractPageTitle(instructions: ViewportInstructionTree): string {
-    return instructions.root.children[0]?.title || 'Unknown Page';
+  private extractPageTitle(): string {
+    return this.router.routeTree.root.getTitle(' | ') ?? 'Unknown Page';
   }
 }
 ```
@@ -656,7 +720,7 @@ export class RouterDebugService {
 For simple scenarios where you only need current route information without complex event handling, use `ICurrentRoute`:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { ICurrentRoute } from '@aurelia/router';
 
 export class SimpleComponent {

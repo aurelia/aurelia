@@ -41,28 +41,24 @@ Before working with synthetic views, you should be familiar with:
 Here's a basic example of creating a synthetic view:
 
 ```typescript
-import { 
-    convertToRenderLocation, 
-    CustomElementDefinition, 
-    ICustomElementController, 
-    ISyntheticView 
+import {
+    convertToRenderLocation,
+    CustomElementDefinition,
+    ICustomElementController,
+    ISyntheticView,
+    ViewFactory
 } from '@aurelia/runtime-html';
 import { Scope } from '@aurelia/runtime';
-import { 
-    customElement, 
-    IContainer, 
-    ViewFactory,
-    IPlatform, 
-    resolve 
-} from "aurelia";
+import { customElement, IContainer, IPlatform } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 
 @customElement({
     name: 'synthetic-example',
     template: '<div ref="container"></div>'
 })
 export class SyntheticExample {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
@@ -111,6 +107,7 @@ export class SyntheticExample {
     async detaching() {
         if (this.view) {
             await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
         }
     }
 }
@@ -139,8 +136,8 @@ Here's how to create and use scopes effectively:
     template: '<div ref="container"></div>'
 })
 export class ScopeExample {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
@@ -216,8 +213,8 @@ export class ParentScopeExample {
     // Parent component property
     message = 'Hello from parent';
 
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
@@ -228,10 +225,10 @@ export class ParentScopeExample {
         template.innerHTML = `
             <div>
                 <!-- Access parent scope -->
-                <h2>\${parentMessage}</h2>
+                <h2>Parent says: \${$parent.message}</h2>
                 
                 <!-- Access local scope -->
-                <p>\${localMessage}</p>
+                <p>Child says: \${localMessage}</p>
                 
                 <button click.trigger="handleClick()">
                     Update Messages
@@ -254,16 +251,18 @@ export class ParentScopeExample {
             .setLocation(renderLocation);
 
         // Create child scope with parent scope access
-        const childScope = Scope.create(
-            {
-                localMessage: 'Hello from child',
-                handleClick: () => {
-                    // Can access both scopes
-                    childScope.localMessage = 'Updated child message';
-                    this.message = 'Updated parent message';
-                }
-            },
-            this.$controller.scope // Parent scope
+        const childBindingContext = {
+            localMessage: 'Hello from child',
+            handleClick: () => {
+                // Keep both contexts in sync so the template updates immediately
+                childBindingContext.localMessage = 'Updated child message';
+                this.message = 'Updated parent message';
+            }
+        };
+
+        const childScope = Scope.fromParent(
+            this.$controller.scope,
+            childBindingContext
         );
 
         await this.view.activate(
@@ -275,6 +274,8 @@ export class ParentScopeExample {
 }
 ```
 
+This pattern keeps the parent scope intact by calling `Scope.fromParent(this.$controller.scope, childBindingContext)` and then referencing the parent via `$parent` inside the synthetic template. The child binding context stays isolated (`localMessage`), while `$parent.message` always reflects the latest value on the host element.
+
 ### Handling Dynamic Updates
 
 When your view model data changes, the bindings will automatically update. However, if you need to rebuild the view completely, you'll need to handle that manually:
@@ -285,8 +286,8 @@ When your view model data changes, the bindings will automatically update. Howev
     template: '<div ref="container"></div>'
 })
 export class DynamicUpdateExample {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
@@ -296,6 +297,7 @@ export class DynamicUpdateExample {
         // Deactivate existing view if it exists
         if (this.view) {
             await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
             this.container.innerHTML = ''; // Clear container
         }
 
@@ -381,8 +383,8 @@ This example shows how to take HTML content from a server (like a CMS) and make 
     template: '<div ref="container"></div>'
 })
 export class CmsContent {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
@@ -401,6 +403,12 @@ export class CmsContent {
     }
 
     private async renderContent(html: string) {
+        if (this.view) {
+            await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
+            this.container.innerHTML = '';
+        }
+
         const template = this.platform.document.createElement('template');
         
         // Server returns HTML with Aurelia binding expressions
@@ -445,6 +453,7 @@ export class CmsContent {
     async detaching() {
         if (this.view) {
             await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
         }
     }
 }
@@ -474,13 +483,13 @@ interface FormField {
     template: '<div ref="container"></div>'
 })
 export class DynamicForm {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
     @bindable() schema: FormField[] = [];
-    @bindable() onSubmit: (data: any) => Promise<void>;
+    @bindable() onSubmit?: (data: any) => Promise<void>;
 
     $controller!: ICustomElementController<this>;
 
@@ -540,6 +549,7 @@ export class DynamicForm {
     private async renderForm() {
         if (this.view) {
             await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
             this.container.innerHTML = '';
         }
 
@@ -685,8 +695,8 @@ interface ComponentConfig {
     template: '<div ref="container"></div>'
 })
 export class ComponentLoader {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
@@ -706,18 +716,25 @@ export class ComponentLoader {
     }
 
     private async loadScript(url: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
+        const doc = this.platform.document;
+        return new Promise((resolveScript, reject) => {
+            const script = doc.createElement('script');
             script.src = url;
-            script.onload = () => resolve();
+            script.onload = () => resolveScript();
             script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
-            document.head.appendChild(script);
+            const target = doc.head ?? doc.body ?? doc.documentElement;
+            if (!target) {
+                reject(new Error('No document root available for script injection.'));
+                return;
+            }
+            target.appendChild(script);
         });
     }
 
     private async renderComponent(config: ComponentConfig) {
         if (this.view) {
             await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
             this.container.innerHTML = '';
         }
 
@@ -765,13 +782,14 @@ interface DashboardWidget {
     template: '<div ref="container" class="dashboard-container"></div>'
 })
 export class DashboardBuilder {
-    private container: HTMLElement;
-    private view: ISyntheticView;
+    private container!: HTMLElement;
+    private view: ISyntheticView | null = null;
     private readonly platform = resolve(IPlatform);
     private readonly diContainer = resolve(IContainer);
 
     $controller!: ICustomElementController<this>;
     private widgets: DashboardWidget[] = [];
+    private draggingWidgetId: string | null = null;
 
     private generateWidgetHtml(widget: DashboardWidget): string {
         const style = `
@@ -846,6 +864,12 @@ export class DashboardBuilder {
     }
 
     private async renderDashboard() {
+        if (this.view) {
+            await this.view.deactivate(this.view, this.$controller);
+            this.view = null;
+            this.container.innerHTML = '';
+        }
+
         const template = this.platform.document.createElement('template');
         template.innerHTML = `
             <div class="dashboard">
@@ -877,18 +901,23 @@ export class DashboardBuilder {
 
         const viewModel = {
             widgets: this.widgets,
-            startDrag: (event: DragEvent, widgetId: string) => {
-                event.dataTransfer.setData('widgetId', widgetId);
+            startDrag: (_event: DragEvent, widgetId: string) => {
+                this.draggingWidgetId = widgetId;
             },
-            endDrag: (event: DragEvent) => {
-                const widgetId = event.dataTransfer.getData('widgetId');
-                const widget = this.widgets.find(w => w.id === widgetId);
+            endDrag: async (event: DragEvent) => {
+                if (!this.draggingWidgetId) {
+                    return;
+                }
+
+                const widget = this.widgets.find(w => w.id === this.draggingWidgetId);
+                this.draggingWidgetId = null;
+
                 if (widget) {
                     widget.position = {
                         x: event.clientX - this.container.offsetLeft,
                         y: event.clientY - this.container.offsetTop
                     };
-                    this.renderDashboard();
+                    await this.renderDashboard();
                 }
             },
             addWidget: async (type: DashboardWidget['type']) => {

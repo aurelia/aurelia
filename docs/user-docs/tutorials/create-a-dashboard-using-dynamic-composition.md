@@ -79,7 +79,7 @@ Seriously, that's all this component is going to do. Now, we need a view for thi
 We will import the `customElement` decorator and then decorate our component class. We have to specify the name (the HTML tag) and the template takes a template string. Take note of the backslash `\` this is being used to escape our interpolation as we only want Aurelia interpreting this, not Javascript.
 
 ```typescript
-import { customElement } from 'aurelia';
+import { customElement } from '@aurelia/runtime-html';
 
 @customElement({
     name: 'date-component',
@@ -99,7 +99,7 @@ You will be introduced to the Promise controller in this component, showcasing h
 Create a new file called `dog-component` inside of `src/components` and add in the following code:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class DogComponent {
@@ -286,7 +286,7 @@ Some of this code will look familiar to you. We worked with the Aurelia Fetch Cl
 Create a new file called `geoip-component.ts` inside of the `src/components` directory in your application and populate it with the following:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class GeoipComponent {
@@ -447,7 +447,7 @@ Once more, we'll be interacting with an API. And the code like in our dog compon
 Create a new file called `exchange-component` in the `components` directory:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class ExchangeComponent {
@@ -531,7 +531,7 @@ Our dog, GeoIP and exchange components all make API requests, they all expect JS
 Create a new file called `api.ts` in our `services` directory. We will then inject the Aurelia Fetch Client and create a method that accepts two parameters.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
@@ -544,19 +544,17 @@ export class Api {
 }
 ```
 
-* We inject the Aurelia Fetch Client on the constructor as we did in our other components
-* Because we are using TypeScript, dependencies on the constructor get automatically injected
+* We use `resolve()` to inject the Aurelia Fetch Client, following Aurelia 2 best practices
 * We create a new class method called `fetchData` which accepts the URL to call and an optional error message if the request fails.
 
 Now, let's refactor our `dog-component.ts` we'll be injecting the API and that is it:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from '../services/api';
 
 export class DogComponent {
-    constructor(private api: Api) {
-
-    }
+    private api = resolve(Api);
 }
 ```
 
@@ -571,12 +569,11 @@ Because our API is injected into the view model, it becomes available to the vie
 We do the same for `exchange-component.ts` refactoring to:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from '../services/api';
 
 export class ExchangeComponent {
-    constructor(private api: Api) {
-
-    }
+    private api = resolve(Api);
 }
 ```
 
@@ -589,12 +586,11 @@ promise.bind="api.fetchData('https://api.exchangerate-api.com/v4/latest/USD')"
 Last, but not least, we need to refactor `geoip-component.ts` as well (hey, you're really good at this):
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from '../services/api';
 
 export class GeoipComponent {
-    constructor(private api: Api) {
-
-    }
+    private api = resolve(Api);
 }
 ```
 

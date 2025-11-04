@@ -6,70 +6,46 @@ description: >-
 
 # Attribute mapping
 
-When dealing with Aurelia and custom elements, we tend to use the `@bindable` decorator to define bindable properties. The bindable properties are members of the underlying view model class. However, there are cases where we want to work directly with attributes of the DOM elements.
+Attribute mapping is Aurelia's way of keeping template syntax concise. After an attribute pattern parses the attribute name but before a binding command emits instructions, the mapper answers two questions:
 
-For example, we want an `<input>` element with a `maxlength` attribute and map a view model property to the attribute. Let us assume that we have the following view model class:
+1. Which DOM property does this attribute target?
+2. Should `.bind` implicitly behave like `.two-way` for this attribute?
 
-```typescript
-export class App {
-  private inputMaxLength: number = 10;
-  private input: HTMLInputElement;
-}
-```
-Then, intuitively, we would write the following template:
+This is the mechanism that lets you write `<input value.bind="message">` and automatically get a two-way binding. By teaching the mapper about your own elements, you can bring the same ergonomics to Web Components, design systems, or DSLs.
 
-```html
-<input maxlength.bind="inputMaxLength" ref="input">
-```
+## When to extend `IAttrMapper`
 
-This binds the value to the `maxlength` attribute of the `<input>` element. Consequently, the `input.maxLength` is also bound to be `10`. Note that binding the value of the `maxLength` attribute also sets the value of the `maxLength` property of the input element. This happens because Aurelia, in the background, does the mapping for us.
+Reach for the mapper when:
 
-On a broad level, this is what attribute mapping is about. This article provides further information about how it works and how to extend it.
+- **Bridging custom elements** – Third-party components often expose camelCase properties such as `valueAsDate` or `formNoValidate`.
+- **Designing DSLs** – Attributes like `data-track` or `foo-bar` need to land on specific DOM properties regardless of casing.
+- **Improving authoring ergonomics** – Upgrading `progress.bind` to two-way on slider-like controls keeps templates readable.
 
-## How it works
+If you need to invent new attribute syntaxes (`[(value)]`, `@click`, etc.), start with [attribute patterns](./attributepattern.md). If you need to observe DOM properties, follow up with the [node observer locator](./extending-templating-syntax.md#combining-the-attribute-syntax-mapper-with-the-node-observer-locator).
 
-To facilitate the attribute mapping, Aurelia uses `IAttrMapper`, which has information about how to map an attribute to a property. While creating property binding instructions from [binding commands](./bindingcommand.md), it is first checked if the attribute is a bindable. If it is a bindable property, the attribute name (in kebab-case) is converted to the camelCase property name. However, the attribute mapper is queried for the target property name when it is not a bindable. If the attribute mapper returns a property name, then the property binding instruction is created with that property name. Otherwise, the standard camelCase conversion is applied.
+## How the mapper decides
 
-If we want to bind a non-standard `<input>` attribute, such as `fizz-buzz`, we can expect the `input.fizzBuzz` property to be bound. This looks as follows.
+When Aurelia encounters an attribute that does not belong to a custom element bindable, it walks through the mapper logic:
 
-```html
-<input fizz-buzz.bind="someValue" ref="input">
-```
+1. Check tag-specific mappings registered via `useMapping`.
+2. Fall back to global mappings from `useGlobalMapping`.
+3. If no mapping exists, camelCase the attribute name.
+4. If the binding command is `bind`, ask each predicate registered via `useTwoWay` whether the attribute should become two-way.
 
-```typescript
-export class App {
-  private someValue: number = 10;
-  private input: HTMLInputElement;
+Your extensions only run for attributes that are not already handled by custom element bindables, so you can layer mappings without unintentionally overriding component contracts.
 
-  public attached(): void {
-    console.log(this.input.fizzBuzz); // 10
-  }
-}
-```
+## Registering mappings during startup
 
-## Extending the attribute mapping
-
-The attribute mapping can be extended by registering new mappings with the `IAttrMapper`. The `IAttrMapper` provides two methods for this purpose. The `.useGlobalMapping` method registers mappings applicable for all elements, whereas the `.useMapping` method registers mapping for individual elements.
-
-To this end, we can grab the `IAttrMapper` instance while bootstrapping the app and register the mappings (there is no restriction, however, on when or where those mappings are registered). An example might look as follows.
+Use `AppTask.creating` to register mappings before Aurelia instantiates the root component:
 
 ```typescript
-import {
-  AppTask,
-  Aurelia,
-  IAttrMapper,
-} from '@aurelia/runtime-html';
+import Aurelia, { AppTask, IAttrMapper } from 'aurelia';
 
-const au = new Aurelia();
-au.register(
-  AppTask.creating(IAttrMapper, (attrMapper) => {
+Aurelia.register(
+  AppTask.creating(IAttrMapper, attrMapper => {
     attrMapper.useMapping({
-      'MY-CE': {
-        'fizz-buzz': 'FizzBuzz',
-      },
-      INPUT: {
-        'fizz-buzz': 'fizzbuzz',
-      },
+      'MY-CE': { 'fizz-buzz': 'FizzBuzz' },
+      INPUT: { 'fizz-buzz': 'fizzbuzz' },
     });
     attrMapper.useGlobalMapping({
       'foo-bar': 'FooBar',
@@ -78,84 +54,51 @@ au.register(
 );
 ```
 
-In the example above, we are registering a global mapping for `foo-bar` attribute to `FooBar` property, which will apply to all elements. We are also registering mappings for individual elements. Note that the key of the object is the [`nodeName`](https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName) of the element; thus, for an element, it needs to be the element name in upper case. In the example above, we map the `fizz-buzz` attribute differently for `<input>` and `<my-ce>` elements.
+Keys inside `useMapping` must match the element's `tagName` (uppercase). The destination values must match the actual DOM property names exactly (`formNoValidate`, not `formnovalidate`).
 
-With this custom mapping registered, we can expect the following to work.
+With the mapping above in place, templates stay clean:
 
 ```html
-<input fizz-buzz.bind="42" foo-bar.bind="43" ref="input">
-<my-ce fizz-buzz.bind="44" foo-bar.bind="45" ref="myCe"></my-ce>
+<input fizz-buzz.bind="userLimit" foo-bar.bind="hint" ref="input">
+<my-ce fizz-buzz.bind="42" foo-bar.bind="43" ref="myCe"></my-ce>
 ```
 
 ```typescript
 export class App {
-  private input: HTMLInputElement;
-  private myCe: HTMLElement;
+  private input!: HTMLInputElement;
+  private myCe!: HTMLElement & { FizzBuzz?: number; FooBar?: number };
 
-  public attached(): void {
-    console.log(this.input.fizzbuzz); // 42
-    console.log(this.input.FooBar); // 43
-    console.log(this.myCe.FizzBuzz); // 44
-    console.log(this.myCe.FooBar); // 45
+  public attached() {
+    console.log(this.input.fizzbuzz); //  userLimit
+    console.log(this.myCe.FizzBuzz);  //  42
   }
 }
 ```
 
-## Use two-way binding for attribute
+## Enabling implicit two-way bindings
 
-In addition to registering custom mappings, we can teach the attribute mapper when using two-way binding for an attribute. To this end, we can use the `.useTwoWay` method of the `IAttrMapper`. The `.useTwoWay` method accepts a predicate function determining whether the attribute should be bound in two-way mode. The predicate function receives the attribute name and the element name as parameters. If the predicate function returns `true`, then the attribute is bound in two-way mode, otherwise it is bound in to-view mode.
-
-An example looks as follows.
+Some controls should default to two-way binding even when authors write `.bind`. Use `useTwoWay` to register a predicate `(element, attrName) => boolean`:
 
 ```typescript
+import Aurelia, { AppTask, IAttrMapper } from 'aurelia';
 
-import {
-  AppTask,
-  Aurelia,
-  IAttrMapper,
-} from '@aurelia/runtime-html';
-
-const au = new Aurelia();
-au.register(
-  AppTask.creating(IAttrMapper, (attrMapper) => {
-    // code omitted for brevity
-    attrMapper.useTwoWay(
-      (el, attr) => el.tagName === 'MY-CE' && attr == 'fizz-buzz'
-    );
+Aurelia.register(
+  AppTask.creating(IAttrMapper, attrMapper => {
+    attrMapper.useTwoWay((element, attrName) =>
+      element.tagName === 'MY-CE' && attrName === 'fizz-buzz');
   })
 );
 ```
 
-In this example, we are instructing the attribute mapper to use two-way binding for `fizz-buzz` attribute of `<my-ce>` element. This means that the following will work.
+Predicates receive the live element, so you can inspect classes, attributes, or even dataset values before opting into two-way. Keep the logic lightweight—these predicates run for every `*.bind` attribute Aurelia encounters.
 
-```html
-<my-ce
-    ref="myCe"
-    foo-bar.bind="myCeFooBar"
-    fizz-buzz.bind="myCeFizzBuzz"></my-ce>
+## Troubleshooting and best practices
 
-myCeFizzBuzz: ${myCeFizzBuzz} myCeFooBar: ${myCeFooBar}
-```
+- **Uppercase tag names** – Browsers expose `element.tagName` in uppercase; use the same casing in `useMapping`.
+- **Avoid duplicates** – Registering the same tag/attribute combination twice throws. Remove or consolidate old mappings before adding new ones.
+- **Destination accuracy** – Mistyped destination properties silently fall back to camelCase conversion. Inspect the element in devtools and read `Object.keys(element)` if unsure.
+- **Predicate order matters** – `useTwoWay` predicates run in registration order. Put the most specific check first.
+- **Verify manually** – Toggle the DOM property in devtools. If the UI updates but Aurelia does not, revisit the observer configuration. If neither updates, revisit the mapping.
+- **Pair with observers** – Mapping alone does not teach Aurelia how to observe custom properties. Follow up with `INodeObserverLocator.useConfig` so bindings know which events to listen to.
 
-```typescript
-export class MyApp {
-  private myCeFooBar: any = 'fizz';
-  private myCeFizzBuzz: any = '2424';
-  private myCe: HTMLElement & { FooBar?: string; FizzBuzz?: string };
-  public attached() {
-    setInterval(() => {
-      // This change will trigger a change for the myCeFizzBuzz property
-      this.myCe.FizzBuzz = Math.ceil(Math.random() * 10_000).toString();
-
-      // This change won't trigger a change for the myCeFooBar property
-      this.myCe.FooBar = Math.ceil(Math.random() * 10_000).toString();
-    }, 1000);
-  }
-}
-```
-
-## Live example
-
-A similar example can be seen in action below.
-
-{% embed url="https://stackblitz.com/edit/aurelia2-attribute-mapper?file=src%2Fmy-app.ts" %}
+With the mapper tailored to your components, you can keep templates expressive while relying on the full power of Aurelia's binding system.

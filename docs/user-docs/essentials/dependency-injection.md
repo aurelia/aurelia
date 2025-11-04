@@ -4,21 +4,31 @@ Aurelia's dependency injection (DI) system manages your application's services a
 
 ## Creating Services
 
-Services are regular classes that provide functionality to your application:
+Services are regular classes that encapsulate state and call out to other dependencies. Rather than assigning collaborators manually, grab them from the container via `resolve()`:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
+
 export class UserService {
-  private users: User[] = [];
+  private readonly http = resolve(IHttpClient);
+  private readonly cache: User[] = [];
 
   async getUsers(): Promise<User[]> {
-    // Fetch users from API
-    return this.users;
+    const response = await this.http.fetch('/api/users');
+    const payload = await response.json();
+    this.cache.splice(0, this.cache.length, ...payload);
+    return this.cache;
   }
 
   async createUser(userData: CreateUserRequest): Promise<User> {
-    // Create new user
-    const user = await this.api.post('/users', userData);
-    this.users.push(user);
+    const response = await this.http.fetch('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const user = await response.json();
+    this.cache.push(user);
     return user;
   }
 }
@@ -26,47 +36,27 @@ export class UserService {
 
 ## Service Registration
 
-Register services using the DI interface pattern:
+Register services using the interface pattern so components depend on tokens, not classes:
 
 ```typescript
-import { DI } from 'aurelia';
+import { DI } from '@aurelia/kernel';
+
+export interface IUserService {
+  getUsers(): Promise<User[]>;
+  createUser(userData: CreateUserRequest): Promise<User>;
+}
 
 export const IUserService = DI.createInterface<IUserService>('IUserService', x => x.singleton(UserService));
-
-export type IUserService = UserService;
 ```
 
-This automatically registers the service as a singleton when the module is imported.
+When this module loads the container wires `IUserService` to a singleton `UserService` instance. Swapping implementations (e.g., a mock service in tests) only requires a different registration.
 
 ## Using Services in Components
 
-Inject services into components through constructor parameters:
+Use the `resolve()` function to inject services into components:
 
 ```typescript
-import { inject } from 'aurelia';
-import { IUserService } from './user-service';
-
-@inject(IUserService)
-export class UserList {
-  private users: User[] = [];
-
-  constructor(private userService: IUserService) {}
-
-  async created() {
-    this.users = await this.userService.getUsers();
-  }
-
-  async addUser(userData: CreateUserRequest) {
-    const newUser = await this.userService.createUser(userData);
-    this.users.push(newUser);
-  }
-}
-```
-
-Or use the `resolve` function for a more modern approach:
-
-```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IUserService } from './user-service';
 
 export class UserList {
@@ -84,38 +74,18 @@ export class UserList {
 }
 ```
 
+**Why `resolve()`?**
+- Clean, modern syntax
+- No decorators needed
+- Better TypeScript inference
+- Easier to test
+
 ## Service Dependencies
 
-Services can depend on other services:
+Services can depend on other services using `resolve()`:
 
 ```typescript
-import { inject } from 'aurelia';
-import { IHttpClient } from '@aurelia/fetch-client';
-import { ILogger } from '@aurelia/kernel';
-
-@inject(IHttpClient, ILogger)
-export class UserService {
-  constructor(
-    private http: IHttpClient,
-    private logger: ILogger
-  ) {}
-
-  async getUsers(): Promise<User[]> {
-    try {
-      const response = await this.http.fetch('/api/users');
-      return await response.json();
-    } catch (error) {
-      this.logger.error('Failed to fetch users', error);
-      throw error;
-    }
-  }
-}
-```
-
-Or using `resolve`:
-
-```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 import { ILogger } from '@aurelia/kernel';
 
@@ -134,6 +104,8 @@ export class UserService {
   }
 }
 ```
+
+You can resolve multiple dependencies - Aurelia handles the wiring automatically.
 
 ## Service Lifetimes
 
@@ -163,53 +135,85 @@ export interface ApiConfig {
 export const IApiConfig = DI.createInterface<ApiConfig>('IApiConfig');
 
 // Register in main.ts
-import { ApiConfig, IApiConfig } from './services/api-config';
+import Aurelia, { Registration } from 'aurelia';
+import { IApiConfig } from './services/api-config';
 
 Aurelia.register(
-  Registration.instance(IApiConfig, { 
-    baseUrl: 'https://api.example.com', 
-    timeout: 5000, 
-    retries: 3 
+  Registration.instance(IApiConfig, {
+    baseUrl: 'https://api.example.com',
+    timeout: 5000,
+    retries: 3,
   })
 );
 ```
 
-Use configuration in services:
-
 ```typescript
-import { inject } from 'aurelia';
-
-@inject(IApiConfig, IHttpClient)
-export class ApiService {
-  constructor(
-    private config: ApiConfig,
-    private http: IHttpClient
-  ) {
-    this.http.configure(config => {
-      config.baseUrl = this.config.baseUrl;
-      config.timeout = this.config.timeout;
-    });
-  }
-}
-```
-
-Or with `resolve`:
-
-```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
 
 export class ApiService {
-  private config = resolve(IApiConfig);
-  private http = resolve(IHttpClient);
+  private readonly config = resolve(IApiConfig);
+  private readonly http = resolve(IHttpClient);
 
   constructor() {
-    this.http.configure(config => {
-      config.baseUrl = this.config.baseUrl;
-      config.timeout = this.config.timeout;
+    this.http.configure((cfg) => {
+      cfg.baseUrl = this.config.baseUrl;
+      cfg.timeout = this.config.timeout;
     });
   }
 }
 ```
+
+## Resolver toolbox
+
+The DI container ships a set of resolver helpers in `@aurelia/kernel`. Resolvers change *how* a dependency is located at runtime—perfect for optional services, per-scope instances, or discovering every implementation of an interface. Every resolver works both as a decorator (`@all(IMetricSink)`) and inside `resolve(...)`.
+
+| Resolver | Example | What it does |
+| --- | --- | --- |
+| `all(key)` | `resolve(all(IMetricSink))` | Returns **all** registrations for a key (useful for plugin pipelines). |
+| `last(key)` | `resolve(last(ISink))` | Grabs the most recently registered instance. |
+| `lazy(key)` | `resolve(lazy(IHttpClient))` | Injects a function that resolves the dependency on demand. |
+| `optional(key)` / `own(key)` | `resolve(optional(IMaybeService))` | Returns `undefined` (or the child container value) when nothing is registered. |
+| `factory(key)` | `resolve(factory(TaskQueue))` | Gives you a function that constructs the service manually (passing constructor args if needed). |
+| `newInstanceForScope(key)` | `resolve(newInstanceForScope(IValidationController))` | Creates and registers a brand-new instance in the current component scope, making it available to descendants via `resolve(IValidationController)`. |
+| `newInstanceOf(Type)` | `resolve(newInstanceOf(Logger))` | Constructs a fresh instance of a concrete class or interface implementation without polluting the container. |
+| `resource(key)` / `optionalResource(key)` / `allResources(key)` | `resolve(optionalResource(MyElement))` | Resolves using resource semantics (look in the current component first, then root) which is handy for templating resources. |
+| `ignore` | `@ignore private unused?: Foo` | Tells the container to skip a constructor parameter completely. |
+
+```typescript
+import { all, resolve } from '@aurelia/kernel';
+
+export class MetricsPanel {
+  private sinks = resolve(all(IMetricSink));
+
+  attached() {
+    for (const sink of this.sinks) {
+      sink.flush();
+    }
+  }
+}
+```
+
+### Creating custom resolvers
+
+If none of the built-ins fit, use `createResolver` to craft your own semantics. The helper wires up decorator + runtime support automatically:
+
+```typescript
+import { createResolver, resolve } from '@aurelia/kernel';
+
+const newest = createResolver((key, handler, requestor) => {
+  const instances = requestor.getAll(key);
+  return instances[instances.length - 1];
+});
+
+export const newestLogger = newest(ILogger);
+
+export class AuditTrail {
+  private readonly logger = resolve(newestLogger);
+}
+```
+
+Because resolvers are plain DI registrations, you can package them inside libraries or register them globally via `Aurelia.register(...)`, keeping consumption ergonomic in templates and services alike.
 
 ## Testing with DI
 

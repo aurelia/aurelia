@@ -16,7 +16,7 @@ If you're looking to contribute directly to Aurelia or its test suite, you've co
 
 ## Setup
 
-In order to build Aurelia, ensure that you have [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/) `v15.4.0` or higher, and `npm@7.0.0` or higher installed.
+In order to build Aurelia, ensure that you have [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/) `22.12.0`, and `npm@10.9.0` installed (these versions match the repository's Volta configuration).
 
 Run the following commands to clone, install:
 
@@ -27,47 +27,77 @@ npm ci
 
 ### packages
 
-From the root level of the project, run `npm run dev` to start the development. This will:
-* build & watch the `runtime` package for rebuild
-* build & watch the `runtime-html` package for rebuild
-* build & watch the `__testing__` package for rebuild
-* start a process to run all the tests with `karma`
+Run `npm run dev` **with at least one `--test` or `--e2e` flag**. The harness exits immediately if neither flag is provided, so your very first command should usually look like one of these:
 
-Example scenarios:
+```bash
+# run everything
+npm run dev -- --test *
 
-1. Fixing a repeater bug, so run all the repeater tests and rebuild repeater source code on change:
-```
-npm run dev -- --test repeater
-```
-2. Fixing a router bug, so run all the router tests and rebuild router source code on change:
-```
-npm run dev -- --dev router --test router
+# focus on router specs only
+npm run dev -- --test router
+
+# watch router specs and a router e2e scenario together
+npm run dev -- --test router --e2e 6-router
 ```
 
-* The `--dev` (shortcut: `-d`) is to specify what additional package beside `runtime` & `runtime-html` packages should be rebuild on changes
-* The `--test` (shortcut: `-t`) is to specify what glob to search test files to run
+When the command succeeds it will:
 
-This documentation will be expanded upon in the future.
+* build & watch the `runtime`, `runtime-html`, and `template-compiler` packages
+* build & watch `packages/__tests__` so that Karma/Mocha reruns the matching specs
+* optionally spin up extra package/tooling/app/e2e watchers based on the flags you pass
+
+| Flag | What it controls | Accepted values (validated in `scripts/dev.ts`) | Example |
+| ---- | ---------------- | ---------------------------------------------- | ------- |
+| `--test`, `-t` | Glob passed to the Karma/Mocha harness | Any glob, or `*` for everything | `--test repeater integration` |
+| `--e2e`, `-e` | Starts Playwright watch mode inside selected fixtures | `1-gh-issues`, `2-hmr-vite`, `3-hmr-webpack`, `4-i18n`, `5-router-direct`, `6-router`, `7-select-safari16`, `8-ui-virtualization` | `--e2e 4-i18n --e2e 7-select-safari16` |
+| `--dev`, `-d` | Adds more framework packages to the watch list | Any package from `metadata`, `platform`, `router`, `state`, etc. | `--dev router --dev validation` |
+| `--tooling`, `-l` | Runs tooling packages alongside the core harness | `plugin-conventions`, `plugin-gulp`, `ts-jest`, `babel-jest`, `parcel-transformer`, `vite-plugin`, `webpack-loader`, `http-server`, `au` | `--tooling vite-plugin` |
+| `--app`, `-a` | Launches sample apps for manual QA | `ui-virtualization`, `router-animation`, `router-hooks` | `--app router-hooks` |
+
+> 💡 Tip: stack the flags. For example, `npm run dev -- --test state --dev state --e2e 8-ui-virtualization` keeps the state package, its specs, and the virtualization e2e harness in sync.
 
 ### packages-tooling
 
-Similar to core packages, to develop/test any of the tooling packages, run `npm run dev:tooling` to start the development. This will
+Tooling development follows the same pattern: `npm run dev:tooling -- --test <pattern>`. Passing a test pattern is mandatory—the script aborts otherwise—so start with:
 
-* build & watch the `kernel` core package for rebuild
-* build & watch the `plugin-conventions` tooling package for rebuild
-* start a process to run all the tests with `mocha`
-
-Example scenarios:
-
-1. Fixing a convention bug, so run all the plugin convention tests, and rebuild `plugin-conventions` tooling package on code change:
-```
-npm run dev -- --test plugin-conventions
-# or
-npm run dev -- --test conventions
+```bash
+npm run dev:tooling -- --test *
 ```
 
-2. Fixing a webpack loader bug, sp run all the load tests and rebuild webpack loader code on change
-```
-npm run dev -- --dev webpack-loader --test loader
-```
+Key behaviors:
 
+* `kernel` and `packages-tooling/plugin-conventions` are always built and watched.
+* Additional tooling packages can be added via `--dev <name>` where `<name>` is one of `plugin-conventions`, `plugin-gulp`, `ts-jest`, `babel-jest`, `parcel-transformer`, or `webpack-loader`.
+* The harness recompiles the relevant tooling dist files and streams focused Mocha output from `packages-tooling/__tests__`.
+
+### Targeted unit-test commands
+
+Every spec lives under `packages/__tests__`, and that workspace exposes fine-grained npm scripts so you can validate exactly what changed. Run these from the repo root:
+
+| Scenario | Command | Notes |
+| --- | --- | --- |
+| Default Chrome CI run | `npm run test` | Root script that shells into `packages/__tests__` and executes `test-chrome`. |
+| Watch Chrome specs locally | `npm run test:watch` | Keeps Karma + ChromeHeadlessOpt running via `test-chrome:watch`. |
+| Node-only suite | `cd packages/__tests__ && npm run test-node` | Mocha over every compiled spec in Node. |
+| Package-specific Node suites | `cd packages/__tests__ && npm run test-node:router` (or `:state`, `:validation`, `:runtime`, etc.) | Uses the filtered commands defined in `package.json`. |
+| Browser cross-checks | `cd packages/__tests__ && npm run test-firefox` / `npm run test-safari` | Useful before shipping fixes that depend on browser quirks. |
+| Debugging UI hangs | `npm run test:debugger` | Wraps `test-chrome:debugger`, which launches the Chrome debugging profile. |
+
+Refer to `packages/__tests__/package.json` for the full list (`test-node:runtime-html`, `test-node:i18n`, `test-node:store-v1`, and more).
+
+### End-to-end fixtures
+
+The monorepo ships dedicated Playwright fixtures under `packages/__e2e__` for scenarios that are hard to cover with unit tests (router regressions, virtualization performance, HMR, etc.). You can work with them in two ways:
+
+1. **Via the dev harness** – pass `--e2e <name>` to `npm run dev` (see table above) to keep a fixture’s `npm run test:watch` process running next to your unit tests.
+2. **Directly inside the fixture** – `cd packages/__e2e__/6-router && npm run test:e2e` (or `test:e2e:watch`, `test:e2e:debugger`) to reproduce Playwright failures in isolation. Each fixture exposes its own port via `package.json` so multiple apps can run concurrently.
+
+Available workspaces (see the `package.json` workspaces array) include:
+
+* `packages/__e2e__/1-gh-issues` – reproductions for GitHub-reported bugs
+* `packages/__e2e__/2-hmr-vite` / `3-hmr-webpack` – hot-module-reload stress tests
+* `packages/__e2e__/4-i18n` / `5-router-direct` / `6-router` – routing + localization coverage
+* `packages/__e2e__/7-select-safari16` / `8-ui-virtualization` – UI quirks and virtualization perf
+* `packages/__e2e__/9-vite-wo-convention` through `13-hmr-convention-routing-memory-leak` – advanced fixtures for build and memory-leak investigations
+
+Pick the fixture whose directory name matches the feature you touched, then either wire it into `npm run dev -- --e2e ...` or run its `npm run test:e2e` scripts directly.

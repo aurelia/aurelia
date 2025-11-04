@@ -279,7 +279,7 @@ export class App {
 ```typescript
 // src/my-app.ts
 import { IRouter } from '@aurelia/router';
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   public message = 'Welcome to Aurelia 2!';
@@ -562,16 +562,13 @@ container.register(
   Registration.instance(IConfig, { apiUrl: '/api' })
 );
 
-// Using services - multiple approaches
+// Using services - property injection with resolve() (recommended)
 export class UserManager {
-  // Property injection with resolve() - new and flexible
+  // Property injection with resolve() - clean and flexible
   private userService = resolve(UserService);
   private apiClient = resolve(ApiClient);
 
-  // Constructor injection still works
-  constructor(@inject(UserService) userService?: UserService) {
-    // Optional parameter with decorator
-  }
+  // Note: Constructor injection also works, but resolve() is the recommended pattern
 }
 
 // Decorator-based registration
@@ -722,13 +719,12 @@ Aurelia
   .app(MyApp)
   .start();
 
-// Using logger - dependency injection
+// Using logger - recommended property injection with resolve()
+import { resolve } from '@aurelia/kernel';
 import { ILogger } from '@aurelia/kernel';
 
 export class UserService {
-  constructor(@ILogger private logger: ILogger) {
-    this.logger = logger.scopeTo('UserService');
-  }
+  private logger = resolve(ILogger).scopeTo('UserService');
 
   async loadUser(id: string) {
     this.logger.debug(`Loading user ${id}`);
@@ -742,13 +738,6 @@ export class UserService {
       throw error;
     }
   }
-}
-
-// Property injection approach
-export class UserService {
-  private logger = resolve(ILogger).scopeTo('UserService');
-
-  // Usage same as above
 }
 ```
 

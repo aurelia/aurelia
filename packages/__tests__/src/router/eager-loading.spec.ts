@@ -251,7 +251,7 @@ describe('router/eager-loading.spec.ts', function () {
 
     assert.html.textContent(host, '', 'init');
 
-    await router.load('parent/(child-one/grandchild-one+grandchild-two+child-two/grandchild-one+grandchild-two');
+    await router.load('parent/child-one/grandchild-one+grandchild-two+child-two/grandchild-one+grandchild-two');
     assert.html.textContent(host, 'parent child-one grandchild-one grandchild-two child-two grandchild-one grandchild-two', 'round#1 optional parameters omitted');
 
     await router.load('parent/alpha/child-two/beta@vp1/grandchild-one/111@vp2+grandchild-two/222@vp1+child-one/gamma@vp2/grandchild-one/333@vp2+grandchild-two/444@vp1');

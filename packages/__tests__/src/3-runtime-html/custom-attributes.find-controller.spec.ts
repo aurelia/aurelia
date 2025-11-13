@@ -1,6 +1,5 @@
 import { resolve } from '@aurelia/kernel';
 import {
-  closestAttribute,
   CustomAttribute,
   INode
 } from '@aurelia/runtime-html';

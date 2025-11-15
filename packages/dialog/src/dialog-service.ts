@@ -8,6 +8,7 @@ import {
   IDialogController,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
+  IDialogChildSettings,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
 import { instanceRegistration, singletonRegistration } from './utilities-di';
@@ -48,8 +49,18 @@ export class DialogService implements IDialogService {
    */
   private readonly dlgs: IDialogController[] = [];
 
-  /** @internal */ private readonly _ctn = resolve(IContainer);
-  /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
+  /** @internal */ private readonly _ctn: IContainer;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /** @internal */ private readonly _defaultSettings: IDialogGlobalSettings<any>;
+  /** @internal */ private readonly _childSettingsMap = resolve(IDialogChildSettings);
+
+  public constructor(
+    container = resolve(IContainer),
+    defaultSettings = resolve(IDialogGlobalSettings),
+  ) {
+    this._ctn = container;
+    this._defaultSettings = defaultSettings;
+  }
 
   /**
    * Opens a new dialog.
@@ -126,6 +137,31 @@ export class DialogService implements IDialogService {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         unclosedControllers.filter(unclosed => !!unclosed) as IDialogController[]
       );
+  }
+
+  /** @internal */
+  private readonly _childMap = new Map<unknown, IDialogService>();
+  public createChild(key: unknown): IDialogService {
+    const existingChild = this._childMap.get(key);
+    if (existingChild != null) {
+      return existingChild;
+    }
+
+    const settings = this._childSettingsMap.get(key);
+    if (settings == null) {
+      // throw createMappedError(ErrorNames.dialog_child_settings_not_found, String(key));
+      throw new Error(`Dialog child settings not found for key: ${String(key)}`);
+    }
+
+    const childSettings = { ...this._defaultSettings, options: { ...this._defaultSettings.options } };
+
+    const childService = new DialogService(
+      this._ctn,
+      settings(childSettings) ?? childSettings
+    );
+
+    this._childMap.set(key, childService);
+    return childService;
   }
 
   /** @internal */

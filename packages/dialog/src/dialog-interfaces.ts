@@ -1,12 +1,23 @@
 import { createInterface } from './utilities-di';
 
-import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
+import { type Constructable, type IContainer, type IDisposable, type InterfaceSymbol, type IResolver } from '@aurelia/kernel';
 import type { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
  * The dialog service for composing template and component into a dialog
  */
-export const IDialogService = /*@__PURE__*/createInterface<IDialogService>('IDialogService');
+export const IDialogService: InterfaceSymbol<IDialogService> & {
+  child(key: unknown): IResolver<IDialogService>;
+} = /*@__PURE__*/Object.assign(/*@__PURE__*/createInterface<IDialogService>('IDialogService'), {
+  child(key: unknown): IResolver<IDialogService> {
+    return {
+      $isResolver: true,
+      resolve(handler, requestor) {
+        return requestor.get(IDialogService).createChild(key);
+      },
+    };
+  }
+});
 export interface IDialogService {
   readonly controllers: IDialogController[];
   /**
@@ -24,6 +35,12 @@ export interface IDialogService {
    * @returns Promise<DialogController[]> All controllers whose close operation was cancelled.
    */
   closeAll(): Promise<IDialogController[]>;
+
+  /**
+   * Creates a child dialog service with its own settings.
+   * @returns A child dialog service.
+   */
+  createChild(key: unknown): IDialogService;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -72,7 +89,7 @@ export interface IDialogController {
  */
 export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer<unknown>>('IDialogDomRenderer');
 export interface IDialogDomRenderer<TOptions> {
-  render(dialogHost: Element, requestor: IDialogController, options?: TOptions): IDialogDom;
+  render(dialogHost: HTMLElement, requestor: IDialogController, options?: TOptions): IDialogDom;
 }
 
 /**
@@ -170,6 +187,9 @@ export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalS
 export type IDialogGlobalSettings<TOptions> = Pick<IDialogSettings<TOptions>, 'rejectOnCancel' | 'renderer'> & {
   options: TOptions;
 };
+
+export const IDialogChildSettings = /*@__PURE__*/createInterface<IDialogChildSettings>('IDialogChildSettings');
+export type IDialogChildSettings = Map<unknown, (settings: IDialogGlobalSettings<unknown>) => IDialogGlobalSettings<unknown> | void>;
 
 /**
  * Base dialog error interface

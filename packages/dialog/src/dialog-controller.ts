@@ -73,7 +73,7 @@ export class DialogController implements IDialogController {
     } = settings;
 
     const resolvedRenderer = isFunction(renderer) ? container.invoke(renderer) : renderer;
-    const dialogTargetHost = settings.host ?? this.p.document.body;
+    const dialogTargetHost = settings.host as HTMLElement ?? this.p.document.body;
     const dom = this.dom = resolvedRenderer.render(dialogTargetHost, this, settings.options);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element

@@ -7,11 +7,11 @@ import {
   type Constructable,
   type IIndexable,
   resolve,
-  kebabCase,
   camelCase
 } from '@aurelia/kernel';
 
 import {
+  BindableDefinition,
   Controller,
   CustomElement,
   CustomElementDefinition,
@@ -93,7 +93,7 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
     const p = this.p;
 
     class CustomElementClass extends BaseClass {
-      public static readonly observedAttributes = Object.keys(bindables).map(kebabCase);
+      public static readonly observedAttributes = Object.keys(bindables).map(v => BindableDefinition.toAttr(v));
 
       private auCtrl!: ICustomElementController;
       private auInited: boolean | undefined;

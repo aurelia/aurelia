@@ -149,8 +149,7 @@ export class DialogService implements IDialogService {
 
     const settings = this._childSettingsMap.get(key);
     if (settings == null) {
-      // throw createMappedError(ErrorNames.dialog_child_settings_not_found, String(key));
-      throw new Error(`Dialog child settings not found for key: ${String(key)}`);
+      throw createMappedError(ErrorNames.dialog_child_settings_not_found, key);
     }
 
     const childSettings = { ...this._defaultSettings, options: { ...this._defaultSettings.options } };

@@ -1368,6 +1368,41 @@ sequenceDiagram
 - Aurelia core: `constructor`, `hydrating`, `hydrated`, `created`, `binding`, `bound`, `attaching`, `attached`, `detaching`, `unbinding`
 {% endhint %}
 
+## Creating child dialog
+
+When there are different groups of dialog functionalities that are often repeated across an application, rather than calling `open` with different sets
+of settings and trying to manage it correctly, you can also use the child dialog feature.
+
+To use the child dialog feature, you'll need to register the child dialog configuration and resolve the child dialog with some your specific keys,
+like the following example:
+
+```ts
+Aurelia.register(
+  DialogConfigurationStandard
+    .customzie(...)
+    .withChild(
+      'alert',
+      settings => {
+          setting1 = settings;
+      }
+    )
+    .withChild(
+      'confirm',
+      settings => {
+          setting2 = settings;
+      }
+    )
+);
+```
+and then later it can be used:
+```ts
+class MyComponent {
+  alertService = resolve(IDialogService.child('alert'));
+  confirmService = resolve(IDialogService.child('confirm'));
+}
+```
+
+
 ## Aurelia v1 to v2 Migration
 
 {% hint style="info" %}

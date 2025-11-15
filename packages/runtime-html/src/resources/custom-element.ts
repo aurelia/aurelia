@@ -389,7 +389,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       return;
     }
     container.register(
-      // container.has($Type, false) ? null : singletonRegistration($Type, $Type),
       singletonRegistration(key, $Type),
       ...aliases.map(alias => aliasRegistration(key, getElementKeyFrom(alias)))
     );

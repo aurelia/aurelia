@@ -127,6 +127,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const oc = { name: 'hello' };
         const scope = createScopeForTest(source, oc);
         const binding = new LetBinding(
+          { state: 0 },
           container,
           observerLocator,
           accessScopeExpr,
@@ -158,6 +159,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const oc = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const scope = createScopeForTest(source, oc);
         const binding = new LetBinding(
+          { state: 0 },
           container,
           observerLocator,
           conditionalExpr,

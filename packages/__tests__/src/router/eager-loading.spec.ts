@@ -251,13 +251,13 @@ describe('router/eager-loading.spec.ts', function () {
 
     assert.html.textContent(host, '', 'init');
 
-    await router.load('parent/child-one/grandchild-one+grandchild-two+child-two/grandchild-one+grandchild-two');
+    await router.load('parent/(child-one/(grandchild-one+grandchild-two)+child-two/(grandchild-one+grandchild-two))');
     assert.html.textContent(host, 'parent child-one grandchild-one grandchild-two child-two grandchild-one grandchild-two', 'round#1 optional parameters omitted');
 
-    await router.load('parent/alpha/child-two/beta@vp1/grandchild-one/111@vp2+grandchild-two/222@vp1+child-one/gamma@vp2/grandchild-one/333@vp2+grandchild-two/444@vp1');
+    await router.load('parent/alpha/(child-two/beta@vp1/(grandchild-one/111@vp2+grandchild-two/222@vp1)+child-one/gamma@vp2/(grandchild-one/333@vp2+grandchild-two/444@vp1))');
     assert.html.textContent(host, 'parent alpha child-two beta grandchild-two 222 grandchild-one 111 child-one gamma grandchild-two 444 grandchild-one 333', 'round#2 children swapped between viewports');
 
-    await router.load('parent/child-two/grandchild-one/777+grandchild-two+child-one/delta/grandchild-two+grandchild-one/888');
+    await router.load('parent/(child-two/(grandchild-one/777+grandchild-two)+child-one/delta/(grandchild-two+grandchild-one/888))');
     assert.html.textContent(host, 'parent child-two grandchild-one 777 grandchild-two child-one delta grandchild-two grandchild-one 888', 'round#3 mixed optional params');
 
     await au.stop(true);

@@ -63,8 +63,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public bindings: IBinding[] | null = null;
   public children: Controller[] | null = null;
 
-  public hasLockedScope: boolean = false;
-
   public scope: Scope | null = null;
   public isBound: boolean = false;
   /** @internal */
@@ -548,9 +546,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           throw createMappedError(ErrorNames.controller_activation_synthetic_no_scope, this.name);
         }
 
-        if (!this.hasLockedScope) {
-          this.scope = scope;
-        }
+        this.scope = scope;
         break;
     }
 
@@ -854,9 +850,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.scope = null;
         break;
       case vmkSynth:
-        if (!this.hasLockedScope) {
-          this.scope = null;
-        }
+        this.scope = null;
 
         if (
           (this.state & released) === released &&
@@ -1089,11 +1083,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case vmkSynth:
         return this.viewFactory!.name === name;
     }
-  }
-
-  public lockScope(scope: Writable<Scope>): void {
-    this.scope = scope;
-    this.hasLockedScope = true;
   }
 
   public setHost(host: HTMLElement): this {
@@ -1567,17 +1556,9 @@ export interface ISyntheticView extends IHydratableController {
     parent: IHydratedController,
   ): void | Promise<void>;
   /**
-   * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
-   *
-   * This is used by `au-render` to set the binding context of a view to a particular component instance.
-   *
-   * @param scope - The scope to lock this view to.
-   */
-  lockScope(scope: Scope): void;
-  /**
    * The scope that belongs to this view. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
    *
-   * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during composing with `lockScope()`.
+   * The `scope` may be set during `activate()` and unset during `deactivate()`
    */
   readonly scope: Scope;
 

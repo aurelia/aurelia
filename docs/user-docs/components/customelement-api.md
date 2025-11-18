@@ -158,7 +158,7 @@ CustomElement.define('my-custom-element', MyCustomElement);
 // Definition with complete configuration object
 const definition = {
   name: 'advanced-element',
-  template: '<template><h1>${title}</h1><div class="content"><au-slot></au-slot></div></template>',
+  template: '<h1>${title}</h1><div class="content"><au-slot></au-slot></div>',
   bindables: ['title', 'size'],
   shadowOptions: { mode: 'open' },
   containerless: false,
@@ -176,7 +176,7 @@ CustomElement.define(definition, AdvancedElement);
 // Definition without explicit type (generates anonymous class)
 const simpleDefinition = {
   name: 'simple-element',
-  template: '<template><p>${text}</p></template>',
+  template: '<p>${text}</p>',
   bindables: ['text']
 };
 
@@ -214,7 +214,7 @@ import { CustomElement, ILogger } from 'aurelia';
 
 @customElement({
   name: 'my-element',
-  template: '<template>${message}</template>',
+  template: '${message}',
   bindables: ['message']
 })
 class MyElement {
@@ -376,7 +376,7 @@ import { CustomElement } from 'aurelia';
 class MyElement {}
 
 // Manually annotate the class (decorators do this automatically)
-CustomElement.annotate(MyElement, 'template', '<template>${message}</template>');
+CustomElement.annotate(MyElement, 'template', '${message}');
 CustomElement.annotate(MyElement, 'bindables', ['message']);
 CustomElement.annotate(MyElement, 'containerless', true);
 ```
@@ -410,7 +410,7 @@ import { CustomElement, customElement, ILogger } from 'aurelia';
 
 @customElement({
   name: 'annotated-element',
-  template: '<template>${content}</template>'
+  template: '${content}'
 })
 class AnnotatedElement {
   constructor(private logger: ILogger) {}
@@ -523,14 +523,14 @@ An `InterfaceSymbol` that can be used as a dependency injection token.
 #### Example
 
 ```typescript
-import { CustomElement } from 'aurelia';
+import { CustomElement, resolve } from 'aurelia';
 
 // Create injectable tokens for custom scenarios
 const MyServiceToken = CustomElement.createInjectable<MyService>();
 
 // Use in dependency injection
 class MyElement {
-  constructor(@MyServiceToken private service: MyService) {}
+  private service = resolve(MyServiceToken);
 }
 ```
 
@@ -598,12 +598,10 @@ class HelloWorld {
 @customElement({
   name: 'advanced-component',
   template: `
-    <template>
-      <h1>\${title}</h1>
-      <div class="content">
-        <au-slot></au-slot>
-      </div>
-    </template>
+    <h1>\${title}</h1>
+    <div class="content">
+      <au-slot></au-slot>
+    </div>
   `,
   bindables: ['title', 'theme'],
   shadowOptions: { mode: 'open' },
@@ -777,13 +775,11 @@ interface PartialCustomElementDefinition {
 const elementDefinition: PartialCustomElementDefinition = {
   name: 'my-component',
   template: `
-    <template>
-      <h1>\${title}</h1>
-      <p class="description">\${description}</p>
-      <div class="actions">
-        <au-slot name="actions"></au-slot>
-      </div>
-    </template>
+    <h1>\${title}</h1>
+    <p class="description">\${description}</p>
+    <div class="actions">
+      <au-slot name="actions"></au-slot>
+    </div>
   `,
   bindables: ['title', 'description'],
   shadowOptions: { mode: 'open' },
@@ -823,6 +819,50 @@ interface CustomElementDefinition {
   readonly processContent: Function | null; // Content processor
 }
 ```
+
+## Programmatic Resource Aliases
+
+`PartialCustomElementDefinition.aliases` is only one way to expose alternative names. For reusable libraries or bridge packages you often need to add aliases outside of the definition itself. The runtime provides two helpers to make that ergonomic.
+
+### `alias(...aliases)` decorator
+
+Apply the decorator directly to any custom element, custom attribute, value converter, or binding behavior to append aliases to the resource metadata.
+
+```typescript
+import { alias, customElement } from '@aurelia/runtime-html';
+
+@alias('counter-panel', 'stats-card')
+@customElement({
+  name: 'au-counter',
+  template: `
+    <section class="counter">
+      <h2>\${title}</h2>
+      <slot></slot>
+    </section>
+  `
+})
+export class CounterPanel {
+  title = 'Visitors';
+}
+```
+
+The decorator merges with aliases declared via the definition object, so you can sprinkle default aliases in a base class and extend them in derived implementations without clobbering earlier metadata.
+
+### `registerAliases(...)`
+
+When you need to attach aliases to an existing resource (for example, to keep backwards compatibility after a rename), call `registerAliases` during app startup.
+
+```typescript
+import { AppTask, CustomElement, registerAliases } from '@aurelia/runtime-html';
+import { IContainer } from '@aurelia/kernel';
+
+export const LegacyCounterAliases = AppTask.creating(IContainer, container => {
+  const definition = CustomElement.getDefinition(CounterPanel);
+  registerAliases(['legacy-counter', 'legacy-panel'], CustomElement, definition.key, container);
+});
+```
+
+The `resource` argument identifies which registry to update. Pass `CustomElement`, `CustomAttribute`, `ValueConverter`, or `BindingBehavior` depending on the resource you are aliasing. Because aliases are registered against the supplied container you can scope them to individual feature modules or make them global by running the task in your root configuration.
 
 ## Best Practices
 

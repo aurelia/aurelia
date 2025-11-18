@@ -12,6 +12,16 @@ The attribute pattern system consists of several core components:
 - **AttributeParser**: Manages pattern registration and result caching
 - **Pattern Priority System**: Resolves conflicts when multiple patterns match
 
+## When to reach for attribute patterns
+
+Create an attribute pattern when **the attribute name itself** needs to convey extra meaning. Typical use cases include:
+
+- Porting syntaxes from other frameworks (`[(value)]`, `@click`, `:value`, `#ref`).
+- Building DSLs where symbols separate intent (for example, `data-track.click.once`).
+- Collapsing multiple instructions into one attribute, such as `emit:save` or `listen:customer.updated`.
+
+If you simply need `value.bind` to default to two-way binding, prefer the attribute mapper. If you want to change how an attribute behaves after it has been parsed, reach for a binding command instead. Attribute patterns run **before** the mapper and binding commands, so they are ideal for inventing new syntaxes.
+
 ## Basic Pattern Definition
 
 ### AttributePatternDefinition Interface
@@ -444,6 +454,14 @@ Attribute patterns integrate seamlessly with Aurelia's template compilation proc
 4. **Binding Generation**: The compiler generates appropriate bindings based on the syntax
 5. **Runtime Execution**: Bindings execute during component lifecycle
 
+### Working alongside binding commands and the attribute mapper
+
+- **Attribute patterns** decide the final `target` and `command` for an attribute. They are the only hook that can rewrite `foo.bar.baz` into whatever structure you need.
+- **Binding commands** use that parsed information to produce instructions. If your pattern returns `command: 'permission'`, the binding command named `permission` will receive the attribute.
+- **Attribute mapper** only runs when `command === 'bind'`. If your pattern emits `'bind'`, the mapper can still remap `value.bind` to `value.two-way` or translate attribute names into DOM properties.
+
+Design patterns so they hand off clear targets and commands to the downstream pipeline. When in doubt, log the resulting `AttrSyntax` objects while authoring your pattern to confirm the values that later hooks will see.
+
 ## Best Practices
 
 ### Pattern Design
@@ -618,3 +636,9 @@ Aurelia
   .app(MyApp)
   .start();
 ```
+
+## Next steps
+
+- Pair attribute patterns with the [attribute mapper](./attributemapper.md) when you need to translate new syntaxes into existing DOM APIs.
+- Continue with [Extending templating syntax](./extending-templating-syntax.md) to see how patterns, mappers, and observers work together end-to-end.
+- Explore [custom binding commands](./bindingcommand.md) whenever your pattern should hand off to bespoke runtime behavior instead of the default `bind`/`two-way` commands.

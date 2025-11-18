@@ -17,15 +17,15 @@ Aurelia ships with a lightweight but powerful dependency injection (DI) containe
 
 ## Quick start
 
-Declare the dependencies your class needs and let the container supply them. The `@inject` decorator keeps it explicit and type-safe:
+Declare the dependencies your class needs using the `resolve()` function:
 
 ```typescript
-import { inject, ILogger } from 'aurelia';
+import { resolve, ILogger } from '@aurelia/kernel';
 import { ApiClient } from './services/api-client';
 
-@inject(ApiClient, ILogger)
 export class OrdersPage {
-  constructor(private api: ApiClient, private logger: ILogger) {}
+  private api = resolve(ApiClient);
+  private logger = resolve(ILogger);
 
   async binding() {
     const orders = await this.api.load();
@@ -37,7 +37,7 @@ export class OrdersPage {
 Most Aurelia apps use the default root container created by the runtime, but you can always create your own for testing or specialised scenarios:
 
 ```typescript
-import { DI, Registration } from 'aurelia';
+import { DI, Registration } from '@aurelia/kernel';
 
 const container = DI.createContainer();
 container.register(

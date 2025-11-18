@@ -147,3 +147,12 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 At this point, if you have the app running, the styling should now be working and less unstyled.
 
+## Keep Building
+
+Ready to extend the contact manager? These guides cover the next pieces you’ll need:
+
+- **Routing basics** – Wire up route parameters, child routers, and navigation pipelines in the [router getting started guide](../router/getting-started.md).
+- **Component composition** – Break the layout into reusable panels with the [component basics guide](../components/components.md) and [bindable properties walkthrough](../components/bindable-properties.md).
+- **Forms & validation** – Capture contact data with two-way binding using the [forms overview](../templates/forms/README.md) and layer in rules from the [validation tutorial](../aurelia-packages/validation/validation-tutorial.md).
+- **Data services** – Persist contacts by calling APIs from the [fetch client overview](../aurelia-packages/fetch-client/overview.md) or stitch in mocks with the [dependency injection overview](../getting-to-know-aurelia/dependency-injection.md).
+- **Styling patterns** – Keep Bootstrap organized and explore alternatives in the [templates recipes collection](../templates/recipes/README.md) for responsive layouts.

@@ -75,7 +75,7 @@ A good practice when working with APIs in Aurelia is to create a service (a sing
 Create a new directory inside of `src` called `services` and then create a new file called `api.ts`. Let's inject the Aurelia Fetch Client and write a method to fetch the prices.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
@@ -110,16 +110,13 @@ Because we used the `makes` tool by default, `my-app.ts` and `my-app.html` will 
 Inside of `my-app.ts` replace the contents with the following:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from './services/api';
-
 import config from './config.json';
 
 export class MyApp {
+  private api = resolve(Api);
   private prices = {};
-
-  constructor(private api: Api) {
-
-  }
 
   async binding() {
     this.prices = await this.api.getPrices(config.coins);
@@ -127,9 +124,10 @@ export class MyApp {
 }
 ```
 
+* We import `resolve` from `@aurelia/kernel` for dependency injection
 * We import our newly created API service as well as the `config.json` file we created in the first step as `config`
+* We use `resolve(Api)` to inject the API service into our component
 * We initialize an empty object in our class called `prices` which will store our price data
-* By specifying `api` on our `constructor` we automatically inject this service into our class
 * We specify a component lifecycle hook called `binding` which we make asynchronous
 * Inside of `binding` we make a call to our `getPrices` method and store the value in our class property `prices`
 * The returned value is an object
@@ -199,7 +197,7 @@ Inside of `src` create a new folder called `resources` and then inside of `resou
 You can read about value converters [here](../templates/value-converters.md) to understand what this value converter is doing.
 
 ```typescript
-import { valueConverter } from 'aurelia';
+import { valueConverter } from '@aurelia/runtime-html';
 
 @valueConverter('currency')
 export class CurrencyValueConverter {

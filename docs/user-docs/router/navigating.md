@@ -499,6 +499,30 @@ This case also demonstrates the aspect of "maximization of parameter matching" w
 
 One last point to note here is that when un-configured parameters are included in the `params` object, those are converted into query string.
 
+### Binding to a different DOM attribute
+
+The `load` custom attribute exposes an `attribute` bindable that defaults to `href`. Whatever attribute name you supply becomes the target for the generated URL (or instruction object), while routing still works because the `load` behavior listens for clicks on the host element rather than relying on `href`.
+
+```html
+<!-- Drive aria-controls with the generated URL -->
+<button
+  load="route: settings"
+  attribute="aria-controls"
+  aria-controls="">
+  Open settings
+</button>
+
+<!-- Expose the resolved path for analytics -->
+<button
+  load="route: reports; params.bind: { year: selectedYear }"
+  attribute="data-route"
+  data-route="">
+  View report
+</button>
+```
+
+When these elements bind, the router will set `aria-controls="/settings"` on the first button and `data-route="/reports/2024"` (or similar) on the second. Because click handling is managed by `load`, you can still navigate with buttons, spans, or any element that makes sense for your UI, and the `active.bind` flag remains available no matter which attribute you choose.
+
 ### Using the route view-model class as `route`
 
 The bindable `route` property in the `load` attribute supports binding a class instead of route-id.
@@ -630,7 +654,7 @@ To this end, you have to first inject the router into your component.
 This can be done by using the `IRouter` decorator on your component constructor method as shown in the example below.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouter, IRouteableComponent } from '@aurelia/router';
 
 export class MyComponent {
@@ -658,33 +682,44 @@ This is also shown in the example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouter-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
 
-There is a major important difference regarding the context selection in the `IRouter#load` method and the `href` and `load` custom attributes.
-By default, the custom attributes performs the navigation in the current routing context (refer the [`href`](#navigate-in-current-and-ancestor-routing-context) and [`load` attribute](#customize-the-routing-context) documentation).
-However, the `load` method always use the root routing context to perform the navigation.
-This can be observed in the `ChildOne` and `ChildTwo` components where the `load` method is used the following way to navigate from `ChildOne` to `ChildTwo` and vice versa.
-As the `load` API uses the the root routing context by default, such routing instructions works.
-In comparison, note that with `href` we needed to use the `..` prefix or with `load` method we needed to set the context to `null.`
+#### Choose the routing context for `router.load()`
+
+Unlike `<a href>` or `<a load>`, calling `router.load()` always evaluates instructions inside the **root** routing context unless you pass a `context` navigation option.
+Therefore relative paths such as `../1` will throw `UnknownRouteError: AUR3401 ... did you forget to add '..1' to the routes list of 'root'?` because the router tries to resolve them at the top-level.
+Declarative navigation succeeds because the `<a load>` custom attribute implicitly binds its `context` to the component's own `IRouteContext`.
+
+To make programmatic navigation behave the same way, inject both `IRouter` and `IRouteContext` and pass that context explicitly.
+This pattern keeps reusable routed components self-contained.
 
 ```typescript
-// in ChildOne
-router.load('c2');
+import { resolve } from '@aurelia/kernel';
+import { IRouter, IRouteContext } from '@aurelia/router';
 
+export class WizardStep {
+  private readonly router = resolve(IRouter);
+  private readonly routeContext = resolve(IRouteContext);
 
-// in ChildTwo
-router.load('c1');
+  async previousStep() {
+    await this.router.load('../1', { context: this.routeContext });
+  }
+
+  async goToStep(stepNumber: number) {
+    await this.router.load(`../${stepNumber}`, { context: this.routeContext });
+  }
+}
 ```
 
-However, on the other hand, you need to specify the routing context, when you want to navigate inside the current routing context.
-The most obvious use case is when you issue routing instruction for the child-routes inside a parent component.
-This can also be observed in `ChildOne` and `ChildTwo` components where a specific context is used as part of the [navigation options](#using-navigation-options) to navigate to the child routes.
+When you need to bubble navigation further up (for example leaving the wizard), walk the `parent` chain or set `context` to `null` to opt into the root router explicitly.
 
 ```typescript
-// in ChildOne
-router.load('gc11', { context: this });
-
-// in ChildTwo
-router.load('gc21', { context: this });
+async exitWizard() {
+  await this.router.load('../../dashboard', {
+    context: this.routeContext.parent ?? null,
+  });
+}
 ```
+
+Passing `context: this` is also supported because the router can derive the owning context from the view-model instance, but resolving `IRouteContext` keeps the code portable when the component is reused in different hierarchies or instantiated outside of routing.
 
 An array of paths (string) can be used to load components into sibling viewports.
 The paths can be parameterized or not non-parameterized.
@@ -985,7 +1020,7 @@ Using a **custom element controller** instance is also supported to be used as a
 An example looks as follows.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouter, route } from '@aurelia/router';
 import {
   customElement,
@@ -1475,7 +1510,7 @@ Those examples are avoided here for brevity.
 When a deeply nested component needs the value of the route parameters that were captured by parent routes, call `getRouteParameters()` on the resolved `IRouteContext`. The helper walks up the active route hierarchy, returning a frozen object where the nearest definition wins for duplicate keys. Pass `{ includeQueryParams: true }` to merge in any query-string values as well.
 
 ```ts
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouteContext } from '@aurelia/router';
 
 export class DetailsView {

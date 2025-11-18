@@ -208,93 +208,498 @@ export class CustomCacheService {
 }
 ```
 
-## Request Event Monitoring
+## Request Tracking and Lifecycle Management
 
-Monitor and respond to request lifecycle events:
+The HttpClient provides built-in request tracking capabilities that enable you to monitor active requests and respond to request lifecycle events. This is essential for building loading indicators, progress tracking, and request coordination features.
+
+### Built-in Request Properties
+
+The HttpClient exposes two key properties for request tracking:
 
 ```typescript
-export class RequestMonitoringService {
-  private http = resolve(IHttpClient);
-  private activeRequests = new Set<string>();
+import { IHttpClient } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
 
-  constructor() {
-    this.setupEventMonitoring();
-    this.setupRequestTracking();
+export class RequestTrackerService {
+  private http = resolve(IHttpClient);
+
+  checkRequestStatus() {
+    // Get the current number of active requests
+    console.log('Active requests:', this.http.activeRequestCount);
+
+    // Check if any requests are currently active
+    console.log('Is requesting:', this.http.isRequesting);
   }
 
-  private setupEventMonitoring() {
+  async makeTrackedRequest() {
+    console.log('Before request:', this.http.activeRequestCount);  // 0
+    console.log('Is requesting:', this.http.isRequesting);         // false
+
+    const promise = this.http.get('/api/data');
+
+    console.log('During request:', this.http.activeRequestCount);  // 1
+    console.log('Is requesting:', this.http.isRequesting);         // true
+
+    await promise;
+
+    console.log('After request:', this.http.activeRequestCount);   // 0
+    console.log('Is requesting:', this.http.isRequesting);         // false
+  }
+}
+```
+
+**Key Properties:**
+
+- **`activeRequestCount`**: The current number of active requests (including those being processed by interceptors)
+- **`isRequesting`**: Boolean indicating whether one or more requests are currently active
+
+### Request Lifecycle Events
+
+The HttpClient can dispatch DOM events for request lifecycle tracking. This requires configuring an event dispatcher using `withDispatcher()`.
+
+#### Available Events
+
+```typescript
+import { HttpClientEvent } from '@aurelia/fetch-client';
+
+// Available lifecycle events:
+HttpClientEvent.started  // 'aurelia-fetch-client-request-started'
+HttpClientEvent.drained  // 'aurelia-fetch-client-requests-drained'
+```
+
+- **`started`**: Fired when the first request starts (when `activeRequestCount` goes from 0 to 1)
+- **`drained`**: Fired when all requests complete (when `activeRequestCount` returns to 0)
+
+#### Configuring Event Dispatcher
+
+```typescript
+import { IHttpClient, HttpClientEvent } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
+
+export class RequestEventService {
+  private http = resolve(IHttpClient);
+
+  constructor() {
+    // Configure event dispatcher on a DOM node
+    this.http.configure(config => config.withDispatcher(document.body));
+
+    // Listen for lifecycle events
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners() {
+    document.body.addEventListener(HttpClientEvent.started, (event: CustomEvent) => {
+      console.log('First request started');
+      // Event fires when activeRequestCount goes from 0 to 1
+    });
+
+    document.body.addEventListener(HttpClientEvent.drained, (event: CustomEvent) => {
+      console.log('All requests completed');
+      // Event fires when activeRequestCount returns to 0
+    });
+  }
+}
+```
+
+### Building a Loading Indicator
+
+Use request tracking to implement a global loading indicator:
+
+```typescript
+export class LoadingIndicatorService {
+  private http = resolve(IHttpClient);
+  private loadingElement: HTMLElement;
+
+  constructor() {
+    this.loadingElement = document.getElementById('loading-indicator');
+    this.setupLoadingIndicator();
+  }
+
+  private setupLoadingIndicator() {
     // Configure event dispatcher
     this.http.configure(config => config.withDispatcher(document.body));
 
-    // Listen for request lifecycle events
-    document.body.addEventListener('aurelia-fetch-client-request-started', (event: CustomEvent) => {
-      console.log('Request started:', event.detail);
+    // Show loading indicator when requests start
+    document.body.addEventListener(HttpClientEvent.started, () => {
       this.showLoadingIndicator();
     });
 
-    document.body.addEventListener('aurelia-fetch-client-requests-drained', () => {
-      console.log('All requests completed');
+    // Hide loading indicator when all requests complete
+    document.body.addEventListener(HttpClientEvent.drained, () => {
       this.hideLoadingIndicator();
     });
   }
 
-  private setupRequestTracking() {
-    this.http.configure(config => config.withInterceptor({
-      request: (request) => {
-        const requestId = this.generateRequestId();
-        this.activeRequests.add(requestId);
-        
-        // Add tracking header
-        request.headers.set('X-Request-ID', requestId);
-        
-        console.log(`Starting request ${requestId}: ${request.method} ${request.url}`);
-        return request;
-      },
-      
-      response: (response, request) => {
-        const requestId = request?.headers.get('X-Request-ID');
-        if (requestId) {
-          this.activeRequests.delete(requestId);
-          console.log(`Completed request ${requestId}: ${response.status}`);
-        }
-        return response;
-      },
-      
-      responseError: (error, request) => {
-        const requestId = request?.headers.get('X-Request-ID');
-        if (requestId) {
-          this.activeRequests.delete(requestId);
-          console.error(`Failed request ${requestId}:`, error);
-        }
-        throw error;
-      }
-    }));
-  }
-
   private showLoadingIndicator() {
-    // Show global loading indicator
+    this.loadingElement.classList.add('active');
     document.body.classList.add('loading');
   }
 
   private hideLoadingIndicator() {
-    // Hide global loading indicator
+    this.loadingElement.classList.remove('active');
     document.body.classList.remove('loading');
+  }
+}
+```
+
+### Advanced Request Monitoring
+
+Combine built-in tracking with custom monitoring:
+
+```typescript
+export class AdvancedRequestMonitor {
+  private http = resolve(IHttpClient);
+  private requestDetails = new Map<string, {
+    url: string;
+    method: string;
+    startTime: number;
+  }>();
+
+  constructor() {
+    this.setupComprehensiveMonitoring();
+  }
+
+  private setupComprehensiveMonitoring() {
+    // Configure event dispatcher
+    this.http.configure(config => config
+      .withDispatcher(document.body)
+      .withInterceptor({
+        request: (request) => {
+          const requestId = this.generateRequestId();
+          request.headers.set('X-Request-ID', requestId);
+
+          // Store request details
+          this.requestDetails.set(requestId, {
+            url: request.url,
+            method: request.method,
+            startTime: Date.now(),
+          });
+
+          console.log(`[${requestId}] Starting: ${request.method} ${request.url}`);
+          console.log(`Active requests: ${this.http.activeRequestCount}`);
+
+          return request;
+        },
+
+        response: (response, request) => {
+          const requestId = request?.headers.get('X-Request-ID');
+          if (requestId) {
+            const details = this.requestDetails.get(requestId);
+            if (details) {
+              const duration = Date.now() - details.startTime;
+              console.log(`[${requestId}] Completed in ${duration}ms: ${response.status}`);
+              this.requestDetails.delete(requestId);
+            }
+          }
+
+          console.log(`Remaining requests: ${this.http.activeRequestCount - 1}`);
+          return response;
+        },
+
+        responseError: (error, request) => {
+          const requestId = request?.headers.get('X-Request-ID');
+          if (requestId) {
+            const details = this.requestDetails.get(requestId);
+            if (details) {
+              const duration = Date.now() - details.startTime;
+              console.error(`[${requestId}] Failed after ${duration}ms`);
+              this.requestDetails.delete(requestId);
+            }
+          }
+
+          throw error;
+        }
+      })
+    );
+
+    // Listen for lifecycle events
+    document.body.addEventListener(HttpClientEvent.started, () => {
+      console.log('🚀 Request activity started');
+      this.onRequestActivityStarted();
+    });
+
+    document.body.addEventListener(HttpClientEvent.drained, () => {
+      console.log('✅ Request activity completed');
+      this.onRequestActivityCompleted();
+    });
+  }
+
+  private onRequestActivityStarted() {
+    // Custom logic when requests begin
+    // This fires only when going from 0 to 1 active requests
+  }
+
+  private onRequestActivityCompleted() {
+    // Custom logic when all requests complete
+    // This fires only when going from 1+ to 0 active requests
+    console.log('All tracked requests completed:', this.requestDetails.size === 0);
   }
 
   private generateRequestId(): string {
     return `req-${Date.now()}-${Math.random().toString(36).substring(2)}`;
   }
 
-  // Public API for monitoring
+  // Public API
   getActiveRequestCount(): number {
-    return this.activeRequests.size;
+    return this.http.activeRequestCount;
   }
 
-  isRequestActive(): boolean {
-    return this.activeRequests.size > 0;
+  isRequesting(): boolean {
+    return this.http.isRequesting;
+  }
+
+  getCurrentRequests(): Array<{ url: string; method: string; duration: number }> {
+    return Array.from(this.requestDetails.values()).map(details => ({
+      ...details,
+      duration: Date.now() - details.startTime,
+    }));
   }
 }
 ```
+
+### Progress Tracking Component
+
+Build a reactive progress tracker:
+
+```typescript
+export class ProgressTracker {
+  private http = resolve(IHttpClient);
+  private progressCallbacks = new Set<(progress: RequestProgress) => void>();
+
+  constructor() {
+    this.setupProgressTracking();
+  }
+
+  private setupProgressTracking() {
+    this.http.configure(config => config
+      .withDispatcher(document.body)
+      .withInterceptor({
+        request: (request) => {
+          this.notifyProgress();
+          return request;
+        },
+
+        response: (response) => {
+          this.notifyProgress();
+          return response;
+        },
+
+        responseError: (error) => {
+          this.notifyProgress();
+          throw error;
+        }
+      })
+    );
+
+    // React to lifecycle events
+    document.body.addEventListener(HttpClientEvent.started, () => {
+      this.notifyProgress();
+    });
+
+    document.body.addEventListener(HttpClientEvent.drained, () => {
+      this.notifyProgress();
+    });
+  }
+
+  private notifyProgress() {
+    const progress: RequestProgress = {
+      activeCount: this.http.activeRequestCount,
+      isRequesting: this.http.isRequesting,
+      timestamp: Date.now(),
+    };
+
+    this.progressCallbacks.forEach(callback => callback(progress));
+  }
+
+  subscribe(callback: (progress: RequestProgress) => void): () => void {
+    this.progressCallbacks.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      this.progressCallbacks.delete(callback);
+    };
+  }
+
+  getCurrentProgress(): RequestProgress {
+    return {
+      activeCount: this.http.activeRequestCount,
+      isRequesting: this.http.isRequesting,
+      timestamp: Date.now(),
+    };
+  }
+}
+
+interface RequestProgress {
+  activeCount: number;
+  isRequesting: boolean;
+  timestamp: number;
+}
+```
+
+### Request Queue Visualization
+
+Display active requests in real-time:
+
+```typescript
+export class RequestQueueVisualizer {
+  private http = resolve(IHttpClient);
+  private queueDisplay: HTMLElement;
+
+  constructor(queueDisplay: HTMLElement) {
+    this.queueDisplay = queueDisplay;
+    this.setupVisualization();
+  }
+
+  private setupVisualization() {
+    this.http.configure(config => config
+      .withDispatcher(document.body)
+      .withInterceptor({
+        request: (request) => {
+          this.updateDisplay();
+          return request;
+        },
+
+        response: (response) => {
+          this.updateDisplay();
+          return response;
+        },
+
+        responseError: (error) => {
+          this.updateDisplay();
+          throw error;
+        }
+      })
+    );
+  }
+
+  private updateDisplay() {
+    const count = this.http.activeRequestCount;
+    const status = this.http.isRequesting ? 'active' : 'idle';
+
+    this.queueDisplay.innerHTML = `
+      <div class="request-queue ${status}">
+        <div class="status">${status.toUpperCase()}</div>
+        <div class="count">
+          <span class="number">${count}</span>
+          <span class="label">${count === 1 ? 'request' : 'requests'} active</span>
+        </div>
+        <div class="indicator">
+          ${this.createIndicatorDots(count)}
+        </div>
+      </div>
+    `;
+  }
+
+  private createIndicatorDots(count: number): string {
+    return Array.from({ length: Math.min(count, 10) }, () =>
+      '<span class="dot"></span>'
+    ).join('');
+  }
+}
+```
+
+### Best Practices for Request Tracking
+
+#### 1. Use Events for UI Updates
+
+Prefer lifecycle events over polling for UI updates:
+
+```typescript
+// Good - Event-driven
+document.body.addEventListener(HttpClientEvent.started, () => {
+  showLoadingSpinner();
+});
+
+// Avoid - Polling
+setInterval(() => {
+  if (this.http.isRequesting) {
+    showLoadingSpinner();
+  }
+}, 100);
+```
+
+#### 2. Single Event Dispatcher
+
+Configure the dispatcher once during initialization:
+
+```typescript
+export class HttpClientSetup {
+  static initialize(http: IHttpClient) {
+    http.configure(config => config
+      .withDispatcher(document.body)
+      .withBaseUrl('/api')
+      // ... other configuration
+    );
+  }
+}
+```
+
+#### 3. Cleanup Event Listeners
+
+Always remove event listeners when components are destroyed:
+
+```typescript
+export class RequestMonitorComponent {
+  private startedListener: EventListener;
+  private drainedListener: EventListener;
+
+  constructor() {
+    this.startedListener = () => this.onRequestsStarted();
+    this.drainedListener = () => this.onRequestsDrained();
+
+    document.body.addEventListener(HttpClientEvent.started, this.startedListener);
+    document.body.addEventListener(HttpClientEvent.drained, this.drainedListener);
+  }
+
+  dispose() {
+    document.body.removeEventListener(HttpClientEvent.started, this.startedListener);
+    document.body.removeEventListener(HttpClientEvent.drained, this.drainedListener);
+  }
+}
+```
+
+#### 4. Combine with Interceptors
+
+Use interceptors for detailed request tracking:
+
+```typescript
+export class DetailedRequestTracker {
+  private http = resolve(IHttpClient);
+
+  constructor() {
+    this.http.configure(config => config
+      .withDispatcher(document.body)
+      .withInterceptor({
+        request: (request) => {
+          // Track individual request start
+          console.log('Request started:', request.url);
+          console.log('Total active:', this.http.activeRequestCount);
+          return request;
+        },
+
+        response: (response, request) => {
+          // Track individual request completion
+          console.log('Request completed:', request?.url);
+          console.log('Remaining active:', this.http.activeRequestCount - 1);
+          return response;
+        }
+      })
+    );
+  }
+}
+```
+
+### Summary
+
+Request tracking provides:
+
+- **`activeRequestCount`**: Number of currently active requests
+- **`isRequesting`**: Boolean indicating if any requests are active
+- **`HttpClientEvent.started`**: Fired when first request starts
+- **`HttpClientEvent.drained`**: Fired when all requests complete
+- **`withDispatcher(node)`**: Configure DOM node for event dispatching
+
+These features enable robust loading indicators, progress tracking, and request coordination in your applications.
 
 ## Advanced Authentication Patterns
 

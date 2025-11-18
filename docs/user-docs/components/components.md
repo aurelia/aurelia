@@ -80,15 +80,65 @@ Key `@customElement` options:
 
 **Template Configuration:**
 ```typescript
+import template from './custom-template.html?raw';
+
 @customElement({
   name: 'data-widget',
-  template: './custom-template.html', // External file
-  // OR
-  template: '<div>Inline template</div>', // Inline
-  // OR  
-  template: null // No template (viewless component)
+  template, // External file
 })
+export class DataWidget {}
+
+@customElement({
+  name: 'inline-widget',
+  template: '<div>Inline template</div>',
+})
+export class InlineWidget {}
+
+@customElement({
+  name: 'viewless-widget',
+  template: null,
+})
+export class ViewlessWidget {}
 ```
+
+### Importing external HTML templates with bundlers
+
+When a component imports an `.html` file, the bundler must deliver that file as a plain string. Otherwise tools such as Vite, Webpack, and Parcel try to parse the file as an entry point and emit errors like `[vite:build-html] Unable to parse HTML; parse5 error code unexpected-character-in-unquoted-attribute-value` or `"template" is not exported by src/components/product-name-search.html`.
+
+Configure your bundler using the option that best matches your stack:
+
+- **Vite / esbuild (default Aurelia starter), Parcel 2, Rollup + `@rollup/plugin-string`** – append `?raw` to the import so the bundler treats the file as text:
+  ```ts
+  import template from './product-name-search.html?raw';
+  ```
+  Add a matching declaration so TypeScript understands these imports (the query string can be reused for other text assets):
+  ```ts
+  declare module '*.html?raw' {
+    const content: string;
+    export default content;
+  }
+  ```
+- **Webpack 5** – mark `.html` files as `asset/source` (or keep using `raw-loader`). After that you can import without a query parameter:
+  ```ts
+  // webpack.config.cjs
+  module.exports = {
+    module: {
+      rules: [
+        { test: /\.html$/i, type: 'asset/source' },
+      ],
+    },
+  };
+  ```
+  ```ts
+  import template from './product-name-search.html';
+  declare module '*.html' {
+    const content: string;
+    export default content;
+  }
+  ```
+- **Other bundlers** – use the equivalent “treat this file as a string” hook (e.g., SystemJS `text` plugin).
+
+Once the bundler understands `.html` files as text, both `npm start` and `npm run build` can reuse the same component source without inline templates. Keep the import pattern consistent across the project so contributors immediately know which loader configuration applies.
 
 **Dependencies:**
 ```typescript
@@ -252,7 +302,7 @@ See [Component Lifecycles](component-lifecycles.md) for comprehensive lifecycle 
 Components accept data through bindable properties:
 
 ```typescript
-import { bindable } from 'aurelia';
+import { bindable, BindingMode } from 'aurelia';
 
 export class UserCard {
   @bindable user: User;
@@ -280,17 +330,36 @@ See [Bindable Properties](bindable-properties.md) for complete configuration opt
 
 ### Shadow DOM
 
-Encapsulate styles and DOM structure:
+Enable Shadow DOM for complete style and DOM encapsulation:
 
 ```typescript
-import { customElement, useShadowDOM } from 'aurelia';
+import { customElement, useShadowDOM, shadowCSS } from 'aurelia';
 
-@customElement({ name: 'isolated-widget' })
+@customElement({
+  name: 'isolated-widget',
+  template: '<div class="widget"><slot></slot></div>',
+  dependencies: [
+    shadowCSS(`
+      .widget {
+        border: 1px solid var(--widget-border, #ddd);
+        padding: 16px;
+      }
+    `)
+  ]
+})
 @useShadowDOM({ mode: 'open' })
 export class IsolatedWidget {
-  // Styles and DOM are encapsulated
+  // Styles and DOM are fully encapsulated from outside
 }
 ```
+
+Shadow DOM is useful for:
+- Complete style isolation (styles won't leak in or out)
+- Creating reusable components with predictable styling
+- Using native `<slot>` elements for content projection
+- Building design systems and component libraries
+
+See the [Shadow DOM guide](shadow-dom.md) for detailed configuration, styling patterns, and best practices.
 
 ### Template Processing
 
@@ -371,6 +440,8 @@ export class TabContainer {
 
 **Attribute Capture:**
 ```typescript
+import { capture, customElement } from 'aurelia';
+
 @customElement({ name: 'flex-wrapper' })
 @capture() // Captures all unrecognized attributes
 export class FlexWrapper {}
@@ -378,6 +449,8 @@ export class FlexWrapper {}
 
 **Aliases:**
 ```typescript
+import { customElement } from 'aurelia';
+
 @customElement({
   name: 'primary-button',
   aliases: ['btn-primary', 'p-btn']
@@ -393,6 +466,9 @@ export class PrimaryButton {}
 - **Composition**: Favor composition over inheritance
 
 ```typescript
+import { bindable, resolve } from 'aurelia';
+import { ILogger } from '@aurelia/kernel';
+
 interface User {
   id: string;
   name: string;

@@ -2,6 +2,41 @@
 
 Aurelia's reactivity system automatically tracks changes to your data and updates the UI efficiently. Unlike frameworks that use virtual DOM, Aurelia observes your data directly and surgically updates only what has changed.
 
+## When to Use Which Reactivity Feature?
+
+Aurelia offers several reactivity tools. Here's how to choose:
+
+### Use simple properties (no decorator) when:
+- ✅ **You only need UI updates** - Properties bound in templates are automatically observed
+- ✅ Most common case - Just declare the property and bind it
+- ✅ Example: `todos: Todo[] = []` with `repeat.for="todo of todos"`
+
+### Use getters (computed) when:
+- ✅ **Value depends on other properties** and calculation is cheap
+- ✅ Automatic dependency tracking - no manual configuration needed
+- ✅ Example: `get fullName() { return this.firstName + ' ' + this.lastName; }`
+
+### Use `@computed` decorator when:
+- ✅ **Expensive calculations** that should be cached
+- ✅ You want to **explicitly control dependencies** (not automatic)
+- ✅ Deep observation needed for nested objects
+- ✅ Example: Complex filtering, heavy aggregations
+
+### Use `@observable` when:
+- ✅ **You need to run code** when a property changes (side effects)
+- ✅ You want the `propertyChanged(newValue, oldValue)` callback
+- ✅ Examples: Validation, analytics tracking, syncing data
+
+### Use `watch()` when:
+- ✅ **Complex expressions** - watching multiple properties or nested values
+- ✅ Need more flexibility than `@observable`
+- ✅ Examples: `@watch('user.address.city')`, `@watch(vm => vm.total > 100)`
+
+### Use manual observation when:
+- ✅ Building **libraries or advanced features**
+- ✅ Need **fine-grained control** over subscription lifecycle
+- ✅ Performance critical code requiring optimization
+
 ## Automatic Change Detection
 
 Aurelia automatically observes properties that are bound in your templates. No decorators or special setup required:
@@ -306,14 +341,12 @@ export class Analytics {
 For advanced scenarios, manually control observation:
 
 ```typescript
-import { observerLocator } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
+import { IObserverLocator } from '@aurelia/runtime';
 
 export class AdvancedComponent {
+  private observerLocator = resolve(IObserverLocator);
   data = { value: 0 };
-  
-  constructor(
-    @IObserverLocator private observerLocator: IObserverLocator
-  ) {}
 
   attached() {
     // Manually observe a property
@@ -333,6 +366,326 @@ Aurelia's observation is highly optimized:
 - **Surgical Updates**: Only changed elements are updated, not entire component trees
 - **Smart Detection**: Observes only bound properties, not entire objects
 - **No Virtual DOM**: Direct DOM manipulation eliminates virtual DOM overhead
+
+## Common Reactivity Patterns
+
+### Pattern: Form Validation with @observable
+
+**Use case**: Validate input as the user types, show errors immediately.
+
+```typescript
+import { observable } from 'aurelia';
+
+export class RegistrationForm {
+  @observable email: string = '';
+  @observable password: string = '';
+
+  emailError: string = '';
+  passwordError: string = '';
+
+  emailChanged(newValue: string) {
+    // Run validation whenever email changes
+    if (!newValue) {
+      this.emailError = 'Email is required';
+    } else if (!newValue.includes('@')) {
+      this.emailError = 'Please enter a valid email';
+    } else {
+      this.emailError = '';
+    }
+  }
+
+  passwordChanged(newValue: string) {
+    if (newValue.length < 8) {
+      this.passwordError = 'Password must be at least 8 characters';
+    } else {
+      this.passwordError = '';
+    }
+  }
+
+  get isValid(): boolean {
+    return !this.emailError && !this.passwordError && this.email && this.password;
+  }
+}
+```
+
+```html
+<form>
+  <input value.bind="email" type="email" placeholder="Email">
+  <span class="error" if.bind="emailError">${emailError}</span>
+
+  <input value.bind="password" type="password" placeholder="Password">
+  <span class="error" if.bind="passwordError">${passwordError}</span>
+
+  <button disabled.bind="!isValid" click.trigger="submit()">Register</button>
+</form>
+```
+
+**Why this works**: `@observable` triggers validation automatically as users type. The `isValid` getter recomputes whenever errors change, enabling/disabling the submit button reactively.
+
+### Pattern: Computed Filtering and Sorting
+
+**Use case**: Filter and sort a list based on user input without re-fetching data.
+
+```typescript
+import { observable } from 'aurelia';
+
+export class ProductCatalog {
+  products: Product[] = [];
+
+  @observable searchQuery: string = '';
+  @observable sortBy: 'name' | 'price' = 'name';
+  @observable maxPrice: number = 1000;
+
+  get filteredProducts(): Product[] {
+    // Automatically recomputes when searchQuery, maxPrice, or products change
+    return this.products
+      .filter(p =>
+        p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
+        p.price <= this.maxPrice
+      )
+      .sort((a, b) => {
+        if (this.sortBy === 'price') {
+          return a.price - b.price;
+        }
+        return a.name.localeCompare(b.name);
+      });
+  }
+
+  get resultCount(): number {
+    return this.filteredProducts.length;
+  }
+
+  async binding() {
+    const response = await fetch('/api/products');
+    this.products = await response.json();
+  }
+}
+```
+
+```html
+<div class="catalog">
+  <input value.bind="searchQuery" placeholder="Search products...">
+
+  <select value.bind="sortBy">
+    <option value="name">Sort by Name</option>
+    <option value="price">Sort by Price</option>
+  </select>
+
+  <input type="range" min="0" max="1000" value.bind="maxPrice">
+  <span>Max: $${maxPrice}</span>
+
+  <p>${resultCount} products found</p>
+
+  <div repeat.for="product of filteredProducts" class="product-card">
+    <h3>${product.name}</h3>
+    <p>$${product.price}</p>
+  </div>
+</div>
+```
+
+**Why this works**: The `filteredProducts` getter automatically recomputes when any dependency changes. No manual refresh needed - the UI stays in sync with filters.
+
+### Pattern: Syncing Data with @watch
+
+**Use case**: Keep related data in sync, like saving to localStorage or syncing with a server.
+
+```typescript
+import { watch, observable } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
+import { ILogger } from '@aurelia/kernel';
+
+export class DraftEditor {
+  private logger = resolve(ILogger);
+
+  @observable content: string = '';
+  @observable title: string = '';
+
+  lastSaved: Date | null = null;
+  isSaving: boolean = false;
+
+  constructor() {
+    // Load from localStorage on startup
+    this.content = localStorage.getItem('draft-content') || '';
+    this.title = localStorage.getItem('draft-title') || '';
+  }
+
+  // Watch for changes and auto-save
+  @watch('content')
+  @watch('title')
+  async contentChanged() {
+    if (this.isSaving) return;
+
+    this.isSaving = true;
+    try {
+      // Save to localStorage immediately
+      localStorage.setItem('draft-content', this.content);
+      localStorage.setItem('draft-title', this.title);
+
+      // Debounced server sync (implement as needed)
+      await this.syncToServer();
+
+      this.lastSaved = new Date();
+      this.logger.debug('Draft saved');
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  private async syncToServer() {
+    // Sync to server with debouncing
+  }
+}
+```
+
+```html
+<div class="editor">
+  <input value.bind="title" placeholder="Title">
+  <textarea value.bind="content" placeholder="Start writing..."></textarea>
+
+  <div class="status">
+    <span if.bind="isSaving">Saving...</span>
+    <span if.bind="lastSaved && !isSaving">
+      Saved at ${lastSaved.toLocaleTimeString()}
+    </span>
+  </div>
+</div>
+```
+
+**Why this works**: `@watch` observes both `content` and `title`, automatically saving changes. The pattern prevents data loss and provides user feedback.
+
+### Pattern: Dependent Computations
+
+**Use case**: Chain computed properties where one depends on another.
+
+```typescript
+export class OrderSummary {
+  items: OrderItem[] = [];
+
+  @observable discountCode: string = '';
+  @observable taxRate: number = 0.08;
+
+  get subtotal(): number {
+    return this.items.reduce((sum, item) =>
+      sum + (item.price * item.quantity), 0
+    );
+  }
+
+  get discount(): number {
+    // Depends on subtotal and discountCode
+    if (this.discountCode === 'SAVE10') {
+      return this.subtotal * 0.1;
+    }
+    if (this.discountCode === 'SAVE20') {
+      return this.subtotal * 0.2;
+    }
+    return 0;
+  }
+
+  get afterDiscount(): number {
+    // Depends on subtotal and discount
+    return this.subtotal - this.discount;
+  }
+
+  get tax(): number {
+    // Depends on afterDiscount and taxRate
+    return this.afterDiscount * this.taxRate;
+  }
+
+  get total(): number {
+    // Final total depends on afterDiscount and tax
+    return this.afterDiscount + this.tax;
+  }
+}
+```
+
+```html
+<div class="order-summary">
+  <p>Subtotal: $${subtotal.toFixed(2)}</p>
+
+  <input value.bind="discountCode" placeholder="Discount code">
+  <p if.bind="discount > 0" class="discount">
+    Discount: -$${discount.toFixed(2)}
+  </p>
+
+  <p>Tax (${(taxRate * 100).toFixed(0)}%): $${tax.toFixed(2)}</p>
+
+  <p class="total">Total: $${total.toFixed(2)}</p>
+</div>
+```
+
+**Why this works**: Computed properties automatically form a dependency chain. When `subtotal` changes, `discount` updates, which updates `afterDiscount`, then `tax`, and finally `total`. All cascade automatically.
+
+### Pattern: Optimized List Updates with @computed
+
+**Use case**: Expensive computations on large lists that should only recalculate when necessary.
+
+```typescript
+import { computed } from 'aurelia';
+
+export class DataAnalytics {
+  dataPoints: DataPoint[] = []; // Large array
+
+  @observable dateRange: DateRange;
+  @observable selectedMetric: string = 'sales';
+
+  // Only recalculate when dependencies actually change
+  @computed('dataPoints.length', 'dateRange', 'selectedMetric')
+  get filteredData(): DataPoint[] {
+    console.log('Filtering data (expensive)');
+
+    return this.dataPoints.filter(point =>
+      point.date >= this.dateRange.start &&
+      point.date <= this.dateRange.end &&
+      point.metric === this.selectedMetric
+    );
+  }
+
+  @computed('filteredData.length')
+  get statistics(): Statistics {
+    console.log('Computing statistics (expensive)');
+
+    const values = this.filteredData.map(d => d.value);
+    return {
+      mean: this.mean(values),
+      median: this.median(values),
+      stdDev: this.standardDeviation(values)
+    };
+  }
+
+  // Heavy computation methods
+  private mean(values: number[]): number { /* ... */ }
+  private median(values: number[]): number { /* ... */ }
+  private standardDeviation(values: number[]): number { /* ... */ }
+}
+```
+
+**Why this works**: `@computed` with explicit dependencies prevents unnecessary recalculations. Changing individual data point properties won't trigger recalculation - only changes to array length, date range, or metric do.
+
+## Best Practices
+
+### Choose the Right Tool
+- ✅ **Start simple** - Use plain properties and getters first
+- ✅ Add `@observable` only when you need side effects
+- ✅ Use `@computed` for expensive operations, not simple getters
+- ❌ Don't over-engineer - most scenarios don't need `@watch` or manual observation
+
+### Keep Computations Pure
+- ✅ Computed getters should have no side effects
+- ✅ Same inputs should always produce same outputs
+- ❌ Don't modify state inside getters
+- ❌ Don't make API calls in computed properties
+
+### Optimize Performance
+- ✅ Use `@computed` with explicit dependencies for expensive calculations
+- ✅ Debounce rapid changes (user input, scroll events)
+- ✅ Batch related updates together
+- ❌ Don't create unnecessary watchers
+
+### Handle Async Operations
+- ✅ Use `@watch` or `propertyChanged` callbacks for async side effects
+- ✅ Track loading states during async operations
+- ✅ Handle errors gracefully
+- ❌ Don't make computed properties async
 
 ## What's Next
 

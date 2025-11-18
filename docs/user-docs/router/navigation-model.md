@@ -38,7 +38,7 @@ In this example, we are using a custom element named `nav-bar`.
 In the custom element we inject an instance of `IRouteContext` and we grab the navigation model from the routing context.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { INavigationModel, IRouteContext } from '@aurelia/router';
 
 export class NavBar {

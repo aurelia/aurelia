@@ -15,37 +15,49 @@ This is perfect for:
 
 > **Before you start:** Make sure you are comfortable with [components](components/README.md) and [template controllers](template-controllers.md); both concepts show up throughout the examples.
 
+## Quick Reference
+
+| Bindable | Accepts | Default | Purpose |
+| --- | --- | --- | --- |
+| `component` | Registered element name (`string`), custom element class/definition, plain object, or `Promise` resolving to either | `undefined` | Chooses which component to render; strings must match a globally or locally registered custom element or Aurelia will throw. |
+| `template` | Literal HTML `string` or `Promise<string>` | `undefined` | Provides markup for template-only composition. Ignored when `component` resolves to a custom element. |
+| `model` | Any value | `undefined` | Passed into the composed component's `activate(model)` hook. Updating `model` re-runs `activate` without recreating the component. |
+| `scope-behavior` | `'auto' \| 'scoped'` | `'auto'` | Controls scope inheritance for template-only compositions (`component` omitted or resolves to `null`). Has no effect for custom elements. |
+| `tag` | `string \| null` | `null` (containerless) | For template-only compositions, provide a tag name when you need a surrounding element; leave as `null` to keep the default comment boundaries. |
+| `composition` | `ICompositionController` (from-view) | `undefined` | Exposes the controller for the currently composed view so you can call `controller.viewModel`, `update(model)`, or `deactivate()`. |
+| `composing` | `Promise<void> \| void` (from-view) | `undefined` | Surfaces the pending composition promise so parents can show loading states or cancel work when newer compositions queue up. |
+
+> Tip: Bindings placed on `<au-compose>` that match bindables on the composed component are forwarded to that component. Attributes that do not match (for example `class`, `style`, or event handlers) are applied to the generated host element instead.
+
 ## Component Composition
 
 ### Composing with Custom Element Definitions
 
-You can compose any custom element by passing its definition to the `component` property:
+You can compose any custom element by passing its definition to the `component` property. Define those elements once at module scope so Aurelia reuses the same definition instead of recreating it for every view-model instance:
 
 ```typescript
 // dashboard.ts
 import { CustomElement } from '@aurelia/runtime-html';
 
+const ChartWidget = CustomElement.define({
+  name: 'chart-widget',
+  template: '<div class="chart">Chart: ${title}</div>'
+});
+
+const ListWidget = CustomElement.define({
+  name: 'list-widget',
+  template: '<ul><li repeat.for="item of items">${item}</li></ul>'
+});
+
 export class Dashboard {
-  // Define different widget types
-  ChartWidget = CustomElement.define({
-    name: 'chart-widget',
-    template: '<div class="chart">Chart: ${title}</div>'
-  });
-
-  ListWidget = CustomElement.define({
-    name: 'list-widget',
-    template: '<ul><li repeat.for="item of items">${item}</li></ul>'
-  });
-
-  // Switch between widgets based on user choice
-  selectedWidget = this.ChartWidget;
+  selectedWidget = ChartWidget;
 
   switchToChart() {
-    this.selectedWidget = this.ChartWidget;
+    this.selectedWidget = ChartWidget;
   }
 
   switchToList() {
-    this.selectedWidget = this.ListWidget;
+    this.selectedWidget = ListWidget;
   }
 }
 ```
@@ -239,7 +251,7 @@ export class UserWidget {
 <!-- user-dashboard.html -->
 <div class="user-dashboard">
   <au-compose
-    component.bind="UserWidget"
+    component.bind="userWidget"
     model.bind="selectedUser">
   </au-compose>
 </div>
@@ -247,7 +259,10 @@ export class UserWidget {
 
 ```typescript
 // user-dashboard.ts
+import { UserWidget } from './user-widget';
+
 export class UserDashboard {
+  userWidget = UserWidget;
   users = [
     { id: 1, name: 'Alice', role: 'admin' },
     { id: 2, name: 'Bob', role: 'user' }
@@ -298,6 +313,11 @@ Both `template` and `component` properties can accept promises, perfect for lazy
 // lazy-dashboard.ts
 export class LazyDashboard {
   selectedWidgetType = 'chart';
+  pending?: Promise<void> | void;
+
+  get isLoading() {
+    return this.pending != null;
+  }
 
   // Lazy load components based on user selection
   get currentComponent() {
@@ -331,10 +351,12 @@ export class LazyDashboard {
   </select>
 </div>
 
-<!-- Shows loading state while promise resolves -->
+<div class="loading" if.bind="isLoading">Loading next widget...</div>
+
 <au-compose
   component.bind="currentComponent"
-  model.bind="widgetData">
+  model.bind="widgetData"
+  composing.bind="pending">
 </au-compose>
 ```
 
@@ -392,34 +414,68 @@ export class AdminPanel {
 <button click.trigger="refreshWidget()">Refresh Widget</button>
 ```
 
+### Tracking Pending Compositions
+
+Bind to `composing` whenever you need to surface intermediate loading states. Aurelia assigns the currently pending composition promise to your property, allowing you to show a spinner or cancel older requests when newer compositions queue up.
+
+```typescript
+// widget-shell.ts
+import type { ICompositionController } from '@aurelia/runtime-html';
+
+export class WidgetShell {
+  composition?: ICompositionController;
+  pending?: Promise<void> | void;
+
+  get isLoading() {
+    return this.pending != null;
+  }
+}
+```
+
+```html
+<!-- widget-shell.html -->
+<div class="widget-shell">
+  <div class="loading" if.bind="isLoading">Loading latest widget...</div>
+
+  <au-compose
+    component.bind="selectedWidget"
+    model.bind="widgetConfig"
+    composition.bind="composition"
+    composing.bind="pending">
+  </au-compose>
+</div>
+```
+
 ## Real-World Examples
 
 ### Form Builder with Dynamic Fields
 
 ```typescript
 // form-builder.ts
+import { CustomElement } from '@aurelia/runtime-html';
+
+const TextInput = CustomElement.define({
+  name: 'text-input',
+  template: '<input type="text" value.bind="value" placeholder.bind="placeholder">'
+});
+
+const NumberInput = CustomElement.define({
+  name: 'number-input',
+  template: '<input type="number" value.bind="value" min.bind="min" max.bind="max">'
+});
+
+const SelectInput = CustomElement.define({
+  name: 'select-input',
+  template: '<select value.bind="value"><option repeat.for="opt of options" value.bind="opt.value">${opt.label}</option></select>'
+});
+
+const fieldTypes = {
+  text: TextInput,
+  number: NumberInput,
+  select: SelectInput
+};
+
 export class FormBuilder {
-  TextInput = CustomElement.define({
-    name: 'text-input',
-    template: '<input type="text" value.bind="value" placeholder.bind="placeholder">'
-  });
-
-  NumberInput = CustomElement.define({
-    name: 'number-input',
-    template: '<input type="number" value.bind="value" min.bind="min" max.bind="max">'
-  });
-
-  SelectInput = CustomElement.define({
-    name: 'select-input',
-    template: '<select value.bind="value"><option repeat.for="opt of options" value.bind="opt.value">${opt.label}</option></select>'
-  });
-
-  fieldTypes = {
-    text: this.TextInput,
-    number: this.NumberInput,
-    select: this.SelectInput
-  };
-
   formConfig = [
     { type: 'text', name: 'firstName', placeholder: 'First Name', value: '' },
     { type: 'text', name: 'lastName', placeholder: 'Last Name', value: '' },
@@ -431,7 +487,7 @@ export class FormBuilder {
   ];
 
   getFieldComponent(field) {
-    return this.fieldTypes[field.type];
+    return fieldTypes[field.type];
   }
 }
 ```
@@ -525,32 +581,34 @@ export class PluginHost {
 
 ```typescript
 // cms-renderer.ts
-export class CmsRenderer {
-  layoutComponents = {
-    'hero-section': CustomElement.define({
-      name: 'hero-section',
-      template: `
-        <section class="hero" style="background-image: url({{backgroundImage}})">
-          <h1>{{title}}</h1>
-          <p>{{subtitle}}</p>
-          <button if.bind="ctaText">{{ctaText}}</button>
-        </section>
-      `
-    }),
-    'text-block': CustomElement.define({
-      name: 'text-block',
-      template: '<div class="text-content" innerHTML.bind="content"></div>'
-    }),
-    'image-gallery': CustomElement.define({
-      name: 'image-gallery',
-      template: `
-        <div class="gallery">
-          <img repeat.for="img of images" src.bind="img.url" alt.bind="img.alt">
-        </div>
-      `
-    })
-  };
+import { CustomElement } from '@aurelia/runtime-html';
 
+const layoutComponents = {
+  'hero-section': CustomElement.define({
+    name: 'hero-section',
+    template: `
+      <section class="hero" style="background-image: url(\${backgroundImage})">
+        <h1>\${title}</h1>
+        <p>\${subtitle}</p>
+        <button if.bind="ctaText">\${ctaText}</button>
+      </section>
+    `
+  }),
+  'text-block': CustomElement.define({
+    name: 'text-block',
+    template: '<div class="text-content" innerHTML.bind="content"></div>'
+  }),
+  'image-gallery': CustomElement.define({
+    name: 'image-gallery',
+    template: `
+      <div class="gallery">
+        <img repeat.for="img of images" src.bind="img.url" alt.bind="img.alt">
+      </div>
+    `
+  })
+};
+
+export class CmsRenderer {
   pageContent = [
     {
       type: 'hero-section',
@@ -579,7 +637,7 @@ export class CmsRenderer {
   ];
 
   getLayoutComponent(block) {
-    return this.layoutComponents[block.type];
+    return layoutComponents[block.type];
   }
 }
 ```
@@ -623,8 +681,13 @@ If you're upgrading from Aurelia 1, here are the key changes you need to know:
 <!-- Get the composition controller -->
 <au-compose composition.bind="compositionRef"></au-compose>
 
-<!-- Or get direct access to the view model (if it's a custom element) -->
-<au-compose component.ref="viewModelRef"></au-compose>
+<!-- Use the controller to reach the composed view model -->
+<button click.trigger="compositionRef?.controller?.viewModel?.refresh?.()">
+  Refresh composed widget
+</button>
+```
+
+> Note: `component.ref` on `<au-compose>` references the `AuCompose` element itself, not the composed child. Use `composition.controller.viewModel` when you need the child instance.
 ```
 
 ### String Handling Changes
@@ -782,9 +845,9 @@ export class TemplateLoaderValueConverter {
 1. **Use promises for lazy loading** - Only load components when needed to improve performance
 2. **Leverage the activate method** - Perfect for data initialization and updates
 3. **Consider scope behavior** - Use `scoped` when you want isolation, `auto` for inheritance
-4. **Cache component definitions** - Don't recreate the same CustomElement definitions repeatedly
-5. **Handle loading states** - Show appropriate feedback while promises resolve
-6. **Use models efficiently** - Changing models is cheaper than changing components
+4. **Cache component definitions** - Call `CustomElement.define` once per module and reuse the reference instead of redefining inside constructors.
+5. **Handle loading states** - Bind to `composing` to show a spinner or disable UI while Aurelia hydrates the next component.
+6. **Use models efficiently** - Changing models is cheaper than switching components because `activate(model)` re-runs without rehydration.
 
 Dynamic composition gives you the flexibility to build truly dynamic UIs that adapt to your users' needs, load efficiently, and scale with your application's complexity.
 

@@ -74,6 +74,10 @@ A local template must be declared with `<template as-custom-element="your-elemen
 - **Custom Markup**: The HTML that your inline custom element should render.
 - **Data-Binding**: Standard Aurelia binding expressions.
 
+{% hint style="info" %}
+`as-custom-element` defines a brand-new local element. If you simply want an existing element to behave like one of your already-registered custom elements (while keeping the original tag), use `as-element="component-name"` on that element instead. See [Attribute Binding](./template-syntax/attribute-binding.md#0-treating-existing-markup-as-a-custom-element-with-as-element) for details.
+{% endhint %}
+
 Example:
 
 ```html

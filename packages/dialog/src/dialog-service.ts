@@ -1,4 +1,4 @@
-import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve, Constructable } from '@aurelia/kernel';
+import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve, Constructable, IResolver } from '@aurelia/kernel';
 import { AppTask, CustomElement } from '@aurelia/runtime-html';
 
 import {
@@ -37,6 +37,18 @@ export class DialogService implements IDialogService {
         }
       ))
     );
+  }
+
+  /**
+   * Create a resolver for a child dialog service with the given key.
+   */
+  public static child(key: unknown): IResolver<DialogService> {
+    return {
+      $isResolver: true,
+      resolve(handler, requestor) {
+        return requestor.get(DialogService).createChild(key);
+      },
+    };
   }
 
   public get controllers() {
@@ -140,8 +152,8 @@ export class DialogService implements IDialogService {
   }
 
   /** @internal */
-  private readonly _childMap = new Map<unknown, IDialogService>();
-  public createChild(key: unknown): IDialogService {
+  private readonly _childMap = new Map<unknown, DialogService>();
+  public createChild(key: unknown): DialogService {
     const existingChild = this._childMap.get(key);
     if (existingChild != null) {
       return existingChild;

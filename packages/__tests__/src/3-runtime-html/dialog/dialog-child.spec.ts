@@ -1,5 +1,6 @@
 import {
     DialogConfigurationStandard,
+    DialogService,
     IDialogService
 } from '@aurelia/dialog';
 import { resolve } from '@aurelia/kernel';
@@ -106,5 +107,24 @@ describe('3-runtime-html/dialog/dialog-child.spec.ts', function () {
 
         assert.notStrictEqual(component.alert, component.confirm);
         assert.notStrictEqual(setting1, setting2);
+    });
+
+    it('resolves child dialog using child static method on DialogService', function () {
+        const { component } = createFixture(
+            '<div>',
+            class App {
+                service = resolve(IDialogService);
+                alert = resolve(DialogService.child('alert'));
+            },
+            [
+                DialogConfigurationStandard.withChild(
+                    'alert',
+                    () => {}
+                )
+            ]
+        );
+
+        assert.instanceOf(component.alert, DialogService);
+        assert.strictEqual(component.service.createChild('alert'), component.alert);
     });
 });

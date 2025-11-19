@@ -1397,7 +1397,7 @@ like the following example:
 ```ts
 Aurelia.register(
   DialogConfigurationStandard
-    .customzie(...)
+    .customize(...)
     .withChild(
       'alert',
       settings => {
@@ -1417,6 +1417,10 @@ and then later it can be used:
 class MyComponent {
   alertService = resolve(IDialogService.child('alert'));
   confirmService = resolve(IDialogService.child('confirm'));
+
+  // or if you use the default DialogService implementation
+  alertService = resolve(DialogService.child('alert'));
+  confirmService = resolve(DialogService.child('confirm'));
 }
 ```
 

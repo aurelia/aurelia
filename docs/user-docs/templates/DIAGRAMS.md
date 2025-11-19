@@ -8,9 +8,9 @@ Visual diagrams to help understand Aurelia's templating system. Every diagram be
 
 ```mermaid
 flowchart LR
-    VM["View Model\nmessage = 'Hi'"]
+    VM["View Model<br/>message = 'Hi'"]
     binding[".one-way / .to-view binding"]
-    view["View\n<p>${message}</p> → <p>Hi</p>"]
+    view["View<br/><p>${message}</p> → <p>Hi</p>"]
     VM --> binding --> view
 ```
 
@@ -20,7 +20,7 @@ Use one-way bindings for read-only flows or whenever the DOM only needs to refle
 
 ```mermaid
 flowchart LR
-    VM["View Model\nname = 'Bob'"]
+    VM["View Model<br/>name = 'Bob'"]
     binding[".bind (.two-way)"]
     view["<input value.bind='name'>"]
     VM <-->|"property updates"| binding
@@ -35,7 +35,7 @@ Two-way bindings keep inputs and view-model properties in sync. Typing "Alice" u
 flowchart LR
     view["<input value.from-view='query'>"]
     binding[".from-view binding"]
-    VM["View Model\nquery = ''"]
+    VM["View Model<br/>query = ''"]
     view --> binding --> VM
 ```
 
@@ -48,7 +48,7 @@ flowchart TD
     start([Need to bind a value?])
     start --> input{Is it a form control?}
     input -->|Yes| readInput{Need to read user input?}
-    readInput -->|Yes| useTwoWay["Use .bind\n(default .two-way)"]
+    readInput -->|Yes| useTwoWay["Use .bind<br/>(default .two-way)"]
     readInput -->|No| useOneWayInput["Use .one-way"]
     input -->|No| attr{Is it a regular attribute?}
     attr -->|Value changes often| dynamicAttr["Use .bind or .one-way"]
@@ -64,7 +64,7 @@ stateDiagram-v2
     [*] --> Hidden
     Hidden --> Visible: isVisible becomes true
     Visible --> Hidden: isVisible becomes false
-    Visible: Element exists in DOM\nEvents attached\nMemory reclaimed when removed
+    Visible: Element exists in DOM<br/>Events attached<br/>Memory reclaimed when removed
 ```
 
 `if.bind` creates and disposes the DOM subtree. It frees memory and automatically detaches listeners any time the condition flips back to `false`.
@@ -76,7 +76,7 @@ stateDiagram-v2
     [*] --> Hidden
     Hidden --> Visible: isVisible becomes true
     Visible --> Hidden: isVisible becomes false
-    Hidden: Element stays in DOM\nstyle.display = 'none'\nEvents stay attached
+    Hidden: Element stays in DOM<br/>style.display = 'none'<br/>Events stay attached
 ```
 
 `show.bind` toggles `display: none` without touching the DOM tree. It is ideal for frequently toggled sections that should keep their internal state alive.
@@ -98,7 +98,7 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    items["View Model\nitems = [{ id: 1, name: 'A' }, ...]"]
+    items["View Model<br/>items = [{ id: 1, name: 'A' }, ...]"]
     directive["repeat.for='item of items'"]
     template["<li>${item.name}</li>"]
     items --> directive --> template
@@ -111,17 +111,17 @@ By default, the repeat controller tracks scopes by the actual item reference. Wh
 Provide a `key` only when you recreate objects between refreshes (for example, mapping API data into new literals) or when the list contains primitives. In those cases a property such as `id` gives Aurelia a stable identity to match.
 
 ```mermaid
-graph TB
-    subgraph Reference identity (default)
-        oldA[A]
-        oldB[B]
-        oldC[C]
-        oldA --> moveA["same object reused"]
-        oldB --> moveB["same object reused"]
-        oldC --> moveC["same object reused"]
+flowchart TB
+    subgraph "Reference identity (default)"
+        oldA[A reference]
+        oldB[B reference]
+        oldC[C reference]
+        oldA --> reuseA[same object reused]
+        oldB --> reuseB[same object reused]
+        oldC --> reuseC[same object reused]
     end
-    subgraph Keyed identity
-        keyId["key.bind='id'"] --> match["Compare ids when objects are recreated"]
+    subgraph "Keyed identity"
+        keyId["key.bind: id"] --> match[Compare ids when objects are recreated]
     end
 ```
 
@@ -205,8 +205,8 @@ graph LR
 ```mermaid
 flowchart LR
     vm["price = 299.99"] --> currency
-    currency["CurrencyConverter.toView(299.99, 'USD')\n→ '$299.99 USD'"] --> truncate
-    truncate["TruncateConverter.toView('$299.99 USD', 10)\n→ '$299.99...' "] --> view["DOM"]
+    currency["CurrencyConverter.toView(299.99, 'USD')<br/>→ '$299.99 USD'"] --> truncate
+    truncate["TruncateConverter.toView('$299.99 USD', 10)<br/>→ '$299.99...' "] --> view["DOM"]
 ```
 
 ## Component Communication
@@ -215,7 +215,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    parent["Parent component\nuser = { name: 'Alice', email: 'alice@ex.com' }"] --> bind["user.bind='user'"] --> child["<user-card> view\n@bindable user"]
+    parent["Parent component<br/>user = { name: 'Alice', email: 'alice@ex.com' }"] --> bind["user.bind='user'"] --> child["<user-card> view<br/>@bindable user"]
 ```
 
 ```html
@@ -228,7 +228,7 @@ Use `.bind` to pass a callback reference to the child now that the deprecated `.
 
 ```mermaid
 flowchart LR
-    parent["Parent\nhandleDelete(user)"] --> callback["on-delete.bind='handleDelete'"] --> child["Child\n@bindable onDelete"] --> action["deleteUser() → this.onDelete?.(this.user)"]
+    parent["Parent<br/>handleDelete(user)"] --> callback["on-delete.bind='handleDelete'"] --> child["Child<br/>@bindable onDelete"] --> action["deleteUser() → this.onDelete?.(this.user)"]
 ```
 
 ```html
@@ -252,7 +252,7 @@ export class UserCard {
 ```mermaid
 flowchart TD
     products["products = [{ id:1, name:'Mouse' }, { id:2, name:'Keyboard' }]"] --> repeat["<label repeat.for='p of products'>"]
-    repeat --> checkbox["<input type=checkbox\nmodel.bind='p.id'\nchecked.bind='selectedIds'>"]
+    repeat --> checkbox["<input type=checkbox<br/>model.bind='p.id'<br/>checked.bind='selectedIds'>"]
     checkbox --> logic{Checked?}
     logic -->|Yes| add[Add model value to selectedIds]
     logic -->|No| remove[Remove model value from selectedIds]
@@ -265,13 +265,13 @@ When the user checks "Keyboard", Aurelia pushes `2` into `selectedIds`. Unchecki
 ```mermaid
 flowchart TD
     created[Component created] --> compiled[Template compiled]
-    compiled --> binding[binding()]
+    compiled --> binding[Binding lifecycle]
     binding --> bindingsConnected[Bindings connected]
-    bindingsConnected --> bound[bound()]
-    bound --> attached[attached()]
+    bindingsConnected --> bound[Bound lifecycle]
+    bound --> attached[Attached lifecycle]
     attached --> active[Component active]
-    active --> detaching[detaching()]
-    detaching --> unbinding[unbinding()]
+    active --> detaching[Detaching lifecycle]
+    detaching --> unbinding[Unbinding lifecycle]
     unbinding --> removed[Component removed]
 ```
 
@@ -300,7 +300,7 @@ get total() {
 
 ```mermaid
 flowchart LR
-    items[items array] --> getter[get total()]
+    items[items array] --> getter[Get total]
     getter --> view["<p>Total: ${total}</p>"]
     priceChange["items[0].price = 15"] --> dirtyCheck["Aurelia detects dependency change"] --> getter
 ```

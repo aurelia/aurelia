@@ -48,11 +48,11 @@ flowchart TD
     start([Need to bind a value?])
     start --> input{Is it a form control?}
     input -->|Yes| readInput{Need to read user input?}
-    readInput -->|Yes| useTwoWay[Use .bind (two-way)]
-    readInput -->|No| useOneWayInput[Use .one-way]
+    readInput -->|Yes| useTwoWay["Use .bind\n(default .two-way)"]
+    readInput -->|No| useOneWayInput["Use .one-way"]
     input -->|No| attr{Is it a regular attribute?}
-    attr -->|Value changes often| dynamicAttr[Use .bind or .one-way]
-    attr -->|Value never changes| staticAttr[Use .one-time]
+    attr -->|Value changes often| dynamicAttr["Use .bind or .one-way"]
+    attr -->|Value never changes| staticAttr["Use .one-time"]
 ```
 
 ## Conditional Rendering: if vs show

@@ -92,7 +92,8 @@ The `throttle` binding behavior supports this via a "signal". You can specify a 
 ```
 
 ```typescript
-import { ISignaler, resolve } from 'aurelia';
+import { ISignaler } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   formValue = '';
@@ -150,7 +151,8 @@ Like `throttle`, `debounce` also supports flushing pending updates using signals
 ```
 
 ```typescript
-import { ISignaler, resolve } from 'aurelia';
+import { ISignaler } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   formValue = '';
@@ -218,7 +220,8 @@ To trigger a refresh of all bindings with the signal name `'time-update'`, you u
 **Dispatching a Signal to Refresh Bindings**
 
 ```typescript
-import { ISignaler, resolve } from 'aurelia';
+import { ISignaler } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   lastUpdated = new Date();
@@ -236,6 +239,40 @@ export class MyApp {
 Every 5 seconds, the `setInterval` function updates `lastUpdated` and then calls `signaler.dispatchSignal('time-update')`. This tells Aurelia to re-evaluate all bindings that are configured with `& signal:'time-update'`, causing them to refresh and display the updated "time ago" value.
 
 ## Binding Mode Behaviors
+
+Aurelia exposes four mode behaviors in `@aurelia/runtime-html` (`oneTime`, `toView`, `fromView`, `twoWay`). Each one derives from the shared `BindingModeBehavior` base class which simply assigns a different `binding.mode` during `bind` and restores it on `unbind`. They are especially handy when:
+
+- You are consuming a component whose bindable defaults to `two-way`, but a specific usage should stay strictly view-model → view.
+- You want to keep `.bind` syntax but override the direction inside `repeat.for`, `if/else`, or other inline templates without changing the child API.
+- You need to chain additional behaviors/value converters and prefer not to switch to the `.one-time` command mid-expression.
+
+```html
+<!-- Force read-only values on a child component that defaults to two-way -->
+<order-line line.bind="line & toView"></order-line>
+
+<!-- Keep track of pending edits but stop pushing DOM mutations back up -->
+<textarea value.bind="draft.summary & fromView"></textarea>
+
+<!-- Kick off an expensive computation once, never re-run -->
+<span class="snapshot">${report.total & oneTime}</span>
+```
+
+`StandardConfiguration` registers these behaviors for you. If you need something more custom—say, a behavior that forces `BindingMode.twoWay` only when the target implements a particular interface—you can extend `BindingModeBehavior` yourself:
+
+```typescript
+import { BindingMode, BindingModeBehavior } from '@aurelia/runtime-html';
+
+export class DirtyCheckedBindingBehavior extends BindingModeBehavior {
+  public static readonly $au = { type: 'binding-behavior', name: 'dirtyChecked' } as const;
+  public get mode() {
+    return BindingMode.twoWay;
+  }
+}
+
+Aurelia.register(DirtyCheckedBindingBehavior);
+```
+
+After registration you can apply `&dirtyChecked` in any binding expression.
 
 Aurelia provides binding behaviors that explicitly specify binding modes. While binding commands (`.bind`, `.one-way`, `.two-way`) are more commonly used, these behaviors offer programmatic control over binding modes.
 

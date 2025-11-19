@@ -54,6 +54,10 @@ When you learn Aurelia, you're not just learning a framework. You're deepening y
 
 Your knowledge doesn't expire when the next framework revolution comes along. It compounds, making you a better web developer regardless of what tools you use next. That's the difference between building on the web platform and building around it.
 
+{% hint style="info" %}
+Want to see this philosophy in action? Check out our comprehensive guide on [Working with Web Standards](developer-guides/working-with-web-standards.md) to learn how Aurelia enhances native web APIs like Fetch, Intersection Observer, Geolocation, and many more.
+{% endhint %}
+
 ## Convention Over Configuration
 
 **Stop making the same decisions over and over.**

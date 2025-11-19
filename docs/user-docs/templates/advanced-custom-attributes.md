@@ -16,7 +16,8 @@ Template controllers are custom attributes that control the rendering of their a
 All template controllers follow this pattern:
 
 ```typescript
-import { customAttribute, ICustomAttributeController, IViewFactory, IRenderLocation, ISyntheticView, resolve } from 'aurelia';
+import { customAttribute, ICustomAttributeController, IViewFactory, IRenderLocation, ISyntheticView } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'my-controller',
@@ -72,7 +73,8 @@ Usage:
 A practical template controller that shows/hides content based on user permissions:
 
 ```typescript
-import { customAttribute, ICustomAttributeController, IViewFactory, IRenderLocation, ISyntheticView, resolve } from 'aurelia';
+import { customAttribute, ICustomAttributeController, IViewFactory, IRenderLocation, ISyntheticView } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 interface IPermissionService {
   hasPermission(permission: string): boolean;
@@ -147,7 +149,8 @@ Usage:
 A template controller that manages loading states with caching:
 
 ```typescript
-import { customAttribute, ICustomAttributeController, IViewFactory, IRenderLocation, ISyntheticView, resolve } from 'aurelia';
+import { customAttribute, ICustomAttributeController, IViewFactory, IRenderLocation, ISyntheticView } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'loading-state',
@@ -221,7 +224,8 @@ Usage:
 Create attributes that can both read and write data:
 
 ```typescript
-import { customAttribute, INode, resolve } from 'aurelia';
+import { customAttribute, INode } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'auto-save',
@@ -289,7 +293,8 @@ Usage:
 Handle multiple bindable properties with complex interactions:
 
 ```typescript
-import { customAttribute, INode, resolve } from 'aurelia';
+import { customAttribute, INode } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'slider-range',
@@ -376,7 +381,8 @@ Usage:
 Defer expensive operations until needed:
 
 ```typescript
-import { customAttribute, INode, resolve } from 'aurelia';
+import { customAttribute, INode } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'lazy-load',
@@ -436,7 +442,8 @@ export class LazyLoad {
 Minimize DOM operations by batching updates:
 
 ```typescript
-import { customAttribute, INode, resolve } from 'aurelia';
+import { customAttribute, INode } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'batch-class',
@@ -499,7 +506,8 @@ export class BatchClass {
 Handle errors gracefully without breaking the application:
 
 ```typescript
-import { customAttribute, INode, resolve, ILogger } from 'aurelia';
+import { customAttribute, INode } from '@aurelia/runtime-html';
+import { resolve, ILogger } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'safe-transform',
@@ -536,7 +544,8 @@ export class SafeTransform {
 Validate inputs before applying them:
 
 ```typescript
-import { customAttribute, INode, resolve } from 'aurelia';
+import { customAttribute, INode } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'safe-html',

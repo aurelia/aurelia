@@ -118,7 +118,9 @@ export class UserProfile {
 
 ### Service Pattern
 ```typescript
-import { singleton, IHttpClient } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
+import { singleton } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
 
 export interface User {
   id: string;
@@ -128,8 +130,8 @@ export interface User {
 
 @singleton
 export class UserService {
-  constructor(@IHttpClient private readonly http: IHttpClient) {}
-  
+  private readonly http = resolve(IHttpClient);
+
   public async getUser(id: string): Promise<User> {
     try {
       const response = await this.http.fetch(`/api/users/${id}`);

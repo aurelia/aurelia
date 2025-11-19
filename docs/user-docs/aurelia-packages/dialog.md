@@ -24,6 +24,8 @@ The modular design makes it easy to create custom renderers for specific UI fram
 * Advanced configuration and lifecycle management
 {% endhint %}
 
+Need practical walkthroughs? See the [dialog outcome recipes](./dialog-outcome-recipes.md) for confirmations, wizards, and guarded modals.
+
 ## Plugin Architecture
 
 The dialog plugin is built around a modular renderer system that bridges Aurelia with any UI framework:
@@ -196,17 +198,21 @@ Aurelia
     settings.options.modal = true; // Always open as modal by default
     settings.options.show = (dom) => {
       // Custom show animation for all dialogs
-      return dom.root.animate([
+      const animation = dom.root.animate([
         { transform: 'scale(0.8)', opacity: 0 },
         { transform: 'scale(1)', opacity: 1 }
-      ], { duration: 200 }).finished;
+      ], { duration: 200 });
+      // Return Promise<void> so the dialog waits for the animation to finish.
+      return animation.finished.then(() => undefined);
     };
     settings.options.hide = (dom) => {
       // Custom hide animation for all dialogs
-      return dom.root.animate([
+      const animation = dom.root.animate([
         { transform: 'scale(1)', opacity: 1 },
         { transform: 'scale(0.8)', opacity: 0 }
-      ], { duration: 200 }).finished;
+      ], { duration: 200 });
+      // Return Promise<void> so the dialog waits for the animation to finish.
+      return animation.finished.then(() => undefined);
     };
     settings.options.overlayStyle = 'background: rgba(0, 0, 0, 0.6)';
   }))
@@ -288,8 +294,8 @@ Normally, the global settings would be changed during the app startup/or before,
         Aurelia
           .reigster(DialogConfigurationStandard.customize((settings) => {
             settings.options.modal = true;
-            settings.options.show = (dom) => dom.root.animate(...);
-            settings.options.hide = (dom) => dom.root.animate(...);
+            settings.options.show = (dom) => dom.root.animate(...).finished.then(() => undefined);
+            settings.options.hide = (dom) => dom.root.animate(...).finished.then(() => undefined);
           }))
           .app(MyApp)
           .start();
@@ -321,8 +327,8 @@ Normally, the global settings would be changed during the app startup/or before,
           options: {
             // block the entire screen with this alert box
             modal: true,
-            show: dom => dom.root.animate(...),
-            hide: dom => dom.root.animate(...)
+            show: dom => dom.root.animate(...).finished.then(() => undefined),
+            hide: dom => dom.root.animate(...).finished.then(() => undefined)
           }
         })
         ```
@@ -1238,7 +1244,13 @@ the options settings, like the following examples:
 
 ```typescript
 Aurelia.register(DialogStandardConfiguration.customize(settings => {
-  settings.options.show = (dom) => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
+  settings.options.show = (dom) => {
+    const animation = dom.root.animate(
+      [{ transform: 'scale(0)' }, { transform: 'scale(1)' }],
+      { duration: 150 },
+    );
+    return animation.finished.then(() => undefined);
+  };
 }))
 ```
 
@@ -1248,8 +1260,14 @@ Aurelia.register(DialogStandardConfiguration.customize(settings => {
 dialogService.open({
   component: SuccessNotification,
   options: {
-    show: dom => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 }),
-    hide: dom => dom.root.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 }),
+    show: dom => dom.root.animate(
+      [{ transform: 'scale(0)' }, { transform: 'scale(1)' }],
+      { duration: 150 },
+    ).finished.then(() => undefined),
+    hide: dom => dom.root.animate(
+      [{ transform: 'scale(1)' }, { transform: 'scale(0)' }],
+      { duration: 150 },
+    ).finished.then(() => undefined),
   }
 })
 ```

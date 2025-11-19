@@ -163,6 +163,36 @@ RouterConfiguration.customize({
 // Router starts automatically with AppTask
 ```
 
+#### 4. `router.load('../1')` throws `UnknownRouteError`
+
+**Symptom**: `await this.router.load('../1')` rejects with `UnknownRouteError: AUR3401 ... did you forget to add '..1' to the routes list of 'root'?`, yet `<a load="../1">` works.
+
+**Why it happens**: `router.load()` always evaluates instructions in the root routing context unless you pass a `context` option, so `../` cannot be resolved relative to the current child router.
+
+**Fix**: Resolve `IRouteContext` (or pass the component instance created by the router) and provide it in the navigation options.
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { IRouter, IRouteContext } from '@aurelia/router';
+
+export class StepNavigator {
+  private readonly router = resolve(IRouter);
+  private readonly routeContext = resolve(IRouteContext);
+
+  async previousStep() {
+    await this.router.load('../1', { context: this.routeContext });
+  }
+
+  async exitToParent() {
+    await this.router.load('../../summary', {
+      context: this.routeContext.parent ?? null,
+    });
+  }
+}
+```
+
+If you need to navigate relative to different ancestors (for example inside a reusable widget), compute the target context at runtime (e.g., `const parent = this.routeContext.parent ?? this.routeContext;`) before calling `router.load`.
+
 ### 4. Parameters Not Available
 
 **Problem**: Route parameters are undefined or not accessible.

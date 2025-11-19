@@ -102,7 +102,9 @@ Update `src/my-app.html` to use your new component:
 </div>
 ```
 
-The `<import>` element tells Aurelia to load your component. The `<hello-name>` tag renders it.
+**Important:** The `<import>` element is required to use your component. It tells Aurelia to load the `hello-name` component from the specified path. Without it, the `<hello-name>` tag won't work and nothing will render (with no error message).
+
+**Alternative:** You can also [register components globally](../../essentials/components.md#option-2-global-registration) in `main.ts` if you want to use them everywhere without imports.
 
 ## Step 5: Test Your App
 

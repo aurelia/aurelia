@@ -1,21 +1,26 @@
 # Integrating SignalR with Aurelia 2
 
-SignalR is a library that enables real-time web functionality in your applications. This guide will show you how to integrate SignalR with an Aurelia 2 application to create interactive, real-time features.
+SignalR provides real-time bidirectional communication between clients and servers. This guide shows how to connect an Aurelia 2 + Vite frontend to an ASP.NET Core SignalR hub, handle reconnection, and keep your UI state in sync with hub messages.
+
+---
 
 ## Prerequisites
 
-- An existing Aurelia 2 project (you can create one using `npx makes aurelia`)
-- .NET Core SDK installed if you're setting up a SignalR server
-- SignalR client library installed in your Aurelia project
+- Aurelia 2 project (create one with `npx makes aurelia`)
+- ASP.NET Core 8+ SDK if you are hosting the SignalR hub yourself
+- `@microsoft/signalr` installed in the Aurelia project
 
-## Setting Up the SignalR Server
+---
 
-If you don't have a SignalR server, create a new hub in your ASP.NET Core project:
+## 1. Server-side hub (ASP.NET Core)
+
+Add a hub that broadcasts messages to every connected client:
 
 ```csharp
+// Hubs/ChatHub.cs
 using Microsoft.AspNetCore.SignalR;
 
-public class ChatHub : Hub
+public sealed class ChatHub : Hub
 {
     public async Task SendMessage(string user, string message)
     {
@@ -24,141 +29,198 @@ public class ChatHub : Hub
 }
 ```
 
-Register the SignalR service and map the hub in `Startup.cs`:
+Register SignalR and map the hub (in `Program.cs` for .NET 8 templates):
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddSignalR();
-}
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSignalR();
 
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-{
-    // ... other configurations ...
-
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapHub<ChatHub>("/chatHub");
-    });
-}
+var app = builder.Build();
+app.MapHub<ChatHub>("/chatHub");
+app.Run();
 ```
 
-## Installing the SignalR Client Library
+Deploy this app to any host (Kestrel, IIS, Azure App Service, etc.). The client will connect to `/chatHub`.
 
-Install the SignalR client package:
+---
+
+## 2. Install the SignalR JavaScript client
 
 ```bash
 npm install @microsoft/signalr
 ```
 
-or
+SignalR’s JS client lets you configure transports, invoke server methods, and enable automatic reconnection via `withAutomaticReconnect`.
 
-```bash
-yarn add @microsoft/signalr
+---
+
+## 3. Expose the hub URL via environment variables
+
+`import.meta.env` (Vite) reads variables that start with `VITE_`. Add the hub URL to `.env.local`:
+
+```dotenv
+VITE_SIGNALR_URL=https://localhost:5001/chatHub
 ```
 
-## Creating the SignalR Service in Aurelia 2
+---
 
-Define an interface for the SignalR service using the `DI.createInterface` function:
+## 4. Create a reusable SignalR service
 
-```typescript
-// src/signalr-service.ts
-import { DI } from '@aurelia/kernel';
-import * as signalR from '@microsoft/signalr';
-
-export const ISignalRService = DI.createInterface<ISignalRService>('ISignalRService', x => x.singleton(SignalRService));
+```ts
+// src/services/signalr-service.ts
+import { DI, Registration } from '@aurelia/kernel';
+import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
 
 export interface ISignalRService {
   start(): Promise<void>;
   stop(): Promise<void>;
-  sendMessage(user: string, message: string): Promise<void>;
+  on(event: string, handler: (...args: any[]) => void): void;
+  send(method: string, ...args: unknown[]): Promise<void>;
+  state(): HubConnectionState;
 }
+
+export const ISignalR = DI.createInterface<ISignalRService>('ISignalR');
 
 export class SignalRService implements ISignalRService {
-  private connection: signalR.HubConnection;
+  private connection: HubConnection;
+  private readonly url = import.meta.env.VITE_SIGNALR_URL as string;
 
-  constructor() {
-    this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('YOUR_SERVER/chatHub')
-      .configureLogging(signalR.LogLevel.Information)
+  public constructor() {
+    this.connection = new HubConnectionBuilder()
+      .withUrl(this.url)
+      .withAutomaticReconnect([0, 2000, 10000, 30000])
+      .configureLogging(LogLevel.Information)
       .build();
 
-    this.connection.onclose(async () => {
-      await this.start();
-    });
+    this.connection.onreconnecting(error => console.warn('SignalR reconnecting', error));
+    this.connection.onreconnected(connectionId => console.info('SignalR reconnected', connectionId));
+    this.connection.onclose(error => console.error('SignalR closed', error));
   }
 
-  async start(): Promise<void> {
-    try {
-      await this.connection.start();
-      console.log('SignalR Connected.');
-    } catch (err) {
-      console.error('SignalR Connection failed: ', err);
-      setTimeout(() => this.start(), 5000);
+  public start(): Promise<void> {
+    if (this.connection.state === HubConnectionState.Connected || this.connection.state === HubConnectionState.Connecting) {
+      return Promise.resolve();
     }
+    return this.connection.start();
   }
 
-  async stop(): Promise<void> {
-    await this.connection.stop();
-    console.log('SignalR Disconnected.');
+  public stop(): Promise<void> {
+    if (this.connection.state === HubConnectionState.Disconnected) {
+      return Promise.resolve();
+    }
+    return this.connection.stop();
   }
 
-  async sendMessage(user: string, message: string): Promise<void> {
-    await this.connection.invoke('SendMessage', user, message);
+  public on(event: string, handler: (...args: any[]) => void): void {
+    this.connection.on(event, handler);
+  }
+
+  public send(method: string, ...args: unknown[]): Promise<void> {
+    return this.connection.invoke(method, ...args);
+  }
+
+  public state(): HubConnectionState {
+    return this.connection.state;
   }
 }
+
+export const SignalRRegistration = Registration.singleton(ISignalR, SignalRService);
 ```
 
-## Using the SignalR Service in an Aurelia 2 Component
+`withAutomaticReconnect([0, 2000, 10000, 30000])` retries immediately, then after 2, 10, and 30 seconds.
 
-Inject the SignalR service into your Aurelia component and use it to send and receive messages:
+Register the service in `main.ts`:
 
-```typescript
-// src/chat-component.ts
-import { ISignalRService } from './signalr-service';
-import { inject } from '@aurelia/kernel';
+```ts
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { SignalRRegistration } from './services/signalr-service';
+import { MyApp } from './my-app';
 
-@inject(ISignalRService)
-export class ChatComponent {
-  public message: string = '';
-  public messages: { user: string; message: string }[] = [];
+await new Aurelia()
+  .register(StandardConfiguration, SignalRRegistration)
+  .app({ host: document.querySelector('my-app')!, component: MyApp })
+  .start();
+```
 
-  constructor(private signalR: ISignalRService) {
-    this.signalR.connection.on('ReceiveMessage', (user: string, message: string) => {
-      this.messages.push({ user, message });
+---
+
+## 5. Build a chat component
+
+```ts
+// src/components/chat.ts
+import { customElement } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
+import { ISignalRService } from '../services/signalr-service';
+
+type ChatMessage = { user: string; body: string };
+
+@customElement({
+  name: 'chat-panel',
+  template: `\
+<section class="chat">
+  <ul>
+    <li repeat.for="msg of messages">
+      <strong>${msg.user}:</strong> ${msg.body}
+    </li>
+  </ul>
+  <form submit.trigger="send()">
+    <input value.two-way="draft" placeholder="Say something…" autocomplete="off" />
+    <button type="submit" disabled.bind="!draft.trim()">Send</button>
+  </form>
+</section>`
+})
+export class ChatPanel {
+  draft = '';
+  messages: ChatMessage[] = [];
+  private readonly signalR = resolve(ISignalRService);
+
+  binding() {
+    this.signalR.on('ReceiveMessage', (user: string, body: string) => {
+      this.messages = [...this.messages, { user, body }];
     });
+
+    void this.signalR.start().catch(err => console.error('SignalR start failed', err));
   }
 
-  public bound(): void {
-    this.signalR.start();
+  detaching() {
+    void this.signalR.stop();
   }
 
-  public unbound(): void {
-    this.signalR.stop();
-  }
-
-  public sendMessage(): void {
-    this.signalR.sendMessage('User1', this.message);
-    this.message = '';
+  async send() {
+    if (!this.draft.trim()) return;
+    await this.signalR.send('SendMessage', 'Anonymous', this.draft.trim());
+    this.draft = '';
   }
 }
 ```
 
-And the corresponding HTML template:
+Include it in `my-app.html`:
 
 ```html
-<!-- src/chat-component.html -->
 <template>
-  <ul>
-    <li repeat.for="msg of messages">${msg.user}: ${msg.message}</li>
-  </ul>
-  <input type="text" value.two-way="message" placeholder="Type a message...">
-  <button click.trigger="sendMessage()">Send</button>
+  <h1>Real-time chat</h1>
+  <chat-panel></chat-panel>
 </template>
 ```
 
-## Conclusion
+---
 
-You have now successfully integrated SignalR with an Aurelia 2 application, enabling real-time communication between the server and clients. This example can be expanded to include more sophisticated real-time features, such as notifications, live updates, and collaborative environments.
+## 6. Resilience tips
 
-Remember that managing the SignalR connection's lifecycle is crucial, especially in production environments, to ensure a stable and responsive user experience.
+- **Handle reconnect events**: show a banner while `HubConnectionState.Reconnecting` so users know the app is trying to recover.
+- **Backpressure**: if the hub pushes high-volume messages, throttle UI updates or offload work to a Web Worker.
+- **Authentication**: pass an access token via `withUrl(url, { accessTokenFactory: () => token })`.
+- **Stateful reconnection**: ASP.NET Core 8 supports buffering short disconnects—enable it if your scenario requires guaranteed delivery.
+- **Server restarts**: wrap `connection.onclose` with retry logic so users reconnect automatically after redeployments.
+
+---
+
+## Summary
+
+1. Host a SignalR hub (ASP.NET Core) at `/chatHub`.
+2. Install `@microsoft/signalr` and expose the hub URL via `VITE_SIGNALR_URL`.
+3. Register a singleton SignalR service that builds a `HubConnection`, enables `withAutomaticReconnect`, and exposes `start/stop/on/send` helpers.
+4. Consume the service from Aurelia components to push and display messages in real time.
+5. Add resilience (reconnect banners, authentication, buffering) to keep the UI responsive when the network misbehaves.
+
+With this setup you can extend the same service to broadcast notifications, synchronize dashboards, or coordinate collaborative UIs.

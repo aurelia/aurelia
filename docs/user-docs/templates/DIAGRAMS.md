@@ -1,637 +1,311 @@
 # Template Concepts: Visual Guide
 
-Visual diagrams to help understand Aurelia's templating system.
+Visual diagrams to help understand Aurelia's templating system. Every diagram below is rendered with GitBook-friendly Mermaid so it stays legible in dark and light modes.
 
 ## Data Binding Flow
 
 ### One-Way Binding (View Model → View)
 
+```mermaid
+flowchart LR
+    VM["View Model\nmessage = 'Hi'"]
+    binding[".one-way / .to-view binding"]
+    view["View\n<p>${message}</p> → <p>Hi</p>"]
+    VM --> binding --> view
 ```
-┌─────────────────┐
-│   View Model    │
-│                 │
-│  message = 'Hi' │
-└────────┬────────┘
-         │
-         │ .one-way / .to-view
-         │ or default for most attributes
-         ↓
-┌─────────────────┐
-│      View       │
-│                 │
-│   <p>${message} │
-│      ↓          │
-│   <p>Hi</p>     │
-└─────────────────┘
-```
+
+Use one-way bindings for read-only flows or whenever the DOM only needs to reflect state.
 
 ### Two-Way Binding (View Model ↔ View)
 
+```mermaid
+flowchart LR
+    VM["View Model\nname = 'Bob'"]
+    binding[".bind (.two-way)"]
+    view["<input value.bind='name'>"]
+    VM <-->|"property updates"| binding
+    binding <-->|"user typing"| view
 ```
-┌─────────────────┐
-│   View Model    │
-│                 │
-│   name = 'Bob'  │
-└────────┬────────┘
-         │
-         │ .two-way / .bind (default for inputs)
-         ↕
-┌─────────────────┐
-│      View       │
-│                 │
-│ <input          │
-│  value.bind=    │
-│   "name">       │
-└─────────────────┘
 
-User types "Alice"
-       ↓
-View Model updates: name = 'Alice'
-       ↓
-All bindings to 'name' update automatically
-```
+Two-way bindings keep inputs and view-model properties in sync. Typing "Alice" updates `name`, which in turn refreshes every binding that depends on it.
 
 ### From-View Binding (View → View Model)
 
+```mermaid
+flowchart LR
+    view["<input value.from-view='query'>"]
+    binding[".from-view binding"]
+    VM["View Model\nquery = ''"]
+    view --> binding --> VM
 ```
-┌─────────────────┐
-│   View Model    │
-│                 │
-│  query = ''     │
-└────────▲────────┘
-         │
-         │ .from-view
-         │ (capture only)
-         │
-┌────────┴────────┐
-│      View       │
-│                 │
-│ <input          │
-│  value.from-    │
-│   view="query"> │
-└─────────────────┘
-```
+
+`.from-view` captures user input without pushing view-model changes back into the DOM—handy for debounced searches or analytics where the DOM already mirrors the value elsewhere.
 
 ## Binding Mode Decision Tree
 
-```
-Need to bind a value?
-│
-├─── Is it a form input? (input, textarea, select)
-│    │
-│    ├─── Need to read user input?
-│    │    └─── YES → use .bind (auto two-way)
-│    │
-│    └─── Only displaying a value? (e.g., readonly)
-│         └─── YES → use .one-way
-│
-└─── Is it a regular attribute? (src, href, class, etc.)
-     │
-     ├─── Value changes often?
-     │    └─── YES → use .bind or .one-way
-     │
-     └─── Value never changes?
-          └─── YES → use .one-time
+```mermaid
+flowchart TD
+    start([Need to bind a value?])
+    start --> input{Is it a form control?}
+    input -->|Yes| readInput{Need to read user input?}
+    readInput -->|Yes| useTwoWay[Use .bind (two-way)]
+    readInput -->|No| useOneWayInput[Use .one-way]
+    input -->|No| attr{Is it a regular attribute?}
+    attr -->|Value changes often| dynamicAttr[Use .bind or .one-way]
+    attr -->|Value never changes| staticAttr[Use .one-time]
 ```
 
 ## Conditional Rendering: if vs show
 
-### if.bind - Adds/Removes from DOM
+### if.bind – Adds/Removes from the DOM
 
-```
-Before (isVisible = false):
-┌──────────────────┐
-│      DOM         │
-│                  │
-│  <div>           │
-│    <p>Other</p>  │
-│  </div>          │
-│                  │
-│  [content not    │
-│   in DOM at all] │
-└──────────────────┘
-
-After (isVisible = true):
-┌──────────────────┐
-│      DOM         │
-│                  │
-│  <div>           │
-│    <p>Other</p>  │
-│    <div if.bind> │  ← Added to DOM
-│      Content     │
-│    </div>        │
-│  </div>          │
-└──────────────────┘
-
-Memory: ✓ Freed when hidden
-Events: ✓ Cleaned up when hidden
-Performance: Best for infrequent changes
+```mermaid
+stateDiagram-v2
+    [*] --> Hidden
+    Hidden --> Visible: isVisible becomes true
+    Visible --> Hidden: isVisible becomes false
+    Visible: Element exists in DOM\nEvents attached\nMemory reclaimed when removed
 ```
 
-### show.bind - CSS Display Toggle
+`if.bind` creates and disposes the DOM subtree. It frees memory and automatically detaches listeners any time the condition flips back to `false`.
 
+### show.bind – CSS Display Toggle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Hidden
+    Hidden --> Visible: isVisible becomes true
+    Visible --> Hidden: isVisible becomes false
+    Hidden: Element stays in DOM\nstyle.display = 'none'\nEvents stay attached
 ```
-Before (isVisible = false):
-┌──────────────────┐
-│      DOM         │
-│                  │
-│  <div>           │
-│    <p>Other</p>  │
-│    <div          │
-│      style=      │
-│      "display:   │
-│       none">     │  ← Still in DOM, just hidden
-│      Content     │
-│    </div>        │
-│  </div>          │
-└──────────────────┘
 
-After (isVisible = true):
-┌──────────────────┐
-│      DOM         │
-│                  │
-│  <div>           │
-│    <p>Other</p>  │
-│    <div>         │  ← Display restored
-│      Content     │
-│    </div>        │
-│  </div>          │
-└──────────────────┘
-
-Memory: ✗ Always in memory
-Events: ✗ Still bound
-Performance: Best for frequent toggles
-```
+`show.bind` toggles `display: none` without touching the DOM tree. It is ideal for frequently toggled sections that should keep their internal state alive.
 
 ### Decision Matrix
 
-```
-┌──────────────────┬─────────────┬─────────────┐
-│                  │   if.bind   │  show.bind  │
-├──────────────────┼─────────────┼─────────────┤
-│ DOM Manipulation │  Add/Remove │  CSS Toggle │
-│ Memory Usage     │  Efficient  │  Wasteful   │
-│ Toggle Speed     │  Slower     │  Instant    │
-│ Event Cleanup    │  Automatic  │  None       │
-│ Component Init   │  Each time  │  Once       │
-│ Use When         │  Infrequent │  Frequent   │
-└──────────────────┴─────────────┴─────────────┘
-```
+| Capability        | `if.bind`            | `show.bind`                    |
+|-------------------|----------------------|--------------------------------|
+| DOM manipulation  | Create/destroy nodes | Toggle CSS display             |
+| Memory            | Released when hidden | Always allocated               |
+| Toggle speed      | Slightly slower      | Instant                        |
+| Event cleanup     | Automatic            | Handled manually if needed     |
+| Component init    | Runs every attach    | Runs once                      |
+| Best for          | Rare toggles         | Frequent toggles               |
 
 ## List Rendering with repeat.for
 
 ### Basic Flow
 
-```
-View Model:
-┌─────────────────────────┐
-│ items = [               │
-│   { id: 1, name: 'A' }, │
-│   { id: 2, name: 'B' }, │
-│   { id: 3, name: 'C' }  │
-│ ]                       │
-└───────────┬─────────────┘
-            │
-            │ repeat.for="item of items"
-            ↓
-View:
-┌─────────────────────────┐
-│ <li>${item.name}</li>   │ → A
-│ <li>${item.name}</li>   │ → B
-│ <li>${item.name}</li>   │ → C
-└─────────────────────────┘
+```mermaid
+flowchart LR
+    items["View Model\nitems = [{ id: 1, name: 'A' }, ...]"]
+    directive["repeat.for='item of items'"]
+    template["<li>${item.name}</li>"]
+    items --> directive --> template
 ```
 
 ### With Keys for Efficient Updates
 
-```
-Without key (by reference):
-Items: [A, B, C] → [A, X, B, C]
-  Aurelia: "Different array order, re-render everything"
-  Result: All DOM nodes recreated
+By default, the repeat controller tracks scopes by the actual item reference. When you insert `X` in between existing objects (`[A, B, C] → [A, X, B, C]`), Aurelia reuses the same scopes for `A`, `B`, and `C` because their references are unchanged; only `X` produces a new view. The `_scopeMap` maintained inside `packages/runtime-html/src/resources/template-controllers/repeat.ts` (see `_createScopes` and `_applyIndexMap`) stores either the raw item reference or your explicit key, which is why Aurelia can diff without re-rendering.
 
-┌─────────────────────────────────────┐
-│ 🔴 Full re-render (expensive)       │
-└─────────────────────────────────────┘
+Provide a `key` only when you recreate objects between refreshes (for example, mapping API data into new literals) or when the list contains primitives. In those cases a property such as `id` gives Aurelia a stable identity to match.
 
-With key: key.bind="id"
-Items: [A, B, C] → [A, X, B, C]
-  Aurelia: "Same IDs, just moved. Insert X, move B and C"
-  Result: Reuses existing DOM nodes
-
-┌─────────────────────────────────────┐
-│ ✓ Reuses A node                     │
-│ ✓ Creates X node (only new one)     │
-│ ✓ Reuses B node (moved)             │
-│ ✓ Reuses C node (moved)             │
-│ ✅ Minimal DOM operations            │
-└─────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Reference identity (default)
+        oldA[A]
+        oldB[B]
+        oldC[C]
+        oldA --> moveA["same object reused"]
+        oldB --> moveB["same object reused"]
+        oldC --> moveC["same object reused"]
+    end
+    subgraph Keyed identity
+        keyId["key.bind='id'"] --> match["Compare ids when objects are recreated"]
+    end
 ```
 
 ### Contextual Properties
 
-```
-items = ['Apple', 'Banana', 'Cherry']
-
-<div repeat.for="item of items">
-
-  $index    →  0, 1, 2
-  $first    →  true, false, false
-  $last     →  false, false, true
-  $even     →  true, false, true
-  $odd      →  false, true, false
-  $length   →  3, 3, 3
-  item      →  'Apple', 'Banana', 'Cherry'
-
-</div>
-```
+| Property | Description                           | Example Values (list of 3) |
+|----------|---------------------------------------|-----------------------------|
+| `$index` | Zero-based index                      | `0`, `1`, `2`               |
+| `$first` | True only for the first item          | `true`, `false`, `false`    |
+| `$last`  | True only for the last item           | `false`, `false`, `true`    |
+| `$even`  | True when `$index % 2 === 0`          | `true`, `false`, `true`     |
+| `$odd`   | True when `$index % 2 === 1`          | `false`, `true`, `false`    |
+| `$length`| Total length of the iterable          | `3`                         |
+| `item`   | Current iteration value               | `'Apple'`, `'Banana'`, `'Cherry'` |
 
 ## Event Binding: Trigger vs Capture
 
 ### Bubbling Phase (.trigger)
 
+```mermaid
+flowchart TD
+    btn["<button> (event origin)"]
+    div["<div .trigger>"]
+    body["<body>"]
+    doc[document]
+    win[window]
+    btn --> div --> body --> doc --> win
+    classDef bubble fill:#f0f4ff,stroke:#4466dd,stroke-width:2px;
+    class btn,div,body,doc,win bubble;
 ```
-Event fires on child element:
 
-        Window
-          ↑
-      Document
-          ↑
-       <body>
-          ↑
-       <div>              ← .trigger listens here
-          ↑
-      <button>            ← Click starts here
-        Click!
-
-Event bubbles UP from target to root
-Most common use case
-```
+`.trigger` listens during the bubble phase as the event travels from the target back toward the window.
 
 ### Capturing Phase (.capture)
 
+```mermaid
+flowchart TD
+    win[window]
+    doc[document]
+    body["<body>"]
+    div["<div .capture>"]
+    btn["<button> (event destination)"]
+    win --> doc --> body --> div --> btn
+    classDef capture fill:#fff7e6,stroke:#f0a500,stroke-width:2px;
+    class win,doc,body,div,btn capture;
 ```
-Event fires on child element:
 
-        Window
-          ↓
-      Document
-          ↓
-       <body>
-          ↓
-       <div>              ← .capture listens here
-          ↓
-      <button>            ← Click will arrive here
-        Click!
-
-Event captures DOWN from root to target
-Rare use case (intercept before children)
-```
+`.capture` intercepts the event on its way down the DOM tree before child handlers run.
 
 ### Event Flow Complete Picture
 
-```
-┌─────────────────────────────────────┐
-│          1. CAPTURE PHASE           │
-│        (root → target)              │
-│                                     │
-│  Window → Document → Body → Div    │
-│         .capture handlers           │
-└─────────────────────────────────────┘
-                 ↓
-┌─────────────────────────────────────┐
-│          2. TARGET PHASE            │
-│                                     │
-│           <button>                  │
-│         Event fires here            │
-└─────────────────────────────────────┘
-                 ↓
-┌─────────────────────────────────────┐
-│          3. BUBBLE PHASE            │
-│        (target → root)              │
-│                                     │
-│  Button → Div → Body → Document    │
-│         .trigger handlers           │
-└─────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant Window
+    participant Document
+    participant Body
+    participant Div
+    participant Button
+    Window->>Document: Capture
+    Document->>Body: Capture
+    Body->>Div: Capture (.capture)
+    Div->>Button: Target
+    Button-->>Div: Bubble (.trigger)
+    Div-->>Body: Bubble
+    Body-->>Document: Bubble
+    Document-->>Window: Bubble
 ```
 
 ## Value Converters Pipeline
 
-```
-View Model Value
-      │
-      ↓
-  ${ price | currency:'USD' | truncate:10 }
-      │              │              │
-      │              │              │
-      ↓              ↓              ↓
-   299.99  →  "$299.99 USD"  →  "$299.99..."
-      │              │              │
-      └──────────────┴──────────────┘
-                     │
-                     ↓
-             Rendered in View
+```mermaid
+graph LR
+    vm["View Model value: 299.99"] --> currency
+    currency["currency:'USD'"] --> truncate
+    truncate["truncate:10"] --> output[Rendered text]
+    output --> final["$299.99..."]
 ```
 
 ### Converter Flow Detail
 
-```
-┌──────────────────┐
-│   View Model     │
-│   price = 299.99 │
-└────────┬─────────┘
-         │
-         ↓
-┌──────────────────┐
-│ CurrencyConverter│
-│ toView(299.99,   │
-│   'USD')         │
-│ → "$299.99 USD"  │
-└────────┬─────────┘
-         │
-         ↓
-┌──────────────────┐
-│ TruncateConverter│
-│ toView(          │
-│   "$299.99 USD", │
-│   10)            │
-│ → "$299.99..."   │
-└────────┬─────────┘
-         │
-         ↓
-    Final Output
+```mermaid
+flowchart LR
+    vm["price = 299.99"] --> currency
+    currency["CurrencyConverter.toView(299.99, 'USD')\n→ '$299.99 USD'"] --> truncate
+    truncate["TruncateConverter.toView('$299.99 USD', 10)\n→ '$299.99...' "] --> view["DOM"]
 ```
 
 ## Component Communication
 
 ### Parent → Child (Bindable Properties)
 
-```
-┌─────────────────────────────┐
-│       Parent Component      │
-│                             │
-│  user = {                   │
-│    name: 'Alice',           │
-│    email: 'alice@ex.com'    │
-│  }                          │
-│                             │
-│  <user-card                 │
-│    user.bind="user">        │ ───┐
-│  </user-card>               │    │
-└─────────────────────────────┘    │
-                                   │ Passes data down
-                                   ↓
-                    ┌──────────────────────────┐
-                    │    Child Component       │
-                    │    (UserCard)            │
-                    │                          │
-                    │  @bindable user: User;   │
-                    │                          │
-                    │  <h3>${user.name}</h3>   │
-                    │  <p>${user.email}</p>    │
-                    └──────────────────────────┘
+```mermaid
+flowchart LR
+    parent["Parent component\nuser = { name: 'Alice', email: 'alice@ex.com' }"] --> bind["user.bind='user'"] --> child["<user-card> view\n@bindable user"]
 ```
 
-### Child → Parent (Call Binding)
-
+```html
+<user-card user.bind="user"></user-card>
 ```
-┌─────────────────────────────┐
-│       Parent Component      │
-│                             │
-│  handleDelete(user) {       │
-│    // Delete user           │
-│  }                          │
-│                             │
-│  <user-card                 │
-│    user.bind="user"         │
-│    on-delete.call=          │
-│      "handleDelete($event)" │ ◄──┐
-│  </user-card>               │    │
-└─────────────────────────────┘    │
-                                   │ Emits event up
-                                   │
-                    ┌──────────────────────────┐
-                    │    Child Component       │
-                    │    (UserCard)            │
-                    │                          │
-                    │  @bindable onDelete;     │
-                    │                          │
-                    │  deleteUser() {          │
-                    │    this.onDelete?.(      │
-                    │      this.user           │
-                    │    );                    │
-                    │  }                       │
-                    │                          │
-                    │  <button                 │
-                    │    click.trigger=        │
-                    │    "deleteUser()">       │ ───┘
-                    │    Delete                │
-                    │  </button>               │
-                    └──────────────────────────┘
+
+### Child → Parent (Callback Binding)
+
+Use `.bind` to pass a callback reference to the child now that the deprecated `.call` binding command is gone.
+
+```mermaid
+flowchart LR
+    parent["Parent\nhandleDelete(user)"] --> callback["on-delete.bind='handleDelete'"] --> child["Child\n@bindable onDelete"] --> action["deleteUser() → this.onDelete?.(this.user)"]
+```
+
+```html
+<!-- Parent template -->
+<user-card user.bind="user" on-delete.bind="handleDelete"></user-card>
+
+// Child view-model
+import { bindable } from '@aurelia/runtime-html';
+
+export class UserCard {
+  @bindable() public onDelete: (user: User) => void;
+
+  deleteUser(): void {
+    this.onDelete?.(this.user);
+  }
+}
 ```
 
 ## Form Checkbox Collections
 
-### How checked.bind with model.bind Works
-
+```mermaid
+flowchart TD
+    products["products = [{ id:1, name:'Mouse' }, { id:2, name:'Keyboard' }]"] --> repeat["<label repeat.for='p of products'>"]
+    repeat --> checkbox["<input type=checkbox\nmodel.bind='p.id'\nchecked.bind='selectedIds'>"]
+    checkbox --> logic{Checked?}
+    logic -->|Yes| add[Add model value to selectedIds]
+    logic -->|No| remove[Remove model value from selectedIds]
 ```
-View Model:
-┌────────────────────────────────┐
-│ products = [                   │
-│   { id: 1, name: 'Mouse' },    │
-│   { id: 2, name: 'Keyboard' }  │
-│ ]                              │
-│                                │
-│ selectedIds = [1]              │ ← Array to track selected
-└────────────────────────────────┘
 
-View:
-┌────────────────────────────────┐
-│ <label repeat.for="p of        │
-│        products">              │
-│   <input type="checkbox"       │
-│     model.bind="p.id"          │ ← Value to add/remove
-│     checked.bind=              │
-│       "selectedIds" />         │ ← Array to update
-│   ${p.name}                    │
-│ </label>                       │
-└────────────────────────────────┘
-
-User checks "Keyboard":
-  Aurelia adds 2 to selectedIds → [1, 2]
-
-User unchecks "Mouse":
-  Aurelia removes 1 from selectedIds → [2]
-
-┌────────────────────────────────┐
-│ How it works internally:       │
-│                                │
-│ Checkbox checked?              │
-│   YES → Add model value to     │
-│         checked array          │
-│   NO  → Remove model value     │
-│         from checked array     │
-└────────────────────────────────┘
-```
+When the user checks "Keyboard", Aurelia pushes `2` into `selectedIds`. Unchecking "Mouse" removes `1`, keeping the array aligned with the checked boxes.
 
 ## Template Lifecycle
 
-```
-┌─────────────────────────────────────────────────┐
-│                  Component Created              │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│              Template Compiled                  │
-│  (Aurelia parses HTML, creates instructions)    │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│              binding() lifecycle                │
-│        (Before bindings are applied)            │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│          Bindings Created & Connected           │
-│  - value.bind connects properties               │
-│  - repeat.for sets up collection observer       │
-│  - Event listeners attached                     │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│               bound() lifecycle                 │
-│         (Bindings are now active)               │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│            attached() lifecycle                 │
-│         (Component added to DOM)                │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-        ┌──────────────────────────┐
-        │   Component is Active    │
-        │                          │
-        │   Changes to properties  │
-        │   trigger binding updates│
-        └──────────────┬───────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│             detaching() lifecycle               │
-│       (About to remove from DOM)                │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│            unbinding() lifecycle                │
-│        (Cleaning up bindings)                   │
-└──────────────────────┬──────────────────────────┘
-                       │
-                       ↓
-┌─────────────────────────────────────────────────┐
-│          Component Removed from DOM             │
-│        Memory freed, events cleaned up          │
-└─────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    created[Component created] --> compiled[Template compiled]
+    compiled --> binding[binding()]
+    binding --> bindingsConnected[Bindings connected]
+    bindingsConnected --> bound[bound()]
+    bound --> attached[attached()]
+    attached --> active[Component active]
+    active --> detaching[detaching()]
+    detaching --> unbinding[unbinding()]
+    unbinding --> removed[Component removed]
 ```
 
 ## Performance: Binding Modes Comparison
 
-```
-Scenario: Displaying a user's name in 100 places
+| Binding Mode | Setup Cost | Updates | Memory Footprint | Typical Use |
+|--------------|------------|---------|------------------|-------------|
+| `.one-time`  | Set value once | Never updates | No observers hooked up | Static text that never changes |
+| `.one-way` / `.to-view` | Set value + observer | Whenever property changes | One source observer | Displaying reactive state |
+| `.bind` (.two-way) | Bidirectional observers | View ↔ ViewModel | Source observer + DOM listener | Form controls that read/write |
 
-┌────────────────────────────────────────────────────────┐
-│              .one-time (set once)                      │
-│                                                        │
-│  Initial Setup:  Set value                            │
-│  Updates:        Never (even if value changes)        │
-│  Memory:         ✅ Minimal (no observer)              │
-│  Performance:    ✅✅✅ Fastest                          │
-│  Use When:       Static data that NEVER changes       │
-└────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────┐
-│          .one-way / .to-view (display only)            │
-│                                                        │
-│  Initial Setup:  Set value + Create observer          │
-│  Updates:        When property changes                │
-│  Memory:         ✅ Low (read-only observer)           │
-│  Performance:    ✅✅ Fast                              │
-│  Use When:       Display data (most common)           │
-└────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────┐
-│           .two-way (read and write)                    │
-│                                                        │
-│  Initial Setup:  Set value + Create bidirectional obs │
-│  Updates:        View ↔ ViewModel sync                │
-│  Memory:         ⚠️  Higher (two-way observer)         │
-│  Performance:    ⚠️  Slower                            │
-│  Use When:       Form inputs only                     │
-└────────────────────────────────────────────────────────┘
-
-Memory Usage Comparison (100 bindings):
-.one-time:  ▓░░░░░░░░░  10%  (no observers)
-.one-way:   ▓▓▓░░░░░░░  30%  (one-way observers)
-.two-way:   ▓▓▓▓▓░░░░░  50%  (two-way observers)
-```
+Internals note: the `PropertyBinding.bind` implementation wires observers based on the binding mode flags. `.one-time` evaluates the expression once without connecting, `.one-way` connects the source side so it can re-run when dependencies change, and `.bind`/`.two-way` also subscribes to the target observer (for example, an input element) so user input flows back to the view model. This mirrors the logic in `packages/runtime-html/src/binding/property-binding.ts` where `toView`, `fromView`, and `oneTime` determine which observers are created.
 
 ## Computed Properties Reactivity
 
+```ts
+items = [
+  { price: 10, qty: 2 },
+  { price: 20, qty: 1 }
+];
+
+get total() {
+  return this.items.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
 ```
-View Model:
-┌────────────────────────────────────┐
-│ items = [                          │
-│   { price: 10, qty: 2 },           │
-│   { price: 20, qty: 1 }            │
-│ ]                                  │
-│                                    │
-│ get total() {                      │
-│   return this.items.reduce(       │
-│     (sum, item) =>                │
-│       sum + item.price * item.qty,│
-│     0                              │
-│   );                               │
-│ }                                  │
-└────────────────────────────────────┘
 
-View:
-┌────────────────────────────────────┐
-│ <p>Total: ${total}</p>             │
-└────────────────────────────────────┘
-
-What Aurelia Tracks:
-┌────────────────────────────────────┐
-│ 1. Accesses to 'items' array       │
-│ 2. Accesses to each item.price     │
-│ 3. Accesses to each item.qty       │
-└────────────────────────────────────┘
-
-When These Change:
-┌────────────────────────────────────┐
-│ items.push(newItem)                │
-│    ↓                               │
-│ Aurelia detects change             │
-│    ↓                               │
-│ Re-runs get total()                │
-│    ↓                               │
-│ Updates view with new total        │
-└────────────────────────────────────┘
-
-Reactive Change Flow:
-items[0].price = 15
-        ↓
-Dirty checking detects change
-        ↓
-Re-evaluate all getters that accessed items[0].price
-        ↓
-Update DOM with new computed value
+```mermaid
+flowchart LR
+    items[items array] --> getter[get total()]
+    getter --> view["<p>Total: ${total}</p>"]
+    priceChange["items[0].price = 15"] --> dirtyCheck["Aurelia detects dependency change"] --> getter
 ```
+
+Aurelia re-runs getters whenever any accessed dependency (the array itself or a member property) mutates, then propagates the new value into the DOM.
 
 ## Related Documentation
 

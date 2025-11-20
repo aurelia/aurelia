@@ -7,7 +7,7 @@ import { State } from '../state';
   template: `
     <div class="login">
       <p>You need to be logged in to continue.</p>
-      <button data-test="login-button" click.trigger="login()">Okay, log me in</button>
+      <button data-testid="login-button" click.trigger="login()">Okay, log me in</button>
     </div>
   `
 })

@@ -34,7 +34,7 @@ import { State } from '../state';
       </pre>
     </div>
     <br>
-    <input data-test="about-inputbox">
+    <input data-testid="about-inputbox">
   `
 })
 export class About {

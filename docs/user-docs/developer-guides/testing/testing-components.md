@@ -78,6 +78,19 @@ describe('PersonDetail component', () => {
 
 In this example, `createFixture` is used to instantiate the component with a test context, binding `name` and `age` to specified values. We then assert that the component's text content includes the correct information. After the test completes, `stop(true)` cleans up the component instance to avoid memory leaks and ensure test isolation.
 
+### Querying Elements
+
+The fixture returned by `createFixture` includes DOM helpers that mirror the ergonomics of popular React testing utilities. Prefer `getByTestId` when you need to grab a specific element:
+
+```typescript
+const { getByTestId } = createFixture('<button data-testid="submit">Submit</button>');
+
+const submitButton = getByTestId('submit');
+submitButton.click();
+```
+
+Use the `data-testid` attribute in your views and samples; legacy `data-test` markers are no longer supported.
+
 ## Testing Components with Dependencies
 
 If your component has dependencies, such as services or other custom elements, you'll need to register these within the Aurelia testing container.

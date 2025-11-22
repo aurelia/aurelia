@@ -1,19 +1,19 @@
 import { IContainer, IRegistry, noop, Constructable } from '@aurelia/kernel';
 import { AppTask } from "@aurelia/runtime-html";
 
-import { IDialogChildSettings, IDialogGlobalSettings } from './dialog-interfaces';
+import { IDialogChildSettings, IDialogGlobalSettings, IDialogSettings } from './dialog-interfaces';
 import { DialogDomRendererClassic, DialogRenderOptionsClassic } from './dialog-impl-classic';
 import { DialogDomRendererStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
 import { DialogService } from './dialog-service';
 import { instanceRegistration, singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
 
-export type DialogConfigurationProvider<T> = (settings: IDialogGlobalSettings<T>) => void;
+export type DialogConfigurationProvider<T> = (globalSettings: IDialogGlobalSettings<T>) => void;
 
 export interface DialogConfiguration<T> extends IRegistry {
   register(container: IContainer): IContainer;
   customize(cb: DialogConfigurationProvider<T>): DialogConfiguration<T>;
-  withChild<K = T>(name: string, cb: DialogConfigurationProvider<K>): DialogConfiguration<T>;
+  withChild<K = T>(name: string, cb: (globalSettings: IDialogGlobalSettings<K>) => IDialogSettings<K>): DialogConfiguration<T>;
 }
 
 export function createDialogConfiguration<T>(settingsProvider: DialogConfigurationProvider<T>, defaults: Constructable<IDialogGlobalSettings<T>>): DialogConfiguration<T> {
@@ -29,8 +29,8 @@ export function createDialogConfiguration<T>(settingsProvider: DialogConfigurati
     customize(cb: DialogConfigurationProvider<T>) {
       return createDialogConfiguration(cb, defaults);
     },
-    withChild<K = T>(key: unknown, cb: DialogConfigurationProvider<K>) {
-      childSettingsMap.set(key, cb as DialogConfigurationProvider<unknown>);
+    withChild<K = T>(key: unknown, cb: (globalSettings: IDialogGlobalSettings<K>) => IDialogSettings<K>) {
+      childSettingsMap.set(key, cb as (globalSettings: IDialogGlobalSettings<unknown>) => IDialogSettings<unknown>);
       return this;
     }
   };
@@ -87,13 +87,20 @@ function testTypes() {
         settings.options.show = dom => dom.root.showModal();
         settings.options.hide = dom => dom.root.close();
       })
+      // @ts-expect-error -- a new settings object should be returned
+      // accidental usage of modifying global one should raise an error
       .withChild('my-child', (childSettings) => {
         childSettings.options.modal = true;
       })
+      // @ts-expect-error -- a new settings object should be returned
+      // accidental usage of modifying global one should raise an error
       .withChild<{ abc: number }>('my-other-child', (childSettings) => {
         childSettings.options.abc = 1;
         // @ts-expect-error -- abc is number
         childSettings.options.abc = '1';
+      })
+      .withChild('my-3rd-child', (_) => {
+        return {};
       }),
 
     DialogConfigurationClassic.customize((settings) => {

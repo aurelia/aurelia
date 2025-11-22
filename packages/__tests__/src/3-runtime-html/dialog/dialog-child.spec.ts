@@ -35,25 +35,26 @@ describe('3-runtime-html/dialog/dialog-child.spec.ts', function () {
             [
                 DialogConfigurationStandard.withChild(
                     'alert',
-                    settings => {
-                        settings.options.modal = false;
-                        settings.renderer = {
-                            render(dialogHost) {
-                                dialogHost.classList.add('custom-alert-renderer');
-                                return {
-                                    contentHost: dialogHost,
-                                    dispose() {
-
-                                    }
-                                };
-                            },
+                    _settings => {
+                        return {
+                            options: { modal: false },
+                            renderer: {
+                                render(dialogHost) {
+                                    dialogHost.classList.add('custom-alert-renderer');
+                                    return {
+                                        contentHost: dialogHost,
+                                        dispose() {
+                                        }
+                                    };
+                                },
+                            }
                         };
                     }
                 )
             ]
         );
 
-        component.alert.open({
+        void component.alert.open({
             template: 'abc',
             host: getBy('div'),
         });
@@ -71,8 +72,8 @@ describe('3-runtime-html/dialog/dialog-child.spec.ts', function () {
             [
                 DialogConfigurationStandard.withChild(
                     'alert',
-                    settings => {
-                        settings.options.modal = false;
+                    _settings => {
+                        return { options: { modal: false } };
                     }
                 )
             ]
@@ -95,18 +96,20 @@ describe('3-runtime-html/dialog/dialog-child.spec.ts', function () {
                     'alert',
                     settings => {
                         setting1 = settings;
+                        return {};
                     }
                 ).withChild(
                     'confirm',
                     settings => {
                         setting2 = settings;
+                        return {};
                     }
                 )
             ]
         );
 
         assert.notStrictEqual(component.alert, component.confirm);
-        assert.notStrictEqual(setting1, setting2);
+        assert.strictEqual(setting1, setting2);
     });
 
     it('resolves child dialog using child static method on DialogService', function () {
@@ -119,12 +122,11 @@ describe('3-runtime-html/dialog/dialog-child.spec.ts', function () {
             [
                 DialogConfigurationStandard.withChild(
                     'alert',
-                    () => {}
+                    () => ({})
                 )
             ]
         );
 
         assert.instanceOf(component.alert, DialogService);
-        assert.strictEqual(component.service.createChild('alert'), component.alert);
     });
 });

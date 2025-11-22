@@ -1,5 +1,5 @@
-import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve, Constructable, IResolver } from '@aurelia/kernel';
-import { AppTask, CustomElement } from '@aurelia/runtime-html';
+import { IContainer, Registration, onResolve, resolve, IResolver } from '@aurelia/kernel';
+import { AppTask } from '@aurelia/runtime-html';
 
 import {
   DialogCloseResult,
@@ -7,17 +7,16 @@ import {
   IDialogService,
   IDialogController,
   IDialogGlobalSettings,
-  IDialogLoadedSettings,
-  IDialogChildSettings,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
-import { instanceRegistration, singletonRegistration } from './utilities-di';
+import { instanceRegistration, resolveDialogServiceChild, singletonRegistration } from './utilities-di';
 
 import type {
   DialogOpenPromise,
   IDialogSettings,
 } from './dialog-interfaces';
 import { ErrorNames, createMappedError } from './errors';
+import { DialogSettings } from './dialog-settings';
 
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.
@@ -46,7 +45,7 @@ export class DialogService implements IDialogService {
     return {
       $isResolver: true,
       resolve(handler, requestor) {
-        return requestor.get(DialogService).createChild(key);
+        return resolveDialogServiceChild(requestor, DialogService, key);
       },
     };
   }
@@ -63,15 +62,17 @@ export class DialogService implements IDialogService {
 
   /** @internal */ private readonly _ctn: IContainer;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  /** @internal */ private readonly _defaultSettings: IDialogGlobalSettings<any>;
-  /** @internal */ private readonly _childSettingsMap = resolve(IDialogChildSettings);
+  /** @internal */ private readonly _baseGlobalSettings: IDialogGlobalSettings<any>;
+  /** @internal */ private readonly _baseSettings: IDialogSettings;
 
   public constructor(
     container = resolve(IContainer),
-    defaultSettings = resolve(IDialogGlobalSettings),
+    baseGlobalSettings = resolve(IDialogGlobalSettings),
+    baseSettings: IDialogSettings = {},
   ) {
     this._ctn = container;
-    this._defaultSettings = defaultSettings;
+    this._baseGlobalSettings = baseGlobalSettings;
+    this._baseSettings = baseSettings;
   }
 
   /**
@@ -93,7 +94,8 @@ export class DialogService implements IDialogService {
    */
   public open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from<TOptions>(this._defaultSettings, settings);
+      const $settings = DialogSettings.from<TOptions>(this._baseGlobalSettings, this._baseSettings, settings);
+
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -151,27 +153,13 @@ export class DialogService implements IDialogService {
       );
   }
 
-  /** @internal */
-  private readonly _childMap = new Map<unknown, DialogService>();
-  public createChild(key: unknown): DialogService {
-    const existingChild = this._childMap.get(key);
-    if (existingChild != null) {
-      return existingChild;
-    }
-
-    const settings = this._childSettingsMap.get(key);
-    if (settings == null) {
-      throw createMappedError(ErrorNames.dialog_child_settings_not_found, key);
-    }
-
-    const childSettings = { ...this._defaultSettings, options: { ...this._defaultSettings.options } };
-
+  public createChild(baseSettings: IDialogSettings): DialogService {
     const childService = new DialogService(
       this._ctn,
-      settings(childSettings) ?? childSettings
+      this._baseGlobalSettings,
+      baseSettings
     );
 
-    this._childMap.set(key, childService);
     return childService;
   }
 
@@ -181,46 +169,6 @@ export class DialogService implements IDialogService {
     if (idx > -1) {
       this.dlgs.splice(idx, 1);
     }
-  }
-}
-
-interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
-class DialogSettings<T extends object = object> implements IDialogSettings<T> {
-
-  public static from<T>(baseSettings: IDialogGlobalSettings<T>, settings: IDialogSettings<T>): DialogSettings {
-    const finalSettings = Object.assign(
-      new DialogSettings(),
-      baseSettings,
-      settings,
-      { options: { ...baseSettings.options ?? {}, ...settings.options ?? {} }
-    });
-
-    if (finalSettings.component == null && finalSettings.template == null) {
-      throw createMappedError(ErrorNames.dialog_settings_invalid);
-    }
-
-    return finalSettings;
-  }
-
-  public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {
-    const loaded = this as IDialogLoadedSettings;
-    const cmp = this.component;
-    const template = this.template;
-    const maybePromise = onResolveAll(
-      cmp == null
-        ? void 0
-        : onResolve(
-            CustomElement.isType(cmp)
-              ? cmp
-              : (cmp as Exclude<typeof cmp, Constructable>)(),
-            // (cmp as Exclude<typeof cmp, Constructable>)(),
-            loadedCmp => { loaded.component = loadedCmp; }
-          ),
-      isFunction(template)
-        ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
-        : void 0
-    );
-    return onResolve(maybePromise, () => loaded);
   }
 }
 

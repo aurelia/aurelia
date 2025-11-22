@@ -1401,13 +1401,15 @@ Aurelia.register(
     .withChild(
       'alert',
       settings => {
-          setting1 = settings;
+        return {
+          // my base settings for the alert dialog service here
+        }
       }
     )
     .withChild(
       'confirm',
       settings => {
-          setting2 = settings;
+        // base settings for the confirm dialog service here
       }
     )
 );
@@ -1421,6 +1423,16 @@ class MyComponent {
   // or if you use the default DialogService implementation
   alertService = resolve(DialogService.child('alert'));
   confirmService = resolve(DialogService.child('confirm'));
+}
+```
+
+Beside the above usage, a child dialog service can also be created using the `createChild` method on the default implementation of `DialogService`, like the
+following example:
+
+```ts
+class MyComponent {
+  // every instance of MyComponent will result in a new instance of alert DialogService
+  alertService = resolve(IDialogService).createChild({ renderer: MyAlertRenderer, options: { modal: false } });
 }
 ```
 

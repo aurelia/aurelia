@@ -1,4 +1,4 @@
-import { createInterface } from './utilities-di';
+import { createInterface, resolveDialogServiceChild } from './utilities-di';
 
 import { type Constructable, type IContainer, type IDisposable, type InterfaceSymbol, type IResolver } from '@aurelia/kernel';
 import type { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
@@ -13,7 +13,7 @@ export const IDialogService: InterfaceSymbol<IDialogService> & {
     return {
       $isResolver: true,
       resolve(handler, requestor) {
-        return requestor.get(IDialogService).createChild(key);
+        return resolveDialogServiceChild(requestor, IDialogService, key);
       },
     };
   }
@@ -40,7 +40,7 @@ export interface IDialogService {
    * Creates a child dialog service with its own settings.
    * @returns A child dialog service.
    */
-  createChild(key: unknown): IDialogService;
+  createChild(baseSettings: IDialogSettings): IDialogService;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -188,8 +188,10 @@ export type IDialogGlobalSettings<TOptions> = Pick<IDialogSettings<TOptions>, 'r
   options: TOptions;
 };
 
+/** @internal */
 export const IDialogChildSettings = /*@__PURE__*/createInterface<IDialogChildSettings>('IDialogChildSettings');
-export type IDialogChildSettings = Map<unknown, (settings: IDialogGlobalSettings<unknown>) => IDialogGlobalSettings<unknown> | void>;
+/** @internal */
+export type IDialogChildSettings = Map<unknown, (globalSettings: IDialogGlobalSettings<unknown>) => IDialogSettings<unknown>>;
 
 /**
  * Base dialog error interface

@@ -133,7 +133,7 @@ class Candidate<T> {
           && nextState.prevState?.endpoint !== null
           && nextState.prevState.endpoint.route.path !== '' // do we need to handle this in some other way?
         ) {
-          // we hit the residue segement after a definitive endpoint
+          // we hit the residue segment after a definitive endpoint
           // this is a good opportunity to traverse into child recognizers
           ({ childRoutes, fullyMatched } = matchChildRoutes(rest));
         }

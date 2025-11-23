@@ -18,9 +18,9 @@ import {
 } from '@aurelia/runtime-html';
 
 import { IRouteViewModel } from './component-agent';
-import { RouteConfig, RouteType } from './route';
+import { RouteType } from './route';
 import { type $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
-import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, isRecognizedRouteInstruction, shallowEquals } from './validation';
+import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
 import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';

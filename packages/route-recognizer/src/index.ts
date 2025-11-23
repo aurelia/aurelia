@@ -667,8 +667,8 @@ export class RouteRecognizer<T> {
   }
 
   private $recognize(path: string): RecognizedRoute<T>[] | null {
-    const originalPathIsWithoutPreceedingSlash = !path.startsWith('/');
-    if (originalPathIsWithoutPreceedingSlash) {
+    const originalPathIsWithoutPrecedingSlash = !path.startsWith('/');
+    if (originalPathIsWithoutPrecedingSlash) {
       path = `/${path}`;
     }
 
@@ -692,7 +692,7 @@ export class RouteRecognizer<T> {
       return null;
     }
 
-    return candidate._getRoutes(originalPathIsWithoutPreceedingSlash);
+    return candidate._getRoutes(originalPathIsWithoutPrecedingSlash);
   }
 
   public getEndpoint(path: string): Endpoint<T> | null {

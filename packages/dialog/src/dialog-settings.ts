@@ -18,11 +18,14 @@ export class DialogSettings<T extends object = object> implements IDialogSetting
         options: { ...baseGlobalSettings.options ?? {}, ...baseSettings.options ?? {}, ...settings.options ?? {} }
       });
 
-    if (finalSettings.component == null && finalSettings.template == null) {
+    return finalSettings;
+  }
+
+  public validate(): this {
+    if (this.component == null && this.template == null) {
       throw createMappedError(ErrorNames.dialog_settings_invalid);
     }
-
-    return finalSettings;
+    return this;
   }
 
   public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {

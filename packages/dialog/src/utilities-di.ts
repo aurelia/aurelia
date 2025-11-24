@@ -1,6 +1,7 @@
 import { DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
 import { IDialogChildSettings, IDialogGlobalSettings, IDialogService } from './dialog-interfaces';
 import { DialogService } from './dialog-service';
+import { DialogSettings } from './dialog-settings';
 
 /** @internal */
 export const createInterface = DI.createInterface;
@@ -39,7 +40,8 @@ export const resolveDialogServiceChild = function <T extends typeof IDialogServi
       throw new Error(`No child dialog settings found for key: ${String(key)}`);
     }
 
-    childDialogService = dialogService.createChild(settings(requestor.get(IDialogGlobalSettings)));
+    const childBaseDialogSettings = DialogSettings.from(requestor.get(IDialogGlobalSettings), {}, {});
+    childDialogService = dialogService.createChild(settings(childBaseDialogSettings) ?? childBaseDialogSettings);
     childServiceCache.set(dialogService, key, childDialogService);
   }
 

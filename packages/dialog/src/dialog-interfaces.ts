@@ -191,7 +191,7 @@ export type IDialogGlobalSettings<TOptions> = Pick<IDialogSettings<TOptions>, 'r
 /** @internal */
 export const IDialogChildSettings = /*@__PURE__*/createInterface<IDialogChildSettings>('IDialogChildSettings');
 /** @internal */
-export type IDialogChildSettings = Map<unknown, (globalSettings: IDialogGlobalSettings<unknown>) => IDialogSettings<unknown>>;
+export type IDialogChildSettings = Map<unknown, (childBaseSettings: IDialogSettings<unknown>) => IDialogSettings<unknown>>;
 
 /**
  * Base dialog error interface

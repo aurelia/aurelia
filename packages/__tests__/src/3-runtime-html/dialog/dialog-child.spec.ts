@@ -109,7 +109,7 @@ describe('3-runtime-html/dialog/dialog-child.spec.ts', function () {
         );
 
         assert.notStrictEqual(component.alert, component.confirm);
-        assert.strictEqual(setting1, setting2);
+        assert.notStrictEqual(setting1, setting2);
     });
 
     it('resolves child dialog using child static method on DialogService', function () {

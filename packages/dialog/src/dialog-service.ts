@@ -94,7 +94,7 @@ export class DialogService implements IDialogService {
    */
   public open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from<TOptions>(this._baseGlobalSettings, this._baseSettings, settings);
+      const $settings = DialogSettings.from<TOptions>(this._baseGlobalSettings, this._baseSettings, settings).validate();
 
       const container = $settings.container ?? this._ctn.createChild();
 

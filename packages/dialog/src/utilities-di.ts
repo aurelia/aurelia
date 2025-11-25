@@ -40,7 +40,7 @@ export const resolveDialogServiceChild = function <T extends typeof IDialogServi
 
 class DialogServiceCacher {
   /** @internal */
-  private readonly _childMap = new Map<IDialogService | DialogService, Map<unknown, IDialogService | DialogService>>();
+  private readonly _childMap = new WeakMap<IDialogService | DialogService, Map<unknown, IDialogService | DialogService>>();
 
   public get(
     dialogService: IDialogService | DialogService,

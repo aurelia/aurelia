@@ -1,7 +1,8 @@
-import { DI, IContainer, IResolver, Registration } from '@aurelia/kernel';
+import { DI, IContainer, Registration } from '@aurelia/kernel';
 import { IDialogChildSettings, IDialogGlobalSettings, IDialogService } from './dialog-interfaces';
 import { DialogService } from './dialog-service';
 import { DialogSettings } from './dialog-settings';
+import { createMappedError, ErrorNames } from './errors';
 
 /** @internal */
 export const createInterface = DI.createInterface;
@@ -13,17 +14,6 @@ export const singletonRegistration = Registration.singleton;
 export const instanceRegistration = Registration.instance;
 
 /** @internal */
-export const createDialogServiceChildResolver = function (dialogServiceKey: typeof IDialogService | typeof DialogService) {
-  return function child(key: unknown): IResolver<typeof dialogServiceKey> {
-    return {
-      $isResolver: true,
-      resolve(handler, requestor) {
-        return resolveDialogServiceChild(requestor, dialogServiceKey, key);
-      },
-    };
-  };
-};
-
 export const resolveDialogServiceChild = function <T extends typeof IDialogService | typeof DialogService>(
   requestor: IContainer,
   dialogServiceKey: T,
@@ -37,7 +27,7 @@ export const resolveDialogServiceChild = function <T extends typeof IDialogServi
     const settingsProvider = requestor.get(IDialogChildSettings);
     const settings = settingsProvider.get(key);
     if (settings == null) {
-      throw new Error(`No child dialog settings found for key: ${String(key)}`);
+      throw createMappedError(ErrorNames.dialog_child_settings_not_found, String(key));
     }
 
     const childBaseDialogSettings = DialogSettings.from(requestor.get(IDialogGlobalSettings), {}, {});

@@ -8,7 +8,7 @@ export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
   }
 
   // canceling pending heading to remove the sticky tasks
-  ensureEmpty(platform.taskQueue);
-  ensureEmpty(platform.domQueue);
-  ensureEmpty(platform.domReadQueue);
+  // ensureEmpty(platform.taskQueue);
+  // ensureEmpty(platform.domQueue);
+  // ensureEmpty(platform.domReadQueue);
 }

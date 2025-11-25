@@ -23,7 +23,6 @@ export interface IBinding {
 export interface IRateLimitOptions {
   type: 'throttle' | 'debounce';
   delay: number;
-  queue: TaskQueue;
   now: () => number;
   signals: string[];
 }

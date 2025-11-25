@@ -97,7 +97,7 @@ export class TaskQueue<T> {
     this.platform = options.platform;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
     // this.task = this.platform.domQueue.queueTask(this.dequeue, { persistent: true });
-    this.task = queueRecurringTask(this.dequeue, { });
+    this.task = queueRecurringTask(this.dequeue, { interval: 50 });
   }
   public stop(): void {
     this.task!.cancel();

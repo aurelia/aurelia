@@ -26,7 +26,6 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
       type: 'throttle',
       delay: delay ?? defaultDelay,
       now: this._now,
-      queue: this._taskQueue,
       signals: isString(signals) ? [signals] : (signals ?? emptyArray),
     };
     const handler = binding.limit?.(opts);

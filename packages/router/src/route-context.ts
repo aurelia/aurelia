@@ -697,6 +697,23 @@ export class RouteConfigContext {
     return this._allResolved;
   }
 
+  /** @internal */
+  private _parentPaths: string[] | null = null;
+  private get parentPaths(): string[] | null {
+    if (!this._options.useEagerLoading) return null;
+    if (this._parentPaths !== null) return this._parentPaths;
+
+    // collect the parent paths first to prepend it to the child paths
+    // traverse bottom-up and and at every level do a cartesian product and reassign the parentPaths array
+    let parentPaths: string[] = [''];
+    let current = this.parent;
+    while (current !== null) {
+      parentPaths = current.config.path.flatMap(p => parentPaths.map(pp => pp.length === 0 ? p : `${p}/${pp}`));
+      current = current.parent;
+    }
+    return this._parentPaths = parentPaths;
+  }
+
   private constructor(
     public readonly parent: IRouteConfigContext | null,
     public readonly component: CustomElementDefinition,
@@ -704,15 +721,16 @@ export class RouteConfigContext {
     /** @internal */ public readonly _rootContainer: IContainer,
     /** @internal */ private readonly _options: Readonly<IRouterOptions>,
   ) {
-    this._recognizer = new RouteRecognizer();
     if (parent === null) {
       this.root = this;
       this.path = [this];
       this._friendlyPath = component.name;
+      this._recognizer = new RouteRecognizer();
     } else {
       this.root = parent.root;
       this.path = [...parent.path, this];
       this._friendlyPath = `${parent._friendlyPath}/${component.name}`;
+      this._recognizer = _options.useEagerLoading ? parent._recognizer : new RouteRecognizer();
     }
     this._logger = _rootContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
@@ -811,11 +829,25 @@ export class RouteConfigContext {
 
   /** @internal */
   private _$addRoute(path: string, caseSensitive: boolean, handler: RouteConfig | Promise<RouteConfig>): void {
-    this._recognizer.add({
-      path,
-      caseSensitive,
-      handler,
-    }, true);
+    const parentPaths = this.parentPaths;
+    const len = parentPaths?.length ?? 0;
+    if (parentPaths === null || len === 0) {
+      this._recognizer.add({
+        path,
+        caseSensitive,
+        handler,
+      }, true);
+      return;
+    }
+
+    for (let i = 0; i < len; i++) {
+      const parentPath = parentPaths[i]!;
+      this._recognizer.add({
+        path: `${parentPath}/${path}`,
+        caseSensitive,
+        handler,
+      }, true);
+    }
   }
 
   /** @internal */

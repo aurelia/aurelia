@@ -57,6 +57,8 @@ export type Params = { [key: string]: string | undefined };
 
 export type IExtendedViewportInstruction = IViewportInstruction & { readonly open?: number; readonly close?: number };
 
+export type IRecognizedRouteInstruction = IExtendedViewportInstruction & { readonly recognizedRoute: $RecognizedRoute };
+
 export interface IViewportInstruction {
   /**
    * The component to load.

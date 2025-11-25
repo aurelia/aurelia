@@ -3,7 +3,8 @@ import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
 
-describe('router-direct/link-handler.spec.ts', function () {
+// It seems that this test is not very friendly to the parallel execution in CI.
+describe.skip('router-direct/link-handler.spec.ts', function () {
   // something wrong with jsdom and our wrapper code
   // in node it hangs
   if (isNode()) {

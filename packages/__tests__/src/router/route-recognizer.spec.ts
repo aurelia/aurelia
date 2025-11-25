@@ -2885,7 +2885,7 @@ describe('router/route-recognizer.spec.ts', function () {
                 const params = { ...$params };
                 const configurableRoute = new ConfigurableRoute(match, false, null);
                 const endpoint = new Endpoint(configurableRoute, routes.find(([route]) => route === match)[1]);
-                const expected = new RecognizedRoute(endpoint, params);
+                const expected = [new RecognizedRoute(endpoint, path, params)];
 
                 // Act
                 const actual1 = sut.recognize(path);
@@ -2969,7 +2969,8 @@ describe('router/route-recognizer.spec.ts', function () {
             }
             const endpoint = new Endpoint(configurableRoute, parameters);
             (endpoint as Writable<Endpoint<any>>).residualEndpoint = residueEndpoint;
-            const expected = new RecognizedRoute(endpoint, params);
+            const $path = path.substring(0, path.length - (params[RESIDUE]??'').length);
+            const expected = [new RecognizedRoute(endpoint, $path, params)];
 
             // Act
             const actual1 = sut.recognize(path);

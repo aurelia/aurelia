@@ -1,0 +1,31 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "@aurelia/kernel#build",
+        "@aurelia/metadata#build",
+        "@aurelia/platform#build",
+        "@aurelia/platform-browser#build",
+        "@aurelia/expression-parser#build",
+        "@aurelia/runtime#build",
+        "@aurelia/template-compiler#build",
+        "@aurelia/runtime-html#build"
+      ],
+      "inputs": [
+        "./local/**/*",
+        "./latest/**/*",
+        "./app-repeat-*/**/*",
+        "./utils/**/*"
+      ],
+      "outputs": [
+        "./app-repeat-view/dist/**/*",
+        "./app-repeat-ce/dist/**/*",
+        "./app-repeat-view-big-template/dist/**/*",
+        "./app-repeat-view-keyed-string/dist/**/*",
+        "./app-repeat-view-keyed-expr/dist/**/*"
+      ]
+    }
+  }
+}

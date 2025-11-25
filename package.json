@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.25",
+  "version": "2.0.0-beta.26",
   "packageManager": "npm@10.9.0",
   "workspaces": [
     "packages/kernel",

@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { runTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -126,12 +127,12 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
 
           // 2) Go to one
           await $load('/route-one', router, platform);
-          await platform.domQueue.yield();
+          await new Promise(r => setTimeout(r, 0));
           assert.strictEqual(host.textContent, '!one!', `2) /route-one`);
 
           // 3) Go to two
           await $load('/route-two', router, platform);
-          await platform.domQueue.yield();
+          await new Promise(r => setTimeout(r, 0));
           assert.strictEqual(host.textContent, '!two!', `3) /route-two -`);
 
           // 4) Ok, let's flood
@@ -161,12 +162,12 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
 
           // 2) Go to one
           await $load('/route-one', router, platform);
-          await platform.domQueue.yield();
+          await new Promise(r => setTimeout(r, 0));
           assert.strictEqual(host.textContent, '!one!', `2) /route-one`);
 
           // 3) Go to two
           await $load('/route-two', router, platform);
-          await platform.domQueue.yield();
+          await new Promise(r => setTimeout(r, 0));
           assert.strictEqual(host.textContent, '!two!', `3) /route-two -`);
 
           for (let i = 0; i < 98; i++) {
@@ -195,21 +196,19 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  runTasks();
 };
 
 const $goBack = async (router: IRouter, platform?: IPlatform) => {
   await router.viewer.history.back();
   if (platform) {
-    platform.domQueue.flush();
-    await platform.domQueue.yield();
+    runTasks();
   }
 };
 
 const $goForward = async (router: IRouter, platform?: IPlatform) => {
   await router.viewer.history.forward();
   if (platform) {
-    platform.domQueue.flush();
-    await platform.domQueue.yield();
+    runTasks();
   }
 };

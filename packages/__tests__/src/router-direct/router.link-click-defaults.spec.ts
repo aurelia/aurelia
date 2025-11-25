@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { runTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -145,12 +146,12 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [Nav, Parent, Child, GrandChild]);
 
       await $load('/nav', router, platform);
-      await platform.domQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
 
       await new Promise((resolve) => { setTimeout(() => resolve(0), 200); });
 
@@ -166,5 +167,5 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  runTasks();
 };

@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router-direct';
+import { runTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -199,5 +200,5 @@ const $load = async (path: string, router: IRouter, platform: IPlatform) => {
       }, 1000);
     })
   ]);
-  platform.domQueue.flush();
+  runTasks();
 };

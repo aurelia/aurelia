@@ -7,6 +7,7 @@ import {
   getCollectionObserver,
   Scope,
   tasksSettled,
+  queueAsyncTask,
 } from '@aurelia/runtime';
 import {
   type BindingBehaviorInstance,
@@ -131,9 +132,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       }
 
       public async handleEmployeesChange() {
-        await this.platform.domQueue.queueTask(async () => {
+        await queueAsyncTask(async () => {
           await this.controller.validate();
         }).result;
+        // await this.platform.domQueue.queueTask(async () => {
+        // }).result;
       }
 
       public unbinding() {

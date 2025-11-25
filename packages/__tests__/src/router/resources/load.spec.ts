@@ -1,4 +1,4 @@
-import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
+import { IRouteContext, IRouteViewModel, IRouter, Params, route, RouteNode } from '@aurelia/router';
 import { CustomElement, customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
@@ -55,6 +55,276 @@ describe('router/resources/load.spec.ts', function () {
     a1.active = true;
     a2.active = false;
     assertAnchors(anchors, [a1, a2], 'round#3');
+
+    await au.stop(true);
+  });
+
+  it('resolves sibling and root routes without explicit dot segments', async function () {
+    @customElement({ name: 'home-view', template: 'home' })
+    class HomeView { }
+
+    @customElement({
+      name: 'about-view',
+      template: `
+    about
+    <a data-testid="about-home" load="home">Go Home</a>`
+    })
+    class AboutView {
+      public static lastInstance: AboutView | null = null;
+      public readonly ctx: IRouteContext;
+      public constructor() {
+        AboutView.lastInstance = this;
+        this.ctx = resolve(IRouteContext);
+      }
+    }
+
+    @customElement({ name: 'admins-view', template: 'admins' })
+    class AdminsView { }
+
+    @customElement({
+      name: 'member-details-view',
+      template: `
+    member details
+    <nav>
+      <a data-testid="details-parent-admins" load="../admins">Parent Admins</a>
+      <a data-testid="details-root-about" load="../../about">Root About</a>
+    </nav>`
+    })
+    class MemberDetailsView {
+      public static lastInstance: MemberDetailsView | null = null;
+      public readonly ctx: IRouteContext;
+      public constructor() {
+        MemberDetailsView.lastInstance = this;
+        this.ctx = resolve(IRouteContext);
+      }
+    }
+
+    @customElement({ name: 'user-view', template: 'user view' })
+    class UserView { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'details' },
+        { path: 'details', component: MemberDetailsView },
+      ]
+    })
+    @customElement({
+      name: 'members-view',
+      template: `
+    members
+    <nav>
+      <a data-testid="members-admins" load="admins">Admins</a>
+      <a data-testid="members-about" load="about">About</a>
+      <a data-testid="members-parent-about" load="../about">Parent About</a>
+      <a data-testid="members-root-home" load="/home">Root Home</a>
+    </nav>
+    <au-viewport></au-viewport>`
+    })
+    class MembersView {
+      public static lastInstance: MembersView | null = null;
+      public readonly ctx: IRouteContext;
+      public constructor() {
+        MembersView.lastInstance = this;
+        this.ctx = resolve(IRouteContext);
+      }
+    }
+
+    @route({
+      routes: [
+        {
+          path: '',
+          redirectTo: 'members'
+        },
+        {
+          path: 'members',
+          component: MembersView,
+        },
+        { path: 'admins', component: AdminsView },
+      ],
+    })
+    @customElement({
+      name: 'users-view',
+      template: `
+    users
+    <nav>
+      <a data-testid="users-members" load="members">Members</a>
+      <a data-testid="users-admins" load="admins">Admins</a>
+    </nav>
+    <au-viewport></au-viewport>`
+    })
+    class UsersView { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'home' },
+        { path: 'home', component: HomeView },
+        { id: 'about-route', path: 'about', component: AboutView },
+        { path: 'users', component: UsersView },
+        { path: 'user/:id', component: UserView },
+      ],
+    })
+    @customElement({
+      name: 'app-root',
+      template: `
+    <nav>
+      <a data-testid="root-home" load="home">Home</a>
+      <a data-testid="root-about" load="about">About</a>
+      <a data-testid="root-users" load="users/members">Users</a>
+    </nav>
+    <au-viewport></au-viewport>`
+    })
+    class AppRoot { }
+
+    const { au, host, container, getByTestId } = await start({
+      appRoot: AppRoot,
+      registrations: [HomeView, AboutView, UsersView, MembersView, AdminsView, MemberDetailsView, UserView],
+    });
+    const router = container.get(IRouter);
+    const location = container.get<MockBrowserHistoryLocation>(ILocation);
+    const queue = container.get(IPlatform).domQueue;
+    await queue.yield();
+
+    assert.strictEqual(await router.load('about'), true, 'navigate to about');
+    await queue.yield();
+
+    let anchor = getByTestId<HTMLAnchorElement>('about-home');
+    anchor.click();
+    await queue.yield();
+    assert.match(location.path, /home$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'navigate to users/members');
+    await queue.yield();
+
+    anchor = getByTestId<HTMLAnchorElement>('members-admins');
+    anchor.click();
+    await queue.yield();
+    assert.match(location.path, /users\/admins$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'reset to members after admins');
+    await queue.yield();
+
+    const membersCtx = MembersView.lastInstance!.ctx;
+    anchor = getByTestId<HTMLAnchorElement>('members-about');
+    assert.match(anchor.href, /about$/);
+    assert.strictEqual(await router.load('about', { context: membersCtx }), true, 'load about from members');
+    await queue.yield();
+    assert.match(location.path, /about$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'reset to members before parent about');
+    await queue.yield();
+
+    assert.strictEqual(await router.load('./admins', { context: membersCtx }), true, 'load ./admins from members');
+    await queue.yield();
+    assert.match(location.path, /users\/admins$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'return to members after ./admins');
+    await queue.yield();
+
+    assert.strictEqual(await router.load('about-route', { context: membersCtx }), true, 'load via route id from members');
+    await queue.yield();
+    assert.match(location.path, /about$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'reset to members after route id');
+    await queue.yield();
+
+    assert.strictEqual(await router.load('user/42', { context: membersCtx }), true, 'load parameterized root route from members');
+    await queue.yield();
+    assert.match(location.path, /user\/42$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'reset to members after parameterized route');
+    await queue.yield();
+
+    assert.strictEqual(await router.load('users/members/details'), true, 'navigate to member details');
+    await queue.yield();
+
+    const membersCtxAgain = MembersView.lastInstance!.ctx;
+    anchor = getByTestId<HTMLAnchorElement>('members-parent-about');
+    assert.strictEqual(await router.load('../about', { context: membersCtxAgain }), true, 'load ../about from members');
+    await queue.yield();
+    assert.match(location.path, /about$/);
+
+    assert.strictEqual(await router.load('users/members'), true, 'reset to members before root home');
+    await queue.yield();
+
+    const membersCtxFinal = MembersView.lastInstance!.ctx;
+    anchor = getByTestId<HTMLAnchorElement>('members-root-home');
+    assert.match(anchor.href ?? '', /\/home$/);
+    assert.strictEqual(await router.load('/home', { context: membersCtxFinal }), true, 'load /home from members');
+    await queue.yield();
+    assert.match(location.path, /home$/);
+
+    assert.strictEqual(await router.load('users/members/details'), true, 'return to member details');
+    await queue.yield();
+
+    const detailsCtx = MemberDetailsView.lastInstance!.ctx;
+    anchor = getByTestId<HTMLAnchorElement>('details-parent-admins');
+    anchor.click();
+    await queue.yield();
+    assert.match(location.path, /users\/admins$/, 'details parent admins click');
+
+    assert.strictEqual(await router.load('users/members/details'), true, 'restore member details for root about');
+    await queue.yield();
+
+    const detailsCtxFinal = MemberDetailsView.lastInstance!.ctx;
+    assert.strictEqual(await router.load('../../about', { context: detailsCtxFinal }), true, 'load ../../about from details');
+    await queue.yield();
+    assert.match(location.path, /about$/, 'details root about');
+
+    assert.strictEqual(await router.load('users/members/details'), true, 'restore member details for anchor click');
+    await queue.yield();
+
+    anchor = getByTestId<HTMLAnchorElement>('details-root-about');
+    anchor.click();
+    await queue.yield();
+    assert.match(location.path, /about$/, 'details root about via anchor');
+
+    await au.stop(true);
+  });
+
+  it('preserves multi-viewport instructions without altering navigation context', async function () {
+    @customElement({ name: 'summary-view', template: 'summary' })
+    class SummaryView { }
+
+    @customElement({ name: 'details-view', template: 'details' })
+    class DetailsView { }
+
+    @route({
+      routes: [
+        { path: 'summary', component: SummaryView, viewport: 'main' },
+        { path: 'details', component: DetailsView, viewport: 'aside' },
+      ]
+    })
+    @customElement({
+      name: 'dashboard-view',
+      template: `
+    <a data-testid="multi" load="summary@main+details@aside">Load Both</a>
+    <au-viewport name="main"></au-viewport>
+    <au-viewport name="aside"></au-viewport>`
+    })
+    class DashboardView { }
+
+    @route({
+      routes: [
+        { path: '', redirectTo: 'dashboard' },
+        { path: 'dashboard', component: DashboardView },
+      ]
+    })
+    @customElement({ name: 'multi-root', template: `<au-viewport></au-viewport>` })
+    class MultiRoot { }
+
+    const { au, host, container, getByTestId } = await start({
+      appRoot: MultiRoot,
+      registrations: [DashboardView, SummaryView, DetailsView],
+    });
+    const queue = container.get(IPlatform).domQueue;
+    await queue.yield();
+
+    const anchor = getByTestId<HTMLAnchorElement>('multi');
+    anchor.click();
+    await queue.yield();
+    const text = host.textContent ?? '';
+    assert.match(text, /summary/);
+    assert.match(text, /details/);
 
     await au.stop(true);
   });

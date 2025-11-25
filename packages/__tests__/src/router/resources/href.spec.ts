@@ -223,7 +223,7 @@ describe('router/resources/href.spec.ts', function () {
       <a href="#ce-one"></a>
       <a href="#ce-two"></a>
       <a href="ce-two"></a>
-      <a href="./ce-three"></a>
+      <a href="ce-three"></a>
       <au-viewport></au-viewport>
       `
     })
@@ -250,7 +250,7 @@ describe('router/resources/href.spec.ts', function () {
     await queue.yield();
 
     const anchors = Array.from(host.querySelectorAll('a'));
-    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two', '/#/./ce-three']);
+    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two', '/#/ce-three']);
 
     anchors[1].click();
     await queue.yield();

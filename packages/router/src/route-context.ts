@@ -563,8 +563,6 @@ export class RouteContext {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
-    let contextChanged = false;
-
     if (!isArray(instructionOrInstructions)) {
       instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
     } else {
@@ -588,12 +586,10 @@ export class RouteContext {
 
       const isVpInstr = isPartialViewportInstruction(instr);
       let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
-      if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
-        while (($instruction as string).startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
-          $instruction = ($instruction as string).slice(3);
-          if (!contextChanged) context = context!.parent;
-        }
-        contextChanged = true;
+      if (typeof $instruction === 'string' && context !== null) {
+        const normalized = normalizeNavigationInstruction(this, $instruction, context as RouteContext);
+        $instruction = normalized.instruction;
+        context = normalized.context;
       }
       if (isVpInstr) {
         (instr as Writable<IViewportInstruction>).component = $instruction;
@@ -644,6 +640,193 @@ export class RouteContext {
     }
     return tree.join('\n');
   }
+}
+
+interface NormalizedNavigationInstruction {
+  instruction: string;
+  context: RouteContext;
+}
+
+function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: string, startContext: RouteContext): NormalizedNavigationInstruction {
+  let instruction = rawInstruction.trim();
+  let context = startContext;
+
+  if (instruction.length === 0) {
+    return { instruction, context };
+  }
+
+  if (instruction.startsWith('/') && !instruction.startsWith('//')) {
+    instruction = stripLeadingSlashes(instruction);
+    const root = owner.root as RouteContext;
+    if (context !== root) {
+      context = root;
+    }
+  }
+
+  const dotResult = consumeLeadingDotSegments(instruction, context);
+  instruction = dotResult.path;
+  context = dotResult.context;
+
+  const recognitionCandidate = extractRecognitionCandidate(instruction);
+  if (recognitionCandidate !== null) {
+    const resolvedContext = resolveContextThroughRecognition(recognitionCandidate, context);
+    if (resolvedContext !== context) {
+      context = resolvedContext;
+    }
+  }
+
+  return { instruction, context };
+}
+
+function stripLeadingSlashes(value: string): string {
+  return value.replace(/^\/+/, '');
+}
+
+function consumeLeadingDotSegments(path: string, startContext: RouteContext): { path: string; context: RouteContext } {
+  // Resolve simple no-op cases without looping. `.foo` stays unchanged – only standalone dot segments are treated as navigation hints.
+  if (path === '.') {
+    return { path: '', context: startContext };
+  }
+  if (path.startsWith('./') && !path.startsWith('../')) {
+    return consumeLeadingDotSegments(path.slice(2), startContext);
+  }
+
+  if (!path.startsWith('..')) {
+    return { path, context: startContext };
+  }
+
+  let working = path;
+  let context = startContext;
+
+  while (working.startsWith('../') || working === '..') {
+    if (!context.isRoot) {
+      context = context.parent as RouteContext;
+    }
+
+    if (working === '..') {
+      return { path: '', context };
+    }
+
+    working = working.slice(3);
+    if (working.length === 0) {
+      return { path: '', context };
+    }
+  }
+
+  return { path: working, context };
+}
+
+function extractRecognitionCandidate(path: string): string | null {
+  let candidate = path.trim();
+  if (candidate.length === 0) return candidate;
+  if (candidate.startsWith('//') || candidate.includes('://') || candidate.includes('+')) return null;
+
+  const semicolonIdx = candidate.indexOf(';');
+  if (semicolonIdx >= 0) candidate = candidate.slice(0, semicolonIdx);
+
+  const queryIdx = candidate.indexOf('?');
+  if (queryIdx >= 0) candidate = candidate.slice(0, queryIdx);
+
+  const hashIdx = candidate.indexOf('#');
+  if (hashIdx >= 0) candidate = candidate.slice(0, hashIdx);
+
+  const spaceIdx = candidate.indexOf(' ');
+  if (spaceIdx >= 0) candidate = candidate.slice(0, spaceIdx);
+
+  const atIdx = candidate.indexOf('@');
+  if (atIdx >= 0) candidate = candidate.slice(0, atIdx);
+
+  const parenIdx = candidate.indexOf('(');
+  if (parenIdx >= 0) candidate = candidate.slice(0, parenIdx);
+
+  candidate = candidate.replace(/^\/+/, '');
+  return candidate.trim();
+}
+
+/**
+ * Find the nearest ancestor context that owns the first segment of the navigation token.
+ *
+ * This is the minimal amount of look-ahead needed so instructions such as `load="about"`
+ * issued from deeply nested components can still resolve to a sibling or root route without
+ * forcing every caller to sprinkle `../` prefixes.
+ */
+function resolveContextThroughRecognition(path: string, startContext: RouteContext): RouteContext {
+  if (path.length === 0) return startContext;
+
+  const token = extractFirstToken(path);
+  if (token === null) return startContext;
+
+  let current: RouteContext | null = startContext;
+  while (current !== null) {
+    if (contextHasMatchingRoute(current, token)) {
+      return current;
+    }
+    current = current.parent as RouteContext | null;
+  }
+  return startContext.root as RouteContext;
+}
+
+function extractFirstToken(path: string): string | null {
+  let candidate = stripLeadingSlashes(path).trim();
+  if (candidate.length === 0) return null;
+  const slashIdx = candidate.indexOf('/');
+  const token = slashIdx === -1 ? candidate : candidate.slice(0, slashIdx);
+  return token.length === 0 ? null : token;
+}
+
+function contextHasMatchingRoute(context: RouteContext, token: string): boolean {
+  const routes = context.routeConfigContext.childRoutes;
+  if (routes.length === 0) return false;
+  for (const route of routes) {
+    if (route instanceof Promise) continue;
+    if (routeMatchesToken(route, token)) return true;
+  }
+  return false;
+}
+
+function routeMatchesToken(route: RouteConfig, token: string): boolean {
+  const caseSensitive = route.caseSensitive;
+  const normalizedToken = caseSensitive ? token : token.toLowerCase();
+
+  const routeId = route.id;
+  if (routeId != null) {
+    const normalizedId = caseSensitive ? routeId : routeId.toLowerCase();
+    if (normalizedId === normalizedToken) return true;
+  }
+
+  for (const rawPath of route.path) {
+    const firstSegment = getFirstRouteSegment(rawPath);
+    if (firstSegment === null) continue;
+    if (firstSegment.dynamic) return true;
+    const normalizedSegment = caseSensitive ? firstSegment.segment : firstSegment.segment.toLowerCase();
+    if (normalizedSegment === normalizedToken) return true;
+  }
+  return false;
+}
+
+function getFirstRouteSegment(path: string): { segment: string; dynamic: boolean } | null {
+  if (path.length === 0) return null;
+  let candidate = path;
+  if (candidate.startsWith('/')) candidate = candidate.slice(1);
+  if (candidate.length === 0) return null;
+
+  if (candidate.startsWith('(')) {
+    candidate = candidate.slice(1);
+  }
+
+  const match = /^[^/()]+/.exec(candidate);
+  if (match === null) return null;
+
+  let segment = match[0];
+  // remove trailing parentheses and optional markers
+  segment = segment.replace(/\)+$/, '');
+  if (segment.endsWith('?')) segment = segment.slice(0, -1);
+  if (segment.length === 0) return null;
+
+  const dynamic = segment.startsWith(':') || segment.startsWith('*');
+  if (dynamic) return { segment: '', dynamic: true };
+
+  return { segment, dynamic: false };
 }
 
 export interface IRouteConfigContext extends RouteConfigContext { }

@@ -215,8 +215,8 @@ class GrandChildTwoTwo {}
   <nav>
     <a href="r1">gc21</a>
     <a href="r2">gc22</a>
-    <a href="c1">c1 (doesn't work)</a>
-    <a href="../c1">../c1 (works)</a>
+    <a href="c1">c1</a>
+    <a href="../c1">../c1 (parent router)</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -322,8 +322,8 @@ class GrandChildOneTwo {}
   <nav>
     <a href="r1">gc11</a>
     <a href="r2">gc12</a>
-    <a href="c2">c2 (doesn't work)</a>
-    <a href="../c2">../c2 (works)</a>
+    <a href="c2">c2</a>
+    <a href="../c2">../c2 (parent router)</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -354,8 +354,8 @@ class GrandChildTwoTwo {}
   <nav>
     <a href="r1">gc21</a>
     <a href="r2">gc22</a>
-    <a href="c1">c1 (doesn't work)</a>
-    <a href="../c1">../c1 (works)</a>
+    <a href="c1">c1</a>
+    <a href="../c1">../c1 (parent router)</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -367,26 +367,33 @@ export class ChildTwo {}
 
 In the example, the root component has two child-routes (`c1`, `c2`) and every child component in turn has 2 child-routes (`gc11`, and `gc12` and `gc21`, and `gc22` respectively) of their own.
 In this case, any `href` pointing to any of the immediate child-routes (and thus configured in the current routing parent) works as expected.
-However, when an `href`, like below (refer `child1.ts`), is used to navigate from one child component to another child component, it does not work.
+When navigating between siblings, the router now automatically walks up the routing tree until it finds a router that can satisfy the instruction.
+That means a simple link such as the following will navigate from `c2` back to the sibling route `c1` without requiring any explicit `../` prefix.
 
 ```html
- <a href="c2">c2 (doesn't work)</a>
+ <a href="c2">c2</a>
 ```
 
-In such cases, the router offers the following syntax to make such navigation possible.
+If you deliberately want to bypass that router and target a route defined one level higher, you can still use the familiar dot segment prefixes.
+Each `../` moves the instruction one router higher than the level that normally satisfies the link.
 
 ```html
-<a href="../c2">../c2 (works)</a>
+<a href="../c2">../c2</a>
 ```
 
-That is, you can use `../` prefix to instruct the router to point to the parent routing context.
-The prefix can also be used multiple times to point to any ancestor routing context.
+Use multiple prefixes (for example `../../about`) to keep walking upwards through ancestors.
 Naturally, this does not go beyond the root routing context.
 
 Contextually, note that the [example involving route-id](#using-route-id) also demonstrates the behavior of navigating in the current context.
 In that example, the root component uses `r1`, and `r2` as route identifiers, which are the same identifiers used in the children to identify their respective child-routes.
 The route-ids are used in the markup with the `href` attributes.
-Despite being the same route-ids, the navigation works because unless specified otherwise, the routing instructions are constructed under the current routing context.
+Despite being the same route-ids, the navigation works because the router always starts with the current routing context and then climbs until it finds a router that recognises the provided instruction.
+
+> **Routing shortcuts**
+>
+> - `/path` — resolve from the application root, ignoring intermediate routers.
+> - `path` or `./path` — resolve to the nearest router that has a matching route (typically a sibling).
+> - `../path` — move one router higher than that default; repeat the prefix to keep walking up the tree.
 
 ### Bypassing the `href` custom attribute
 
@@ -432,7 +439,7 @@ The example shows various instances of `load` attribute with various string inst
 <a load="c1@vp2+c2@vp1">C1@vp2+C2@vp1</a>
 
 <!-- child1 -->
-<!-- instruction pointing to parent routing context -->
+<!-- climb one router level above the default sibling lookup -->
 <a load="../c2">../c2</a>
 ```
 

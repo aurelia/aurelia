@@ -2262,10 +2262,11 @@ describe('router/smoke-tests.spec.ts', function () {
         name: 'c-one',
         template: `c1 <br>
   <nav>
-    <a ${attr}="gc11">gc11</a>
-    <a ${attr}="gc12">gc12</a>
-    <a ${attr}="c2">c2 (doesn't work)</a>
-    <a ${attr}="../c2">../c2 (works)</a>
+    <a ${attr}="gc11" data-testid="c1-to-gc11">gc11</a>
+    <a ${attr}="gc12" data-testid="c1-to-gc12">gc12</a>
+    <a ${attr}="c2" data-testid="c1-to-c2">c2</a>
+    <a ${attr}="../c2" data-testid="c1-to-parent-c2">../c2</a>
+    <a ${attr}="missing" data-testid="c1-to-missing">missing</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -2288,10 +2289,11 @@ describe('router/smoke-tests.spec.ts', function () {
         name: 'c-two',
         template: `c2 <br>
   <nav>
-    <a ${attr}="gc21">gc21</a>
-    <a ${attr}="gc22">gc22</a>
-    <a ${attr}="c1">c1 (doesn't work)</a>
-    <a ${attr}="../c1">../c1 (works)</a>
+    <a ${attr}="gc21" data-testid="c2-to-gc21">gc21</a>
+    <a ${attr}="gc22" data-testid="c2-to-gc22">gc22</a>
+    <a ${attr}="c1" data-testid="c2-to-c1">c1</a>
+    <a ${attr}="../c1" data-testid="c2-to-parent-c1">../c1</a>
+    <a ${attr}="missing" data-testid="c2-to-missing">missing</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -2324,14 +2326,14 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({
         name: 'my-app',
         template: `<nav>
-  <a ${attr}="c1">C1</a>
-  <a ${attr}="c2">C2</a>
+  <a ${attr}="c1" data-testid="root-c1">C1</a>
+  <a ${attr}="c2" data-testid="root-c2">C2</a>
 </nav>
 
 <au-viewport></au-viewport>` })
       class Root { }
 
-      const { au, container, host } = await start({
+      const { au, container, host, getBy, getAllBy, getByTestId } = await start({
         appRoot: Root,
         registrations: [
           NotFound,
@@ -2340,49 +2342,71 @@ describe('router/smoke-tests.spec.ts', function () {
 
       const queue = container.get(IPlatform).domQueue;
 
-      const rootVp = host.querySelector('au-viewport');
+      const [rootVp] = getAllBy<HTMLElement>('au-viewport');
       let childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
 
-      let [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
-      a2.click();
+      const getChildLink = <E extends HTMLAnchorElement = HTMLAnchorElement>(testId: string) =>
+        getByTestId<E>(testId, rootVp);
+
+      const rootToC2 = getByTestId<HTMLAnchorElement>('root-c2');
+      const rootToC1 = getByTestId<HTMLAnchorElement>('root-c1');
+
+      const gc12Link = getChildLink<HTMLAnchorElement>('c1-to-gc12');
+      const missingLink = getChildLink<HTMLAnchorElement>('c1-to-missing');
+
+      gc12Link.click();
       queue.flush();
       await queue.yield();
 
       assert.html.textContent(childVp, 'gc12');
 
-      nf.click();
+      missingLink.click();
       queue.flush();
       await queue.yield();
 
-      assert.html.textContent(childVp, 'nf');
+      childVp = rootVp.querySelector('au-viewport');
+      assert.strictEqual(childVp, null);
+      assert.html.textContent(rootVp, 'nf');
 
-      f.click();
+      rootToC2.click();
       queue.flush();
       await queue.yield();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc21', host.textContent);
 
-      [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
-      a2.click();
+      const gc22Link = getChildLink<HTMLAnchorElement>('c2-to-gc22');
+      const missingLinkFromC2 = getChildLink<HTMLAnchorElement>('c2-to-missing');
+
+      gc22Link.click();
       queue.flush();
       await queue.yield();
 
       assert.html.textContent(childVp, 'gc22');
 
-      nf.click();
+      missingLinkFromC2.click();
       queue.flush();
       await queue.yield();
 
-      assert.html.textContent(childVp, 'nf');
+      childVp = rootVp.querySelector('au-viewport');
+      assert.strictEqual(childVp, null);
+      assert.html.textContent(rootVp, 'nf');
 
-      f.click();
+      rootToC1.click();
       queue.flush();
       await queue.yield();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
+
+      const directSiblingLinkAfterReturn = getChildLink<HTMLAnchorElement>('c1-to-c2');
+      directSiblingLinkAfterReturn.click();
+      queue.flush();
+      await queue.yield();
+
+      childVp = rootVp.querySelector('au-viewport');
+      assert.html.textContent(childVp, 'gc21');
 
       await au.stop(true);
       assert.areTaskQueuesEmpty();

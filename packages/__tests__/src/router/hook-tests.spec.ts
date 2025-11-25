@@ -27,6 +27,7 @@ import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { isFirefox } from '../util.js';
 import { TaskQueue } from '@aurelia/platform';
+import { tasksSettled } from '@aurelia/runtime';
 
 function join(sep: string, ...parts: string[]): string {
   return parts.filter(function (x) {
@@ -3335,14 +3336,15 @@ describe('router/hook-tests.spec.ts', function () {
     describe('from activation error thrown by routed VM hooks', function () {
 
       const ticks = 0;
-      function click(anchor: HTMLAnchorElement, queue: TaskQueue): Promise<void> {
+      function click(anchor: HTMLAnchorElement, queue: any): Promise<void> {
         anchor.click();
         return waitForQueuedTasks(queue);
       }
 
-      function waitForQueuedTasks(queue: TaskQueue): Promise<void> {
-        queue.queueTask(() => Promise.resolve());
-        return queue.yield();
+      function waitForQueuedTasks(queue: any): Promise<void> {
+        // queue.queueTask(() => Promise.resolve());
+        // return queue.yield();
+        return Promise.resolve().then(() => {});
       }
 
       describe('single level - single viewport', function () {
@@ -3469,9 +3471,9 @@ describe('router/hook-tests.spec.ts', function () {
 
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook));
+            const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
-            const queue = platform.taskQueue;
+            const queue = {};
             const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
             assert.html.textContent(host, 'a', 'load');
 
@@ -3572,10 +3574,7 @@ describe('router/hook-tests.spec.ts', function () {
             assert.match(err.message, /error in loading/, `Expected message to match (${err.message}) matches /error in loading/`);
           }
 
-          // wait for the tasks to be finished
-          const platform = container.get(IPlatform);
-          await platform.domQueue.yield();
-          await platform.taskQueue.yield();
+          await tasksSettled();
 
           // assert
           // assert.html.textContent(viewport, 'ce-1', `Expected ce-1 to still be loaded (because ce-2 failed to load)`);
@@ -3846,9 +3845,9 @@ describe('router/hook-tests.spec.ts', function () {
             })
             class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-            const { router, mgr, tearDown, host, platform } = await createFixture(Root);
+            const { router, mgr, tearDown, host } = await createFixture(Root);
             const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            const queue = platform.taskQueue;
+            const queue = {};
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
@@ -3986,9 +3985,9 @@ describe('router/hook-tests.spec.ts', function () {
             })
             class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-            const { router, mgr, tearDown, host, platform } = await createFixture(Root);
+            const { router, mgr, tearDown, host } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            const queue = platform.taskQueue;
+            const queue = {};
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
@@ -4137,9 +4136,9 @@ describe('router/hook-tests.spec.ts', function () {
             })
             class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-            const { router, mgr, tearDown, host, platform } = await createFixture(Root);
+            const { router, mgr, tearDown, host } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            const queue = platform.taskQueue;
+            const queue = {};
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
@@ -4427,9 +4426,9 @@ describe('router/hook-tests.spec.ts', function () {
 
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook));
+            const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
-            const queue = platform.taskQueue;
+            const queue = {};
             const [ab, ac, ba, cb] = Array.from(host.querySelectorAll('a'));
 
             let phase = 'round#1';
@@ -4957,8 +4956,8 @@ describe('router/hook-tests.spec.ts', function () {
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
 
-            const { router, mgr, tearDown, host, platform } = await createFixture(createCes(hook));
-            const queue = platform.taskQueue;
+            const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
+            const queue = {};
 
             // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
             let phase = 'round#1';
@@ -5004,9 +5003,9 @@ describe('router/hook-tests.spec.ts', function () {
   describe('error recovery from loaded hook', function () {
     const ticks = 0;
 
-    function waitForQueuedTasks(queue: TaskQueue): Promise<void> {
+    function waitForQueuedTasks(queue: any): Promise<void> {
       queue.queueTask(() => Promise.resolve());
-      return queue.yield();
+      return Promise.resolve();
     }
 
     function createComponents(hookSpec: HookSpecs) {
@@ -5036,15 +5035,14 @@ describe('router/hook-tests.spec.ts', function () {
     it('restores previous route when recovery is enabled', async function () {
       const hookSpec = HookSpecs.create(ticks);
       const { Root, A, B } = createComponents(hookSpec);
-      const { router, mgr, tearDown, platform, host } = await createFixture(Root, [A, B]);
-      const queue = platform.taskQueue;
+      const { router, mgr, tearDown, host } = await createFixture(Root, [A, B]);
+      const queue = {};
 
       let phase = 'round#1';
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
       await router.load('a');
       await waitForQueuedTasks(queue);
-      await platform.domQueue.yield();
       assert.html.textContent(host, 'a', `${phase} - text`);
 
       phase = 'round#2';
@@ -5057,7 +5055,6 @@ describe('router/hook-tests.spec.ts', function () {
         assert.match((err as Error).message, /loaded hook failure/, `${phase} - should propagate loaded hook error`);
       }
       await waitForQueuedTasks(queue);
-      await platform.domQueue.yield();
 
       assert.html.textContent(host, 'a', `${phase} - text`);
       const history = mgr.fullNotifyHistory.slice();

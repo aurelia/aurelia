@@ -5,6 +5,7 @@
  *
  */
 import { ITask } from '@aurelia/platform';
+import { queueRecurringTask, RecurringTask } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 /**
@@ -82,7 +83,7 @@ export class TaskQueue<T> {
   public allowedExecutionCostWithinTick: number | null = null;
   public currentExecutionCostInCurrentTick: number = 0;
   private platform: IPlatform | null = null;
-  private task: ITask | null = null;
+  private task: RecurringTask | null = null;
 
   public constructor(
     private readonly callback?: (task: QueueTask<T>) => void
@@ -95,7 +96,8 @@ export class TaskQueue<T> {
   public start(options: ITaskQueueOptions): void {
     this.platform = options.platform;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-    this.task = this.platform.domQueue.queueTask(this.dequeue, { persistent: true });
+    // this.task = this.platform.domQueue.queueTask(this.dequeue, { persistent: true });
+    this.task = queueRecurringTask(this.dequeue, { });
   }
   public stop(): void {
     this.task!.cancel();

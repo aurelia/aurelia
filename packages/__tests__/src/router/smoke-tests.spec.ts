@@ -3309,7 +3309,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).taskQueue;
+    const queue = {};
 
     assert.html.textContent(host, 'p2');
 
@@ -3317,7 +3317,8 @@ describe('router/smoke-tests.spec.ts', function () {
       component: 'p1/c1',
       children: [{ component: C2, viewport: '$2' }]
     });
-    await queue.yield();
+    // await new Promise(r => setTimeout(r, 0));
+    await Promise.resolve();
 
     assert.html.textContent(host, 'p1 c1 c2');
     await au.stop(true);
@@ -3690,7 +3691,7 @@ describe('router/smoke-tests.spec.ts', function () {
     assert.match(anchor.href, /#\/c1\/42\?foo=bar$/);
 
     anchor.click();
-    await container.get(IPlatform).taskQueue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment:');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3725,7 +3726,7 @@ describe('router/smoke-tests.spec.ts', function () {
     const { host, container } = await start({ appRoot: App, useHash: true });
 
     host.querySelector('a').click();
-    await container.get(IPlatform).taskQueue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment:');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3760,7 +3761,7 @@ describe('router/smoke-tests.spec.ts', function () {
     const { host, container } = await start({ appRoot: App, useHash: true });
 
     host.querySelector('a').click();
-    await container.get(IPlatform).taskQueue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment: for-whatever-reason');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -6249,23 +6250,24 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // going back should load the ce1
       const history = container.get(IHistory);
-      const tQueue = platform.taskQueue;
       history.back();
-      await tQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
+
       assert.html.textContent(vp, 'ce1', 'back - component');
       await dwQueue.yield();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":1}', 'back - history');
 
       // going forward should load ce3
       history.forward();
-      await tQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
+
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await dwQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
-      await dwQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
@@ -6336,23 +6338,22 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // going back should load the ce2
       const history = container.get(IHistory);
-      const tQueue = platform.taskQueue;
       history.back();
-      await tQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
       assert.html.textContent(vp, 'ce2', 'back - component');
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":2}', 'back - history');
 
       // going forward should load ce3
       history.forward();
-      await tQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
@@ -6423,22 +6424,22 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // going back should load the ce1
       const history = container.get(IHistory);
-      const tQueue = platform.taskQueue;
+
       history.back();
-      await tQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(vp, 'ce1', 'back - component');
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
 
       // going forward should load ce3
       history.forward();
-      await tQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       await router.load('ce2', { historyStrategy: 'replace' });
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(vp, 'ce2', 'round#4 - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":6}', 'round#4 - history');
 
@@ -6473,33 +6474,32 @@ describe('router/smoke-tests.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root });
-    const queue = container.get(IPlatform).taskQueue;
 
     assert.html.textContent(host, 'c1', 'initial');
     host.querySelector('a').click();
-    await queue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c2', 'round#1 of loading c2');
     host.querySelector('a').click(); // <- go to parent #1
-    await queue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     // round#2
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #1');
     host.querySelector('a').click();
-    await queue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c2', 'round#2 of loading c2');
     host.querySelector('a').click(); // <- go to parent #2
-    await queue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     // round#3
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #2');
     host.querySelector('a').click();
-    await queue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c2', 'round#3 of loading c2');
     host.querySelector('a').click(); // <- go to parent #3
-    await queue.yield();
+    await new Promise(r => setTimeout(r, 0));
 
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #3');
 

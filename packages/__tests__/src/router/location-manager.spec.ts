@@ -37,7 +37,7 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).taskQueue;
+      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -63,7 +63,7 @@ describe('router/location-manager.spec.ts', function () {
       isBackLog.length = 0;
       const history = container.get(IHistory);
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2', 'back');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -73,7 +73,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1', 'forward');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -85,7 +85,7 @@ describe('router/location-manager.spec.ts', function () {
       isBackLog.length = 0;
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2', 'back');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -95,7 +95,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1', 'forward');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -107,7 +107,7 @@ describe('router/location-manager.spec.ts', function () {
       isBackLog.length = 0;
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2', 'back');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -117,7 +117,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1', 'forward');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -129,7 +129,7 @@ describe('router/location-manager.spec.ts', function () {
       eventLog.length = 0;
       const unsubscribedEvent = useHash ? 'popstate' : 'hashchange';
       container.get(IWindow).dispatchEvent(new HashChangeEvent(unsubscribedEvent));
-      await queue.yield();
+      await Promise.resolve();
       assert.deepStrictEqual(eventLog, [], `${unsubscribedEvent} event log`);
 
       subscriber.dispose();
@@ -164,7 +164,7 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).taskQueue;
+      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -185,14 +185,14 @@ describe('router/location-manager.spec.ts', function () {
 
       const anchor = host.querySelector('a');
       anchor.click();
-      await queue.yield();
+      await Promise.resolve();
       assert.html.textContent(host, 'c1 gc2', 'nav3');
       assert.deepStrictEqual(eventLog, [], 'nav1 event log');
 
       // navigate through history states - round#1
       const history = container.get(IHistory);
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc1', 'back1');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -201,7 +201,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc2', 'forward1');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -211,7 +211,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#2
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc1', 'back2');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -220,7 +220,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc2', 'forward2');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -230,7 +230,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#3
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc1', 'back3');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -239,7 +239,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc2', 'forward3');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
@@ -267,7 +267,7 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).taskQueue;
+      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -286,7 +286,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#1
       const history = container.get(IHistory);
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 c2', 'back1');
       assert.strictEqual(eventLog.length, 1, 'back1 event log length');
@@ -295,7 +295,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2 c1', 'forward1');
       assert.strictEqual(eventLog.length, 1, 'forward1 event log length');
@@ -305,7 +305,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#2
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 c2', 'back2');
       assert.strictEqual(eventLog.length, 1, 'back2 event log length');
@@ -314,7 +314,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2 c1', 'forward2');
       assert.strictEqual(eventLog.length, 1, 'forward2 event log length');
@@ -324,7 +324,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#3
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 c2', 'back3');
       assert.strictEqual(eventLog.length, 1, 'back3 event log length');
@@ -333,7 +333,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2 c1', 'forward3');
       assert.strictEqual(eventLog.length, 1, 'forward3 event log length');
@@ -383,7 +383,7 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).taskQueue;
+      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -402,7 +402,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#1
       const history = container.get(IHistory);
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back1');
       assert.strictEqual(eventLog.length, 1, 'back1 event log length');
@@ -411,7 +411,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward1');
       assert.strictEqual(eventLog.length, 1, 'forward1 event log length');
@@ -421,7 +421,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#2
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back2');
       assert.strictEqual(eventLog.length, 1, 'back2 event log length');
@@ -430,7 +430,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward2');
       assert.strictEqual(eventLog.length, 1, 'forward2 event log length');
@@ -440,7 +440,7 @@ describe('router/location-manager.spec.ts', function () {
       // navigate through history states - round#3
       eventLog.length = 0;
       history.back();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back3');
       assert.strictEqual(eventLog.length, 1, 'back3 event log length');
@@ -449,7 +449,7 @@ describe('router/location-manager.spec.ts', function () {
 
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward3');
       assert.strictEqual(eventLog.length, 1, 'forward3 event log length');
@@ -491,7 +491,7 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).taskQueue;
+      const queue = {};
       const history = container.get(IHistory);
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
@@ -509,13 +509,13 @@ describe('router/location-manager.spec.ts', function () {
       // round#1
       // go to c1/gc-2 by clicking the link
       host.querySelector('a').click();
-      await queue.yield();
+      await Promise.resolve();
       assert.html.textContent(host, 'c1 gc2', 'nav2');
       assert.deepStrictEqual(eventLog, [], 'nav2 event log');
 
       // go back to c1/gc-1 by clicking the button
       host.querySelector('button').click();
-      await queue.yield();
+      await Promise.resolve();
       assert.html.textContent(host, 'c1 gc1', 'back1');
       assert.strictEqual(eventLog.length, 1, 'back event log length');
       assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
@@ -525,14 +525,14 @@ describe('router/location-manager.spec.ts', function () {
       // go to c1/gc-2 by clicking the link
       eventLog.length = 0;
       host.querySelector('a').click();
-      await queue.yield();
+      await Promise.resolve();
       assert.html.textContent(host, 'c1 gc2', 'nav3');
       assert.deepStrictEqual(eventLog, [], 'nav3 event log');
 
       // go back to c1/gc-1 by clicking the button
       eventLog.length = 0;
       host.querySelector('button').click();
-      await queue.yield();
+      await Promise.resolve();
       assert.html.textContent(host, 'c1 gc1', 'back2');
       assert.strictEqual(eventLog.length, 1, 'back2 event log length');
       assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
@@ -541,7 +541,7 @@ describe('router/location-manager.spec.ts', function () {
       // go forward using history state
       eventLog.length = 0;
       history.forward();
-      await queue.yield();
+      await Promise.resolve();
 
       assert.html.textContent(host, 'c1 gc2', 'forward');
       assert.strictEqual(eventLog.length, 1, 'forward event log length');

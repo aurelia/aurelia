@@ -1,4 +1,4 @@
-import { Writable } from '@aurelia/kernel';
+import { emptyObject, Writable } from '@aurelia/kernel';
 import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
@@ -3006,4 +3006,39 @@ describe('router/route-recognizer.spec.ts', function () {
       assert.throws(() => sut.add({ path: route2, handler: null }), `Cannot add ambiguous route. The pattern '${route2}' clashes with '${route1}'`);
     });
   }
+
+  it.only('kitchen sink - eager-loading - single recognizer', function () {
+    const recognizer = new RouteRecognizer();
+
+    const parent = Symbol.for('au:rr:parent');
+    recognizer.add({ path: 'parent', handler: parent }, true);
+    recognizer.add({ path: 'parent/:id', handler: parent }, true);
+
+    const child = Symbol.for('au:rr:child');
+    recognizer.add({ path: 'parent/child/:id', handler: child }, true);
+    recognizer.add({ path: 'parent/:id/child/:id', handler: child }, true);
+
+    let results = recognizer.recognize('parent');
+    assert.strictEqual(results?.length, 1, 'round#1 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#1 - handler');
+
+    results = recognizer.recognize('parent/42');
+    assert.strictEqual(results?.length, 1, 'round#2 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#2 - handler');
+    assert.deepEqual(results?.[0].params, { id: '42' }, 'round#2 - params');
+
+    results = recognizer.recognize('parent/child/99');
+    assert.strictEqual(results?.length, 2, 'round#3 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#3 - handler#1');
+    assert.deepEqual(results?.[0].params, emptyObject, 'round#3 - params#1');
+    assert.equal(results?.[1].endpoint.route.handler, parent, 'round#3 - handler#2');
+    assert.deepEqual(results?.[1].params, { id: '99' }, 'round#3 - params#2');
+
+    results = recognizer.recognize('parent/77/child/88');
+    assert.strictEqual(results?.length, 2, 'round#4 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#4 - handler#1');
+    assert.deepEqual(results?.[0].params, { id: '77' }, 'round#4 - params#1');
+    assert.equal(results?.[1].endpoint.route.handler, child, 'round#4 - handler#2');
+    assert.deepEqual(results?.[1].params, { id: '88' }, 'round#4 - params#2');
+  });
 });

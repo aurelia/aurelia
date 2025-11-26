@@ -1,4 +1,4 @@
-import { emptyObject, Writable } from '@aurelia/kernel';
+import { Writable } from '@aurelia/kernel';
 import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
@@ -3030,8 +3030,8 @@ describe('router/route-recognizer.spec.ts', function () {
     results = recognizer.recognize('parent/child/99');
     assert.strictEqual(results?.length, 2, 'round#3 - length');
     assert.equal(results?.[0].endpoint.route.handler, parent, 'round#3 - handler#1');
-    assert.deepEqual(results?.[0].params, emptyObject, 'round#3 - params#1');
-    assert.equal(results?.[1].endpoint.route.handler, parent, 'round#3 - handler#2');
+    assert.deepEqual(results?.[0].params, { id: undefined }, 'round#3 - params#1');
+    assert.equal(results?.[1].endpoint.route.handler, child, 'round#3 - handler#2');
     assert.deepEqual(results?.[1].params, { id: '99' }, 'round#3 - params#2');
 
     results = recognizer.recognize('parent/77/child/88');

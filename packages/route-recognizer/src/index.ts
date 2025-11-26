@@ -198,7 +198,7 @@ class Candidate<T> {
     let currentParams: Record<string, string | undefined> = {};
     for (let i = states.length - 1, ii = 0; i >= ii; --i) {
       const state = states[i];
-      if (state.endpoint !== null && !Object.is(state.endpoint, currentEndpoint)) {
+      if (state.endpoint !== null && !Object.is(state.endpoint.route.handler, currentEndpoint?.route.handler)) {
         if (currentEndpoint !== null) {
           result.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
         }

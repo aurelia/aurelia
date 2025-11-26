@@ -868,7 +868,7 @@ export class RouteConfigContext {
 
       childRouteConfigPromises.push(onResolve(
         RouteConfigContext.getOrCreate(childRoute, defn, null, this.config, this, this._rootContainer, this._options),
-        context => this._recognizer.append(context._recognizer)
+        noop
       ));
     }
     await Promise.all(childRouteConfigPromises);

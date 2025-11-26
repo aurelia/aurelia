@@ -71,37 +71,69 @@ class Candidate<T> {
   public childRoutes: RecognizedRoute<T>[] = [];
   public head: AnyState<T>;
   public endpoint: Endpoint<T>;
-  private params: Record<string, string | undefined> | null = null;
+  private recognizedRoutes: RecognizedRoute<T>[] | null = null;
   private isConstrained: boolean = false;
   private satisfiesConstraints: boolean | null = null;
-  private fullyMatches: boolean = false;
 
   public constructor(
     /** @internal */ public readonly chars: string[],
     private readonly states: AnyState<T>[],
     private readonly skippedStates: DynamicState<T>[],
     private readonly result: RecognizeResult<T>,
-    private readonly routeRecognizer: RouteRecognizer<T>,
   ) {
     this.head = states[states.length - 1];
     // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     this.endpoint = this.head?.endpoint!;
   }
 
-  public advance(ch: string, rest: string): void | true {
-    const { chars, states, skippedStates, result, routeRecognizer } = this;
+  public advance(ch: string): void {
+    const { chars, states, skippedStates, result } = this;
     let stateToAdd: AnyState<T> | null = null;
 
-    let matched = false;
+    let matchCount = 0;
     const state = states[states.length - 1];
 
-    const childrenRecognizers = routeRecognizer.children;
-    const numChildrenRecognizers = childrenRecognizers.length;
-    if (state.isDynamic && $process(state, null) === true) return true;
+    function $process(
+      nextState: AnyState<T>,
+      skippedState: DynamicState<T> | null,
+    ): void {
+      if (nextState.isMatch(ch)) {
+        if (++matchCount === 1) {
+          stateToAdd = nextState;
+        } else {
+          result.add(
+            new Candidate(
+              chars.concat(ch),
+              states.concat(nextState),
+              skippedState === null ? skippedStates : skippedStates.concat(skippedState),
+              result,
+            ),
+          );
+        }
+      }
 
+      if (state.segment === null && nextState.isOptional && nextState.nextStates !== null) {
+        if (nextState.nextStates.length > 1) {
+          throw createError(`${nextState.nextStates.length} nextStates`);
+        }
+        const separator = nextState.nextStates[0];
+        if (!separator.isSeparator) {
+          throw createError(`Not a separator`);
+        }
+        if (separator.nextStates !== null) {
+          for (const $nextState of separator.nextStates) {
+            $process($nextState, nextState);
+          }
+        }
+      }
+    }
+
+    if (state.isDynamic) {
+      $process(state, null);
+    }
     if (state.nextStates !== null) {
       for (const nextState of state.nextStates) {
-        if ($process(nextState, null) === true) return true;
+        $process(nextState, null);
       }
     }
 
@@ -116,137 +148,8 @@ class Candidate<T> {
       }
     }
 
-    if (!matched) {
+    if (matchCount === 0) {
       result.remove(this);
-    }
-
-    function $process(
-      nextState: AnyState<T>,
-      skippedState: DynamicState<T> | null,
-    ): void | true {
-      if (nextState.isMatch(ch)) {
-        let childRoutes: RecognizedRoute<T>[] = [];
-        let fullyMatched = false;
-
-        if (nextState.segment?.kind === SegmentKind.residue
-          && nextState.prevState?.isSeparator
-          && nextState.prevState?.endpoint !== null
-          && nextState.prevState.endpoint.route.path !== '' // do we need to handle this in some other way?
-        ) {
-          // we hit the residue segment after a definitive endpoint
-          // this is a good opportunity to traverse into child recognizers
-          ({ childRoutes, fullyMatched } = matchChildRoutes(rest));
-        }
-
-        if (fullyMatched) {
-          matched = true;
-          const candidate = new Candidate(
-            chars.slice(),
-            states.concat(nextState),
-            skippedState === null ? skippedStates : skippedStates.concat(skippedState),
-            result,
-            routeRecognizer,
-          );
-          candidate.childRoutes = childRoutes;
-          candidate.fullyMatches = fullyMatched;
-          result.add(candidate);
-          return true;
-        }
-
-        if (!matched) {
-          matched = true;
-          stateToAdd = nextState;
-        } else {
-          result.add(
-            new Candidate(
-              chars.concat(ch),
-              states.concat(nextState),
-              skippedState === null ? skippedStates : skippedStates.concat(skippedState),
-              result,
-              routeRecognizer,
-            )
-          );
-        }
-      }
-
-      if (state.segment === null && nextState.isOptional) {
-        if (nextState.nextStates !== null) {
-          if (nextState.nextStates.length > 1) {
-            throw createError(`${nextState.nextStates.length} nextStates`);
-          }
-          const separator = nextState.nextStates[0];
-          if (!separator.isSeparator) {
-            throw createError(`Not a separator`);
-          }
-          if (separator.nextStates !== null) {
-            for (const $nextState of separator.nextStates) {
-              if ($process($nextState, nextState) === true) return true;
-            }
-          }
-        } else if (numChildrenRecognizers > 0 && nextState.segment?.kind === SegmentKind.dynamic) {
-          if (rest.startsWith('/')) {
-            const remainder = rest.slice(1);
-            if (remainder.length > 0) {
-              const childMatch = matchChildRoutes(remainder);
-              if (childMatch.childRoutes.length > 0) {
-                matched = true;
-                const candidate = new Candidate(
-                  chars.slice(),
-                  states.concat(nextState),
-                  skippedStates.concat(nextState),
-                  result,
-                  routeRecognizer,
-                );
-                candidate.childRoutes = childMatch.childRoutes;
-                candidate.fullyMatches = childMatch.fullyMatched;
-                result.add(candidate);
-                return true;
-              }
-            }
-          }
-        }
-      }
-
-      /**
-       * Attempts to match child route recognizers against the remaining path.
-       * Returns the best matching child routes and whether they fully matched.
-       * Also stores matched routes for later use in _getRoutes to avoid re-matching.
-       * @internal
-       */
-      function matchChildRoutes(remainder: string): { childRoutes: RecognizedRoute<T>[]; fullyMatched: boolean } {
-        if (numChildrenRecognizers === 0) return { childRoutes: [], fullyMatched: false };
-
-        let childRoutes: RecognizedRoute<T>[] = [];
-        let fullyMatched = false;
-        let highestDegree = 0;
-        for (const childRecognizer of childrenRecognizers) {
-          const $childRoutes = childRecognizer.recognize(remainder);
-          const currentDegree = $childRoutes?.length ?? 0;
-
-          // eliminate some obvious non-matches
-          if (currentDegree === 0) continue;
-
-          const residue = $childRoutes![currentDegree - 1].params[RESIDUE];
-
-          // Skip if the child didn't consume any of the remainder
-          if (residue === remainder.replaceAll(/^\/|\/$/g, '')) continue;
-
-          const noResidue = residue == null;
-          if (currentDegree > highestDegree || noResidue) {
-            highestDegree = currentDegree;
-            childRoutes = $childRoutes!;
-
-            // look at the last route from the array; if there is no residue, stop.
-            // we stop at the first fully matched route(s).
-            if (noResidue) {
-              fullyMatched = true;
-              break;
-            }
-          }
-        }
-
-        return { childRoutes, fullyMatched };
-      }
     }
   }
 
@@ -277,32 +180,45 @@ class Candidate<T> {
     }
     collectSkippedStates(this.skippedStates, this.head);
     if (!this.isConstrained) return true;
-    this._getParams();
+    this._getRoutes();
     return this.satisfiesConstraints!;
   }
 
   /** @internal */
-  public _getParams(): Record<string, string | undefined> {
-    let params = this.params;
-    if (params != null) return params;
+  public _getRoutes(): RecognizedRoute<T>[] {
+    let result = this.recognizedRoutes;
+    if (result != null) return result;
     const { states, chars, endpoint } = this;
 
-    params = {};
     this.satisfiesConstraints = true;
-    // First initialize all properties with undefined so they all exist (even if they're not filled, e.g. non-matched optional params)
-    for (const param of endpoint.params) {
-      params[param.name] = void 0;
-    }
+    result = [];
 
-    for (let i = 0, ii = states.length; i < ii; ++i) {
+    let path = '';
+    let currentEndpoint: Endpoint<T> | null = null;
+    let currentParams: Record<string, string | undefined> = {};
+    for (let i = states.length - 1, ii = 0; i >= ii; --i) {
       const state = states[i];
+      if (state.endpoint !== null && !Object.is(state.endpoint, currentEndpoint)) {
+        if (currentEndpoint !== null) {
+          result.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
+        }
+        currentEndpoint = state.endpoint;
+        currentParams = {};
+        path = '';
+        // First initialize all properties with undefined so they all exist (even if they're not filled, e.g. non-matched optional params)
+        for (const param of endpoint.params) {
+          currentParams[param.name] = void 0;
+        }
+      }
+
+      path = chars[i] + path;
       if (state.isDynamic) {
         const segment = state.segment;
         const name = segment.name;
-        if (params[name] === void 0) {
-          params[name] = chars[i];
+        if (currentParams[name] === void 0) {
+          currentParams[name] = chars[i];
         } else {
-          params[name] += chars[i];
+          currentParams[name] = chars[i] + currentParams[name];
         }
 
         // check for constraint if this state's segment is constrained
@@ -313,97 +229,18 @@ class Candidate<T> {
 
         if (!checkConstraint) continue;
 
-        this.satisfiesConstraints = this.satisfiesConstraints && state.satisfiesConstraint(params[name]!);
+        this.satisfiesConstraints = this.satisfiesConstraints && state.satisfiesConstraint(currentParams[name]!);
       }
+    }
+
+    if (currentEndpoint !== null && !Object.is(currentEndpoint, result[0]?.endpoint)) {
+      result.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
     }
 
     if (this.satisfiesConstraints) {
-      this.params = params;
+      this.recognizedRoutes = result;
     }
-    return params;
-  }
-
-  /** @internal */
-  public _getRoutes(trimPrecedingSlash: boolean): RecognizedRoute<T>[] {
-    let path = this.chars.join('');
-    const params = this._getParams();
-
-    const { childRoutes, endpoint } = this;
-
-    // Remove child route paths from the consumed path
-    if (childRoutes.length > 0) {
-      const childPath = childRoutes.reduce((acc, route) => `${acc}/${route.path}`, '');
-      path = path.slice(0, -childPath.length);
-    }
-
-    // Handle edge case: dynamic parameter that should be treated as residue
-    // Example: /parent/:id/*$$residue where :id="child1" but should be residue="child1/..."
-    _adjustParamToResidue(params, this.routeRecognizer);
-
-    // Remove residue from path
-    const residue = params[RESIDUE];
-    if (residue != null) {
-      path = path.slice(0, -residue.length);
-    }
-
-    // Normalize path slashes
-    if (trimPrecedingSlash && path.startsWith('/')) {
-      path = path.slice(1);
-    }
-    if (path.endsWith('/')) {
-      path = path.slice(0, -1);
-    }
-
-    return [new RecognizedRoute<T>(endpoint, path, params), ...childRoutes];
-
-    /**
-     * Checks if a dynamic parameter should be reinterpreted as residue for child routes.
-     * This handles the edge case where a route like /:id/*$$residue has :id matching a child route.
-     * @internal
-     */
-    function _adjustParamToResidue(params: Record<string, string | undefined>, routeRecognizer: RouteRecognizer<T>): void {
-      // Only check if we haven't matched child routes yet
-      if (childRoutes.length > 0) return;
-
-      const endpointParams = endpoint.params;
-      if (endpointParams.length < 2) return;
-
-      // Check if last param is residue
-      const lastParam = endpointParams[endpointParams.length - 1];
-      if (lastParam.name !== RESIDUE) return;
-
-      // Check if preceding param is a regular dynamic param
-      const precedingParam = endpointParams[endpointParams.length - 2];
-      if (precedingParam.isStar || precedingParam.name === RESIDUE) return;
-
-      const paramValue = params[precedingParam.name];
-      if (typeof paramValue !== 'string' || paramValue.length === 0) return;
-
-      // Try matching child recognizers with the parameter value
-      const childRecognizers = routeRecognizer.children;
-      if (childRecognizers.length === 0) return;
-
-      const existingResidue = params[RESIDUE];
-      const hasExistingResidue = existingResidue != null && existingResidue.length > 0;
-      const combined = hasExistingResidue ? `${paramValue}/${existingResidue}` : paramValue;
-
-      for (const childRecognizer of childRecognizers) {
-        const childRoutes = childRecognizer.recognize(combined);
-        const numChildren = childRoutes?.length ?? 0;
-        if (numChildren === 0) continue;
-
-        const childResidue = childRoutes![numChildren - 1].params[RESIDUE];
-
-        // If child consumed at least part of the combined value, adjust parameters
-        if (childResidue !== combined) {
-          params[RESIDUE] = combined;
-          if (precedingParam.isOptional || hasExistingResidue) {
-            params[precedingParam.name] = void 0;
-          }
-          break;
-        }
-      }
-    }
+    return result;
   }
 
   /**
@@ -529,11 +366,8 @@ class RecognizeResult<T> {
     return this.candidates.length === 0;
   }
 
-  public constructor(
-    rootState: SeparatorState<T>,
-    routeRecognizer: RouteRecognizer<T>,
-  ) {
-    this.candidates = [new Candidate([''], [rootState], [], this, routeRecognizer)];
+  public constructor(rootState: SeparatorState<T>) {
+    this.candidates = [new Candidate([''], [rootState], [], this)];
   }
 
   public getSolution(): Candidate<T> | null {
@@ -555,12 +389,11 @@ class RecognizeResult<T> {
     this.candidates.splice(this.candidates.indexOf(candidate), 1);
   }
 
-  public advance(ch: string, rest: string): void | true {
+  public advance(ch: string): void | true {
     const candidates = this.candidates.slice();
 
     for (const candidate of candidates) {
-      const fullyProcessed = candidate.advance(ch, rest);
-      if (fullyProcessed === true) return fullyProcessed;
+      candidate.advance(ch);
     }
   }
 }
@@ -576,7 +409,6 @@ export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
   private readonly cache: Map<string, RecognizedRoute<T>[] | null> = new Map<string, RecognizedRoute<T>[] | null>();
   private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
-  /** @internal */ public readonly children: RouteRecognizer<T>[] = [];
 
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
     let params: readonly Parameter[];
@@ -676,11 +508,10 @@ export class RouteRecognizer<T> {
       path = path.slice(0, -1);
     }
 
-    const result = new RecognizeResult(this.rootState, this);
+    const result = new RecognizeResult(this.rootState);
     for (let i = 0, ii = path.length; i < ii; ++i) {
       const ch = path.charAt(i);
-      const rest = path.slice(i);
-      if (result.advance(ch, rest) === true) break;
+      result.advance(ch);
 
       if (result.isEmpty) {
         return null;
@@ -692,16 +523,11 @@ export class RouteRecognizer<T> {
       return null;
     }
 
-    return candidate._getRoutes(originalPathIsWithoutPrecedingSlash);
+    return candidate._getRoutes();
   }
 
   public getEndpoint(path: string): Endpoint<T> | null {
     return this.endpointLookup.get(path) ?? null;
-  }
-
-  public append(child: RouteRecognizer<T>): void {
-    this.children.push(child);
-    this.cache.clear();
   }
 }
 

@@ -1,6 +1,6 @@
 import {
-  AccessScopeExpression,
-  ConditionalExpression,
+  createAccessScopeExpression,
+  createConditionalExpression,
 } from '@aurelia/expression-parser';
 import {
   BindingMode,
@@ -26,7 +26,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       it('auto connects when evaluates', function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const accessScopeExpr = new AccessScopeExpression('name', 0);
+        const accessScopeExpr = createAccessScopeExpression('name', 0);
 
         const source = { name: 'hello' };
         const target = { name: '' };
@@ -54,10 +54,10 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       it('auto connects with ternary', function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const conditionalExpr = new ConditionalExpression(
-          new AccessScopeExpression('checked'),
-          new AccessScopeExpression('yesMessage'),
-          new AccessScopeExpression('noMessage'),
+        const conditionalExpr = createConditionalExpression(
+          createAccessScopeExpression('checked'),
+          createAccessScopeExpression('yesMessage'),
+          createAccessScopeExpression('noMessage'),
         );
 
         const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
@@ -121,7 +121,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       it('auto connects when evaluates', function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const accessScopeExpr = new AccessScopeExpression('name', 0);
+        const accessScopeExpr = createAccessScopeExpression('name', 0);
 
         const source = { value: '' };
         const oc = { name: 'hello' };
@@ -149,10 +149,10 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       it('auto connects with ternary', function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const conditionalExpr = new ConditionalExpression(
-          new AccessScopeExpression('checked'),
-          new AccessScopeExpression('yesMessage'),
-          new AccessScopeExpression('noMessage'),
+        const conditionalExpr = createConditionalExpression(
+          createAccessScopeExpression('checked'),
+          createAccessScopeExpression('yesMessage'),
+          createAccessScopeExpression('noMessage'),
         );
 
         const source = { value: '' };

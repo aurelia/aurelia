@@ -4,6 +4,7 @@ import {
   Interpolation,
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
+  createPrimitiveLiteral,
 } from '@aurelia/expression-parser';
 import { Class, DI, ILogger, isArray, resolve, toArray } from '@aurelia/kernel';
 import {
@@ -751,7 +752,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
       }
       return parsed;
     }
-    return new PrimitiveLiteralExpression(message);
+    return createPrimitiveLiteral(message);
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined {

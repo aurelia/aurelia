@@ -1,36 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Constructable } from '@aurelia/kernel';
-import {
-  AccessKeyedExpression,
-  AccessMemberExpression,
-  AccessScopeExpression,
-  AccessThisExpression,
-  ArrayBindingPattern,
-  ArrayLiteralExpression,
-  ArrowFunction,
-  AssignExpression,
-  astVisit,
-  BinaryExpression,
-  BindingBehaviorExpression,
-  BindingIdentifier,
-  CallFunctionExpression,
-  CallMemberExpression,
-  CallScopeExpression,
-  ConditionalExpression,
-  DestructuringAssignmentExpression,
-  DestructuringAssignmentRestExpression,
-  DestructuringAssignmentSingleExpression,
-  ForOfStatement,
-  Interpolation,
-  ObjectBindingPattern,
-  ObjectLiteralExpression,
-  PrimitiveLiteralExpression,
-  TaggedTemplateExpression,
-  TemplateExpression,
-  UnaryExpression,
-  ValueConverterExpression,
-} from '@aurelia/expression-parser';
+import { astVisit, CustomExpression } from '@aurelia/expression-parser';
 import {
   astAssign,
   astBind,
@@ -51,33 +22,7 @@ export function defineAstMethods() {
   );
 
   [
-    BindingBehaviorExpression,
-    ValueConverterExpression,
-    AssignExpression,
-    ConditionalExpression,
-    AccessThisExpression,
-    AccessScopeExpression,
-    AccessMemberExpression,
-    AccessKeyedExpression,
-    CallScopeExpression,
-    CallMemberExpression,
-    CallFunctionExpression,
-    BinaryExpression,
-    UnaryExpression,
-    PrimitiveLiteralExpression,
-    ArrayLiteralExpression,
-    ObjectLiteralExpression,
-    TemplateExpression,
-    TaggedTemplateExpression,
-    ArrayBindingPattern,
-    ObjectBindingPattern,
-    BindingIdentifier,
-    ForOfStatement,
-    Interpolation,
-    DestructuringAssignmentExpression,
-    DestructuringAssignmentSingleExpression,
-    DestructuringAssignmentRestExpression,
-    ArrowFunction,
+    CustomExpression,
   ].forEach(ast => {
     def(ast, 'evaluate', function (this: typeof ast, ...args: unknown[]) {
       return (astEvaluate as any)(this, ...args);

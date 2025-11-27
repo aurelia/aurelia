@@ -21,6 +21,14 @@
     "bench:repeat-string": "tach --config app-repeat-view-keyed-string/bench.json --json-file results/app-repeat-view-keyed-string.json"
   },
   "dependencies": {
+    "@aurelia/expression-parser": "2.0.0-beta.26",
+    "@aurelia/kernel": "2.0.0-beta.26",
+    "@aurelia/metadata": "2.0.0-beta.26",
+    "@aurelia/platform": "2.0.0-beta.26",
+    "@aurelia/platform-browser": "2.0.0-beta.26",
+    "@aurelia/runtime": "2.0.0-beta.26",
+    "@aurelia/runtime-html": "2.0.0-beta.26",
+    "@aurelia/template-compiler": "2.0.0-beta.26",
     "tachometer": "0.7.1"
   },
   "version": "2.0.0-beta.25"

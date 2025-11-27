@@ -588,13 +588,13 @@ describe('validation/rule-provider.spec.ts', function () {
     }
 
     const messages1 = [
-      { message: 'name is required', expectedType: PrimitiveLiteralExpression },
-      { message: '${$displayName} is required', expectedType: Interpolation },
+      { message: 'name is required', expectedKind: 'PrimitiveLiteral' },
+      { message: '${$displayName} is required', expectedKind: 'Interpolation' },
     ];
-    for (const { message, expectedType } of messages1) {
+    for (const { message, expectedKind } of messages1) {
       it(`#parseMessage parses message correctly - ${message}`, function () {
         const { sut } = $createFixture();
-        assert.instanceOf(sut.parseMessage(message), expectedType);
+        assert.equal((sut.parseMessage(message) as any).$kind, expectedKind);
       });
     }
     const specialPropertyNames = ['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'];

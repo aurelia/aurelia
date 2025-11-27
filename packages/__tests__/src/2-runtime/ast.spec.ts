@@ -37,6 +37,38 @@ import {
   BindingIdentifier,
   Unparser,
   AccessBoundaryExpression,
+  PrimitiveLiteral,
+  Template,
+  ArrayLiteral,
+  ObjectLiteral,
+  createAccessScopeExpression,
+  createAccessThisExpression,
+  createAccessBoundaryExpression,
+  createAccessMemberExpression,
+  createAccessKeyedExpression,
+  createPrimitiveLiteral,
+  createArrayLiteralExpression,
+  createObjectLiteralExpression,
+  createTaggedTemplateExpression,
+  createTemplateExpression,
+  createCallFunctionExpression,
+  createCallScopeExpression,
+  createCallMemberExpression,
+  createUnaryExpression,
+  createBinaryExpression,
+  createConditionalExpression,
+  createAssignExpression,
+  createValueConverterExpression,
+  createBindingBehaviorExpression,
+  createDestructuringAssignmentExpression,
+  createDestructuringAssignmentSingleExpression,
+  createDestructuringAssignmentRestExpression,
+  createBindingIdentifier,
+  createArrowFunction,
+  createInterpolation,
+  createForOfStatement,
+  createArrayBindingPattern,
+  createObjectBindingPattern,
 } from '@aurelia/expression-parser';
 import {
   IObserverLocatorBasedConnectable,
@@ -48,17 +80,17 @@ import {
 } from '@aurelia/runtime';
 import { IBinding } from '@aurelia/runtime-html';
 
-const $false = PrimitiveLiteralExpression.$false;
-const $true = PrimitiveLiteralExpression.$true;
-const $null = PrimitiveLiteralExpression.$null;
-const $undefined = PrimitiveLiteralExpression.$undefined;
-// const $str = PrimitiveLiteralExpression.$empty;
-const $arr = ArrayLiteralExpression.$empty;
-const $obj = ObjectLiteralExpression.$empty;
-const $tpl = TemplateExpression.$empty;
-const $this = new AccessThisExpression(0);
-const $parent = new AccessThisExpression(1);
-const boundary = new AccessBoundaryExpression();
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+// const $str = PrimitiveLiteral.$empty;
+const $arr = ArrayLiteral.$empty;
+const $obj = ObjectLiteral.$empty;
+const $tpl = Template.$empty;
+const $this = createAccessThisExpression(0);
+const $parent = createAccessThisExpression(1);
+const boundary = createAccessBoundaryExpression();
 
 const dummyLocator = { get: () => null } as unknown as IServiceLocator & IAstEvaluator;
 const dummyLocatorThatReturnsNull = {
@@ -87,35 +119,35 @@ function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
 }
 
 describe('2-runtime/ast.spec.ts', function () {
-  // const $num1 = new PrimitiveLiteralExpression(1);
-  // const $str1 = new PrimitiveLiteralExpression('1');
+  // const $num1 = createPrimitiveLiteral(1);
+  // const $str1 = createPrimitiveLiteral('1');
 
   describe('[UNIT] AST', function () {
 
     const AccessThisList: [string, AccessThisExpression][] = [
       [`$this`, $this],
       [`$parent`, $parent],
-      [`$parent.$parent`, new AccessThisExpression(2)]
+      [`$parent.$parent`, createAccessThisExpression(2)]
     ];
     const AccessBoundaryList: [string, AccessBoundaryExpression][] = [
       [`this`, boundary],
     ];
     const AccessScopeList: [string, AccessScopeExpression][] = [
       ...AccessBoundaryList,
-      ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
-      [`$this.$parent`, new AccessScopeExpression('$parent')],
-      [`$host.$parent`, new AccessScopeExpression('$parent', undefined)],
-      [`$parent.$this`, new AccessScopeExpression('$this', 1)],
-      [`a`, new AccessScopeExpression('a')]
+      ...AccessThisList.map(([input, expr]) => [`${input}.a`, createAccessScopeExpression('a', expr.ancestor)] as [string, any]),
+      [`$this.$parent`, createAccessScopeExpression('$parent')],
+      [`$host.$parent`, createAccessScopeExpression('$parent', undefined)],
+      [`$parent.$this`, createAccessScopeExpression('$this', 1)],
+      [`a`, createAccessScopeExpression('a')]
     ];
     const StringLiteralList: [string, PrimitiveLiteralExpression][] = [
-      [`''`, PrimitiveLiteralExpression.$empty]
+      [`''`, PrimitiveLiteral.$empty]
     ];
     const NumberLiteralList: [string, PrimitiveLiteralExpression][] = [
-      [`1`, new PrimitiveLiteralExpression(1)],
-      [`1.1`, new PrimitiveLiteralExpression(1.1)],
-      [`.1`, new PrimitiveLiteralExpression(0.1)],
-      [`0.1`, new PrimitiveLiteralExpression(0.1)]
+      [`1`, createPrimitiveLiteral(1)],
+      [`1.1`, createPrimitiveLiteral(1.1)],
+      [`.1`, createPrimitiveLiteral(0.1)],
+      [`0.1`, createPrimitiveLiteral(0.1)]
     ];
     const KeywordLiteralList: [string, PrimitiveLiteralExpression][] = [
       [`undefined`, $undefined],
@@ -145,7 +177,7 @@ describe('2-runtime/ast.spec.ts', function () {
     //   ...ObjectLiteralList
     // ];
     const TemplateInterpolationList: [string, TemplateExpression][] = [
-      [`\`\${a}\``, new TemplateExpression(['', ''], [new AccessScopeExpression('a')])]
+      [`\`\${a}\``, createTemplateExpression(['', ''], [createAccessScopeExpression('a')])]
     ];
     // const PrimaryList: [string, IsPrimary][] = [
     //   ...AccessThisList,
@@ -155,35 +187,35 @@ describe('2-runtime/ast.spec.ts', function () {
     // 2. parseMemberExpression.MemberExpression [ AssignmentExpression ]
     // const SimpleAccessKeyedList: [string, IsLeftHandSide][] = [
     //   ...AccessScopeList
-    //     .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, new AccessScopeExpression('b'))] as [string, any])
+    //     .map(([input, expr]) => [`${input}[b]`, createAccessKeyedExpression(expr, createAccessScopeExpression('b'))] as [string, any])
     // ];
     // 3. parseMemberExpression.MemberExpression . IdentifierName
     // const SimpleAccessMemberList: [string, IsLeftHandSide][] = [
     //   ...AccessScopeList
-    //     .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
+    //     .map(([input, expr]) => [`${input}.b`, createAccessMemberExpression(expr, 'b')] as [string, any])
     // ];
     // 4. parseMemberExpression.MemberExpression TemplateLiteral
     const SimpleTaggedTemplateList: [string, IsLeftHandSide][] = [
       ...AccessScopeList
-        .map(([input, expr]) => [`${input}\`\``, new TaggedTemplateExpression([''], [''], expr, [])] as [string, any]),
+        .map(([input, expr]) => [`${input}\`\``, createTaggedTemplateExpression([''], [''], expr, [])] as [string, any]),
 
       ...AccessScopeList
-        .map(([input, expr]) => [`${input}\`\${a}\``, new TaggedTemplateExpression(['', ''], ['', ''], expr, [new AccessScopeExpression('a')])] as [string, any])
+        .map(([input, expr]) => [`${input}\`\${a}\``, createTaggedTemplateExpression(['', ''], ['', ''], expr, [createAccessScopeExpression('a')])] as [string, any])
     ];
     // 1. parseCallExpression.MemberExpression Arguments (this one doesn't technically fit the spec here)
     const SimpleCallFunctionList: [string, IsLeftHandSide][] = [
       ...AccessScopeList
-        .map(([input, expr]) => [`${input}()`, new CallFunctionExpression(expr, [])] as [string, any])
+        .map(([input, expr]) => [`${input}()`, createCallFunctionExpression(expr, [])] as [string, any])
     ];
     // 2. parseCallExpression.MemberExpression Arguments
     const SimpleCallScopeList: [string, IsLeftHandSide][] = [
       ...AccessScopeList
-        .map(([input, expr]) => [`${input}()`, new CallScopeExpression((expr as any).name, [], expr.ancestor)] as [string, any])
+        .map(([input, expr]) => [`${input}()`, createCallScopeExpression((expr as any).name, [], expr.ancestor)] as [string, any])
     ];
     // 3. parseCallExpression.MemberExpression Arguments
     const SimpleCallMemberList: [string, IsLeftHandSide][] = [
       ...AccessScopeList
-        .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
+        .map(([input, expr]) => [`${input}.b()`, createCallMemberExpression(expr, 'b', [])] as [string, any])
     ];
     // concatenation of 1-3 of MemberExpression and 1-3 of CallExpression
     // const SimpleLeftHandSideList: [string, IsLeftHandSide][] = [
@@ -205,15 +237,15 @@ describe('2-runtime/ast.spec.ts', function () {
 
     // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
     const SimpleUnaryList: [string, UnaryExpression][] = [
-      [`!$1`, new UnaryExpression('!', new AccessScopeExpression('$1'))],
-      [`-$2`, new UnaryExpression('-', new AccessScopeExpression('$2'))],
-      [`+$3`, new UnaryExpression('+', new AccessScopeExpression('$3'))],
-      [`--$4`, new UnaryExpression('--', new AccessScopeExpression('$4'))],
-      [`++$5`, new UnaryExpression('++', new AccessScopeExpression('$5'))],
-      [`$6--`, new UnaryExpression('--', new AccessScopeExpression('$6'), 1)],
-      [`$7++`, new UnaryExpression('++', new AccessScopeExpression('$7'), 1)],
-      [`void $8`, new UnaryExpression('void', new AccessScopeExpression('$8'))],
-      [`typeof $9`, new UnaryExpression('typeof', new AccessScopeExpression('$9'))]
+      [`!$1`, createUnaryExpression('!', createAccessScopeExpression('$1'))],
+      [`-$2`, createUnaryExpression('-', createAccessScopeExpression('$2'))],
+      [`+$3`, createUnaryExpression('+', createAccessScopeExpression('$3'))],
+      [`--$4`, createUnaryExpression('--', createAccessScopeExpression('$4'))],
+      [`++$5`, createUnaryExpression('++', createAccessScopeExpression('$5'))],
+      [`$6--`, createUnaryExpression('--', createAccessScopeExpression('$6'), 1)],
+      [`$7++`, createUnaryExpression('++', createAccessScopeExpression('$7'), 1)],
+      [`void $8`, createUnaryExpression('void', createAccessScopeExpression('$8'))],
+      [`typeof $9`, createUnaryExpression('typeof', createAccessScopeExpression('$9'))]
     ];
     // concatenation of UnaryExpression + LeftHandSide
     // This forms the group Precedence.LeftHandSide and includes Precedence.UnaryExpression
@@ -224,14 +256,14 @@ describe('2-runtime/ast.spec.ts', function () {
 
     // This forms the group Precedence.Exponentiation
     const SimpleExponentiationList: [string, BinaryExpression][] = [
-      [`$4**$5`, new BinaryExpression('**', new AccessScopeExpression('$4'), new AccessScopeExpression('$5'))]
+      [`$4**$5`, createBinaryExpression('**', createAccessScopeExpression('$4'), createAccessScopeExpression('$5'))]
     ];
 
     // This forms the group Precedence.Multiplicative
     const SimpleMultiplicativeList: [string, BinaryExpression][] = [
-      [`$6*$7`, new BinaryExpression('*', new AccessScopeExpression('$6'), new AccessScopeExpression('$7'))],
-      [`$8%$9`, new BinaryExpression('%', new AccessScopeExpression('$8'), new AccessScopeExpression('$9'))],
-      [`$10/$11`, new BinaryExpression('/', new AccessScopeExpression('$10'), new AccessScopeExpression('$11'))]
+      [`$6*$7`, createBinaryExpression('*', createAccessScopeExpression('$6'), createAccessScopeExpression('$7'))],
+      [`$8%$9`, createBinaryExpression('%', createAccessScopeExpression('$8'), createAccessScopeExpression('$9'))],
+      [`$10/$11`, createBinaryExpression('/', createAccessScopeExpression('$10'), createAccessScopeExpression('$11'))]
     ];
     // const SimpleIsMultiplicativeList: [string, IsBinary][] = [
     //   ...SimpleIsUnaryList,
@@ -240,8 +272,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
     // This forms the group Precedence.Additive
     const SimpleAdditiveList: [string, BinaryExpression][] = [
-      [`$12+$13`, new BinaryExpression('+', new AccessScopeExpression('$12'), new AccessScopeExpression('$13'))],
-      [`$14-$15`, new BinaryExpression('-', new AccessScopeExpression('$14'), new AccessScopeExpression('$15'))]
+      [`$12+$13`, createBinaryExpression('+', createAccessScopeExpression('$12'), createAccessScopeExpression('$13'))],
+      [`$14-$15`, createBinaryExpression('-', createAccessScopeExpression('$14'), createAccessScopeExpression('$15'))]
     ];
     // const SimpleIsAdditiveList: [string, IsBinary][] = [
     //   ...SimpleIsMultiplicativeList,
@@ -250,12 +282,12 @@ describe('2-runtime/ast.spec.ts', function () {
 
     // This forms the group Precedence.Relational
     const SimpleRelationalList: [string, BinaryExpression][] = [
-      [`$16<$17`, new BinaryExpression('<', new AccessScopeExpression('$16'), new AccessScopeExpression('$17'))],
-      [`$18>$19`, new BinaryExpression('>', new AccessScopeExpression('$18'), new AccessScopeExpression('$19'))],
-      [`$20<=$21`, new BinaryExpression('<=', new AccessScopeExpression('$20'), new AccessScopeExpression('$21'))],
-      [`$22>=$23`, new BinaryExpression('>=', new AccessScopeExpression('$22'), new AccessScopeExpression('$23'))],
-      [`$24 in $25`, new BinaryExpression('in', new AccessScopeExpression('$24'), new AccessScopeExpression('$25'))],
-      [`$26 instanceof $27`, new BinaryExpression('instanceof', new AccessScopeExpression('$26'), new AccessScopeExpression('$27'))]
+      [`$16<$17`, createBinaryExpression('<', createAccessScopeExpression('$16'), createAccessScopeExpression('$17'))],
+      [`$18>$19`, createBinaryExpression('>', createAccessScopeExpression('$18'), createAccessScopeExpression('$19'))],
+      [`$20<=$21`, createBinaryExpression('<=', createAccessScopeExpression('$20'), createAccessScopeExpression('$21'))],
+      [`$22>=$23`, createBinaryExpression('>=', createAccessScopeExpression('$22'), createAccessScopeExpression('$23'))],
+      [`$24 in $25`, createBinaryExpression('in', createAccessScopeExpression('$24'), createAccessScopeExpression('$25'))],
+      [`$26 instanceof $27`, createBinaryExpression('instanceof', createAccessScopeExpression('$26'), createAccessScopeExpression('$27'))]
     ];
     // const SimpleIsRelationalList: [string, IsBinary][] = [
     //   ...SimpleIsAdditiveList,
@@ -264,10 +296,10 @@ describe('2-runtime/ast.spec.ts', function () {
 
     // This forms the group Precedence.Equality
     const SimpleEqualityList: [string, BinaryExpression][] = [
-      [`$28==$29`, new BinaryExpression('==', new AccessScopeExpression('$28'), new AccessScopeExpression('$29'))],
-      [`$30!=$31`, new BinaryExpression('!=', new AccessScopeExpression('$30'), new AccessScopeExpression('$31'))],
-      [`$32===$33`, new BinaryExpression('===', new AccessScopeExpression('$32'), new AccessScopeExpression('$33'))],
-      [`$34!==$35`, new BinaryExpression('!==', new AccessScopeExpression('$34'), new AccessScopeExpression('$35'))]
+      [`$28==$29`, createBinaryExpression('==', createAccessScopeExpression('$28'), createAccessScopeExpression('$29'))],
+      [`$30!=$31`, createBinaryExpression('!=', createAccessScopeExpression('$30'), createAccessScopeExpression('$31'))],
+      [`$32===$33`, createBinaryExpression('===', createAccessScopeExpression('$32'), createAccessScopeExpression('$33'))],
+      [`$34!==$35`, createBinaryExpression('!==', createAccessScopeExpression('$34'), createAccessScopeExpression('$35'))]
     ];
     // const SimpleIsEqualityList: [string, IsBinary][] = [
     //   ...SimpleIsRelationalList,
@@ -276,35 +308,35 @@ describe('2-runtime/ast.spec.ts', function () {
 
     // This forms the group Precedence.LogicalAND
     const SimpleLogicalANDList: [string, BinaryExpression][] = [
-      [`$36&&$37`, new BinaryExpression('&&', new AccessScopeExpression('$36'), new AccessScopeExpression('$37'))]
+      [`$36&&$37`, createBinaryExpression('&&', createAccessScopeExpression('$36'), createAccessScopeExpression('$37'))]
     ];
 
     // This forms the group Precedence.LogicalOR
     const SimpleLogicalORList: [string, BinaryExpression][] = [
-      [`$38||$39`, new BinaryExpression('||', new AccessScopeExpression('$38'), new AccessScopeExpression('$39'))]
+      [`$38||$39`, createBinaryExpression('||', createAccessScopeExpression('$38'), createAccessScopeExpression('$39'))]
     ];
 
     // This forms the group Precedence.ConditionalExpression
     const SimpleConditionalList: [string, ConditionalExpression][] = [
-      [`a?b:c`, new ConditionalExpression(new AccessScopeExpression('a'), new AccessScopeExpression('b'), new AccessScopeExpression('c'))]
+      [`a?b:c`, createConditionalExpression(createAccessScopeExpression('a'), createAccessScopeExpression('b'), createAccessScopeExpression('c'))]
     ];
 
     // This forms the group Precedence.AssignExpression
     // const SimpleAssignList: [string, AssignExpression][] = [
-    //   [`a=b`, new AssignExpression(new AccessScopeExpression('a'), new AccessScopeExpression('b'))]
+    //   [`a=b`, createAssignExpression(createAccessScopeExpression('a'), createAccessScopeExpression('b'))]
     // ];
 
     // This forms the group Precedence.Variadic
     const SimpleValueConverterList: [string, ValueConverterExpression][] = [
-      [`a|b`, new ValueConverterExpression(new AccessScopeExpression('a'), 'b', [])],
-      [`a|b:c`, new ValueConverterExpression(new AccessScopeExpression('a'), 'b', [new AccessScopeExpression('c')])],
-      [`a|b:c:d`, new ValueConverterExpression(new AccessScopeExpression('a'), 'b', [new AccessScopeExpression('c'), new AccessScopeExpression('d')])]
+      [`a|b`, createValueConverterExpression(createAccessScopeExpression('a'), 'b', [])],
+      [`a|b:c`, createValueConverterExpression(createAccessScopeExpression('a'), 'b', [createAccessScopeExpression('c')])],
+      [`a|b:c:d`, createValueConverterExpression(createAccessScopeExpression('a'), 'b', [createAccessScopeExpression('c'), createAccessScopeExpression('d')])]
     ];
 
     const SimpleBindingBehaviorList: [string, BindingBehaviorExpression][] = [
-      [`a&b`, new BindingBehaviorExpression(new AccessScopeExpression('a'), 'b', [])],
-      [`a&b:c`, new BindingBehaviorExpression(new AccessScopeExpression('a'), 'b', [new AccessScopeExpression('c')])],
-      [`a&b:c:d`, new BindingBehaviorExpression(new AccessScopeExpression('a'), 'b', [new AccessScopeExpression('c'), new AccessScopeExpression('d')])]
+      [`a&b`, createBindingBehaviorExpression(createAccessScopeExpression('a'), 'b', [])],
+      [`a&b:c`, createBindingBehaviorExpression(createAccessScopeExpression('a'), 'b', [createAccessScopeExpression('c')])],
+      [`a&b:c:d`, createBindingBehaviorExpression(createAccessScopeExpression('a'), 'b', [createAccessScopeExpression('c'), createAccessScopeExpression('d')])]
     ];
 
     describe('Literals', function () {
@@ -424,7 +456,7 @@ describe('2-runtime/ast.spec.ts', function () {
     let expression: AccessKeyedExpression;
 
     before(function () {
-      expression = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression('bar'));
+      expression = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteral('bar'));
     });
 
     it('evaluates member on bindingContext', function () {
@@ -462,7 +494,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it('does not observes property in keyed object access when key is number', function () {
       const scope = createScopeForTest({ foo: { '0': 'hello world' } });
-      const expression2 = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression(0));
+      const expression2 = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteral(0));
       assert.strictEqual(astEvaluate(expression2, scope, null, null), 'hello world', `astEvaluate(expression2, scope, null)`);
       const binding = new MockBinding();
       astEvaluate(expression2, scope, dummyLocator, binding);
@@ -473,7 +505,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it('observes property in keyed array access when key is number', function () {
       const scope = createScopeForTest({ foo: ['hello world'] });
-      const expression3 = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), new PrimitiveLiteralExpression(0));
+      const expression3 = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteral(0));
       assert.strictEqual(astEvaluate(expression3,scope, null, null), 'hello world', `astEvaluate(expression3,scope, null)`);
       const binding = new MockBinding();
       astEvaluate(expression3,scope, dummyLocator, binding);
@@ -485,7 +517,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('returns string when accessing string character', function () {
         const value = astEvaluate(
-          new AccessKeyedExpression(new PrimitiveLiteralExpression('a'), new PrimitiveLiteralExpression(0)),
+          createAccessKeyedExpression(createPrimitiveLiteral('a'), createPrimitiveLiteral(0)),
           null,
           null,
           null
@@ -495,7 +527,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('returns undefined when accessing keyed on null/undefined', function () {
         const value = astEvaluate(
-          new AccessKeyedExpression(PrimitiveLiteralExpression.$null, new PrimitiveLiteralExpression(0)),
+          createAccessKeyedExpression(PrimitiveLiteral.$null, createPrimitiveLiteral(0)),
           null,
           null,
           null
@@ -505,7 +537,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('returns prototype method when accessing keyed on primitive', function () {
         const value = astEvaluate(
-          new AccessKeyedExpression(new PrimitiveLiteralExpression(0), new PrimitiveLiteralExpression('toFixed')),
+          createAccessKeyedExpression(createPrimitiveLiteral(0), createPrimitiveLiteral('toFixed')),
           null,
           null,
           null
@@ -525,15 +557,15 @@ describe('2-runtime/ast.spec.ts', function () {
     //     [` Symbol()`, Symbol()]
     //   ];
     //   const keys: [string, any][] = [
-    //     [`[0]  `, new PrimitiveLiteralExpression(0)],
-    //     [`['a']`, new PrimitiveLiteralExpression('a')]
+    //     [`[0]  `, createPrimitiveLiteral(0)],
+    //     [`['a']`, createPrimitiveLiteral('a')]
     //   ];
     //   const inputs: [typeof objects, typeof keys] = [objects, keys];
 
     //   eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
     //     it(`${t1}${t2}`, function () {
     //       const scope = createScopeForTest({ foo: obj });
-    //       const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
+    //       const sut = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), key);
     //       const binding = new MockBinding();
     //       astEvaluate(sut, scope, dummyLocator, binding);
     //       assert.strictEqual(binding.calls.length, 1);
@@ -634,13 +666,13 @@ describe('2-runtime/ast.spec.ts', function () {
     ];
     const inputs: [typeof objects, typeof props] = [objects, props];
 
-    const expression: AccessMemberExpression = new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'bar');
+    const expression: AccessMemberExpression = createAccessMemberExpression(createAccessScopeExpression('foo', 0), 'bar');
 
     eachCartesianJoinFactory.call(this, inputs, (([t1, obj, _isFalsey, canHaveProperty], [t2, prop, value]) => {
       it(`STRICT - ${t1}.${t2} evaluate() -> eval + connect -> assign`, function () {
         const scope = createScopeForTest({ foo: obj });
         const evaluator = { strict: true } as unknown as IAstEvaluator;
-        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const sut = createAccessMemberExpression(createAccessScopeExpression('foo', 0), prop);
         let thrown = false;
         const actual = (() => {
           try {
@@ -678,7 +710,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it(`${t1}.${t2} evaluate() + connect() -> assign`, function () {
         const scope = createScopeForTest({ foo: obj });
         const evaluator = { strict: false } as unknown as IAstEvaluator;
-        const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+        const sut = createAccessMemberExpression(createAccessScopeExpression('foo', 0), prop);
         const actual = astEvaluate(sut, scope, evaluator, null);
         if (obj == null) {
           assert.strictEqual(actual, undefined, `actual`);
@@ -752,7 +784,7 @@ describe('2-runtime/ast.spec.ts', function () {
     //   eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
     //     it(`${t1}${t2}`, function () {
     //       const scope = createScopeForTest({ foo: obj });
-    //       const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+    //       const sut = createAccessMemberExpression(createAccessScopeExpression('foo', 0), prop);
     //       const binding = new MockBinding();
     //       astEvaluate(sut, scope, dummyLocator, binding);
     //       assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
@@ -777,7 +809,7 @@ describe('2-runtime/ast.spec.ts', function () {
     //   eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
     //     it(`${t1}${t2}`, function () {
     //       const scope = createScopeForTest({ foo: obj });
-    //       const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+    //       const expression2 = createAccessMemberExpression(createAccessScopeExpression('foo', 0), prop);
     //       const binding = new MockBinding();
     //       astEvaluate(expression2, scope, dummyLocator, binding);
     //       assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
@@ -787,8 +819,8 @@ describe('2-runtime/ast.spec.ts', function () {
   });
 
   describe('AccessScopeExpression', function () {
-    const foo: AccessScopeExpression = new AccessScopeExpression('foo', 0);
-    const $parentfoo: AccessScopeExpression = new AccessScopeExpression('foo', 1);
+    const foo: AccessScopeExpression = createAccessScopeExpression('foo', 0);
+    const $parentfoo: AccessScopeExpression = createAccessScopeExpression('foo', 1);
 
     it(`evaluates defined property on bindingContext`, function () {
       const scope: Scope = createScopeForTest({ foo: 'bar' });
@@ -933,8 +965,8 @@ describe('2-runtime/ast.spec.ts', function () {
   });
 
   describe('AccessThisExpression', function () {
-    const $parent$parent = new AccessThisExpression(2);
-    const $parent$parent$parent = new AccessThisExpression(3);
+    const $parent$parent = createAccessThisExpression(2);
+    const $parent$parent$parent = createAccessThisExpression(3);
 
     it('evaluates defined bindingContext', function () {
       const a = { a: 'a' };
@@ -965,7 +997,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
   describe('AssignExpression', function () {
     it('can chain assignments', function () {
-      const foo = new AssignExpression(new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0));
+      const foo = createAssignExpression(createAccessScopeExpression('foo', 0), createAccessScopeExpression('bar', 0));
       const scope = Scope.create({});
       astAssign(foo, scope, null, null, 1);
       assert.strictEqual(scope.bindingContext.foo, 1, `scope.overrideContext.foo`);
@@ -978,7 +1010,7 @@ describe('2-runtime/ast.spec.ts', function () {
       const condition = $true;
       const yes = new MockTracingExpression($obj);
       const no = new MockTracingExpression($obj);
-      const sut = new ConditionalExpression(condition, yes as any, no as any);
+      const sut = createConditionalExpression(condition, yes as any, no as any);
 
       astEvaluate(sut, null, null, null);
       assert.strictEqual(yes.calls.length, 1, `yes.calls.length`);
@@ -989,7 +1021,7 @@ describe('2-runtime/ast.spec.ts', function () {
       const condition = $false;
       const yes = new MockTracingExpression($obj);
       const no = new MockTracingExpression($obj);
-      const sut = new ConditionalExpression(condition, yes as any, no as any);
+      const sut = createConditionalExpression(condition, yes as any, no as any);
 
       astEvaluate(sut, null, null, null);
       assert.strictEqual(yes.calls.length, 0, `yes.calls.length`);
@@ -1000,7 +1032,7 @@ describe('2-runtime/ast.spec.ts', function () {
       const condition = $true;
       const yes = new MockTracingExpression($obj);
       const no = new MockTracingExpression($obj);
-      const sut = new ConditionalExpression(condition, yes as any, no as any);
+      const sut = createConditionalExpression(condition, yes as any, no as any);
 
       astEvaluate(sut, null, dummyLocator, dummyBinding);
       assert.strictEqual(yes.calls.length, 1, `yes.calls.length`);
@@ -1011,7 +1043,7 @@ describe('2-runtime/ast.spec.ts', function () {
       const condition = $false;
       const yes = new MockTracingExpression($obj);
       const no = new MockTracingExpression($obj);
-      const sut = new ConditionalExpression(condition, yes as any, no as any);
+      const sut = createConditionalExpression(condition, yes as any, no as any);
 
       astEvaluate(sut, null, dummyLocator, dummyBinding);
       assert.strictEqual(yes.calls.length, 0, `yes.calls.length`);
@@ -1021,155 +1053,155 @@ describe('2-runtime/ast.spec.ts', function () {
 
   describe('BinaryExpression', function () {
     it(`concats strings`, function () {
-      let expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), new PrimitiveLiteralExpression('b'));
+      let expression = createBinaryExpression('+', createPrimitiveLiteral('a'), createPrimitiveLiteral('b'));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'ab', `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'anull', `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteral('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'nullb', `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'aundefined', `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'undefinedb', `astEvaluate(expression, scope, null, null)`);
     });
 
     it(`adds numbers`, function () {
-      let expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+      let expression = createBinaryExpression('+', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 3, `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 1, `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression(2));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteral(2));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 2, `astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
 
-      expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral(2));
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
     });
 
     it(`concats strings - STRICT`, function () {
-      let expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), new PrimitiveLiteralExpression('b'));
+      let expression = createBinaryExpression('+', createPrimitiveLiteral('a'), createPrimitiveLiteral('b'));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'ab', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'anull', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteral('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'nullb', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'aundefined', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'undefinedb', `astEvaluate(expression, scope, { strict: true }, null)`);
     });
 
     it(`adds numbers - STRICT`, function () {
-      let expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+      let expression = createBinaryExpression('+', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 3, `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 1, `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression(2));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteral(2));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 2, `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, { strict: true }, null) as number), true, `isNaN(astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral(2));
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, { strict: true }, null) as number), true, `isNaN(astEvaluate(expression, scope, { strict: true }, null)`);
     });
 
     it('handles 10 ** 2', function () {
-      const expression = new BinaryExpression('**', new PrimitiveLiteralExpression(10), new PrimitiveLiteralExpression(2));
+      const expression = createBinaryExpression('**', createPrimitiveLiteral(10), createPrimitiveLiteral(2));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 100);
     });
 
     it('handles 1 >= 1', function () {
-      const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('>=', createPrimitiveLiteral(1), createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles 2 >= 1', function () {
-      const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(2), new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('>=', createPrimitiveLiteral(2), createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles 1 >= 2', function () {
-      const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+      const expression = createBinaryExpression('>=', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), false);
     });
 
     it('handles 1 <= 1', function () {
-      const expression = new BinaryExpression('<=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('<=', createPrimitiveLiteral(1), createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles 2 <= 1', function () {
-      const expression = new BinaryExpression('<=', new PrimitiveLiteralExpression(2), new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('<=', createPrimitiveLiteral(2), createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), false);
     });
 
     it('handles 1 <= 2', function () {
-      const expression = new BinaryExpression('<=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(2));
+      const expression = createBinaryExpression('<=', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles undefined ?? 1', function () {
-      const expression = new BinaryExpression('??', PrimitiveLiteralExpression.$undefined, new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('??', PrimitiveLiteral.$undefined, createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 1);
     });
 
     it('handles null ?? 1', function () {
-      const expression = new BinaryExpression('??', PrimitiveLiteralExpression.$null, new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('??', PrimitiveLiteral.$null, createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 1);
     });
 
     it('handles false ?? 1', function () {
-      const expression = new BinaryExpression('??', PrimitiveLiteralExpression.$false, new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('??', PrimitiveLiteral.$false, createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), false);
     });
 
     it('handles 0 ?? 1', function () {
-      const expression = new BinaryExpression('??', new PrimitiveLiteralExpression(0), new PrimitiveLiteralExpression(1));
+      const expression = createBinaryExpression('??', createPrimitiveLiteral(0), createPrimitiveLiteral(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 0);
     });
@@ -1186,22 +1218,22 @@ describe('2-runtime/ast.spec.ts', function () {
 
     describe('performs \'in\'', function () {
       function* getTestData() {
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new ObjectLiteralExpression(['foo'], [$null])), true);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new ObjectLiteralExpression(['bar'], [$null])), false);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression(1), new ObjectLiteralExpression(['1'], [$null])), true);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('1'), new ObjectLiteralExpression(['1'], [$null])), true);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), $null), false);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), $undefined), false);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), $true), false);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), $parent), false);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('bar'), $parent), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), createObjectLiteralExpression(['foo'], [$null])), true);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), createObjectLiteralExpression(['bar'], [$null])), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral(1), createObjectLiteralExpression(['1'], [$null])), true);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('1'), createObjectLiteralExpression(['1'], [$null])), true);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $null), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $undefined), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $true), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $parent), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), $parent), false);
 
         const scope1 = createScopeForTest({ foo: { bar: null }, bar: null });
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), $this), true, scope1);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('bar'), $this), true, scope1);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('foo'), new AccessScopeExpression('foo', 0)), false, scope1);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('bar'), new AccessScopeExpression('bar', 0)), false, scope1);
-        yield new TestData(new BinaryExpression('in', new PrimitiveLiteralExpression('bar'), new AccessScopeExpression('foo', 0)), true, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $this), true, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), $this), true, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), createAccessScopeExpression('foo', 0)), false, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), createAccessScopeExpression('bar', 0)), false, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), createAccessScopeExpression('foo', 0)), true, scope1);
       }
 
       for (const item of getTestData()) {
@@ -1219,57 +1251,57 @@ describe('2-runtime/ast.spec.ts', function () {
           createScopeForTest({ foo: new Foo(), bar: new Bar() }),
         ]) {
           yield new TestData(
-            new BinaryExpression(
+            createBinaryExpression(
               'instanceof',
-              new AccessScopeExpression('foo', 0),
-              new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'constructor')
+              createAccessScopeExpression('foo', 0),
+              createAccessMemberExpression(createAccessScopeExpression('foo', 0), 'constructor')
             ),
             true,
             scope,
           );
           yield new TestData(
-            new BinaryExpression(
+            createBinaryExpression(
               'instanceof',
-              new AccessScopeExpression('foo', 0),
-              new AccessMemberExpression(new AccessScopeExpression('bar', 0), 'constructor')
+              createAccessScopeExpression('foo', 0),
+              createAccessMemberExpression(createAccessScopeExpression('bar', 0), 'constructor')
             ),
             false,
             scope,
           );
           yield new TestData(
-            new BinaryExpression(
+            createBinaryExpression(
               'instanceof',
-              new AccessScopeExpression('bar', 0),
-              new AccessMemberExpression(new AccessScopeExpression('bar', 0), 'constructor')
+              createAccessScopeExpression('bar', 0),
+              createAccessMemberExpression(createAccessScopeExpression('bar', 0), 'constructor')
             ),
             true,
             scope,
           );
           yield new TestData(
-            new BinaryExpression(
+            createBinaryExpression(
               'instanceof',
-              new AccessScopeExpression('bar', 0),
-              new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'constructor')
+              createAccessScopeExpression('bar', 0),
+              createAccessMemberExpression(createAccessScopeExpression('foo', 0), 'constructor')
             ),
             true,
             scope,
           );
           yield new TestData(
-            new BinaryExpression(
+            createBinaryExpression(
               'instanceof',
-              new PrimitiveLiteralExpression('foo'),
-              new AccessMemberExpression(new AccessScopeExpression('foo', 0), 'constructor')
+              createPrimitiveLiteral('foo'),
+              createAccessMemberExpression(createAccessScopeExpression('foo', 0), 'constructor')
             ),
             false,
             scope,
           );
         }
 
-        yield new TestData(new BinaryExpression('instanceof', new AccessScopeExpression('foo', 0), new AccessScopeExpression('foo', 0)), false);
-        yield new TestData(new BinaryExpression('instanceof', new AccessScopeExpression('foo', 0), $null), false);
-        yield new TestData(new BinaryExpression('instanceof', new AccessScopeExpression('foo', 0), $undefined), false);
-        yield new TestData(new BinaryExpression('instanceof', $null, new AccessScopeExpression('foo', 0)), false);
-        yield new TestData(new BinaryExpression('instanceof', $undefined, new AccessScopeExpression('foo', 0)), false);
+        yield new TestData(createBinaryExpression('instanceof', createAccessScopeExpression('foo', 0), createAccessScopeExpression('foo', 0)), false);
+        yield new TestData(createBinaryExpression('instanceof', createAccessScopeExpression('foo', 0), $null), false);
+        yield new TestData(createBinaryExpression('instanceof', createAccessScopeExpression('foo', 0), $undefined), false);
+        yield new TestData(createBinaryExpression('instanceof', $null, createAccessScopeExpression('foo', 0)), false);
+        yield new TestData(createBinaryExpression('instanceof', $undefined, createAccessScopeExpression('foo', 0)), false);
       }
 
       for (const item of getTestData()) {
@@ -1282,7 +1314,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
   describe('CallMemberExpression', function () {
     it(`evaluates`, function () {
-      const expression = new CallMemberExpression(new AccessScopeExpression('foo', 0), 'bar', []);
+      const expression = createCallMemberExpression(createAccessScopeExpression('foo', 0), 'bar', []);
       let callCount = 0;
       const bindingContext = {
         foo: {
@@ -1298,7 +1330,7 @@ describe('2-runtime/ast.spec.ts', function () {
     });
 
     it(`evaluate handles null/undefined member`, function () {
-      const expression = new CallMemberExpression(new AccessScopeExpression('foo', 0), 'bar', []);
+      const expression = createCallMemberExpression(createAccessScopeExpression('foo', 0), 'bar', []);
       const s1: Scope = createScopeForTest({ foo: {} });
       const s2: Scope = createScopeForTest({ foo: { bar: undefined } });
       const s3: Scope = createScopeForTest({ foo: { bar: null } });
@@ -1308,7 +1340,7 @@ describe('2-runtime/ast.spec.ts', function () {
     });
 
     it(`evaluate throws when mustEvaluate and member is null or undefined`, function () {
-      const expression = new CallMemberExpression(new AccessScopeExpression('foo', 0), 'bar', []);
+      const expression = createCallMemberExpression(createAccessScopeExpression('foo', 0), 'bar', []);
       const s1 = createScopeForTest({});
       const s2 = createScopeForTest({ foo: {} });
       const s3 = createScopeForTest({ foo: { bar: undefined } });
@@ -1321,8 +1353,8 @@ describe('2-runtime/ast.spec.ts', function () {
   });
 
   describe('CallScopeExpression', function () {
-    const foo: CallScopeExpression = new CallScopeExpression('foo', [], 0);
-    const hello: CallScopeExpression = new CallScopeExpression('hello', [new AccessScopeExpression('arg', 0)], 0);
+    const foo: CallScopeExpression = createCallScopeExpression('foo', [], 0);
+    const hello: CallScopeExpression = createCallScopeExpression('hello', [createAccessScopeExpression('arg', 0)], 0);
 
     function getScopes(initialScope: Scope) {
       return [initialScope];
@@ -1443,84 +1475,84 @@ describe('2-runtime/ast.spec.ts', function () {
     }
     function* getTestData() {
       yield new TestData($tpl, '');
-      yield new TestData(new TemplateExpression(['foo']), 'foo');
-      yield new TestData(new TemplateExpression(['foo', 'baz'], [new PrimitiveLiteralExpression('bar')]), 'foobarbaz');
+      yield new TestData(createTemplateExpression(['foo']), 'foo');
+      yield new TestData(createTemplateExpression(['foo', 'baz'], [createPrimitiveLiteral('bar')]), 'foobarbaz');
       yield new TestData(
-        new TemplateExpression(
+        createTemplateExpression(
           ['a', 'c', 'e', 'g'],
-          [new PrimitiveLiteralExpression('b'), new PrimitiveLiteralExpression('d'), new PrimitiveLiteralExpression('f')]
+          [createPrimitiveLiteral('b'), createPrimitiveLiteral('d'), createPrimitiveLiteral('f')]
         ),
         'abcdefg',
       );
       yield new TestData(
-        new TemplateExpression(['a', 'c', 'e'], [new AccessScopeExpression('b', 0), new AccessScopeExpression('d', 0)]),
+        createTemplateExpression(['a', 'c', 'e'], [createAccessScopeExpression('b', 0), createAccessScopeExpression('d', 0)]),
         'a1c2e',
         { b: 1, d: 2 }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           [''],
           [],
-          new AccessScopeExpression('foo', 0)
+          createAccessScopeExpression('foo', 0)
         ),
         'foo',
         { foo: () => 'foo' }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           ['foo'],
           ['bar'],
-          new AccessScopeExpression('baz', 0)
+          createAccessScopeExpression('baz', 0)
         ),
         'foobar',
         { baz: cooked => `${cooked[0]}${cooked.raw[0]}` }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           ['1', '2'],
           [],
-          new AccessScopeExpression('makeString', 0),
-          [new PrimitiveLiteralExpression('foo')]
+          createAccessScopeExpression('makeString', 0),
+          [createPrimitiveLiteral('foo')]
         ),
         '1foo2',
         { makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           ['1', '2'],
           [],
-          new AccessScopeExpression('makeString', 0),
-          [new AccessScopeExpression('foo', 0)]
+          createAccessScopeExpression('makeString', 0),
+          [createAccessScopeExpression('foo', 0)]
         ),
         '1bar2',
         { foo: 'bar', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           ['1', '2', '3'],
           [],
-          new AccessScopeExpression('makeString', 0),
-          [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
+          createAccessScopeExpression('makeString', 0),
+          [createAccessScopeExpression('foo', 0), createAccessScopeExpression('bar', 0)]
         ),
         'bazqux',
         { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => `${foo}${bar}` }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           ['1', '2', '3'],
           [],
-          new AccessMemberExpression(new AccessScopeExpression('test', 0), 'makeString'),
-          [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
+          createAccessMemberExpression(createAccessScopeExpression('test', 0), 'makeString'),
+          [createAccessScopeExpression('foo', 0), createAccessScopeExpression('bar', 0)]
         ),
         '1baz2qux3foo',
         { foo: 'baz', bar: 'qux', test: new Test() }
       );
       yield new TestData(
-        new TaggedTemplateExpression(
+        createTaggedTemplateExpression(
           ['1', '2', '3'],
           [],
-          new AccessKeyedExpression(new AccessScopeExpression('test', 0), new PrimitiveLiteralExpression('makeString')),
-          [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
+          createAccessKeyedExpression(createAccessScopeExpression('test', 0), createPrimitiveLiteral('makeString')),
+          [createAccessScopeExpression('foo', 0), createAccessScopeExpression('bar', 0)]
         ),
         '1baz2qux3foo',
         { foo: 'baz', bar: 'qux', test: new Test() }
@@ -1538,17 +1570,17 @@ describe('2-runtime/ast.spec.ts', function () {
   describe('UnaryExpression', function () {
     describe('performs \'typeof\'', function () {
       const tests: { expr: UnaryExpression; expected: string }[] = [
-        { expr: new UnaryExpression('typeof', new PrimitiveLiteralExpression('foo')), expected: 'string' },
-        { expr: new UnaryExpression('typeof', new PrimitiveLiteralExpression(1)), expected: 'number' },
-        { expr: new UnaryExpression('typeof', $null), expected: 'object' },
-        { expr: new UnaryExpression('typeof', $undefined), expected: 'undefined' },
-        { expr: new UnaryExpression('typeof', $true), expected: 'boolean' },
-        { expr: new UnaryExpression('typeof', $false), expected: 'boolean' },
-        { expr: new UnaryExpression('typeof', $arr), expected: 'object' },
-        { expr: new UnaryExpression('typeof', $obj), expected: 'object' },
-        { expr: new UnaryExpression('typeof', $this), expected: 'object' },
-        { expr: new UnaryExpression('typeof', $parent), expected: 'undefined' },
-        { expr: new UnaryExpression('typeof', new AccessScopeExpression('foo', 0)), expected: 'undefined' }
+        { expr: createUnaryExpression('typeof', createPrimitiveLiteral('foo')), expected: 'string' },
+        { expr: createUnaryExpression('typeof', createPrimitiveLiteral(1)), expected: 'number' },
+        { expr: createUnaryExpression('typeof', $null), expected: 'object' },
+        { expr: createUnaryExpression('typeof', $undefined), expected: 'undefined' },
+        { expr: createUnaryExpression('typeof', $true), expected: 'boolean' },
+        { expr: createUnaryExpression('typeof', $false), expected: 'boolean' },
+        { expr: createUnaryExpression('typeof', $arr), expected: 'object' },
+        { expr: createUnaryExpression('typeof', $obj), expected: 'object' },
+        { expr: createUnaryExpression('typeof', $this), expected: 'object' },
+        { expr: createUnaryExpression('typeof', $parent), expected: 'undefined' },
+        { expr: createUnaryExpression('typeof', createAccessScopeExpression('foo', 0)), expected: 'undefined' }
       ];
       const scope: Scope = createScopeForTest({});
 
@@ -1561,17 +1593,17 @@ describe('2-runtime/ast.spec.ts', function () {
 
     describe('performs \'void\'', function () {
       const tests: { expr: UnaryExpression }[] = [
-        { expr: new UnaryExpression('void', new PrimitiveLiteralExpression('foo')) },
-        { expr: new UnaryExpression('void', new PrimitiveLiteralExpression(1)) },
-        { expr: new UnaryExpression('void', $null) },
-        { expr: new UnaryExpression('void', $undefined) },
-        { expr: new UnaryExpression('void', $true) },
-        { expr: new UnaryExpression('void', $false) },
-        { expr: new UnaryExpression('void', $arr) },
-        { expr: new UnaryExpression('void', $obj) },
-        { expr: new UnaryExpression('void', $this) },
-        { expr: new UnaryExpression('void', $parent) },
-        { expr: new UnaryExpression('void', new AccessScopeExpression('foo', 0)) }
+        { expr: createUnaryExpression('void', createPrimitiveLiteral('foo')) },
+        { expr: createUnaryExpression('void', createPrimitiveLiteral(1)) },
+        { expr: createUnaryExpression('void', $null) },
+        { expr: createUnaryExpression('void', $undefined) },
+        { expr: createUnaryExpression('void', $true) },
+        { expr: createUnaryExpression('void', $false) },
+        { expr: createUnaryExpression('void', $arr) },
+        { expr: createUnaryExpression('void', $obj) },
+        { expr: createUnaryExpression('void', $this) },
+        { expr: createUnaryExpression('void', $parent) },
+        { expr: createUnaryExpression('void', createAccessScopeExpression('foo', 0)) }
       ];
       let scope: Scope = createScopeForTest({});
 
@@ -1585,7 +1617,7 @@ describe('2-runtime/ast.spec.ts', function () {
         let fooCalled = false;
         const foo = () => (fooCalled = true);
         scope = createScopeForTest({ foo });
-        const expr = new UnaryExpression('void', new CallScopeExpression('foo', [], 0));
+        const expr = createUnaryExpression('void', createCallScopeExpression('foo', [], 0));
         assert.strictEqual(astEvaluate(expr, scope, null, null), undefined, `astEvaluate(expr, scope, null)`);
         assert.strictEqual(fooCalled, true, `fooCalled`);
       });
@@ -1598,9 +1630,9 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a} = {a:42}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'a'),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'a'),
           void 0,
         ), Scope.create(bc), null, null, { a: 42 });
         assert.strictEqual(bc.a, 42);
@@ -1608,9 +1640,9 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{1:a} = {1:"42"}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, '1'),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, '1'),
           void 0,
         ), Scope.create(bc), null, null, { 1: '42' });
         assert.strictEqual(bc.a, '42');
@@ -1618,9 +1650,9 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{x:a} = {x:"42"}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'x'),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'x'),
           void 0,
         ), Scope.create(bc), null, null, { x: '42' });
         assert.strictEqual(bc.a, '42');
@@ -1628,69 +1660,69 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a=42} = {b:404}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'a'),
-          new PrimitiveLiteralExpression(42),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'a'),
+          createPrimitiveLiteral(42),
         ), Scope.create(bc), null, null, { b: 404 });
         assert.strictEqual(bc.a, 42);
       });
 
       it('{1:a=42} = {2:"404"}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, '1'),
-          new PrimitiveLiteralExpression(42),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, '1'),
+          createPrimitiveLiteral(42),
         ), Scope.create(bc), null, null, { 2: "404" });
         assert.strictEqual(bc.a, 42);
       });
 
       it('{x:a=42} = {b:404}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'x'),
-          new PrimitiveLiteralExpression(42),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'x'),
+          createPrimitiveLiteral(42),
         ), Scope.create(bc), null, null, { b: 404 });
         assert.strictEqual(bc.a, 42);
       });
 
       it('{a=404} = {a:42}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'a'),
-          new PrimitiveLiteralExpression(404),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'a'),
+          createPrimitiveLiteral(404),
         ), Scope.create(bc), null, null, { a: 42 });
         assert.strictEqual(bc.a, 42);
       });
 
       it('{1:a=404} = {1:"42"}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, '1'),
-          new PrimitiveLiteralExpression(404),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, '1'),
+          createPrimitiveLiteral(404),
         ), Scope.create(bc), null, null, { 1: '42' });
         assert.strictEqual(bc.a, '42');
       });
 
       it('{x:a=404} = {x:"42"}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'x'),
-          new PrimitiveLiteralExpression(404),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'x'),
+          createPrimitiveLiteral(404),
         ), Scope.create(bc), null, null, { x: '42' });
         assert.strictEqual(bc.a, '42');
       });
 
       it('[a] = [42]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
           void 0,
         ), Scope.create(bc), null, null, [42]);
         assert.strictEqual(bc.a, 42);
@@ -1698,20 +1730,20 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[a=42] = []', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
-          new PrimitiveLiteralExpression(42),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+          createPrimitiveLiteral(42),
         ), Scope.create(bc), null, null, []);
         assert.strictEqual(bc.a, 42);
       });
 
       it('[,a=42] = [404]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
-          new PrimitiveLiteralExpression(42),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+          createPrimitiveLiteral(42),
         ), Scope.create(bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
@@ -1719,10 +1751,10 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{a=vm_prop} = {x:404}', function () {
         const ps = Scope.create({ prop: 42 });
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'a'),
-          new AccessScopeExpression('prop', 0),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'a'),
+          createAccessScopeExpression('prop', 0),
         ), Scope.fromParent(ps, bc), null, null, { x: 404 });
         assert.strictEqual(bc.a, 42);
       });
@@ -1730,10 +1762,10 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[,a=vm_prop] = [404]', function () {
         const ps = Scope.create({ prop: 42 });
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
-          new AccessScopeExpression('prop', 0),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+          createAccessScopeExpression('prop', 0),
         ), Scope.fromParent(ps, bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
@@ -1741,10 +1773,10 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{a=$parent.vm_prop} = {x:404}', function () {
         const ps = Scope.create({ prop: 42 });
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessMemberExpression($this, 'a'),
-          new AccessScopeExpression('prop', 2),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessMemberExpression($this, 'a'),
+          createAccessScopeExpression('prop', 2),
         ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, null, { x: 404 });
         assert.strictEqual(bc.a, 42);
       });
@@ -1752,10 +1784,10 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[,a=$parent.vm_prop] = [404]', function () {
         const ps = Scope.create({ prop: 42 });
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentSingleExpression(
-          new AccessMemberExpression($this, 'a'),
-          new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
-          new AccessScopeExpression('prop', 2),
+        astAssign(createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, 'a'),
+          createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+          createAccessScopeExpression('prop', 2),
         ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
@@ -1765,8 +1797,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{...rest} = {a:1, b:2}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           [],
         ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { rest: { a: 1, b: 2 } });
@@ -1774,8 +1806,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a, ...rest} = {a:1, b:2}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           ['a'],
         ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { rest: { b: 2 } });
@@ -1783,8 +1815,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a, b, ...rest} = {a:1, b:2, c:3}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           ['a', 'b'],
         ), Scope.create(bc), null, null, { a: 1, b: 2, c: 3 });
         assert.deepStrictEqual(bc, { rest: { c: 3 } });
@@ -1792,8 +1824,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a, b, ...rest} = {a:1, b:2}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           ['a', 'b'],
         ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { rest: {} });
@@ -1801,8 +1833,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[...rest] = [1, 2]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           0,
         ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [1, 2] });
@@ -1810,8 +1842,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[,...rest] = [1, 2]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           1,
         ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [2] });
@@ -1819,8 +1851,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[,,...rest] = [1, 2]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentRestExpression(
-          new AccessMemberExpression($this, 'rest'),
+        astAssign(createDestructuringAssignmentRestExpression(
+          createAccessMemberExpression($this, 'rest'),
           3,
         ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [] });
@@ -1831,12 +1863,12 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a} = {a: 1, b:2}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'a'),
-              new AccessMemberExpression($this, 'a'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'a'),
+              createAccessMemberExpression($this, 'a'),
               void 0
             )
           ],
@@ -1848,17 +1880,17 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{a, b} = {a: 1, b:2}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'a'),
-              new AccessMemberExpression($this, 'a'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'a'),
+              createAccessMemberExpression($this, 'a'),
               void 0
             ),
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'b'),
-              new AccessMemberExpression($this, 'b'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'b'),
+              createAccessMemberExpression($this, 'b'),
               void 0
             ),
           ],
@@ -1870,11 +1902,11 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{...rest} = {a: 1, b:2}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentRestExpression(
-              new AccessMemberExpression($this, 'rest'),
+            createDestructuringAssignmentRestExpression(
+              createAccessMemberExpression($this, 'rest'),
               []
             ),
           ],
@@ -1886,12 +1918,12 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[a] = [1, 2]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'a'),
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'a'),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
               void 0
             ),
           ],
@@ -1903,17 +1935,17 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[a, b] = [1, 2]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'a'),
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'a'),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
               void 0
             ),
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'b'),
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'b'),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
               void 0
             ),
           ],
@@ -1925,11 +1957,11 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('[...rest] = [1, 2]', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentRestExpression(
-              new AccessMemberExpression($this, 'rest'),
+            createDestructuringAssignmentRestExpression(
+              createAccessMemberExpression($this, 'rest'),
               0,
             ),
           ],
@@ -1941,24 +1973,24 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{prop1, prop2:{prop21}} = {prop1: "foo", prop2: {prop21: 123}}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'prop1'),
-              new AccessMemberExpression($this, 'prop1'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'prop1'),
+              createAccessMemberExpression($this, 'prop1'),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ObjectDestructuring',
               [
-                new DestructuringAssignmentSingleExpression(
-                  new AccessMemberExpression($this, 'prop21'),
-                  new AccessMemberExpression($this, 'prop21'),
+                createDestructuringAssignmentSingleExpression(
+                  createAccessMemberExpression($this, 'prop21'),
+                  createAccessMemberExpression($this, 'prop21'),
                   void 0
                 ),
               ],
-              new AccessMemberExpression($this, 'prop2'),
+              createAccessMemberExpression($this, 'prop2'),
               void 0,
             ),
           ],
@@ -1970,36 +2002,36 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{prop1, prop2:{prop21:{prop212:newProp212}, prop22}} = {prop1: "foo", prop2: {prop21: {prop211: 123, prop212: 456}, prop22: "bar" }}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'prop1'),
-              new AccessMemberExpression($this, 'prop1'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'prop1'),
+              createAccessMemberExpression($this, 'prop1'),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ObjectDestructuring',
               [
-                new DestructuringAssignmentExpression(
+                createDestructuringAssignmentExpression(
                   'ObjectDestructuring',
                   [
-                    new DestructuringAssignmentSingleExpression(
-                      new AccessMemberExpression($this, 'newProp212'),
-                      new AccessMemberExpression($this, 'prop212'),
+                    createDestructuringAssignmentSingleExpression(
+                      createAccessMemberExpression($this, 'newProp212'),
+                      createAccessMemberExpression($this, 'prop212'),
                       void 0
                     ),
                   ],
-                  new AccessMemberExpression($this, 'prop21'),
+                  createAccessMemberExpression($this, 'prop21'),
                   void 0,
                 ),
-                new DestructuringAssignmentSingleExpression(
-                  new AccessMemberExpression($this, 'prop22'),
-                  new AccessMemberExpression($this, 'prop22'),
+                createDestructuringAssignmentSingleExpression(
+                  createAccessMemberExpression($this, 'prop22'),
+                  createAccessMemberExpression($this, 'prop22'),
                   void 0
                 ),
               ],
-              new AccessMemberExpression($this, 'prop2'),
+              createAccessMemberExpression($this, 'prop2'),
               void 0,
           ),
           ],
@@ -2011,31 +2043,31 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{prop1,coll:[,{p2:item2p2}]} = {prop1:"foo",coll:[{p1:1,p2:2},{p1:3,p2:4}]}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'prop1'),
-              new AccessMemberExpression($this, 'prop1'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'prop1'),
+              createAccessMemberExpression($this, 'prop1'),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ArrayDestructuring',
               [
-                new DestructuringAssignmentExpression(
+                createDestructuringAssignmentExpression(
                   'ObjectDestructuring',
                   [
-                    new DestructuringAssignmentSingleExpression(
-                      new AccessMemberExpression($this, 'item2p2'),
-                      new AccessMemberExpression($this, 'p2'),
+                    createDestructuringAssignmentSingleExpression(
+                      createAccessMemberExpression($this, 'item2p2'),
+                      createAccessMemberExpression($this, 'p2'),
                       void 0,
                     )
                   ],
-                  new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                  createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
                   void 0,
                 )
               ],
-              new AccessMemberExpression($this, 'coll'),
+              createAccessMemberExpression($this, 'coll'),
           void 0,
           ),
           ],
@@ -2047,38 +2079,38 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('{prop1,coll:[,{p:[item21]}]} = {prop1:"foo",coll:[{p:[1,2]},{p:[3,4]}]}', function () {
         const bc: Record<string, any> = {};
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'prop1'),
-              new AccessMemberExpression($this, 'prop1'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'prop1'),
+              createAccessMemberExpression($this, 'prop1'),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ArrayDestructuring',
               [
-                new DestructuringAssignmentExpression(
+                createDestructuringAssignmentExpression(
                   'ObjectDestructuring',
                   [
-                    new DestructuringAssignmentExpression(
+                    createDestructuringAssignmentExpression(
                       'ArrayDestructuring',
                       [
-                        new DestructuringAssignmentSingleExpression(
-                          new AccessMemberExpression($this, 'item21'),
-                          new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+                        createDestructuringAssignmentSingleExpression(
+                          createAccessMemberExpression($this, 'item21'),
+                          createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
                           void 0
                         ),
                       ],
-                      new AccessMemberExpression($this,'p'),
+                      createAccessMemberExpression($this,'p'),
                       void 0,
                     ),
                   ],
-                  new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                  createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
                   void 0,
                 )
               ],
-              new AccessMemberExpression($this, 'coll'),
+              createAccessMemberExpression($this, 'coll'),
               void 0,
             ),
           ],
@@ -2091,36 +2123,36 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[k, {prop1, prop2:{prop21}}] = ["key",{prop1: "foo", prop2: {prop21: 123}}]', function () {
         const bc: Record<string, any> = {};
 
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ArrayDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'k'),
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'k'),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ObjectDestructuring',
               [
-                new DestructuringAssignmentSingleExpression(
-                  new AccessMemberExpression($this, 'prop1'),
-                  new AccessMemberExpression($this, 'prop1'),
+                createDestructuringAssignmentSingleExpression(
+                  createAccessMemberExpression($this, 'prop1'),
+                  createAccessMemberExpression($this, 'prop1'),
                   void 0
                 ),
-                new DestructuringAssignmentExpression(
+                createDestructuringAssignmentExpression(
                   'ObjectDestructuring',
                   [
-                    new DestructuringAssignmentSingleExpression(
-                      new AccessMemberExpression($this, 'prop21'),
-                      new AccessMemberExpression($this, 'prop21'),
+                    createDestructuringAssignmentSingleExpression(
+                      createAccessMemberExpression($this, 'prop21'),
+                      createAccessMemberExpression($this, 'prop21'),
                       void 0
                     ),
                   ],
-                  new AccessMemberExpression($this, 'prop2'),
+                  createAccessMemberExpression($this, 'prop2'),
                   void 0,
                 ),
               ],
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
               void 0,
             )
           ],
@@ -2133,24 +2165,24 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[k, [,item2]] = ["key",[1,2]]', function () {
         const bc: Record<string, any> = {};
 
-        astAssign(new DestructuringAssignmentExpression(
+        astAssign(createDestructuringAssignmentExpression(
           'ArrayDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'k'),
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'k'),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ArrayDestructuring',
               [
-                new DestructuringAssignmentSingleExpression(
-                  new AccessMemberExpression($this, 'item2'),
-                  new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+                createDestructuringAssignmentSingleExpression(
+                  createAccessMemberExpression($this, 'item2'),
+                  createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
                   void 0
                 )
               ],
-              new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
+              createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
               void 0,
             )
           ],
@@ -2163,25 +2195,25 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{a,b:{c}={c:42}} = {a:42}', function () {
         const bc: Record<string, any> = {};
 
-        const expr = new DestructuringAssignmentExpression(
+        const expr = createDestructuringAssignmentExpression(
           'ObjectDestructuring',
           [
-            new DestructuringAssignmentSingleExpression(
-              new AccessMemberExpression($this, 'a'),
-              new AccessMemberExpression($this, 'a'),
+            createDestructuringAssignmentSingleExpression(
+              createAccessMemberExpression($this, 'a'),
+              createAccessMemberExpression($this, 'a'),
               void 0
             ),
-            new DestructuringAssignmentExpression(
+            createDestructuringAssignmentExpression(
               'ObjectDestructuring',
               [
-                new DestructuringAssignmentSingleExpression(
-                  new AccessMemberExpression($this, 'c'),
-                  new AccessMemberExpression($this, 'c'),
+                createDestructuringAssignmentSingleExpression(
+                  createAccessMemberExpression($this, 'c'),
+                  createAccessMemberExpression($this, 'c'),
                   void 0
                 )
               ],
-              new AccessMemberExpression($this, 'b'),
-              new ObjectLiteralExpression(['c'], [new PrimitiveLiteralExpression(42)])
+              createAccessMemberExpression($this, 'b'),
+              createObjectLiteralExpression(['c'], [createPrimitiveLiteral(42)])
             )
           ],
           void 0,
@@ -2196,28 +2228,28 @@ describe('2-runtime/ast.spec.ts', function () {
   describe('arrow function unparsing', function () {
     it('unparses arrow fn', function () {
       assert.strictEqual(
-        Unparser.unparse(new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a'))),
+        Unparser.unparse(createArrowFunction([createBindingIdentifier('a')], createAccessScopeExpression('a'))),
         '(a) => a'
       );
     });
 
     it('unparses arrow fn with single rest parameter', function () {
       assert.strictEqual(
-        Unparser.unparse(new ArrowFunction([new BindingIdentifier('a')], new AccessScopeExpression('a'), true)),
+        Unparser.unparse(createArrowFunction([createBindingIdentifier('a')], createAccessScopeExpression('a'), true)),
         '(...a) => a'
       );
     });
 
     it('unparses arrow fn with 2 params', function () {
       assert.strictEqual(
-        Unparser.unparse(new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a'))),
+        Unparser.unparse(createArrowFunction([createBindingIdentifier('a'), createBindingIdentifier('b')], createAccessScopeExpression('a'))),
         '(a, b) => a'
       );
     });
 
     it('unparses arrow fn with 2 params with rest', function () {
       assert.strictEqual(
-        Unparser.unparse(new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], new AccessScopeExpression('a'), true)),
+        Unparser.unparse(createArrowFunction([createBindingIdentifier('a'), createBindingIdentifier('b')], createAccessScopeExpression('a'), true)),
         '(a, ...b) => a'
       );
     });

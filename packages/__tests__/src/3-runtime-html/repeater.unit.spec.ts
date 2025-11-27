@@ -1,5 +1,5 @@
 import { Registration, Writable } from '@aurelia/kernel';
-import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser } from '@aurelia/expression-parser';
+import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser, createAccessScopeExpression, createForOfStatement, createBindingIdentifier } from '@aurelia/expression-parser';
 import {
   DirtyChecker,
   Scope,
@@ -541,7 +541,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
           template: textTemplate.content.cloneNode(true),
           instructions: [
             [
-              new TextBindingInstruction(new AccessScopeExpression('item')),
+              new TextBindingInstruction(createAccessScopeExpression('item')),
             ],
           ],
           needsCompile: false,
@@ -552,7 +552,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         const binding: PropertyBinding = {
           target: null,
           targetProperty: 'items',
-          ast: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'), -1)
+          ast: createForOfStatement(createBindingIdentifier('item'), createAccessScopeExpression('items'), -1)
         } as any;
         const hydratable: IHydratableController = {
           bindings: [binding]

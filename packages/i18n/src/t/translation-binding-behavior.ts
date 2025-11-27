@@ -2,15 +2,15 @@ import { type Writable } from '@aurelia/kernel';
 import { type Scope } from '@aurelia/runtime';
 import { BindingBehavior, type BindingBehaviorInstance } from '@aurelia/runtime-html';
 import { type BindingWithBehavior, ValueConverters } from '../utils';
-import { type BindingBehaviorExpression, IsValueConverter, ValueConverterExpression } from '@aurelia/expression-parser';
+import { type BindingBehaviorExpression, IsValueConverter, ValueConverterExpression, createValueConverterExpression } from '@aurelia/expression-parser';
 
 export class TranslationBindingBehavior implements BindingBehaviorInstance {
 
   public bind(_scope: Scope, binding: BindingWithBehavior) {
     const expression = binding.ast.expression;
 
-    if (!(expression instanceof ValueConverterExpression)) {
-      const vcExpression = new ValueConverterExpression(expression as IsValueConverter, ValueConverters.translationValueConverterName, binding.ast.args);
+    if ((expression as ValueConverterExpression).$kind !== 'ValueConverter') {
+      const vcExpression = createValueConverterExpression(expression as IsValueConverter, ValueConverters.translationValueConverterName, binding.ast.args);
       (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
     }
   }

@@ -17,6 +17,7 @@ import {
 import {
   IExpressionParser,
   PrimitiveLiteralExpression,
+  createPrimitiveLiteral,
 } from '@aurelia/expression-parser';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -567,7 +568,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       letInstructions.push(new LetBindingInstruction(
-        expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr,
+        expr === null ? createPrimitiveLiteral(realAttrValue) : expr,
         camelCase(realAttrTarget)
       ));
     }

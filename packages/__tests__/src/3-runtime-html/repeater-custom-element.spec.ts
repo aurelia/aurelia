@@ -81,11 +81,10 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count"></foo>`,
     };
-    $it('static child content', async function ({ app, platform, host }: TestExecutionContext<App>) {
+    $it('static child content', async function ({ app, host }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
-      const q = platform.domQueue;
-      await q.yield();
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -106,9 +105,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
           </template>
         </template>`,
     };
-    $it('dynamic child content', async function ({ platform, host }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('dynamic child content', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.html.innerEqual(host, '<foo>0</foo> <foo>1</foo> <foo>2</foo>', `host.textContent`);
     }, setup);
@@ -128,9 +126,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
           <foo prop.bind="item.p"></foo>
         </template>`,
     };
-    $it('let integration', async function ({ platform, host }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('let integration', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.html.innerEqual(host, '<foo>1</foo> <foo>2</foo> <foo>3</foo>', `host.textContent`);
     }, setup);
@@ -158,9 +155,8 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
           </template>
         </template>`,
     };
-    $it('from-view integration', async function ({ platform, host }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('from-view integration', async function ({ host }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.html.innerEqual(host, '<bar>bar</bar> <foo>1</foo> <bar>bar</bar> <foo>2</foo>', `host.textContent`);
     }, setup);
@@ -183,7 +179,6 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      // await tasksSettled();
       await tasksSettled();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
@@ -303,18 +298,17 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count" todos.bind="todos"></foo>`,
     };
-    $it('repeater with custom element with repeater', async function ({ platform, host, app }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('repeater with custom element with repeater', async function ({ host, app }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'abcabcabc', `host.textContent`);
 
       app.count = 1;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
       app.count = 3;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abcabcabc', `host.textContent`);
     }, setup);
   }
@@ -331,18 +325,17 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count" todos.bind="todos"></foo>`,
     };
 
-    $it('repeater with custom element with repeater, nested arrays', async function ({ platform, host, app }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('repeater with custom element with repeater, nested arrays', async function ({ host, app }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'abcabcabcabcabcabcabcabcabc', `host.textContent`);
 
       app.count = 1;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abcabcabc', `host.textContent`);
 
       app.count = 3;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abcabcabcabcabcabcabcabcabc', `host.textContent`);
     }, setup);
   }
@@ -607,18 +600,17 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       registrations: [Foo],
       template: `<foo repeat.for="i of count & keyed" todos.bind="todos"></foo>`,
     };
-    $it('repeater with custom element with repeater', async function ({ platform, host, app }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('repeater with custom element with repeater', async function ({ host, app }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'abcabcabc', `host.textContent`);
 
       app.count = 1;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abc', `host.textContent`);
 
       app.count = 3;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abcabcabc', `host.textContent`);
     }, setup);
   }
@@ -636,18 +628,17 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count & keyed" todos.bind="todos"></foo>`,
     };
 
-    $it('repeater with custom element with repeater, nested arrays', async function ({ platform, host, app }: TestExecutionContext<App>) {
-      const q = platform.domQueue;
-      await q.yield();
+    $it('repeater with custom element with repeater, nested arrays', async function ({ host, app }: TestExecutionContext<App>) {
+      await tasksSettled();
 
       assert.strictEqual(host.textContent, 'abcabcabcabcabcabcabcabcabc', `host.textContent`);
 
       app.count = 1;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abcabcabc', `host.textContent`);
 
       app.count = 3;
-      await q.yield();
+      await tasksSettled();
       assert.strictEqual(host.textContent, 'abcabcabcabcabcabcabcabcabc', `host.textContent`);
     }, setup);
   }

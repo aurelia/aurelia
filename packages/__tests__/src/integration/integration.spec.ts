@@ -263,19 +263,19 @@ describe('integration/integration.spec.ts', function () {
       // DirtyCheckSettings.disabled = true;
       // isDirtySpy.reset();
 
-      // await platform.domQueue.yield();
+      // await taskSettled();
       // assert.equal(isDirtySpy.calls.length, 0);
 
       // DirtyCheckSettings.disabled = false;
 
       // // assert rate
-      // await platform.domQueue.yield();
+      // await taskSettled();
       // const prevCallCount = isDirtySpy.calls.length;
 
       // isDirtySpy.reset();
       // DirtyCheckSettings.timeoutsPerCheck = 2;
 
-      // await platform.domQueue.yield();
+      // await taskSettled();
       // assert.greaterThan(isDirtySpy.calls.length, prevCallCount);
       // DirtyCheckSettings.resetToDefault();
 

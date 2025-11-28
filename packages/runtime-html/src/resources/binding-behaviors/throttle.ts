@@ -1,4 +1,3 @@
-import { TaskQueue } from '@aurelia/platform';
 import { isString, IPlatform, type IDisposable, emptyArray, resolve } from '@aurelia/kernel';
 import { type Scope } from '@aurelia/runtime';
 import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';

@@ -26,7 +26,6 @@ import { assert, TestContext } from '@aurelia/testing';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { isFirefox } from '../util.js';
-import { TaskQueue } from '@aurelia/platform';
 import { tasksSettled } from '@aurelia/runtime';
 
 function join(sep: string, ...parts: string[]): string {
@@ -3336,12 +3335,12 @@ describe('router/hook-tests.spec.ts', function () {
     describe('from activation error thrown by routed VM hooks', function () {
 
       const ticks = 0;
-      function click(anchor: HTMLAnchorElement, queue: any): Promise<void> {
+      function click(anchor: HTMLAnchorElement): Promise<void> {
         anchor.click();
-        return waitForQueuedTasks(queue);
+        return waitForQueuedTasks();
       }
 
-      function waitForQueuedTasks(queue: any): Promise<void> {
+      function waitForQueuedTasks(): Promise<void> {
         return new Promise(r => setTimeout(r, 0));
       }
 
@@ -3471,14 +3470,13 @@ describe('router/hook-tests.spec.ts', function () {
           it(`error thrown from ${hook}`, async function () {
             const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
-            const queue = {};
             const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
             assert.html.textContent(host, 'a', 'load');
 
             let phase = 'round#1';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(anchorC, queue);
+            await click(anchorC);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
@@ -3489,14 +3487,14 @@ describe('router/hook-tests.spec.ts', function () {
             phase = 'round#2';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(anchorB, queue);
+            await click(anchorB);
             await router['currentTr'].promise; // actual wait is done here
             assert.html.textContent(host, 'b', `${phase} - text`);
 
             phase = 'round#3';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(anchorC, queue);
+            await click(anchorC);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
@@ -3507,7 +3505,7 @@ describe('router/hook-tests.spec.ts', function () {
             phase = 'round#4';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(anchorA, queue);
+            await click(anchorA);
             await router['currentTr'].promise; // actual wait is done here
             assert.html.textContent(host, 'a', `${phase} - text`);
 
@@ -3555,7 +3553,7 @@ describe('router/hook-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
           class Root { }
 
-          const { router, tearDown, host, container } = await createFixture(Root, [Ce1, Ce2], LogLevel.error);
+          const { router, tearDown, host } = await createFixture(Root, [Ce1, Ce2], LogLevel.error);
 
           const viewport = host.querySelector('au-viewport');
 
@@ -3845,53 +3843,52 @@ describe('router/hook-tests.spec.ts', function () {
 
             const { router, mgr, tearDown, host } = await createFixture(Root);
             const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            const queue = {};
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
             let phase = 'round#1';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(p1gc13, queue);
+            await click(p1gc13);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-1', 'gc-11', 'p-1', 'gc-13'));
 
             // p1/gc-11 -> p1/gc-12
             phase = 'round#2';
-            await click(p1gc12, queue);
+            await click(p1gc12);
             assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
 
             // p1/gc-12 -> p2/gc-22
             phase = 'round#3';
-            await click(p2gc22, queue);
+            await click(p2gc22);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
 
             // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase = 'round#4');
-            await click(p2gc23, queue);
+            await click(p2gc23);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-2', 'gc-23'));
 
             // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase = 'round#5');
-            await click(p1gc13, queue);
+            await click(p1gc13);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
 
@@ -3904,7 +3901,7 @@ describe('router/hook-tests.spec.ts', function () {
             } catch (ex) {
               /* noop */
             }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
 
@@ -3985,44 +3982,43 @@ describe('router/hook-tests.spec.ts', function () {
 
             const { router, mgr, tearDown, host } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            const queue = {};
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
             let phase = 'round#1';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(p1gc13, queue);
+            await click(p1gc13);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-1', 'gc-11', 'p-1', 'gc-13'));
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
 
             // p1/gc-11 -> p1/gc-12
             phase = 'round#2';
-            await click(p1gc12, queue);
+            await click(p1gc12);
             assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
 
             // p1/gc-12 -> p2/gc-22
             phase = 'round#3';
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            await click(p2gc22, queue);
+            await click(p2gc22);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
 
             // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase = 'round#4');
-            await click(p2gc23, queue);
+            await click(p2gc23);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-2', 'gc-23'));
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
@@ -4030,12 +4026,12 @@ describe('router/hook-tests.spec.ts', function () {
             // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase = 'round#5');
-            await click(p1gc13, queue);
+            await click(p1gc13);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
 
@@ -4136,44 +4132,43 @@ describe('router/hook-tests.spec.ts', function () {
 
             const { router, mgr, tearDown, host } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
-            const queue = {};
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
             // p1/gc-11 -> p1/gc-13 -> p1/gc-11 (restored)
             let phase = 'round#1';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(p1gc13, queue);
+            await click(p1gc13);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-1', 'gc-11', 'p-1', 'gc-13'));
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
 
             // p1/gc-11 -> p1/gc-12
             phase = 'round#2';
-            await click(p1gc12, queue);
+            await click(p1gc12);
             assert.html.textContent(host, 'p1 gc-12', `${phase} - text`);
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
 
             // p1/gc-12 -> p2/gc-22
             phase = 'round#3';
-            await click(p2gc22, queue);
+            await click(p2gc22);
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
 
             // p2/gc-22 -> p2/gc-23 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase = 'round#4');
-            await click(p2gc23, queue);
+            await click(p2gc23);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-2', 'gc-23'));
             [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
@@ -4181,12 +4176,12 @@ describe('router/hook-tests.spec.ts', function () {
             // p2/gc-22 -> p1/gc-13 -> p2/gc-22 (restored)
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase = 'round#5');
-            await click(p1gc13, queue);
+            await click(p1gc13);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase, 'p-2', 'gc-22', 'p-1', 'gc-13'));
 
@@ -4426,17 +4421,16 @@ describe('router/hook-tests.spec.ts', function () {
           it(`error thrown from ${hook}`, async function () {
             const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
-            const queue = {};
             const [ab, ac, ba, cb] = Array.from(host.querySelectorAll('a'));
 
             let phase = 'round#1';
-            await click(ab, queue);
+            await click(ab);
             assert.html.textContent(host, 'ab', `${phase} - text`);
 
             phase = 'round#2';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(ac, queue);
+            await click(ac);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
@@ -4445,13 +4439,13 @@ describe('router/hook-tests.spec.ts', function () {
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
 
             phase = 'round#3';
-            await click(ba, queue);
+            await click(ba);
             assert.html.textContent(host, 'ba', `${phase} - text`);
 
             phase = 'round#4';
             mgr.fullNotifyHistory.length = 0;
             mgr.setPrefix(phase);
-            await click(cb, queue);
+            await click(cb);
             try {
               await router['currentTr'].promise;
               assert.fail('expected error');
@@ -4955,7 +4949,6 @@ describe('router/hook-tests.spec.ts', function () {
           it(`error thrown from ${hook}`, async function () {
 
             const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
-            const queue = {};
 
             // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
             let phase = 'round#1';
@@ -4970,7 +4963,7 @@ describe('router/hook-tests.spec.ts', function () {
               await router.load('p1@$1/(gc-11@$1+gc-13@$2)+p2@$2/(gc-21@$1+gc-22@$2)');
               assert.fail(`${phase} - expected error`);
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p1 gc-11gc-12 p2 gc-21gc-22', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
 
@@ -4987,7 +4980,7 @@ describe('router/hook-tests.spec.ts', function () {
               await router.load('p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-23@$2)');
               assert.fail(`${phase} - expected error`);
             } catch { /* noop */ }
-            await waitForQueuedTasks(queue);
+            await waitForQueuedTasks();
             assert.html.textContent(host, 'p2 gc-22gc-21 p1 gc-12gc-11', `${phase} - text`);
             verifyInvocationsEqual(mgr.fullNotifyHistory, getExpectedErrorLog(phase as Phase));
 
@@ -5001,8 +4994,8 @@ describe('router/hook-tests.spec.ts', function () {
   describe('error recovery from loaded hook', function () {
     const ticks = 0;
 
-    function waitForQueuedTasks(queue: any): Promise<void> {
-      return new Promise(r => setTimeout(r, ticks));
+    function waitForQueuedTasks(): Promise<void> {
+      return new Promise(r => setTimeout(r, 0));
     }
 
     function createComponents(hookSpec: HookSpecs) {
@@ -5033,13 +5026,12 @@ describe('router/hook-tests.spec.ts', function () {
       const hookSpec = HookSpecs.create(ticks);
       const { Root, A, B } = createComponents(hookSpec);
       const { router, mgr, tearDown, host } = await createFixture(Root, [A, B]);
-      const queue = {};
 
       let phase = 'round#1';
       mgr.fullNotifyHistory.length = 0;
       mgr.setPrefix(phase);
       await router.load('a');
-      await waitForQueuedTasks(queue);
+      await waitForQueuedTasks();
       assert.html.textContent(host, 'a', `${phase} - text`);
 
       phase = 'round#2';
@@ -5051,7 +5043,7 @@ describe('router/hook-tests.spec.ts', function () {
       } catch (err) {
         assert.match((err as Error).message, /loaded hook failure/, `${phase} - should propagate loaded hook error`);
       }
-      await waitForQueuedTasks(queue);
+      await waitForQueuedTasks();
 
       assert.html.textContent(host, 'a', `${phase} - text`);
       const history = mgr.fullNotifyHistory.slice();

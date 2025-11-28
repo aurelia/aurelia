@@ -79,12 +79,6 @@ export class Aurelia implements IDisposable {
     return onResolve(appRoot.activate(), () => appRoot);
   }
 
-  public async waitForIdle(): Promise<void> {
-    // const platform = this.root.platform;
-    // await platform.domQueue.yield();
-    // await platform.taskQueue.yield();
-  }
-
   /** @internal */
   private _startPromise: Promise<void> | void = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {

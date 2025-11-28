@@ -67,6 +67,10 @@ export {
   Step,
 } from './utilities/runner';
 
+export {
+  IAnimationFrameQueue,
+} from './utilities/animation-frame-queue';
+
 // export {
 //   QueueItem,
 //   IQueueOptions,

@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration, RoutingInstruction } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration, RoutingInstruction } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.with-configuration.spec.ts', function () {
@@ -190,9 +190,10 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   };
   for (const test of tests) {
     it(`to load route ${test.path} => ${test.url}`, async function () {
-      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const queue = container.get(IAnimationFrameQueue);
 
-      await $load(test.path, router, platform);
+      await $load(test.path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
       assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -201,10 +202,11 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     });
   }
   it(`to load above routes in sequence`, async function () {
-    const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const queue = container.get(IAnimationFrameQueue);
 
     for (const test of tests) {
-      await $load(test.path, router, platform);
+      await $load(test.path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
       assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -217,9 +219,10 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     const url = test.url.replace(/@\w+/g, '');
     const title = test.title.replace(/@Parent/g, '');
     it(`to load route ${path} => ${url}`, async function () {
-      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const queue = container.get(IAnimationFrameQueue);
 
-      await $load(path, router, platform);
+      await $load(path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${url}`, 'location.path');
       assert.strictEqual(browserTitle, title, 'browser.title');
@@ -228,13 +231,14 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     });
   }
   it(`to load above routes in sequence`, async function () {
-    const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const queue = container.get(IAnimationFrameQueue);
 
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
       const url = test.url.replace(/@\w+/g, '');
       const title = test.title.replace(/@Parent/g, '');
-      await $load(path, router, platform);
+      await $load(path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${url}`, 'location.path');
       assert.strictEqual(browserTitle, title, 'browser.title');
@@ -245,7 +249,8 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   let removedViewports = false;
   for (const test of tests) {
     it(`to load route (without viewports) ${test.path} => ${test.url}`, async function () {
-      const { platform, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { container, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const queue = container.get(IAnimationFrameQueue);
 
       if (!removedViewports) {
         removedViewports = true;
@@ -256,7 +261,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
         }
       }
 
-      await $load(test.path, router, platform);
+      await $load(test.path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
       assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -266,10 +271,11 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   }
 
   it(`to load above routes (without viewports) in sequence`, async function () {
-    const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const queue = container.get(IAnimationFrameQueue);
 
     for (const test of tests) {
-      await $load(test.path, router, platform);
+      await $load(test.path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
       assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -282,9 +288,10 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     const url = test.url.replace(/@\w+/g, '');
     const title = test.title.replace(/@Parent/g, '');
     it(`to load route (without viewports) ${path} => ${url}`, async function () {
-      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const queue = container.get(IAnimationFrameQueue);
 
-      await $load(path, router, platform);
+      await $load(path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${url}`, 'location.path');
       assert.strictEqual(browserTitle, title, 'browser.title');
@@ -293,13 +300,14 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     });
   }
   it(`to load above routes (without viewports) in sequence`, async function () {
-    const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+    const queue = container.get(IAnimationFrameQueue);
 
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
       const url = test.url.replace(/@\w+/g, '');
       const title = test.title.replace(/@Parent/g, '');
-      await $load(path, router, platform);
+      await $load(path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       assert.strictEqual(locationPath, `#/${url}`, 'location.path');
       assert.strictEqual(browserTitle, title, 'browser.title');
@@ -308,7 +316,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.queue.flush();
 };

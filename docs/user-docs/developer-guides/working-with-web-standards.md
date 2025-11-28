@@ -1422,7 +1422,7 @@ You can freely mix Aurelia's reactive system with direct DOM manipulation, web A
 
 Now let's explore how to combine web standards with Aurelia's advanced internal features for even more powerful patterns.
 
-### Using TaskQueue for Coordinated DOM Updates
+### Using task queue functions for Coordinated DOM Updates
 
 Aurelia's task queue system (from `@aurelia/runtime`) lets you schedule work to run after the current rendering cycle completes. This is perfect for coordinating web API operations with Aurelia's update cycle.
 

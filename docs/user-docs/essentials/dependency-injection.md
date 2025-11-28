@@ -174,7 +174,7 @@ The DI container ships a set of resolver helpers in `@aurelia/kernel`. Resolvers
 | `last(key)` | `resolve(last(ISink))` | Grabs the most recently registered instance. |
 | `lazy(key)` | `resolve(lazy(IHttpClient))` | Injects a function that resolves the dependency on demand. |
 | `optional(key)` / `own(key)` | `resolve(optional(IMaybeService))` | Returns `undefined` (or the child container value) when nothing is registered. |
-| `factory(key)` | `resolve(factory(TaskQueue))` | Gives you a function that constructs the service manually (passing constructor args if needed). |
+| `factory(key)` | `resolve(factory(MyModelClass))` | Gives you a function that constructs the service manually (passing constructor args if needed). |
 | `newInstanceForScope(key)` | `resolve(newInstanceForScope(IValidationController))` | Creates and registers a brand-new instance in the current component scope, making it available to descendants via `resolve(IValidationController)`. |
 | `newInstanceOf(Type)` | `resolve(newInstanceOf(Logger))` | Constructs a fresh instance of a concrete class or interface implementation without polluting the container. |
 | `resource(key)` / `optionalResource(key)` / `allResources(key)` | `resolve(optionalResource(MyElement))` | Resolves using resource semantics (look in the current component first, then root) which is handy for templating resources. |

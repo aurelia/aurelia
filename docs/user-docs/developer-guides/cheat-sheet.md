@@ -15,7 +15,7 @@ A quick reference for different aspects of Aurelia with minimal explanation.
 | Bootstrapping | `aurelia.use.standardConfiguration().feature(...).start().then(() => aurelia.setRoot())` | `Aurelia.register(...).app(AppRoot).start()` | The `aurelia` package already registers `StandardConfiguration` plus a `BrowserPlatform`-backed `IPlatform`. Call `app()` with a component type or `{ host, component }`. |
 | Router | `<router-view>` + `configureRouter` | `<au-viewport>` + `static routes`/`@route` + `RouterConfiguration` | Router resources (viewport element, `load`/`href` attributes) live in `@aurelia/router`. Route lifecycle hooks are instance methods (`canLoad`, `loading`, `canUnload`, `unloading`). |
 | Compose | `<compose view-model="'./path'" ...>` | `<au-compose component.bind="ImportedType" template.bind="htmlString">` | String-based module IDs and `PLATFORM.moduleName` are gone. Import classes directly or use `() => import('./module')` factories. |
-| Task queue | `TaskQueue` from `aurelia-task-queue` | `resolve(IPlatform).taskQueue` / `.domQueue` + `Aurelia.waitForIdle()` | `BrowserPlatform` exposes macro and DOM queues. `waitForIdle()` awaits both for deterministic tests. |
+| Task queue | `TaskQueue` from `aurelia-task-queue` | `queueTask` + `queueAsyncTask` + `queueRecurringTask` + `runTasks` | `runTasks` also runs recurring tasks, but wont stop it from running in the next interval |
 | Compatibility gap | `aurelia.use.plugin('@aurelia/compat-v1')` | `Aurelia.register(compatRegistration)` | `@aurelia/compat-v1` turns on `delegate`/`call`, `.call` bindings, `BindingEngine`, `inlineView`, and compose aliases so AU1 templates run while you migrate. |
 
 ## Bootstrapping
@@ -229,7 +229,7 @@ await new Aurelia(container).app({
 ### AppTask lifecycle hooks and deterministic teardown
 
 ```typescript
-import { Aurelia, AppTask, IWindow } from 'aurelia';
+import { Aurelia, AppTask, IWindow, runTasks } from 'aurelia';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
 
 const au = new Aurelia();
@@ -245,11 +245,11 @@ await au
   .app({ host: document.querySelector('app-root')!, component: AppRoot })
   .start();
 
-await au.waitForIdle();
+await tasksSettled();
 await au.stop(true);
 ```
 
-`AppTask` is implemented in `packages/runtime-html/src/app-task.ts` and exposes the same lifecycle slots that `RouterConfiguration` uses internally. `Aurelia.waitForIdle()` waits for both `IPlatform.domQueue` and `IPlatform.taskQueue` to empty, so tests can flush work deterministically.
+`AppTask` is implemented in `packages/runtime-html/src/app-task.ts` and exposes the same lifecycle slots that `RouterConfiguration` uses internally. `tasksSettled` waits for all tasks to be run first, so tests can flush work deterministically.
 
 ### compat-v1 bridge while migrating
 
@@ -895,13 +895,14 @@ export class MyComponent {
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
+import { queueAsyncTask, runTasks } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export class MyComponent {
   private readonly platform = resolve(IPlatform);
 
   loading(params) {
-    this.loadDataTask = this.platform.taskQueue.queueTask(async () => {
+    this.loadDataTask = queueAsyncTask(async () => {
       this.data = await loadData(params.id);
       this.loadDataTask = null;
     });
@@ -913,17 +914,12 @@ export class MyComponent {
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 // Await all pending tasks (useful in unit, integration and e2e tests)
-const platform = resolve(IPlatform);
-await Promise.all([
-  platform.taskQueue.yield(),
-  platform.domQueue.yield(),
-]);
+await tasksSettled();
 ```
-
-In the future, time-slicing will be enabled via these TaskQueue APIs as well, which will allow you to easily chunk work that's been dispatched via the task queues.
 
 ## Router & Navigation
 

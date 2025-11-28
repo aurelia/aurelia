@@ -24,6 +24,7 @@ A dropdown menu that supports:
 ```typescript
 import { bindable, IEventAggregator } from 'aurelia';
 import { resolve } from '@aurelia/kernel';
+import { queueTask } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export class DropdownMenu {
@@ -126,8 +127,8 @@ export class DropdownMenu {
   }
 
   private focusFirstItem() {
-    // Use platform.taskQueue to ensure DOM is updated
-    this.platform.taskQueue.queueTask(() => {
+    // Use tasksSettled to ensure DOM is updated
+    queueTask(() => {
       const firstItem = this.menuElement?.querySelector('[role="menuitem"]') as HTMLElement;
       firstItem?.focus();
     });

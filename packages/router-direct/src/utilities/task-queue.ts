@@ -4,8 +4,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { ITask } from '@aurelia/platform';
-import { TaskQueue as PlatformTaskQueue } from './abstract-task-queue';
+import { ITask, TaskQueue as PlatformTaskQueue } from './abstract-task-queue';
 
 /**
  * @internal

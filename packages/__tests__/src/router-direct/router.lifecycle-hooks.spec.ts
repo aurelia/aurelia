@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform, lifecycleHooks } from '@aurelia/runtime-html';
+import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement, lifecycleHooks } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
@@ -224,15 +224,16 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
       }
 
       it(`with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const queue = container.get(IAnimationFrameQueue);
 
         const expected = _expected(config);
 
-        await $load('/my-one', router, platform);
+        await $load('/my-one', router, queue);
 
-        await $load('/my-two', router, platform);
+        await $load('/my-two', router, queue);
 
-        await $load('-', router, platform);
+        await $load('-', router, queue);
 
         assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
 
@@ -272,11 +273,12 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
       }
 
       it(`in parent-child with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const queue = container.get(IAnimationFrameQueue);
 
-        await $load('/my-one/my-two', router, platform);
+        await $load('/my-one/my-two', router, queue);
 
-        await $load('-', router, platform);
+        await $load('-', router, queue);
 
         const expected = _expected(config);
 
@@ -442,15 +444,16 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
         return expected;
       }
       it(`with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const queue = container.get(IAnimationFrameQueue);
 
         const expected = _expected(config);
 
-        await $load('/my-one', router, platform);
+        await $load('/my-one', router, queue);
 
-        await $load('/my-two', router, platform);
+        await $load('/my-two', router, queue);
 
-        await $load('-', router, platform);
+        await $load('-', router, queue);
 
         assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
 
@@ -489,10 +492,11 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
       }
 
       it(`in parent-child with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
+        const queue = container.get(IAnimationFrameQueue);
 
-        await $load('/my-one/my-two', router, platform);
-        await $load('-', router, platform);
+        await $load('/my-one/my-two', router, queue);
+        await $load('-', router, queue);
 
         const expected = _expected(config);
 
@@ -504,7 +508,7 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.queue.flush();
 };

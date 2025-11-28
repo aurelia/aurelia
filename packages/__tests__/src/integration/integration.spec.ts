@@ -285,7 +285,7 @@ describe('integration/integration.spec.ts', function () {
       // user.arr.indeterminate = newValue;
 
       // // await `DirtyCheckSettings.timeoutsPerCheck` frames (domWriteQueue.yield only awaits one persistent loop)
-      // await platform.domQueue.yield(DirtyCheckSettings.timeoutsPerCheck);
+      // await tasksSettled();
       // assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
       // assert.equal(flushSpy.calls.length, 1);
     }, { method, componentMode });

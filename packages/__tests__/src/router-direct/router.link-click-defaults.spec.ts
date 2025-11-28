@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.link-click-defaults.spec.ts', function () {
@@ -142,15 +142,16 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
     it(`can load all components, including defaults, for link "${test.load}"`, async function () {
-      const { platform, host, router, $teardown } = await $setup({}, [Nav, Parent, Child, GrandChild]);
+      const { container, host, router, $teardown } = await $setup({}, [Nav, Parent, Child, GrandChild]);
+      const queue = container.get(IAnimationFrameQueue);
 
-      await $load('/nav', router, platform);
-      await platform.domQueue.yield();
+      await $load('/nav', router, queue);
+      await queue.queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domQueue.yield();
+      await queue.queue.yield();
 
       await new Promise((resolve) => { setTimeout(() => resolve(0), 200); });
 
@@ -164,7 +165,7 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.queue.flush();
 };

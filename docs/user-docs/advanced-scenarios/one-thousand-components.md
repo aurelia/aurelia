@@ -235,7 +235,7 @@ export class Point {
 
 ```typescript
 // src/app.ts
-import { IPlatform, resolve } from 'aurelia';
+import { IPlatform, resolve, queueRecurringTask } from 'aurelia';
 import { Point } from './point';
 import { Phyllotaxis, Grid, Wave, Spiral } from './layouts';
 
@@ -246,12 +246,12 @@ export class App {
 
   attaching() {
     // Schedule RAF updates
-    this.platform.domQueue.queueTask(
+    queueRecurringTask(
       () => {
         Point.update();
         this.points.forEach(point => point.flushRAF());
       },
-      { persistent: true }
+      { interval: 16 }
     );
   }
 
@@ -530,7 +530,7 @@ points.forEach((point, i) => {
 ✅ **Good:**
 ```typescript
 // Batch updates in single frame
-this.platform.domQueue.queueTask(() => {
+batch(() => {
   points.forEach((point, i) => {
     point.x = calculateX(i);
   });
@@ -580,7 +580,7 @@ detaching() {
 ## Key Takeaways
 
 1. **Pre-compute when possible** - Don't calculate in getter
-2. **Batch DOM updates** - Use RAF or platform.domQueue
+2. **Batch updates** - Use `batch`
 3. **Profile religiously** - Measure, don't guess
 4. **Consider alternatives** - Canvas for 50k+ elements
 5. **Smart data structures** - Object pools, efficient arrays

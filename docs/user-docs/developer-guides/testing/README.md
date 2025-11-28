@@ -456,7 +456,7 @@ const { component, platform, assertText } = await createFixture
     message = 'initial';
 
     updateMessage() {
-      platform.taskQueue.queueTask(() => {
+      queueTask(() => {
         this.message = 'updated';
       });
     }
@@ -468,7 +468,7 @@ const { component, platform, assertText } = await createFixture
 component.updateMessage();
 assertText('initial'); // Not updated yet
 
-await platform.taskQueue.yield();
+await tasksSettled();
 assertText('updated'); // Now updated
 ```
 
@@ -1020,10 +1020,10 @@ const { component, platform, assertText } = fixture;
 component.value = 'new';
 
 // Option 1: Wait for task queue
-await platform.taskQueue.yield();
+await tasksSettled();
 
-// Option 2: Use platform.domQueue
-await platform.domQueue.yield();
+// Option 2: flush straight away
+await runTasks();
 
 assertText('new');
 ```

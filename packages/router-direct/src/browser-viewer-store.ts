@@ -1,9 +1,9 @@
-import { TaskQueue as PlatformTaskQueue } from './utilities/abstract-task-queue';
 import { EventAggregator, IEventAggregator, resolve } from '@aurelia/kernel';
-import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
+import { IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
 import { QueueTask, TaskQueue } from './utilities/task-queue';
 import { ErrorNames, createMappedError } from './errors';
+import { IAnimationFrameQueue } from './utilities/animation-frame-queue';
 
 /**
  * @internal
@@ -61,11 +61,11 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
    */
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
 
-  private readonly platform: IPlatform = resolve(IPlatform);
   private readonly window: IWindow = resolve(IWindow);
   private readonly history: IHistory = resolve(IHistory);
   private readonly location: ILocation = resolve(ILocation);
   private readonly ea: EventAggregator = resolve(IEventAggregator);
+  private readonly domQueue = resolve(IAnimationFrameQueue).queue;
 
   public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {
@@ -76,38 +76,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
 
-    const domQueue = (() => {
-      let domRequested: boolean = false;
-      let domHandle: number = -1;
-
-      const requestDomFlush = (): void => {
-        domRequested = true;
-        if (domHandle === -1) {
-          domHandle = this.platform.requestAnimationFrame(flushDomQueue);
-        }
-      };
-
-      const cancelDomFlush = (): void => {
-        domRequested = false;
-        if (domHandle > -1) {
-          this.platform.cancelAnimationFrame(domHandle);
-          domHandle = -1;
-        }
-      };
-
-      const flushDomQueue = (): void => {
-        domHandle = -1;
-        if (domRequested === true) {
-          domRequested = false;
-          domQueue.flush();
-        }
-      };
-
-      const domQueue = new PlatformTaskQueue(this.platform, requestDomFlush, cancelDomFlush);
-      return domQueue;
-    })();
-
-    this.pendingCalls.start({ queue: domQueue, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.pendingCalls.start({ queue: this.domQueue, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this);
   }
 

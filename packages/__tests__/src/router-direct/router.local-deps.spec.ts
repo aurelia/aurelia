@@ -1,5 +1,5 @@
-import { IRouter, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IAnimationFrameQueue, IRouter, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.local-deps.spec.ts', function () {
@@ -41,11 +41,12 @@ describe('router-direct/router.local-deps.spec.ts', function () {
   it('verify that the test isn\'t broken', async function () {
     const Local = CustomElement.define({ name: 'local', template: 'local' }, null);
     const Global = CustomElement.define({ name: 'global', template: 'global' }, null);
-    const { platform, container, host, router, $teardown } = await $setup([Local]);
+    const { container, host, router, $teardown } = await $setup([Local]);
+    const queue = container.get(IAnimationFrameQueue);
 
     container.register(Global);
 
-    await $load('global', router, platform);
+    await $load('global', router, queue);
 
     assert.match(host.textContent, /.*global.*/, `host.textContent`);
 
@@ -54,9 +55,10 @@ describe('router-direct/router.local-deps.spec.ts', function () {
 
   it('navigates to locally registered dep', async function () {
     const Local = CustomElement.define({ name: 'local', template: 'local' }, null);
-    const { platform, host, router, $teardown } = await $setup([Local]);
+    const { container, host, router, $teardown } = await $setup([Local]);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local', router, platform);
+    await $load('local', router, queue);
 
     assert.match(host.textContent, /.*local.*/, `host.textContent`);
 
@@ -66,9 +68,10 @@ describe('router-direct/router.local-deps.spec.ts', function () {
   it('navigates to locally registered dep - nested', async function () {
     const Local2 = CustomElement.define({ name: 'local2', template: 'local2' }, class { });
     const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Local2] }, null);
-    const { platform, host, router, $teardown } = await $setup([Local1]);
+    const { container, host, router, $teardown } = await $setup([Local1]);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local1/local2', router, platform);
+    await $load('local1/local2', router, queue);
 
     assert.match(host.textContent, /.*local1.*local2.*/, `host.textContent`);
 
@@ -79,10 +82,11 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Global3 = CustomElement.define({ name: 'global3', template: 'global3' }, null);
     const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="global3"></au-viewport>' }, null);
     const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-    const { platform, host, router, container, $teardown } = await $setup([Local1]);
+    const { host, router, container, $teardown } = await $setup([Local1]);
     container.register(Global3);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local1/local2/global3', router, platform);
+    await $load('local1/local2/global3', router, queue);
 
     assert.match(host.textContent, /.*local1.*local2.*global3.*/, `host.textContent`);
 
@@ -93,10 +97,11 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Local3 = CustomElement.define({ name: 'local3', template: 'local3' }, null);
     const Global2 = CustomElement.define({ name: 'global2', template: 'global2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
     const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="global2"></au-viewport>' }, null);
-    const { platform, host, router, container, $teardown } = await $setup([Local1]);
+    const { host, router, container, $teardown } = await $setup([Local1]);
     container.register(Global2);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local1/global2/local3', router, platform);
+    await $load('local1/global2/local3', router, queue);
 
     assert.match(host.textContent, /.*local1.*global2.*local3.*/, `host.textContent`);
 
@@ -107,10 +112,11 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Local3 = CustomElement.define({ name: 'local3', template: 'local3' }, null);
     const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
     const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-    const { platform, host, router, container, $teardown } = await $setup();
+    const { host, router, container, $teardown } = await $setup();
     container.register(Global1);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('global1/local2/local3', router, platform);
+    await $load('global1/local2/local3', router, queue);
 
     assert.match(host.textContent, /.*global1.*local2.*local3.*/, `host.textContent`);
 
@@ -121,9 +127,10 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Local3 = CustomElement.define({ name: 'local3', template: 'local3' }, null);
     const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
     const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-    const { platform, host, router, $teardown } = await $setup([Local1]);
+    const { container, host, router, $teardown } = await $setup([Local1]);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local1/local2/local3', router, platform);
+    await $load('local1/local2/local3', router, queue);
 
     assert.match(host.textContent, /.*local1.*local2.*local3.*/, `host.textContent`);
 
@@ -135,13 +142,14 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
     const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2' }, null);
     const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-    const { platform, host, router, $teardown } = await $setup([Local1, Local2]);
+    const { container, host, router, $teardown } = await $setup([Local1, Local2]);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local1@default/conflict@one', router, platform);
+    await $load('local1@default/conflict@one', router, queue);
 
     assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
 
-    await $load('local2@default/conflict@two', router, platform);
+    await $load('local2@default/conflict@two', router, queue);
 
     assert.match(host.textContent, /.*local2.*conflict2.*/, `host.textContent`);
 
@@ -153,14 +161,15 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
     const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2' }, null);
     const Global2 = CustomElement.define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-    const { platform, host, router, container, $teardown } = await $setup();
+    const { host, router, container, $teardown } = await $setup();
     container.register(Global1, Global2);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('global1@default/conflict@one', router, platform);
+    await $load('global1@default/conflict@one', router, queue);
 
     assert.match(host.textContent, /.*global1.*conflict1.*/, `host.textContent`);
 
-    await $load('global2@default/conflict@two', router, platform);
+    await $load('global2@default/conflict@two', router, queue);
 
     assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
 
@@ -172,14 +181,15 @@ describe('router-direct/router.local-deps.spec.ts', function () {
     const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
     const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2' }, null);
     const Global2 = CustomElement.define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-    const { platform, host, router, container, $teardown } = await $setup([Local1]);
+    const { host, router, container, $teardown } = await $setup([Local1]);
     container.register(Global2);
+    const queue = container.get(IAnimationFrameQueue);
 
-    await $load('local1@default/conflict@one', router, platform);
+    await $load('local1@default/conflict@one', router, queue);
 
     assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
 
-    await $load('global2@default/conflict@two', router, platform);
+    await $load('global2@default/conflict@two', router, queue);
 
     assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
 
@@ -241,10 +251,11 @@ describe('router-direct/router.local-deps.spec.ts', function () {
         const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
         const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
         const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-        const { platform, host, router, container, $teardown } = await $setup([Local2]);
+        const { host, router, container, $teardown } = await $setup([Local2]);
         container.register(Global1);
+        const queue = container.get(IAnimationFrameQueue);
 
-        await $load(path, router, platform);
+        await $load(path, router, queue);
 
         assert.match(host.textContent, expectedText, `host.textContent`);
 
@@ -254,7 +265,7 @@ describe('router-direct/router.local-deps.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.queue.flush();
 };

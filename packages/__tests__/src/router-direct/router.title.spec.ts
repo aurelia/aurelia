@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, ITitleOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, ITitleOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.title.spec.ts', function () {
@@ -235,9 +235,10 @@ describe('router-direct/router.title.spec.ts', function () {
     for (let j = 0; j < tests.length; j++) {
       const test = tests[j];
       it(`to load route ${test.path} (${JSON.stringify(config)}) => ${test.url}, "${titles[i][j]}"`, async function () {
-        const { platform, host, router, $teardown } = await $setup({ title: config }, appDependencies, appRoutes, locationCallback);
+        const { container, host, router, $teardown } = await $setup({ title: config }, appDependencies, appRoutes, locationCallback);
+        const queue = container.get(IAnimationFrameQueue);
 
-        await $load(test.path, router, platform);
+        await $load(test.path, router, queue);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         assert.strictEqual(browserTitle, titles[i][j], 'browser.title');
@@ -248,7 +249,7 @@ describe('router-direct/router.title.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.queue.flush();
 };

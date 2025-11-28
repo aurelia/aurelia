@@ -14,11 +14,9 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
   };
   /** @internal */
   private readonly _now: () => number;
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
 
   public constructor() {
-    ({ performanceNow: this._now, taskQueue: this._taskQueue } = resolve(IPlatform));
+    ({ performanceNow: this._now } = resolve(IPlatform));
   }
 
   public bind(scope: Scope, binding: IBinding, delay?: number, signals?: string | string[]) {

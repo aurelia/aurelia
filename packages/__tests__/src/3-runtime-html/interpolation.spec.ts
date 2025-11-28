@@ -5,7 +5,7 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression } from '@aurelia/expression-parser';
+import { Interpolation, ConditionalExpression, AccessScopeExpression, createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
 import {
   BindingMode,
   CustomElement,
@@ -27,6 +27,19 @@ type CaseType = {
   it: string;
   only?: boolean;
 };
+
+function createInterpolationBinding(
+  controller: { state: number },
+  container: any,
+  observerLocator: any,
+  interpolation: Interpolation,
+  target: object,
+  targetProperty: string,
+  mode: BindingMode,
+  strict: boolean,
+) {
+  return new InterpolationBinding(controller as any, container, observerLocator, interpolation, target, targetProperty, mode, strict);
+}
 
 const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
@@ -330,16 +343,16 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       it('handles single', async function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const interpolation = new Interpolation(
+        const interpolation = createInterpolation(
           ['', ''],
-          [new ConditionalExpression(
-            new AccessScopeExpression('checked'),
-            new AccessScopeExpression('yesMsg'),
-            new AccessScopeExpression('noMsg'),
+          [createConditionalExpression(
+            createAccessScopeExpression('checked'),
+            createAccessScopeExpression('yesMsg'),
+            createAccessScopeExpression('noMsg'),
           )]
         );
         const target = { value: '' };
-        const binding = new InterpolationBinding(
+        const binding = createInterpolationBinding(
           { state: 0 },
           container,
           observerLocator,
@@ -411,23 +424,23 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       it('handles multiple', async function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const interpolation = new Interpolation(
+        const interpolation = createInterpolation(
           ['', '--', ''],
           [
-            new ConditionalExpression(
-              new AccessScopeExpression('checked1'),
-              new AccessScopeExpression('yes1'),
-              new AccessScopeExpression('no1'),
+            createConditionalExpression(
+              createAccessScopeExpression('checked1'),
+              createAccessScopeExpression('yes1'),
+              createAccessScopeExpression('no1'),
             ),
-            new ConditionalExpression(
-              new AccessScopeExpression('checked2'),
-              new AccessScopeExpression('yes2'),
-              new AccessScopeExpression('no2'),
+            createConditionalExpression(
+              createAccessScopeExpression('checked2'),
+              createAccessScopeExpression('yes2'),
+              createAccessScopeExpression('no2'),
             )
           ]
         );
         const target = { value: '' };
-        const binding = new InterpolationBinding(
+        const binding = createInterpolationBinding(
           { state: 0 },
           container,
           observerLocator,

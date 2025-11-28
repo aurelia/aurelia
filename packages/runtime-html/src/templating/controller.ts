@@ -14,7 +14,7 @@ import {
   isPromise,
   isString,
 } from '@aurelia/kernel';
-import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@aurelia/expression-parser';
+import { IExpressionParser, IsBindingBehavior, AccessScopeExpression, createAccessScopeExpression } from '@aurelia/expression-parser';
 import {
   ICoercionConfiguration,
   IObserverLocator,
@@ -1281,7 +1281,7 @@ const AccessScopeAstMap = new Map<PropertyKey, AccessScopeExpression>();
 const getAccessScopeAst = (key: PropertyKey) => {
   let ast = AccessScopeAstMap.get(key);
   if (ast == null) {
-    ast = new AccessScopeExpression(key as string, 0);
+    ast = createAccessScopeExpression(key as string, 0);
     AccessScopeAstMap.set(key, ast);
   }
   return ast;

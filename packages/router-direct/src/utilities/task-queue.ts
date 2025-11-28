@@ -4,7 +4,8 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { ITask, TaskQueue as PlatformTaskQueue } from './abstract-task-queue';
+import { ITask } from './abstract-task-queue';
+import { IDomQueue } from './dom-queue';
 
 /**
  * @internal
@@ -55,7 +56,7 @@ export class QueueTask<T> {
 }
 
 export interface ITaskQueueOptions {
-  queue: PlatformTaskQueue;
+  queue: IDomQueue;
   allowedExecutionCostWithinTick: number;
 }
 

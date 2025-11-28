@@ -65,7 +65,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
   private readonly history: IHistory = resolve(IHistory);
   private readonly location: ILocation = resolve(ILocation);
   private readonly ea: EventAggregator = resolve(IEventAggregator);
-  private readonly domQueue = resolve(IDomQueue).queue;
+  private readonly domQueue = resolve(IDomQueue);
 
   public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {

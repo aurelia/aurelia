@@ -121,13 +121,13 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       return;
     }
     this._targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
-    this._store.subscribe(this);
     this.updateTarget(this._value = astEvaluate(
       this.ast,
       this._scope = createStateBindingScope(this._store.getState(), _scope),
       this,
       this.mode > BindingMode.oneTime ? this : null),
     );
+    this._store.subscribe(this);
     this.isBound = true;
   }
 

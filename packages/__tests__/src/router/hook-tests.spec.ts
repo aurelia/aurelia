@@ -3342,9 +3342,7 @@ describe('router/hook-tests.spec.ts', function () {
       }
 
       function waitForQueuedTasks(queue: any): Promise<void> {
-        // queue.queueTask(() => Promise.resolve());
-        // return queue.yield();
-        return Promise.resolve().then(() => {});
+        return new Promise(r => setTimeout(r, 0));
       }
 
       describe('single level - single viewport', function () {
@@ -5004,8 +5002,7 @@ describe('router/hook-tests.spec.ts', function () {
     const ticks = 0;
 
     function waitForQueuedTasks(queue: any): Promise<void> {
-      queue.queueTask(() => Promise.resolve());
-      return Promise.resolve();
+      return new Promise(r => setTimeout(r, ticks));
     }
 
     function createComponents(hookSpec: HookSpecs) {

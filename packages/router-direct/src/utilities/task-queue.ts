@@ -4,21 +4,22 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { ITask, TaskQueue as PlatformTaskQueue } from '@aurelia/platform';
+import { ITask } from '@aurelia/platform';
+import { TaskQueue as PlatformTaskQueue } from './abstract-task-queue';
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export interface IQueueableItem<T> {
   execute: ((task: QueueTask<IQueueableItem<T>>) => void | Promise<void>);
 }
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>);
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export class QueueTask<T> {
   public done: boolean = false;
@@ -70,7 +71,7 @@ export interface ITaskQueueOptions {
  * (arbitrary) execution cost and the queue can be set up (started) to
  * only process a specific amount of execution cost per RAF/tick.
  *
- * @internal - Shouldn't be used directly.
+ * @internal
  */
 export class TaskQueue<T> {
   public get isActive(): boolean {
@@ -111,6 +112,7 @@ export class TaskQueue<T> {
     const items: (IQueueableItem<T> | QueueTask<T>)[] = (list ? itemOrItems : [itemOrItems]) as (IQueueableItem<T> | QueueTask<T>)[];
     const costs: number[] = items
       .map((value: IQueueableItem<T> | QueueTask<T>, index: number): number | undefined => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       .map((value: number | undefined): number => value !== undefined ? value : 1);
     const tasks: QueueTask<T>[] = [];
     for (const item of items) {
@@ -140,6 +142,7 @@ export class TaskQueue<T> {
     if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
       return;
     }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     this.processing = this.pending.shift() || null;
     if (this.processing) {
       this.currentExecutionCostInCurrentTick += this.processing.cost ?? 0;

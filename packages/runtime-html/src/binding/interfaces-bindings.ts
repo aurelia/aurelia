@@ -1,4 +1,3 @@
-import { TaskQueue } from '@aurelia/platform';
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { type Scope } from '@aurelia/runtime';
 import { BindingMode } from '@aurelia/template-compiler';

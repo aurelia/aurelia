@@ -23,7 +23,6 @@
  * IN THE SOFTWARE.
  */
 
-import { Task, TaskQueue, reportTaskQueue } from '@aurelia/platform';
 import { IIndexable } from '@aurelia/kernel';
 import {
   isDeepEqual,
@@ -764,68 +763,8 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
 }
 
 const areTaskQueuesEmpty = (function () {
-  function round(num: number) {
-    return ((num * 10 + .5) | 0) / 10;
-  }
-
-  function reportTask(task: Task) {
-    const id = task.id;
-    const created = round(task.createdTime);
-    const queue = round(task.queueTime);
-    const preempt = task.preempt;
-    const persistent = task.persistent;
-    const status = task.status;
-
-    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} persistent=${persistent} status=${status}\n`
-      + `    task callback="${task.callback?.toString()}"`;
-  }
-
-  function $reportTaskQueue(name: string, taskQueue: TaskQueue) {
-    const { processing, pending, delayed, flushRequested: flushReq } = reportTaskQueue(taskQueue);
-
-    let info = `${name} has processing=${processing.length} pending=${pending.length} delayed=${delayed.length} flushRequested=${flushReq}\n\n`;
-    if (processing.length > 0) {
-      info += `  Tasks in processing:\n${processing.map(reportTask).join('')}`;
-    }
-    if (pending.length > 0) {
-      info += `  Tasks in pending:\n${pending.map(reportTask).join('')}`;
-    }
-    if (delayed.length > 0) {
-      info += `  Tasks in delayed:\n${delayed.map(reportTask).join('')}`;
-    }
-
-    return info;
-  }
-
   return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
-    // const platform = BrowserPlatform.getOrCreate(globalThis)!;
-
-    // const domQueue = platform.domQueue;
-    // const taskQueue = platform.taskQueue;
-
-    // let isEmpty = true;
-    // let message = '';
-    // if (!domQueue.isEmpty) {
-    //   message += `\n${$reportTaskQueue('domQueue', domQueue)}\n\n`;
-    //   isEmpty = false;
-    // }
-    // if (!taskQueue.isEmpty) {
-    //   message += `\n${$reportTaskQueue('taskQueue', taskQueue)}\n\n`;
-    //   isEmpty = false;
-    // }
-
-    // if (!isEmpty) {
-    //   if (clearBeforeThrow === true) {
-    //     ensureTaskQueuesEmpty(platform);
-    //   }
-    //   innerFail({
-    //     actual: void 0,
-    //     expected: void 0,
-    //     message,
-    //     operator: '' as any,
-    //     stackStartFn: $areTaskQueuesEmpty
-    //   });
-    // }
+    // empty
   };
 })();
 

@@ -3675,7 +3675,7 @@ describe('router/smoke-tests.spec.ts', function () {
     assert.match(anchor.href, /#\/c1\/42\?foo=bar$/);
 
     anchor.click();
-    await new Promise(r => setTimeout(r, 0));
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment:');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3710,7 +3710,7 @@ describe('router/smoke-tests.spec.ts', function () {
     const { host, container } = await start({ appRoot: App, useHash: true });
 
     host.querySelector('a').click();
-    await new Promise(r => setTimeout(r, 0));
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment:');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3745,7 +3745,7 @@ describe('router/smoke-tests.spec.ts', function () {
     const { host, container } = await start({ appRoot: App, useHash: true });
 
     host.querySelector('a').click();
-    await new Promise(r => setTimeout(r, 0));
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment: for-whatever-reason');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -6218,15 +6218,14 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // going forward should load ce3
       history.forward();
-      await new Promise(r => setTimeout(r, 0));
+      await tasksSettled();
 
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await new Promise(r => setTimeout(r, 0));
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
-      await new Promise(r => setTimeout(r, 0));
+      await tasksSettled();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 

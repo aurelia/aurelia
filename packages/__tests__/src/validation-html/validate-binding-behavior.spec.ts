@@ -135,8 +135,6 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         await queueAsyncTask(async () => {
           await this.controller.validate();
         }).result;
-        // await this.platform.domQueue.queueTask(async () => {
-        // }).result;
       }
 
       public unbinding() {

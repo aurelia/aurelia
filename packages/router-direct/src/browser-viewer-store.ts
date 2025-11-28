@@ -1,4 +1,4 @@
-import { TaskQueue as PlatformTaskQueue } from '@aurelia/platform';
+import { TaskQueue as PlatformTaskQueue } from './utilities/abstract-task-queue';
 import { EventAggregator, IEventAggregator, resolve } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
@@ -72,7 +72,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
       throw createMappedError(ErrorNames.browser_viewer_store_already_started);
     }
     this.isActive = true;
-    if (options.useUrlFragmentHash != void 0) {
+    if (options.useUrlFragmentHash != null) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
 

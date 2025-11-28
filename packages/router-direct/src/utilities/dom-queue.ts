@@ -9,23 +9,23 @@ export interface IDomQueue {
     yield: TaskQueue['yield'];
 }
 
-class DomQueue {
-  private readonly platform = resolve(IPlatform);
-  public readonly queue: TaskQueue = (() => {
+class DomQueue extends TaskQueue implements IDomQueue {
+  public constructor() {
+    const platform = resolve(IPlatform);
     let domRequested: boolean = false;
     let domHandle: number = -1;
 
     const requestFlush = (): void => {
       domRequested = true;
       if (domHandle === -1) {
-        domHandle = this.platform.requestAnimationFrame(flushQueue);
+        domHandle = platform.requestAnimationFrame(flushQueue);
       }
     };
 
     const cancelFlush = (): void => {
       domRequested = false;
       if (domHandle > -1) {
-        this.platform.cancelAnimationFrame(domHandle);
+        platform.cancelAnimationFrame(domHandle);
         domHandle = -1;
       }
     };
@@ -34,15 +34,10 @@ class DomQueue {
       domHandle = -1;
       if (domRequested === true) {
         domRequested = false;
-        domQueue.flush();
+        this.flush();
       }
     };
 
-    const domQueue = new TaskQueue(this.platform, requestFlush, cancelFlush);
-    return domQueue;
-  })();
-
-  public queueTask: TaskQueue['queueTask'] = this.queue.queueTask.bind(this.queue);
-  public flush: TaskQueue['flush'] = this.queue.flush.bind(this.queue);
-  public yield: TaskQueue['yield'] = this.queue.yield.bind(this.queue);
+    super(platform, requestFlush, cancelFlush);
+  }
 }

@@ -4,22 +4,22 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { ITask } from '@aurelia/platform';
-import { IPlatform } from '@aurelia/runtime-html';
+import { ITask } from './abstract-task-queue';
+import { IDomQueue } from './dom-queue';
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export interface IQueueableItem<T> {
   execute: ((task: QueueTask<IQueueableItem<T>>) => void | Promise<void>);
 }
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>);
 
 /**
- * @internal - Shouldn't be used directly
+ * @internal
  */
 export class QueueTask<T> {
   public done: boolean = false;
@@ -56,7 +56,7 @@ export class QueueTask<T> {
 }
 
 export interface ITaskQueueOptions {
-  platform: IPlatform;
+  queue: IDomQueue;
   allowedExecutionCostWithinTick: number;
 }
 
@@ -71,7 +71,7 @@ export interface ITaskQueueOptions {
  * (arbitrary) execution cost and the queue can be set up (started) to
  * only process a specific amount of execution cost per RAF/tick.
  *
- * @internal - Shouldn't be used directly.
+ * @internal
  */
 export class TaskQueue<T> {
   public get isActive(): boolean {
@@ -81,7 +81,6 @@ export class TaskQueue<T> {
   public processing: QueueTask<T> | null = null;
   public allowedExecutionCostWithinTick: number | null = null;
   public currentExecutionCostInCurrentTick: number = 0;
-  private platform: IPlatform | null = null;
   private task: ITask | null = null;
 
   public constructor(
@@ -93,9 +92,8 @@ export class TaskQueue<T> {
   }
 
   public start(options: ITaskQueueOptions): void {
-    this.platform = options.platform;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-    this.task = this.platform.domQueue.queueTask(this.dequeue, { persistent: true });
+    this.task = options.queue.queueTask(this.dequeue, { persistent: true });
   }
   public stop(): void {
     this.task!.cancel();
@@ -114,6 +112,7 @@ export class TaskQueue<T> {
     const items: (IQueueableItem<T> | QueueTask<T>)[] = (list ? itemOrItems : [itemOrItems]) as (IQueueableItem<T> | QueueTask<T>)[];
     const costs: number[] = items
       .map((value: IQueueableItem<T> | QueueTask<T>, index: number): number | undefined => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       .map((value: number | undefined): number => value !== undefined ? value : 1);
     const tasks: QueueTask<T>[] = [];
     for (const item of items) {
@@ -143,6 +142,7 @@ export class TaskQueue<T> {
     if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
       return;
     }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     this.processing = this.pending.shift() || null;
     if (this.processing) {
       this.currentExecutionCostInCurrentTick += this.processing.cost ?? 0;

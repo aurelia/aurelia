@@ -153,6 +153,7 @@ export class GreetingComponent {
 
 ```typescript
 // src/components/greeting.spec.ts
+import { runTasks } from '@aurelia/runtime';
 import { TestContext } from '@aurelia/testing';
 import { Aurelia } from '@aurelia/runtime-html';
 import { GreetingComponent } from './greeting';
@@ -194,7 +195,7 @@ describe('GreetingComponent', () => {
 
     // Simulate user input
     component.name = 'Alice';
-    platform.domQueue.flush();
+    runTasks();
 
     expect(message?.textContent).toBe('Hello, Alice!');
 
@@ -245,6 +246,7 @@ Now you can simplify your tests:
 
 ```typescript
 // src/components/greeting.spec.ts
+import { runTasks } from '@aurelia/runtime';
 import { createFixture } from '../test-helpers/create-fixture';
 import { GreetingComponent } from './greeting';
 
@@ -262,7 +264,7 @@ describe('GreetingComponent', () => {
     const { host, component, platform, tearDown } = await createFixture(GreetingComponent);
 
     component.name = 'Bob';
-    platform.domQueue.flush();
+    runTasks();
 
     const message = host.querySelector('.message');
     expect(message?.textContent).toBe('Hello, Bob!');
@@ -348,6 +350,7 @@ export class UserProfile {
 ```typescript
 // src/components/user-profile.spec.ts
 import { Registration } from '@aurelia/kernel';
+import { runTasks } from '@aurelia/runtime';
 import { createFixture } from '../test-helpers/create-fixture';
 import { UserProfile } from './user-profile';
 import { IUserService, User } from '../services/user-service';
@@ -370,7 +373,7 @@ describe('UserProfile', () => {
     );
 
     await component.loadUser(1);
-    platform.domQueue.flush();
+    runTasks();
 
     expect(component.user).toBeDefined();
     expect(component.user?.name).toBe('Test User');
@@ -392,7 +395,7 @@ describe('UserProfile', () => {
     );
 
     await component.loadUser(1);
-    platform.domQueue.flush();
+    runTasks();
 
     expect(component.error).toBe('Failed to load user');
     expect(host.querySelector('.error')?.textContent).toBe('Failed to load user');

@@ -48,8 +48,9 @@ describe('register', function () {
     await page.evaluate(async function () {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const p = (document.querySelector('app-root') as INode).$au!['au:resource:custom-element']!.container.get(IPlatform);
-      await p.taskQueue.yield();
-      await p.domQueue.yield();
+      await new Promise(r => setTimeout(r, 100));
+      // await p.taskQueue.yield();
+      // await p.domQueue.yield();
     });
   }
 

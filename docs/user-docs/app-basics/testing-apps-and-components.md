@@ -751,12 +751,13 @@ beforeAll(() => {
 **Solution**: Wait for the task queue to flush:
 
 ```typescript
+import { tasksSettled } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 const { component, platform } = fixture;
 
 component.value = 'new value';
-await platform.taskQueue.yield(); // Wait for updates
+await tasksSettled(); // Wait for updates
 
 assertText('new value');
 ```

@@ -404,18 +404,16 @@ START: My component does async work...
 ├─ Using task queue?
 │  │
 │  ├─ Single task?
-│  │  └─→ Await platform.taskQueue.yield()
+│  │  └─→ Await tasksSettled()
 │  │      Example:
 │  │      component.queueUpdate();
-│  │      await platform.taskQueue.yield();
+│  │      await tasksSettled();
 │  │      assertText('updated');
 │  │
 │  └─ Multiple tasks?
 │     └─→ Keep yielding until complete
 │         Example:
-│         while (!component.done) {
-│           await platform.taskQueue.yield();
-│         }
+│         await tasksSettled();
 │
 ├─ Using setTimeout/setInterval?
 │  │
@@ -435,10 +433,10 @@ START: My component does async work...
 │
 ├─ Waiting for DOM updates?
 │  │
-│  └─→ Await platform.domQueue.yield()
+│  └─→ Await tasksSettled();
 │      Example:
 │      component.items.push('new');
-│      await platform.domQueue.yield();
+│      await tasksSettled();
 │      assertText('new');
 │
 └─ Testing loading states?

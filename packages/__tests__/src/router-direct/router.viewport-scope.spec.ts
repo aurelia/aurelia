@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.viewport-scope.spec.ts', function () {
@@ -107,13 +107,14 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
     const test = tests[j];
     // eslint-disable-next-line mocha/no-skipped-tests
     it.skip(`to load sibling routes ${test.name}`, async function () {
-      const { platform, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
+      const { container, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
+      const queue = container.get(IDomQueue);
 
-      await $load('/my-siblings', router, platform);
-      await platform.domQueue.yield();
+      await $load('/my-siblings', router, queue);
+      await queue.yield();
 
       (host.getElementsByTagName('A')[test.anchor] as HTMLElement).click();
-      await platform.domQueue.yield();
+      await queue.yield();
 
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       // // assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
@@ -124,7 +125,7 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.flush();
 };

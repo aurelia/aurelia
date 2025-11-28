@@ -13,37 +13,21 @@ The Aurelia task queue provides several performance optimization features:
 Batch DOM updates to improve rendering performance:
 
 ```typescript
-import { PLATFORM } from 'aurelia';
+import { batch } from 'aurelia';
 
 // Batch multiple DOM updates in a single frame
-PLATFORM.taskQueue.queueTask(() => {
-  // All DOM changes execute in the same animation frame
-  element1.style.left = '100px';
-  element2.style.top = '200px';
-  element3.textContent = 'Updated';
+batch(() => {
+  // both assignment will not immediately trigger rerendering
+  component.prop = someValue;
+  component2.prop = someOtherValue;
 });
-```
 
-#### Preemptive Task Execution
-
-Use `preempt` for critical tasks that need immediate execution:
-
-```typescript
-// Runs synchronously if queue is currently flushing
-PLATFORM.taskQueue.queueTask(() => {
-  updateCriticalUI();
-}, { preempt: true });
-```
-
-#### Suspend Queue for Critical Operations
-
-Use `suspend` to ensure critical async operations complete before other tasks:
-
-```typescript
-// Blocks subsequent tasks until this completes
-PLATFORM.taskQueue.queueTask(async () => {
-  await criticalDataOperation();
-}, { suspend: true });
+// With mordern browser implementation, normally all DOM changes execute in the same task
+// and without triggering layout-ing or reflow unless there's a DOM property read in between
+// that triggers those.
+element1.style.left = '100px';
+element2.style.top = '200px';
+element3.textContent = 'Updated';
 ```
 
 ### State Management Performance
@@ -725,8 +709,7 @@ export class InfiniteScroll {
 #### Streaming Large Datasets
 
 ```typescript
-import { customElement } from 'aurelia';
-import { PLATFORM } from 'aurelia';
+import { customElement, batch } from 'aurelia';
 
 @customElement({ name: 'data-stream' })
 export class DataStream {
@@ -756,7 +739,7 @@ export class DataStream {
 
     // Process batch in task queue to avoid blocking
     await new Promise<void>(resolve => {
-      PLATFORM.taskQueue.queueTask(() => {
+      batch(() => {
         this.items.push(...batch);
         resolve();
       });
@@ -774,42 +757,6 @@ export class DataStream {
 ## Performance Monitoring
 
 ### Runtime Performance Profiling
-
-#### Task Queue Monitoring
-
-```typescript
-import { PLATFORM } from 'aurelia';
-
-// Enable task queue debugging
-PLATFORM.taskQueue._tracer.enabled = true;
-
-// Monitor queue performance
-class TaskQueueMonitor {
-  private taskCounts = new Map<string, number>();
-  private originalQueueTask?: typeof PLATFORM.taskQueue.queueTask;
-
-  startMonitoring(): void {
-    this.originalQueueTask = PLATFORM.taskQueue.queueTask.bind(PLATFORM.taskQueue);
-
-    PLATFORM.taskQueue.queueTask = (callback: any, options?: any) => {
-      const name = callback.name || 'anonymous';
-      this.taskCounts.set(name, (this.taskCounts.get(name) || 0) + 1);
-
-      return this.originalQueueTask!(callback, options);
-    };
-  }
-
-  stopMonitoring(): void {
-    if (this.originalQueueTask) {
-      PLATFORM.taskQueue.queueTask = this.originalQueueTask;
-    }
-  }
-
-  getTaskStatistics(): Map<string, number> {
-    return new Map(this.taskCounts);
-  }
-}
-```
 
 #### Performance Metrics Collection
 
@@ -904,7 +851,7 @@ export class DataGrid {
 Handle high-frequency updates efficiently:
 
 ```typescript
-import { batch, observable } from '@aurelia/runtime';
+import { batch, observable, queueRecurringTask } from '@aurelia/runtime';
 import { customElement, resolve } from 'aurelia';
 import { PLATFORM } from 'aurelia';
 
@@ -921,9 +868,9 @@ export class LiveDashboard {
 
   attaching(): void {
     // Batch multiple metric updates together
-    this.updateTask = PLATFORM.taskQueue.queueTask(() => {
+    this.updateTask = queueRecurringTask(() => {
       this.updateMetrics();
-    }, { persistent: true, delay: 1000 });
+    }, { interval: 1000 });
   }
 
   detaching(): void {
@@ -974,7 +921,7 @@ Optimize large image galleries:
 ```
 
 ```typescript
-import { customElement } from 'aurelia';
+import { customElement, batch } from 'aurelia';
 
 @customElement({ name: 'image-gallery' })
 export class ImageGallery {
@@ -994,7 +941,7 @@ export class ImageGallery {
 
       // Use task queue to prevent blocking
       await new Promise<void>(resolve => {
-        PLATFORM.taskQueue.queueTask(() => {
+        batch(() => {
           this.images.push(...chunk);
           resolve();
         });
@@ -1074,7 +1021,7 @@ export class ComplexForm {
 ## Best Practices Summary
 
 ### 1. Framework Usage
-- Use `PLATFORM.taskQueue` for DOM updates and async operations
+- Use `batch` for array mutation operations
 - Implement memoization with `createStateMemoizer` for expensive state computations
 - Choose appropriate flush modes (`sync` or `async`) for computed properties
 - Optimize watch expressions and prefer computed properties
@@ -1111,7 +1058,6 @@ export class ComplexForm {
 - Minify and compress assets
 
 ### 6. Performance Monitoring
-- Profile task queue usage with `PLATFORM.taskQueue._tracer.enabled = true`
 - Monitor component lifecycle performance
 - Track memory usage patterns with browser DevTools
 - Use performance metrics to identify bottlenecks

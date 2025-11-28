@@ -1,8 +1,9 @@
 import { EventAggregator, IEventAggregator, resolve } from '@aurelia/kernel';
-import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
+import { IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
 import { QueueTask, TaskQueue } from './utilities/task-queue';
 import { ErrorNames, createMappedError } from './errors';
+import { IDomQueue } from './utilities/dom-queue';
 
 /**
  * @internal
@@ -60,21 +61,22 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
    */
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
 
-  private readonly platform: IPlatform = resolve(IPlatform);
   private readonly window: IWindow = resolve(IWindow);
   private readonly history: IHistory = resolve(IHistory);
   private readonly location: ILocation = resolve(ILocation);
   private readonly ea: EventAggregator = resolve(IEventAggregator);
+  private readonly domQueue = resolve(IDomQueue);
 
   public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {
       throw createMappedError(ErrorNames.browser_viewer_store_already_started);
     }
     this.isActive = true;
-    if (options.useUrlFragmentHash != void 0) {
+    if (options.useUrlFragmentHash != null) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.start({ platform: this.platform, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+
+    this.pendingCalls.start({ queue: this.domQueue, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this);
   }
 

@@ -26,6 +26,7 @@ A modal dialog that supports:
 ```typescript
 import { bindable, IEventAggregator } from 'aurelia';
 import { resolve } from '@aurelia/kernel';
+import { queueTask } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export class ModalDialog {
@@ -92,7 +93,7 @@ export class ModalDialog {
     document.body.style.overflow = 'hidden';
 
     // Wait for DOM to render, then focus first element
-    this.platform.taskQueue.queueTask(() => {
+    queueTask(() => {
       this.updateFocusableElements();
       this.focusFirstElement();
     });
@@ -673,7 +674,7 @@ export class AnimatedModal {
 
   async openModal() {
     this.open = true;
-    await this.platform.taskQueue.yield();
+    await tasksSettled();
     await this.animator.enter(this.modalElement!);
   }
 

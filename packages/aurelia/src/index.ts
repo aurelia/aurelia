@@ -297,6 +297,7 @@ export {
   queueRecurringTask,
   getRecurringTasks,
   runTasks,
+  isTaskQueueEmpty,
   Task,
   RecurringTask,
   TaskAbortError,

@@ -1062,6 +1062,7 @@ These recipes complement the [State Outcome Recipes](../state-outcome-recipes.md
 5. Test component integration with store:
    ```typescript
    import { describe, it, expect } from '@jest/globals';
+   import { tasksSettled } from '@aurelia/runtime';
    import { createFixture } from '@aurelia/testing';
    import { StateDefaultConfiguration, IStore } from '@aurelia/state';
    import { Registration } from '@aurelia/kernel';
@@ -1112,7 +1113,7 @@ These recipes complement the [State Outcome Recipes](../state-outcome-recipes.md
 
        // Click button
        trigger.click('button');
-       await platform.taskQueue.yield();
+       await tasksSettled();
 
        // Verify state updated
        assertText('#count', '1');

@@ -464,18 +464,19 @@ export class Task<T = any> implements ITask {
           }
         });
       } else {
-        if (this.persistent) {
+        if (persistent) {
           taskQueue._resetPersistentTask(this);
-        } else {
-          if (persistent) {
-            // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-            this._status = tsCanceled;
-          } else {
-            this._status = tsCompleted;
-          }
-
-          this.dispose();
         }
+        // else {
+        //   if (persistent) {
+        //     // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+        //     this._status = tsCanceled;
+        //   } else {
+        //     this._status = tsCompleted;
+        //   }
+
+        //   this.dispose();
+        // }
 
         if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'run sync success'); }
 

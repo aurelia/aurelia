@@ -258,11 +258,11 @@ describe('router-direct/router.redirect.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };
 
 const $goBack = async (router: IRouter, queue: IDomQueue) => {
   await router.viewer.history.back();
-  queue.queue.flush();
-  await queue.queue.yield();
+  queue.flush();
+  await queue.yield();
 };

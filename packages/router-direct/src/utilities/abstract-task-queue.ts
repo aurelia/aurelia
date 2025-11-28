@@ -426,18 +426,19 @@ export class Task<T = any> implements ITask {
       ret = callback(time - createdTime);
       if (ret instanceof Promise) {
         ret.then($ret => {
-          if (this.persistent) {
+          if (persistent) {
             taskQueue._resetPersistentTask(this);
-          } else {
-            if (persistent) {
-              // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-              this._status = tsCanceled;
-            } else {
-              this._status = tsCompleted;
-            }
-
-            this.dispose();
           }
+          // else {
+          //   if (persistent) {
+          //     // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+          //     this._status = tsCanceled;
+          //   } else {
+          //     this._status = tsCompleted;
+          //   }
+
+          //   this.dispose();
+          // }
 
           taskQueue._completeAsyncTask(this);
 

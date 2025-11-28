@@ -146,12 +146,12 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
       const queue = container.get(IDomQueue);
 
       await $load('/nav', router, queue);
-      await queue.queue.yield();
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await queue.queue.yield();
+      await queue.yield();
 
       await new Promise((resolve) => { setTimeout(() => resolve(0), 200); });
 
@@ -167,5 +167,5 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };

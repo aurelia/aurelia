@@ -111,10 +111,10 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
       const queue = container.get(IDomQueue);
 
       await $load('/my-siblings', router, queue);
-      await queue.queue.yield();
+      await queue.yield();
 
       (host.getElementsByTagName('A')[test.anchor] as HTMLElement).click();
-      await queue.queue.yield();
+      await queue.yield();
 
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       // // assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
@@ -127,5 +127,5 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };

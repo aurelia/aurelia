@@ -442,7 +442,7 @@ describe('router-direct/router.spec.ts', function () {
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -491,7 +491,7 @@ describe('router-direct/router.spec.ts', function () {
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 
-      await queue.queue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, '|id-name|', `host.textContent`);
       assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
@@ -787,21 +787,21 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -825,14 +825,14 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await queue.queue.yield();
+    await queue.yield();
 
     // NOT going to work since it loads non-stateful parent grault
     await $load('grault@left/corge@grault', router, queue);
@@ -865,7 +865,7 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -969,7 +969,7 @@ describe('router-direct/router.spec.ts', function () {
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
 
-    await queue.queue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -986,7 +986,7 @@ let plughReloadBehavior = 'default';
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };
 
 const wait = async (time = 500) => {

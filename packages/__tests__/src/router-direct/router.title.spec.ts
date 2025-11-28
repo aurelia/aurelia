@@ -251,5 +251,5 @@ describe('router-direct/router.title.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };

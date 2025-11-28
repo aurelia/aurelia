@@ -198,13 +198,13 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };
 
 const $goBack = async (router: IRouter, queue?: IDomQueue) => {
   await router.viewer.history.back();
   if (queue) {
-    queue.queue.flush();
+    queue.flush();
     await tasksSettled();
   }
 };
@@ -212,7 +212,7 @@ const $goBack = async (router: IRouter, queue?: IDomQueue) => {
 const $goForward = async (router: IRouter, queue?: IDomQueue) => {
   await router.viewer.history.forward();
   if (queue) {
-    queue.queue.flush();
+    queue.flush();
     await tasksSettled();
   }
 };

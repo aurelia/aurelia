@@ -159,12 +159,12 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
       const queue = container.get(IDomQueue);
 
       await $load('/nav', router, queue);
-      await queue.queue.yield();
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await queue.queue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -191,12 +191,12 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
       const queue = container.get(IDomQueue);
 
       await $load('/nav-bind', router, queue);
-      await queue.queue.yield();
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await queue.queue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -223,12 +223,12 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
       const queue = container.get(IDomQueue);
 
       await $load('/nav-attributes', router, queue);
-      await queue.queue.yield();
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await queue.queue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -242,5 +242,5 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  queue.queue.flush();
+  queue.flush();
 };

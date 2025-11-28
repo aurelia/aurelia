@@ -77,7 +77,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
   }
   const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
     await router.load(path);
-    queue.queue.flush();
+    queue.flush();
   };
 
   it('uses a hook', async function () {

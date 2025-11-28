@@ -1,7 +1,8 @@
 import { route } from '@aurelia/router';
-import { containerless, customElement, IPlatform } from '@aurelia/runtime-html';
+import { containerless, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/router-containerless.spec.ts', function () {
   it('does not render container when the routable component has @containerless', async function () {
@@ -49,14 +50,14 @@ describe('router/router-containerless.spec.ts', function () {
     })
     class App {}
 
-    const { host, container } = await start({ appRoot: App });
+    const { host } = await start({ appRoot: App });
 
     assert.strictEqual(null, host.querySelector('foo'));
     assert.html.textContent(host.querySelector('au-viewport'), 'foo');
 
     host.querySelector('a').click();
 
-    await container.get(IPlatform).domQueue.yield();
+    await tasksSettled();
     assert.html.textContent(host.querySelector('au-viewport'), 'normal-foo');
     assert.notIncludes(host.innerHTML, '<!--au-start-->');
     assert.includes(host.innerHTML, '<normal-foo>normal-foo</normal-foo>');

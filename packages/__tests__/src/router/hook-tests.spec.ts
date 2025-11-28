@@ -2714,9 +2714,8 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown, host, platform } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
+        const { router, mgr, tearDown, host } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
 
-        const queue = platform.domQueue;
         const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
         assert.html.textContent(host, 'a', 'load');
 
@@ -2724,7 +2723,7 @@ describe('router/hook-tests.spec.ts', function () {
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
         anchorC.click();
-        await queue.yield();
+        await tasksSettled();
         try {
           await router['currentTr'].promise;
           assert.fail('expected error');
@@ -2736,7 +2735,7 @@ describe('router/hook-tests.spec.ts', function () {
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
         anchorB.click();
-        await queue.yield();
+        await tasksSettled();
         await router['currentTr'].promise; // actual wait is done here
         assert.html.textContent(host, 'b', `${phase} - text`);
         verifyInvocationsEqual(mgr.fullNotifyHistory, [
@@ -2752,7 +2751,7 @@ describe('router/hook-tests.spec.ts', function () {
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
         anchorC.click();
-        await queue.yield();
+        await tasksSettled();
         try {
           await router['currentTr'].promise;
           assert.fail('expected error');
@@ -2764,7 +2763,7 @@ describe('router/hook-tests.spec.ts', function () {
         mgr.fullNotifyHistory.length = 0;
         mgr.setPrefix(phase);
         anchorA.click();
-        await queue.yield();
+        await tasksSettled();
         await router['currentTr'].promise; // actual wait is done here
         verifyInvocationsEqual(mgr.fullNotifyHistory, [
           ...$(phase, 'ce-b', ticks, 'canUnload'),
@@ -2845,8 +2844,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
-        const queue = platform.domQueue;
+        const { router, mgr, tearDown, host } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
 
         // load p1/gc-11
         let phase = 'round#1';
@@ -2942,7 +2940,7 @@ describe('router/hook-tests.spec.ts', function () {
           await router.load('p2/unconfigured');
           assert.fail(`${phase} - expected error`);
         } catch { /* noop */ }
-        await queue.yield(); // wait a frame for the new transition as it is not the same promise
+        await tasksSettled();
         assert.html.textContent(host, 'p1 gc-11', `${phase} - text`);
         verifyInvocationsEqual(mgr.fullNotifyHistory, [
           ...$(phase, ['gc-11', 'p-1'], ticks, 'canUnload'),
@@ -3151,8 +3149,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
-        const queue = platform.domQueue;
+        const { router, mgr, tearDown, host } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
 
         // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
         let phase = 'round#1';
@@ -3230,7 +3227,7 @@ describe('router/hook-tests.spec.ts', function () {
           await router.load('p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+unconfigured@$2)');
           assert.fail(`${phase} - expected error`);
         } catch { /* noop */ }
-        await queue.yield(); // wait a frame for the new transition as it is not the same promise
+        await tasksSettled();
         assert.html.textContent(host, 'p2 gc-22gc-21 p1 gc-12gc-11', `${phase} - text`);
         verifyInvocationsEqual(mgr.fullNotifyHistory, [
           ...$(phase, ['gc-22', 'gc-21', 'gc-12', 'gc-11', 'p-2', 'p-1'], ticks, 'canUnload'),
@@ -3295,7 +3292,7 @@ describe('router/hook-tests.spec.ts', function () {
           await router.load('p2@$1/(gc-21@$1+gc-22@$2)+unconfigured@$2');
           assert.fail(`${phase} - expected error`);
         } catch { /* noop */ }
-        await queue.yield(); // wait a frame for the new transition as it is not the same promise
+        await tasksSettled();
         assert.html.textContent(host, 'p1 gc-11gc-12 p2 gc-21gc-22', `${phase} - text`);
         verifyInvocationsEqual(mgr.fullNotifyHistory, [
           ...$(phase, ['gc-11', 'gc-12', 'gc-21', 'gc-22'], ticks, 'canUnload'),

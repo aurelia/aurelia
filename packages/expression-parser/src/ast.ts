@@ -301,7 +301,7 @@ export const PrimitiveLiteral = {
   $empty: { $kind: ekPrimitiveLiteral, value: '' } satisfies PrimitiveLiteralExpression<string>,
 };
 
-export function createPrimitiveLiteral<T extends null | undefined | number | boolean | string>(value: T): PrimitiveLiteralExpression<T> {
+export function createPrimitiveLiteralExpression<T extends null | undefined | number | boolean | string>(value: T): PrimitiveLiteralExpression<T> {
   return { $kind: ekPrimitiveLiteral, value };
 }
 

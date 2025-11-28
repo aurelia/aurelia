@@ -46,7 +46,7 @@ import {
   createAccessBoundaryExpression,
   createAccessMemberExpression,
   createAccessKeyedExpression,
-  createPrimitiveLiteral,
+  createPrimitiveLiteralExpression,
   createArrayLiteralExpression,
   createObjectLiteralExpression,
   createTaggedTemplateExpression,
@@ -119,8 +119,8 @@ function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
 }
 
 describe('2-runtime/ast.spec.ts', function () {
-  // const $num1 = createPrimitiveLiteral(1);
-  // const $str1 = createPrimitiveLiteral('1');
+  // const $num1 = createPrimitiveLiteralExpression(1);
+  // const $str1 = createPrimitiveLiteralExpression('1');
 
   describe('[UNIT] AST', function () {
 
@@ -144,10 +144,10 @@ describe('2-runtime/ast.spec.ts', function () {
       [`''`, PrimitiveLiteral.$empty]
     ];
     const NumberLiteralList: [string, PrimitiveLiteralExpression][] = [
-      [`1`, createPrimitiveLiteral(1)],
-      [`1.1`, createPrimitiveLiteral(1.1)],
-      [`.1`, createPrimitiveLiteral(0.1)],
-      [`0.1`, createPrimitiveLiteral(0.1)]
+      [`1`, createPrimitiveLiteralExpression(1)],
+      [`1.1`, createPrimitiveLiteralExpression(1.1)],
+      [`.1`, createPrimitiveLiteralExpression(0.1)],
+      [`0.1`, createPrimitiveLiteralExpression(0.1)]
     ];
     const KeywordLiteralList: [string, PrimitiveLiteralExpression][] = [
       [`undefined`, $undefined],
@@ -456,7 +456,7 @@ describe('2-runtime/ast.spec.ts', function () {
     let expression: AccessKeyedExpression;
 
     before(function () {
-      expression = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteral('bar'));
+      expression = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteralExpression('bar'));
     });
 
     it('evaluates member on bindingContext', function () {
@@ -494,7 +494,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it('does not observes property in keyed object access when key is number', function () {
       const scope = createScopeForTest({ foo: { '0': 'hello world' } });
-      const expression2 = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteral(0));
+      const expression2 = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteralExpression(0));
       assert.strictEqual(astEvaluate(expression2, scope, null, null), 'hello world', `astEvaluate(expression2, scope, null)`);
       const binding = new MockBinding();
       astEvaluate(expression2, scope, dummyLocator, binding);
@@ -505,7 +505,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it('observes property in keyed array access when key is number', function () {
       const scope = createScopeForTest({ foo: ['hello world'] });
-      const expression3 = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteral(0));
+      const expression3 = createAccessKeyedExpression(createAccessScopeExpression('foo', 0), createPrimitiveLiteralExpression(0));
       assert.strictEqual(astEvaluate(expression3,scope, null, null), 'hello world', `astEvaluate(expression3,scope, null)`);
       const binding = new MockBinding();
       astEvaluate(expression3,scope, dummyLocator, binding);
@@ -517,7 +517,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('returns string when accessing string character', function () {
         const value = astEvaluate(
-          createAccessKeyedExpression(createPrimitiveLiteral('a'), createPrimitiveLiteral(0)),
+          createAccessKeyedExpression(createPrimitiveLiteralExpression('a'), createPrimitiveLiteralExpression(0)),
           null,
           null,
           null
@@ -527,7 +527,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('returns undefined when accessing keyed on null/undefined', function () {
         const value = astEvaluate(
-          createAccessKeyedExpression(PrimitiveLiteral.$null, createPrimitiveLiteral(0)),
+          createAccessKeyedExpression(PrimitiveLiteral.$null, createPrimitiveLiteralExpression(0)),
           null,
           null,
           null
@@ -537,7 +537,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
       it('returns prototype method when accessing keyed on primitive', function () {
         const value = astEvaluate(
-          createAccessKeyedExpression(createPrimitiveLiteral(0), createPrimitiveLiteral('toFixed')),
+          createAccessKeyedExpression(createPrimitiveLiteralExpression(0), createPrimitiveLiteralExpression('toFixed')),
           null,
           null,
           null
@@ -557,8 +557,8 @@ describe('2-runtime/ast.spec.ts', function () {
     //     [` Symbol()`, Symbol()]
     //   ];
     //   const keys: [string, any][] = [
-    //     [`[0]  `, createPrimitiveLiteral(0)],
-    //     [`['a']`, createPrimitiveLiteral('a')]
+    //     [`[0]  `, createPrimitiveLiteralExpression(0)],
+    //     [`['a']`, createPrimitiveLiteralExpression('a')]
     //   ];
     //   const inputs: [typeof objects, typeof keys] = [objects, keys];
 
@@ -1053,155 +1053,155 @@ describe('2-runtime/ast.spec.ts', function () {
 
   describe('BinaryExpression', function () {
     it(`concats strings`, function () {
-      let expression = createBinaryExpression('+', createPrimitiveLiteral('a'), createPrimitiveLiteral('b'));
+      let expression = createBinaryExpression('+', createPrimitiveLiteralExpression('a'), createPrimitiveLiteralExpression('b'));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'ab', `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression('a'), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'anull', `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', $null, createPrimitiveLiteral('b'));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'nullb', `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression('a'), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'aundefined', `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral('b'));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 'undefinedb', `astEvaluate(expression, scope, null, null)`);
     });
 
     it(`adds numbers`, function () {
-      let expression = createBinaryExpression('+', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
+      let expression = createBinaryExpression('+', createPrimitiveLiteralExpression(1), createPrimitiveLiteralExpression(2));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 3, `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression(1), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 1, `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', $null, createPrimitiveLiteral(2));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteralExpression(2));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, null, null), 2, `astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression(1), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
 
-      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral(2));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteralExpression(2));
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
     });
 
     it(`concats strings - STRICT`, function () {
-      let expression = createBinaryExpression('+', createPrimitiveLiteral('a'), createPrimitiveLiteral('b'));
+      let expression = createBinaryExpression('+', createPrimitiveLiteralExpression('a'), createPrimitiveLiteralExpression('b'));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'ab', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression('a'), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'anull', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', $null, createPrimitiveLiteral('b'));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'nullb', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral('a'), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression('a'), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'aundefined', `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral('b'));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'undefinedb', `astEvaluate(expression, scope, { strict: true }, null)`);
     });
 
     it(`adds numbers - STRICT`, function () {
-      let expression = createBinaryExpression('+', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
+      let expression = createBinaryExpression('+', createPrimitiveLiteralExpression(1), createPrimitiveLiteralExpression(2));
       let scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 3, `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $null);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression(1), $null);
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 1, `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', $null, createPrimitiveLiteral(2));
+      expression = createBinaryExpression('+', $null, createPrimitiveLiteralExpression(2));
       scope = createScopeForTest({});
       assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 2, `astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', createPrimitiveLiteral(1), $undefined);
+      expression = createBinaryExpression('+', createPrimitiveLiteralExpression(1), $undefined);
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, { strict: true }, null) as number), true, `isNaN(astEvaluate(expression, scope, { strict: true }, null)`);
 
-      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteral(2));
+      expression = createBinaryExpression('+', $undefined, createPrimitiveLiteralExpression(2));
       scope = createScopeForTest({});
       assert.strictEqual(isNaN(astEvaluate(expression, scope, { strict: true }, null) as number), true, `isNaN(astEvaluate(expression, scope, { strict: true }, null)`);
     });
 
     it('handles 10 ** 2', function () {
-      const expression = createBinaryExpression('**', createPrimitiveLiteral(10), createPrimitiveLiteral(2));
+      const expression = createBinaryExpression('**', createPrimitiveLiteralExpression(10), createPrimitiveLiteralExpression(2));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 100);
     });
 
     it('handles 1 >= 1', function () {
-      const expression = createBinaryExpression('>=', createPrimitiveLiteral(1), createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('>=', createPrimitiveLiteralExpression(1), createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles 2 >= 1', function () {
-      const expression = createBinaryExpression('>=', createPrimitiveLiteral(2), createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('>=', createPrimitiveLiteralExpression(2), createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles 1 >= 2', function () {
-      const expression = createBinaryExpression('>=', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
+      const expression = createBinaryExpression('>=', createPrimitiveLiteralExpression(1), createPrimitiveLiteralExpression(2));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), false);
     });
 
     it('handles 1 <= 1', function () {
-      const expression = createBinaryExpression('<=', createPrimitiveLiteral(1), createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('<=', createPrimitiveLiteralExpression(1), createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles 2 <= 1', function () {
-      const expression = createBinaryExpression('<=', createPrimitiveLiteral(2), createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('<=', createPrimitiveLiteralExpression(2), createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), false);
     });
 
     it('handles 1 <= 2', function () {
-      const expression = createBinaryExpression('<=', createPrimitiveLiteral(1), createPrimitiveLiteral(2));
+      const expression = createBinaryExpression('<=', createPrimitiveLiteralExpression(1), createPrimitiveLiteralExpression(2));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), true);
     });
 
     it('handles undefined ?? 1', function () {
-      const expression = createBinaryExpression('??', PrimitiveLiteral.$undefined, createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('??', PrimitiveLiteral.$undefined, createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 1);
     });
 
     it('handles null ?? 1', function () {
-      const expression = createBinaryExpression('??', PrimitiveLiteral.$null, createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('??', PrimitiveLiteral.$null, createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 1);
     });
 
     it('handles false ?? 1', function () {
-      const expression = createBinaryExpression('??', PrimitiveLiteral.$false, createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('??', PrimitiveLiteral.$false, createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), false);
     });
 
     it('handles 0 ?? 1', function () {
-      const expression = createBinaryExpression('??', createPrimitiveLiteral(0), createPrimitiveLiteral(1));
+      const expression = createBinaryExpression('??', createPrimitiveLiteralExpression(0), createPrimitiveLiteralExpression(1));
       const scope = createScopeForTest({ });
       assert.strictEqual(astEvaluate(expression, scope, null, null), 0);
     });
@@ -1218,22 +1218,22 @@ describe('2-runtime/ast.spec.ts', function () {
 
     describe('performs \'in\'', function () {
       function* getTestData() {
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), createObjectLiteralExpression(['foo'], [$null])), true);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), createObjectLiteralExpression(['bar'], [$null])), false);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral(1), createObjectLiteralExpression(['1'], [$null])), true);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('1'), createObjectLiteralExpression(['1'], [$null])), true);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $null), false);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $undefined), false);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $true), false);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $parent), false);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), $parent), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), createObjectLiteralExpression(['foo'], [$null])), true);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), createObjectLiteralExpression(['bar'], [$null])), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression(1), createObjectLiteralExpression(['1'], [$null])), true);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('1'), createObjectLiteralExpression(['1'], [$null])), true);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), $null), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), $undefined), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), $true), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), $parent), false);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('bar'), $parent), false);
 
         const scope1 = createScopeForTest({ foo: { bar: null }, bar: null });
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), $this), true, scope1);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), $this), true, scope1);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('foo'), createAccessScopeExpression('foo', 0)), false, scope1);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), createAccessScopeExpression('bar', 0)), false, scope1);
-        yield new TestData(createBinaryExpression('in', createPrimitiveLiteral('bar'), createAccessScopeExpression('foo', 0)), true, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), $this), true, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('bar'), $this), true, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('foo'), createAccessScopeExpression('foo', 0)), false, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('bar'), createAccessScopeExpression('bar', 0)), false, scope1);
+        yield new TestData(createBinaryExpression('in', createPrimitiveLiteralExpression('bar'), createAccessScopeExpression('foo', 0)), true, scope1);
       }
 
       for (const item of getTestData()) {
@@ -1289,7 +1289,7 @@ describe('2-runtime/ast.spec.ts', function () {
           yield new TestData(
             createBinaryExpression(
               'instanceof',
-              createPrimitiveLiteral('foo'),
+              createPrimitiveLiteralExpression('foo'),
               createAccessMemberExpression(createAccessScopeExpression('foo', 0), 'constructor')
             ),
             false,
@@ -1476,11 +1476,11 @@ describe('2-runtime/ast.spec.ts', function () {
     function* getTestData() {
       yield new TestData($tpl, '');
       yield new TestData(createTemplateExpression(['foo']), 'foo');
-      yield new TestData(createTemplateExpression(['foo', 'baz'], [createPrimitiveLiteral('bar')]), 'foobarbaz');
+      yield new TestData(createTemplateExpression(['foo', 'baz'], [createPrimitiveLiteralExpression('bar')]), 'foobarbaz');
       yield new TestData(
         createTemplateExpression(
           ['a', 'c', 'e', 'g'],
-          [createPrimitiveLiteral('b'), createPrimitiveLiteral('d'), createPrimitiveLiteral('f')]
+          [createPrimitiveLiteralExpression('b'), createPrimitiveLiteralExpression('d'), createPrimitiveLiteralExpression('f')]
         ),
         'abcdefg',
       );
@@ -1512,7 +1512,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ['1', '2'],
           [],
           createAccessScopeExpression('makeString', 0),
-          [createPrimitiveLiteral('foo')]
+          [createPrimitiveLiteralExpression('foo')]
         ),
         '1foo2',
         { makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
@@ -1551,7 +1551,7 @@ describe('2-runtime/ast.spec.ts', function () {
         createTaggedTemplateExpression(
           ['1', '2', '3'],
           [],
-          createAccessKeyedExpression(createAccessScopeExpression('test', 0), createPrimitiveLiteral('makeString')),
+          createAccessKeyedExpression(createAccessScopeExpression('test', 0), createPrimitiveLiteralExpression('makeString')),
           [createAccessScopeExpression('foo', 0), createAccessScopeExpression('bar', 0)]
         ),
         '1baz2qux3foo',
@@ -1570,8 +1570,8 @@ describe('2-runtime/ast.spec.ts', function () {
   describe('UnaryExpression', function () {
     describe('performs \'typeof\'', function () {
       const tests: { expr: UnaryExpression; expected: string }[] = [
-        { expr: createUnaryExpression('typeof', createPrimitiveLiteral('foo')), expected: 'string' },
-        { expr: createUnaryExpression('typeof', createPrimitiveLiteral(1)), expected: 'number' },
+        { expr: createUnaryExpression('typeof', createPrimitiveLiteralExpression('foo')), expected: 'string' },
+        { expr: createUnaryExpression('typeof', createPrimitiveLiteralExpression(1)), expected: 'number' },
         { expr: createUnaryExpression('typeof', $null), expected: 'object' },
         { expr: createUnaryExpression('typeof', $undefined), expected: 'undefined' },
         { expr: createUnaryExpression('typeof', $true), expected: 'boolean' },
@@ -1593,8 +1593,8 @@ describe('2-runtime/ast.spec.ts', function () {
 
     describe('performs \'void\'', function () {
       const tests: { expr: UnaryExpression }[] = [
-        { expr: createUnaryExpression('void', createPrimitiveLiteral('foo')) },
-        { expr: createUnaryExpression('void', createPrimitiveLiteral(1)) },
+        { expr: createUnaryExpression('void', createPrimitiveLiteralExpression('foo')) },
+        { expr: createUnaryExpression('void', createPrimitiveLiteralExpression(1)) },
         { expr: createUnaryExpression('void', $null) },
         { expr: createUnaryExpression('void', $undefined) },
         { expr: createUnaryExpression('void', $true) },
@@ -1663,7 +1663,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
           createAccessMemberExpression($this, 'a'),
-          createPrimitiveLiteral(42),
+          createPrimitiveLiteralExpression(42),
         ), Scope.create(bc), null, null, { b: 404 });
         assert.strictEqual(bc.a, 42);
       });
@@ -1673,7 +1673,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
           createAccessMemberExpression($this, '1'),
-          createPrimitiveLiteral(42),
+          createPrimitiveLiteralExpression(42),
         ), Scope.create(bc), null, null, { 2: "404" });
         assert.strictEqual(bc.a, 42);
       });
@@ -1683,7 +1683,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
           createAccessMemberExpression($this, 'x'),
-          createPrimitiveLiteral(42),
+          createPrimitiveLiteralExpression(42),
         ), Scope.create(bc), null, null, { b: 404 });
         assert.strictEqual(bc.a, 42);
       });
@@ -1693,7 +1693,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
           createAccessMemberExpression($this, 'a'),
-          createPrimitiveLiteral(404),
+          createPrimitiveLiteralExpression(404),
         ), Scope.create(bc), null, null, { a: 42 });
         assert.strictEqual(bc.a, 42);
       });
@@ -1703,7 +1703,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
           createAccessMemberExpression($this, '1'),
-          createPrimitiveLiteral(404),
+          createPrimitiveLiteralExpression(404),
         ), Scope.create(bc), null, null, { 1: '42' });
         assert.strictEqual(bc.a, '42');
       });
@@ -1713,7 +1713,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
           createAccessMemberExpression($this, 'x'),
-          createPrimitiveLiteral(404),
+          createPrimitiveLiteralExpression(404),
         ), Scope.create(bc), null, null, { x: '42' });
         assert.strictEqual(bc.a, '42');
       });
@@ -1722,7 +1722,7 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
-          createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
           void 0,
         ), Scope.create(bc), null, null, [42]);
         assert.strictEqual(bc.a, 42);
@@ -1732,8 +1732,8 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
-          createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
-          createPrimitiveLiteral(42),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
+          createPrimitiveLiteralExpression(42),
         ), Scope.create(bc), null, null, []);
         assert.strictEqual(bc.a, 42);
       });
@@ -1742,8 +1742,8 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
-          createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
-          createPrimitiveLiteral(42),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
+          createPrimitiveLiteralExpression(42),
         ), Scope.create(bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
@@ -1764,7 +1764,7 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
-          createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
           createAccessScopeExpression('prop', 0),
         ), Scope.fromParent(ps, bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
@@ -1786,7 +1786,7 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
         astAssign(createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, 'a'),
-          createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
           createAccessScopeExpression('prop', 2),
         ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
@@ -1923,7 +1923,7 @@ describe('2-runtime/ast.spec.ts', function () {
           [
             createDestructuringAssignmentSingleExpression(
               createAccessMemberExpression($this, 'a'),
-              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
               void 0
             ),
           ],
@@ -1940,12 +1940,12 @@ describe('2-runtime/ast.spec.ts', function () {
           [
             createDestructuringAssignmentSingleExpression(
               createAccessMemberExpression($this, 'a'),
-              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
               void 0
             ),
             createDestructuringAssignmentSingleExpression(
               createAccessMemberExpression($this, 'b'),
-              createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
               void 0
             ),
           ],
@@ -2063,7 +2063,7 @@ describe('2-runtime/ast.spec.ts', function () {
                       void 0,
                     )
                   ],
-                  createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+                  createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
                   void 0,
                 )
               ],
@@ -2098,7 +2098,7 @@ describe('2-runtime/ast.spec.ts', function () {
                       [
                         createDestructuringAssignmentSingleExpression(
                           createAccessMemberExpression($this, 'item21'),
-                          createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+                          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
                           void 0
                         ),
                       ],
@@ -2106,7 +2106,7 @@ describe('2-runtime/ast.spec.ts', function () {
                       void 0,
                     ),
                   ],
-                  createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+                  createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
                   void 0,
                 )
               ],
@@ -2128,7 +2128,7 @@ describe('2-runtime/ast.spec.ts', function () {
           [
             createDestructuringAssignmentSingleExpression(
               createAccessMemberExpression($this, 'k'),
-              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
               void 0
             ),
             createDestructuringAssignmentExpression(
@@ -2152,7 +2152,7 @@ describe('2-runtime/ast.spec.ts', function () {
                   void 0,
                 ),
               ],
-              createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
               void 0,
             )
           ],
@@ -2170,7 +2170,7 @@ describe('2-runtime/ast.spec.ts', function () {
           [
             createDestructuringAssignmentSingleExpression(
               createAccessMemberExpression($this, 'k'),
-              createAccessKeyedExpression($this, createPrimitiveLiteral(0)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(0)),
               void 0
             ),
             createDestructuringAssignmentExpression(
@@ -2178,11 +2178,11 @@ describe('2-runtime/ast.spec.ts', function () {
               [
                 createDestructuringAssignmentSingleExpression(
                   createAccessMemberExpression($this, 'item2'),
-                  createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+                  createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
                   void 0
                 )
               ],
-              createAccessKeyedExpression($this, createPrimitiveLiteral(1)),
+              createAccessKeyedExpression($this, createPrimitiveLiteralExpression(1)),
               void 0,
             )
           ],
@@ -2213,7 +2213,7 @@ describe('2-runtime/ast.spec.ts', function () {
                 )
               ],
               createAccessMemberExpression($this, 'b'),
-              createObjectLiteralExpression(['c'], [createPrimitiveLiteral(42)])
+              createObjectLiteralExpression(['c'], [createPrimitiveLiteralExpression(42)])
             )
           ],
           void 0,

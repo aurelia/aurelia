@@ -41,7 +41,7 @@ import {
   createAccessThisExpression,
   createAccessMemberExpression,
   createAccessKeyedExpression,
-  createPrimitiveLiteral,
+  createPrimitiveLiteralExpression,
   createTemplateExpression,
   createTaggedTemplateExpression,
   createCallFunctionExpression,
@@ -108,8 +108,8 @@ const boundary = createAccessBoundaryExpression();
 const $a = createAccessScopeExpression('a');
 const $b = createAccessScopeExpression('b');
 const $c = createAccessScopeExpression('c');
-const $num0 = createPrimitiveLiteral(0);
-const $num1 = createPrimitiveLiteral(1);
+const $num0 = createPrimitiveLiteralExpression(0);
+const $num1 = createPrimitiveLiteralExpression(1);
 
 function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, exprType?: ExpressionType, name?: string): any {
   let error: Error = null;
@@ -176,9 +176,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   const SimpleNumberLiteralList: [string, any][] = [
     [`1`,                 $num1],
-    [`1.1`,               createPrimitiveLiteral(1.1)],
-    [`.1`,                createPrimitiveLiteral(0.1)],
-    [`0.1`,               createPrimitiveLiteral(0.1)]
+    [`1.1`,               createPrimitiveLiteralExpression(1.1)],
+    [`.1`,                createPrimitiveLiteralExpression(0.1)],
+    [`0.1`,               createPrimitiveLiteralExpression(0.1)]
   ];
   const KeywordPrimitiveLiteralList: [string, any][] = [
     [`undefined`,         $undefined],
@@ -785,10 +785,10 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Verify all string escapes, unicode characters, double and single quotes
   const ComplexStringLiteralList: [string, any][] = [
     ...[
-      ['foo',                createPrimitiveLiteral('foo')],
-      ['äöüÄÖÜß',            createPrimitiveLiteral('äöüÄÖÜß')],
-      ['ಠ_ಠ',               createPrimitiveLiteral('ಠ_ಠ')],
-      ...stringEscapables.map(([raw, cooked]) => [raw, createPrimitiveLiteral(cooked)])
+      ['foo',                createPrimitiveLiteralExpression('foo')],
+      ['äöüÄÖÜß',            createPrimitiveLiteralExpression('äöüÄÖÜß')],
+      ['ಠ_ಠ',               createPrimitiveLiteralExpression('ಠ_ಠ')],
+      ...stringEscapables.map(([raw, cooked]) => [raw, createPrimitiveLiteralExpression(cooked)])
     ].map(([input, expr]): [string, any][] => [
       [`'${input}'`, expr],
       [`"${input}"`, expr]
@@ -804,15 +804,15 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // Verify different floating point notations and parsing numbers that are outside the "safe" integer range
   const ComplexNumberList: [string, any][] = [
-    ['9007199254740992',                                                  createPrimitiveLiteral(9007199254740992)],
-    ['0.9007199254740992',                                                createPrimitiveLiteral(0.9007199254740992)],
-    ['.9007199254740992',                                                 createPrimitiveLiteral(0.9007199254740992)],
-    ['.90071992547409929007199254740992',                                 createPrimitiveLiteral(0.90071992547409929007199254740992)],
-    ['9007199254740992.9007199254740992',                                 createPrimitiveLiteral(9007199254740992.9007199254740992)],
-    ['9007199254740992.90071992547409929007199254740992',                 createPrimitiveLiteral(9007199254740992.90071992547409929007199254740992)],
-    ['90071992547409929007199254740992',                                  createPrimitiveLiteral(90071992547409929007199254740992)],
-    ['90071992547409929007199254740992.9007199254740992',                 createPrimitiveLiteral(90071992547409929007199254740992.9007199254740992)],
-    ['90071992547409929007199254740992.90071992547409929007199254740992', createPrimitiveLiteral(90071992547409929007199254740992.90071992547409929007199254740992)]
+    ['9007199254740992',                                                  createPrimitiveLiteralExpression(9007199254740992)],
+    ['0.9007199254740992',                                                createPrimitiveLiteralExpression(0.9007199254740992)],
+    ['.9007199254740992',                                                 createPrimitiveLiteralExpression(0.9007199254740992)],
+    ['.90071992547409929007199254740992',                                 createPrimitiveLiteralExpression(0.90071992547409929007199254740992)],
+    ['9007199254740992.9007199254740992',                                 createPrimitiveLiteralExpression(9007199254740992.9007199254740992)],
+    ['9007199254740992.90071992547409929007199254740992',                 createPrimitiveLiteralExpression(9007199254740992.90071992547409929007199254740992)],
+    ['90071992547409929007199254740992',                                  createPrimitiveLiteralExpression(90071992547409929007199254740992)],
+    ['90071992547409929007199254740992.9007199254740992',                 createPrimitiveLiteralExpression(90071992547409929007199254740992.9007199254740992)],
+    ['90071992547409929007199254740992.90071992547409929007199254740992', createPrimitiveLiteralExpression(90071992547409929007199254740992.90071992547409929007199254740992)]
   ];
   describe('parse ComplexNumberList', function () {
     for (const [input, expected] of ComplexNumberList) {
@@ -1471,7 +1471,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ];
 
     const ame = (name: string) => createAccessMemberExpression($this, name);
-    const ake = (key: number) => createAccessKeyedExpression($this, createPrimitiveLiteral(key));
+    const ake = (key: number) => createAccessKeyedExpression($this, createPrimitiveLiteralExpression(key));
     const dase = (s: string | number, t: string | null = null, init: IsBindingBehavior | undefined = void 0) => typeof s === 'number'
       ? createDestructuringAssignmentSingleExpression(ame(t), ake(s), init)
       : createDestructuringAssignmentSingleExpression(ame(t ?? s), ame(s), init);

@@ -78,7 +78,7 @@ export class Deserializer implements IExpressionHydrator {
       }
       case ASTExpressionTypes.PrimitiveLiteralExpression: {
         const expr: Pick<AST.PrimitiveLiteralExpression, 'value'> = raw;
-        return AST.createPrimitiveLiteral(this.hydrate(expr.value));
+        return AST.createPrimitiveLiteralExpression(this.hydrate(expr.value));
       }
       case ASTExpressionTypes.CallFunctionExpression: {
         const expr: Pick<AST.CallFunctionExpression, 'func' | 'args'> = raw;

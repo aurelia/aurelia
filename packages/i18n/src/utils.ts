@@ -24,7 +24,7 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
 
   const expression = binding.ast.expression;
 
-  if ((expression as ValueConverterExpression).$kind !== 'ValueConverter') {
+  if (expression.$kind !== 'ValueConverter') {
     const vcExpression = createValueConverterExpression(expression as IsValueConverter, name, binding.ast.args);
     (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
   }

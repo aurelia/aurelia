@@ -12,7 +12,7 @@ import {
   ExpressionParser,
   createInterpolation,
   createAccessScopeExpression,
-  createPrimitiveLiteral,
+  createPrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import {
   bindable,
@@ -343,7 +343,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           verifyInstructions(instructions[0], [
             { toVerify: ['type', 'from', 'to', 'capture'],
               type: TT.listenerBinding,
-              from: createPrimitiveLiteral(1),
+              from: createPrimitiveLiteralExpression(1),
               to: 'foo',
               capture: false
             },

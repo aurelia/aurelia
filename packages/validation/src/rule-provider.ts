@@ -4,7 +4,7 @@ import {
   Interpolation,
   type IsBindingBehavior,
   PrimitiveLiteralExpression,
-  createPrimitiveLiteral,
+  createPrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import { Class, DI, ILogger, isArray, resolve, toArray } from '@aurelia/kernel';
 import {
@@ -742,17 +742,21 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     const parsed = this.parser.parse(message, 'Interpolation');
     if (parsed?.$kind === 'Interpolation') {
       for (const expr of parsed.expressions) {
-        const name = (expr as AccessScopeExpression).name;
-        if (contextualProperties.has(name)) {
-          this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
-        }
-        if (expr.$kind === 'AccessThis' || (expr as AccessScopeExpression).ancestor > 0) {
+        if (expr.$kind === 'AccessScope') {
+          const { name, ancestor } = expr;
+          if (contextualProperties.has(name)) {
+            this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
+          }
+          if (ancestor > 0) {
+            throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
+          }
+        } else if (expr.$kind === 'AccessThis') {
           throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
         }
       }
       return parsed;
     }
-    return createPrimitiveLiteral(message);
+    return createPrimitiveLiteralExpression(message);
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined {

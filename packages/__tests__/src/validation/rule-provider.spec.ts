@@ -594,7 +594,7 @@ describe('validation/rule-provider.spec.ts', function () {
     for (const { message, expectedKind } of messages1) {
       it(`#parseMessage parses message correctly - ${message}`, function () {
         const { sut } = $createFixture();
-        assert.equal((sut.parseMessage(message) as any).$kind, expectedKind);
+        assert.equal(sut.parseMessage(message).$kind, expectedKind);
       });
     }
     const specialPropertyNames = ['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'];

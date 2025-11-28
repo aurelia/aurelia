@@ -1,4 +1,4 @@
-import { IPlatform, resolve } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 import { INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode } from '@aurelia/router';
 import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
@@ -37,7 +37,6 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -164,7 +163,6 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -267,7 +265,6 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -383,7 +380,6 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = {};
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)
         .subscribe('au:router:location-change', (ev) => {
@@ -491,7 +487,6 @@ describe('router/location-manager.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
       const router = container.get(IRouter);
-      const queue = {};
       const history = container.get(IHistory);
       const eventLog: ['popstate' | 'hashchange', string][] = [];
       const subscriber = container.get(IRouterEvents)

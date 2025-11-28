@@ -1,8 +1,10 @@
-import { BrowserPlatform } from '@aurelia/platform-browser';
-import { IPlatform } from '@aurelia/runtime-html';
+import { getRecurringTasks, runTasks } from '@aurelia/runtime';
 
-export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
-  if (!platform) {
-    platform = BrowserPlatform.getOrCreate(globalThis);
+export function ensureTaskQueuesEmpty(): void {
+  try {
+    runTasks();
+  } catch {
+    // ignore
   }
+  getRecurringTasks().forEach(t => t.cancel());
 }

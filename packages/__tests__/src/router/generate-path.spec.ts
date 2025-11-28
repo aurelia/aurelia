@@ -1,6 +1,6 @@
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, NavigationStrategy, Params, route, RouteContext, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 

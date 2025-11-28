@@ -46,13 +46,13 @@ import {
   Object_is,
   Object_keys,
 } from './util';
-import { BrowserPlatform } from '@aurelia/platform-browser';
 import {
   CustomElement,
   CustomAttribute,
 } from '@aurelia/runtime-html';
-import { ensureTaskQueuesEmpty } from './scheduler';
 import { PLATFORM } from './test-context';
+import { getRecurringTasks, isTaskQueueEmpty } from '@aurelia/runtime';
+import { ensureTaskQueuesEmpty } from './scheduler';
 
 /* eslint-disable @typescript-eslint/ban-types */
 
@@ -763,8 +763,21 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
 }
 
 const areTaskQueuesEmpty = (function () {
-  return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
-    // empty
+  return function $areTaskQueuesEmpty() {
+    if (!isTaskQueueEmpty() || getRecurringTasks().length > 0) {
+      try {
+        ensureTaskQueuesEmpty();
+      } catch {
+        // ignore
+      }
+
+      innerFail({
+        actual: true,
+        expected: false,
+        message: 'There are pending tasks in the task queue',
+        operator: 'strictEqual'
+      });
+    }
   };
 })();
 

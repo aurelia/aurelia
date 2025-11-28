@@ -66,7 +66,7 @@ export {
   createCallGlobalExpression,
   createBinaryExpression,
   createUnaryExpression,
-  createPrimitiveLiteral,
+  createPrimitiveLiteralExpression,
   createArrayLiteralExpression,
   createObjectLiteralExpression,
   createTemplateExpression,

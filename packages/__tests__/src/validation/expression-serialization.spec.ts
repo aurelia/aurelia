@@ -1,6 +1,7 @@
 import {
   type ExpressionType,
   ExpressionParser,
+  type TaggedTemplateExpression,
 } from '@aurelia/expression-parser';
 import { TestContext, assert } from '@aurelia/testing';
 import { Deserializer, Serializer } from '@aurelia/validation';
@@ -71,23 +72,24 @@ describe('validation/expression-serialization.spec.ts', function () {
     it(`works for ${name} expression`, function () {
       const parser = createParser();
       const expr = parser.parse(strExpr, expressionType);
-      assert.equal((expr as any).$kind, expectedKind);
+      assert.equal(expr.$kind, expectedKind);
       const serialized = Serializer.serialize(expr);
       const deserialized = Deserializer.deserialize(serialized);
-      assert.equal((deserialized as any).$kind, expectedKind);
+      assert.equal(deserialized.$kind, expectedKind);
       assert.deepStrictEqual(deserialized, expr);
     });
   }
 
   it(`works for for of with binding identifier expression`, function () {
     const parser = createParser();
-    const expr = parser.parse('a`static${prop}`', 'None');
-    assert.equal((expr as any).$kind, 'TaggedTemplate');
+    const expr = parser.parse('a`static${prop}`', 'None') as TaggedTemplateExpression;
+    assert.equal(expr.$kind, 'TaggedTemplate');
     const serialized = Serializer.serialize(expr);
     const deserialized = Deserializer.deserialize(serialized);
-    assert.equal((deserialized as any).$kind, 'TaggedTemplate');
-    assert.deepStrictEqual(JSON.parse(JSON.stringify((deserialized as any).cooked.raw)), JSON.parse(JSON.stringify((deserialized as any).cooked.raw)));
-    assert.deepStrictEqual((deserialized as any).func, (expr as any).func);
-    assert.deepStrictEqual((deserialized as any).expressions, (expr as any).expressions);
+    assert.equal(deserialized.$kind, 'TaggedTemplate');
+    const desTagged = deserialized as TaggedTemplateExpression;
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(desTagged.cooked.raw)), JSON.parse(JSON.stringify(expr.cooked.raw)));
+    assert.deepStrictEqual(desTagged.func, expr.func);
+    assert.deepStrictEqual(desTagged.expressions, expr.expressions);
   });
 });

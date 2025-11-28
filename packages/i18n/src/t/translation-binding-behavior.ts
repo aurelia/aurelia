@@ -9,7 +9,7 @@ export class TranslationBindingBehavior implements BindingBehaviorInstance {
   public bind(_scope: Scope, binding: BindingWithBehavior) {
     const expression = binding.ast.expression;
 
-    if ((expression as ValueConverterExpression).$kind !== 'ValueConverter') {
+    if (expression.$kind !== 'ValueConverter') {
       const vcExpression = createValueConverterExpression(expression as IsValueConverter, ValueConverters.translationValueConverterName, binding.ast.args);
       (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
     }

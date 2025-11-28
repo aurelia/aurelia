@@ -47,7 +47,7 @@ import {
   createCallGlobalExpression,
   createUnaryExpression,
   createTemplateExpression,
-  createPrimitiveLiteral,
+  createPrimitiveLiteralExpression,
   createBinaryExpression,
   createConditionalExpression,
   createAssignExpression,
@@ -621,7 +621,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         break;
       case Token.StringLiteral:
       case Token.NumericLiteral:
-        result = createPrimitiveLiteral($tokenValue);
+        result = createPrimitiveLiteralExpression($tokenValue);
         $assignable = false;
         nextToken();
         break;
@@ -1000,7 +1000,7 @@ function parseArrayDestructuring(): DAE {
       items.push(
         createDestructuringAssignmentSingleExpression(
           createAccessMemberExpression($this, target),
-          createAccessKeyedExpression($this, createPrimitiveLiteral(index++)),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(index++)),
           void 0,
         ),
       );

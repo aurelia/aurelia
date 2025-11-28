@@ -44,8 +44,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
   public readonly performanceNow: () => number;
 
-  public readonly taskQueue: TaskQueue;
-
   public constructor(g: TGlobal, overrides: Partial<Exclude<Platform, 'globalThis'>> = {}) {
     this.globalThis = g;
     'decodeURI decodeURIComponent encodeURI encodeURIComponent Date Reflect console'.split(' ').forEach(prop => {
@@ -59,9 +57,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
     });
 
     this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
-
-    this.flushMacroTask = this.flushMacroTask.bind(this);
-    this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
@@ -77,29 +72,6 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
   public static set(g: typeof globalThis, platform: Platform): void {
     lookup.set(g, platform);
-  }
-
-  protected macroTaskRequested: boolean = false;
-  protected macroTaskHandle: number = -1;
-  protected requestMacroTask(): void {
-    this.macroTaskRequested = true;
-    if (this.macroTaskHandle === -1) {
-      this.macroTaskHandle = this.setTimeout(this.flushMacroTask, 0);
-    }
-  }
-  protected cancelMacroTask(): void {
-    this.macroTaskRequested = false;
-    if (this.macroTaskHandle > -1) {
-      this.clearTimeout(this.macroTaskHandle);
-      this.macroTaskHandle = -1;
-    }
-  }
-  protected flushMacroTask(): void {
-    this.macroTaskHandle = -1;
-    if (this.macroTaskRequested === true) {
-      this.macroTaskRequested = false;
-      this.taskQueue.flush();
-    }
   }
 }
 

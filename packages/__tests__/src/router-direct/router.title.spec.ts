@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, ITitleOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { runTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -251,5 +250,5 @@ describe('router-direct/router.title.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  runTasks();
+  platform.domQueue.flush();
 };

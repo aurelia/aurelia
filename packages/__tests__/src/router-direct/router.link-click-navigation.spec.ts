@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -159,12 +158,12 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [Nav, One, Two, OneRoute, TwoRoute], routes);
 
       await $load('/nav', router, platform);
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -190,12 +189,12 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [NavBind, One, Two, OneRoute, TwoRoute], routes);
 
       await $load('/nav-bind', router, platform);
-      await tasksSettled();
+      await platform.domQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -221,12 +220,12 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [NavAttributes, One, Two, OneRoute, TwoRoute], routes);
 
       await $load('/nav-attributes', router, platform);
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -240,5 +239,5 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  runTasks();
+  platform.domQueue.flush();
 };

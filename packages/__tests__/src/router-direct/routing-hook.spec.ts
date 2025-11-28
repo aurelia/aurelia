@@ -2,7 +2,6 @@ import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigati
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
-import { runTasks } from '@aurelia/runtime';
 
 describe('router-direct/routing-hook.spec.ts', function () {
   // something wrong with jsdom and our wrapper code
@@ -78,7 +77,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
   }
   const $load = async (path: string, router: IRouter, platform: IPlatform) => {
     await router.load(path);
-    runTasks();
+    platform.domQueue.flush();
   };
 
   it('uses a hook', async function () {

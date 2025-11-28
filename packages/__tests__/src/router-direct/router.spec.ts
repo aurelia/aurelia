@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-direct';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -429,7 +428,7 @@ describe('router-direct/router.spec.ts', function () {
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -477,7 +476,7 @@ describe('router-direct/router.spec.ts', function () {
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 
-      await tasksSettled();
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, '|id-name|', `host.textContent`);
       assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
@@ -760,21 +759,21 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -797,14 +796,14 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     // NOT going to work since it loads non-stateful parent grault
     await $load('grault@left/corge@grault', router, platform);
@@ -836,7 +835,7 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -938,7 +937,7 @@ describe('router-direct/router.spec.ts', function () {
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
 
-    await tasksSettled();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -955,7 +954,7 @@ let plughReloadBehavior = 'default';
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  runTasks();
+  platform.domQueue.flush();
 };
 
 const wait = async (time = 500) => {

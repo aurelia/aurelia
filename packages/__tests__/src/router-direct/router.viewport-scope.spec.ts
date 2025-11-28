@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { runTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -111,10 +110,10 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
 
       await $load('/my-siblings', router, platform);
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       (host.getElementsByTagName('A')[test.anchor] as HTMLElement).click();
-      await new Promise(r => setTimeout(r, 0));
+      await platform.domQueue.yield();
 
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       // // assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
@@ -127,5 +126,5 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  runTasks();
+  platform.domQueue.flush();
 };

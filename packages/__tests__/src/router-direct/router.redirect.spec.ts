@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -258,10 +257,11 @@ describe('router-direct/router.redirect.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  runTasks();
+  platform.domQueue.flush();
 };
 
 const $goBack = async (router: IRouter, platform: IPlatform) => {
   await router.viewer.history.back();
-  await tasksSettled();
+  platform.domQueue.flush();
+  await platform.domQueue.yield();
 };

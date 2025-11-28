@@ -1,3 +1,4 @@
+import { TaskQueue as PlatformTaskQueue } from '@aurelia/platform';
 import { EventAggregator, IEventAggregator, resolve } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
@@ -74,7 +75,39 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.start({ platform: this.platform, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+
+    const domQueue = (() => {
+      let domRequested: boolean = false;
+      let domHandle: number = -1;
+
+      const requestDomFlush = (): void => {
+        domRequested = true;
+        if (domHandle === -1) {
+          domHandle = this.platform.requestAnimationFrame(flushDomQueue);
+        }
+      };
+
+      const cancelDomFlush = (): void => {
+        domRequested = false;
+        if (domHandle > -1) {
+          this.platform.cancelAnimationFrame(domHandle);
+          domHandle = -1;
+        }
+      };
+
+      const flushDomQueue = (): void => {
+        domHandle = -1;
+        if (domRequested === true) {
+          domRequested = false;
+          domQueue.flush();
+        }
+      };
+
+      const domQueue = new PlatformTaskQueue(this.platform, requestDomFlush, cancelDomFlush);
+      return domQueue;
+    })();
+
+    this.pendingCalls.start({ queue: domQueue, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this);
   }
 

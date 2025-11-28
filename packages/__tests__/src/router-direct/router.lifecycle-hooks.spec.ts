@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
 import { Aurelia, CustomElement, lifecycleHooks } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -225,7 +225,7 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
 
       it(`with hook and vm (falses: ${_falses(config)})`, async function () {
         const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
 
         const expected = _expected(config);
 
@@ -274,7 +274,7 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
 
       it(`in parent-child with hook and vm (falses: ${_falses(config)})`, async function () {
         const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
 
         await $load('/my-one/my-two', router, queue);
 
@@ -445,7 +445,7 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
       }
       it(`with hook and vm (falses: ${_falses(config)})`, async function () {
         const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
 
         const expected = _expected(config);
 
@@ -493,7 +493,7 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
 
       it(`in parent-child with hook and vm (falses: ${_falses(config)})`, async function () {
         const { container, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
 
         await $load('/my-one/my-two', router, queue);
         await $load('-', router, queue);
@@ -508,7 +508,7 @@ describe('router-direct/router.lifecycle-hooks.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };

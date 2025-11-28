@@ -3,7 +3,7 @@ import { IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
 import { QueueTask, TaskQueue } from './utilities/task-queue';
 import { ErrorNames, createMappedError } from './errors';
-import { IAnimationFrameQueue } from './utilities/animation-frame-queue';
+import { IDomQueue } from './utilities/dom-queue';
 
 /**
  * @internal
@@ -65,7 +65,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
   private readonly history: IHistory = resolve(IHistory);
   private readonly location: ILocation = resolve(ILocation);
   private readonly ea: EventAggregator = resolve(IEventAggregator);
-  private readonly domQueue = resolve(IAnimationFrameQueue).queue;
+  private readonly domQueue = resolve(IDomQueue).queue;
 
   public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {

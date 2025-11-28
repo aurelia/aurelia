@@ -1,4 +1,4 @@
-import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation, IAnimationFrameQueue } from '@aurelia/router-direct';
+import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation, IDomQueue } from '@aurelia/router-direct';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
@@ -75,7 +75,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
       router.viewer.history.replaceState = _replace;
     }
   }
-  const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+  const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
     await router.load(path);
     queue.queue.flush();
   };
@@ -308,7 +308,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
 
   it('can prevent navigation', async function () {
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two']);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -330,7 +330,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
 
   it('can redirect navigation', async function () {
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -354,7 +354,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
 
   it('can transform from url to string', async function () {
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -377,7 +377,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
 
   it('can transform from url to viewport instructions', async function () {
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -406,7 +406,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
       locationPath = path;
     };
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -442,7 +442,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
       locationPath = path;
     };
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
@@ -477,7 +477,7 @@ describe('router-direct/routing-hook.spec.ts', function () {
       locationPath = path;
     };
     const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);

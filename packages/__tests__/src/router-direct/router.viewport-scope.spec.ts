@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -108,7 +108,7 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
     // eslint-disable-next-line mocha/no-skipped-tests
     it.skip(`to load sibling routes ${test.name}`, async function () {
       const { container, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
-      const queue = container.get(IAnimationFrameQueue);
+      const queue = container.get(IDomQueue);
 
       await $load('/my-siblings', router, queue);
       await queue.queue.yield();
@@ -125,7 +125,7 @@ describe('router-direct/router.viewport-scope.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };

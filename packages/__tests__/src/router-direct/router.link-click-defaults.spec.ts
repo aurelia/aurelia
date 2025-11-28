@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -143,7 +143,7 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
     const test = tests[i];
     it(`can load all components, including defaults, for link "${test.load}"`, async function () {
       const { container, host, router, $teardown } = await $setup({}, [Nav, Parent, Child, GrandChild]);
-      const queue = container.get(IAnimationFrameQueue);
+      const queue = container.get(IDomQueue);
 
       await $load('/nav', router, queue);
       await queue.queue.yield();
@@ -165,7 +165,7 @@ describe('router-direct/router.link-click-defaults.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };

@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -194,7 +194,7 @@ describe('router-direct/router.redirect.spec.ts', function () {
         for (const test of tests) {
           it(`to route in canLoad (${test.load})`, async function () {
             const { container, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
-            const queue = container.get(IAnimationFrameQueue);
+            const queue = container.get(IDomQueue);
 
             // 0) Default root page
             assert.strictEqual(host.textContent, '!root!', '0) root default page');
@@ -256,12 +256,12 @@ describe('router-direct/router.redirect.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };
 
-const $goBack = async (router: IRouter, queue: IAnimationFrameQueue) => {
+const $goBack = async (router: IRouter, queue: IDomQueue) => {
   await router.viewer.history.back();
   queue.queue.flush();
   await queue.queue.yield();

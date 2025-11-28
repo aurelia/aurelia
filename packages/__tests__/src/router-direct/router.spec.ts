@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-direct';
+import { IDomQueue, IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-direct';
 import { CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -180,7 +180,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -208,7 +208,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -222,7 +222,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -239,7 +239,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     const historyLength = router.viewer.history.length;
     await $load('foo@left', router, queue);
@@ -258,7 +258,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar@right', router, queue);
     assert.includes(host.textContent, 'bar', `host.textContent`);
@@ -270,7 +270,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -287,7 +287,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -308,7 +308,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(40000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -335,7 +335,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -362,7 +362,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left+bar@right', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -375,7 +375,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     quxCantUnload = 1;
 
@@ -396,7 +396,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     quxCantUnload = 1;
 
@@ -419,7 +419,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(15000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     // await $load('foo@left+bar@right+baz@foo+qux@bar', router, platform);
     await $load('foo@left/baz@foo+bar@right/qux@bar', router, queue);
@@ -435,7 +435,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture({ useHref: true });
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
@@ -482,7 +482,7 @@ describe('router-direct/router.spec.ts', function () {
     }
 
     const { host, router, container, tearDown } = await createFixture({ useHref: false }, App);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     container.register(IdName);
 
@@ -507,7 +507,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('corge@left', router, queue);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
@@ -522,7 +522,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(40000);
 
     const { container, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('foo@left', router, queue);
     await $load('bar@left', router, queue);
@@ -534,7 +534,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar(123)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -551,7 +551,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar(id=123)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -568,7 +568,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar(123)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -586,7 +586,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('corge@left/baz(123)', router, queue);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
@@ -600,7 +600,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('corge@left/baz(id=123)', router, queue);
 
@@ -615,7 +615,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar(123,OneTwoThree)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -634,7 +634,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar(id=123,name=OneTwoThree)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -653,7 +653,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('bar@left?id=123', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
@@ -679,7 +679,7 @@ describe('router-direct/router.spec.ts', function () {
     // };
 
     const { container, host, router, tearDown } = await createFixture(void 0, void 0);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     let url = 'bar(456)@left?id=123';
     await $load(url, router, queue);
@@ -705,7 +705,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('plugh(123)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
@@ -730,7 +730,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     plughReloadBehavior = 'default';
     // This should default
@@ -778,7 +778,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('grault@left', router, queue);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
@@ -816,7 +816,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(15000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('grault@left', router, queue);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
@@ -855,7 +855,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('waldo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: waldo', `host.textContent`);
@@ -894,7 +894,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture({ statefulHistoryLength: 2 });
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     const GrandGrandChild = CustomElement.define({ name: 'grandgrandchild', template: '|grandgrandchild|<input>' }, null);
     const GrandChild = CustomElement.define({ name: 'grandchild', template: '|grandchild|<input> <grandgrandchild></grandgrandchild>', dependencies: [GrandGrandChild] }, null);
@@ -956,7 +956,7 @@ describe('router-direct/router.spec.ts', function () {
     this.timeout(5000);
 
     const { container, host, router, tearDown } = await createFixture();
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     await $load('quux@left', router, queue);
     assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
@@ -984,7 +984,7 @@ describe('router-direct/router.spec.ts', function () {
 let quxCantUnload = 0;
 let plughReloadBehavior = 'default';
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };

@@ -68,8 +68,8 @@ export {
 } from './utilities/runner';
 
 export {
-  IAnimationFrameQueue,
-} from './utilities/animation-frame-queue';
+  IDomQueue,
+} from './utilities/dom-queue';
 
 // export {
 //   QueueItem,

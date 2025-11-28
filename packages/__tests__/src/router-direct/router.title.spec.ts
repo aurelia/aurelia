@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, ITitleOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, ITitleOptions, RouterConfiguration } from '@aurelia/router-direct';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -236,7 +236,7 @@ describe('router-direct/router.title.spec.ts', function () {
       const test = tests[j];
       it(`to load route ${test.path} (${JSON.stringify(config)}) => ${test.url}, "${titles[i][j]}"`, async function () {
         const { container, host, router, $teardown } = await $setup({ title: config }, appDependencies, appRoutes, locationCallback);
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
 
         await $load(test.path, router, queue);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
@@ -249,7 +249,7 @@ describe('router-direct/router.title.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };

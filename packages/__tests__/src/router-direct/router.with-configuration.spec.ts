@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration, RoutingInstruction } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration, RoutingInstruction } from '@aurelia/router-direct';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -191,7 +191,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   for (const test of tests) {
     it(`to load route ${test.path} => ${test.url}`, async function () {
       const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-      const queue = container.get(IAnimationFrameQueue);
+      const queue = container.get(IDomQueue);
 
       await $load(test.path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
@@ -203,7 +203,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   }
   it(`to load above routes in sequence`, async function () {
     const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     for (const test of tests) {
       await $load(test.path, router, queue);
@@ -220,7 +220,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     const title = test.title.replace(/@Parent/g, '');
     it(`to load route ${path} => ${url}`, async function () {
       const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-      const queue = container.get(IAnimationFrameQueue);
+      const queue = container.get(IDomQueue);
 
       await $load(path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
@@ -232,7 +232,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   }
   it(`to load above routes in sequence`, async function () {
     const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
@@ -250,7 +250,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   for (const test of tests) {
     it(`to load route (without viewports) ${test.path} => ${test.url}`, async function () {
       const { container, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-      const queue = container.get(IAnimationFrameQueue);
+      const queue = container.get(IDomQueue);
 
       if (!removedViewports) {
         removedViewports = true;
@@ -272,7 +272,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
 
   it(`to load above routes (without viewports) in sequence`, async function () {
     const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     for (const test of tests) {
       await $load(test.path, router, queue);
@@ -289,7 +289,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
     const title = test.title.replace(/@Parent/g, '');
     it(`to load route (without viewports) ${path} => ${url}`, async function () {
       const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-      const queue = container.get(IAnimationFrameQueue);
+      const queue = container.get(IDomQueue);
 
       await $load(path, router, queue);
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
@@ -301,7 +301,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   }
   it(`to load above routes (without viewports) in sequence`, async function () {
     const { container, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
-    const queue = container.get(IAnimationFrameQueue);
+    const queue = container.get(IDomQueue);
 
     for (const test of tests) {
       const path = test.path.replace(/@\w+/g, '');
@@ -316,7 +316,7 @@ describe('router-direct/router.with-configuration.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };

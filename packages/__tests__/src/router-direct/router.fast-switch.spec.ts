@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IAnimationFrameQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
 import { tasksSettled } from '@aurelia/runtime';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
@@ -121,7 +121,7 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
       it(`Ensure no duplication with load (${JSON.stringify(routerConfig)})`, async function () {
         const { container, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, One, Two], routes);
 
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
         try {
           // 0) Default root page
           assert.strictEqual(host.textContent, '!root!', '0) root default page');
@@ -157,7 +157,7 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
       it(`Ensure no duplication with back/forward (${JSON.stringify(routerConfig)})`, async function () {
         const { container, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, One, Two], routes);
 
-        const queue = container.get(IAnimationFrameQueue);
+        const queue = container.get(IDomQueue);
         try {
           // 0) Default root page
           assert.strictEqual(host.textContent, '!root!', '0) root default page');
@@ -196,12 +196,12 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, queue: IAnimationFrameQueue) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
   queue.queue.flush();
 };
 
-const $goBack = async (router: IRouter, queue?: IAnimationFrameQueue) => {
+const $goBack = async (router: IRouter, queue?: IDomQueue) => {
   await router.viewer.history.back();
   if (queue) {
     queue.queue.flush();
@@ -209,7 +209,7 @@ const $goBack = async (router: IRouter, queue?: IAnimationFrameQueue) => {
   }
 };
 
-const $goForward = async (router: IRouter, queue?: IAnimationFrameQueue) => {
+const $goForward = async (router: IRouter, queue?: IDomQueue) => {
   await router.viewer.history.forward();
   if (queue) {
     queue.queue.flush();

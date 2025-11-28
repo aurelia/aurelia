@@ -2,12 +2,12 @@ import { IPlatform } from '@aurelia/runtime-html';
 import { TaskQueue } from './abstract-task-queue';
 import { DI, resolve } from '@aurelia/kernel';
 
-export const IAnimationFrameQueue = /*@__PURE__*/ DI.createInterface<IAnimationFrameQueue>('IAnimationFrameQueue', x => x.singleton(AnimationFrameQueue));
-export interface IAnimationFrameQueue {
+export const IDomQueue = /*@__PURE__*/ DI.createInterface<IDomQueue>('IDomQueue', x => x.singleton(DomQueue));
+export interface IDomQueue {
     queue: TaskQueue;
 }
 
-class AnimationFrameQueue {
+class DomQueue {
     private readonly platform = resolve(IPlatform);
     public readonly queue: TaskQueue = (() => {
       let domRequested: boolean = false;

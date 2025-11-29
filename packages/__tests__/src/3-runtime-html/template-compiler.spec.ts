@@ -339,7 +339,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             [CustomAttribute.define('foo', class {})]
           );
 
-          assertTemplateHtml(template, '<!--au*--><el></el>');
+          assertTemplateHtml(template, '<el au-hid="0"></el>');
           verifyInstructions(instructions[0], [
             { toVerify: ['type', 'from', 'to', 'capture'],
               type: TT.listenerBinding,
@@ -363,7 +363,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               `<template><el prop.bind="p"></el></template>`,
               [Prop]
             );
-            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au*--><!--au-start--><!--au-end--></template>', `(template as HTMLTemplateElement).outerHTML`);
+            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au:0--><!--au-start--><!--au-end--></template>', `(template as HTMLTemplateElement).outerHTML`);
             const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
             assert.strictEqual((hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML, '<template><el></el></template>', `(hydratePropAttrInstruction.def.template as HTMLTemplateElement).outerHTML`);
           });
@@ -380,7 +380,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               `<template><el name.bind="name" title.bind="title" prop.bind="p"></el></template>`,
               [Prop]
             );
-            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au*--><!--au-start--><!--au-end--></template>', `(template as HTMLTemplateElement).outerHTML`);
+            assert.strictEqual((template as HTMLTemplateElement).outerHTML, '<template><!--au:0--><!--au-start--><!--au-end--></template>', `(template as HTMLTemplateElement).outerHTML`);
             const [hydratePropAttrInstruction] = instructions[0] as unknown as [HydrateTemplateController];
             verifyInstructions(hydratePropAttrInstruction.props, [
               {
@@ -458,7 +458,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           it('compiles', function () {
             const { template, instructions } = compileWith(`<template><let></let></template>`);
             assert.strictEqual(instructions.length, 1, `instructions.length`);
-            assert.strictEqual((template as Element).outerHTML, '<template><!--au*--><let></let></template>');
+            assert.strictEqual((template as Element).outerHTML, '<template><let au-hid="0"></let></template>');
           });
 
           it('does not generate instructions when there is no bindings', function () {
@@ -519,7 +519,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [CustomElement.define({ name: 'el' })]
             );
 
-            assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end-->');
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end-->');
           });
 
           it('compiles [containerless] after an interpolation', function () {
@@ -528,7 +528,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [CustomElement.define({ name: 'el' })]
             );
 
-            assertTemplateHtml(template, '<!--au*--> <!--au*--><!--au-start--><!--au-end-->');
+            assertTemplateHtml(template, '<!--au:0--> <!--au:1--><!--au-start--><!--au-end-->');
           });
 
           it('compiles [containerless] before an interpolation', function () {
@@ -537,7 +537,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [CustomElement.define({ name: 'el' })]
             );
 
-            assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end--><!--au*--> ');
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end--><!--au:1--> ');
           });
 
           it('compiles [containerless] next to each other', function () {
@@ -546,7 +546,205 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [CustomElement.define({ name: 'el' })]
             );
 
-            assertTemplateHtml(template, '<!--au*--><!--au-start--><!--au-end-->'.repeat(2));
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end--><!--au:1--><!--au-start--><!--au-end-->');
+          });
+        });
+
+        describe('with higher number hids (stress tests)', function () {
+          it('compiles 10 text interpolations with sequential hids', function () {
+            const { template, instructions } = compileWith(
+              '${a}${b}${c}${d}${e}${f}${g}${h}${i}${j}',
+              []
+            );
+
+            // Each interpolation gets a marker: <!--au:N--> followed by space
+            assertTemplateHtml(template,
+              '<!--au:0--> <!--au:1--> <!--au:2--> <!--au:3--> <!--au:4--> ' +
+              '<!--au:5--> <!--au:6--> <!--au:7--> <!--au:8--> <!--au:9--> '
+            );
+            assert.strictEqual(instructions.length, 10, 'should have 10 instruction rows');
+          });
+
+          it('compiles many elements with bindings using sequential hids', function () {
+            const { template, instructions } = compileWith(
+              '<div a.bind="1"></div><div b.bind="2"></div><div c.bind="3"></div>' +
+              '<div d.bind="4"></div><div e.bind="5"></div><div f.bind="6"></div>',
+              []
+            );
+
+            // Each element gets an au-hid attribute
+            assertTemplateHtml(template,
+              '<div au-hid="0"></div><div au-hid="1"></div><div au-hid="2"></div>' +
+              '<div au-hid="3"></div><div au-hid="4"></div><div au-hid="5"></div>'
+            );
+            assert.strictEqual(instructions.length, 6, 'should have 6 instruction rows');
+          });
+
+          it('compiles mixed interpolations and element bindings with correct hid sequence', function () {
+            const { template, instructions } = compileWith(
+              '${text1}<div a.bind="1"></div>${text2}<span b.bind="2"></span>${text3}',
+              []
+            );
+
+            // Interleaved text and element targets should have sequential hids
+            assertTemplateHtml(template,
+              '<!--au:0--> <div au-hid="1"></div><!--au:2--> <span au-hid="3"></span><!--au:4--> '
+            );
+            assert.strictEqual(instructions.length, 5, 'should have 5 instruction rows');
+          });
+
+          it('compiles containerless elements interspersed with regular bindings', function () {
+            const El = CustomElement.define({ name: 'el' });
+            const { template, instructions } = compileWith(
+              '<div a.bind="1"></div><el containerless></el><div b.bind="2"></div><el containerless></el>',
+              [El]
+            );
+
+            // Elements get au-hid, containerless get <!--au:N--> with render location
+            assertTemplateHtml(template,
+              '<div au-hid="0"></div><!--au:1--><!--au-start--><!--au-end-->' +
+              '<div au-hid="2"></div><!--au:3--><!--au-start--><!--au-end-->'
+            );
+            assert.strictEqual(instructions.length, 4, 'should have 4 instruction rows');
+          });
+
+          it('compiles 15 consecutive containerless elements', function () {
+            const El = CustomElement.define({ name: 'el' });
+            const markup = Array(15).fill('<el containerless></el>').join('');
+            const { template, instructions } = compileWith(markup, [El]);
+
+            const expected = Array(15).fill(0).map((_, i) =>
+              `<!--au:${i}--><!--au-start--><!--au-end-->`
+            ).join('');
+
+            assertTemplateHtml(template, expected);
+            assert.strictEqual(instructions.length, 15, 'should have 15 instruction rows');
+          });
+        });
+
+        describe('with deeply nested hids', function () {
+          it('compiles template controller with nested element binding (child template has fresh hid counter)', function () {
+            const If = CustomAttribute.define({ name: 'if', isTemplateController: true }, class {});
+            const { template, instructions } = compileWith(
+              '<div if.bind="show" a.bind="1"></div>',
+              [If]
+            );
+
+            // Outer template: TC marker at hid 0
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end-->');
+            assert.strictEqual(instructions.length, 1, 'outer should have 1 instruction row');
+
+            // Inner template: element at hid 0 (fresh counter)
+            const tcInstruction = instructions[0][0] as HydrateTemplateController;
+            assertTemplateHtml(tcInstruction.def.template!, '<div au-hid="0"></div>');
+            assert.strictEqual(tcInstruction.def.instructions!.length, 1, 'inner should have 1 instruction row');
+          });
+
+          it('compiles triple-nested template controllers with element at leaf', function () {
+            const If = CustomAttribute.define({ name: 'if', isTemplateController: true }, class {});
+            const For = CustomAttribute.define({ name: 'for', isTemplateController: true }, class {});
+            const { template, instructions } = compileWith(
+              '<div if.bind="a" for.bind="b" a.bind="c"></div>',
+              [If, For]
+            );
+
+            // Level 0: outer template with TC marker
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end-->');
+
+            // Level 1: if controller
+            const ifTC = instructions[0][0] as HydrateTemplateController;
+            assertTemplateHtml(ifTC.def.template!, '<!--au:0--><!--au-start--><!--au-end-->');
+
+            // Level 2: for controller
+            const forTC = ifTC.def.instructions![0][0] as HydrateTemplateController;
+            assertTemplateHtml(forTC.def.template!, '<div au-hid="0"></div>');
+          });
+
+          it('compiles nested template controller with multiple bindings at leaf', function () {
+            const TC = CustomAttribute.define({ name: 'tc', isTemplateController: true }, class {});
+            const { template, instructions } = compileWith(
+              '<div tc><span a.bind="1" b.bind="2" c.bind="3"></span></div>',
+              [TC]
+            );
+
+            // Outer: TC marker (div gets unwrapped)
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end-->');
+
+            // Inner template: should have the span with hid 0
+            const tcInstruction = instructions[0][0] as HydrateTemplateController;
+            assertTemplateHtml(tcInstruction.def.template!, '<div><span au-hid="0"></span></div>');
+            // The span has 3 bindings but only 1 target (the element itself)
+            assert.strictEqual(tcInstruction.def.instructions!.length, 1, 'child should have 1 instruction row');
+            assert.strictEqual(tcInstruction.def.instructions![0].length, 3, 'instruction row should have 3 instructions');
+          });
+
+          it('compiles complex nested structure with mixed marker types', function () {
+            const El = CustomElement.define({ name: 'el' });
+            const If = CustomAttribute.define({ name: 'if', isTemplateController: true }, class {});
+            const { template, instructions } = compileWith(
+              '<div a.bind="1">${text}<span if.bind="show" b.bind="2"></span></div>',
+              [El, If]
+            );
+
+            // Outer template:
+            // - div element at hid 0
+            // - text inside div at hid 1
+            // - TC for span at hid 2
+            assertTemplateHtml(template, '<div au-hid="0"><!--au:1--> <!--au:2--><!--au-start--><!--au-end--></div>');
+            assert.strictEqual(instructions.length, 3, 'outer should have 3 instruction rows');
+
+            // Inner template for if controller:
+            const ifTC = instructions[2][0] as HydrateTemplateController;
+            assertTemplateHtml(ifTC.def.template!, '<span au-hid="0"></span>');
+          });
+
+          it('compiles 5-level deep nesting with bindings at each level', function () {
+            const TC1 = CustomAttribute.define({ name: 'tc1', isTemplateController: true }, class {});
+            const TC2 = CustomAttribute.define({ name: 'tc2', isTemplateController: true }, class {});
+            const TC3 = CustomAttribute.define({ name: 'tc3', isTemplateController: true }, class {});
+            const TC4 = CustomAttribute.define({ name: 'tc4', isTemplateController: true }, class {});
+            const TC5 = CustomAttribute.define({ name: 'tc5', isTemplateController: true }, class {});
+            const { template, instructions } = compileWith(
+              '<div tc1 tc2 tc3 tc4 tc5 a.bind="val"></div>',
+              [TC1, TC2, TC3, TC4, TC5]
+            );
+
+            // Verify each level has its own hid 0
+            assertTemplateHtml(template, '<!--au:0--><!--au-start--><!--au-end-->');
+
+            let currentInstructions = instructions;
+            for (let level = 0; level < 4; level++) {
+              const tc = currentInstructions[0][0] as HydrateTemplateController;
+              assertTemplateHtml(tc.def.template!, '<!--au:0--><!--au-start--><!--au-end-->');
+              currentInstructions = tc.def.instructions!;
+            }
+
+            // Final level: element with binding
+            const lastTC = currentInstructions[0][0] as HydrateTemplateController;
+            assertTemplateHtml(lastTC.def.template!, '<div au-hid="0"></div>');
+            assert.strictEqual(lastTC.def.instructions!.length, 1, 'leaf should have 1 instruction row');
+          });
+
+          it('compiles sibling template controllers with independent hid sequences', function () {
+            const If = CustomAttribute.define({ name: 'if', isTemplateController: true }, class {});
+            const { template, instructions } = compileWith(
+              '<div if.bind="a" x.bind="1"></div><div if.bind="b" y.bind="2"></div><div if.bind="c" z.bind="3"></div>',
+              [If]
+            );
+
+            // Outer template: 3 TC markers
+            assertTemplateHtml(template,
+              '<!--au:0--><!--au-start--><!--au-end-->' +
+              '<!--au:1--><!--au-start--><!--au-end-->' +
+              '<!--au:2--><!--au-start--><!--au-end-->'
+            );
+            assert.strictEqual(instructions.length, 3, 'should have 3 instruction rows');
+
+            // Each child template should have its own hid 0
+            for (let i = 0; i < 3; i++) {
+              const tc = instructions[i][0] as HydrateTemplateController;
+              assertTemplateHtml(tc.def.template!, '<div au-hid="0"></div>');
+            }
           });
         });
       });
@@ -802,8 +1000,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             name: 'unamed',
             needsCompile: false,
             template: debug
-              ? '<template><!--au*--><div ref="el"></div></template>'
-              : '<template><!--au*--><div></div></template>',
+              ? '<template><div ref="el" au-hid="0"></div></template>'
+              : '<template><div au-hid="0"></div></template>',
             instructions: [[createRef('el', 'element')]],
             type: 'custom-element',
             surrogates: [],
@@ -820,8 +1018,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           verifyBindingInstructionsEqual(result, {
             name: 'unamed',
             template: debug
-              ? '<template><!--au*--><div data-a="b" data-b.bind="1" data-c="${hey}"></div></template>'
-              : '<template><!--au*--><div data-a="b"></div></template>',
+              ? '<template><div data-a="b" data-b.bind="1" data-c="${hey}" au-hid="0"></div></template>'
+              : '<template><div data-a="b" au-hid="0"></div></template>',
             needsCompile: false,
             instructions: [[
               createProp({ from: '1', to: 'data-b' }),
@@ -842,8 +1040,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           verifyBindingInstructionsEqual(result, {
             name: 'unamed',
             template: debug
-              ? '<template><!--au*--><div d.class="a" class="a ${b} c"></div></template>'
-              : '<template><!--au*--><div></div></template>',
+              ? '<template><div d.class="a" class="a ${b} c" au-hid="0"></div></template>'
+              : '<template><div au-hid="0"></div></template>',
             needsCompile: false,
             instructions: [[
               createAttr({ attr: 'class', from: 'a', to: 'd' }),
@@ -864,8 +1062,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           verifyBindingInstructionsEqual(result, {
             name: 'unamed',
             template: debug
-              ? '<template><!--au*--><div bg.style="a" style="a ${b} c"></div></template>'
-              : '<template><!--au*--><div></div></template>',
+              ? '<template><div bg.style="a" style="a ${b} c" au-hid="0"></div></template>'
+              : '<template><div au-hid="0"></div></template>',
             needsCompile: false,
             instructions: [[
               createAttr({ attr: 'style', from: 'a', to: 'bg' }),
@@ -887,7 +1085,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result } = compileTemplate('<div my-attr>', MyAttr);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><div></div></template>',
+          template: '<template><div au-hid="0"></div></template>',
           needsCompile: false,
           instructions: [[{
             type: TT.hydrateAttribute,
@@ -905,7 +1103,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createInterpolation } = compileTemplate('<div my-attr="${attr}">', MyAttr);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><div></div></template>',
+          template: '<template><div au-hid="0"></div></template>',
           needsCompile: false,
           instructions: [[{
             type: TT.hydrateAttribute,
@@ -923,7 +1121,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createPropBinding } = compileTemplate('<div my-attr.bind="v">', MyAttr);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><div></div></template>',
+          template: '<template><div au-hid="0"></div></template>',
           needsCompile: false,
           instructions: [[{
             type: TT.hydrateAttribute,
@@ -941,7 +1139,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createPropBinding } = compileTemplate('<template><template my-attr.bind="v">', MyAttr);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><template></template></template>',
+          template: '<template><template au-hid="0"></template></template>',
           needsCompile: false,
           instructions: [[{
             type: TT.hydrateAttribute,
@@ -1069,7 +1267,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
           needsCompile: false,
-          template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+          template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
           dependencies: [],
           surrogates: [],
           hasSlots: false,
@@ -1081,7 +1279,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             def: {
               name: 'unamed',
               needsCompile: false,
-              template: '<template><div><!--au*--><!--au-start--><!--au-end--></div></template>',
+              template: '<template><div><!--au:0--><!--au-start--><!--au-end--></div></template>',
               instructions: [[{
                 type: InstructionType.hydrateTemplateController,
                 res: CustomAttribute.getDefinition(Bar),
@@ -1089,7 +1287,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 def: {
                   name: 'unamed',
                   needsCompile: false,
-                  template: '<template><div id="2"><!--au*--><!--au-start--><!--au-end--></div></template>',
+                  template: '<template><div id="2"><!--au:0--><!--au-start--><!--au-end--></div></template>',
                   type: 'custom-element',
                   instructions: [[{
                     type: InstructionType.hydrateTemplateController,
@@ -1098,7 +1296,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     def: {
                       name: 'unamed',
                       needsCompile: false,
-                      template: '<template><div id="3"><!--au*--><!--au-start--><!--au-end--></div></template>',
+                      template: '<template><div id="3"><!--au:0--><!--au-start--><!--au-end--></div></template>',
                       type: 'custom-element',
                       instructions: [[{
                         type: InstructionType.hydrateTemplateController,
@@ -1142,7 +1340,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
           verifyBindingInstructionsEqual(result, {
             name: 'unamed',
-            template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+            template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
             needsCompile: false,
             dependencies: [],
             surrogates: [],
@@ -1154,7 +1352,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               props: [],
               def: {
                 name: 'unamed',
-                template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                 needsCompile: false,
                 type: 'custom-element',
                 instructions: [[{
@@ -1163,7 +1361,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   props: [createIterateProp('i of ii', 'value', [])],
                   def: {
                     name: 'unamed',
-                    template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                    template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                     needsCompile: false,
                     type: 'custom-element',
                     instructions: [[{
@@ -1172,7 +1370,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                       props: [],
                       def: {
                         name: 'unamed',
-                        template: '<template><div><!--au*--><!--au-start--><!--au-end--></div></template>',
+                        template: '<template><div><!--au:0--><!--au-start--><!--au-end--></div></template>',
                         needsCompile: false,
                         type: 'custom-element',
                         instructions: [[{
@@ -1181,7 +1379,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                           props: [createIterateProp('i of ii', 'value', [])],
                           def: {
                             name: 'unamed',
-                            template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                            template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                             needsCompile: false,
                             type: 'custom-element',
                             instructions: [[{
@@ -1219,7 +1417,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
           verifyBindingInstructionsEqual(result, {
             name: 'unamed',
-            template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+            template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
             needsCompile: false,
             dependencies: [],
             surrogates: [],
@@ -1231,7 +1429,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               props: [],
               def: {
                 name: 'unamed',
-                template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                 needsCompile: false,
                 type: 'custom-element',
                 instructions: [[{
@@ -1240,7 +1438,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   props: [createIterateProp('i of ii', 'value', [])],
                   def: {
                     name: 'unamed',
-                    template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                    template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                     needsCompile: false,
                     type: 'custom-element',
                     instructions: [[{
@@ -1249,7 +1447,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                       props: [],
                       def: {
                         name: 'unamed',
-                        template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                        template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                         needsCompile: false,
                         type: 'custom-element',
                         instructions: [[{
@@ -1258,7 +1456,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                           props: [createIterateProp('i of ii', 'value', [])],
                           def: {
                             name: 'unamed',
-                            template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                            template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                             needsCompile: false,
                             type: 'custom-element',
                             instructions: [[{
@@ -1300,14 +1498,14 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           const { result, createPropBinding } = compileTemplate(appTemplate, Foo, Bar);
           verifyBindingInstructionsEqual(result, {
             name: 'unamed',
-            template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+            template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
             instructions: [[{
               type: InstructionType.hydrateTemplateController,
               res: CustomAttribute.getDefinition(Foo),
               props: [],
               def: {
                 name: 'unamed',
-                template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                 needsCompile: false,
                 type: 'custom-element',
                 instructions: [[{
@@ -1316,7 +1514,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   props: [],
                   def: {
                     name: 'unamed',
-                    template: '<template><!--au*--><div></div></template>',
+                    template: '<template><div au-hid="0"></div></template>',
                     needsCompile: false,
                     instructions: [[createPropBinding({ from: 'b', to: 'a' })]],
                     type: 'custom-element',
@@ -1337,7 +1535,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createIterateProp, createPropBinding } = compileTemplate('<div><div foo="" id="1" bar.for="i of ii" baz.bind="e">', Foo, Bar, Baz);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><div><!--au*--><!--au-start--><!--au-end--></div></template>',
+          template: '<template><div><!--au:0--><!--au-start--><!--au-end--></div></template>',
           instructions: [[{
             // for foo=""
             name: 'unamed',
@@ -1348,7 +1546,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               name: 'unamed',
               type: 'custom-element',
               needsCompile: false,
-              template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+              template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
               instructions: [[{
                 // for bar.for
                 type: InstructionType.hydrateTemplateController,
@@ -1358,7 +1556,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   name: 'unamed',
                   type: 'custom-element',
                   needsCompile: false,
-                  template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                  template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
                     type: InstructionType.hydrateTemplateController,
                     res: CustomAttribute.getDefinition(Baz),
@@ -1387,7 +1585,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createIterateProp, createPropBinding  } = compileTemplate('<div><template foo="" id="1" bar.for="i of ii" baz.bind="e">', Foo, Bar, Baz);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><div><!--au*--><!--au-start--><!--au-end--></div></template>',
+          template: '<template><div><!--au:0--><!--au-start--><!--au-end--></div></template>',
           instructions: [[{
             // for foo=""
             name: 'unamed',
@@ -1398,7 +1596,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               name: 'unamed',
               type: 'custom-element',
               needsCompile: false,
-              template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+              template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
               instructions: [[{
                 // for bar.for
                 name: 'unamed',
@@ -1409,7 +1607,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   name: 'unamed',
                   type: 'custom-element',
                   needsCompile: false,
-                  template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
+                  template: '<template><!--au:0--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
                     name: 'unamed',
                     type: InstructionType.hydrateTemplateController,
@@ -1444,7 +1642,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createElement } = compileTemplate('<my-el foo="bar" my-attr>', MyEl, MyAttr);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><my-el foo="bar"></my-el></template>',
+          template: '<template><my-el foo="bar" au-hid="0"></my-el></template>',
           needsCompile: false,
           instructions: [[
             createElement({
@@ -1471,7 +1669,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         );
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><my-el foo="bar"></my-el></template>',
+          template: '<template><my-el foo="bar" au-hid="0"></my-el></template>',
           needsCompile: false,
           instructions: [[
             createElement({
@@ -1498,7 +1696,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createElement } = compileTemplate('<div as-element="foo">', Foo);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><div></div></template>',
+          template: '<template><div au-hid="0"></div></template>',
           needsCompile: false,
           instructions: [[
             createElement({
@@ -1516,7 +1714,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const { result, createElement } = compileTemplate('<template><template as-element="foo">', Foo);
         verifyBindingInstructionsEqual(result, {
           name: 'unamed',
-          template: '<template><!--au*--><template></template></template>',
+          template: '<template><template au-hid="0"></template></template>',
           needsCompile: false,
           instructions: [[
             createElement({

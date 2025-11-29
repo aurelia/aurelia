@@ -517,10 +517,12 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
 
   const createStartLocation = () => PLATFORM.document.createComment('au-start');
   const createEndLocation = () => PLATFORM.document.createComment('au-end');
-  const marker = PLATFORM.document.createComment('au*');
-  const text = PLATFORM.document.createTextNode('');
+  // Use new unified marker format: <!--au:N--> where N is the target index
+  const marker = PLATFORM.document.createComment('au:0');
+  const text = PLATFORM.document.createTextNode(' ');
   const textTemplate = PLATFORM.document.createElement('template');
-  textTemplate.content.append(createStartLocation(), createEndLocation(), marker, text);
+  // Order matters: marker followed by text node (the target for text interpolation)
+  textTemplate.content.append(marker, text);
 
   eachCartesianJoin(
     [duplicateOperationSpecs, bindSpecs],

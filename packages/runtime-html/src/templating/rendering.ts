@@ -51,8 +51,6 @@ export class Rendering implements IRendering {
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
   /** @internal */
   private readonly _empty: INodeSequence;
-  /** @internal */
-  private readonly _marker: Node;
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
@@ -72,7 +70,6 @@ export class Rendering implements IRendering {
     const p = this._platform = ctn.get(IPlatform);
     this._exprParser= ctn.get(IExpressionParser);
     this._observerLocator = ctn.get(IObserverLocator);
-    this._marker = p.document.createElement('au-m');
     this._empty = new FragmentNodeSequence(p, p.document.createDocumentFragment());
   }
 
@@ -102,7 +99,7 @@ export class Rendering implements IRendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._platform, this._transformMarker(definition.template as Node) as DocumentFragment);
+      return new FragmentNodeSequence(this._platform, definition.template as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
     let needsImportNode = false;
@@ -131,7 +128,8 @@ export class Rendering implements IRendering {
         fragment = tpl.content;
         needsImportNode = true;
       }
-      this._transformMarker(fragment);
+      // No marker transformation needed - the unified marker system uses
+      // au-hid attributes and <!--au:N--> comments directly
 
       cache.set(definition, fragment);
     }
@@ -194,63 +192,5 @@ export class Rendering implements IRendering {
         ++i;
       }
     }
-  }
-
-  /** @internal */
-  private _transformMarker(fragment: Node | null) {
-    if (fragment == null) {
-      return null;
-    }
-    const walker = this._platform.document.createTreeWalker(fragment, /* NodeFilter.SHOW_COMMENT */ 128);
-    let currentNode: Node | null;
-    while ((currentNode = walker.nextNode()) != null) {
-      if (currentNode.nodeValue === 'au*') {
-        currentNode.parentNode!.replaceChild(walker.currentNode = this._marker.cloneNode(), currentNode);
-      }
-    }
-    return fragment;
-    // below is a homemade "comment query selector that seems to be as efficient as the TreeWalker
-    // also it works with very minimal set of APIs (.nextSibling, .parentNode, .insertBefore, .removeChild)
-    // while TreeWalker maynot be always available in platform that we may potentially support
-    //
-    // so leaving it here just in case we need it again, TreeWalker is slightly less code
-
-    // let parent: Node = fragment;
-    // let current: Node | null | undefined = parent.firstChild;
-    // let next: Node | null | undefined = null;
-
-    // while (current != null) {
-    //   if (current.nodeType === 8 && current.nodeValue === 'au*') {
-    //     next = current.nextSibling!;
-    //     parent.removeChild(current);
-    //     parent.insertBefore(this._marker(), next);
-    //     if (next.nodeType === 8) {
-    //       current = next.nextSibling;
-    //       // todo: maybe validate?
-    //     } else {
-    //       current = next;
-    //     }
-    //   }
-
-    //   next = current?.firstChild;
-    //   if (next == null) {
-    //     next = current?.nextSibling;
-    //     if (next == null) {
-    //       current = parent.nextSibling;
-    //       parent = parent.parentNode!;
-    //       // needs to keep walking up all the way til a valid next node
-    //       while (current == null && parent != null) {
-    //         current = parent.nextSibling;
-    //         parent = parent.parentNode!;
-    //       }
-    //     } else {
-    //       current = next;
-    //     }
-    //   } else {
-    //     parent = current!;
-    //     current = next;
-    //   }
-    // }
-    // return fragment;
   }
 }

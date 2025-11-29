@@ -246,32 +246,68 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
   ) {
-    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
-    let i = 0;
-    let ii = targetNodeList.length;
-    // eslint-disable-next-line
-    let targets = this.t = Array(ii);
-    let target: Node | IRenderLocation;
-    let marker: Element;
+    this.f = fragment;
 
-    while (ii > i) {
-      marker = targetNodeList[i];
+    // Unified SSR-compatible marker system:
+    // 1. Element targets: [au-hid="N"] attribute - value IS the target index
+    // 2. Non-element targets: <!--au:N--> comment - N IS the target index
+    //
+    // Both marker types encode their index directly, eliminating the need
+    // for runtime DOM transformation (_transformMarker).
+
+    // First pass: count targets by finding both marker types
+    const auHidElements = fragment.querySelectorAll('[au-hid]');
+    let markerCount = 0;
+
+    // Use TreeWalker to find <!--au:N--> comments
+    const walker = platform.document.createTreeWalker(fragment, 128 /* NodeFilter.SHOW_COMMENT */);
+    const markerComments: Comment[] = [];
+    let node: Comment | null;
+    while ((node = walker.nextNode() as Comment | null) !== null) {
+      if (node.nodeValue?.startsWith('au:')) {
+        markerComments.push(node);
+        markerCount++;
+      }
+    }
+
+    const totalTargets = auHidElements.length + markerCount;
+    // eslint-disable-next-line
+    const targets = this.t = Array(totalTargets);
+
+    // Process element targets: au-hid value IS the target index
+    let el: Element;
+    let targetId: number;
+    for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
+      el = auHidElements[i];
+      targetId = parseInt(el.getAttribute('au-hid')!, 10);
+      el.removeAttribute('au-hid');
+      targets[targetId] = el;
+    }
+
+    // Process marker comments: <!--au:N--> where N IS the target index
+    let marker: Comment;
+    let target: Node | IRenderLocation;
+    for (let i = 0, ii = markerComments.length; ii > i; ++i) {
+      marker = markerComments[i];
+      // Parse index from "au:N" format
+      targetId = parseInt(marker.nodeValue!.slice(3), 10);
       target = marker.nextSibling!;
       marker.remove();
+
+      // If the target is a comment (au-start), it's a render location
       if (target.nodeType === 8) {
-        marker = target as Element;
-        (target = target.nextSibling as IRenderLocation).$start = marker as unknown as Comment;
+        const startMarker = target as unknown as Comment;
+        target = target.nextSibling as IRenderLocation;
+        (target as IRenderLocation).$start = startMarker as IRenderLocation;
       }
-      targets[i] = target;
-      ++i;
+      targets[targetId] = target;
     }
 
     const childNodeList = fragment.childNodes;
-    const childNodes = this.childNodes = Array(ii = childNodeList.length) as Node[];
-    i = 0;
-    while (ii > i) {
+    const ii = childNodeList.length;
+    const childNodes = this.childNodes = Array(ii) as Node[];
+    for (let i = 0; ii > i; ++i) {
       childNodes[i] = childNodeList[i];
-      ++i;
     }
 
     this._firstChild = fragment.firstChild;

@@ -26,6 +26,18 @@ export interface IRendering {
 
   createNodes(definition: CustomElementDefinition): INodeSequence;
 
+  /**
+   * Adopt existing DOM children for SSR hydration.
+   *
+   * Instead of cloning from a template, this wraps existing DOM nodes
+   * that were pre-rendered (e.g., by SSR). Use this when hydrating
+   * server-rendered HTML.
+   *
+   * @param host - The element whose children should be adopted
+   * @returns A node sequence wrapping the existing children
+   */
+  adoptNodes(host: Element): INodeSequence;
+
   render(
     controller: IHydratableController,
     targets: ArrayLike<INode>,
@@ -141,6 +153,10 @@ export class Rendering implements IRendering {
           ? doc.importNode(fragment, true)
           : doc.adoptNode(fragment.cloneNode(true) as DocumentFragment)
         );
+  }
+
+  public adoptNodes(host: Element): INodeSequence {
+    return FragmentNodeSequence.adoptChildren(this._platform, host);
   }
 
   public render(

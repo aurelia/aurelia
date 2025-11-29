@@ -378,13 +378,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate();
+      this._hydrate(hydrationInst);
       this._hydrateChildren();
     }
   }
 
   /** @internal */
-  public _hydrate(): void {
+  public _hydrate(hydrationInst?: IControllerElementHydrationInstruction | null): void {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -431,7 +431,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     (this._vm as Writable<C>).$controller = this;
-    this.nodes = this._rendering.createNodes(compiledDef);
+
+    // SSR Hydration: adopt existing DOM instead of cloning from template
+    if (hydrationInst?.adopt) {
+      this.nodes = this._rendering.adoptNodes(host);
+    } else {
+      this.nodes = this._rendering.createNodes(compiledDef);
+    }
 
     if (this._lifecycleHooks!.hydrated !== void 0) {
       this._lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
@@ -1844,6 +1850,14 @@ export interface IControllerElementHydrationInstruction {
    * Indicates whether the custom element was used with "containerless" attribute
    */
   readonly containerless?: boolean;
+  /**
+   * When true, adopts existing DOM children of the host instead of cloning from template.
+   *
+   * Used for SSR hydration where the DOM is already rendered server-side.
+   * The existing DOM must contain the same marker system (au-hid, <!--au:N-->)
+   * that the template compiler produces.
+   */
+  readonly adopt?: boolean;
 }
 
 function callDispose(disposable: IDisposable): void {

@@ -79,6 +79,45 @@ export class Aurelia implements IDisposable {
     return onResolve(appRoot.activate(), () => appRoot);
   }
 
+  /**
+   * Hydrate a pre-rendered DOM tree with an Aurelia component.
+   *
+   * Unlike `enhance()`, which compiles the host element as a template,
+   * `hydrate()` adopts existing DOM that was pre-rendered (e.g., by SSR)
+   * and connects it to a component that has an AOT-compiled definition.
+   *
+   * The component's definition (with instructions) should already be attached
+   * to the component class - either via decorator or static `$au` property.
+   * This is what AOT compilation produces.
+   *
+   * @param config - Hydration configuration including host, component, and state
+   * @returns The app root, or a promise that resolves to it
+   *
+   * @example
+   * ```typescript
+   * // Server renders HTML with markers and sends state
+   * // Client receives pre-rendered HTML in #app and state in window.__SSR_STATE__
+   *
+   * await aurelia.hydrate({
+   *   host: document.getElementById('app'),
+   *   component: MyApp,  // Has AOT-compiled definition
+   *   state: window.__SSR_STATE__,
+   * });
+   * ```
+   */
+  public hydrate<T extends object>(config: IHydrateConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
+    const container = config.container ?? this.container.createChild();
+    const rootProvider = registerResolver(container, IAppRoot, new InstanceProvider<IAppRoot<T>>('IAppRoot'));
+    const appRoot: IAppRoot<T> = new AppRoot(
+      { host: config.host, component: config.component },
+      container,
+      rootProvider,
+      false, // not enhance mode
+      { adopt: true, state: config.state }
+    );
+    return onResolve(appRoot.activate(), () => appRoot);
+  }
+
   /** @internal */
   private _startPromise: Promise<void> | void = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
@@ -163,3 +202,29 @@ export type IEnhancementConfig<T extends object = object> = IAppRootConfig<T> & 
    */
   container?: IContainer;
 };
+
+export interface IHydrateConfig<T extends object = object> {
+  /**
+   * The host element containing pre-rendered HTML with markers.
+   * The server-rendered content should match what the template would produce.
+   */
+  host: HTMLElement;
+
+  /**
+   * The root component class. For SSR hydration, this should have an
+   * AOT-compiled definition (needsCompile: false, instructions pre-generated).
+   */
+  component: Constructable<T>;
+
+  /**
+   * The state to hydrate the component with. This should match the state
+   * used to render on the server. Applied via Object.assign before bindings
+   * are created.
+   */
+  state?: Partial<T>;
+
+  /**
+   * Optional container for the hydrated app.
+   */
+  container?: IContainer;
+}

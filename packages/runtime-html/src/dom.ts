@@ -242,25 +242,80 @@ export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
   private readonly f: DocumentFragment;
 
+  /**
+   * Adopt existing DOM children for SSR hydration.
+   *
+   * Instead of cloning from a template, this wraps existing DOM nodes
+   * that were pre-rendered (e.g., by SSR). The nodes are already in the DOM,
+   * so `appendTo()` will be a no-op and `remove()` will move them to
+   * an internal fragment for potential re-mounting.
+   *
+   * @param platform - The platform abstraction
+   * @param parent - The element whose children should be adopted
+   * @returns A node sequence wrapping the existing children
+   */
+  public static adoptChildren(platform: IPlatform, parent: Element): FragmentNodeSequence {
+    // Create empty fragment for potential future unmounting
+    // (when remove() is called, nodes will be moved here)
+    const fragment = platform.document.createDocumentFragment();
+    const instance = new FragmentNodeSequence(platform, fragment, parent);
+    return instance;
+  }
+
   public constructor(
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
+    /**
+     * When provided, adopts children from this parent instead of using fragment.
+     * The fragment is kept empty for future remove() operations.
+     * @internal
+     */
+    adoptFrom?: Element,
   ) {
     this.f = fragment;
 
-    // Unified SSR-compatible marker system:
-    // 1. Element targets: [au-hid="N"] attribute - value IS the target index
-    // 2. Non-element targets: <!--au:N--> comment - N IS the target index
-    //
-    // Both marker types encode their index directly, eliminating the need
-    // for runtime DOM transformation (_transformMarker).
+    // Collect targets and children from either the fragment or adopted parent
+    const root = adoptFrom ?? fragment;
+    this.t = this._collectTargets(root);
 
-    // First pass: count targets by finding both marker types
-    const auHidElements = fragment.querySelectorAll('[au-hid]');
+    const childNodeList = root.childNodes;
+    const ii = childNodeList.length;
+    const childNodes = this.childNodes = Array(ii) as Node[];
+    for (let i = 0; ii > i; ++i) {
+      childNodes[i] = childNodeList[i];
+    }
+
+    this._firstChild = root.firstChild;
+    this._lastChild = root.lastChild;
+
+    // When adopting, nodes are already in the DOM
+    this._isMounted = adoptFrom !== undefined;
+  }
+
+  /**
+   * Collect instruction targets from a DOM tree using the unified marker system.
+   *
+   * Unified SSR-compatible marker system:
+   * 1. Element targets: [au-hid="N"] attribute - value IS the target index
+   * 2. Non-element targets: <!--au:N--> comment - N IS the target index
+   *
+   * Both marker types encode their index directly, eliminating the need
+   * for runtime DOM transformation.
+   *
+   * @param root - DocumentFragment (for template cloning) or Element (for SSR adoption)
+   * @returns Array of target nodes indexed by their marker values
+   *
+   * @internal
+   */
+  private _collectTargets(root: DocumentFragment | Element): Node[] {
+    const { platform } = this;
+
+    // Find element targets with au-hid attribute
+    const auHidElements = root.querySelectorAll('[au-hid]');
     let markerCount = 0;
 
     // Use TreeWalker to find <!--au:N--> comments
-    const walker = platform.document.createTreeWalker(fragment, 128 /* NodeFilter.SHOW_COMMENT */);
+    const walker = platform.document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
     const markerComments: Comment[] = [];
     let node: Comment | null;
     while ((node = walker.nextNode() as Comment | null) !== null) {
@@ -271,8 +326,7 @@ export class FragmentNodeSequence implements INodeSequence {
     }
 
     const totalTargets = auHidElements.length + markerCount;
-    // eslint-disable-next-line
-    const targets = this.t = Array(totalTargets);
+    const targets: Node[] = Array(totalTargets);
 
     // Process element targets: au-hid value IS the target index
     let el: Element;
@@ -295,23 +349,24 @@ export class FragmentNodeSequence implements INodeSequence {
       marker.remove();
 
       // If the target is a comment (au-start), it's a render location
-      if (target.nodeType === 8) {
-        const startMarker = target as unknown as Comment;
-        target = target.nextSibling as IRenderLocation;
-        (target as IRenderLocation).$start = startMarker as IRenderLocation;
+      // We need to SEARCH FORWARD for au-end, not assume it's adjacent
+      // SSR output may have content between au-start and au-end
+      if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
+        const startMarker = target as IRenderLocation;
+        // Search forward for the matching au-end
+        let endMarker = target.nextSibling;
+        while (endMarker !== null && !(endMarker.nodeType === 8 && (endMarker as Comment).textContent === 'au-end')) {
+          endMarker = endMarker.nextSibling;
+        }
+        if (endMarker !== null) {
+          target = endMarker as IRenderLocation;
+          (target as IRenderLocation).$start = startMarker;
+        }
       }
       targets[targetId] = target;
     }
 
-    const childNodeList = fragment.childNodes;
-    const ii = childNodeList.length;
-    const childNodes = this.childNodes = Array(ii) as Node[];
-    for (let i = 0; ii > i; ++i) {
-      childNodes[i] = childNodeList[i];
-    }
-
-    this._firstChild = fragment.firstChild;
-    this._lastChild = fragment.lastChild;
+    return targets;
   }
 
   public findTargets(): ArrayLike<Node> {

@@ -39,6 +39,7 @@ export {
   Aurelia,
   IAurelia,
   type IEnhancementConfig,
+  type IHydrateConfig,
   /**
    * @deprecated
    * Use `ISinglePageAppConfig` instead

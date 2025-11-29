@@ -93,7 +93,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
        assertText('Loading...');
 
        // Wait for async attached() to complete
-       await platform.taskQueue.yield();
+       await tasksSettled();
 
        // Verify products are displayed
        assertText('Product 1Product 2');
@@ -123,7 +123,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
        .started;
 
      // Wait for async operation
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify error is displayed
      expect(component.error).toBeTruthy();
@@ -169,14 +169,14 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
        .started;
 
      // Wait for initial failed load
-     await platform.taskQueue.yield();
+     await tasksSettled();
      expect(component.error).toBeTruthy();
 
      // Click retry button
      trigger.click('button');
 
      // Wait for retry to complete
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify success
      assertText('Product 1');
@@ -193,7 +193,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 - Successful API calls populate component data
 - Error states are handled and displayed
 - Retry functionality reloads data
-- All async operations use `platform.taskQueue.yield()` for timing
+- All async operations can be waited using `await tasksSettled()` for timing
 
 ## 2. Testing router navigation and route parameters
 
@@ -210,30 +210,30 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
    describe('Router navigation', () => {
      it('should navigate to product detail with correct parameter', async () => {
-       const { component, container, platform } = await createFixture
-         .component(class App {
-           static routes = [
-             { path: '', redirect: 'products' },
-             { path: 'products', component: ProductList, title: 'Products' },
-             { path: 'products/:id', component: ProductDetail, title: 'Product' }
-           ];
-         })
-         .html`<au-viewport></au-viewport>`
-         .deps(RouterConfiguration, ProductList, ProductDetail)
-         .build()
-         .started;
+        const { component, container, platform } = await createFixture
+          .component(class App {
+            static routes = [
+              { path: '', redirect: 'products' },
+              { path: 'products', component: ProductList, title: 'Products' },
+              { path: 'products/:id', component: ProductDetail, title: 'Product' }
+            ];
+          })
+          .html`<au-viewport></au-viewport>`
+          .deps(RouterConfiguration, ProductList, ProductDetail)
+          .build()
+          .started;
 
-       const router = container.get(IRouter);
+        const router = container.get(IRouter);
 
-       // Navigate to product detail
-       await router.load('products/123');
-       await platform.taskQueue.yield();
+        // Navigate to product detail
+        await router.load('products/123');
+        await tasksSettled();
 
-       // Verify navigation occurred
-       expect(router.currentRoute?.path).toContain('products/123');
+        // Verify navigation occurred
+        expect(router.currentRoute?.path).toContain('products/123');
 
-       await fixture.stop(true);
-     });
+        await fixture.stop(true);
+      });
    });
    ```
 
@@ -266,7 +266,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Navigate with parameter
      await router.load('products/456');
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify parameter was extracted
      expect(loadedProductId).toBe('456');
@@ -308,7 +308,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Attempt to navigate to protected route
      await router.load('protected');
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify navigation was blocked
      expect(canLoadCalled).toBe(true);
@@ -352,7 +352,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Try to access protected route
      await router.load('dashboard');
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify redirect to login
      expect(router.currentRoute?.path).toContain('login');
@@ -424,7 +424,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
        // Submit without filling form
        const isValid = await component.submit();
-       await platform.taskQueue.yield();
+        await tasksSettled();
 
        // Verify validation failed
        expect(isValid).toBe(false);
@@ -467,7 +467,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Submit with valid data
      const isValid = await component.submit();
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify validation passed
      expect(isValid).toBe(true);
@@ -506,7 +506,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Trigger blur event
      trigger('#email', new Event('blur'));
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify validation error appears
      const results = component.controller.results;
@@ -555,7 +555,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
          .build()
          .started;
 
-       await platform.taskQueue.yield();
+       await tasksSettled();
 
        // Get child component instance
        const childElement = getBy('child-component');
@@ -566,7 +566,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
        // Update parent data
        component.message = 'Updated message';
-       await platform.taskQueue.yield();
+       await tasksSettled();
 
        // Verify child received update
        expect(childComponent.value).toBe('Updated message');
@@ -612,7 +612,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
      const childComponent = childElement.au?.controller?.viewModel;
 
      childComponent.sendMessage();
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify parent received message
      expect(component.receivedMessage).toBe('Hello parent!');
@@ -671,7 +671,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Increment from component A
      compA.increment();
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      // Verify both components reflect the change
      expect(compA.count).toBe(1);
@@ -974,7 +974,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
          .started;
 
        // Wait for attached() to complete
-       await platform.taskQueue.yield();
+       await tasksSettled();
 
        // Verify data was loaded
        expect(component.userData).toBeTruthy();
@@ -1045,7 +1045,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // First load fails
      await component.loadData();
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      expect(component.error).toBeTruthy();
      expect(component.data).toBeNull();
@@ -1053,7 +1053,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
      // Retry succeeds
      await component.retry();
-     await platform.taskQueue.yield();
+     await tasksSettled();
 
      expect(component.error).toBeNull();
      expect(component.data).toBeTruthy();
@@ -1075,7 +1075,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 
 | Scenario | Key Approach | Tools/APIs |
 | --- | --- | --- |
-| Async API calls | Mock HTTP client + `taskQueue.yield()` | `MockHttpClient`, `platform.taskQueue.yield()` |
+| Async API calls | Mock HTTP client + `await tasksSettled()` | `MockHttpClient`, `await tasksSettled()` |
 | Router navigation | Router configuration + `router.load()` | `RouterConfiguration`, `IRouter` |
 | Form validation | Validation rules + controller | `IValidationRules`, `IValidationController` |
 | Component interaction | Bindables + custom events | `@bindable`, `CustomEvent` |
@@ -1085,7 +1085,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 ## Best practices
 
 1. **Always await `.started`**: Ensures all async lifecycle hooks complete
-2. **Use `platform.taskQueue.yield()`**: After async operations or state changes
+2. **Use `await tasksSettled()`**: After async operations or state changes
 3. **Mock external dependencies**: HTTP clients, auth services, APIs
 4. **Test error paths**: Don't just test happy scenarios
 5. **Clean up with `stop(true)`**: Prevents memory leaks and interference

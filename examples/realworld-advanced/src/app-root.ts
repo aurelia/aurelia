@@ -1,6 +1,6 @@
 import template from './app-root.html';
 
-import { customElement, route, ICustomElementViewModel, IPlatform } from 'aurelia';
+import { customElement, route, ICustomElementViewModel, IPlatform, queueAsyncTask } from 'aurelia';
 
 import { ITagsState, IUserState } from './state';
 
@@ -22,7 +22,7 @@ export class AppRootCustomElement implements ICustomElementViewModel {
     @IUserState readonly $user: IUserState,
     @ITagsState readonly $tags: ITagsState,
   ) {
-    p.taskQueue.queueTask(async () => {
+    queueAsyncTask(async () => {
       // tags can be loaded anonymously and no other state depends on it, so just initiate it asynchronously as early as we can.
       await $tags.load();
     });

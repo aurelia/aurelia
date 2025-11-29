@@ -1,4 +1,3 @@
-import { TaskQueue } from '@aurelia/platform';
 import { isString, IPlatform, type IDisposable, emptyArray, resolve } from '@aurelia/kernel';
 import { type Scope } from '@aurelia/runtime';
 import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
@@ -14,11 +13,9 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
   };
   /** @internal */
   private readonly _now: () => number;
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
 
   public constructor() {
-    ({ performanceNow: this._now, taskQueue: this._taskQueue } = resolve(IPlatform));
+    ({ performanceNow: this._now } = resolve(IPlatform));
   }
 
   public bind(scope: Scope, binding: IBinding, delay?: number, signals?: string | string[]) {
@@ -26,7 +23,6 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
       type: 'throttle',
       delay: delay ?? defaultDelay,
       now: this._now,
-      queue: this._taskQueue,
       signals: isString(signals) ? [signals] : (signals ?? emptyArray),
     };
     const handler = binding.limit?.(opts);

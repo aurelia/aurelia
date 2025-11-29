@@ -20,7 +20,6 @@ export class DebounceBindingBehavior implements BindingBehaviorInstance {
       type: 'debounce',
       delay: delay ?? defaultDelay,
       now: this._platform.performanceNow,
-      queue: this._platform.taskQueue,
       signals: isString(signals) ? [signals] : (signals ?? emptyArray),
     };
     const handler = binding.limit?.(opts);

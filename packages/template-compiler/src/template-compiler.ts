@@ -647,26 +647,16 @@ export class TemplateCompiler implements ITemplateCompiler {
   /**
    * Classify all attributes on an element into their semantic categories.
    *
-   * This is the core "attribute semantic decision" algorithm. Each attribute is
-   * checked against these categories in priority order:
-   *
+   * Priority order:
    * 1. Special attributes (as-element, containerless) - removed, not compiled
-   * 2. Captured attributes - forwarded to custom element via captures array
-   * 3. Spread transferred bindings (...$attrs) - spreads parent's attributes
-   * 4. Binding commands with ignoreAttr (class/style/attr) - command handles everything
-   * 5. Spread bindables (...$bindables) - spreads bindings to all bindable props
-   * 6. Custom element bindable properties - binds to CE's declared bindables
-   * 7. Custom attributes and template controllers - hydrates CA/TC instances
-   * 8. Plain attributes - interpolation or binding command on DOM attribute
+   * 2. Captured attributes - forwarded to custom element
+   * 3. Spread transferred bindings (...$attrs)
+   * 4. Binding commands with ignoreAttr (class/style/attr)
+   * 5. Spread bindables (...$bindables)
+   * 6. Custom element bindable properties
+   * 7. Custom attributes and template controllers
+   * 8. Plain attributes - interpolation or binding command
    *
-   * @param el - The element whose attributes to classify
-   * @param elDef - The custom element definition, or null if not a CE
-   * @param captures - Array to collect captured attributes (for CE forwarding)
-   * @param context - The compilation context
-   * @param generateStaticAttrInstructions - If true, generate Set*AttributeInstruction for
-   *        static attrs instead of leaving them in the DOM. Used for surrogates where
-   *        attrs must be transferred to the actual host element.
-   * @returns Classification result with instructions grouped by category
    * @internal
    */
   private _classifyAttributes(
@@ -1277,19 +1267,9 @@ export class TemplateCompiler implements ITemplateCompiler {
   /**
    * Build the bindable property instructions for a custom attribute.
    *
-   * Handles three cases:
-   * 1. Multi-binding syntax: `my-attr="prop1: value1; prop2.bind: expr"`
-   * 2. Single value without command: `my-attr="value"` or `my-attr="${expr}"`
-   * 3. Single value with command: `my-attr.bind="expr"`
+   * Handles: multi-binding syntax (`my-attr="prop1: v1; prop2.bind: v2"`),
+   * single value without command, and single value with binding command.
    *
-   * @param node - The element the attribute is on
-   * @param attrDef - The custom attribute definition
-   * @param attrSyntax - The parsed attribute syntax
-   * @param attrValue - The raw attribute value
-   * @param bindingCommand - The binding command instance, or null
-   * @param context - The compilation context
-   * @param treatEmptyAsNoBinding - If true, empty string values produce no instructions (surrogate/element behavior)
-   * @returns Array of instructions for the attribute's bindable properties
    * @internal
    */
   private _compileCustomAttributeBindables(

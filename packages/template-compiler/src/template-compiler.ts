@@ -1,3 +1,4 @@
+/* eslint-disable function-call-argument-newline */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
@@ -143,10 +144,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrBindableInstructions: IInstruction[];
     let bindablesInfo: IAttributeBindablesInfo | IElementBindablesInfo;
     let bindable: IComponentBindablePropDefinition;
-    let primaryBindable: IComponentBindablePropDefinition;
     let bindingCommand: BindingCommandInstance | null = null;
     let expr: AnyBindingExpression;
-    let isMultiBindings: boolean;
     let attrTarget: string;
     let attrValue: string;
 
@@ -214,45 +213,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.no_spread_template_controller, attrTarget);
         }
-        bindablesInfo = context._getBindables(attrDef);
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax.
-        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        isMultiBindings = attrDef.noMultiBindings === false
-          && bindingCommand === null
-          && hasInlineBindings(attrValue);
-        if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(target, attrValue, attrDef, context);
-        } else {
-          primaryBindable = bindablesInfo.primary;
-          // custom attribute + single value + WITHOUT binding command:
-          // my-attr=""
-          // my-attr="${}"
-          if (bindingCommand === null) {
-            expr = exprParser.parse(attrValue, etInterpolation);
-            attrBindableInstructions = [
-              expr === null
-                ? new SetPropertyInstruction(attrValue, primaryBindable.name)
-                : new InterpolationInstruction(expr, primaryBindable.name)
-            ];
-          } else {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
-
-            commandBuildInfo.node = target;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = primaryBindable;
-            commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
-          }
-        }
+        attrBindableInstructions = this._compileCustomAttributeBindables(
+          target, attrDef, attrSyntax, attrValue, bindingCommand, context,
+          /* treatEmptyAsNoBinding */ false
+        );
 
         (attrInstructions ??= []).push(new HydrateAttributeInstruction(
           // todo: def/ def.Type or def.name should be configurable
@@ -329,11 +293,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrDef: IAttributeComponentDefinition | null = null;
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
-    let bindableInfo: IElementBindablesInfo | IAttributeBindablesInfo;
-    let primaryBindable: IComponentBindablePropDefinition;
     let bindingCommand: BindingCommandInstance | null = null;
     let expr: AnyBindingExpression;
-    let isMultiBindings: boolean;
     let realAttrTarget: string;
     let realAttrValue: string;
 
@@ -373,47 +334,10 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, realAttrTarget);
         }
-        bindableInfo = context._getBindables(attrDef);
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax.
-        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        isMultiBindings = attrDef.noMultiBindings === false
-          && bindingCommand === null
-          && hasInlineBindings(realAttrValue);
-        if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(el, realAttrValue, attrDef, context);
-        } else {
-          primaryBindable = bindableInfo.primary;
-          // custom attribute + single value + WITHOUT binding command:
-          // my-attr=""
-          // my-attr="${}"
-          if (bindingCommand === null) {
-            expr = exprParser.parse(realAttrValue, etInterpolation);
-            attrBindableInstructions = expr === null
-              ? realAttrValue === ''
-                // when the attribute usage is <div attr>
-                // it's considered as no bindings
-                ? []
-                : [new SetPropertyInstruction(realAttrValue, primaryBindable.name)]
-              : [new InterpolationInstruction(expr, primaryBindable.name)];
-          } else {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
-
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = primaryBindable;
-            commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
-          }
-        }
+        attrBindableInstructions = this._compileCustomAttributeBindables(
+          el, attrDef, attrSyntax, realAttrValue, bindingCommand, context,
+          /* treatEmptyAsNoBinding */ true
+        );
 
         el.removeAttribute(attrName);
         --i;
@@ -657,7 +581,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     let plainAttrInstructions: IInstruction[] | undefined;
     let elBindableInstructions: IInstruction[] | undefined;
     let attrDef: IAttributeComponentDefinition | null = null;
-    let isMultiBindings = false;
     let bindable: IComponentBindablePropDefinition;
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
@@ -667,7 +590,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
     let bindablesInfo: IElementBindablesInfo | IAttributeBindablesInfo;
-    let primaryBindable: IComponentBindablePropDefinition;
     let realAttrTarget: string;
     let realAttrValue: string;
     let processContentResult: boolean | undefined | void = true;
@@ -884,47 +806,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       // check for custom attributes before plain attributes
       attrDef = context._findAttr(realAttrTarget);
       if (attrDef !== null) {
-        bindablesInfo = context._getBindables(attrDef);
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax.
-        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        isMultiBindings = attrDef.noMultiBindings === false
-          && bindingCommand === null
-          && hasInlineBindings(realAttrValue);
-        if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(el, realAttrValue, attrDef, context);
-        } else {
-          primaryBindable = bindablesInfo.primary;
-          // custom attribute + single value + WITHOUT binding command:
-          // my-attr=""
-          // my-attr="${}"
-          if (bindingCommand === null) {
-            expr = exprParser.parse(realAttrValue, etInterpolation);
-            attrBindableInstructions = expr === null
-              ? realAttrValue === ''
-                // when the attribute usage is <div attr>
-                // it's considered as no bindings
-                ? []
-                : [new SetPropertyInstruction(realAttrValue, primaryBindable.name)]
-              : [new InterpolationInstruction(expr, primaryBindable.name)];
-          } else {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
-
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = primaryBindable;
-            commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
-          }
-        }
+        attrBindableInstructions = this._compileCustomAttributeBindables(
+          el, attrDef, attrSyntax, realAttrValue, bindingCommand, context,
+          /* treatEmptyAsNoBinding */ true
+        );
 
         removeAttr();
 
@@ -1064,109 +949,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       // 4.1.1.0. prepare child context for the inner template compilation
       const childContext = context._createChild(instructions == null ? [] : [instructions]);
 
-      let childEl: Element;
-      let targetSlot: string | null;
-      let hasAuSlot = false;
-      let projections: Record<string, IElementComponentDefinition> | undefined;
-      let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
-      let slotTemplates: (Node | Element | DocumentFragment)[];
-      let slotTemplate: Node | Element | DocumentFragment;
       let marker: Comment;
-      let projectionCompilationContext: CompilationContext;
-      let j = 0, jj = 0;
       // 4.1.1.1.
-      //  walks through the child nodes, and perform [au-slot] check
-      //  note: this is a bit different with the summary above, possibly wrong since it will not throw
-      //        on [au-slot] used on a non-custom-element + with a template controller on it
-      // for each child element of a custom element
-      // scan for [au-slot], if there's one
-      // then extract the element into a projection definition
-      // this allows support for [au-slot] declared on the same element with anther template controller
-      // e.g:
-      //
-      // can do:
-      //  <my-el>
-      //    <div au-slot if.bind="..."></div>
-      //    <div if.bind="..." au-slot></div>
-      //  </my-el>
-      //
-      // instead of:
-      //  <my-el>
-      //    <template au-slot><div if.bind="..."></div>
-      //  </my-el>
-      let child: Node | null = el.firstChild;
-      let isEmptyTextNode = false;
+      //  Extract [au-slot] projections from children before compiling
+      let projections: Record<string, IElementComponentDefinition> | null = null;
       if (processContentResult !== false) {
-        while (child !== null) {
-          targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
-          hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
-          childEl = child.nextSibling as Element;
-          if (hasAuSlot) {
-            if (!isCustomElement) {
-              throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
-            }
-            (child as Element).removeAttribute?.(auslotAttr);
-            // ignore all whitespace
-            isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
-            if (!isEmptyTextNode) {
-              ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
-            }
-            el.removeChild(child);
-          }
-          child = childEl;
+        projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
+        if (projections != null) {
+          elementInstruction!.projections = projections;
         }
-      }
-
-      if (slotTemplateRecord != null) {
-        projections = {};
-        // aggregate all content targeting the same slot
-        // into a single template
-        // with some special rule around <template> element
-        for (targetSlot in slotTemplateRecord) {
-          template = context.t();
-          slotTemplates = slotTemplateRecord[targetSlot];
-          for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-            slotTemplate = slotTemplates[j];
-            if (slotTemplate.nodeName === 'TEMPLATE') {
-              // this means user has some thing more than [au-slot] on a template
-              // consider this intentional, and use it as is
-              // e.g:
-              // case 1
-              // <my-element>
-              //   <template au-slot repeat.for="i of items">
-              // ----vs----
-              // case 2
-              // <my-element>
-              //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-              if ((slotTemplate as Element).attributes.length > 0) {
-                // case 1
-                appendToTemplate(template, slotTemplate);
-              } else {
-                // case 2
-                appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
-              }
-            } else {
-              appendToTemplate(template, slotTemplate);
-            }
-          }
-
-          // after aggregating all the [au-slot] templates into a single one
-          // compile it
-          // technically, the most inner template controller compilation context
-          // is the parent of this compilation context
-          // but for simplicity in compilation, maybe start with a flatter hierarchy
-          // also, it wouldn't have any real uses
-          projectionCompilationContext = context._createChild();
-          this._compileNode(template.content, projectionCompilationContext);
-          projections[targetSlot] = {
-            name: generateElementName(),
-            type: definitionTypeElement,
-            template,
-            instructions: projectionCompilationContext.rows,
-            needsCompile: false,
-          };
-        }
-        elementInstruction!.projections = projections;
       }
 
       if (needsMarker) {
@@ -1188,9 +979,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (el.nodeName === TEMPLATE_NODE_NAME) {
           this._compileNode((el as HTMLTemplateElement).content, childContext);
         } else {
-          child = el.firstChild;
+          let child = el.firstChild;
           while (child !== null) {
-            child = this._compileNode(child, childContext);
+            child = this._compileNode(child, childContext) as ChildNode | null;
           }
         }
       }
@@ -1258,105 +1049,13 @@ export class TemplateCompiler implements ITemplateCompiler {
         context.rows.push(instructions);
       }
 
-      let child = el.firstChild as Node | null;
-      let childEl: Element;
-      let targetSlot: string | null;
-      let hasAuSlot: boolean = false;
+      // 4.2.1. Extract [au-slot] projections from children before compiling
       let projections: Record<string, IElementComponentDefinition> | null = null;
-      let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
-      let slotTemplates: (Node | Element | DocumentFragment)[];
-      let slotTemplate: Node | Element | DocumentFragment;
-      let template: HTMLTemplateElement;
-      let projectionCompilationContext: CompilationContext;
-      let isEmptyTextNode = false;
-      let j = 0, jj = 0;
-      // 4.2.1.
-      //    walks through the child nodes and perform [au-slot] check
-      // --------------------
-      // for each child element of a custom element
-      // scan for [au-slot], if there's one
-      // then extract the element into a projection definition
-      // this allows support for [au-slot] declared on the same element with anther template controller
-      // e.g:
-      //
-      // can do:
-      //  <my-el>
-      //    <div au-slot if.bind="..."></div>
-      //    <div if.bind="..." au-slot></div>
-      //  </my-el>
-      //
-      // instead of:
-      //  <my-el>
-      //    <template au-slot><div if.bind="..."></div>
-      //  </my-el>
       if (processContentResult !== false) {
-        while (child !== null) {
-          targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
-          hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
-          childEl = child.nextSibling as Element;
-          if (hasAuSlot) {
-            if (!isCustomElement) {
-              throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
-            }
-            (child as Element).removeAttribute?.(auslotAttr);
-            // ignore all whitespace
-            isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
-            if (!isEmptyTextNode) {
-              ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
-            }
-            el.removeChild(child);
-          }
-          child = childEl;
+        projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
+        if (projections != null) {
+          elementInstruction!.projections = projections;
         }
-      }
-
-      if (slotTemplateRecord != null) {
-        projections = {};
-        // aggregate all content targeting the same slot
-        // into a single template
-        // with some special rule around <template> element
-        for (targetSlot in slotTemplateRecord) {
-          template = context.t();
-          slotTemplates = slotTemplateRecord[targetSlot];
-          for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-            slotTemplate = slotTemplates[j];
-            if (slotTemplate.nodeName === TEMPLATE_NODE_NAME) {
-              // this means user has some thing more than [au-slot] on a template
-              // consider this intentional, and use it as is
-              // e.g:
-              // case 1
-              // <my-element>
-              //   <template au-slot repeat.for="i of items">
-              // ----vs----
-              // case 2
-              // <my-element>
-              //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-
-              if ((slotTemplate as Element).attributes.length > 0) {
-                // case 1
-                appendToTemplate(template, slotTemplate);
-              } else {
-                // case 2
-                appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
-              }
-            } else {
-              appendToTemplate(template, slotTemplate);
-            }
-          }
-
-          // after aggregating all the [au-slot] templates into a single one
-          // compile it
-          projectionCompilationContext = context._createChild();
-          this._compileNode(template.content, projectionCompilationContext);
-          projections[targetSlot] = {
-            name: generateElementName(),
-            type: definitionTypeElement,
-            template,
-            instructions: projectionCompilationContext.rows,
-            needsCompile: false,
-          };
-        }
-        elementInstruction!.projections = projections;
       }
 
       if (needsMarker) {
@@ -1371,9 +1070,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (shouldCompileContent && el.childNodes.length > 0) {
         // 4.2.2
         //    recursively compiles the child nodes into current context
-        child = el.firstChild;
+        let child = el.firstChild;
         while (child !== null) {
-          child = this._compileNode(child, context);
+          child = this._compileNode(child, context) as ChildNode | null;
         }
       }
     }
@@ -1709,6 +1408,165 @@ export class TemplateCompiler implements ITemplateCompiler {
     ]);
     parent.removeChild(node);
     return marker;
+  }
+
+  /**
+   * Build the bindable property instructions for a custom attribute.
+   *
+   * Handles three cases:
+   * 1. Multi-binding syntax: `my-attr="prop1: value1; prop2.bind: expr"`
+   * 2. Single value without command: `my-attr="value"` or `my-attr="${expr}"`
+   * 3. Single value with command: `my-attr.bind="expr"`
+   *
+   * @param node - The element the attribute is on
+   * @param attrDef - The custom attribute definition
+   * @param attrSyntax - The parsed attribute syntax
+   * @param attrValue - The raw attribute value
+   * @param bindingCommand - The binding command instance, or null
+   * @param context - The compilation context
+   * @param treatEmptyAsNoBinding - If true, empty string values produce no instructions (surrogate/element behavior)
+   * @returns Array of instructions for the attribute's bindable properties
+   * @internal
+   */
+  private _compileCustomAttributeBindables(
+    node: Element,
+    attrDef: IAttributeComponentDefinition,
+    attrSyntax: AttrSyntax,
+    attrValue: string,
+    bindingCommand: BindingCommandInstance | null,
+    context: CompilationContext,
+    treatEmptyAsNoBinding: boolean,
+  ): IInstruction[] {
+    const bindablesInfo = context._getBindables(attrDef);
+
+    // Check for multi-binding syntax: `my-attr="prop1: value1; prop2.bind: expr"`
+    // Multi-binding is only allowed when:
+    // - The attribute allows it (noMultiBindings !== true)
+    // - There's no binding command
+    // - The value contains a colon (but not just interpolation)
+    const isMultiBindings = attrDef.noMultiBindings === false
+      && bindingCommand === null
+      && hasInlineBindings(attrValue);
+
+    if (isMultiBindings) {
+      return this._compileMultiBindings(node, attrValue, attrDef, context);
+    }
+
+    const primaryBindable = bindablesInfo.primary;
+
+    // Single value WITHOUT binding command: `my-attr=""` or `my-attr="${expr}"`
+    if (bindingCommand === null) {
+      const expr = context._exprParser.parse(attrValue, etInterpolation);
+      if (expr === null) {
+        // No interpolation - treat as literal value
+        if (treatEmptyAsNoBinding && attrValue === '') {
+          // Empty attribute like `<div my-attr>` produces no bindings
+          return [];
+        }
+        return [new SetPropertyInstruction(attrValue, primaryBindable.name)];
+      }
+      // Has interpolation
+      return [new InterpolationInstruction(expr, primaryBindable.name)];
+    }
+
+    // Single value WITH binding command: `my-attr.bind="expr"`
+    commandBuildInfo.node = node;
+    commandBuildInfo.attr = attrSyntax;
+    commandBuildInfo.bindable = primaryBindable;
+    commandBuildInfo.def = attrDef;
+    return [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
+  }
+
+  /**
+   * Extract au-slot projections from a custom element's children.
+   *
+   * Walks through child nodes looking for [au-slot] attributes. When found,
+   * removes them from the parent and groups them by slot name into compiled
+   * projection definitions.
+   *
+   * @returns A record of slot name -> compiled definition, or null if no projections found
+   * @internal
+   */
+  private _extractProjections(
+    el: Element,
+    isCustomElement: boolean,
+    isShadowDom: boolean,
+    elName: string,
+    context: CompilationContext,
+  ): Record<string, IElementComponentDefinition> | null {
+    let child: Node | null = el.firstChild;
+    let childEl: Element;
+    let targetSlot: string | null;
+    let hasAuSlot: boolean;
+    let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
+    let isEmptyTextNode: boolean;
+
+    // Walk through child nodes, extracting those with [au-slot]
+    while (child !== null) {
+      targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
+      hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
+      childEl = child.nextSibling as Element;
+      if (hasAuSlot) {
+        if (!isCustomElement) {
+          throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
+        }
+        (child as Element).removeAttribute?.(auslotAttr);
+        // ignore all whitespace
+        isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
+        if (!isEmptyTextNode) {
+          ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
+        }
+        el.removeChild(child);
+      }
+      child = childEl;
+    }
+
+    if (slotTemplateRecord == null) {
+      return null;
+    }
+
+    // Compile each slot's content into a projection definition
+    const projections: Record<string, IElementComponentDefinition> = {};
+    let template: HTMLTemplateElement;
+    let slotTemplates: (Node | Element | DocumentFragment)[];
+    let slotTemplate: Node | Element | DocumentFragment;
+    let projectionCompilationContext: CompilationContext;
+
+    for (targetSlot in slotTemplateRecord) {
+      template = context.t();
+      slotTemplates = slotTemplateRecord[targetSlot];
+
+      // Aggregate all content targeting the same slot into a single template
+      for (let j = 0, jj = slotTemplates.length; jj > j; ++j) {
+        slotTemplate = slotTemplates[j];
+        if (slotTemplate.nodeName === TEMPLATE_NODE_NAME) {
+          // User has something more than [au-slot] on a template
+          // e.g. <template au-slot repeat.for="i of items"> vs <template au-slot>static content</template>
+          if ((slotTemplate as Element).attributes.length > 0) {
+            // Has other attributes - keep the template wrapper
+            appendToTemplate(template, slotTemplate);
+          } else {
+            // No other attributes - unwrap the content
+            appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
+          }
+        } else {
+          appendToTemplate(template, slotTemplate);
+        }
+      }
+
+      // Compile the aggregated template
+      projectionCompilationContext = context._createChild();
+      this._compileNode(template.content, projectionCompilationContext);
+      projections[targetSlot] = {
+        name: generateElementName(),
+        type: definitionTypeElement,
+        template,
+        instructions: projectionCompilationContext.rows,
+        needsCompile: false,
+      };
+    }
+
+    return projections;
   }
 }
 

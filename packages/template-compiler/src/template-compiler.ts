@@ -291,123 +291,45 @@ export class TemplateCompiler implements ITemplateCompiler {
     return instructions;
   }
 
-  /** @internal */
+  /**
+   * Compile attributes on a surrogate element (the root `<template>`).
+   *
+   * Surrogates are a restricted subset of element compilation:
+   * - No custom element features (bindables, capture, containerless)
+   * - No template controllers (would be ambiguous)
+   * - Certain attributes are disallowed (id, name, au-slot, as-element)
+   * - All attributes become instructions (to be applied to the actual host element)
+   *
+   * @internal
+   */
   private _compileSurrogate(el: Element, context: CompilationContext): IInstruction[] {
-    const instructions: IInstruction[] = [];
+    // 1. Validate: surrogates don't support certain attributes
     const attrs = el.attributes;
-    const exprParser = context._exprParser;
-    let ii = attrs.length;
-    let i = 0;
-    let attr: Attr;
-    let attrName: string;
-    let attrValue: string;
-    let attrSyntax: AttrSyntax;
-    let attrDef: IAttributeComponentDefinition | null = null;
-    let attrInstructions: HydrateAttributeInstruction[] | undefined;
-    let attrBindableInstructions: IInstruction[];
-    let bindingCommand: BindingCommandInstance | null = null;
-    let expr: AnyBindingExpression;
-    let realAttrTarget: string;
-    let realAttrValue: string;
-
-    for (; ii > i; ++i) {
-      attr = attrs[i];
-      attrName = attr.name;
-      attrValue = attr.value;
-      attrSyntax = context._attrParser.parse(attrName, attrValue);
-
-      realAttrTarget = attrSyntax.target;
-      realAttrValue = attrSyntax.rawValue;
-
-      if (invalidSurrogateAttribute[realAttrTarget]) {
-        throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrName);
-      }
-
-      bindingCommand = context._getCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.ignoreAttr) {
-        // when the binding command overrides everything
-        // just pass the target as is to the binding command, and treat it as a normal attribute:
-        // active.class="..."
-        // background.style="..."
-        // my-attr.attr="..."
-
-        instructions.push(bindingCommand.build(
-          { node: el, attr: attrSyntax, bindable: null, def: null },
-          context._exprParser,
-          context._attrMapper
-        ));
-
-        // to next attribute
-        continue;
-      }
-
-      attrDef = context._findAttr(realAttrTarget);
-      if (attrDef !== null) {
-        if (attrDef.isTemplateController) {
-          throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, realAttrTarget);
-        }
-        attrBindableInstructions = this._compileCustomAttributeBindables(
-          el, attrDef, attrSyntax, realAttrValue, bindingCommand, context,
-          /* treatEmptyAsNoBinding */ true
-        );
-
-        el.removeAttribute(attrName);
-        --i;
-        --ii;
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-          // todo: def/ def.Type or def.name should be configurable
-          //       example: AOT/runtime can use def.Type, but there are situation
-          //       where instructions need to be serialized, def.name should be used
-          this.resolveResources ? attrDef : attrDef.name,
-          attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
-          attrBindableInstructions
-        ));
-        continue;
-      }
-
-      if (bindingCommand === null) {
-        expr = exprParser.parse(realAttrValue, etInterpolation);
-        if (expr != null) {
-          el.removeAttribute(attrName);
-          --i;
-          --ii;
-
-          instructions.push(new InterpolationInstruction(
-            expr,
-            // if not a bindable, then ensure plain attribute are mapped correctly:
-            // e.g: colspan -> colSpan
-            //      innerhtml -> innerHTML
-            //      minlength -> minLength etc...
-            context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
-          ));
-        } else {
-          switch (attrName) {
-            case 'class':
-              instructions.push(new SetClassAttributeInstruction(realAttrValue));
-              break;
-            case 'style':
-              instructions.push(new SetStyleAttributeInstruction(realAttrValue));
-              break;
-            default:
-              // if not a custom attribute + no binding command + not a bindable + not an interpolation
-              // then it's just a plain attribute
-              instructions.push(new SetAttributeInstruction(realAttrValue, attrName));
-          }
-        }
-      } else {
-        instructions.push(bindingCommand.build(
-          { node: el, attr: attrSyntax, bindable: null, def: null },
-          context._exprParser,
-          context._attrMapper
-        ));
+    for (let i = 0, ii = attrs.length; i < ii; ++i) {
+      const attrSyntax = context._attrParser.parse(attrs[i].name, attrs[i].value);
+      if (invalidSurrogateAttribute[attrSyntax.target]) {
+        throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrs[i].name);
       }
     }
 
+    // 2. Classify attributes using the core algorithm
+    //    - elDef=null: not a custom element (no bindables, no capture)
+    //    - generateStaticAttrInstructions=true: all attrs must become instructions
+    const { tcInstructions, attrInstructions, plainAttrInstructions } =
+      this._classifyAttributes(el, null, emptyArray, context, /* generateStaticAttrInstructions */ true);
+
+    // 3. Surrogates don't support template controllers
+    if (tcInstructions != null && tcInstructions.length > 0) {
+      const tcDef = tcInstructions[0].res;
+      const tcName = typeof tcDef === 'string' ? tcDef : tcDef.name;
+      throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, tcName);
+    }
+
+    // 4. Combine: custom attributes first, then plain attribute instructions
     if (attrInstructions != null) {
-      return (attrInstructions as IInstruction[]).concat(instructions);
+      return attrInstructions.concat(plainAttrInstructions ?? emptyArray);
     }
-
-    return instructions;
+    return plainAttrInstructions ?? emptyArray;
   }
 
   // overall flow:
@@ -659,6 +581,13 @@ export class TemplateCompiler implements ITemplateCompiler {
    * 7. Custom attributes and template controllers - hydrates CA/TC instances
    * 8. Plain attributes - interpolation or binding command on DOM attribute
    *
+   * @param el - The element whose attributes to classify
+   * @param elDef - The custom element definition, or null if not a CE
+   * @param captures - Array to collect captured attributes (for CE forwarding)
+   * @param context - The compilation context
+   * @param generateStaticAttrInstructions - If true, generate Set*AttributeInstruction for
+   *        static attrs instead of leaving them in the DOM. Used for surrogates where
+   *        attrs must be transferred to the actual host element.
    * @returns Classification result with instructions grouped by category
    * @internal
    */
@@ -667,6 +596,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     elDef: IElementComponentDefinition | null,
     captures: AttrSyntax[],
     context: CompilationContext,
+    generateStaticAttrInstructions: boolean = false,
   ): IAttrClassificationResult {
     const isCustomElement = elDef !== null;
     const capture = elDef?.capture;
@@ -901,6 +831,18 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr,
             context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
+        } else if (generateStaticAttrInstructions) {
+          // For surrogates: generate instruction to transfer static attr to host element
+          switch (attrName) {
+            case 'class':
+              (plainAttrInstructions ??= []).push(new SetClassAttributeInstruction(realAttrValue));
+              break;
+            case 'style':
+              (plainAttrInstructions ??= []).push(new SetStyleAttributeInstruction(realAttrValue));
+              break;
+            default:
+              (plainAttrInstructions ??= []).push(new SetAttributeInstruction(realAttrValue, attrName));
+          }
         }
         // else: plain static attribute, left on the element (no instruction needed)
         continue;

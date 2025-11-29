@@ -168,11 +168,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         // background.style="..."
         // my-attr.attr="..."
 
-        commandBuildInfo.node = target;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        instructions.push(bindingCommand.build(
+          { node: target, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
 
         // to next attribute
         continue;
@@ -194,12 +194,8 @@ export class TemplateCompiler implements ITemplateCompiler {
               )
             );
           } else {
-            commandBuildInfo.node = target;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = bindable;
-            commandBuildInfo.def = elDef;
             instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
-              commandBuildInfo,
+              { node: target, attr: attrSyntax, bindable, def: elDef },
               context._exprParser,
               context._attrMapper
             )));
@@ -262,15 +258,13 @@ export class TemplateCompiler implements ITemplateCompiler {
       } else {
         // reaching here means:
         // + a plain attribute with binding command
-        commandBuildInfo.node = target;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        instructions.push(bindingCommand.build(
+          { node: target, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
       }
     }
-
-    resetCommandBuildInfo();
 
     if (attrInstructions != null) {
       return (attrInstructions as IInstruction[]).concat(instructions);
@@ -319,11 +313,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         // background.style="..."
         // my-attr.attr="..."
 
-        commandBuildInfo.node = el;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        instructions.push(bindingCommand.build(
+          { node: el, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
 
         // to next attribute
         continue;
@@ -383,16 +377,13 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-
-        commandBuildInfo.node = el;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        instructions.push(bindingCommand.build(
+          { node: el, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
       }
     }
-
-    resetCommandBuildInfo();
 
     if (attrInstructions != null) {
       return (attrInstructions as IInstruction[]).concat(instructions);
@@ -683,11 +674,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         // background.style="..."
         // my-attr.attr="..."
 
-        commandBuildInfo.node = el;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        (plainAttrInstructions ??= []).push(bindingCommand.build(
+          { node: el, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
         removeAttr();
         // to next attribute
         continue;
@@ -730,12 +721,8 @@ export class TemplateCompiler implements ITemplateCompiler {
                 : new InterpolationInstruction(expr, bindable.name)
             );
           } else {
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = bindable;
-            commandBuildInfo.def = elDef;
             (elBindableInstructions ??= []).push(bindingCommand.build(
-              commandBuildInfo,
+              { node: el, attr: attrSyntax, bindable, def: elDef },
               context._exprParser,
               context._attrMapper
             ));
@@ -757,14 +744,11 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         if (realAttrTarget === '$bindables') {
           if (bindingCommand != null) {
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = null;
-            commandBuildInfo.def = elDef;
+            const buildInfo = { node: el, attr: attrSyntax, bindable: null, def: elDef } as const;
 
             if (__DEV__) {
               const instruction = bindingCommand.build(
-                commandBuildInfo,
+                buildInfo,
                 context._exprParser,
                 context._attrMapper
               );
@@ -777,7 +761,7 @@ export class TemplateCompiler implements ITemplateCompiler {
               (elBindableInstructions ??= []).push(instruction);
             } else {
               (elBindableInstructions ??= []).push(bindingCommand.build(
-                commandBuildInfo,
+                buildInfo,
                 context._exprParser,
                 context._attrMapper
               ));
@@ -867,19 +851,13 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + not a custom attribute
       // + not a custom element bindable
 
-      commandBuildInfo.node = el;
-      commandBuildInfo.attr = attrSyntax;
-      commandBuildInfo.bindable = null;
-      commandBuildInfo.def = null;
       (plainAttrInstructions ??= []).push(bindingCommand.build(
-        commandBuildInfo,
+        { node: el, attr: attrSyntax, bindable: null, def: null },
         context._exprParser,
         context._attrMapper
       ));
       removeAttr();
     }
-
-    resetCommandBuildInfo();
 
     if (this._shouldReorderAttrs(el, plainAttrInstructions) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
       this._reorder(el, plainAttrInstructions);
@@ -1191,11 +1169,11 @@ export class TemplateCompiler implements ITemplateCompiler {
             : new InterpolationInstruction(expr, bindable.name)
           );
         } else {
-          commandBuildInfo.node = node;
-          commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.bindable = bindable;
-          commandBuildInfo.def = attrDef;
-          instructions.push(command.build(commandBuildInfo, context._exprParser, context._attrMapper));
+          instructions.push(command.build(
+            { node, attr: attrSyntax, bindable, def: attrDef },
+            context._exprParser,
+            context._attrMapper
+          ));
         }
 
         // Skip whitespace after semicolon
@@ -1207,8 +1185,6 @@ export class TemplateCompiler implements ITemplateCompiler {
         attrValue = void 0;
       }
     }
-
-    resetCommandBuildInfo();
 
     return instructions;
   }
@@ -1470,11 +1446,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // Single value WITH binding command: `my-attr.bind="expr"`
-    commandBuildInfo.node = node;
-    commandBuildInfo.attr = attrSyntax;
-    commandBuildInfo.bindable = primaryBindable;
-    commandBuildInfo.def = attrDef;
-    return [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
+    return [bindingCommand.build(
+      { node, attr: attrSyntax, bindable: primaryBindable, def: attrDef },
+      context._exprParser,
+      context._attrMapper
+    )];
   }
 
   /**
@@ -1725,20 +1701,7 @@ const hasInlineBindings = (rawValue: string): boolean => {
   return false;
 };
 
-const resetCommandBuildInfo = (): void => {
-  commandBuildInfo.node
-    = commandBuildInfo.attr
-    = commandBuildInfo.bindable
-    = commandBuildInfo.def = null!;
-};
-
 const voidDefinition: IElementComponentDefinition = { name: 'unnamed', type: definitionTypeElement };
-const commandBuildInfo: Writable<ICommandBuildInfo> = {
-  node: null!,
-  attr: null!,
-  bindable: null,
-  def: null,
-};
 const invalidSurrogateAttribute: Record<string, boolean> = {
   'id': true,
   'name': true,

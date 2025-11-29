@@ -576,7 +576,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
     let tcInstructions: HydrateTemplateController[] | undefined;
-    let tcInstruction: HydrateTemplateController | undefined;
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
@@ -895,128 +894,24 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     // 4. compiling child nodes
-    let shouldCompileContent: boolean;
     if (tcInstructions != null) {
       // 4.1 if there is 1 or more [Template controller]
-      ii = tcInstructions.length - 1;
-      i = ii;
-      tcInstruction = tcInstructions[i];
-
-      let template: HTMLTemplateElement;
-      if (isMarker(el)) {
-        template = context.t();
-        appendManyToTemplate(template, [
-          // context.h(MARKER_NODE_NAME),
-          context._marker(),
-          context._comment(auLocationStart),
-          context._comment(auLocationEnd),
-        ]);
-      } else {
-        // assumption: el.parentNode is not null
-        // but not always the case: e.g compile/enhance an element without parent with TC on it
-        this._replaceByMarker(el, context);
-        if (el.nodeName === 'TEMPLATE') {
-          template = el as HTMLTemplateElement;
-        } else {
-          template = context.t();
-          appendToTemplate(template, el);
-        }
-
-      }
-      const mostInnerTemplate = template;
-      // 4.1.1.0. prepare child context for the inner template compilation
-      const childContext = context._createChild(instructions == null ? [] : [instructions]);
-
-      let marker: Comment;
-      // 4.1.1.1.
-      //  Extract [au-slot] projections from children before compiling
-      let projections: Record<string, IElementComponentDefinition> | null = null;
-      if (processContentResult !== false) {
-        projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
-        if (projections != null) {
-          elementInstruction!.projections = projections;
-        }
-      }
-
-      if (needsMarker) {
-        if (isCustomElement && (hasContainerless || elDef.containerless)) {
-          this._replaceByMarker(el, context);
-        } else {
-          this._markAsTarget(el, context);
-        }
-      }
-
-      shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
-      if (shouldCompileContent) {
-        // 4.1.1.2:
-        //  recursively compiles the child nodes into the inner context
-        // important:
-        // ======================
-        // only goes inside a template, if there is a template controller on it
-        // otherwise, leave it alone
-        if (el.nodeName === TEMPLATE_NODE_NAME) {
-          this._compileNode((el as HTMLTemplateElement).content, childContext);
-        } else {
-          let child = el.firstChild;
-          while (child !== null) {
-            child = this._compileNode(child, childContext) as ChildNode | null;
-          }
-        }
-      }
-      tcInstruction.def = {
-        name: generateElementName(),
-        type: definitionTypeElement,
-        template: mostInnerTemplate,
-        instructions: childContext.rows,
-        needsCompile: false,
-      };
-
-      // 4.1.2.
-      //  Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
-      while (i-- > 0) {
-        // for each of the template controller from [right] to [left]
-        // do create:
-        // (1) a template
-        // (2) add a marker to the template
-        // (3) an instruction
-        // instruction will be corresponded to the marker
-        // =========================
-
-        tcInstruction = tcInstructions[i];
-        template = context.t();
-        // appending most inner template is inaccurate, as the most outer one
-        // is not really the parent of the most inner one
-        // but it's only for the purpose of creating a marker,
-        // so it's just an optimization hack
-        // marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
-        // marker = context.h(MARKER_NODE_NAME);
-        marker = context._marker();
-        appendManyToTemplate(template, [
-          marker,
-          context._comment(auLocationStart),
-          context._comment(auLocationEnd),
-        ]);
-
-        tcInstruction.def = {
-          name: generateElementName(),
-          type: definitionTypeElement,
-          template,
-          needsCompile: false,
-          instructions: [[tcInstructions[i + 1]]],
-        };
-      }
-      // the most outer template controller should be
-      // the only instruction for peek instruction of the current context
-      // e.g
-      // <div if.bind="yes" with.bind="scope" repeat.for="i of items" data-id="i.id">
-      // results in:
-      // -----------
-      //
-      //  TC(if-[value=yes])
-      //    | TC(with-[value=scope])
-      //        | TC(repeat-[...])
-      //            | div(data-id-[value=i.id])
-      context.rows.push([tcInstruction]);
+      // Compile and chain them, then add the outermost TC to the instruction rows
+      const outermostTC = this._compileTemplateControllers(
+        el,
+        tcInstructions,
+        instructions,
+        elDef,
+        isCustomElement,
+        isShadowDom,
+        hasContainerless,
+        elName,
+        elementInstruction,
+        needsMarker,
+        processContentResult,
+        context,
+      );
+      context.rows.push([outermostTC]);
     } else {
       // 4.2
       //
@@ -1044,7 +939,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      const shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
       if (shouldCompileContent && el.childNodes.length > 0) {
         // 4.2.2
         //    recursively compiles the child nodes into current context
@@ -1384,6 +1279,127 @@ export class TemplateCompiler implements ITemplateCompiler {
     ]);
     parent.removeChild(node);
     return marker;
+  }
+
+  /**
+   * Compile and chain template controllers on an element.
+   *
+   * When an element has multiple template controllers (e.g., `<div if.bind="x" repeat.for="y">`),
+   * they form a chain where each outer TC wraps the inner one:
+   *
+   *   TC(if) -> TC(repeat) -> actual element
+   *
+   * This method:
+   * 1. Creates a template for the innermost TC containing the actual element
+   * 2. Compiles the element's children into that template
+   * 3. Creates wrapper templates for each outer TC, chaining them together
+   * 4. Returns the outermost TC instruction to be added to the parent context
+   *
+   * @internal
+   */
+  private _compileTemplateControllers(
+    el: Element,
+    tcInstructions: HydrateTemplateController[],
+    instructions: IInstruction[] | undefined,
+    elDef: IElementComponentDefinition | null,
+    isCustomElement: boolean,
+    isShadowDom: boolean,
+    hasContainerless: boolean,
+    elName: string,
+    elementInstruction: HydrateElementInstruction | undefined,
+    needsMarker: boolean,
+    processContentResult: boolean | undefined | void,
+    context: CompilationContext,
+  ): HydrateTemplateController {
+    const ii = tcInstructions.length - 1;
+    let i = ii;
+    let tcInstruction = tcInstructions[i];
+
+    // Create template for the innermost TC
+    let template: HTMLTemplateElement;
+    if (isMarker(el)) {
+      template = context.t();
+      appendManyToTemplate(template, [
+        context._marker(),
+        context._comment(auLocationStart),
+        context._comment(auLocationEnd),
+      ]);
+    } else {
+      // Replace element with marker and wrap in template
+      this._replaceByMarker(el, context);
+      if (el.nodeName === 'TEMPLATE') {
+        template = el as HTMLTemplateElement;
+      } else {
+        template = context.t();
+        appendToTemplate(template, el);
+      }
+    }
+    const mostInnerTemplate = template;
+
+    // Prepare child context for inner template compilation
+    const childContext = context._createChild(instructions == null ? [] : [instructions]);
+
+    // Extract [au-slot] projections from children before compiling
+    if (processContentResult !== false) {
+      const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
+      if (projections != null) {
+        elementInstruction!.projections = projections;
+      }
+    }
+
+    // Mark element as hydration target if needed
+    if (needsMarker) {
+      if (isCustomElement && (hasContainerless || elDef!.containerless)) {
+        this._replaceByMarker(el, context);
+      } else {
+        this._markAsTarget(el, context);
+      }
+    }
+
+    // Compile children into the inner context
+    const shouldCompileContent = !isCustomElement || !elDef!.containerless && !hasContainerless && processContentResult !== false;
+    if (shouldCompileContent) {
+      if (el.nodeName === TEMPLATE_NODE_NAME) {
+        this._compileNode((el as HTMLTemplateElement).content, childContext);
+      } else {
+        let child = el.firstChild;
+        while (child !== null) {
+          child = this._compileNode(child, childContext) as ChildNode | null;
+        }
+      }
+    }
+
+    // Set the definition for the innermost TC
+    tcInstruction.def = {
+      name: generateElementName(),
+      type: definitionTypeElement,
+      template: mostInnerTemplate,
+      instructions: childContext.rows,
+      needsCompile: false,
+    };
+
+    // Chain outer TCs from right to left
+    // Each outer TC gets a template with just a marker pointing to the inner TC
+    while (i-- > 0) {
+      tcInstruction = tcInstructions[i];
+      template = context.t();
+      appendManyToTemplate(template, [
+        context._marker(),
+        context._comment(auLocationStart),
+        context._comment(auLocationEnd),
+      ]);
+
+      tcInstruction.def = {
+        name: generateElementName(),
+        type: definitionTypeElement,
+        template,
+        needsCompile: false,
+        instructions: [[tcInstructions[i + 1]]],
+      };
+    }
+
+    // Return the outermost TC instruction
+    return tcInstruction;
   }
 
   /**

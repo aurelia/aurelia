@@ -527,24 +527,14 @@ export class TemplateCompiler implements ITemplateCompiler {
       let tcInstruction = tcInstructions[tcIndex];
 
       // Step 1: Create the innermost template containing the actual element
+      // Replace element with marker in parent DOM, wrap element in template
+      this._replaceByMarker(el, context);
       let tcTemplate: HTMLTemplateElement;
-      if (isMarker(el)) {
-        // Element is already a marker (edge case: nested TC on marker)
-        tcTemplate = context.t();
-        appendManyToTemplate(tcTemplate, [
-          context._marker(),
-          context._comment(auLocationStart),
-          context._comment(auLocationEnd),
-        ]);
+      if (el.nodeName === TEMPLATE_NODE_NAME) {
+        tcTemplate = el as HTMLTemplateElement;
       } else {
-        // Normal case: replace element with marker in parent DOM, wrap element in template
-        this._replaceByMarker(el, context);
-        if (el.nodeName === TEMPLATE_NODE_NAME) {
-          tcTemplate = el as HTMLTemplateElement;
-        } else {
-          tcTemplate = context.t();
-          appendToTemplate(tcTemplate, el);
-        }
+        tcTemplate = context.t();
+        appendToTemplate(tcTemplate, el);
       }
       const innermostTemplate = tcTemplate;
 
@@ -561,11 +551,13 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       // Step 4: Mark element as hydration target
+      // Use tcChildContext because the element is in the TC's template
+      // and its instructions are in tcChildContext.rows
       if (needsMarker) {
         if (isCustomElement && (hasContainerless || elDef!.containerless)) {
-          this._replaceByMarker(el, context);
+          this._replaceByMarker(el, tcChildContext);
         } else {
-          this._markAsTarget(el, context);
+          this._markAsTarget(el, tcChildContext);
         }
       }
 
@@ -596,8 +588,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       while (tcIndex-- > 0) {
         tcInstruction = tcInstructions[tcIndex];
         tcTemplate = context.t();
+        // Each outer TC template has exactly 1 marker at index 0
         appendManyToTemplate(tcTemplate, [
-          context._marker(),
+          context._marker(0),
           context._comment(auLocationStart),
           context._comment(auLocationEnd),
         ]);
@@ -969,10 +962,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         insertBefore(parent, context._text(part), node);
       }
       for (i = 0, ii = expressions.length; ii > i; ++i) {
-        // foreach expression part, turn into a marker
+        // Get target ID and increment counter
+        const targetId = context._nextTargetId++;
+
+        // foreach expression part, turn into a marker with ID
         insertManyBefore(parent, node, [
-          // context.h(MARKER_NODE_NAME),
-          context._marker(),
+          context._marker(targetId),
           // empty text node will not be cloned when doing fragment.cloneNode()
           // so give it an empty space instead
           context._text(' '),
@@ -1244,19 +1239,20 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
-   * Mark an element as target with a special css class
-   * and return it
+   * Mark an element as a hydration target by adding the `au-hid` attribute.
+   * The attribute value is a unique ID within the template.
    *
    * @internal
    */
   private _markAsTarget<T extends Element>(el: T, context: CompilationContext): T {
-    insertBefore(el.parentNode!, context._comment('au*'), el);
-    // el.classList.add('au');
+    el.setAttribute('au-hid', String(context._nextTargetId++));
     return el;
   }
 
   /**
-   * Replace an element with a marker, and return the marker
+   * Replace an element with a marker, and return the marker.
+   * Used for containerless elements and template controllers.
+   * Creates `<!--au:N--><!--au-start--><!--au-end-->` structure.
    *
    * @internal
    */
@@ -1264,11 +1260,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (isMarker(node)) {
       return node;
     }
-    // todo: assumption made: parentNode won't be null
+    // Get the target ID and increment counter
+    const targetId = context._nextTargetId++;
+
     const parent = node.parentNode!;
-    // const marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
-    const marker = context._marker();
-    // insertBefore(parent, marker, node);
+    const marker = context._marker(targetId);
     insertManyBefore(parent, node, [
       marker,
       context._comment(auLocationStart),
@@ -1439,11 +1435,9 @@ export class TemplateCompiler implements ITemplateCompiler {
 }
 
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
+/** Check if a node is an au:N marker comment */
 const isMarker = (el: Node): el is Comment =>
-  el.nodeValue === 'au*';
-    // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auStartComment
-    // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auEndComment;
-// const isComment = (el: Node | null): el is Comment => el?.nodeType === 8;
+  el.nodeType === 8 && (el.nodeValue?.startsWith('au:') ?? false);
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
@@ -1468,6 +1462,13 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: Constructable[] | null = null;
+
+  /**
+   * Counter for generating unique hydration IDs within a template.
+   * Lives on the root context and is shared across all child contexts.
+   * @internal
+   */
+  public _nextTargetId: number = 0;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1513,8 +1514,12 @@ class CompilationContext {
     return this.p.document.createComment(text);
   }
 
-  public _marker() {
-    return this._comment('au*');
+  /**
+   * Create a marker comment with the given hydration ID.
+   * Format: `<!--au:N-->` where N is the target index.
+   */
+  public _marker(id: number) {
+    return this._comment(`au:${id}`);
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];

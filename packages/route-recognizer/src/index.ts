@@ -71,7 +71,7 @@ class Candidate<T> {
   public childRoutes: RecognizedRoute<T>[] = [];
   public head: AnyState<T>;
   public endpoint: Endpoint<T>;
-  private recognizedRoutes: RecognizedRoute<T>[] | null = null;
+  private recognizedResult: [RecognizedRoute<T>[], AnyState<T>] | null = null;
   private isConstrained: boolean = false;
   private satisfiesConstraints: boolean | null = null;
 
@@ -185,13 +185,13 @@ class Candidate<T> {
   }
 
   /** @internal */
-  public _getRoutes(): RecognizedRoute<T>[] {
-    let result = this.recognizedRoutes;
+  public _getRoutes(): [RecognizedRoute<T>[], AnyState<T>] | null {
+    let result = this.recognizedResult;
     if (result != null) return result;
     const { states, chars, endpoint } = this;
 
     this.satisfiesConstraints = true;
-    result = [];
+    const routes = [];
 
     let path = '';
     let currentEndpoint: Endpoint<T> | null = null;
@@ -200,7 +200,7 @@ class Candidate<T> {
       const state = states[i];
       if (state.endpoint !== null && !Object.is(state.endpoint.route.handler, currentEndpoint?.route.handler)) {
         if (currentEndpoint !== null) {
-          result.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
+          routes.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
         }
         currentEndpoint = state.endpoint;
         currentParams = {};
@@ -233,12 +233,12 @@ class Candidate<T> {
       }
     }
 
-    if (currentEndpoint !== null && !Object.is(currentEndpoint, result[0]?.endpoint)) {
-      result.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
+    if (currentEndpoint !== null && !Object.is(currentEndpoint, routes[0]?.endpoint)) {
+      routes.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
     }
 
     if (this.satisfiesConstraints) {
-      this.recognizedRoutes = result;
+      this.recognizedResult = result = [routes, this.head];
     }
     return result;
   }
@@ -366,7 +366,7 @@ class RecognizeResult<T> {
     return this.candidates.length === 0;
   }
 
-  public constructor(rootState: SeparatorState<T>) {
+  public constructor(rootState: AnyState<T>) {
     this.candidates = [new Candidate([''], [rootState], [], this)];
   }
 
@@ -407,7 +407,7 @@ const routeParameterPattern = /^:(?<name>[^?\s{}]+)(?:\{\{(?<constraint>.+)\}\})
 
 export class RouteRecognizer<T> {
   private readonly rootState: SeparatorState<T> = new State(null, null, '') as SeparatorState<T>;
-  private readonly cache: Map<string, RecognizedRoute<T>[] | null> = new Map<string, RecognizedRoute<T>[] | null>();
+  private readonly cache: Map<string, [RecognizedRoute<T>[], AnyState<T>] | null> = new Map<string, [RecognizedRoute<T>[], AnyState<T>] | null>();
   private readonly endpointLookup: Map<string, Endpoint<T>> = new Map<string, Endpoint<T>>();
 
   public add(routeOrRoutes: IConfigurableRoute<T> | readonly IConfigurableRoute<T>[], addResidue: boolean = false): void {
@@ -490,17 +490,52 @@ export class RouteRecognizer<T> {
     return endpoint;
   }
 
-  public recognize(path: string): RecognizedRoute<T>[] | null {
-    let result = this.cache.get(path);
-    if (result === void 0) {
-      this.cache.set(path, result = this.$recognize(path));
+  public recognize(path: string, relativeTo: RecognizedRoute<T>[] | null = null): RecognizedRoute<T>[] | null {
+    const cache = this.cache;
+    let result = cache.get(path);
+    if (result !== void 0) return result?.[0] ?? null;
+
+    if (relativeTo !== null) {
+      // check for cached result first
+      const parentPath = relativeTo.reduce((acc, curr) => acc.length ? `${acc}/${curr.path}` : curr.path, '');
+      const combinedPath = combinePaths(parentPath, path);
+
+      result = cache.get(combinedPath);
+      if (result !== void 0) return result === null ? null : result[0].slice(relativeTo.length);
+
+      // no cached result, try recognizing parent first
+      const parentResult = cache.get(parentPath);
+
+      if (parentResult === void 0 || parentResult?.[0] !== relativeTo) return null;
+
+      const relativeResult = this.$recognize(path, parentResult[1]);
+      if (relativeResult === null) return null;
+
+      let routes = relativeResult[0];
+      if (routes.length > 1 && routes[0].path === '') routes = routes.slice(1);
+      cache.set(combinedPath, [[...relativeTo, ...routes], relativeResult[1]]);
+
+      return routes;
     }
-    return result;
+
+    cache.set(path, result = this.$recognize(path, this.rootState));
+    return result?.[0] ?? null;
+
+    function combinePaths(parentPath: string, childPath: string): string {
+      if (parentPath === '') return childPath;
+      if (childPath === '') return parentPath;
+      if (parentPath.endsWith('/'))
+        return childPath.startsWith('/')
+          ? parentPath + childPath.slice(1)
+          : parentPath + childPath;
+      return childPath.startsWith('/')
+        ? parentPath + childPath
+        : `${parentPath}/${childPath}`;
+    }
   }
 
-  private $recognize(path: string): RecognizedRoute<T>[] | null {
-    const originalPathIsWithoutPrecedingSlash = !path.startsWith('/');
-    if (originalPathIsWithoutPrecedingSlash) {
+  private $recognize(path: string, relativeToState: AnyState<T>): [RecognizedRoute<T>[], AnyState<T>] | null {
+    if (!path.startsWith('/')) {
       path = `/${path}`;
     }
 
@@ -508,7 +543,7 @@ export class RouteRecognizer<T> {
       path = path.slice(0, -1);
     }
 
-    const result = new RecognizeResult(this.rootState);
+    const result = new RecognizeResult(relativeToState);
     for (let i = 0, ii = path.length; i < ii; ++i) {
       const ch = path.charAt(i);
       result.advance(ch);

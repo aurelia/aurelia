@@ -3010,35 +3010,65 @@ describe('router/route-recognizer.spec.ts', function () {
   it.only('kitchen sink - eager-loading - single recognizer', function () {
     const recognizer = new RouteRecognizer();
 
-    const parent = Symbol.for('au:rr:parent');
-    recognizer.add({ path: 'parent', handler: parent }, true);
-    recognizer.add({ path: 'parent/:id', handler: parent }, true);
+    const parentWithOptionalParamMultPaths = Symbol.for('au:rr:parent:multi');
+    recognizer.add({ path: 'pm', handler: parentWithOptionalParamMultPaths }, true);
+    recognizer.add({ path: 'pm/:id', handler: parentWithOptionalParamMultPaths }, true);
+
+    const parentWithOptionalParamSinglePath = Symbol.for('au:rr:parent:single');
+    recognizer.add({ path: 'ps/:id?', handler: parentWithOptionalParamSinglePath }, true);
 
     const child = Symbol.for('au:rr:child');
-    recognizer.add({ path: 'parent/child/:id', handler: child }, true);
-    recognizer.add({ path: 'parent/:id/child/:id', handler: child }, true);
+    recognizer.add({ path: 'pm/child/:id', handler: child }, true);
+    recognizer.add({ path: 'pm/:id/child/:id', handler: child }, true);
+    recognizer.add({ path: 'ps/:id?/child/:id', handler: child }, true);
 
-    let results = recognizer.recognize('parent');
+    // tests for parentWithOptionalParamSinglePath
+    let results = recognizer.recognize('pm');
     assert.strictEqual(results?.length, 1, 'round#1 - length');
-    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#1 - handler');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamMultPaths, 'round#1 - handler');
 
-    results = recognizer.recognize('parent/42');
+    results = recognizer.recognize('pm/42');
     assert.strictEqual(results?.length, 1, 'round#2 - length');
-    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#2 - handler');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamMultPaths, 'round#2 - handler');
     assert.deepEqual(results?.[0].params, { id: '42' }, 'round#2 - params');
 
-    results = recognizer.recognize('parent/child/99');
+    results = recognizer.recognize('pm/child/99');
     assert.strictEqual(results?.length, 2, 'round#3 - length');
-    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#3 - handler#1');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamMultPaths, 'round#3 - handler#1');
     assert.deepEqual(results?.[0].params, { id: undefined }, 'round#3 - params#1');
     assert.equal(results?.[1].endpoint.route.handler, child, 'round#3 - handler#2');
     assert.deepEqual(results?.[1].params, { id: '99' }, 'round#3 - params#2');
 
-    results = recognizer.recognize('parent/77/child/88');
+    results = recognizer.recognize('pm/77/child/88');
     assert.strictEqual(results?.length, 2, 'round#4 - length');
-    assert.equal(results?.[0].endpoint.route.handler, parent, 'round#4 - handler#1');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamMultPaths, 'round#4 - handler#1');
     assert.deepEqual(results?.[0].params, { id: '77' }, 'round#4 - params#1');
     assert.equal(results?.[1].endpoint.route.handler, child, 'round#4 - handler#2');
     assert.deepEqual(results?.[1].params, { id: '88' }, 'round#4 - params#2');
+
+    // tests for parentWithOptionalParamSinglePath
+    results = recognizer.recognize('ps');
+    assert.strictEqual(results?.length, 1, 'round#5 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamSinglePath, 'round#5 - handler');
+    assert.deepEqual(results?.[0].params, { id: undefined }, 'round#5 - params');
+
+    results = recognizer.recognize('ps/42');
+    assert.strictEqual(results?.length, 1, 'round#6 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamSinglePath, 'round#6 - handler');
+    assert.deepEqual(results?.[0].params, { id: '42' }, 'round#6 - params');
+
+    results = recognizer.recognize('ps/child/99');
+    assert.strictEqual(results?.length, 2, 'round#7 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamSinglePath, 'round#7 - handler#1');
+    assert.deepEqual(results?.[0].params, { id: undefined }, 'round#7 - params#1');
+    assert.equal(results?.[1].endpoint.route.handler, child, 'round#7 - handler#2');
+    assert.deepEqual(results?.[1].params, { id: '99' }, 'round#7 - params#2');
+
+    results = recognizer.recognize('ps/77/child/88');
+    assert.strictEqual(results?.length, 2, 'round#8 - length');
+    assert.equal(results?.[0].endpoint.route.handler, parentWithOptionalParamSinglePath, 'round#8 - handler#1');
+    assert.deepEqual(results?.[0].params, { id: '77' }, 'round#8 - params#1');
+    assert.equal(results?.[1].endpoint.route.handler, child, 'round#8 - handler#2');
+    assert.deepEqual(results?.[1].params, { id: '88' }, 'round#8 - params#2');
   });
 });

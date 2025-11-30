@@ -15,13 +15,15 @@
 
 import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TextBindingInstruction, HydrateTemplateController, IteratorBindingInstruction, IInstruction } from '@aurelia/template-compiler';
-import { AccessScopeExpression, AccessMemberExpression, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import { createAccessScopeExpression, createAccessMemberExpression, createForOfStatement, createBindingIdentifier } from '@aurelia/expression-parser';
 import { assert, TestContext } from '@aurelia/testing';
 
 import {
   $, M,
   setupRepeatHydration,
   setupIfHydration,
+  setupWithHydration,
+  setupPromiseHydration,
   createViewDef,
   createParentTemplate,
   createRepeatComponent,
@@ -46,7 +48,7 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
       @customElement({
         name: 'test-app',
         template: '<div><!--au:0-->placeholder</div>',
-        instructions: [[new TextBindingInstruction(new AccessScopeExpression('message', 0))]],
+        instructions: [[new TextBindingInstruction(createAccessScopeExpression('message', 0))]],
         needsCompile: false,
       })
       class TestApp { message: string = ''; }
@@ -130,7 +132,7 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
       @customElement({
         name: 'test-app',
         template: '<div><!--au:0-->placeholder</div>',
-        instructions: [[new TextBindingInstruction(new AccessScopeExpression('message', 0))]],
+        instructions: [[new TextBindingInstruction(createAccessScopeExpression('message', 0))]],
         needsCompile: false,
       })
       class TestApp { message: string = 'default value'; }
@@ -566,10 +568,10 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
         const doc = ctx.doc;
 
         // Inner repeat: <li>${item}</li>
-        const innerViewDef = createViewDef(doc, '<li><!--au:0--> </li>', [[new TextBindingInstruction(new AccessScopeExpression('item'))]]);
-        const innerForOf = new ForOfStatement(
-          new BindingIdentifier('item'),
-          new AccessMemberExpression(new AccessScopeExpression('group'), 'items'),
+        const innerViewDef = createViewDef(doc, '<li><!--au:0--> </li>', [[new TextBindingInstruction(createAccessScopeExpression('item'))]]);
+        const innerForOf = createForOfStatement(
+          createBindingIdentifier('item'),
+          createAccessMemberExpression(createAccessScopeExpression('group'), 'items'),
           -1
         );
 
@@ -1078,24 +1080,121 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
     });
   });
 
+  // ============================================================================
+  // With Hydration
+  // ============================================================================
+
+  describe('With hydration', function () {
+
+    it('hydrates with.bind with simple object', async function () {
+      const setup = await setupWithHydration({
+        viewTemplateHtml: '<span><!--au:0--> </span>',
+        viewInstructions: [[$.text('name')]],
+        ssrViewHtml: '<span><!--au:1-->Alice</span>',
+        value: { name: 'Alice' },
+        manifest: M.with([1]),
+      });
+
+      try {
+        assert.strictEqual(text(setup.host, 'span'), 'Alice');
+      } finally {
+        await setup.stop();
+      }
+    });
+
+    it('hydrates with.bind with nested properties', async function () {
+      const setup = await setupWithHydration({
+        viewTemplateHtml: '<div au-hid="0"><!--au:1--> </div><div au-hid="2"><!--au:3--> </div>',
+        viewInstructions: [[], [$.text('name')], [], [$.text('email')]],
+        ssrViewHtml: '<div au-hid="1"><!--au:2-->Bob</div><div au-hid="3"><!--au:4-->bob@example.com</div>',
+        value: { name: 'Bob', email: 'bob@example.com' },
+        manifest: {
+          targetCount: 5,
+          controllers: {
+            0: { type: 'with', views: [{ targets: [1, 2, 3, 4], nodeCount: 2 }] }
+          }
+        },
+      });
+
+      try {
+        assert.deepStrictEqual(texts(setup.host, 'div'), ['Bob', 'bob@example.com']);
+      } finally {
+        await setup.stop();
+      }
+    });
+
+    it('hydrates with.bind with static content (no bindings)', async function () {
+      const setup = await setupWithHydration({
+        viewTemplateHtml: '<div>Static content</div>',
+        viewInstructions: [],
+        ssrViewHtml: '<div>Static content</div>',
+        value: {},
+        manifest: M.with([]),
+      });
+
+      try {
+        assert.strictEqual(text(setup.host, 'div'), 'Static content');
+      } finally {
+        await setup.stop();
+      }
+    });
+  });
+
+  // ============================================================================
+  // Promise Hydration
+  // ============================================================================
+
   describe('Promise hydration', function () {
 
-    it.skip('hydrates promise in resolved state', async function () {
-      // <template promise.bind="dataPromise">
-      //   <span pending>Loading</span>
-      //   <span then.from-view="data">${data.value}</span>
-      //   <span catch.from-view="err">${err.message}</span>
-      // </template>
-      // SSR renders the resolved "then" branch
+    it('hydrates promise in resolved state (then branch)', async function () {
+      const setup = await setupPromiseHydration<string>({
+        thenHtml: '<span><!--au:0--> </span>',
+        thenInstructions: [[$.text('value')]],
+        state: 'resolved',
+        ssrActiveHtml: '<span><!--au:4-->Hello World</span>',
+        resolvedValue: 'Hello World',
+      });
+
+      try {
+        assert.strictEqual(text(setup.host, 'span'), 'Hello World');
+        assert.strictEqual(count(setup.host, 'span'), 1);
+      } finally {
+        await setup.stop();
+      }
     });
 
-    it.skip('hydrates promise in pending state', async function () {
-      // SSR renders the "pending" branch
+    it('hydrates promise in pending state', async function () {
+      const setup = await setupPromiseHydration<string>({
+        pendingHtml: '<span>Loading...</span>',
+        state: 'pending',
+        ssrActiveHtml: '<span>Loading...</span>',
+      });
+
+      try {
+        assert.strictEqual(text(setup.host, 'span'), 'Loading...');
+        assert.strictEqual(count(setup.host, 'span'), 1);
+      } finally {
+        await setup.stop();
+      }
     });
 
-    it.skip('hydrates promise in rejected state', async function () {
-      // SSR renders the "catch" branch
+    it('hydrates promise in rejected state (catch branch)', async function () {
+      const setup = await setupPromiseHydration<string>({
+        catchHtml: '<span><!--au:0--> </span>',
+        catchInstructions: [[$.text('err')]],
+        state: 'rejected',
+        ssrActiveHtml: '<span><!--au:4-->Something went wrong</span>',
+        rejectedError: 'Something went wrong',
+      });
+
+      try {
+        assert.strictEqual(text(setup.host, 'span'), 'Something went wrong');
+        assert.strictEqual(count(setup.host, 'span'), 1);
+      } finally {
+        await setup.stop();
+      }
     });
+
   });
 
   describe('Portal hydration', function () {

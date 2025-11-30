@@ -23,7 +23,7 @@ import {
   TextBindingInstruction,
   BindingMode,
 } from '@aurelia/template-compiler';
-import { AccessScopeExpression } from '@aurelia/expression-parser';
+import { createAccessScopeExpression } from '@aurelia/expression-parser';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { describeTargets, isRenderLocation } from './ssr-hydration.helpers.js';
@@ -353,8 +353,8 @@ describe('3-runtime-html/ssr-hydration-core.spec.ts', function () {
       const targets = seq.findTargets();
 
       const instructions: IInstruction[][] = [
-        [new TextBindingInstruction(new AccessScopeExpression('a', 0))],
-        [new TextBindingInstruction(new AccessScopeExpression('b', 0))],
+        [new TextBindingInstruction(createAccessScopeExpression('a', 0))],
+        [new TextBindingInstruction(createAccessScopeExpression('b', 0))],
       ];
 
       assert.strictEqual(targets.length, instructions.length, 'targets and instructions should align');

@@ -15,6 +15,7 @@
  */
 
 import { Aurelia } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import { IInstruction } from '@aurelia/template-compiler';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -23,6 +24,7 @@ import {
   setupRepeatHydration,
   setupIfHydration,
   setupSwitchHydration,
+  setupPromiseHydration,
   createViewDef,
   createParentTemplate,
   createRepeatComponent,
@@ -1026,17 +1028,35 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
   describe('Promise mutations', function () {
 
-    it.skip('handles promise resolution after pending state', async function () {
-      // SSR rendered pending, client resolves promise
+    it('handles promise replacement (resolved -> new promise -> resolved)', async function () {
+      const setup = await setupPromiseHydration<string>({
+        pendingHtml: '<span>Loading...</span>',
+        thenHtml: '<span><!--au:0--> </span>',
+        thenInstructions: [[$.text('value')]],
+        state: 'resolved',
+        ssrActiveHtml: '<span><!--au:4-->Initial</span>',
+        resolvedValue: 'Initial',
+      });
+
+      try {
+        assert.strictEqual(text(setup.host, 'span'), 'Initial');
+
+        let resolvePromise: (value: string) => void;
+        setup.instance.dataPromise = new Promise<string>((resolve) => {
+          resolvePromise = resolve;
+        });
+
+        await tasksSettled();
+        assert.strictEqual(text(setup.host, 'span'), 'Loading...');
+
+        resolvePromise!('Updated');
+        await tasksSettled();
+        assert.strictEqual(text(setup.host, 'span'), 'Updated');
+      } finally {
+        await setup.stop();
+      }
     });
 
-    it.skip('handles promise rejection after pending state', async function () {
-      // SSR rendered pending, client rejects promise
-    });
-
-    it.skip('handles promise replacement', async function () {
-      // Replace bound promise with new promise
-    });
   });
 
   describe('Au-compose mutations', function () {

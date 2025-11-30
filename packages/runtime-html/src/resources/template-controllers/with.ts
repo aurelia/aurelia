@@ -1,9 +1,10 @@
-import { resolve } from '@aurelia/kernel';
+import { optional, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { IHydrationManifest, type IControllerManifest } from '../../templating/hydration';
 
 export class With implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -17,7 +18,21 @@ export class With implements ICustomAttributeViewModel {
 
   public value?: object;
 
-  private view = resolve(IViewFactory).create().setLocation(resolve(IRenderLocation));
+  /** @internal */ private readonly _factory = resolve(IViewFactory);
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _hydrationManifest: IHydrationManifest | null;
+  /** @internal */ private readonly _controllerManifest: IControllerManifest | null;
+
+  // TODO: SSR hydration - adopt existing DOM using _factory.adopt() when _controllerManifest present
+  private view = this._factory.create().setLocation(this._location);
+
+  public constructor() {
+    const manifest = this._hydrationManifest = resolve(optional(IHydrationManifest)) ?? null;
+    const targetIndex = (this._location as IRenderLocation).$targetIndex;
+    this._controllerManifest = manifest != null && targetIndex != null
+      ? manifest.controllers[targetIndex] ?? null
+      : null;
+  }
 
   public valueChanged(
     newValue: unknown,

@@ -21,6 +21,8 @@ export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTa
 export const IRenderLocation = /*@__PURE__*/createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
+  /** Target index for SSR hydration manifest lookup */
+  $targetIndex?: number;
 };
 
 /** @internal */
@@ -302,6 +304,10 @@ export class FragmentNodeSequence implements INodeSequence {
    * Both marker types encode their index directly, eliminating the need
    * for runtime DOM transformation.
    *
+   * This method collects ALL targets in a flat pass. For SSR hydration with
+   * template controllers, global indices are used and a manifest provides
+   * view boundary information.
+   *
    * @param root - DocumentFragment (for template cloning) or Element (for SSR adoption)
    * @returns Array of target nodes indexed by their marker values
    *
@@ -312,7 +318,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
     // Find element targets with au-hid attribute
     const auHidElements = root.querySelectorAll('[au-hid]');
-    let markerCount = 0;
 
     // Use TreeWalker to find <!--au:N--> comments
     const walker = platform.document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
@@ -321,12 +326,10 @@ export class FragmentNodeSequence implements INodeSequence {
     while ((node = walker.nextNode() as Comment | null) !== null) {
       if (node.nodeValue?.startsWith('au:')) {
         markerComments.push(node);
-        markerCount++;
       }
     }
 
-    const totalTargets = auHidElements.length + markerCount;
-    const targets: Node[] = Array(totalTargets);
+    const targets: Node[] = [];
 
     // Process element targets: au-hid value IS the target index
     let el: Element;
@@ -348,19 +351,29 @@ export class FragmentNodeSequence implements INodeSequence {
       target = marker.nextSibling!;
       marker.remove();
 
-      // If the target is a comment (au-start), it's a render location
-      // We need to SEARCH FORWARD for au-end, not assume it's adjacent
-      // SSR output may have content between au-start and au-end
+      // If target is au-start, find matching au-end (handling nested pairs)
       if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
         const startMarker = target as IRenderLocation;
-        // Search forward for the matching au-end
         let endMarker = target.nextSibling;
-        while (endMarker !== null && !(endMarker.nodeType === 8 && (endMarker as Comment).textContent === 'au-end')) {
-          endMarker = endMarker.nextSibling;
+        let depth = 1; // Start at 1 for the initial au-start
+        while (endMarker !== null && depth > 0) {
+          if (endMarker.nodeType === 8) {
+            const text = (endMarker as Comment).textContent;
+            if (text === 'au-start') {
+              depth++;
+            } else if (text === 'au-end') {
+              depth--;
+            }
+          }
+          if (depth > 0) {
+            endMarker = endMarker.nextSibling;
+          }
         }
         if (endMarker !== null) {
           target = endMarker as IRenderLocation;
           (target as IRenderLocation).$start = startMarker;
+          // Store target index for SSR hydration manifest lookup
+          (target as IRenderLocation).$targetIndex = targetId;
         }
       }
       targets[targetId] = target;

@@ -2,6 +2,8 @@ import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
+import { IHydrationManifest } from './hydration';
+
 import { FragmentNodeSequence, INodeSequence } from '../dom';
 import { INode } from '../dom.node';
 import { IPlatform } from '../platform';
@@ -167,17 +169,26 @@ export class Rendering implements IRendering {
   ): void {
     const rows = definition.instructions;
     const renderers = this.renderers;
-    const ii = targets.length;
+    const targetCount = targets.length;
+    const rowCount = rows.length;
+
+    // When hydrating with manifest, we may have more targets than instructions
+    // because nested targets (inside template controllers) are collected flat
+    // but belong to the template controller's views, not the parent.
+    const ctn = controller.container;
+    const manifest = ctn.has(IHydrationManifest, true) ? ctn.get(IHydrationManifest) : null;
+    const isHydrating = manifest !== null;
 
     let i = 0;
     let j = 0;
-    let jj = rows.length;
+    let jj = rowCount;
     let row: readonly IInstruction[];
     let instruction: IInstruction;
     let target: INode;
 
-    if (ii !== jj) {
-      throw createMappedError(ErrorNames.rendering_mismatch_length, ii, jj);
+    // Only validate length match when not hydrating with manifest
+    if (!isHydrating && targetCount !== rowCount) {
+      throw createMappedError(ErrorNames.rendering_mismatch_length, targetCount, rowCount);
     }
 
     // host is only null when rendering a synthetic view
@@ -194,8 +205,8 @@ export class Rendering implements IRendering {
       }
     }
 
-    if (ii > 0) {
-      while (ii > i) {
+    if (rowCount > 0) {
+      while (rowCount > i) {
         row = rows[i];
         target = targets[i];
         j = 0;

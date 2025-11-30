@@ -46,6 +46,7 @@ import type {
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
 import { ErrorNames, createMappedError } from '../errors';
+import { IHydrationManifest } from './hydration';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
@@ -334,6 +335,39 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return controller as unknown as ISyntheticView;
   }
 
+  /**
+   * Create a synthetic view by adopting existing DOM nodes for SSR hydration.
+   *
+   * Instead of cloning from template, this wraps pre-rendered DOM nodes
+   * and applies instructions to the provided targets.
+   *
+   * @param viewFactory - The view factory (for definition and container)
+   * @param nodes - The node sequence wrapping existing DOM
+   * @param targets - Pre-collected targets for this view (from global targets array via manifest)
+   * @param parentController - Optional parent controller
+   */
+  public static $adoptView(
+    viewFactory: IViewFactory,
+    nodes: INodeSequence,
+    targets: ArrayLike<INode>,
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
+  ): ISyntheticView {
+    const controller = new Controller(
+      /* container      */viewFactory.container,
+      /* vmKind         */vmkSynth,
+      /* definition     */null,
+      /* viewFactory    */viewFactory,
+      /* viewModel      */null,
+      /* host           */null,
+      /* location       */null
+    );
+    controller.parent = parentController ?? null;
+
+    controller._hydrateAdoptedView(nodes, targets);
+
+    return controller as unknown as ISyntheticView;
+  }
+
   /** @internal */
   public _hydrateCustomElement(
     hydrationInst: IControllerElementHydrationInstruction | null,
@@ -452,9 +486,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public _hydrateChildren(): void {
+    const targets = this.nodes!.findTargets();
+
+    // Store targets on manifest for template controllers to access
+    const container = this.container;
+    if (container.has(IHydrationManifest, true)) {
+      const manifest = container.get(IHydrationManifest);
+      manifest._targets = targets;
+    }
+
     this._rendering.render(
       /* controller */this as ICustomElementController,
-      /* targets    */this.nodes!.findTargets(),
+      /* targets    */targets,
       /* definition */this._compiledDef!,
       /* host       */this.host,
     );
@@ -500,6 +543,24 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
       /* definition */this._compiledDef,
       /* host       */this.host,
+    );
+  }
+
+  /**
+   * Hydrate a synthetic view by adopting existing DOM nodes for SSR hydration.
+   *
+   * @param nodes - The node sequence wrapping existing DOM
+   * @param targets - Pre-collected targets for this view
+   * @internal
+   */
+  private _hydrateAdoptedView(nodes: INodeSequence, targets: ArrayLike<INode>): void {
+    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container);
+    this.nodes = nodes;
+    this._rendering.render(
+      /* controller */this as ISyntheticView,
+      /* targets    */targets,
+      /* definition */this._compiledDef,
+      /* host       */null,
     );
   }
 

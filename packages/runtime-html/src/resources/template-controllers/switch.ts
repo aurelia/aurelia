@@ -3,6 +3,7 @@ import {
   ILogger,
   onResolve,
   onResolveAll,
+  optional,
   resolve,
   Writable,
 } from '@aurelia/kernel';
@@ -12,15 +13,17 @@ import {
   type Scope,
 } from '@aurelia/runtime';
 import type { IInstruction } from '@aurelia/template-compiler';
-import { IRenderLocation } from '../../dom';
+import { FragmentNodeSequence, IRenderLocation } from '../../dom';
 import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
+import { IPlatform } from '../../platform';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
 import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
+import { IResumeContext } from '../../templating/hydration';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -49,12 +52,16 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
 
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+
   public link(
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: IInstruction,
   ): void {
+    // Skip in SSR - will adopt in attaching()
+    if (this._ssrContext) return;
     this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
@@ -62,9 +69,41 @@ export class Switch implements ICustomAttributeViewModel {
     const view = this.view;
     const $controller = this.$controller;
 
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      this.queue(() => this._activateHydratedView(initiator, ctx));
+      this.queue(() => this.swap(initiator, this.value));
+      return this.promise;
+    }
+
     this.queue(() => view.activate(initiator, $controller, $controller.scope));
     this.queue(() => this.swap(initiator, this.value));
     return this.promise;
+  }
+
+  /**
+   * Switch doesn't move DOM - it just provides targets for Case render locations.
+   * Each Case adopts its own content separately.
+   * @internal
+   */
+  private _activateHydratedView(
+    initiator: IHydratedController,
+    context: IResumeContext
+  ): void | Promise<void> {
+    const ctrl = this.$controller;
+
+    if (context.manifest.views.length === 0) {
+      return this.view.activate(initiator, ctrl, ctrl.scope);
+    }
+
+    const viewTargets = context.getViewTargets(0);
+    const platform = ctrl.container.get(IPlatform);
+    const emptyFragment = platform.document.createDocumentFragment();
+    const nodes = new FragmentNodeSequence(platform, emptyFragment);
+
+    this.view = this._factory.adopt(nodes, viewTargets, this.$controller).setLocation(this._location);
+    return this.view.activate(initiator, ctrl, ctrl.scope);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -273,6 +312,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
     controller: IHydratableController,
@@ -323,7 +363,28 @@ export class Case implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      if (this._ssrContext) {
+        const ctx = this._ssrContext;
+        this._ssrContext = void 0;
+
+        if (ctx.manifest.views.length > 0) {
+          const viewNodes = ctx.collectViewNodes(0);
+          const viewFragment = document.createDocumentFragment();
+          for (const node of viewNodes) {
+            viewFragment.appendChild(node);
+          }
+
+          const platform = this.$controller.container.get(IPlatform);
+          const nodes = new FragmentNodeSequence(platform, viewFragment);
+          const viewTargets = ctx.getViewTargets(0);
+
+          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+        } else {
+          view = this.view = this._factory.create().setLocation(this._location);
+        }
+      } else {
+        view = this.view = this._factory.create().setLocation(this._location);
+      }
     }
     if (view.isActive) { return; }
     return view.activate(initiator ?? view, this.$controller, scope);

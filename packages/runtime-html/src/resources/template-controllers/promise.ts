@@ -1,4 +1,4 @@
-import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll, optional, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
@@ -18,6 +18,7 @@ import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-co
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
+import { IHydrationManifest, type IControllerManifest } from '../../templating/hydration';
 
 export class PromiseTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -45,6 +46,18 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
+
+  /** @internal */ private readonly _hydrationManifest: IHydrationManifest | null;
+  /** @internal */ private readonly _controllerManifest: IControllerManifest | null;
+
+  // TODO: SSR hydration - adopt existing DOM for rendered state (pending/fulfilled/rejected)
+  public constructor() {
+    const manifest = this._hydrationManifest = resolve(optional(IHydrationManifest)) ?? null;
+    const targetIndex = (this._location as IRenderLocation).$targetIndex;
+    this._controllerManifest = manifest != null && targetIndex != null
+      ? manifest.controllers[targetIndex] ?? null
+      : null;
+  }
 
   public link(
     _controller: IHydratableController,

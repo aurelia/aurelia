@@ -12,12 +12,17 @@ import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
 import { ErrorNames, createMappedError } from './errors';
 
+import { IHydrationManifest } from './templating/hydration';
+import type { IHydrationManifest as IHydrationManifestType } from './templating/hydration';
+
 /** @internal */
 export interface IHydrationOptions<T = object> {
   /** When true, adopts existing DOM children instead of cloning from template */
   adopt?: boolean;
   /** State to apply to the component instance before bindings are created */
   state?: Partial<T>;
+  /** Hydration manifest from SSR compiler with view boundary information */
+  manifest?: IHydrationManifest;
 }
 
 export interface IAppRootConfig<T extends object = object> {
@@ -99,6 +104,14 @@ export class AppRoot<
 
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
+
+    if (hydrationOptions?.manifest != null) {
+      registerResolver(
+        container,
+        IHydrationManifest,
+        new InstanceProvider<IHydrationManifestType>('IHydrationManifest', hydrationOptions.manifest)
+      );
+    }
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       if (!config.allowActionlessForm !== false) {

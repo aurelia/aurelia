@@ -1,6 +1,7 @@
 import {
   emptyArray,
   InstanceProvider,
+  optional,
   type IContainer,
   type Constructable,
   type IResolver,
@@ -39,6 +40,7 @@ import { IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import { ErrorNames, createMappedError } from './errors';
+import { IHydrationManifest, IResumeContext, ResumeContext, consumeHydrationManifest } from './templating/hydration';
 import { SpreadBinding, SpreadValueBinding } from './binding/spread-binding';
 import {
   AttributeBindingInstruction,
@@ -345,6 +347,17 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
         : ctxContainer
     );
     const renderLocation = convertToRenderLocation(target);
+
+    let resumeContext: IResumeContext | null = null;
+    const manifest = ctxContainer.get(optional(IHydrationManifest));
+    if (manifest?._targets != null) {
+      const targetIndex = renderLocation.$targetIndex;
+      const controllerManifest = consumeHydrationManifest(manifest, targetIndex);
+      if (controllerManifest != null) {
+        resumeContext = new ResumeContext(controllerManifest, manifest._targets, renderLocation);
+      }
+    }
+
     const results = invokeAttribute(
       /* platform         */platform,
       /* attr definition  */def,
@@ -353,6 +366,8 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */renderLocation,
+      /* auSlotsInfo      */void 0,
+      /* resumeContext    */resumeContext,
     );
     const childController = Controller.$attr(
       /* container ct */results.ctn,
@@ -912,6 +927,7 @@ function invokeAttribute(
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
+  resumeContext?: IResumeContext | null,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const renderingCtrl = $renderingCtrl instanceof Controller
     ? $renderingCtrl
@@ -929,6 +945,9 @@ function invokeAttribute(
   registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
+  if (resumeContext != null) {
+    registerResolver(ctn, IResumeContext, new InstanceProvider('IResumeContext', resumeContext));
+  }
 
   return { vm: ctn.invoke(definition.Type), ctn };
 }

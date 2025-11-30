@@ -225,7 +225,7 @@ class Candidate<T> {
         // and the state is the last dynamic state in a series of dynamic states.
         // null fallback is used, as a star segment can also be a dynamic segment, but without a pattern.
         const checkConstraint = state.isConstrained
-          && !Object.is(states[i + 1]?.segment, segment);
+          && !Object.is(states[i - 1]?.segment, segment);
 
         if (!checkConstraint) continue;
 

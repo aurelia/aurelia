@@ -2,11 +2,12 @@ import { Writable } from '@aurelia/kernel';
 import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
-describe('router/route-recognizer.spec.ts', function () {
+describe.only('router/route-recognizer.spec.ts', function () {
 
   interface RecognizeSpec {
-    routes: [string, Parameter[]][];
-    tests: [string, string | null, Record<string, string> | null][];
+    only?: boolean;
+    routes: [path: string, parameters: Parameter[]][];
+    tests: [input: string, matchedRoute: string | null, parameters: Record<string, string> | null][];
   }
 
   const recognizeSpecs: RecognizeSpec[] = [
@@ -2848,7 +2849,7 @@ describe('router/route-recognizer.spec.ts', function () {
   for (const hasLeadingSlash of [true, false]) {
     for (const hasTrailingSlash of [true, false]) {
       for (const reverseAdd of [true, false]) {
-        for (const { tests, routes: $routes } of recognizeSpecs) {
+        for (const { tests, routes: $routes, only } of recognizeSpecs) {
           const routes = reverseAdd ? $routes.slice().reverse() : $routes;
           for (const [path, match, $params] of tests) {
             const leading = hasLeadingSlash ? '/' : '';
@@ -2858,7 +2859,7 @@ describe('router/route-recognizer.spec.ts', function () {
             if (match === null) {
               title = `${title} reject '${path}' out of routes: [${routes.map(x => `'${x[0]}'`).join(',')}]`;
 
-              it(title, function () {
+              (only === true ? it.only : it)(title, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
@@ -2875,7 +2876,7 @@ describe('router/route-recognizer.spec.ts', function () {
               const input = `${leading}${path}${trailing}`;
               title = `${title} recognize '${input}' as '${match}' out of routes: [${routes.map(x => `'${x[0]}'`).join(',')}]`;
 
-              it(title, function () {
+              (only === true ? it.only : it)(title, function () {
                 // Arrange
                 const sut = new RouteRecognizer();
                 for (const [route] of routes) {
@@ -2911,15 +2912,15 @@ describe('router/route-recognizer.spec.ts', function () {
           ['b/:1', [new Parameter('1', false, false, null)], true],
           ['b/:1/*2', [new Parameter('1', false, false, null), new Parameter('2', true, true, null)], false],
         ];
-        const tests: [string, string | null, Record<string, string> | null][] = [
+        const tests: [string, string | null, Record<string, string> | null, routePath?: string][] = [
           ['b/1', 'b/:1', { 1: '1' }],
           ['b/1/2', 'b/:1/*2', { 1: '1', 2: '2' }],
           ['b/1/2/3', 'b/:1/*2', { 1: '1', 2: '2/3' }],
-          ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }],
+          ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }, 'a'],
         ];
 
         const routes = reverseAdd ? $routes.slice().reverse() : $routes;
-        for (const [path, match, $params] of tests) {
+        for (const [path, match, $params, routePath] of tests) {
           const leading = hasLeadingSlash ? '/' : '';
           const trailing = hasTrailingSlash ? '/' : '';
 
@@ -2969,8 +2970,7 @@ describe('router/route-recognizer.spec.ts', function () {
             }
             const endpoint = new Endpoint(configurableRoute, parameters);
             (endpoint as Writable<Endpoint<any>>).residualEndpoint = residueEndpoint;
-            const $path = path.substring(0, path.length - (params[RESIDUE]??'').length);
-            const expected = [new RecognizedRoute(endpoint, $path, params)];
+            const expected = [new RecognizedRoute(endpoint, path, params)];
 
             // Act
             const actual1 = sut.recognize(path);
@@ -3007,7 +3007,7 @@ describe('router/route-recognizer.spec.ts', function () {
     });
   }
 
-  it.only('kitchen sink - eager-loading - single recognizer', function () {
+  it('kitchen sink - eager-loading - single recognizer', function () {
     const recognizer = new RouteRecognizer();
 
     const parentWithOptionalParamMultPaths = Symbol.for('au:rr:parent:multi');

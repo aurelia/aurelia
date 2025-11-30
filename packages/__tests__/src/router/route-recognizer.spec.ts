@@ -2912,15 +2912,15 @@ describe.only('router/route-recognizer.spec.ts', function () {
           ['b/:1', [new Parameter('1', false, false, null)], true],
           ['b/:1/*2', [new Parameter('1', false, false, null), new Parameter('2', true, true, null)], false],
         ];
-        const tests: [string, string | null, Record<string, string> | null, routePath?: string][] = [
+        const tests: [string, string | null, Record<string, string> | null][] = [
           ['b/1', 'b/:1', { 1: '1' }],
           ['b/1/2', 'b/:1/*2', { 1: '1', 2: '2' }],
           ['b/1/2/3', 'b/:1/*2', { 1: '1', 2: '2/3' }],
-          ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }, 'a'],
+          ['a/1/2/3', `a/*${RESIDUE}`, { [RESIDUE]: '1/2/3' }],
         ];
 
         const routes = reverseAdd ? $routes.slice().reverse() : $routes;
-        for (const [path, match, $params, routePath] of tests) {
+        for (const [path, match, $params] of tests) {
           const leading = hasLeadingSlash ? '/' : '';
           const trailing = hasTrailingSlash ? '/' : '';
 

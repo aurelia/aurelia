@@ -1,10 +1,11 @@
-import { optional, resolve } from '@aurelia/kernel';
+import { onResolve, optional, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
+import { FragmentNodeSequence, IRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
-import { IHydrationManifest, type IControllerManifest } from '../../templating/hydration';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, ISyntheticView } from '../../templating/controller';
+import { IResumeContext } from '../../templating/hydration';
 
 export class With implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -20,19 +21,8 @@ export class With implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _hydrationManifest: IHydrationManifest | null;
-  /** @internal */ private readonly _controllerManifest: IControllerManifest | null;
-
-  // TODO: SSR hydration - adopt existing DOM using _factory.adopt() when _controllerManifest present
-  private view = this._factory.create().setLocation(this._location);
-
-  public constructor() {
-    const manifest = this._hydrationManifest = resolve(optional(IHydrationManifest)) ?? null;
-    const targetIndex = (this._location as IRenderLocation).$targetIndex;
-    this._controllerManifest = manifest != null && targetIndex != null
-      ? manifest.controllers[targetIndex] ?? null
-      : null;
-  }
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  private view!: ISyntheticView;
 
   public valueChanged(
     newValue: unknown,
@@ -54,9 +44,48 @@ export class With implements ICustomAttributeViewModel {
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      return this._activateHydratedView(ctx);
+    }
+    return this._activateView();
+  }
+
+  /** @internal */
+  private _activateView(): void | Promise<void> {
     const { $controller, value } = this;
+    const view = this.view = this._factory.create().setLocation(this._location);
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, scope);
+    return view.activate(view, $controller, scope);
+  }
+
+  /** @internal */
+  private _activateHydratedView(context: IResumeContext): void | Promise<void> {
+    const ctrl = this.$controller;
+    const hasSsrView = context.manifest.views.length > 0;
+
+    if (!hasSsrView) {
+      // No view was rendered on server, create one now
+      return this._activateView();
+    }
+
+    // Adopt the existing DOM
+    const viewNodes = context.collectViewNodes(0);
+    const viewFragment = document.createDocumentFragment();
+    for (const node of viewNodes) {
+      viewFragment.appendChild(node);
+    }
+
+    const platform = ctrl.container.get(IPlatform);
+    const nodes = new FragmentNodeSequence(platform, viewFragment);
+    const viewTargets = context.getViewTargets(0);
+    const view = this.view = this._factory.adopt(nodes, viewTargets);
+    view.setLocation(this._location);
+
+    const { value } = this;
+    const scope = Scope.fromParent(ctrl.scope, value === void 0 ? {} : value);
+    return view.activate(view, ctrl, scope);
   }
 
   public detaching(
@@ -67,7 +96,7 @@ export class With implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
-    this.view.dispose();
+    this.view?.dispose();
     this.view = (void 0)!;
   }
 

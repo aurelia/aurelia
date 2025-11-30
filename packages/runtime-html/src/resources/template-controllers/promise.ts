@@ -1,6 +1,6 @@
 import { ILogger, onResolve, onResolveAll, optional, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
-import { IRenderLocation } from '../../dom';
+import { FragmentNodeSequence, IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
 import { fromView, toView } from '../../binding/interfaces-bindings';
@@ -18,8 +18,12 @@ import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-co
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
-import { IHydrationManifest, type IControllerManifest } from '../../templating/hydration';
+import { IResumeContext } from '../../templating/hydration';
 
+// NOTE: The "SSR pending -> client resolves" case is not currently handled.
+// If the SSR output rendered the pending branch (promise was unresolved during SSR),
+// and then the promise resolves on the client, the fulfilled/rejected views won't
+// have pre-rendered DOM to adopt.
 export class PromiseTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: attrTypeName,
@@ -46,18 +50,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
-
-  /** @internal */ private readonly _hydrationManifest: IHydrationManifest | null;
-  /** @internal */ private readonly _controllerManifest: IControllerManifest | null;
-
-  // TODO: SSR hydration - adopt existing DOM for rendered state (pending/fulfilled/rejected)
-  public constructor() {
-    const manifest = this._hydrationManifest = resolve(optional(IHydrationManifest)) ?? null;
-    const targetIndex = (this._location as IRenderLocation).$targetIndex;
-    this._controllerManifest = manifest != null && targetIndex != null
-      ? manifest.controllers[targetIndex] ?? null
-      : null;
-  }
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
     _controller: IHydratableController,
@@ -65,7 +58,24 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    this.view = this._factory.create(this.$controller).setLocation(this._location);
+    const ctx = this._ssrContext;
+    if (ctx != null && ctx.manifest.views.length > 0) {
+      // SSR hydration: adopt existing wrapper view
+      const viewNodes = ctx.collectViewNodes(0);
+      const viewFragment = document.createDocumentFragment();
+      for (const node of viewNodes) {
+        viewFragment.appendChild(node);
+      }
+      const nodes = new FragmentNodeSequence(this._platform, viewFragment);
+      const viewTargets = ctx.getViewTargets(0);
+      this.view = this._factory.adopt(nodes, viewTargets, this.$controller).setLocation(this._location);
+      this._ssrContext = void 0; // consumed
+    } else {
+      this.view = this._factory.create(this.$controller).setLocation(this._location);
+      if (ctx != null) {
+        this._ssrContext = void 0; // consumed even if empty
+      }
+    }
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -193,6 +203,8 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
     controller: IHydratableController,
@@ -206,7 +218,27 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      const ctx = this._ssrContext;
+      if (ctx != null) {
+        this._ssrContext = void 0;
+        if (ctx.manifest.views.length > 0) {
+          // SSR hydration: adopt existing view
+          const viewNodes = ctx.collectViewNodes(0);
+          const viewFragment = document.createDocumentFragment();
+          for (const node of viewNodes) {
+            viewFragment.appendChild(node);
+          }
+          const nodes = new FragmentNodeSequence(this._platform, viewFragment);
+          const viewTargets = ctx.getViewTargets(0);
+          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+        } else {
+          // SSR hydration but this branch wasn't rendered - don't create view
+          // (pending is always activated in pre-settle; if promise is already resolved, it'll be deactivated immediately)
+          return;
+        }
+      } else {
+        view = this.view = this._factory.create().setLocation(this._location);
+      }
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);
@@ -246,6 +278,8 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
     controller: IHydratableController,
@@ -260,7 +294,25 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
     this.value = resolvedValue;
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      const ctx = this._ssrContext;
+      if (ctx != null) {
+        this._ssrContext = void 0;
+        if (ctx.manifest.views.length > 0) {
+          // SSR hydration: adopt existing view
+          const viewNodes = ctx.collectViewNodes(0);
+          const viewFragment = document.createDocumentFragment();
+          for (const node of viewNodes) {
+            viewFragment.appendChild(node);
+          }
+          const nodes = new FragmentNodeSequence(this._platform, viewFragment);
+          const viewTargets = ctx.getViewTargets(0);
+          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+        }
+        // If SSR context exists but branch wasn't rendered, fall through to factory creation
+      }
+      if (view === void 0) {
+        view = this.view = this._factory.create().setLocation(this._location);
+      }
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);
@@ -300,6 +352,8 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
     controller: IHydratableController,
@@ -314,7 +368,25 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     this.value = error;
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      const ctx = this._ssrContext;
+      if (ctx != null) {
+        this._ssrContext = void 0;
+        if (ctx.manifest.views.length > 0) {
+          // SSR hydration: adopt existing view
+          const viewNodes = ctx.collectViewNodes(0);
+          const viewFragment = document.createDocumentFragment();
+          for (const node of viewNodes) {
+            viewFragment.appendChild(node);
+          }
+          const nodes = new FragmentNodeSequence(this._platform, viewFragment);
+          const viewTargets = ctx.getViewTargets(0);
+          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+        }
+        // If SSR context exists but branch wasn't rendered, fall through to factory creation
+      }
+      if (view === void 0) {
+        view = this.view = this._factory.create().setLocation(this._location);
+      }
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);

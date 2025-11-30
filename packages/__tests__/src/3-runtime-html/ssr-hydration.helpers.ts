@@ -46,6 +46,8 @@ export type ControllerManifest = {
  * Template controllers:
  *   $.repeat(viewDef, 'item of items') -> HydrateTemplateController
  *   $.if(viewDef, 'condition')         -> HydrateTemplateController
+ *   $.with(viewDef, 'obj')             -> HydrateTemplateController
+ *   $.promise(viewDef, 'promise')      -> HydrateTemplateController
  */
 export const $ = {
   /** Text binding: $.text('item.name') */
@@ -81,6 +83,26 @@ export const $ = {
   /** Default case template controller: $.defaultCase(viewDef) */
   defaultCase: (viewDef: ViewDef) =>
     new HydrateTemplateController(viewDef, 'default-case', undefined, []),
+
+  /** With template controller: $.with(viewDef, 'obj') */
+  with: (viewDef: ViewDef, value = 'value') =>
+    new HydrateTemplateController(viewDef, 'with', undefined, [new PropertyBindingInstruction(value, 'value', BindingMode.toView)]),
+
+  /** Promise template controller: $.promise(viewDef, 'promise') */
+  promise: (viewDef: ViewDef, value = 'value') =>
+    new HydrateTemplateController(viewDef, 'promise', undefined, [new PropertyBindingInstruction(value, 'value', BindingMode.toView)]),
+
+  /** Pending template controller (inside promise): $.pending(viewDef) */
+  pending: (viewDef: ViewDef) =>
+    new HydrateTemplateController(viewDef, 'pending', undefined, []),
+
+  /** Then template controller (inside promise): $.then(viewDef, 'data') - binds controller.value to scope.data */
+  then: (viewDef: ViewDef, expr = 'value') =>
+    new HydrateTemplateController(viewDef, 'then', undefined, [new PropertyBindingInstruction(expr, 'value', BindingMode.fromView)]),
+
+  /** Catch template controller (inside promise): $.catch(viewDef, 'err') - binds controller.value to scope.err */
+  catch: (viewDef: ViewDef, expr = 'value') =>
+    new HydrateTemplateController(viewDef, 'catch', undefined, [new PropertyBindingInstruction(expr, 'value', BindingMode.fromView)]),
 };
 
 // ============================================================================
@@ -257,6 +279,88 @@ export const M = {
     targetCount,
     controllers: {},
   }),
+
+  /**
+   * With manifest helper.
+   *
+   * @param viewTargets - Target indices for bindings inside the with view
+   * @param nodeCount - Number of DOM nodes in the view
+   *
+   * @example
+   * M.with([1, 2])      // with showing with bindings at targets 1, 2
+   * M.with([])          // with showing with static content (no bindings)
+   */
+  with: (viewTargets: number[] = [], nodeCount = 1): IHydrationManifest => {
+    let maxTarget = 0;
+    for (const t of viewTargets) if (t > maxTarget) maxTarget = t;
+    return {
+      targetCount: Math.max(1, maxTarget + 1),
+      controllers: { 0: { type: 'with', views: [{ targets: viewTargets, nodeCount }] } }
+    };
+  },
+
+  /**
+   * Promise manifest helper.
+   *
+   * Creates manifest entries for promise wrapper and the active sub-controller (pending/then/catch).
+   *
+   * @param wrapperTargets - Targets inside the promise wrapper view (including sub-controller locations)
+   * @param activeSubController - Which sub-controller is active and its config
+   *
+   * @example
+   * // Promise in pending state
+   * M.promise({
+   *   wrapperTargets: [1, 2, 3],  // pending at 1, then at 2, catch at 3
+   *   active: { type: 'pending', location: 1, viewTargets: [4], nodeCount: 1 }
+   * })
+   *
+   * // Promise in resolved state
+   * M.promise({
+   *   wrapperTargets: [1, 2, 3],
+   *   active: { type: 'then', location: 2, viewTargets: [4, 5], nodeCount: 1 }
+   * })
+   */
+  promise: (config: {
+    wrapperTargets?: number[];
+    active?: {
+      type: 'pending' | 'then' | 'catch';
+      location: number;
+      viewTargets?: number[];
+      nodeCount?: number;
+    };
+    inactiveLocations?: number[];
+  }): IHydrationManifest => {
+    const wrapperTargets = config.wrapperTargets ?? [];
+    const controllers: Record<number, ControllerManifest> = {
+      // Promise wrapper always has a view
+      0: { type: 'promise', views: [{ targets: wrapperTargets, nodeCount: 1 }] }
+    };
+
+    let maxTarget = 0;
+    for (const t of wrapperTargets) if (t > maxTarget) maxTarget = t;
+
+    // Add active sub-controller
+    if (config.active) {
+      const { type, location, viewTargets = [], nodeCount = 1 } = config.active;
+      controllers[location] = {
+        type,
+        views: [{ targets: viewTargets, nodeCount }]
+      };
+      for (const t of viewTargets) if (t > maxTarget) maxTarget = t;
+      if (location > maxTarget) maxTarget = location;
+    }
+
+    // Add inactive sub-controllers (empty views)
+    for (const loc of config.inactiveLocations ?? []) {
+      controllers[loc] = { type: 'promise-branch', views: [] };
+      if (loc > maxTarget) maxTarget = loc;
+    }
+
+    return {
+      targetCount: maxTarget + 1,
+      controllers
+    };
+  },
 };
 
 // ============================================================================
@@ -690,6 +794,223 @@ export async function setupSwitchHydration(options: {
     host,
     au,
     instance: root.controller.viewModel as { status: string },
+    stop: async () => {
+      await au.stop(true);
+      doc.body.removeChild(host);
+    },
+  };
+}
+
+// ============================================================================
+// With Hydration Setup Helper
+// ============================================================================
+
+export interface WithHydrationSetup<T extends object> {
+  ctx: ReturnType<typeof TestContext.create>;
+  doc: Document;
+  host: HTMLElement;
+  au: Aurelia;
+  instance: { value: T };
+  stop: () => Promise<void>;
+}
+
+/**
+ * Set up with hydration test.
+ *
+ * @param options.viewTemplateHtml - HTML template for the with view (e.g., '<span><!--au:0--> </span>')
+ * @param options.viewInstructions - Instructions for the with view
+ * @param options.ssrViewHtml - The SSR-rendered view content (without au-start/au-end)
+ * @param options.value - Initial value for with.bind
+ * @param options.manifest - Hydration manifest (use M.with())
+ */
+export async function setupWithHydration<T extends object>(options: {
+  viewTemplateHtml: string;
+  viewInstructions: IInstruction[][];
+  ssrViewHtml: string;
+  value: T;
+  manifest: IHydrationManifest;
+}): Promise<WithHydrationSetup<T>> {
+  const ctx = TestContext.create();
+  const doc = ctx.doc;
+
+  const viewDef = createViewDef(doc, options.viewTemplateHtml, options.viewInstructions);
+  const withInstruction = $.with(viewDef, 'value');
+  const parentTemplate = createParentTemplate(doc);
+
+  class TestApp {
+    static $au = {
+      type: 'custom-element' as const,
+      name: 'test-app',
+      template: parentTemplate,
+      instructions: [[withInstruction]],
+      needsCompile: false,
+    };
+    value: T = options.value;
+  }
+
+  const host = doc.createElement('div');
+  host.innerHTML = `<!--au:0--><!--au-start-->${options.ssrViewHtml}<!--au-end-->`;
+  doc.body.appendChild(host);
+
+  const au = new Aurelia(ctx.container);
+  const root = await au.hydrate({
+    host,
+    component: TestApp,
+    state: { value: options.value },
+    manifest: options.manifest,
+  });
+
+  return {
+    ctx,
+    doc,
+    host,
+    au,
+    instance: root.controller.viewModel as { value: T },
+    stop: async () => {
+      await au.stop(true);
+      doc.body.removeChild(host);
+    },
+  };
+}
+
+// ============================================================================
+// Promise Hydration Setup Helper
+// ============================================================================
+
+export interface PromiseHydrationSetup<T> {
+  ctx: ReturnType<typeof TestContext.create>;
+  doc: Document;
+  host: HTMLElement;
+  au: Aurelia;
+  instance: { dataPromise: Promise<T>; value?: T; err?: unknown };
+  stop: () => Promise<void>;
+}
+
+export type PromiseState = 'pending' | 'resolved' | 'rejected';
+
+/**
+ * Set up promise hydration test.
+ *
+ * @param options.pendingHtml - HTML for pending view (static, e.g., '<span>Loading...</span>')
+ * @param options.thenHtml - HTML for then view (e.g., '<span><!--au:0--> </span>' for binding)
+ * @param options.thenInstructions - Instructions for then view (e.g., [[$.text('value')]])
+ * @param options.catchHtml - HTML for catch view (e.g., '<span><!--au:0--> </span>' for binding)
+ * @param options.catchInstructions - Instructions for catch view
+ * @param options.state - Which state the promise is in ('pending' | 'resolved' | 'rejected')
+ * @param options.ssrActiveHtml - The SSR-rendered content for the active branch
+ * @param options.resolvedValue - Value for resolved state
+ * @param options.rejectedError - Error for rejected state
+ */
+export async function setupPromiseHydration<T>(options: {
+  pendingHtml?: string;
+  thenHtml?: string;
+  thenInstructions?: IInstruction[][];
+  catchHtml?: string;
+  catchInstructions?: IInstruction[][];
+  state: PromiseState;
+  ssrActiveHtml: string;
+  resolvedValue?: T;
+  rejectedError?: unknown;
+}): Promise<PromiseHydrationSetup<T>> {
+  const ctx = TestContext.create();
+  const doc = ctx.doc;
+
+  const pendingView = createViewDef(doc, options.pendingHtml ?? '<span>Loading...</span>', []);
+  const thenView = createViewDef(doc, options.thenHtml ?? '<span>Done</span>', options.thenInstructions ?? []);
+  const catchView = createViewDef(doc, options.catchHtml ?? '<span>Error</span>', options.catchInstructions ?? []);
+
+  // Promise wrapper view with three sub-controller render locations
+  const promiseViewTemplate = doc.createElement('template');
+  promiseViewTemplate.innerHTML = '<!--au:0--><!--au-start--><!--au-end--><!--au:1--><!--au-start--><!--au-end--><!--au:2--><!--au-start--><!--au-end-->';
+
+  const promiseView = {
+    name: 'promise-view',
+    type: 'custom-element' as const,
+    template: promiseViewTemplate,
+    instructions: [[$.pending(pendingView)], [$.then(thenView, 'value')], [$.catch(catchView, 'err')]],
+    needsCompile: false as const,
+  };
+
+  const promiseInstruction = $.promise(promiseView, 'dataPromise');
+  const parentTemplate = createParentTemplate(doc);
+
+  class TestApp {
+    static $au = {
+      type: 'custom-element' as const,
+      name: 'test-app',
+      template: parentTemplate,
+      instructions: [[promiseInstruction]],
+      needsCompile: false,
+    };
+    dataPromise: Promise<T> = null!;
+    value?: T;
+    err?: unknown;
+  }
+
+  // Build SSR HTML based on state
+  // Global indices: 0=promise, 1=pending, 2=then, 3=catch
+  // Content target index: 4 (when there's a binding in the active branch)
+  let ssrHtml: string;
+  let manifest: IHydrationManifest;
+
+  if (options.state === 'pending') {
+    ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start-->${options.ssrActiveHtml}<!--au-end--><!--au:2--><!--au-start--><!--au-end--><!--au:3--><!--au-start--><!--au-end--><!--au-end-->`;
+    manifest = M.promise({
+      wrapperTargets: [1, 2, 3],
+      active: { type: 'pending', location: 1, viewTargets: [], nodeCount: 1 },
+      inactiveLocations: [2, 3],
+    });
+  } else if (options.state === 'resolved') {
+    ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start--><!--au-end--><!--au:2--><!--au-start-->${options.ssrActiveHtml}<!--au-end--><!--au:3--><!--au-start--><!--au-end--><!--au-end-->`;
+    const hasBindings = (options.thenInstructions?.length ?? 0) > 0;
+    manifest = M.promise({
+      wrapperTargets: [1, 2, 3],
+      active: { type: 'then', location: 2, viewTargets: hasBindings ? [4] : [], nodeCount: 1 },
+      inactiveLocations: [1, 3],
+    });
+  } else {
+    ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start--><!--au-end--><!--au:2--><!--au-start--><!--au-end--><!--au:3--><!--au-start-->${options.ssrActiveHtml}<!--au-end--><!--au-end-->`;
+    const hasBindings = (options.catchInstructions?.length ?? 0) > 0;
+    manifest = M.promise({
+      wrapperTargets: [1, 2, 3],
+      active: { type: 'catch', location: 3, viewTargets: hasBindings ? [4] : [], nodeCount: 1 },
+      inactiveLocations: [1, 2],
+    });
+  }
+
+  const host = doc.createElement('div');
+  host.innerHTML = ssrHtml;
+  doc.body.appendChild(host);
+
+  // Create appropriate promise based on state
+  let dataPromise: Promise<T>;
+  let value: T | undefined;
+  let err: unknown;
+
+  if (options.state === 'pending') {
+    dataPromise = new Promise(() => {}); // Never resolves
+  } else if (options.state === 'resolved') {
+    value = options.resolvedValue;
+    dataPromise = Promise.resolve(value!);
+  } else {
+    err = options.rejectedError ?? new Error('Error');
+    dataPromise = Promise.reject(err);
+  }
+
+  const au = new Aurelia(ctx.container);
+  const root = await au.hydrate({
+    host,
+    component: TestApp,
+    state: { dataPromise, value, err },
+    manifest,
+  });
+
+  return {
+    ctx,
+    doc,
+    host,
+    au,
+    instance: root.controller.viewModel as { dataPromise: Promise<T>; value?: T; err?: unknown },
     stop: async () => {
       await au.stop(true);
       doc.body.removeChild(host);

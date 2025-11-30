@@ -11,7 +11,8 @@ import {
   resolve,
   all,
   emptyArray,
-  IContainer,
+  type IContainer,
+  optional,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
@@ -32,12 +33,15 @@ import {
   type IOverrideContext,
 } from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { IRenderLocation } from '../../dom';
+import { FragmentNodeSequence, IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
+import { type IControllerManifest, IResumeContext } from '../../templating/hydration';
+import { IPlatform } from '../../platform';
+import type { INode } from '../../dom.node';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -87,10 +91,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _hasDestructuredLocal: boolean = false;
   /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
+  /** @internal */
+  private _hasAdoptedViews: boolean = false;
+
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _resolver = resolve(IRepeatableHandlerResolver);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
@@ -170,6 +178,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._normalizeToArray();
     this._createScopes(void 0);
 
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      this._hasAdoptedViews = true;
+      return this._activateHydratedViews(null, this._normalizedItems ?? emptyArray, ctx);
+    }
+
     return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
   }
 
@@ -178,8 +193,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
-
-    return this._deactivateAllViews(initiator);
+    // Adopted views can't be cached - their nodes are tied to specific DOM
+    const skipCache = this._hasAdoptedViews;
+    this._hasAdoptedViews = false;
+    const result = this._deactivateAllViews(initiator, skipCache);
+    if (skipCache) {
+      this.views = [];
+    }
+    return result;
   }
 
   public unbinding(
@@ -460,8 +481,66 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   /** @internal */
+  private _activateHydratedViews(
+    initiator: IHydratedController | null,
+    $items: unknown[],
+    context: IResumeContext,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let view: ISyntheticView;
+    let scope: Scope;
+
+    const { $controller, _factory, _location, _scopes } = this;
+    const newLen = $items.length;
+    const views = this.views = Array(newLen);
+    const manifestViews = context.manifest.views;
+    const platform = this._parent.container.get(IPlatform);
+
+    if (__DEV__ && manifestViews.length !== newLen) {
+      throw createMappedError(ErrorNames.hydration_view_count_mismatch, manifestViews.length, newLen);
+    }
+
+    // Collect all nodes upfront before moving any (moving removes from DOM)
+    const allViewNodes: Node[][] = Array(newLen);
+    for (let i = 0; i < newLen; ++i) {
+      allViewNodes[i] = context.collectViewNodes(i);
+    }
+
+    for (let i = 0; i < newLen; ++i) {
+      const viewNodes = allViewNodes[i];
+      const viewTargets = context.getViewTargets(i);
+      const viewFragment = document.createDocumentFragment();
+      for (const node of viewNodes) {
+        viewFragment.appendChild(node);
+      }
+      const nodes = new FragmentNodeSequence(platform, viewFragment);
+
+      view = views[i] = _factory.adopt(nodes, viewTargets).setLocation(_location);
+      view.nodes.unlink();
+      scope = _scopes[i];
+
+      if (this.contextual) {
+        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
+      ret = view.activate(initiator ?? view, $controller, scope);
+      if (isPromise(ret)) {
+        (promises ??= []).push(ret);
+      }
+    }
+
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
+    }
+  }
+
+  /** @internal */
   private _deactivateAllViews(
     initiator: IHydratedController | null,
+    skipCache: boolean = false,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -473,7 +552,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (; ii > i; ++i) {
       view = views[i];
-      view.release();
+      // Adopted views can't be reused
+      if (!skipCache) {
+        view.release();
+      }
       ret = view.deactivate(initiator ?? view, $controller);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);

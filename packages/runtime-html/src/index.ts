@@ -48,6 +48,16 @@ export {
   type ISinglePageAppConfig,
 } from './aurelia';
 export {
+  type IHydrationManifest,
+  IHydrationManifest as IHydrationManifestToken,
+  type IControllerManifest,
+  type IViewManifest,
+  consumeHydrationManifest,
+  type IResumeContext,
+  IResumeContext as IResumeContextToken,
+  ResumeContext,
+} from './templating/hydration';
+export {
   type IAppRootConfig,
   AppRoot,
   IAppRoot,

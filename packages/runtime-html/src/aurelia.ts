@@ -113,7 +113,7 @@ export class Aurelia implements IDisposable {
       container,
       rootProvider,
       false, // not enhance mode
-      { adopt: true, state: config.state }
+      { adopt: true, state: config.state, manifest: config.manifest }
     );
     return onResolve(appRoot.activate(), () => appRoot);
   }
@@ -203,6 +203,9 @@ export type IEnhancementConfig<T extends object = object> = IAppRootConfig<T> & 
   container?: IContainer;
 };
 
+// Import the type for use in IHydrateConfig
+import type { IHydrationManifest } from './templating/hydration';
+
 export interface IHydrateConfig<T extends object = object> {
   /**
    * The host element containing pre-rendered HTML with markers.
@@ -222,6 +225,15 @@ export interface IHydrateConfig<T extends object = object> {
    * are created.
    */
   state?: Partial<T>;
+
+  /**
+   * Hydration manifest from SSR compiler.
+   *
+   * Contains view boundary information for template controllers,
+   * allowing the runtime to know which targets belong to which views
+   * without complex boundary detection.
+   */
+  manifest?: IHydrationManifest;
 
   /**
    * Optional container for the hydrated app.

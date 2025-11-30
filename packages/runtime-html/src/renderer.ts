@@ -354,7 +354,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
       const targetIndex = renderLocation.$targetIndex;
       const controllerManifest = consumeHydrationManifest(manifest, targetIndex);
       if (controllerManifest != null) {
-        resumeContext = new ResumeContext(controllerManifest, manifest._targets, renderLocation);
+        resumeContext = new ResumeContext(controllerManifest, manifest._targets, renderLocation, platform);
       }
     }
 

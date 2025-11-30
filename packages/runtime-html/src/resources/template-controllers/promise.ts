@@ -1,8 +1,7 @@
 import { ILogger, onResolve, onResolveAll, optional, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
-import { FragmentNodeSequence, IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
-import { IPlatform } from '../../platform';
 import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
@@ -48,7 +47,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
@@ -59,16 +57,9 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     _instruction: IInstruction,
   ): void {
     const ctx = this._ssrContext;
-    if (ctx != null && ctx.manifest.views.length > 0) {
+    if (ctx != null && ctx.hasView(0)) {
       // SSR hydration: adopt existing wrapper view
-      const viewNodes = ctx.collectViewNodes(0);
-      const viewFragment = document.createDocumentFragment();
-      for (const node of viewNodes) {
-        viewFragment.appendChild(node);
-      }
-      const nodes = new FragmentNodeSequence(this._platform, viewFragment);
-      const viewTargets = ctx.getViewTargets(0);
-      this.view = this._factory.adopt(nodes, viewTargets, this.$controller).setLocation(this._location);
+      this.view = ctx.adoptView(0, this._factory, this.$controller);
       this._ssrContext = void 0; // consumed
     } else {
       this.view = this._factory.create(this.$controller).setLocation(this._location);
@@ -203,7 +194,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
@@ -221,16 +211,9 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
       const ctx = this._ssrContext;
       if (ctx != null) {
         this._ssrContext = void 0;
-        if (ctx.manifest.views.length > 0) {
+        if (ctx.hasView(0)) {
           // SSR hydration: adopt existing view
-          const viewNodes = ctx.collectViewNodes(0);
-          const viewFragment = document.createDocumentFragment();
-          for (const node of viewNodes) {
-            viewFragment.appendChild(node);
-          }
-          const nodes = new FragmentNodeSequence(this._platform, viewFragment);
-          const viewTargets = ctx.getViewTargets(0);
-          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+          view = this.view = ctx.adoptView(0, this._factory);
         } else {
           // SSR hydration but this branch wasn't rendered - don't create view
           // (pending is always activated in pre-settle; if promise is already resolved, it'll be deactivated immediately)
@@ -278,7 +261,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
@@ -297,16 +279,9 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
       const ctx = this._ssrContext;
       if (ctx != null) {
         this._ssrContext = void 0;
-        if (ctx.manifest.views.length > 0) {
+        if (ctx.hasView(0)) {
           // SSR hydration: adopt existing view
-          const viewNodes = ctx.collectViewNodes(0);
-          const viewFragment = document.createDocumentFragment();
-          for (const node of viewNodes) {
-            viewFragment.appendChild(node);
-          }
-          const nodes = new FragmentNodeSequence(this._platform, viewFragment);
-          const viewTargets = ctx.getViewTargets(0);
-          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+          view = this.view = ctx.adoptView(0, this._factory);
         }
         // If SSR context exists but branch wasn't rendered, fall through to factory creation
       }
@@ -352,7 +327,6 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
@@ -371,16 +345,9 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
       const ctx = this._ssrContext;
       if (ctx != null) {
         this._ssrContext = void 0;
-        if (ctx.manifest.views.length > 0) {
+        if (ctx.hasView(0)) {
           // SSR hydration: adopt existing view
-          const viewNodes = ctx.collectViewNodes(0);
-          const viewFragment = document.createDocumentFragment();
-          for (const node of viewNodes) {
-            viewFragment.appendChild(node);
-          }
-          const nodes = new FragmentNodeSequence(this._platform, viewFragment);
-          const viewTargets = ctx.getViewTargets(0);
-          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+          view = this.view = ctx.adoptView(0, this._factory);
         }
         // If SSR context exists but branch wasn't rendered, fall through to factory creation
       }

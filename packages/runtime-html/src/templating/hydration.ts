@@ -1,6 +1,9 @@
 import { createInterface } from '../utilities-di';
 import type { INode } from '../dom.node';
-import type { IRenderLocation } from '../dom';
+import { FragmentNodeSequence, type IRenderLocation, type INodeSequence } from '../dom';
+import type { IPlatform } from '../platform';
+import type { IViewFactory } from './view';
+import type { ISyntheticView, ICustomAttributeController, ICustomElementController } from './controller';
 
 /**
  * Hydration manifest emitted by SSR compiler.
@@ -164,6 +167,70 @@ export interface IResumeContext {
    * @returns Array of DOM nodes that belong to this view
    */
   collectViewNodes(viewIndex: number): Node[];
+
+  /**
+   * Check if a view was rendered at this index during SSR.
+   *
+   * @param viewIndex - Index of the view in manifest.views
+   * @returns true if a view exists at this index
+   */
+  hasView(viewIndex: number): boolean;
+
+  /**
+   * Create a view by adopting SSR-rendered DOM.
+   * Handles node collection, fragment creation, target resolution, and sets location.
+   *
+   * @param viewIndex - Index of the view in manifest.views
+   * @param factory - The view factory to use for adoption
+   * @param parentController - Optional parent controller for the view
+   * @returns The adopted view with location already set
+   */
+  adoptView(
+    viewIndex: number,
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView;
+
+  /**
+   * Collect all view nodes upfront for batch adoption.
+   * Required for Repeat where moving nodes during iteration breaks subsequent collection.
+   *
+   * @returns Array of node arrays, one per view in manifest.views
+   */
+  collectAllViewNodes(): Node[][];
+
+  /**
+   * Adopt a view using pre-collected nodes.
+   * Used after collectAllViewNodes() for batch operations like Repeat.
+   *
+   * @param viewIndex - Index of the view in manifest.views
+   * @param viewNodes - Pre-collected DOM nodes for this view
+   * @param factory - The view factory to use for adoption
+   * @param parentController - Optional parent controller for the view
+   * @returns The adopted view with location already set
+   */
+  adoptViewWithNodes(
+    viewIndex: number,
+    viewNodes: Node[],
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView;
+
+  /**
+   * Adopt a view with targets only (no DOM nodes).
+   * Used by wrapper controllers like Switch that don't own content nodes -
+   * they just need targets wired up for their child controllers.
+   *
+   * @param viewIndex - Index of the view in manifest.views
+   * @param factory - The view factory to use for adoption
+   * @param parentController - Optional parent controller for the view
+   * @returns The adopted view with location already set
+   */
+  adoptViewTargetsOnly(
+    viewIndex: number,
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView;
 }
 
 /**
@@ -182,6 +249,8 @@ export class ResumeContext implements IResumeContext {
     public readonly manifest: IControllerManifest,
     public readonly targets: ArrayLike<Node>,
     public readonly location: IRenderLocation,
+    /** @internal */
+    private readonly _platform: IPlatform,
   ) {}
 
   public getViewTargets(viewIndex: number): INode[] {
@@ -209,5 +278,76 @@ export class ResumeContext implements IResumeContext {
     const nodeCount = this.manifest.views[viewIndex]?.nodeCount ?? 1;
 
     return allNodes.slice(offset, offset + nodeCount);
+  }
+
+  public hasView(viewIndex: number): boolean {
+    return viewIndex < this.manifest.views.length;
+  }
+
+  public adoptView(
+    viewIndex: number,
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView {
+    const viewNodes = this.collectViewNodes(viewIndex);
+    return this._adoptViewFromNodes(viewIndex, viewNodes, factory, parentController);
+  }
+
+  public collectAllViewNodes(): Node[][] {
+    const views = this.manifest.views;
+    const viewCount = views.length;
+    const result: Node[][] = Array(viewCount);
+
+    for (let i = 0; i < viewCount; ++i) {
+      result[i] = this.collectViewNodes(i);
+    }
+
+    return result;
+  }
+
+  public adoptViewWithNodes(
+    viewIndex: number,
+    viewNodes: Node[],
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView {
+    return this._adoptViewFromNodes(viewIndex, viewNodes, factory, parentController);
+  }
+
+  public adoptViewTargetsOnly(
+    viewIndex: number,
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView {
+    // Create empty fragment (no nodes to adopt)
+    const emptyFragment = this._platform.document.createDocumentFragment();
+    const nodes = new FragmentNodeSequence(this._platform, emptyFragment);
+    const viewTargets = this.getViewTargets(viewIndex);
+
+    // Adopt view and set location
+    const view = factory.adopt(nodes, viewTargets, parentController);
+    view.setLocation(this.location);
+
+    return view;
+  }
+
+  private _adoptViewFromNodes(
+    viewIndex: number,
+    viewNodes: Node[],
+    factory: IViewFactory,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController,
+  ): ISyntheticView {
+    const viewFragment = this._platform.document.createDocumentFragment();
+    for (const node of viewNodes) {
+      viewFragment.appendChild(node);
+    }
+
+    const nodes = new FragmentNodeSequence(this._platform, viewFragment);
+    const viewTargets = this.getViewTargets(viewIndex);
+
+    const view = factory.adopt(nodes, viewTargets, parentController);
+    view.setLocation(this.location);
+
+    return view;
   }
 }

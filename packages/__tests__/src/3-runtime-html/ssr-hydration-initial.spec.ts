@@ -14,7 +14,7 @@
  */
 
 import { Aurelia, customElement } from '@aurelia/runtime-html';
-import { TextBindingInstruction, HydrateTemplateController, IteratorBindingInstruction, IInstruction } from '@aurelia/template-compiler';
+import { HydrateTemplateController, IteratorBindingInstruction, IInstruction } from '@aurelia/template-compiler';
 import { createAccessScopeExpression, createAccessMemberExpression, createForOfStatement, createBindingIdentifier } from '@aurelia/expression-parser';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -48,7 +48,7 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
       @customElement({
         name: 'test-app',
         template: '<div><!--au:0-->placeholder</div>',
-        instructions: [[new TextBindingInstruction(createAccessScopeExpression('message', 0))]],
+        instructions: [[$.text('message')]],
         needsCompile: false,
       })
       class TestApp { message: string = ''; }
@@ -132,7 +132,7 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
       @customElement({
         name: 'test-app',
         template: '<div><!--au:0-->placeholder</div>',
-        instructions: [[new TextBindingInstruction(createAccessScopeExpression('message', 0))]],
+        instructions: [[$.text('message')]],
         needsCompile: false,
       })
       class TestApp { message: string = 'default value'; }
@@ -568,7 +568,7 @@ describe('3-runtime-html/ssr-hydration-initial.spec.ts', function () {
         const doc = ctx.doc;
 
         // Inner repeat: <li>${item}</li>
-        const innerViewDef = createViewDef(doc, '<li><!--au:0--> </li>', [[new TextBindingInstruction(createAccessScopeExpression('item'))]]);
+        const innerViewDef = createViewDef(doc, '<li><!--au:0--> </li>', [[$.text('item')]]);
         const innerForOf = createForOfStatement(
           createBindingIdentifier('item'),
           createAccessMemberExpression(createAccessScopeExpression('group'), 'items'),

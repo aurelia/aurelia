@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { onResolve, resolve, optional } from '@aurelia/kernel';
-import { FragmentNodeSequence, IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
-import { IPlatform } from '../../platform';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '@aurelia/template-compiler';
@@ -130,13 +129,12 @@ export class If implements ICustomAttributeViewModel {
     context: IResumeContext
   ): void | Promise<void> {
     const ctrl = this.$controller;
-    const hasSsrView = context.manifest.views.length > 0;
 
-    if (value && hasSsrView) {
+    if (value && context.hasView(0)) {
       return this._adoptView(context, ctrl, this._ifFactory, 'if');
     }
 
-    if (!value && this.elseFactory != null && hasSsrView) {
+    if (!value && this.elseFactory != null && context.hasView(0)) {
       return this._adoptView(context, ctrl, this.elseFactory, 'else');
     }
 
@@ -150,17 +148,7 @@ export class If implements ICustomAttributeViewModel {
     factory: IViewFactory,
     branch: 'if' | 'else'
   ): void | Promise<void> {
-    const viewNodes = context.collectViewNodes(0);
-    const viewFragment = document.createDocumentFragment();
-    for (const node of viewNodes) {
-      viewFragment.appendChild(node);
-    }
-
-    const platform = ctrl.container.get(IPlatform);
-    const nodes = new FragmentNodeSequence(platform, viewFragment);
-    const viewTargets = context.getViewTargets(0);
-    const view = factory.adopt(nodes, viewTargets);
-    view.setLocation(this._location);
+    const view = context.adoptView(0, factory);
 
     if (branch === 'if') {
       this.view = this.ifView = view;

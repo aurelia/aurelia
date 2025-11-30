@@ -1,7 +1,6 @@
 import { onResolve, optional, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { FragmentNodeSequence, IRenderLocation } from '../../dom';
-import { IPlatform } from '../../platform';
+import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, ISyntheticView } from '../../templating/controller';
@@ -63,25 +62,14 @@ export class With implements ICustomAttributeViewModel {
   /** @internal */
   private _activateHydratedView(context: IResumeContext): void | Promise<void> {
     const ctrl = this.$controller;
-    const hasSsrView = context.manifest.views.length > 0;
 
-    if (!hasSsrView) {
+    if (!context.hasView(0)) {
       // No view was rendered on server, create one now
       return this._activateView();
     }
 
     // Adopt the existing DOM
-    const viewNodes = context.collectViewNodes(0);
-    const viewFragment = document.createDocumentFragment();
-    for (const node of viewNodes) {
-      viewFragment.appendChild(node);
-    }
-
-    const platform = ctrl.container.get(IPlatform);
-    const nodes = new FragmentNodeSequence(platform, viewFragment);
-    const viewTargets = context.getViewTargets(0);
-    const view = this.view = this._factory.adopt(nodes, viewTargets);
-    view.setLocation(this._location);
+    const view = this.view = context.adoptView(0, this._factory);
 
     const { value } = this;
     const scope = Scope.fromParent(ctrl.scope, value === void 0 ? {} : value);

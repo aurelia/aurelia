@@ -13,11 +13,10 @@ import {
   type Scope,
 } from '@aurelia/runtime';
 import type { IInstruction } from '@aurelia/template-compiler';
-import { FragmentNodeSequence, IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
-import { IPlatform } from '../../platform';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
@@ -93,16 +92,11 @@ export class Switch implements ICustomAttributeViewModel {
   ): void | Promise<void> {
     const ctrl = this.$controller;
 
-    if (context.manifest.views.length === 0) {
+    if (!context.hasView(0)) {
       return this.view.activate(initiator, ctrl, ctrl.scope);
     }
 
-    const viewTargets = context.getViewTargets(0);
-    const platform = ctrl.container.get(IPlatform);
-    const emptyFragment = platform.document.createDocumentFragment();
-    const nodes = new FragmentNodeSequence(platform, emptyFragment);
-
-    this.view = this._factory.adopt(nodes, viewTargets, this.$controller).setLocation(this._location);
+    this.view = context.adoptViewTargetsOnly(0, this._factory, this.$controller);
     return this.view.activate(initiator, ctrl, ctrl.scope);
   }
 
@@ -367,18 +361,8 @@ export class Case implements ICustomAttributeViewModel {
         const ctx = this._ssrContext;
         this._ssrContext = void 0;
 
-        if (ctx.manifest.views.length > 0) {
-          const viewNodes = ctx.collectViewNodes(0);
-          const viewFragment = document.createDocumentFragment();
-          for (const node of viewNodes) {
-            viewFragment.appendChild(node);
-          }
-
-          const platform = this.$controller.container.get(IPlatform);
-          const nodes = new FragmentNodeSequence(platform, viewFragment);
-          const viewTargets = ctx.getViewTargets(0);
-
-          view = this.view = this._factory.adopt(nodes, viewTargets).setLocation(this._location);
+        if (ctx.hasView(0)) {
+          view = this.view = ctx.adoptView(0, this._factory);
         } else {
           view = this.view = this._factory.create().setLocation(this._location);
         }

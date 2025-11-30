@@ -33,15 +33,13 @@ import {
   type IOverrideContext,
 } from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { FragmentNodeSequence, IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
-import { type IControllerManifest, IResumeContext } from '../../templating/hydration';
-import { IPlatform } from '../../platform';
-import type { INode } from '../../dom.node';
+import { IResumeContext } from '../../templating/hydration';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -491,32 +489,19 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let scope: Scope;
 
-    const { $controller, _factory, _location, _scopes } = this;
+    const { $controller, _factory, _scopes } = this;
     const newLen = $items.length;
     const views = this.views = Array(newLen);
-    const manifestViews = context.manifest.views;
-    const platform = this._parent.container.get(IPlatform);
 
-    if (__DEV__ && manifestViews.length !== newLen) {
-      throw createMappedError(ErrorNames.hydration_view_count_mismatch, manifestViews.length, newLen);
+    if (__DEV__ && context.manifest.views.length !== newLen) {
+      throw createMappedError(ErrorNames.hydration_view_count_mismatch, context.manifest.views.length, newLen);
     }
 
     // Collect all nodes upfront before moving any (moving removes from DOM)
-    const allViewNodes: Node[][] = Array(newLen);
-    for (let i = 0; i < newLen; ++i) {
-      allViewNodes[i] = context.collectViewNodes(i);
-    }
+    const allViewNodes = context.collectAllViewNodes();
 
     for (let i = 0; i < newLen; ++i) {
-      const viewNodes = allViewNodes[i];
-      const viewTargets = context.getViewTargets(i);
-      const viewFragment = document.createDocumentFragment();
-      for (const node of viewNodes) {
-        viewFragment.appendChild(node);
-      }
-      const nodes = new FragmentNodeSequence(platform, viewFragment);
-
-      view = views[i] = _factory.adopt(nodes, viewTargets).setLocation(_location);
+      view = views[i] = context.adoptViewWithNodes(i, allViewNodes[i], _factory);
       view.nodes.unlink();
       scope = _scopes[i];
 

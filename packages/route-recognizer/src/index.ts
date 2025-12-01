@@ -237,6 +237,8 @@ class Candidate<T> {
       routes.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
     }
 
+    if (routes.length > 1 && routes[0].path === '') routes.shift();
+
     if (this.satisfiesConstraints) {
       this.recognizedResult = result = [routes, this.head];
     }

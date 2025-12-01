@@ -233,7 +233,7 @@ class Candidate<T> {
       }
     }
 
-    if (currentEndpoint !== null && !Object.is(currentEndpoint, routes[0]?.endpoint)) {
+    if (currentEndpoint !== null && !Object.is(currentEndpoint.route.handler, routes[0]?.endpoint?.route.handler)) {
       routes.unshift(new RecognizedRoute<T>(currentEndpoint, path, currentParams));
     }
 

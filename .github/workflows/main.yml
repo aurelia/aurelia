@@ -128,6 +128,49 @@ jobs:
           name: results
           path: results/startup-1k.json
 
+  bench_compiler:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      # - name: Restore cached node modules
+      #   id: restore-cache-npm
+      #   uses: actions/cache@v3
+      #   with:
+      #     # npm cache files are stored in `~/.npm` on Linux/macOS
+      #     path: node_modules
+      #     key: ${{ runner.os }}-build-deps-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-build-deps-
+
+      # - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+      #   name: Missing deps, reinstalling the state of node modules
+      #   run: npm install
+
+      #   run: npm list
+      # - name: Build
+      #   run: npm build
+
+      - run: npm ci
+      - run: npm run build:release
+      # Run benchmarks. Ensure each job's results file has a unique name
+      - name: Run tachometer startup bench
+        run: |
+          npm run build
+          npm run bench:startup1k-big
+        working-directory: benchmarks
+
+      # Upload this benchmarks results
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results
+          path: results/repeat-view-startup-1k-big-template.json
+
   bench_rerender:
     timeout-minutes: 10
     runs-on: ubuntu-latest

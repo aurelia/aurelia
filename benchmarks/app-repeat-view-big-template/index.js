@@ -32,11 +32,11 @@ const App = CustomElement.define({
             + '<p>Cell <span>${i}</span></p>'
             + '<p>Cell <div>${i}</div></p>'
             
-            + '<p>Cell <var>${i}</var></p>'
+            + ('<p>Cell <var>${i}</var></p>'
             + '<p>Cell <strong>${i}</strong></td>'
             + '<p>Cell <b>${i}</b></p>'
             + '<p>Cell <span>${i}</span></p>'
-            + '<p>Cell <div>${i}</div></p>'
+            + '<p>Cell <div>${i}</div></p>').repeat(100)
         + '</div>'
     + '</div>'
 }, class {

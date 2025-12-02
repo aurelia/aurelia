@@ -1,5 +1,4 @@
 import {
-  AccessScopeExpression,
   IExpressionParser,
   Interpolation,
   type IsBindingBehavior,

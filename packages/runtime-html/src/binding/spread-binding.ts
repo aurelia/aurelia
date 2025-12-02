@@ -1,4 +1,4 @@
-import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
+import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior, createAccessScopeExpression } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
 import {
   type IObserverLocator,
@@ -296,7 +296,7 @@ export class SpreadValueBinding implements IBinding {
             this._controller,
             this.l,
             this.oL,
-            SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
+            SpreadValueBinding._astCache[key] ??= createAccessScopeExpression(key, 0),
             this.target,
             key,
             BindingMode.toView,

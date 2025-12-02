@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { AccessMemberExpression, AccessScopeExpression } from '@aurelia/expression-parser';
+import { createAccessMemberExpression, createAccessScopeExpression } from '@aurelia/expression-parser';
 import { astEvaluate, runTasks } from '@aurelia/runtime';
 import { ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';
@@ -264,8 +264,8 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const expr = new class AccessWrapExpression {
         $kind = 'Custom';
         constructor(
-          private readonly ast = new AccessMemberExpression(
-            new AccessScopeExpression('a'),
+          private readonly ast = createAccessMemberExpression(
+            createAccessScopeExpression('a'),
             'prop'
           )
         ) {}
@@ -331,8 +331,8 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const expr = new class AccessWrapExpression {
         $kind = 'Custom';
         constructor(
-          private readonly ast = new AccessMemberExpression(
-            new AccessScopeExpression('a'),
+          private readonly ast = createAccessMemberExpression(
+            createAccessScopeExpression('a'),
             'length'
           )
         ) {}
@@ -394,8 +394,8 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const expr = new class AccessWrapExpression {
         $kind = 'Custom';
         constructor(
-          private readonly ast = new AccessMemberExpression(
-            new AccessScopeExpression('a'),
+          private readonly ast = createAccessMemberExpression(
+            createAccessScopeExpression('a'),
             'prop'
           )
         ) {}
@@ -454,8 +454,8 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const expr = new class AccessWrapExpression {
         $kind = 'Custom';
         constructor(
-          private readonly ast = new AccessMemberExpression(
-            new AccessScopeExpression('a'),
+          private readonly ast = createAccessMemberExpression(
+            createAccessScopeExpression('a'),
             'length'
           )
         ) {}

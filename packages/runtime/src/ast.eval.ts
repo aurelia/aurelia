@@ -545,7 +545,7 @@ export const {
         break;
       }
       case ekDestructuringAssignmentLeaf: {
-        if (ast instanceof DestructuringAssignmentSingleExpression) {
+        if ('source' in ast) {
           if (val == null) { return; }
           if (typeof val !== 'object') {
             throw createMappedError(ErrorNames.ast_destruct_null);

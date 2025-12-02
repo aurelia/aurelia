@@ -1,38 +1,44 @@
 /* eslint-disable @typescript-eslint/no-loss-of-precision */
 import {
-  AccessKeyedExpression,
-  AccessMemberExpression,
-  AccessScopeExpression,
-  AccessThisExpression,
-  ArrayLiteralExpression,
-  AssignExpression,
-  BinaryExpression,
   BinaryOperator,
   AssignmentOperator,
-  BindingBehaviorExpression,
-  BindingIdentifier,
   type ExpressionType,
-  CallFunctionExpression,
-  CallMemberExpression,
-  CallScopeExpression,
-  ConditionalExpression,
-  ForOfStatement,
-  Interpolation,
-  ObjectLiteralExpression,
-  PrimitiveLiteralExpression,
   TaggedTemplateExpression,
-  TemplateExpression,
-  UnaryExpression,
-  ValueConverterExpression,
   IsLeftHandSide,
   IsAssign,
   parseExpression,
-  DestructuringAssignmentExpression,
-  DestructuringAssignmentSingleExpression,
   IsBindingBehavior,
   ArrowFunction,
-  AccessBoundaryExpression,
-  NewExpression,
+  PrimitiveLiteral,
+  Template,
+  ArrayLiteral,
+  ObjectLiteral,
+  createAccessScopeExpression,
+  createAccessThisExpression,
+  createAccessMemberExpression,
+  createAccessKeyedExpression,
+  createPrimitiveLiteralExpression,
+  createTemplateExpression,
+  createTaggedTemplateExpression,
+  createCallFunctionExpression,
+  createCallScopeExpression,
+  createCallMemberExpression,
+  createUnaryExpression,
+  createBinaryExpression,
+  createConditionalExpression,
+  createAssignExpression,
+  createValueConverterExpression,
+  createBindingBehaviorExpression,
+  createInterpolation,
+  createForOfStatement,
+  createArrayLiteralExpression,
+  createObjectLiteralExpression,
+  createDestructuringAssignmentExpression,
+  createDestructuringAssignmentSingleExpression,
+  createBindingIdentifier,
+  createArrowFunction,
+  createAccessBoundaryExpression,
+  createNewExpression,
 } from '@aurelia/expression-parser';
 import {
   assert,
@@ -44,7 +50,7 @@ import {
 } from './unicode.js';
 
 function createTaggedTemplate(cooked: string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]): TaggedTemplateExpression {
-  return new TaggedTemplateExpression(cooked, cooked, func, expressions);
+  return createTaggedTemplateExpression(cooked, cooked, func, expressions);
 }
 
 const binaryMultiplicative: BinaryOperator[] = ['*', '%', '/'];
@@ -60,23 +66,23 @@ const binaryRelational: [BinaryOperator, string][] = [
 const binaryEquality: BinaryOperator[] = ['==', '!=', '===', '!=='];
 const binaryAssignment: AssignmentOperator[] = ['/=', '*=', '+=', '-='];
 
-const $false = PrimitiveLiteralExpression.$false;
-const $true = PrimitiveLiteralExpression.$true;
-const $null = PrimitiveLiteralExpression.$null;
-const $undefined = PrimitiveLiteralExpression.$undefined;
-const $str = PrimitiveLiteralExpression.$empty;
-const $tpl = TemplateExpression.$empty;
-const $arr = ArrayLiteralExpression.$empty;
-const $obj = ObjectLiteralExpression.$empty;
-const $this = new AccessThisExpression(0);
-const $parent = new AccessThisExpression(1);
-const boundary = new AccessBoundaryExpression();
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+const $str = PrimitiveLiteral.$empty;
+const $tpl = Template.$empty;
+const $arr = ArrayLiteral.$empty;
+const $obj = ObjectLiteral.$empty;
+const $this = createAccessThisExpression(0);
+const $parent = createAccessThisExpression(1);
+const boundary = createAccessBoundaryExpression();
 
-const $a = new AccessScopeExpression('a');
-const $b = new AccessScopeExpression('b');
-const $c = new AccessScopeExpression('c');
-const $num0 = new PrimitiveLiteralExpression(0);
-const $num1 = new PrimitiveLiteralExpression(1);
+const $a = createAccessScopeExpression('a');
+const $b = createAccessScopeExpression('b');
+const $c = createAccessScopeExpression('c');
+const $num0 = createPrimitiveLiteralExpression(0);
+const $num1 = createPrimitiveLiteralExpression(1);
 
 function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, exprType?: ExpressionType, name?: string): any {
   let error: Error = null;
@@ -124,16 +130,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   const AccessThisList: [string, any][] = [
     [`$this`,             $this],
     [`$parent`,           $parent],
-    [`$parent.$parent`,   new AccessThisExpression(2)]
+    [`$parent.$parent`,   createAccessThisExpression(2)]
   ];
   const AccessBoundaryList: [string, any][] = [
     [`this`,             boundary],
   ];
   // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, any][] = [
-    ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
-    [`$this.$parent`,     new AccessScopeExpression('$parent')],
-    [`$parent.$this`,     new AccessScopeExpression('$this', 1)],
+    ...AccessThisList.map(([input, expr]) => [`${input}.a`, createAccessScopeExpression('a', expr.ancestor)] as [string, any]),
+    [`$this.$parent`,     createAccessScopeExpression('$parent')],
+    [`$parent.$this`,     createAccessScopeExpression('$this', 1)],
     [`a`,                 $a]
   ];
   // 3. parsePrimaryExpression.Literal
@@ -143,9 +149,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   const SimpleNumberLiteralList: [string, any][] = [
     [`1`,                 $num1],
-    [`1.1`,               new PrimitiveLiteralExpression(1.1)],
-    [`.1`,                new PrimitiveLiteralExpression(0.1)],
-    [`0.1`,               new PrimitiveLiteralExpression(0.1)]
+    [`1.1`,               createPrimitiveLiteralExpression(1.1)],
+    [`.1`,                createPrimitiveLiteralExpression(0.1)],
+    [`0.1`,               createPrimitiveLiteralExpression(0.1)]
   ];
   const KeywordPrimitiveLiteralList: [string, any][] = [
     [`undefined`,         $undefined],
@@ -171,7 +177,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // 6. parsePrimaryExpression.TemplateLiteral
   const SimpleTemplateLiteralList: [string, any][] = [
     [`\`\``,              $tpl],
-    [`\`\${a}\``,         new TemplateExpression(['', ''], [$a])]
+    [`\`\${a}\``,         createTemplateExpression(['', ''], [$a])]
   ];
   // concatenation of 3., 4., 5., 6.
   const SimpleLiteralList: [string, any][] = [
@@ -184,32 +190,32 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Note: this is simply one of each precedence group, except for Primary because
   // parenthesized and primary are already from the same precedence group
   const SimpleParenthesizedList: [string, any][] = [
-    [`(a[b])`,            new AccessKeyedExpression($a, $b)],
-    [`(a?.[b])`,          new AccessKeyedExpression($a, $b, true)],
-    [`(a.b)`,             new AccessMemberExpression($a, 'b')],
-    [`(a?.b)`,            new AccessMemberExpression($a, 'b', true)],
+    [`(a[b])`,            createAccessKeyedExpression($a, $b)],
+    [`(a?.[b])`,          createAccessKeyedExpression($a, $b, true)],
+    [`(a.b)`,             createAccessMemberExpression($a, 'b')],
+    [`(a?.b)`,            createAccessMemberExpression($a, 'b', true)],
     [`(a\`\`)`,           createTaggedTemplate([''], $a, [])],
-    [`($this())`,         new CallFunctionExpression($this, [])],
-    [`(a())`,             new CallScopeExpression('a', [])],
-    [`(a?.())`,           new CallScopeExpression('a', [], 0, true)],
-    [`(!a)`,              new UnaryExpression('!', $a)],
-    [`(a+b)`,             new BinaryExpression('+', $a, $b)],
-    [`(a?b:c)`,           new ConditionalExpression($a, $b, new AccessScopeExpression('c'))],
-    [`(a=b)`,             new AssignExpression($a, $b)],
-    [`(a=>a)`,            new ArrowFunction([new BindingIdentifier('a')], $a)],
-    [`({})`,              new ObjectLiteralExpression([], [])],
-    [`({a})`,             new ObjectLiteralExpression(['a'], [$a])],
+    [`($this())`,         createCallFunctionExpression($this, [])],
+    [`(a())`,             createCallScopeExpression('a', [])],
+    [`(a?.())`,           createCallScopeExpression('a', [], 0, true)],
+    [`(!a)`,              createUnaryExpression('!', $a)],
+    [`(a+b)`,             createBinaryExpression('+', $a, $b)],
+    [`(a?b:c)`,           createConditionalExpression($a, $b, createAccessScopeExpression('c'))],
+    [`(a=b)`,             createAssignExpression($a, $b)],
+    [`(a=>a)`,            createArrowFunction([createBindingIdentifier('a')], $a)],
+    [`({})`,              createObjectLiteralExpression([], [])],
+    [`({a})`,             createObjectLiteralExpression(['a'], [$a])],
   ];
   // 8. parsePrimaryExpression.NewExpression
   const SimpleNewList: [string, any][] = [
-    [`new a()`,           new NewExpression($a, [])],
-    [`new a`,             new NewExpression($a, [])],
-    [`new a(b)`,          new NewExpression($a, [$b])],
-    [`new (a)()`,         new NewExpression($a, [])],
-    [`new a.b()`,         new NewExpression(new AccessMemberExpression($a, 'b'), [])],
-    [`new a.b`,           new NewExpression(new AccessMemberExpression($a, 'b'), [])],
-    [`new new a()`,       new NewExpression(new NewExpression($a, []), [])],
-    [`new a(new a())`,    new NewExpression($a, [new NewExpression($a, [])])],
+    [`new a()`,           createNewExpression($a, [])],
+    [`new a`,             createNewExpression($a, [])],
+    [`new a(b)`,          createNewExpression($a, [$b])],
+    [`new (a)()`,         createNewExpression($a, [])],
+    [`new a.b()`,         createNewExpression(createAccessMemberExpression($a, 'b'), [])],
+    [`new a.b`,           createNewExpression(createAccessMemberExpression($a, 'b'), [])],
+    [`new new a()`,       createNewExpression(createNewExpression($a, []), [])],
+    [`new a(new a())`,    createNewExpression($a, [createNewExpression($a, [])])],
   ];
   // concatenation of 1 through 8 (all Primary expressions)
   // This forms the group Precedence.Primary
@@ -227,12 +233,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]
   const SimpleAccessKeyedList: [string, any][] = [
     ...SimplePrimaryList
-      .map(([input, expr]) => [`${input}[b]`, new AccessKeyedExpression(expr, $b)] as [string, any])
+      .map(([input, expr]) => [`${input}[b]`, createAccessKeyedExpression(expr, $b)] as [string, any])
   ];
   // 2. parseMemberExpression.MemberExpression . IdentifierName
   const SimpleAccessMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
-      .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
+      .map(([input, expr]) => [`${input}.b`, createAccessMemberExpression(expr, 'b')] as [string, any])
   ];
   // 3. parseMemberExpression.MemberExpression TemplateLiteral
   const SimpleTaggedTemplateList: [string, any][] = [
@@ -245,38 +251,38 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // 1. parseCallExpression.MemberExpression Arguments (this one doesn't technically fit the spec here)
   const SimpleCallFunctionList: [string, any][] = [
     ...[...AccessThisList, ...SimpleLiteralList]
-      .map(([input, expr]) => [`${input}()`, new CallFunctionExpression(expr, [])] as [string, any])
+      .map(([input, expr]) => [`${input}()`, createCallFunctionExpression(expr, [])] as [string, any])
   ];
   // 2. parseCallExpression.MemberExpression Arguments
   const SimpleCallScopeList: [string, any][] = [
     ...[...AccessScopeList]
-      .map(([input, expr]) => [`${input}()`, new CallScopeExpression(expr.name, [], expr.ancestor)] as [string, any])
+      .map(([input, expr]) => [`${input}()`, createCallScopeExpression(expr.name, [], expr.ancestor)] as [string, any])
   ];
   // 3. parseCallExpression.MemberExpression Arguments
   const SimpleCallMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
-      .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
+      .map(([input, expr]) => [`${input}.b()`, createCallMemberExpression(expr, 'b', [])] as [string, any])
   ];
   // 1. parseOptionalExpression.MemberExpression ?. [ AssignmentExpression ]
   const SimpleOptionalAccessKeyedList: [string, any][] = [
     ...[...SimplePrimaryList, ...AccessBoundaryList]
-      .map(([input, expr]) => [`${input}?.[b]`, new AccessKeyedExpression(expr, $b, true)] as [string, any])
+      .map(([input, expr]) => [`${input}?.[b]`, createAccessKeyedExpression(expr, $b, true)] as [string, any])
   ];
   // 2. parseOptionalExpression.MemberExpression ?. IdentifierName
   const SimpleOptionalAccessMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
-      .map(([input, expr]) => [`${input}?.b`, new AccessMemberExpression(expr, 'b', true)] as [string, any]),
-    [`a?.b?.c?.d`, new AccessMemberExpression(new AccessMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', true), 'd', true)] as [string, any]
+      .map(([input, expr]) => [`${input}?.b`, createAccessMemberExpression(expr, 'b', true)] as [string, any]),
+    [`a?.b?.c?.d`, createAccessMemberExpression(createAccessMemberExpression(createAccessMemberExpression($a, 'b', true), 'c', true), 'd', true)] as [string, any]
   ];
   // 3. parseOptionalExpression.MemberExpression ?. Arguments
   const SimpleOptionalCallFunctionList: [string, any][] = [
     ...[...AccessThisList, ...SimpleLiteralList]
-      .map(([input, expr]) => [`${input}?.()`, new CallFunctionExpression(expr, [], true)] as [string, any])
+      .map(([input, expr]) => [`${input}?.()`, createCallFunctionExpression(expr, [], true)] as [string, any])
   ];
   // 4. parseOptionalExpression.MemberExpression ?. Arguments
   const SimpleOptionalCallScopeList: [string, any][] = [
     ...[...AccessScopeList]
-      .map(([input, expr]) => [`${input}?.()`, new CallScopeExpression(expr.name, [], expr.ancestor, true)] as [string, any])
+      .map(([input, expr]) => [`${input}?.()`, createCallScopeExpression(expr.name, [], expr.ancestor, true)] as [string, any])
   ];
   // 5. parseOptionalExpression.MemberExpression IdentifierName ?. Arguments
   //                            MemberExpression ?. IdentifierName Arguments
@@ -284,9 +290,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   const SimpleOptionalCallMemberList: [string, any][] = [
     ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [
-        [`${input}.b?.()`, new CallMemberExpression(expr, 'b', [], false, true)] as [string, any],
-        [`${input}?.b()`, new CallMemberExpression(expr, 'b', [], true, false)] as [string, any],
-        [`${input}?.b?.()`, new CallMemberExpression(expr, 'b', [], true, true)] as [string, any],
+        [`${input}.b?.()`, createCallMemberExpression(expr, 'b', [], false, true)] as [string, any],
+        [`${input}?.b()`, createCallMemberExpression(expr, 'b', [], true, false)] as [string, any],
+        [`${input}?.b?.()`, createCallMemberExpression(expr, 'b', [], true, true)] as [string, any],
       ]).reduce((acc, cur) => acc.concat(cur))
   ];
   // concatenation of 1-3 of MemberExpression,  1-3 of CallExpression and 1-5 of OptionalExpression
@@ -325,15 +331,15 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
   const SimpleUnaryList: [string, any][] = [
-    [`!$1`, new UnaryExpression('!', new AccessScopeExpression('$1'))],
-    [`(-$2)`, new UnaryExpression('-', new AccessScopeExpression('$2'))],
-    [`(+$3)`, new UnaryExpression('+', new AccessScopeExpression('$3'))],
-    [`(--$3)`, new UnaryExpression('--', new AccessScopeExpression('$3'))],
-    [`(++$3)`, new UnaryExpression('++', new AccessScopeExpression('$3'))],
-    [`($3--)`, new UnaryExpression('--', new AccessScopeExpression('$3'), 1)],
-    [`($3++)`, new UnaryExpression('++', new AccessScopeExpression('$3'), 1)],
-    [`void $4`, new UnaryExpression('void', new AccessScopeExpression('$4'))],
-    [`typeof $5`, new UnaryExpression('typeof', new AccessScopeExpression('$5'))]
+    [`!$1`, createUnaryExpression('!', createAccessScopeExpression('$1'))],
+    [`(-$2)`, createUnaryExpression('-', createAccessScopeExpression('$2'))],
+    [`(+$3)`, createUnaryExpression('+', createAccessScopeExpression('$3'))],
+    [`(--$3)`, createUnaryExpression('--', createAccessScopeExpression('$3'))],
+    [`(++$3)`, createUnaryExpression('++', createAccessScopeExpression('$3'))],
+    [`($3--)`, createUnaryExpression('--', createAccessScopeExpression('$3'), 1)],
+    [`($3++)`, createUnaryExpression('++', createAccessScopeExpression('$3'), 1)],
+    [`void $4`, createUnaryExpression('void', createAccessScopeExpression('$4'))],
+    [`typeof $5`, createUnaryExpression('typeof', createAccessScopeExpression('$5'))]
   ];
   // concatenation of UnaryExpression + LeftHandSide
   // This forms the group Precedence.LeftHandSide and includes Precedence.Unary
@@ -344,7 +350,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Multiplicative
   const SimpleExponentiationList: [string, any][] = [
-    [`$4**$5`, new BinaryExpression('**', new AccessScopeExpression('$4'), new AccessScopeExpression('$5'))]
+    [`$4**$5`, createBinaryExpression('**', createAccessScopeExpression('$4'), createAccessScopeExpression('$5'))]
   ];
   const SimpleIsExponentiationList: [string, any][] = [
     ...SimpleIsUnaryList,
@@ -353,9 +359,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Multiplicative
   const SimpleMultiplicativeList: [string, any][] = [
-    [`$6*$7`, new BinaryExpression('*', new AccessScopeExpression('$6'), new AccessScopeExpression('$7'))],
-    [`$8%$9`, new BinaryExpression('%', new AccessScopeExpression('$8'), new AccessScopeExpression('$9'))],
-    [`$10/$11`, new BinaryExpression('/', new AccessScopeExpression('$10'), new AccessScopeExpression('$11'))]
+    [`$6*$7`, createBinaryExpression('*', createAccessScopeExpression('$6'), createAccessScopeExpression('$7'))],
+    [`$8%$9`, createBinaryExpression('%', createAccessScopeExpression('$8'), createAccessScopeExpression('$9'))],
+    [`$10/$11`, createBinaryExpression('/', createAccessScopeExpression('$10'), createAccessScopeExpression('$11'))]
   ];
   const SimpleIsMultiplicativeList: [string, any][] = [
     ...SimpleIsExponentiationList,
@@ -364,8 +370,8 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Additive
   const SimpleAdditiveList: [string, any][] = [
-    [`$12+$13`, new BinaryExpression('+', new AccessScopeExpression('$12'), new AccessScopeExpression('$13'))],
-    [`$14-$15`, new BinaryExpression('-', new AccessScopeExpression('$14'), new AccessScopeExpression('$15'))]
+    [`$12+$13`, createBinaryExpression('+', createAccessScopeExpression('$12'), createAccessScopeExpression('$13'))],
+    [`$14-$15`, createBinaryExpression('-', createAccessScopeExpression('$14'), createAccessScopeExpression('$15'))]
   ];
   const SimpleIsAdditiveList: [string, any][] = [
     ...SimpleIsMultiplicativeList,
@@ -374,12 +380,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Relational
   const SimpleRelationalList: [string, any][] = [
-    [`$16<$17`, new BinaryExpression('<', new AccessScopeExpression('$16'), new AccessScopeExpression('$17'))],
-    [`$18>$19`, new BinaryExpression('>', new AccessScopeExpression('$18'), new AccessScopeExpression('$19'))],
-    [`$20<=$21`, new BinaryExpression('<=', new AccessScopeExpression('$20'), new AccessScopeExpression('$21'))],
-    [`$22>=$23`, new BinaryExpression('>=', new AccessScopeExpression('$22'), new AccessScopeExpression('$23'))],
-    [`$24 in $25`, new BinaryExpression('in', new AccessScopeExpression('$24'), new AccessScopeExpression('$25'))],
-    [`$26 instanceof $27`, new BinaryExpression('instanceof', new AccessScopeExpression('$26'), new AccessScopeExpression('$27'))]
+    [`$16<$17`, createBinaryExpression('<', createAccessScopeExpression('$16'), createAccessScopeExpression('$17'))],
+    [`$18>$19`, createBinaryExpression('>', createAccessScopeExpression('$18'), createAccessScopeExpression('$19'))],
+    [`$20<=$21`, createBinaryExpression('<=', createAccessScopeExpression('$20'), createAccessScopeExpression('$21'))],
+    [`$22>=$23`, createBinaryExpression('>=', createAccessScopeExpression('$22'), createAccessScopeExpression('$23'))],
+    [`$24 in $25`, createBinaryExpression('in', createAccessScopeExpression('$24'), createAccessScopeExpression('$25'))],
+    [`$26 instanceof $27`, createBinaryExpression('instanceof', createAccessScopeExpression('$26'), createAccessScopeExpression('$27'))]
   ];
   const SimpleIsRelationalList: [string, any][] = [
     ...SimpleIsAdditiveList,
@@ -388,10 +394,10 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Equality
   const SimpleEqualityList: [string, any][] = [
-    [`$28==$29`, new BinaryExpression('==', new AccessScopeExpression('$28'), new AccessScopeExpression('$29'))],
-    [`$30!=$31`, new BinaryExpression('!=', new AccessScopeExpression('$30'), new AccessScopeExpression('$31'))],
-    [`$32===$33`, new BinaryExpression('===', new AccessScopeExpression('$32'), new AccessScopeExpression('$33'))],
-    [`$34!==$35`, new BinaryExpression('!==', new AccessScopeExpression('$34'), new AccessScopeExpression('$35'))]
+    [`$28==$29`, createBinaryExpression('==', createAccessScopeExpression('$28'), createAccessScopeExpression('$29'))],
+    [`$30!=$31`, createBinaryExpression('!=', createAccessScopeExpression('$30'), createAccessScopeExpression('$31'))],
+    [`$32===$33`, createBinaryExpression('===', createAccessScopeExpression('$32'), createAccessScopeExpression('$33'))],
+    [`$34!==$35`, createBinaryExpression('!==', createAccessScopeExpression('$34'), createAccessScopeExpression('$35'))]
   ];
   const SimpleIsEqualityList: [string, any][] = [
     ...SimpleIsRelationalList,
@@ -400,7 +406,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.LogicalAND
   const SimpleLogicalANDList: [string, any][] = [
-    [`$36&&$37`, new BinaryExpression('&&', new AccessScopeExpression('$36'), new AccessScopeExpression('$37'))]
+    [`$36&&$37`, createBinaryExpression('&&', createAccessScopeExpression('$36'), createAccessScopeExpression('$37'))]
   ];
   const SimpleIsLogicalANDList: [string, any][] = [
     ...SimpleIsEqualityList,
@@ -409,7 +415,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.LogicalOR
   const SimpleLogicalORList: [string, any][] = [
-    [`$38||$39`, new BinaryExpression('||', new AccessScopeExpression('$38'), new AccessScopeExpression('$39'))]
+    [`$38||$39`, createBinaryExpression('||', createAccessScopeExpression('$38'), createAccessScopeExpression('$39'))]
   ];
   const SimpleIsLogicalORList: [string, any][] = [
     ...SimpleIsLogicalANDList,
@@ -418,7 +424,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.NullishCoalescing
   const SimpleNullishCoalescingList: [string, any][] = [
-    [`$40??$41`, new BinaryExpression('??', new AccessScopeExpression('$40'), new AccessScopeExpression('$41'))]
+    [`$40??$41`, createBinaryExpression('??', createAccessScopeExpression('$40'), createAccessScopeExpression('$41'))]
   ];
   const SimpleIsNullishCoalescingList: [string, any][] = [
     ...SimpleIsLogicalORList,
@@ -427,7 +433,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Conditional
   const SimpleConditionalList: [string, any][] = [
-    [`a?b:c`, new ConditionalExpression($a, $b, new AccessScopeExpression('c'))]
+    [`a?b:c`, createConditionalExpression($a, $b, createAccessScopeExpression('c'))]
   ];
   const SimpleIsConditionalList: [string, any][] = [
     ...SimpleIsNullishCoalescingList,
@@ -436,19 +442,19 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Assign
   const SimpleAssignList: [string, any][] = [
-    [`a=b`, new AssignExpression($a, $b)],
-    [`$42/=$43`, new AssignExpression(new AccessScopeExpression('$42'), new AccessScopeExpression('$43'), '/=')],
-    [`$44*=$45`, new AssignExpression(new AccessScopeExpression('$44'), new AccessScopeExpression('$45'), '*=')],
-    [`$46+=$47`, new AssignExpression(new AccessScopeExpression('$46'), new AccessScopeExpression('$47'), '+=')],
-    [`$48-=$49`, new AssignExpression(new AccessScopeExpression('$48'), new AccessScopeExpression('$49'), '-=')]
+    [`a=b`, createAssignExpression($a, $b)],
+    [`$42/=$43`, createAssignExpression(createAccessScopeExpression('$42'), createAccessScopeExpression('$43'), '/=')],
+    [`$44*=$45`, createAssignExpression(createAccessScopeExpression('$44'), createAccessScopeExpression('$45'), '*=')],
+    [`$46+=$47`, createAssignExpression(createAccessScopeExpression('$46'), createAccessScopeExpression('$47'), '+=')],
+    [`$48-=$49`, createAssignExpression(createAccessScopeExpression('$48'), createAccessScopeExpression('$49'), '-=')]
   ];
   const SimpleArrowList: [string, any][] = [
-    [`(a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
-    [`(...a) => a`, new ArrowFunction([new BindingIdentifier('a')], $a, true)],
-    [`(a, b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a)],
-    [`(a, ...b) => a`, new ArrowFunction([new BindingIdentifier('a'), new BindingIdentifier('b')], $a, true)],
-    [`a => a`, new ArrowFunction([new BindingIdentifier('a')], $a)],
-    [`() => 0`, new ArrowFunction([], $num0)],
+    [`(a) => a`, createArrowFunction([createBindingIdentifier('a')], $a)],
+    [`(...a) => a`, createArrowFunction([createBindingIdentifier('a')], $a, true)],
+    [`(a, b) => a`, createArrowFunction([createBindingIdentifier('a'), createBindingIdentifier('b')], $a)],
+    [`(a, ...b) => a`, createArrowFunction([createBindingIdentifier('a'), createBindingIdentifier('b')], $a, true)],
+    [`a => a`, createArrowFunction([createBindingIdentifier('a')], $a)],
+    [`() => 0`, createArrowFunction([], $num0)],
   ];
   const SimpleIsAssignList: [string, any][] = [
     ...SimpleIsConditionalList,
@@ -458,9 +464,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.Variadic
   const SimpleValueConverterList: [string, any][] = [
-    [`a|b`, new ValueConverterExpression($a, 'b', [])],
-    [`a|b:c`, new ValueConverterExpression($a, 'b', [new AccessScopeExpression('c')])],
-    [`a|b:c:d`, new ValueConverterExpression($a, 'b', [new AccessScopeExpression('c'), new AccessScopeExpression('d')])]
+    [`a|b`, createValueConverterExpression($a, 'b', [])],
+    [`a|b:c`, createValueConverterExpression($a, 'b', [createAccessScopeExpression('c')])],
+    [`a|b:c:d`, createValueConverterExpression($a, 'b', [createAccessScopeExpression('c'), createAccessScopeExpression('d')])]
   ];
   const SimpleIsValueConverterList: [string, any][] = [
     ...SimpleIsAssignList,
@@ -468,9 +474,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
 
   const SimpleBindingBehaviorList: [string, any][] = [
-    [`a&b`, new BindingBehaviorExpression($a, 'b', [])],
-    [`a&b:c`, new BindingBehaviorExpression($a, 'b', [new AccessScopeExpression('c')])],
-    [`a&b:c:d`, new BindingBehaviorExpression($a, 'b', [new AccessScopeExpression('c'), new AccessScopeExpression('d')])]
+    [`a&b`, createBindingBehaviorExpression($a, 'b', [])],
+    [`a&b:c`, createBindingBehaviorExpression($a, 'b', [createAccessScopeExpression('c')])],
+    [`a&b:c:d`, createBindingBehaviorExpression($a, 'b', [createAccessScopeExpression('c'), createAccessScopeExpression('d')])]
   ];
 
   const SimpleIsBindingBehaviorList: [string, any][] = [
@@ -752,10 +758,10 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Verify all string escapes, unicode characters, double and single quotes
   const ComplexStringLiteralList: [string, any][] = [
     ...[
-      ['foo',                new PrimitiveLiteralExpression('foo')],
-      ['äöüÄÖÜß',            new PrimitiveLiteralExpression('äöüÄÖÜß')],
-      ['ಠ_ಠ',               new PrimitiveLiteralExpression('ಠ_ಠ')],
-      ...stringEscapables.map(([raw, cooked]) => [raw, new PrimitiveLiteralExpression(cooked)])
+      ['foo',                createPrimitiveLiteralExpression('foo')],
+      ['äöüÄÖÜß',            createPrimitiveLiteralExpression('äöüÄÖÜß')],
+      ['ಠ_ಠ',               createPrimitiveLiteralExpression('ಠ_ಠ')],
+      ...stringEscapables.map(([raw, cooked]) => [raw, createPrimitiveLiteralExpression(cooked)])
     ].map(([input, expr]): [string, any][] => [
       [`'${input}'`, expr],
       [`"${input}"`, expr]
@@ -771,15 +777,15 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // Verify different floating point notations and parsing numbers that are outside the "safe" integer range
   const ComplexNumberList: [string, any][] = [
-    ['9007199254740992',                                                  new PrimitiveLiteralExpression(9007199254740992)],
-    ['0.9007199254740992',                                                new PrimitiveLiteralExpression(0.9007199254740992)],
-    ['.9007199254740992',                                                 new PrimitiveLiteralExpression(0.9007199254740992)],
-    ['.90071992547409929007199254740992',                                 new PrimitiveLiteralExpression(0.90071992547409929007199254740992)],
-    ['9007199254740992.9007199254740992',                                 new PrimitiveLiteralExpression(9007199254740992.9007199254740992)],
-    ['9007199254740992.90071992547409929007199254740992',                 new PrimitiveLiteralExpression(9007199254740992.90071992547409929007199254740992)],
-    ['90071992547409929007199254740992',                                  new PrimitiveLiteralExpression(90071992547409929007199254740992)],
-    ['90071992547409929007199254740992.9007199254740992',                 new PrimitiveLiteralExpression(90071992547409929007199254740992.9007199254740992)],
-    ['90071992547409929007199254740992.90071992547409929007199254740992', new PrimitiveLiteralExpression(90071992547409929007199254740992.90071992547409929007199254740992)]
+    ['9007199254740992',                                                  createPrimitiveLiteralExpression(9007199254740992)],
+    ['0.9007199254740992',                                                createPrimitiveLiteralExpression(0.9007199254740992)],
+    ['.9007199254740992',                                                 createPrimitiveLiteralExpression(0.9007199254740992)],
+    ['.90071992547409929007199254740992',                                 createPrimitiveLiteralExpression(0.90071992547409929007199254740992)],
+    ['9007199254740992.9007199254740992',                                 createPrimitiveLiteralExpression(9007199254740992.9007199254740992)],
+    ['9007199254740992.90071992547409929007199254740992',                 createPrimitiveLiteralExpression(9007199254740992.90071992547409929007199254740992)],
+    ['90071992547409929007199254740992',                                  createPrimitiveLiteralExpression(90071992547409929007199254740992)],
+    ['90071992547409929007199254740992.9007199254740992',                 createPrimitiveLiteralExpression(90071992547409929007199254740992.9007199254740992)],
+    ['90071992547409929007199254740992.90071992547409929007199254740992', createPrimitiveLiteralExpression(90071992547409929007199254740992.90071992547409929007199254740992)]
   ];
   describe('parse ComplexNumberList', function () {
     for (const [input, expected] of ComplexNumberList) {
@@ -792,32 +798,32 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Verify various combinations of nested and chained parts/expressions, with/without escaped strings
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of arguments
   const ComplexTemplateLiteralList: [string, any][] = [
-    [`\`a\``,                       new TemplateExpression(['a'], [])],
-    [`\`\\\${a}\``,                 new TemplateExpression([`\${a}`], [])],
-    [`\`$a\``,                      new TemplateExpression(['$a'], [])],
-    [`\`\${a}\${b}\``,              new TemplateExpression(['', '', ''],                       [$a, $b])],
-    [`\`a\${a}\${b}\``,             new TemplateExpression(['a', '', ''],                      [$a, $b])],
-    [`\`\${a}a\${b}\``,             new TemplateExpression(['', 'a', ''],                      [$a, $b])],
-    [`\`a\${a}a\${b}\``,            new TemplateExpression(['a', 'a', ''],                     [$a, $b])],
-    [`\`\${a}\${b}a\``,             new TemplateExpression(['', '', 'a'],                      [$a, $b])],
-    [`\`\${a}a\${b}a\``,            new TemplateExpression(['', 'a', 'a'],                     [$a, $b])],
-    [`\`a\${a}a\${b}a\``,           new TemplateExpression(['a', 'a', 'a'],                    [$a, $b])],
-    [`\`\${\`\${a}\`}\``,           new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])],
-    [`\`\${\`a\${a}\`}\``,          new TemplateExpression(['', ''], [new TemplateExpression(['a', ''],  [$a])])],
-    [`\`\${\`\${a}a\`}\``,          new TemplateExpression(['', ''], [new TemplateExpression(['', 'a'],  [$a])])],
-    [`\`\${\`a\${a}a\`}\``,         new TemplateExpression(['', ''], [new TemplateExpression(['a', 'a'], [$a])])],
-    [`\`\${\`\${\`\${a}\`}\`}\``,   new TemplateExpression(['', ''], [new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])])],
+    [`\`a\``,                       createTemplateExpression(['a'], [])],
+    [`\`\\\${a}\``,                 createTemplateExpression([`\${a}`], [])],
+    [`\`$a\``,                      createTemplateExpression(['$a'], [])],
+    [`\`\${a}\${b}\``,              createTemplateExpression(['', '', ''],                       [$a, $b])],
+    [`\`a\${a}\${b}\``,             createTemplateExpression(['a', '', ''],                      [$a, $b])],
+    [`\`\${a}a\${b}\``,             createTemplateExpression(['', 'a', ''],                      [$a, $b])],
+    [`\`a\${a}a\${b}\``,            createTemplateExpression(['a', 'a', ''],                     [$a, $b])],
+    [`\`\${a}\${b}a\``,             createTemplateExpression(['', '', 'a'],                      [$a, $b])],
+    [`\`\${a}a\${b}a\``,            createTemplateExpression(['', 'a', 'a'],                     [$a, $b])],
+    [`\`a\${a}a\${b}a\``,           createTemplateExpression(['a', 'a', 'a'],                    [$a, $b])],
+    [`\`\${\`\${a}\`}\``,           createTemplateExpression(['', ''], [createTemplateExpression(['', ''],   [$a])])],
+    [`\`\${\`a\${a}\`}\``,          createTemplateExpression(['', ''], [createTemplateExpression(['a', ''],  [$a])])],
+    [`\`\${\`\${a}a\`}\``,          createTemplateExpression(['', ''], [createTemplateExpression(['', 'a'],  [$a])])],
+    [`\`\${\`a\${a}a\`}\``,         createTemplateExpression(['', ''], [createTemplateExpression(['a', 'a'], [$a])])],
+    [`\`\${\`\${\`\${a}\`}\`}\``,   createTemplateExpression(['', ''], [createTemplateExpression(['', ''], [createTemplateExpression(['', ''],   [$a])])])],
     ...stringEscapables.map(([raw, cooked]): [string, any][] => [
-      [`\`${raw}\``,                new TemplateExpression([cooked],              [])],
-      [`\`\${a}${raw}\``,           new TemplateExpression(['', cooked],        [$a])],
-      [`\`${raw}\${a}\``,           new TemplateExpression([cooked, ''],        [$a])],
-      [`\`${raw}\${a}${raw}\``,     new TemplateExpression([cooked, cooked],    [$a])],
-      [`\`\${a}${raw}\${a}\``,      new TemplateExpression(['', cooked, ''],    [$a, $a])],
+      [`\`${raw}\``,                createTemplateExpression([cooked],              [])],
+      [`\`\${a}${raw}\``,           createTemplateExpression(['', cooked],        [$a])],
+      [`\`${raw}\${a}\``,           createTemplateExpression([cooked, ''],        [$a])],
+      [`\`${raw}\${a}${raw}\``,     createTemplateExpression([cooked, cooked],    [$a])],
+      [`\`\${a}${raw}\${a}\``,      createTemplateExpression(['', cooked, ''],    [$a, $a])],
     ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`\`\${${input}}\``, new TemplateExpression(['', ''], [expr])] as [string, any]),
+      .map(([input, expr]) => [`\`\${${input}}\``, createTemplateExpression(['', ''], [expr])] as [string, any]),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`\`\${${input}}\${${input}}\``, new TemplateExpression(['', '', ''], [expr, expr])] as [string, any])
+      .map(([input, expr]) => [`\`\${${input}}\${${input}}\``, createTemplateExpression(['', '', ''], [expr, expr])] as [string, any])
   ];
   describe('parse ComplexTemplateLiteralList', function () {
     for (const [input, expected] of ComplexTemplateLiteralList) {
@@ -830,26 +836,26 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Verify various combinations of specified and unspecified (elision) array items
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of element expressions
   const ComplexArrayLiteralList: [string, any][] = [
-    [`[,]`,                 new ArrayLiteralExpression([$undefined])],
-    [`[,,]`,                new ArrayLiteralExpression([$undefined, $undefined])],
-    [`[,,,]`,               new ArrayLiteralExpression([$undefined, $undefined, $undefined])],
-    [`[a,]`,                new ArrayLiteralExpression([$a])],
-    [`[a,,]`,               new ArrayLiteralExpression([$a, $undefined])],
-    [`[a,a,]`,              new ArrayLiteralExpression([$a, $a])],
-    [`[a,,,]`,              new ArrayLiteralExpression([$a, $undefined, $undefined])],
-    [`[a,a,,]`,             new ArrayLiteralExpression([$a, $a, $undefined])],
-    [`[,a]`,                new ArrayLiteralExpression([$undefined, $a])],
-    [`[,a,]`,               new ArrayLiteralExpression([$undefined, $a])],
-    [`[,a,,]`,              new ArrayLiteralExpression([$undefined, $a, $undefined])],
-    [`[,a,a,]`,             new ArrayLiteralExpression([$undefined, $a, $a])],
-    [`[,,a]`,               new ArrayLiteralExpression([$undefined, $undefined, $a])],
-    [`[,a,a]`,              new ArrayLiteralExpression([$undefined, $a, $a])],
-    [`[,,a,]`,              new ArrayLiteralExpression([$undefined, $undefined, $a])],
-    [`[,,,a]`,              new ArrayLiteralExpression([$undefined, $undefined, $undefined, $a])],
-    [`[,,a,a]`,             new ArrayLiteralExpression([$undefined, $undefined, $a, $a])],
+    [`[,]`,                 createArrayLiteralExpression([$undefined])],
+    [`[,,]`,                createArrayLiteralExpression([$undefined, $undefined])],
+    [`[,,,]`,               createArrayLiteralExpression([$undefined, $undefined, $undefined])],
+    [`[a,]`,                createArrayLiteralExpression([$a])],
+    [`[a,,]`,               createArrayLiteralExpression([$a, $undefined])],
+    [`[a,a,]`,              createArrayLiteralExpression([$a, $a])],
+    [`[a,,,]`,              createArrayLiteralExpression([$a, $undefined, $undefined])],
+    [`[a,a,,]`,             createArrayLiteralExpression([$a, $a, $undefined])],
+    [`[,a]`,                createArrayLiteralExpression([$undefined, $a])],
+    [`[,a,]`,               createArrayLiteralExpression([$undefined, $a])],
+    [`[,a,,]`,              createArrayLiteralExpression([$undefined, $a, $undefined])],
+    [`[,a,a,]`,             createArrayLiteralExpression([$undefined, $a, $a])],
+    [`[,,a]`,               createArrayLiteralExpression([$undefined, $undefined, $a])],
+    [`[,a,a]`,              createArrayLiteralExpression([$undefined, $a, $a])],
+    [`[,,a,]`,              createArrayLiteralExpression([$undefined, $undefined, $a])],
+    [`[,,,a]`,              createArrayLiteralExpression([$undefined, $undefined, $undefined, $a])],
+    [`[,,a,a]`,             createArrayLiteralExpression([$undefined, $undefined, $a, $a])],
     ...SimpleIsAssignList.map(([input, expr]): [string, any][] => [
-      [`[${input}]`,           new ArrayLiteralExpression([expr])],
-      [`[${input},${input}]`,  new ArrayLiteralExpression([expr, expr])]
+      [`[${input}]`,           createArrayLiteralExpression([expr])],
+      [`[${input},${input}]`,  createArrayLiteralExpression([expr, expr])]
     ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexArrayLiteralList', function () {
@@ -863,35 +869,35 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Verify various combinations of shorthand, full, string and number property definitions
   // Also combine this with the full list of SimpleIsAssign (once and twice) to validate parsing precedence of value expressions
   const ComplexObjectLiteralList: [string, any][] = [
-    [`{a}`,                 new ObjectLiteralExpression(['a'], [$a])],
-    [`{a:a}`,               new ObjectLiteralExpression(['a'], [$a])],
-    [`{'a':a}`,             new ObjectLiteralExpression(['a'], [$a])],
-    [`{"a":a}`,             new ObjectLiteralExpression(['a'], [$a])],
-    [`{1:a}`,               new ObjectLiteralExpression([1], [$a])],
-    [`{'1':a}`,             new ObjectLiteralExpression(['1'], [$a])],
-    [`{"1":a}`,             new ObjectLiteralExpression(['1'], [$a])],
-    [`{'a':a,b}`,           new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{"a":a,b}`,           new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{1:a,b}`,             new ObjectLiteralExpression([1, 'b'], [$a, $b])],
-    [`{'1':a,b}`,           new ObjectLiteralExpression(['1', 'b'], [$a, $b])],
-    [`{"1":a,b}`,           new ObjectLiteralExpression(['1', 'b'], [$a, $b])],
-    [`{a,'b':b}`,           new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{a,"b":b}`,           new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{a,1:b}`,             new ObjectLiteralExpression(['a', 1], [$a, $b])],
-    [`{a,'1':b}`,           new ObjectLiteralExpression(['a', '1'], [$a, $b])],
-    [`{a,"1":b}`,           new ObjectLiteralExpression(['a', '1'], [$a, $b])],
-    [`{a,b}`,               new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{a:a,b}`,             new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{a,b:b}`,             new ObjectLiteralExpression(['a', 'b'], [$a, $b])],
-    [`{a:a,b,c}`,           new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
-    [`{a,b:b,c}`,           new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
-    [`{a,b,c:c}`,           new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
-    [`{a:a,b:b,c}`,         new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
-    [`{a:a,b,c:c}`,         new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
-    [`{a,b:b,c:c}`,         new ObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
+    [`{a}`,                 createObjectLiteralExpression(['a'], [$a])],
+    [`{a:a}`,               createObjectLiteralExpression(['a'], [$a])],
+    [`{'a':a}`,             createObjectLiteralExpression(['a'], [$a])],
+    [`{"a":a}`,             createObjectLiteralExpression(['a'], [$a])],
+    [`{1:a}`,               createObjectLiteralExpression([1], [$a])],
+    [`{'1':a}`,             createObjectLiteralExpression(['1'], [$a])],
+    [`{"1":a}`,             createObjectLiteralExpression(['1'], [$a])],
+    [`{'a':a,b}`,           createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{"a":a,b}`,           createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{1:a,b}`,             createObjectLiteralExpression([1, 'b'], [$a, $b])],
+    [`{'1':a,b}`,           createObjectLiteralExpression(['1', 'b'], [$a, $b])],
+    [`{"1":a,b}`,           createObjectLiteralExpression(['1', 'b'], [$a, $b])],
+    [`{a,'b':b}`,           createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{a,"b":b}`,           createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{a,1:b}`,             createObjectLiteralExpression(['a', 1], [$a, $b])],
+    [`{a,'1':b}`,           createObjectLiteralExpression(['a', '1'], [$a, $b])],
+    [`{a,"1":b}`,           createObjectLiteralExpression(['a', '1'], [$a, $b])],
+    [`{a,b}`,               createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{a:a,b}`,             createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{a,b:b}`,             createObjectLiteralExpression(['a', 'b'], [$a, $b])],
+    [`{a:a,b,c}`,           createObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
+    [`{a,b:b,c}`,           createObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
+    [`{a,b,c:c}`,           createObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
+    [`{a:a,b:b,c}`,         createObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
+    [`{a:a,b,c:c}`,         createObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
+    [`{a,b:b,c:c}`,         createObjectLiteralExpression(['a', 'b', 'c'], [$a, $b, $c])],
     ...SimpleIsAssignList.map(([input, expr]): [string, any][] => [
-      [`{a:${input}}`,            new ObjectLiteralExpression(['a'], [expr])],
-      [`{a:${input},b:${input}}`, new ObjectLiteralExpression(['a', 'b'], [expr, expr])]
+      [`{a:${input}}`,            createObjectLiteralExpression(['a'], [expr])],
+      [`{a:${input},b:${input}}`, createObjectLiteralExpression(['a', 'b'], [expr, expr])]
     ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexObjectLiteralList', function () {
@@ -904,8 +910,8 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   const ComplexAccessKeyedList: [string, any][] = [
     ...SimpleIsAssignList.map(([input, expr]) => [
-      [`a[${input}]`, new AccessKeyedExpression($a, expr)] as [string, any],
-      [`a?.[${input}]`, new AccessKeyedExpression($a, expr, true)] as [string, any],
+      [`a[${input}]`, createAccessKeyedExpression($a, expr)] as [string, any],
+      [`a?.[${input}]`, createAccessKeyedExpression($a, expr, true)] as [string, any],
     ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexAccessKeyedList', function () {
@@ -927,8 +933,8 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       [`instanceof`],
       [`of`]]
       .map(([input]) => [
-        [`a.${input}`, new AccessMemberExpression($a, input)] as [string, any],
-        [`a?.${input}`, new AccessMemberExpression($a, input, true)] as [string, any],
+        [`a.${input}`, createAccessMemberExpression($a, input)] as [string, any],
+        [`a?.${input}`, createAccessMemberExpression($a, input, true)] as [string, any],
       ]).reduce((acc, cur) => acc.concat(cur))
   ];
   describe('parse ComplexAccessMemberList', function () {
@@ -950,11 +956,11 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     [`a\`\${b}\${c}a\``,             createTaggedTemplate(['', '', 'a'],   $a, [$b, $c])],
     [`a\`\${b}a\${c}a\``,            createTaggedTemplate(['', 'a', 'a'],  $a, [$b, $c])],
     [`a\`a\${b}a\${c}a\``,           createTaggedTemplate(['a', 'a', 'a'], $a, [$b, $c])],
-    [`a\`\${\`\${a}\`}\``,           createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['', ''],   [$a])])],
-    [`a\`\${\`a\${a}\`}\``,          createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['a', ''],  [$a])])],
-    [`a\`\${\`\${a}a\`}\``,          createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['', 'a'],  [$a])])],
-    [`a\`\${\`a\${a}a\`}\``,         createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['a', 'a'], [$a])])],
-    [`a\`\${\`\${\`\${a}\`}\`}\``,   createTaggedTemplate(['', ''],        $a, [new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])])],
+    [`a\`\${\`\${a}\`}\``,           createTaggedTemplate(['', ''],        $a, [createTemplateExpression(['', ''],   [$a])])],
+    [`a\`\${\`a\${a}\`}\``,          createTaggedTemplate(['', ''],        $a, [createTemplateExpression(['a', ''],  [$a])])],
+    [`a\`\${\`\${a}a\`}\``,          createTaggedTemplate(['', ''],        $a, [createTemplateExpression(['', 'a'],  [$a])])],
+    [`a\`\${\`a\${a}a\`}\``,         createTaggedTemplate(['', ''],        $a, [createTemplateExpression(['a', 'a'], [$a])])],
+    [`a\`\${\`\${\`\${a}\`}\`}\``,   createTaggedTemplate(['', ''],        $a, [createTemplateExpression(['', ''], [createTemplateExpression(['', ''],   [$a])])])],
     ...stringEscapables.map(([raw, cooked]): [string, any][] => [
       [`a\`${raw}\``,                createTaggedTemplate([cooked],         $a,     [])],
       [`a\`\${a}${raw}\``,           createTaggedTemplate(['', cooked],     $a,   [$a])],
@@ -978,11 +984,11 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   const ComplexCallFunctionList: [string, any][] = [
     ...SimpleIsAssignList
       .map(([input, expr]) => [
-        [`$this(${input})`, new CallFunctionExpression($this, [expr])] as [string, any],
-        [`$this?.(${input})`, new CallFunctionExpression($this, [expr], true)] as [string, any],
+        [`$this(${input})`, createCallFunctionExpression($this, [expr])] as [string, any],
+        [`$this?.(${input})`, createCallFunctionExpression($this, [expr], true)] as [string, any],
       ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`$this(${input},${input})`, new CallFunctionExpression($this, [expr, expr])] as [string, any])
+      .map(([input, expr]) => [`$this(${input},${input})`, createCallFunctionExpression($this, [expr, expr])] as [string, any])
   ];
   describe('parse ComplexCallFunctionList', function () {
     for (const [input, expected] of ComplexCallFunctionList) {
@@ -995,11 +1001,11 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   const ComplexCallScopeList: [string, any][] = [
     ...SimpleIsAssignList
       .map(([input, expr]) => [
-        [`a(${input})`, new CallScopeExpression('a', [expr])] as [string, any],
-        [`a?.(${input})`, new CallScopeExpression('a', [expr], 0, true)] as [string, any],
+        [`a(${input})`, createCallScopeExpression('a', [expr])] as [string, any],
+        [`a?.(${input})`, createCallScopeExpression('a', [expr], 0, true)] as [string, any],
       ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a(${input},${input})`, new CallScopeExpression('a', [expr, expr])] as [string, any])
+      .map(([input, expr]) => [`a(${input},${input})`, createCallScopeExpression('a', [expr, expr])] as [string, any])
   ];
   describe('parse ComplexCallScopeList', function () {
     for (const [input, expected] of ComplexCallScopeList) {
@@ -1012,31 +1018,31 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   const ComplexCallMemberList: [string, any][] = [
     ...SimpleIsAssignList
       .map(([input, expr]) => [
-        [`a.b(${input})`, new CallMemberExpression($a, 'b', [expr], false, false)] as [string, any],
-        [`a?.b(${input})`, new CallMemberExpression($a, 'b', [expr], true, false)] as [string, any],
-        [`a.b?.(${input})`, new CallMemberExpression($a, 'b', [expr], false, true)] as [string, any],
-        [`a?.b?.(${input})`, new CallMemberExpression($a, 'b', [expr], true, true)] as [string, any],
+        [`a.b(${input})`, createCallMemberExpression($a, 'b', [expr], false, false)] as [string, any],
+        [`a?.b(${input})`, createCallMemberExpression($a, 'b', [expr], true, false)] as [string, any],
+        [`a.b?.(${input})`, createCallMemberExpression($a, 'b', [expr], false, true)] as [string, any],
+        [`a?.b?.(${input})`, createCallMemberExpression($a, 'b', [expr], true, true)] as [string, any],
       ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`a.b(${input},${input})`, new CallMemberExpression($a, 'b', [expr, expr])] as [string, any]),
-    [`a?.b?.c?.()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', [], true, true)] as [string, any],
-    [`a.b?.c?.()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', false), 'c', [], true, true)] as [string, any],
-    [`a?.b.c?.()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', [], false, true)] as [string, any],
-    [`a?.b?.c()`, new CallMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', [], true, false)] as [string, any],
+      .map(([input, expr]) => [`a.b(${input},${input})`, createCallMemberExpression($a, 'b', [expr, expr])] as [string, any]),
+    [`a?.b?.c?.()`, createCallMemberExpression(createAccessMemberExpression($a, 'b', true), 'c', [], true, true)] as [string, any],
+    [`a.b?.c?.()`, createCallMemberExpression(createAccessMemberExpression($a, 'b', false), 'c', [], true, true)] as [string, any],
+    [`a?.b.c?.()`, createCallMemberExpression(createAccessMemberExpression($a, 'b', true), 'c', [], false, true)] as [string, any],
+    [`a?.b?.c()`, createCallMemberExpression(createAccessMemberExpression($a, 'b', true), 'c', [], true, false)] as [string, any],
 
-    [`a?.b?.()()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, true), [], false)] as [string, any],
-    [`a?.b?.().c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], false, false)] as [string, any],
-    [`a?.b?.()?.c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], true, false)] as [string, any],
-    [`a?.b?.().c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], false, true)] as [string, any],
-    [`a?.b?.()?.c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, true), 'c', [], true, true)] as [string, any],
-    [`a?.b?.()?.()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, true), [], true)] as [string, any],
+    [`a?.b?.()()`, createCallFunctionExpression(createCallMemberExpression($a, 'b', [], true, true), [], false)] as [string, any],
+    [`a?.b?.().c()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, true), 'c', [], false, false)] as [string, any],
+    [`a?.b?.()?.c()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, true), 'c', [], true, false)] as [string, any],
+    [`a?.b?.().c?.()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, true), 'c', [], false, true)] as [string, any],
+    [`a?.b?.()?.c?.()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, true), 'c', [], true, true)] as [string, any],
+    [`a?.b?.()?.()`, createCallFunctionExpression(createCallMemberExpression($a, 'b', [], true, true), [], true)] as [string, any],
 
-    [`a?.b()()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, false), [], false)] as [string, any],
-    [`a?.b().c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], false, false)] as [string, any],
-    [`a?.b()?.c()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], true, false)] as [string, any],
-    [`a?.b().c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], false, true)] as [string, any],
-    [`a?.b()?.c?.()`, new CallMemberExpression(new CallMemberExpression($a, 'b', [], true, false), 'c', [], true, true)] as [string, any],
-    [`a?.b()?.()`, new CallFunctionExpression(new CallMemberExpression($a, 'b', [], true, false), [], true)] as [string, any],
+    [`a?.b()()`, createCallFunctionExpression(createCallMemberExpression($a, 'b', [], true, false), [], false)] as [string, any],
+    [`a?.b().c()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, false), 'c', [], false, false)] as [string, any],
+    [`a?.b()?.c()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, false), 'c', [], true, false)] as [string, any],
+    [`a?.b().c?.()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, false), 'c', [], false, true)] as [string, any],
+    [`a?.b()?.c?.()`, createCallMemberExpression(createCallMemberExpression($a, 'b', [], true, false), 'c', [], true, true)] as [string, any],
+    [`a?.b()?.()`, createCallFunctionExpression(createCallMemberExpression($a, 'b', [], true, false), [], true)] as [string, any],
   ];
   describe('parse ComplexCallMemberList', function () {
     for (const [input, expected] of ComplexCallMemberList) {
@@ -1048,19 +1054,19 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   const ComplexUnaryList: [string, any][] = [
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`!${input}`, new UnaryExpression('!', expr)] as [string, any]),
+      .map(([input, expr]) => [`!${input}`, createUnaryExpression('!', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`+${input}`, new UnaryExpression('+', expr)] as [string, any]),
+      .map(([input, expr]) => [`+${input}`, createUnaryExpression('+', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`-${input}`, new UnaryExpression('-', expr)] as [string, any]),
+      .map(([input, expr]) => [`-${input}`, createUnaryExpression('-', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`++${input}`, new UnaryExpression('++', expr)] as [string, any]),
+      .map(([input, expr]) => [`++${input}`, createUnaryExpression('++', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`--${input}`, new UnaryExpression('--', expr)] as [string, any]),
+      .map(([input, expr]) => [`--${input}`, createUnaryExpression('--', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`void ${input}`, new UnaryExpression('void', expr)] as [string, any]),
+      .map(([input, expr]) => [`void ${input}`, createUnaryExpression('void', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
-      .map(([input, expr]) => [`typeof ${input}`, new UnaryExpression('typeof', expr)] as [string, any])
+      .map(([input, expr]) => [`typeof ${input}`, createUnaryExpression('typeof', expr)] as [string, any])
   ];
   describe('parse ComplexUnaryList', function () {
     for (const [input, expected] of ComplexUnaryList) {
@@ -1073,16 +1079,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Combine a precedence group with all precedence groups below it, the precedence group on the same
   // level, and a precedence group above it, and verify that the precedence/associativity is correctly enforced
   const ComplexExponentiationList: [string, any][] = [
-    ...SimpleIsExponentiationList.map(([i1, e1]) => [`${i1}**a`, new BinaryExpression('**', e1, $a)]),
-    ...SimpleIsUnaryList.map(([i1, e1]) => [`a**${i1}`, new BinaryExpression('**', $a, e1)]),
+    ...SimpleIsExponentiationList.map(([i1, e1]) => [`${i1}**a`, createBinaryExpression('**', e1, $a)]),
+    ...SimpleIsUnaryList.map(([i1, e1]) => [`a**${i1}`, createBinaryExpression('**', $a, e1)]),
     ...SimpleUnaryList
-      .map(([i1, e1]) => SimpleExponentiationList.map(([i2, e2]) => [`${i2}**${i1}`, new BinaryExpression('**', e2, e1)]))
+      .map(([i1, e1]) => SimpleExponentiationList.map(([i2, e2]) => [`${i2}**${i1}`, createBinaryExpression('**', e2, e1)]))
       .reduce((a, b) => a.concat(b)),
     ...SimpleExponentiationList
-      .map(([i1, e1]) => SimpleExponentiationList.map(([i2, e2]) => [`${i1}**${i2}`, new BinaryExpression(e2.operation, new BinaryExpression('**', new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
+      .map(([i1, e1]) => SimpleExponentiationList.map(([i2, e2]) => [`${i1}**${i2}`, createBinaryExpression(e2.operation, createBinaryExpression('**', createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
       .reduce((a, b) => a.concat(b)),
     ...SimpleMultiplicativeList
-      .map(([i1, e1]) => SimpleExponentiationList.map(([i2, e2]) => [`${i1}**${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression('**', e1.right, e2.left), e2.right))]))
+      .map(([i1, e1]) => SimpleExponentiationList.map(([i2, e2]) => [`${i1}**${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression('**', e1.right, e2.left), e2.right))]))
       .reduce((a, b) => a.concat(b))
   ] as [string, any][];
   describe('parse ComplexExponentiationList', function () {
@@ -1095,16 +1101,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   const ComplexMultiplicativeList: [string, any][] = [
     ...binaryMultiplicative.map(op => [
-      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
-      ...SimpleIsExponentiationList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
+      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`${i1}${op}a`, createBinaryExpression(op, e1, $a)]),
+      ...SimpleIsExponentiationList.map(([i1, e1]) => [`a${op}${i1}`, createBinaryExpression(op, $a, e1)]),
       ...SimpleExponentiationList
-        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
+        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i2}${op}${i1}`, createBinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleMultiplicativeList
-        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e2.operation, new BinaryExpression(op, new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
+        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i1}${op}${i2}`, createBinaryExpression(e2.operation, createBinaryExpression(op, createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleAdditiveList
-        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression(op, e1.right, e2.left), e2.right))]))
+        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i1}${op}${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression(op, e1.right, e2.left), e2.right))]))
         .reduce((a, b) => a.concat(b))
     ] as [string, any][]).reduce((a, b) => a.concat(b))
   ];
@@ -1118,16 +1124,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   const ComplexAdditiveList: [string, any][] = [
     ...binaryAdditive.map(op => [
-      ...SimpleIsAdditiveList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
-      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
+      ...SimpleIsAdditiveList.map(([i1, e1]) => [`${i1}${op}a`, createBinaryExpression(op, e1, $a)]),
+      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`a${op}${i1}`, createBinaryExpression(op, $a, e1)]),
       ...SimpleMultiplicativeList
-        .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
+        .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i2}${op}${i1}`, createBinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleAdditiveList
-        .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e2.operation, new BinaryExpression(op, new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
+        .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i1}${op}${i2}`, createBinaryExpression(e2.operation, createBinaryExpression(op, createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleRelationalList
-        .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression(op, e1.right, e2.left), e2.right))]))
+        .map(([i1, e1]) => SimpleAdditiveList.map(([i2, e2]) => [`${i1}${op}${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression(op, e1.right, e2.left), e2.right))]))
         .reduce((a, b) => a.concat(b))
     ] as [string, any][]).reduce((a, b) => a.concat(b))
   ];
@@ -1141,16 +1147,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   const ComplexRelationalList: [string, any][] = [
     ...binaryRelational.map(([op, txt]) => [
-      ...SimpleIsRelationalList.map(([i1, e1]) => [`${i1}${txt}a`, new BinaryExpression(op, e1, $a)]),
-      ...SimpleIsAdditiveList.map(([i1, e1]) => [`a${txt}${i1}`, new BinaryExpression(op, $a, e1)]),
+      ...SimpleIsRelationalList.map(([i1, e1]) => [`${i1}${txt}a`, createBinaryExpression(op, e1, $a)]),
+      ...SimpleIsAdditiveList.map(([i1, e1]) => [`a${txt}${i1}`, createBinaryExpression(op, $a, e1)]),
       ...SimpleAdditiveList
-        .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i2}${txt}${i1}`, new BinaryExpression(op, e2, e1)]))
+        .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i2}${txt}${i1}`, createBinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleRelationalList
-        .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i1}${txt}${i2}`, new BinaryExpression(e2.operation, new BinaryExpression(op, new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
+        .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i1}${txt}${i2}`, createBinaryExpression(e2.operation, createBinaryExpression(op, createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleEqualityList
-        .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i1}${txt}${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression(op, e1.right, e2.left), e2.right))]))
+        .map(([i1, e1]) => SimpleRelationalList.map(([i2, e2]) => [`${i1}${txt}${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression(op, e1.right, e2.left), e2.right))]))
         .reduce((a, b) => a.concat(b))
     ] as [string, any][]).reduce((a, b) => a.concat(b))
   ];
@@ -1164,16 +1170,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   const ComplexEqualityList: [string, any][] = [
     ...binaryEquality.map(op => [
-      ...SimpleIsEqualityList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
-      ...SimpleIsRelationalList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
+      ...SimpleIsEqualityList.map(([i1, e1]) => [`${i1}${op}a`, createBinaryExpression(op, e1, $a)]),
+      ...SimpleIsRelationalList.map(([i1, e1]) => [`a${op}${i1}`, createBinaryExpression(op, $a, e1)]),
       ...SimpleRelationalList
-        .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
+        .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i2}${op}${i1}`, createBinaryExpression(op, e2, e1)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleEqualityList
-        .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e2.operation, new BinaryExpression(op, new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
+        .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i1}${op}${i2}`, createBinaryExpression(e2.operation, createBinaryExpression(op, createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
         .reduce((a, b) => a.concat(b)),
       ...SimpleLogicalANDList
-        .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression(op, e1.right, e2.left), e2.right))]))
+        .map(([i1, e1]) => SimpleEqualityList.map(([i2, e2]) => [`${i1}${op}${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression(op, e1.right, e2.left), e2.right))]))
         .reduce((a, b) => a.concat(b))
     ] as [string, any][]).reduce((a, b) => a.concat(b))
   ];
@@ -1186,16 +1192,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexLogicalANDList: [string, any][] = [
-    ...SimpleIsLogicalANDList.map(([i1, e1]) => [`${i1}&&a`, new BinaryExpression('&&', e1, $a)] as [string, any]),
-    ...SimpleIsEqualityList.map(([i1, e1]) => [`a&&${i1}`, new BinaryExpression('&&', $a, e1)] as [string, any]),
+    ...SimpleIsLogicalANDList.map(([i1, e1]) => [`${i1}&&a`, createBinaryExpression('&&', e1, $a)] as [string, any]),
+    ...SimpleIsEqualityList.map(([i1, e1]) => [`a&&${i1}`, createBinaryExpression('&&', $a, e1)] as [string, any]),
     ...SimpleEqualityList
-      .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i2}&&${i1}`, new BinaryExpression('&&', e2, e1)]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i2}&&${i1}`, createBinaryExpression('&&', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleLogicalANDList
-      .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i1}&&${i2}`, new BinaryExpression(e2.operation, new BinaryExpression('&&', new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i1}&&${i2}`, createBinaryExpression(e2.operation, createBinaryExpression('&&', createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleLogicalORList
-      .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i1}&&${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression('&&', e1.right, e2.left), e2.right))]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalANDList.map(([i2, e2]) => [`${i1}&&${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression('&&', e1.right, e2.left), e2.right))]) as [string, any][])
       .reduce((a, b) => a.concat(b))
   ];
   describe('parse ComplexLogicalANDList', function () {
@@ -1207,19 +1213,19 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexLogicalORList: [string, any][] = [
-    ...SimpleIsLogicalORList.map(([i1, e1]) => [`${i1}||a`, new BinaryExpression('||', e1, $a)] as [string, any]),
-    ...SimpleIsLogicalANDList.map(([i1, e1]) => [`a||${i1}`, new BinaryExpression('||', $a, e1)] as [string, any]),
+    ...SimpleIsLogicalORList.map(([i1, e1]) => [`${i1}||a`, createBinaryExpression('||', e1, $a)] as [string, any]),
+    ...SimpleIsLogicalANDList.map(([i1, e1]) => [`a||${i1}`, createBinaryExpression('||', $a, e1)] as [string, any]),
     ...SimpleLogicalANDList
-      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i2}||${i1}`, new BinaryExpression('||', e2, e1)]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i2}||${i1}`, createBinaryExpression('||', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleLogicalORList
-      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, new BinaryExpression(e2.operation, new BinaryExpression('||', new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, createBinaryExpression(e2.operation, createBinaryExpression('||', createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleNullishCoalescingList
-      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression('||', e1.right, e2.left), e2.right))]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, createBinaryExpression(e1.operation, e1.left, createBinaryExpression(e2.operation, createBinaryExpression('||', e1.right, e2.left), e2.right))]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleConditionalList
-      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, new ConditionalExpression(e1.condition, e1.yes, new BinaryExpression(e2.operation, new BinaryExpression('||', e1.no, e2.left), e2.right))]) as [string, any][])
+      .map(([i1, e1]) => SimpleLogicalORList.map(([i2, e2]) => [`${i1}||${i2}`, createConditionalExpression(e1.condition, e1.yes, createBinaryExpression(e2.operation, createBinaryExpression('||', e1.no, e2.left), e2.right))]) as [string, any][])
       .reduce((a, b) => a.concat(b))
   ];
   describe('parse ComplexLogicalORList', function () {
@@ -1231,16 +1237,16 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexNullishCoalescingList: [string, any][] = [
-    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}??a`, new BinaryExpression('??', e1, $a)] as [string, any]),
-    ...SimpleIsLogicalORList.map(([i1, e1]) => [`a??${i1}`, new BinaryExpression('??', $a, e1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}??a`, createBinaryExpression('??', e1, $a)] as [string, any]),
+    ...SimpleIsLogicalORList.map(([i1, e1]) => [`a??${i1}`, createBinaryExpression('??', $a, e1)] as [string, any]),
     ...SimpleLogicalORList
-      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i2}??${i1}`, new BinaryExpression('??', e2, e1)]) as [string, any][])
+      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i2}??${i1}`, createBinaryExpression('??', e2, e1)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleNullishCoalescingList
-      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i1}??${i2}`, new BinaryExpression(e2.operation, new BinaryExpression('??', new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
+      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i1}??${i2}`, createBinaryExpression(e2.operation, createBinaryExpression('??', createBinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]) as [string, any][])
       .reduce((a, b) => a.concat(b)),
     ...SimpleConditionalList
-      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i1}??${i2}`, new ConditionalExpression(e1.condition, e1.yes, new BinaryExpression(e2.operation, new BinaryExpression('??', e1.no, e2.left), e2.right))]) as [string, any][])
+      .map(([i1, e1]) => SimpleNullishCoalescingList.map(([i2, e2]) => [`${i1}??${i2}`, createConditionalExpression(e1.condition, e1.yes, createBinaryExpression(e2.operation, createBinaryExpression('??', e1.no, e2.left), e2.right))]) as [string, any][])
       .reduce((a, b) => a.concat(b))
   ];
   describe('parse ComplexNullishCoalescingList', function () {
@@ -1252,12 +1258,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexConditionalList: [string, any][] = [
-    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1, $num0, $num1)] as [string, any]),
-    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
-    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`0?1:${i1}`, new ConditionalExpression($num0, $num1, e1)] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`0?${i1}:1`, new ConditionalExpression($num0, e1, $num1)] as [string, any]),
-    ...SimpleConditionalList.map(([i1, e1]) => [`${i1}?0:1`, new ConditionalExpression(e1.condition, e1.yes, new ConditionalExpression(e1.no, $num0, $num1))] as [string, any])
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`${i1}?0:1`, createConditionalExpression(e1, $num0, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?${i1}:1`, createConditionalExpression($num0, e1, $num1)] as [string, any]),
+    ...SimpleIsNullishCoalescingList.map(([i1, e1]) => [`0?1:${i1}`, createConditionalExpression($num0, $num1, e1)] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`0?1:${i1}`, createConditionalExpression($num0, $num1, e1)] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`0?${i1}:1`, createConditionalExpression($num0, e1, $num1)] as [string, any]),
+    ...SimpleConditionalList.map(([i1, e1]) => [`${i1}?0:1`, createConditionalExpression(e1.condition, e1.yes, createConditionalExpression(e1.no, $num0, $num1))] as [string, any])
   ];
   describe('parse ComplexConditionalList', function () {
     for (const [input, expected] of ComplexConditionalList) {
@@ -1268,12 +1274,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexAssignList: [string, any][] = [
-    ...SimpleIsAssignList.map(([i1, e1]) => [`a=${i1}`, new AssignExpression($a, e1)] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`a=b=${i1}`, new AssignExpression($a, new AssignExpression($b, e1))] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
-    ...SimpleAccessMemberList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
-    ...SimpleAccessKeyedList.map(([i1, e1]) => [`${i1}=a`, new AssignExpression(e1, $a)] as [string, any]),
-    ...SimpleAssignList.map(([i1, e1]) => [`${i1}=c`, new AssignExpression(e1.target, new AssignExpression(e1.value, $c), e1.op)] as [string, any])
+    ...SimpleIsAssignList.map(([i1, e1]) => [`a=${i1}`, createAssignExpression($a, e1)] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`a=b=${i1}`, createAssignExpression($a, createAssignExpression($b, e1))] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}=a`, createAssignExpression(e1, $a)] as [string, any]),
+    ...SimpleAccessMemberList.map(([i1, e1]) => [`${i1}=a`, createAssignExpression(e1, $a)] as [string, any]),
+    ...SimpleAccessKeyedList.map(([i1, e1]) => [`${i1}=a`, createAssignExpression(e1, $a)] as [string, any]),
+    ...SimpleAssignList.map(([i1, e1]) => [`${i1}=c`, createAssignExpression(e1.target, createAssignExpression(e1.value, $c), e1.op)] as [string, any])
   ];
   describe('parse ComplexAssignList', function () {
     for (const [input, expected] of ComplexAssignList) {
@@ -1286,10 +1292,10 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // Anything starting with '{' will be rejected as an arrow fn body so filter those out
   const ConciseBodySimpleIsAssignList = SimpleIsAssignList.filter(([i1]) => !i1.startsWith('{'));
   const ComplexArrowFunctionList: [number, string, ArrowFunction][] = [
-    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `()=>${i1}`, new ArrowFunction([], e1)] as [number, string, any]),
-    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `(a)=>${i1}`, new ArrowFunction([new BindingIdentifier('a')], e1)] as [number, string, any]),
-    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `a=>${i1}`, new ArrowFunction([new BindingIdentifier('a')], e1)] as [number, string, any]),
-    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [2, `()=>()=>${i1}`, new ArrowFunction([], new ArrowFunction([], e1))] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `()=>${i1}`, createArrowFunction([], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `(a)=>${i1}`, createArrowFunction([createBindingIdentifier('a')], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [1, `a=>${i1}`, createArrowFunction([createBindingIdentifier('a')], e1)] as [number, string, any]),
+    ...ConciseBodySimpleIsAssignList.map(([i1, e1]) => [2, `()=>()=>${i1}`, createArrowFunction([], createArrowFunction([], e1))] as [number, string, any]),
   ];
   function adjustAncestor(count: number, expr: IsAssign, input: string) {
     switch (expr.$kind) {
@@ -1389,15 +1395,15 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexValueConverterList: [string, any][] = [
-    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}|a`, new ValueConverterExpression(e1, 'a', [])] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}|a:${i1}`, new ValueConverterExpression(e1, 'a', [e1])] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}`, new ValueConverterExpression(e1, 'a', [e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a|b`, new ValueConverterExpression(new ValueConverterExpression(e1, 'a', []), 'b', [])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a|b|c`, new ValueConverterExpression(new ValueConverterExpression(new ValueConverterExpression(e1, 'a', []), 'b', []), 'c', [])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}`, new ValueConverterExpression(e1, 'a', [e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}:${i1}`, new ValueConverterExpression(e1, 'a', [e1, e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}:${i1}|b|c:${i1}:${i1}:${i1}`, new ValueConverterExpression(new ValueConverterExpression(new ValueConverterExpression(e1, 'a', [e1, e1, e1]), 'b', []), 'c', [e1, e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}:${i1}|b:${i1}:${i1}:${i1}|c`, new ValueConverterExpression(new ValueConverterExpression(new ValueConverterExpression(e1, 'a', [e1, e1, e1]), 'b', [e1, e1, e1]), 'c', [])] as [string, any])
+    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}|a`, createValueConverterExpression(e1, 'a', [])] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}|a:${i1}`, createValueConverterExpression(e1, 'a', [e1])] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}`, createValueConverterExpression(e1, 'a', [e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a|b`, createValueConverterExpression(createValueConverterExpression(e1, 'a', []), 'b', [])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a|b|c`, createValueConverterExpression(createValueConverterExpression(createValueConverterExpression(e1, 'a', []), 'b', []), 'c', [])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}`, createValueConverterExpression(e1, 'a', [e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}:${i1}`, createValueConverterExpression(e1, 'a', [e1, e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}:${i1}|b|c:${i1}:${i1}:${i1}`, createValueConverterExpression(createValueConverterExpression(createValueConverterExpression(e1, 'a', [e1, e1, e1]), 'b', []), 'c', [e1, e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}|a:${i1}:${i1}:${i1}|b:${i1}:${i1}:${i1}|c`, createValueConverterExpression(createValueConverterExpression(createValueConverterExpression(e1, 'a', [e1, e1, e1]), 'b', [e1, e1, e1]), 'c', [])] as [string, any])
   ];
   describe('parse ComplexValueConverterList', function () {
     for (const [input, expected] of ComplexValueConverterList) {
@@ -1408,15 +1414,15 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   });
 
   const ComplexBindingBehaviorList: [string, any][] = [
-    ...SimpleIsValueConverterList.map(([i1, e1]) => [`${i1}&a`, new BindingBehaviorExpression(e1, 'a', [])] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}&a:${i1}`, new BindingBehaviorExpression(e1, 'a', [e1])] as [string, any]),
-    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}`, new BindingBehaviorExpression(e1, 'a', [e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a&b`, new BindingBehaviorExpression(new BindingBehaviorExpression(e1, 'a', []), 'b', [])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a&b&c`, new BindingBehaviorExpression(new BindingBehaviorExpression(new BindingBehaviorExpression(e1, 'a', []), 'b', []), 'c', [])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}`, new BindingBehaviorExpression(e1, 'a', [e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}:${i1}`, new BindingBehaviorExpression(e1, 'a', [e1, e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}:${i1}&b&c:${i1}:${i1}:${i1}`, new BindingBehaviorExpression(new BindingBehaviorExpression(new BindingBehaviorExpression(e1, 'a', [e1, e1, e1]), 'b', []), 'c', [e1, e1, e1])] as [string, any]),
-    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}:${i1}&b:${i1}:${i1}:${i1}&c`, new BindingBehaviorExpression(new BindingBehaviorExpression(new BindingBehaviorExpression(e1, 'a', [e1, e1, e1]), 'b', [e1, e1, e1]), 'c', [])] as [string, any])
+    ...SimpleIsValueConverterList.map(([i1, e1]) => [`${i1}&a`, createBindingBehaviorExpression(e1, 'a', [])] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}&a:${i1}`, createBindingBehaviorExpression(e1, 'a', [e1])] as [string, any]),
+    ...SimpleIsAssignList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}`, createBindingBehaviorExpression(e1, 'a', [e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a&b`, createBindingBehaviorExpression(createBindingBehaviorExpression(e1, 'a', []), 'b', [])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a&b&c`, createBindingBehaviorExpression(createBindingBehaviorExpression(createBindingBehaviorExpression(e1, 'a', []), 'b', []), 'c', [])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}`, createBindingBehaviorExpression(e1, 'a', [e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}:${i1}`, createBindingBehaviorExpression(e1, 'a', [e1, e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}:${i1}&b&c:${i1}:${i1}:${i1}`, createBindingBehaviorExpression(createBindingBehaviorExpression(createBindingBehaviorExpression(e1, 'a', [e1, e1, e1]), 'b', []), 'c', [e1, e1, e1])] as [string, any]),
+    ...AccessScopeList.map(([i1, e1]) => [`${i1}&a:${i1}:${i1}:${i1}&b:${i1}:${i1}:${i1}&c`, createBindingBehaviorExpression(createBindingBehaviorExpression(createBindingBehaviorExpression(e1, 'a', [e1, e1, e1]), 'b', [e1, e1, e1]), 'c', [])] as [string, any])
   ];
   describe('parse ComplexBindingBehaviorList', function () {
     for (const [input, expected] of ComplexBindingBehaviorList) {
@@ -1430,73 +1436,67 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // https://tc39.github.io/ecma262/#sec-runtime-semantics-iteratordestructuringassignmentevaluation
   describe('parse ForOfStatement', function () {
-    const DAE = DestructuringAssignmentExpression;
-    const DASE = DestructuringAssignmentSingleExpression;
-    const AME = AccessMemberExpression;
-    const PLE = PrimitiveLiteralExpression;
-    const AKE = AccessKeyedExpression;
-    const aknd = 'ArrayDestructuring';
-    const bi_a = new BindingIdentifier('a');
+    const bi_a = createBindingIdentifier('a');
 
     const SimpleForDeclarations: [string, any][] = [
       [`a`,           bi_a],
-      [`[]`,          new DAE(aknd, [], void 0, void 0)],
+      [`[]`,          createDestructuringAssignmentExpression('ArrayDestructuring', [], void 0, void 0)],
     ];
 
-    const ame = (name: string) => new AME($this, name);
-    const ake = (key: number) => new AKE($this, new PLE(key));
+    const ame = (name: string) => createAccessMemberExpression($this, name);
+    const ake = (key: number) => createAccessKeyedExpression($this, createPrimitiveLiteralExpression(key));
     const dase = (s: string | number, t: string | null = null, init: IsBindingBehavior | undefined = void 0) => typeof s === 'number'
-      ? new DASE(ame(t), ake(s), init)
-      : new DASE(ame(t ?? s), ame(s), init);
+      ? createDestructuringAssignmentSingleExpression(ame(t), ake(s), init)
+      : createDestructuringAssignmentSingleExpression(ame(t ?? s), ame(s), init);
     const ForDeclarations: [string, any][] = [
-      [`[,]`,                            new DAE(aknd, [], void 0, void 0)],
-      [`[,,]`,                           new DAE(aknd, [], void 0, void 0)],
-      [`[,,,]`,                          new DAE(aknd, [], void 0, void 0)],
-      [`[a,]`,                           new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
-      [`[a,,]`,                          new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
-      [`[a,a,]`,                         new DAE(aknd, [dase(0, 'a'), dase(1, 'a')], void 0, void 0)],
-      [`[a,,]`,                          new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
-      [`[a,,,]`,                         new DAE(aknd, [dase(0, 'a')], void 0, void 0)],
-      [`[a,a,,]`,                        new DAE(aknd, [dase(0, 'a'), dase(1, 'a')], void 0, void 0)],
-      [`[,a]`,                           new DAE(aknd, [dase(1, 'a')], void 0, void 0)],
-      [`[,a,]`,                          new DAE(aknd, [dase(1, 'a')], void 0, void 0)],
-      [`[,a,,]`,                         new DAE(aknd, [dase(1, 'a')], void 0, void 0)],
-      [`[,a,a,]`,                        new DAE(aknd, [dase(1, 'a'), dase(2, 'a')], void 0, void 0)],
-      [`[,,a]`,                          new DAE(aknd, [dase(2, 'a')], void 0, void 0)],
-      [`[,a,a]`,                         new DAE(aknd, [dase(1, 'a'), dase(2, 'a')], void 0, void 0)],
-      [`[,,a,]`,                         new DAE(aknd, [dase(2, 'a')], void 0, void 0)],
-      [`[,,,a]`,                         new DAE(aknd, [dase(3, 'a')], void 0, void 0)],
-      [`[,,a,a]`,                        new DAE(aknd, [dase(2, 'a'), dase(3, 'a')], void 0, void 0)],
-      [`[a,b]`,                          new DAE(aknd, [dase(0, 'a'), dase(1, 'b')], void 0, void 0)],
-      [`[key,value]`,                    new DAE(aknd, [dase(0, 'key'), dase(1, 'value')], void 0, void 0)],
-      [`[a,,b]`,                         new DAE(aknd, [dase(0, 'a'), dase(2, 'b')], void 0, void 0)],
+      [`[,]`,                            createDestructuringAssignmentExpression('ArrayDestructuring', [], void 0, void 0)],
+      [`[,,]`,                           createDestructuringAssignmentExpression('ArrayDestructuring', [], void 0, void 0)],
+      [`[,,,]`,                          createDestructuringAssignmentExpression('ArrayDestructuring', [], void 0, void 0)],
+      [`[a,]`,                           createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a')], void 0, void 0)],
+      [`[a,,]`,                          createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a')], void 0, void 0)],
+      [`[a,a,]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a'), dase(1, 'a')], void 0, void 0)],
+      [`[a,,]`,                          createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a')], void 0, void 0)],
+      [`[a,,,]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a')], void 0, void 0)],
+      [`[a,a,,]`,                        createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a'), dase(1, 'a')], void 0, void 0)],
+      [`[,a]`,                           createDestructuringAssignmentExpression('ArrayDestructuring', [dase(1, 'a')], void 0, void 0)],
+      [`[,a,]`,                          createDestructuringAssignmentExpression('ArrayDestructuring', [dase(1, 'a')], void 0, void 0)],
+      [`[,a,,]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(1, 'a')], void 0, void 0)],
+      [`[,a,a,]`,                        createDestructuringAssignmentExpression('ArrayDestructuring', [dase(1, 'a'), dase(2, 'a')], void 0, void 0)],
+      [`[,,a]`,                          createDestructuringAssignmentExpression('ArrayDestructuring', [dase(2, 'a')], void 0, void 0)],
+      [`[,a,a]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(1, 'a'), dase(2, 'a')], void 0, void 0)],
+      [`[,,a,]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(2, 'a')], void 0, void 0)],
+      [`[,,,a]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(3, 'a')], void 0, void 0)],
+      [`[,,a,a]`,                        createDestructuringAssignmentExpression('ArrayDestructuring', [dase(2, 'a'), dase(3, 'a')], void 0, void 0)],
+      [`[a,b]`,                          createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a'), dase(1, 'b')], void 0, void 0)],
+      [`[key,value]`,                    createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'key'), dase(1, 'value')], void 0, void 0)],
+      [`[a,,b]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a'), dase(2, 'b')], void 0, void 0)],
     ];
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ForOfStatements: [string, any][] = [
       ...SimpleForDeclarations.map(([decInput, decExpr]) => [
-        ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr, -1)])
+        ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, createForOfStatement(decExpr, forExpr, -1)])
       ] as [string, any][]).reduce((a, c) => a.concat(c)),
       ...ForDeclarations.map(([decInput, decExpr]) => [
-        ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, new ForOfStatement(decExpr, forExpr, -1)])
+        ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, createForOfStatement(decExpr, forExpr, -1)])
       ] as [string, any][]).reduce((a, c) => a.concat(c))
     ];
 
     for (const [input, expected] of [
-      ['a of a;key:id',   new ForOfStatement(bi_a, $a, 6)],
-      ['a of a;key: id',  new ForOfStatement(bi_a, $a, 6)],
-      ['a of a; key:id',  new ForOfStatement(bi_a, $a, 6)],
-      ['a of a; key: id', new ForOfStatement(bi_a, $a, 6)],
+      ['a of a;key:id',   createForOfStatement(bi_a, $a, 6)],
+      ['a of a;key: id',  createForOfStatement(bi_a, $a, 6)],
+      ['a of a; key:id',  createForOfStatement(bi_a, $a, 6)],
+      ['a of a; key: id', createForOfStatement(bi_a, $a, 6)],
       // not valid but the expression parser doesn't care about the validity of what comes after the first semicolon
-      ['a of a;;',        new ForOfStatement(bi_a, $a, 6)],
-      ['a of a;a',        new ForOfStatement(bi_a, $a, 6)],
-      ['a of a; a',       new ForOfStatement(bi_a, $a, 6)],
-      ['a of a;a;',       new ForOfStatement(bi_a, $a, 6)],
-      ['a of a; a;',      new ForOfStatement(bi_a, $a, 6)],
-      ['a of a ;a',       new ForOfStatement(bi_a, $a, 7)],
-      ['a of a ; a',      new ForOfStatement(bi_a, $a, 7)],
-      ['a of a ;a;',      new ForOfStatement(bi_a, $a, 7)],
-      ['a of a ; a;',     new ForOfStatement(bi_a, $a, 7)],
+      ['a of a;;',        createForOfStatement(bi_a, $a, 6)],
+      ['a of a;a',        createForOfStatement(bi_a, $a, 6)],
+      ['a of a; a',       createForOfStatement(bi_a, $a, 6)],
+      ['a of a;a;',       createForOfStatement(bi_a, $a, 6)],
+      ['a of a; a;',      createForOfStatement(bi_a, $a, 6)],
+      ['a of a ;a',       createForOfStatement(bi_a, $a, 7)],
+      ['a of a ; a',      createForOfStatement(bi_a, $a, 7)],
+      ['a of a ;a;',      createForOfStatement(bi_a, $a, 7)],
+      ['a of a ; a;',     createForOfStatement(bi_a, $a, 7)],
     ] as [string, any][]) {
       it(input, function () {
         assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
@@ -1521,33 +1521,33 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     [`$a`,                      null],
     [`$a$a`,                    null],
     [`$\\{a`,                   null],
-    [`\${a}}`,                  new Interpolation(['', '}'],                          [$a])],
-    [`\${a}\${b}`,              new Interpolation(['', '', ''],                       [$a, $b])],
-    [`\${a}}\${b}`,             new Interpolation(['', '}', ''],                      [$a, $b])],
-    [`\${a}\${b}}`,             new Interpolation(['', '', '}'],                      [$a, $b])],
-    [`\${a}}\${b}}`,            new Interpolation(['', '}', '}'],                     [$a, $b])],
-    [`a\${a}\${b}`,             new Interpolation(['a', '', ''],                      [$a, $b])],
-    [`\${a}a\${b}`,             new Interpolation(['', 'a', ''],                      [$a, $b])],
-    [`a\${a}a\${b}`,            new Interpolation(['a', 'a', ''],                     [$a, $b])],
-    [`\${a}\${b}a`,             new Interpolation(['', '', 'a'],                      [$a, $b])],
-    [`\${a}a\${b}a`,            new Interpolation(['', 'a', 'a'],                     [$a, $b])],
-    [`a\${a}a\${b}a`,           new Interpolation(['a', 'a', 'a'],                    [$a, $b])],
-    [`\${\`\${a}\`}`,           new Interpolation(['', ''], [new TemplateExpression(['', ''],   [$a])])],
-    [`\${\`a\${a}\`}`,          new Interpolation(['', ''], [new TemplateExpression(['a', ''],  [$a])])],
-    [`\${\`\${a}a\`}`,          new Interpolation(['', ''], [new TemplateExpression(['', 'a'],  [$a])])],
-    [`\${\`a\${a}a\`}`,         new Interpolation(['', ''], [new TemplateExpression(['a', 'a'], [$a])])],
-    [`\${\`\${\`\${a}\`}\`}`,   new Interpolation(['', ''], [new TemplateExpression(['', ''], [new TemplateExpression(['', ''],   [$a])])])],
+    [`\${a}}`,                  createInterpolation(['', '}'],                          [$a])],
+    [`\${a}\${b}`,              createInterpolation(['', '', ''],                       [$a, $b])],
+    [`\${a}}\${b}`,             createInterpolation(['', '}', ''],                      [$a, $b])],
+    [`\${a}\${b}}`,             createInterpolation(['', '', '}'],                      [$a, $b])],
+    [`\${a}}\${b}}`,            createInterpolation(['', '}', '}'],                     [$a, $b])],
+    [`a\${a}\${b}`,             createInterpolation(['a', '', ''],                      [$a, $b])],
+    [`\${a}a\${b}`,             createInterpolation(['', 'a', ''],                      [$a, $b])],
+    [`a\${a}a\${b}`,            createInterpolation(['a', 'a', ''],                     [$a, $b])],
+    [`\${a}\${b}a`,             createInterpolation(['', '', 'a'],                      [$a, $b])],
+    [`\${a}a\${b}a`,            createInterpolation(['', 'a', 'a'],                     [$a, $b])],
+    [`a\${a}a\${b}a`,           createInterpolation(['a', 'a', 'a'],                    [$a, $b])],
+    [`\${\`\${a}\`}`,           createInterpolation(['', ''], [createTemplateExpression(['', ''],   [$a])])],
+    [`\${\`a\${a}\`}`,          createInterpolation(['', ''], [createTemplateExpression(['a', ''],  [$a])])],
+    [`\${\`\${a}a\`}`,          createInterpolation(['', ''], [createTemplateExpression(['', 'a'],  [$a])])],
+    [`\${\`a\${a}a\`}`,         createInterpolation(['', ''], [createTemplateExpression(['a', 'a'], [$a])])],
+    [`\${\`\${\`\${a}\`}\`}`,   createInterpolation(['', ''], [createTemplateExpression(['', ''], [createTemplateExpression(['', ''],   [$a])])])],
     ...stringEscapables.map(([raw, cooked]): [string, any][] => [
       [`${raw}`,                null],
-      [`\${a}${raw}`,           new Interpolation(['', cooked],        [$a])],
-      [`${raw}\${a}`,           new Interpolation([cooked, ''],        [$a])],
-      [`${raw}\${a}${raw}`,     new Interpolation([cooked, cooked],    [$a])],
-      [`\${a}${raw}\${a}`,      new Interpolation(['', cooked, ''],    [$a, $a])],
+      [`\${a}${raw}`,           createInterpolation(['', cooked],        [$a])],
+      [`${raw}\${a}`,           createInterpolation([cooked, ''],        [$a])],
+      [`${raw}\${a}${raw}`,     createInterpolation([cooked, cooked],    [$a])],
+      [`\${a}${raw}\${a}`,      createInterpolation(['', cooked, ''],    [$a, $a])],
     ]).reduce((acc, cur) => acc.concat(cur)),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`\${${input}}`, new Interpolation(['', ''], [expr])] as [string, any]),
+      .map(([input, expr]) => [`\${${input}}`, createInterpolation(['', ''], [expr])] as [string, any]),
     ...SimpleIsAssignList
-      .map(([input, expr]) => [`\${${input}}\${${input}}`, new Interpolation(['', '', ''], [expr, expr])] as [string, any])
+      .map(([input, expr]) => [`\${${input}}\${${input}}`, createInterpolation(['', '', ''], [expr, expr])] as [string, any])
   ];
   describe('parse Interpolation', function () {
     for (const [input, expected] of InterpolationList) {
@@ -1560,7 +1560,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   describe('parse unicode IdentifierStart', function () {
     for (const char of latin1IdentifierStartChars) {
       it(char, function () {
-        assert.deepStrictEqual(parseExpression(char), new AccessScopeExpression(char, 0));
+        assert.deepStrictEqual(parseExpression(char), createAccessScopeExpression(char, 0));
       });
     }
   });
@@ -1569,7 +1569,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     for (const char of latin1IdentifierPartChars) {
       it(char, function () {
         const identifier = `$${char}`;
-        assert.deepStrictEqual(parseExpression(identifier), new AccessScopeExpression(identifier, 0));
+        assert.deepStrictEqual(parseExpression(identifier), createAccessScopeExpression(identifier, 0));
       });
     }
   });
@@ -1710,7 +1710,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       });
     }
     for (const [input] of [
-      [`a`, new BindingIdentifier('a')]
+      [`a`, createBindingIdentifier('a')]
     ] as [string, any][]) {
       it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0163', 'IsIterator');

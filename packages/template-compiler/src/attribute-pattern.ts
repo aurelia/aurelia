@@ -43,7 +43,6 @@ interface PatternScore {
   readonly symbols: number;
 }
 
-/** @internal */
 function createSymbolSet(symbols: string): Set<string> {
   const set = new Set<string>();
   for (let i = 0; i < symbols.length; i++) {
@@ -52,7 +51,6 @@ function createSymbolSet(symbols: string): Set<string> {
   return set;
 }
 
-/** @internal */
 function compilePattern(pattern: string, symbols: string): { tokens: Token[]; score: PatternScore } {
   const tokens: Token[] = [];
   const symbolSet = createSymbolSet(symbols);
@@ -89,7 +87,6 @@ function compilePattern(pattern: string, symbols: string): { tokens: Token[]; sc
   return { tokens, score: { statics, dynamics, symbols: symbolCount } };
 }
 
-/** @internal */
 class CompiledPattern {
   /** @internal */ public readonly _tokens: Token[];
   /** @internal */ public readonly _score: PatternScore;
@@ -147,14 +144,12 @@ class CompiledPattern {
   }
 }
 
-/** @internal */
 function isBetterScore(a: PatternScore, b: PatternScore): boolean {
   if (a.statics !== b.statics) return a.statics > b.statics;
   if (a.dynamics !== b.dynamics) return a.dynamics > b.dynamics;
   return a.symbols > b.symbols;
 }
 
-/** Kept for API compatibility. */
 export class Interpretation {
   public parts: readonly string[] = emptyArray;
   /** @internal */ private _pattern: string | null = null;
@@ -262,7 +257,7 @@ export class AttributeParser implements IAttributeParser {
       handlerInfo.instance = this._container.get(handlerInfo.type);
     }
 
-    return handlerInfo.instance![pattern](name, value, interpretation.parts as string[]);
+    return handlerInfo.instance[pattern](name, value, interpretation.parts as string[]);
   }
 }
 

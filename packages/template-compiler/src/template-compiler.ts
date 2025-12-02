@@ -16,7 +16,6 @@ import {
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
-  PrimitiveLiteralExpression,
   createPrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import { IAttrMapper } from './attribute-mapper';

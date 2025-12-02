@@ -1,5 +1,5 @@
 import { Registration, Writable } from '@aurelia/kernel';
-import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser, createAccessScopeExpression, createForOfStatement, createBindingIdentifier } from '@aurelia/expression-parser';
+import { ExpressionParser, createAccessScopeExpression, createForOfStatement, createBindingIdentifier } from '@aurelia/expression-parser';
 import {
   DirtyChecker,
   Scope,

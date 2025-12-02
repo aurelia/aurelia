@@ -5,7 +5,7 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression, createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
+import { createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
 import {
   BindingMode,
   CustomElement,

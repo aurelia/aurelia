@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { AccessMemberExpression, AccessScopeExpression, createAccessMemberExpression, createAccessScopeExpression } from '@aurelia/expression-parser';
+import { createAccessMemberExpression, createAccessScopeExpression } from '@aurelia/expression-parser';
 import { astEvaluate, runTasks } from '@aurelia/runtime';
 import { ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';

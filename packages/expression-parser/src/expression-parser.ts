@@ -65,7 +65,6 @@ import {
   createDestructuringAssignmentSingleExpression,
   createArrowFunction,
   PrimitiveLiteral,
-  Template,
 } from './ast';
 import { createLookup } from './utilities';
 import { ErrorNames, createMappedError } from './errors';

@@ -139,6 +139,10 @@ export const enum ErrorNames {
   children_decorator_invalid_usage = 9991,
   slotted_decorator_invalid_usage = 9990,
   children_invalid_query = 9989,
+
+  hydration_target_count_mismatch = 822,
+  hydration_node_count_mismatch = 823,
+  hydration_view_count_mismatch = 824,
 }
 _END_CONST_ENUM();
 
@@ -267,7 +271,11 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.children_decorator_invalid_usage]: `Invalid @children usage. @children decorator can only be used on a field`,
   [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
-  [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`
+  [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`,
+
+  [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
+  [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
+  [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

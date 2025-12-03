@@ -2,6 +2,8 @@ import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
+import { IHydrationManifest } from './hydration';
+
 import { FragmentNodeSequence, INodeSequence } from '../dom';
 import { INode } from '../dom.node';
 import { IPlatform } from '../platform';
@@ -25,6 +27,19 @@ export interface IRendering {
   getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
 
   createNodes(definition: CustomElementDefinition): INodeSequence;
+
+  /**
+   * Adopt existing DOM children for SSR hydration.
+   *
+   * Instead of cloning from a template, this wraps existing DOM nodes
+   * that were pre-rendered (e.g., by SSR). Use this when hydrating
+   * server-rendered HTML.
+   *
+   * @param host - The element whose children should be adopted
+   * @param manifest - Optional hydration manifest with element paths for path-based resolution
+   * @returns A node sequence wrapping the existing children
+   */
+  adoptNodes(host: Element, manifest?: IHydrationManifest): INodeSequence;
 
   render(
     controller: IHydratableController,
@@ -51,8 +66,6 @@ export class Rendering implements IRendering {
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
   /** @internal */
   private readonly _empty: INodeSequence;
-  /** @internal */
-  private readonly _marker: Node;
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
@@ -72,7 +85,6 @@ export class Rendering implements IRendering {
     const p = this._platform = ctn.get(IPlatform);
     this._exprParser= ctn.get(IExpressionParser);
     this._observerLocator = ctn.get(IObserverLocator);
-    this._marker = p.document.createElement('au-m');
     this._empty = new FragmentNodeSequence(p, p.document.createDocumentFragment());
   }
 
@@ -102,7 +114,7 @@ export class Rendering implements IRendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._platform, this._transformMarker(definition.template as Node) as DocumentFragment);
+      return new FragmentNodeSequence(this._platform, definition.template as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
     let needsImportNode = false;
@@ -131,7 +143,8 @@ export class Rendering implements IRendering {
         fragment = tpl.content;
         needsImportNode = true;
       }
-      this._transformMarker(fragment);
+      // No marker transformation needed - the unified marker system uses
+      // au-hid attributes and <!--au:N--> comments directly
 
       cache.set(definition, fragment);
     }
@@ -145,6 +158,10 @@ export class Rendering implements IRendering {
         );
   }
 
+  public adoptNodes(host: Element, manifest?: IHydrationManifest): INodeSequence {
+    return FragmentNodeSequence.adoptChildren(this._platform, host, manifest);
+  }
+
   public render(
     controller: IHydratableController,
     targets: ArrayLike<INode>,
@@ -153,17 +170,26 @@ export class Rendering implements IRendering {
   ): void {
     const rows = definition.instructions;
     const renderers = this.renderers;
-    const ii = targets.length;
+    const targetCount = targets.length;
+    const rowCount = rows.length;
+
+    // When hydrating with manifest, we may have more targets than instructions
+    // because nested targets (inside template controllers) are collected flat
+    // but belong to the template controller's views, not the parent.
+    const ctn = controller.container;
+    const manifest = ctn.has(IHydrationManifest, true) ? ctn.get(IHydrationManifest) : null;
+    const isHydrating = manifest !== null;
 
     let i = 0;
     let j = 0;
-    let jj = rows.length;
+    let jj = rowCount;
     let row: readonly IInstruction[];
     let instruction: IInstruction;
     let target: INode;
 
-    if (ii !== jj) {
-      throw createMappedError(ErrorNames.rendering_mismatch_length, ii, jj);
+    // Only validate length match when not hydrating with manifest
+    if (!isHydrating && targetCount !== rowCount) {
+      throw createMappedError(ErrorNames.rendering_mismatch_length, targetCount, rowCount);
     }
 
     // host is only null when rendering a synthetic view
@@ -180,8 +206,8 @@ export class Rendering implements IRendering {
       }
     }
 
-    if (ii > 0) {
-      while (ii > i) {
+    if (rowCount > 0) {
+      while (rowCount > i) {
         row = rows[i];
         target = targets[i];
         j = 0;
@@ -194,63 +220,5 @@ export class Rendering implements IRendering {
         ++i;
       }
     }
-  }
-
-  /** @internal */
-  private _transformMarker(fragment: Node | null) {
-    if (fragment == null) {
-      return null;
-    }
-    const walker = this._platform.document.createTreeWalker(fragment, /* NodeFilter.SHOW_COMMENT */ 128);
-    let currentNode: Node | null;
-    while ((currentNode = walker.nextNode()) != null) {
-      if (currentNode.nodeValue === 'au*') {
-        currentNode.parentNode!.replaceChild(walker.currentNode = this._marker.cloneNode(), currentNode);
-      }
-    }
-    return fragment;
-    // below is a homemade "comment query selector that seems to be as efficient as the TreeWalker
-    // also it works with very minimal set of APIs (.nextSibling, .parentNode, .insertBefore, .removeChild)
-    // while TreeWalker maynot be always available in platform that we may potentially support
-    //
-    // so leaving it here just in case we need it again, TreeWalker is slightly less code
-
-    // let parent: Node = fragment;
-    // let current: Node | null | undefined = parent.firstChild;
-    // let next: Node | null | undefined = null;
-
-    // while (current != null) {
-    //   if (current.nodeType === 8 && current.nodeValue === 'au*') {
-    //     next = current.nextSibling!;
-    //     parent.removeChild(current);
-    //     parent.insertBefore(this._marker(), next);
-    //     if (next.nodeType === 8) {
-    //       current = next.nextSibling;
-    //       // todo: maybe validate?
-    //     } else {
-    //       current = next;
-    //     }
-    //   }
-
-    //   next = current?.firstChild;
-    //   if (next == null) {
-    //     next = current?.nextSibling;
-    //     if (next == null) {
-    //       current = parent.nextSibling;
-    //       parent = parent.parentNode!;
-    //       // needs to keep walking up all the way til a valid next node
-    //       while (current == null && parent != null) {
-    //         current = parent.nextSibling;
-    //         parent = parent.parentNode!;
-    //       }
-    //     } else {
-    //       current = next;
-    //     }
-    //   } else {
-    //     parent = current!;
-    //     current = next;
-    //   }
-    // }
-    // return fragment;
   }
 }

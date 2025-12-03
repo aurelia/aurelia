@@ -1,4 +1,4 @@
-import { onResolve, resolve, isPromise, isString } from '@aurelia/kernel';
+import { onResolve, optional, resolve, isPromise, isString } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
@@ -7,6 +7,7 @@ import { rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';
+import { IHydrationManifest, type IControllerManifest } from '../../templating/hydration';
 
 export type PortalTarget = string | Element | null | undefined;
 type ResolvedTarget = Element;
@@ -63,6 +64,9 @@ export class Portal implements ICustomAttributeViewModel {
   /** @internal */ private readonly _platform: IPlatform;
   /** @internal */ private readonly _targetLocation: IRenderLocation;
 
+  /** @internal */ private readonly _hydrationManifest: IHydrationManifest | null;
+  /** @internal */ private readonly _controllerManifest: IControllerManifest | null;
+
   public constructor() {
     const factory = resolve(IViewFactory);
     const originalLoc = resolve(IRenderLocation);
@@ -72,10 +76,17 @@ export class Portal implements ICustomAttributeViewModel {
     // todo: is this necessary
     this._resolvedTarget = p.document.createElement('div');
 
+    // TODO: SSR hydration - portal content lives at target location, not original
     (this.view = factory.create()).setLocation(
       this._targetLocation = createLocation(p)
     );
     setEffectiveParentNode(this.view.nodes, originalLoc as unknown as Node);
+
+    const manifest = this._hydrationManifest = resolve(optional(IHydrationManifest)) ?? null;
+    const targetIndex = (originalLoc as IRenderLocation).$targetIndex;
+    this._controllerManifest = manifest != null && targetIndex != null
+      ? manifest.controllers[targetIndex] ?? null
+      : null;
   }
 
   public attaching(

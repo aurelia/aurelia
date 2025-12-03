@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve, resolve } from '@aurelia/kernel';
+import { onResolve, resolve, optional } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 
@@ -8,6 +8,7 @@ import type { IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
+import { IResumeContext } from '../../templating/hydration';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -39,8 +40,14 @@ export class If implements ICustomAttributeViewModel {
   /** @internal */ private _swapId: number = 0;
   /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      return this._activateHydratedView(this.value, ctx);
+    }
     return this._swap(this.value);
   }
 
@@ -74,6 +81,7 @@ export class If implements ICustomAttributeViewModel {
      */
     const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
     let view: ISyntheticView | undefined;
+
     return onResolve(this.pending,
       () => this.pending = onResolve(
         currView?.deactivate(currView, ctrl),
@@ -112,6 +120,45 @@ export class If implements ICustomAttributeViewModel {
           );
         }
       )
+    );
+  }
+
+  /** @internal */
+  private _activateHydratedView(
+    value: unknown,
+    context: IResumeContext
+  ): void | Promise<void> {
+    const ctrl = this.$controller;
+
+    if (value && context.hasView(0)) {
+      return this._adoptView(context, ctrl, this._ifFactory, 'if');
+    }
+
+    if (!value && this.elseFactory != null && context.hasView(0)) {
+      return this._adoptView(context, ctrl, this.elseFactory, 'else');
+    }
+
+    this.view = void 0;
+  }
+
+  /** @internal */
+  private _adoptView(
+    context: IResumeContext,
+    ctrl: ICustomAttributeController<this>,
+    factory: IViewFactory,
+    branch: 'if' | 'else'
+  ): void | Promise<void> {
+    const view = context.adoptView(0, factory);
+
+    if (branch === 'if') {
+      this.view = this.ifView = view;
+    } else {
+      this.view = this.elseView = view;
+    }
+
+    return onResolve(
+      view.activate(view, ctrl, ctrl.scope),
+      () => { this.pending = void 0; }
     );
   }
 

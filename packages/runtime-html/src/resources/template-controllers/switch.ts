@@ -3,6 +3,7 @@ import {
   ILogger,
   onResolve,
   onResolveAll,
+  optional,
   resolve,
   Writable,
 } from '@aurelia/kernel';
@@ -21,6 +22,7 @@ import type { Controller, ICustomAttributeController, ICustomAttributeViewModel,
 import type { INode } from '../../dom.node';
 import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
+import { IResumeContext } from '../../templating/hydration';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -49,12 +51,16 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
 
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+
   public link(
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: IInstruction,
   ): void {
+    // Skip in SSR - will adopt in attaching()
+    if (this._ssrContext) return;
     this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
@@ -62,9 +68,36 @@ export class Switch implements ICustomAttributeViewModel {
     const view = this.view;
     const $controller = this.$controller;
 
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      this.queue(() => this._activateHydratedView(initiator, ctx));
+      this.queue(() => this.swap(initiator, this.value));
+      return this.promise;
+    }
+
     this.queue(() => view.activate(initiator, $controller, $controller.scope));
     this.queue(() => this.swap(initiator, this.value));
     return this.promise;
+  }
+
+  /**
+   * Switch doesn't move DOM - it just provides targets for Case render locations.
+   * Each Case adopts its own content separately.
+   * @internal
+   */
+  private _activateHydratedView(
+    initiator: IHydratedController,
+    context: IResumeContext
+  ): void | Promise<void> {
+    const ctrl = this.$controller;
+
+    if (!context.hasView(0)) {
+      return this.view.activate(initiator, ctrl, ctrl.scope);
+    }
+
+    this.view = context.adoptViewTargetsOnly(0, this._factory, this.$controller);
+    return this.view.activate(initiator, ctrl, ctrl.scope);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -273,6 +306,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public link(
     controller: IHydratableController,
@@ -323,7 +357,18 @@ export class Case implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      if (this._ssrContext) {
+        const ctx = this._ssrContext;
+        this._ssrContext = void 0;
+
+        if (ctx.hasView(0)) {
+          view = this.view = ctx.adoptView(0, this._factory);
+        } else {
+          view = this.view = this._factory.create().setLocation(this._location);
+        }
+      } else {
+        view = this.view = this._factory.create().setLocation(this._location);
+      }
     }
     if (view.isActive) { return; }
     return view.activate(initiator ?? view, this.$controller, scope);

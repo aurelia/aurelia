@@ -1,9 +1,10 @@
-import { resolve } from '@aurelia/kernel';
+import { onResolve, optional, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, ISyntheticView } from '../../templating/controller';
+import { IResumeContext } from '../../templating/hydration';
 
 export class With implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -17,7 +18,10 @@ export class With implements ICustomAttributeViewModel {
 
   public value?: object;
 
-  private view = resolve(IViewFactory).create().setLocation(resolve(IRenderLocation));
+  /** @internal */ private readonly _factory = resolve(IViewFactory);
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  private view!: ISyntheticView;
 
   public valueChanged(
     newValue: unknown,
@@ -39,9 +43,37 @@ export class With implements ICustomAttributeViewModel {
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      return this._activateHydratedView(ctx);
+    }
+    return this._activateView();
+  }
+
+  /** @internal */
+  private _activateView(): void | Promise<void> {
     const { $controller, value } = this;
+    const view = this.view = this._factory.create().setLocation(this._location);
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, scope);
+    return view.activate(view, $controller, scope);
+  }
+
+  /** @internal */
+  private _activateHydratedView(context: IResumeContext): void | Promise<void> {
+    const ctrl = this.$controller;
+
+    if (!context.hasView(0)) {
+      // No view was rendered on server, create one now
+      return this._activateView();
+    }
+
+    // Adopt the existing DOM
+    const view = this.view = context.adoptView(0, this._factory);
+
+    const { value } = this;
+    const scope = Scope.fromParent(ctrl.scope, value === void 0 ? {} : value);
+    return view.activate(view, ctrl, scope);
   }
 
   public detaching(
@@ -52,7 +84,7 @@ export class With implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
-    this.view.dispose();
+    this.view?.dispose();
     this.view = (void 0)!;
   }
 

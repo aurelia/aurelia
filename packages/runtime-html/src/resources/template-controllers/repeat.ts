@@ -11,7 +11,8 @@ import {
   resolve,
   all,
   emptyArray,
-  IContainer,
+  type IContainer,
+  optional,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
@@ -38,6 +39,7 @@ import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attri
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
+import { IResumeContext } from '../../templating/hydration';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -87,10 +89,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _hasDestructuredLocal: boolean = false;
   /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
+  /** @internal */
+  private _hasAdoptedViews: boolean = false;
+
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _resolver = resolve(IRepeatableHandlerResolver);
+  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
 
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
@@ -170,6 +176,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._normalizeToArray();
     this._createScopes(void 0);
 
+    if (this._ssrContext) {
+      const ctx = this._ssrContext;
+      this._ssrContext = void 0;
+      this._hasAdoptedViews = true;
+      return this._activateHydratedViews(null, this._normalizedItems ?? emptyArray, ctx);
+    }
+
     return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
   }
 
@@ -178,8 +191,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
-
-    return this._deactivateAllViews(initiator);
+    // Adopted views can't be cached - their nodes are tied to specific DOM
+    const skipCache = this._hasAdoptedViews;
+    this._hasAdoptedViews = false;
+    const result = this._deactivateAllViews(initiator, skipCache);
+    if (skipCache) {
+      this.views = [];
+    }
+    return result;
   }
 
   public unbinding(
@@ -255,45 +274,51 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
       } else if (hasKey) {
-        const oldKeys = Array<unknown>(oldLen);
-
+        // Build a map of oldKey -> oldIndex for O(1) lookups
+        const oldKeyToIndex = new Map<unknown, number>();
         for (i = 0; i < oldLen; ++i) {
-          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local);
+          oldKeyToIndex.set(getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local), i);
         }
 
-        const newKeys = Array<unknown>(oldLen);
-
+        // Build a set of new keys for O(1) deletion checks
+        const newKeySet = new Set<unknown>();
         for (i = 0; i < newLen; ++i) {
-          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
+          const newKey = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
+          newKeySet.add(newKey);
+
+          const oldIndex = oldKeyToIndex.get(newKey);
+          indexMap[i] = oldIndex !== void 0 ? oldIndex : -2;
         }
 
-        for (i = 0; i < newLen; ++i) {
-          if (oldKeys.includes(newKeys[i])) {
-            indexMap[i] = oldKeys.indexOf(newKeys[i]);
-          } else {
-            indexMap[i] = -2;
-          }
-        }
-
-        for (i = 0; i < oldLen; ++i) {
-          if (!newKeys.includes(oldKeys[i])) {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+        // Find deleted items (old keys not in new keys)
+        for (const [oldKey, oldIndex] of oldKeyToIndex) {
+          if (!newKeySet.has(oldKey)) {
+            indexMap.deletedIndices.push(oldIndex);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[oldIndex], binding, local));
           }
         }
       } else {
-        for (i = 0; i < newLen; ++i) {
-          if (oldScopes.includes(newScopes[i])) {
-            indexMap[i] = oldScopes.indexOf(newScopes[i]);
-          } else {
-            indexMap[i] = -2;
-          }
+        // Build a map of oldScope -> oldIndex for O(1) lookups
+        const oldScopeToIndex = new Map<Scope, number>();
+        for (i = 0; i < oldLen; ++i) {
+          oldScopeToIndex.set(oldScopes[i], i);
         }
 
-        for (i = 0; i < oldLen; ++i) {
-          if (!newScopes.includes(oldScopes[i])) {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+        // Build a set of new scopes for O(1) deletion checks
+        const newScopeSet = new Set<Scope>();
+        for (i = 0; i < newLen; ++i) {
+          const newScope = newScopes[i];
+          newScopeSet.add(newScope);
+
+          const oldIndex = oldScopeToIndex.get(newScope);
+          indexMap[i] = oldIndex !== void 0 ? oldIndex : -2;
+        }
+
+        // Find deleted items (old scopes not in new scopes)
+        for (const [oldScope, oldIndex] of oldScopeToIndex) {
+          if (!newScopeSet.has(oldScope)) {
+            indexMap.deletedIndices.push(oldIndex);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[oldIndex], binding, local));
           }
         }
       }
@@ -460,8 +485,53 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   /** @internal */
+  private _activateHydratedViews(
+    initiator: IHydratedController | null,
+    $items: unknown[],
+    context: IResumeContext,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let view: ISyntheticView;
+    let scope: Scope;
+
+    const { $controller, _factory, _scopes } = this;
+    const newLen = $items.length;
+    const views = this.views = Array(newLen);
+
+    if (__DEV__ && context.manifest.views.length !== newLen) {
+      throw createMappedError(ErrorNames.hydration_view_count_mismatch, context.manifest.views.length, newLen);
+    }
+
+    // Collect all nodes upfront before moving any (moving removes from DOM)
+    const allViewNodes = context.collectAllViewNodes();
+
+    for (let i = 0; i < newLen; ++i) {
+      view = views[i] = context.adoptViewWithNodes(i, allViewNodes[i], _factory);
+      view.nodes.unlink();
+      scope = _scopes[i];
+
+      if (this.contextual) {
+        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
+      ret = view.activate(initiator ?? view, $controller, scope);
+      if (isPromise(ret)) {
+        (promises ??= []).push(ret);
+      }
+    }
+
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
+    }
+  }
+
+  /** @internal */
   private _deactivateAllViews(
     initiator: IHydratedController | null,
+    skipCache: boolean = false,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -473,7 +543,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (; ii > i; ++i) {
       view = views[i];
-      view.release();
+      // Adopted views can't be reused
+      if (!skipCache) {
+        view.release();
+      }
       ret = view.deactivate(initiator ?? view, $controller);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);

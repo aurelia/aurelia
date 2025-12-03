@@ -39,6 +39,7 @@ export {
   Aurelia,
   IAurelia,
   type IEnhancementConfig,
+  type IHydrateConfig,
   /**
    * @deprecated
    * Use `ISinglePageAppConfig` instead
@@ -46,6 +47,20 @@ export {
   type ISinglePageAppConfig as ISinglePageApp,
   type ISinglePageAppConfig,
 } from './aurelia';
+export {
+  type IHydrationManifest,
+  IHydrationManifest as IHydrationManifestToken,
+  type IControllerManifest,
+  type IViewManifest,
+  consumeHydrationManifest,
+  type IResumeContext,
+  IResumeContext as IResumeContextToken,
+  ResumeContext,
+  // SSR post-render processing
+  type SSRPostRenderResult,
+  processSSROutput,
+  computeElementPath,
+} from './templating/hydration';
 export {
   type IAppRootConfig,
   AppRoot,

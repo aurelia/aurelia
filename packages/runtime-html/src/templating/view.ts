@@ -2,6 +2,8 @@ import { isString, type IContainer } from '@aurelia/kernel';
 import { CustomElementDefinition } from '../resources/custom-element';
 import { createInterface } from '../utilities-di';
 import { Controller } from './controller';
+import { INode } from '../dom.node';
+import { INodeSequence } from '../dom';
 
 import type { ICustomAttributeController, ICustomElementController, ISyntheticView } from './controller';
 
@@ -18,6 +20,19 @@ export interface IViewFactory {
   tryReturnToCache(controller: ISyntheticView): boolean;
 
   create(parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
+
+  /**
+   * Create a view by adopting existing DOM nodes for SSR hydration.
+   *
+   * @param nodes - The node sequence wrapping existing DOM
+   * @param targets - Pre-collected targets for this view
+   * @param parentController - Optional parent controller
+   */
+  adopt(
+    nodes: INodeSequence,
+    targets: ArrayLike<INode>,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+  ): ISyntheticView;
 }
 export const IViewFactory = /*@__PURE__*/createInterface<IViewFactory>('IViewFactory');
 
@@ -92,5 +107,13 @@ export class ViewFactory implements IViewFactory {
 
     controller = Controller.$view(this, parentController);
     return controller;
+  }
+
+  public adopt(
+    nodes: INodeSequence,
+    targets: ArrayLike<INode>,
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+  ): ISyntheticView {
+    return Controller.$adoptView(this, nodes, targets, parentController);
   }
 }

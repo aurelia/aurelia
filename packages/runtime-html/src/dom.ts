@@ -5,6 +5,7 @@ import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
 import { INode } from './dom.node';
+import type { IHydrationManifest } from './templating/hydration';
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
 export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
@@ -21,6 +22,8 @@ export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTa
 export const IRenderLocation = /*@__PURE__*/createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
+  /** Target index for SSR hydration manifest lookup */
+  $targetIndex?: number;
 };
 
 /** @internal */
@@ -242,40 +245,177 @@ export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
   private readonly f: DocumentFragment;
 
+  /**
+   * Adopt existing DOM children for SSR hydration.
+   *
+   * Instead of cloning from a template, this wraps existing DOM nodes
+   * that were pre-rendered (e.g., by SSR). The nodes are already in the DOM,
+   * so `appendTo()` will be a no-op and `remove()` will move them to
+   * an internal fragment for potential re-mounting.
+   *
+   * @param platform - The platform abstraction
+   * @param parent - The element whose children should be adopted
+   * @param manifest - Optional hydration manifest with element paths for path-based resolution
+   * @returns A node sequence wrapping the existing children
+   */
+  public static adoptChildren(platform: IPlatform, parent: Element, manifest?: IHydrationManifest): FragmentNodeSequence {
+    // Create empty fragment for potential future unmounting
+    // (when remove() is called, nodes will be moved here)
+    const fragment = platform.document.createDocumentFragment();
+    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest);
+    return instance;
+  }
+
   public constructor(
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
+    /**
+     * When provided, adopts children from this parent instead of using fragment.
+     * The fragment is kept empty for future remove() operations.
+     * @internal
+     */
+    adoptFrom?: Element,
+    /**
+     * When provided with elementPaths, uses path-based resolution instead of au-hid attributes.
+     * @internal
+     */
+    manifest?: IHydrationManifest,
   ) {
-    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
-    let i = 0;
-    let ii = targetNodeList.length;
-    // eslint-disable-next-line
-    let targets = this.t = Array(ii);
-    let target: Node | IRenderLocation;
-    let marker: Element;
+    this.f = fragment;
 
-    while (ii > i) {
-      marker = targetNodeList[i];
+    // Collect targets and children from either the fragment or adopted parent
+    const root = adoptFrom ?? fragment;
+    this.t = this._collectTargets(root, manifest);
+
+    const childNodeList = root.childNodes;
+    const ii = childNodeList.length;
+    const childNodes = this.childNodes = Array(ii) as Node[];
+    for (let i = 0; ii > i; ++i) {
+      childNodes[i] = childNodeList[i];
+    }
+
+    this._firstChild = root.firstChild;
+    this._lastChild = root.lastChild;
+
+    // When adopting, nodes are already in the DOM
+    this._isMounted = adoptFrom !== undefined;
+  }
+
+  /**
+   * Collect instruction targets from a DOM tree using the unified marker system.
+   *
+   * Unified SSR-compatible marker system:
+   * 1. Element targets: [au-hid="N"] attribute - value IS the target index
+   *    OR when manifest.elementPaths is present, use path-based resolution
+   * 2. Non-element targets: <!--au:N--> comment - N IS the target index
+   *
+   * Both marker types encode their index directly, eliminating the need
+   * for runtime DOM transformation.
+   *
+   * This method collects ALL targets in a flat pass. For SSR hydration with
+   * template controllers, global indices are used and a manifest provides
+   * view boundary information.
+   *
+   * @param root - DocumentFragment (for template cloning) or Element (for SSR adoption)
+   * @param manifest - Optional hydration manifest with element paths
+   * @returns Array of target nodes indexed by their marker values
+   *
+   * @internal
+   */
+  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest): Node[] {
+    const { platform } = this;
+    const targets: Node[] = [];
+
+    // Element targets: use paths from manifest (client hydration) or au-hid attributes (SSR server)
+    if (manifest?.elementPaths != null) {
+      // Path-based resolution: no au-hid attributes in HTML
+      const elementPaths = manifest.elementPaths;
+      for (const targetIdStr in elementPaths) {
+        const targetId = Number(targetIdStr);
+        const path = elementPaths[targetId];
+        targets[targetId] = this._resolvePath(root as Element, path);
+      }
+    } else {
+      // Attribute-based resolution: au-hid attributes present (SSR server render or template cloning)
+      const auHidElements = root.querySelectorAll('[au-hid]');
+      let el: Element;
+      let targetId: number;
+      for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
+        el = auHidElements[i];
+        targetId = parseInt(el.getAttribute('au-hid')!, 10);
+        el.removeAttribute('au-hid');
+        targets[targetId] = el;
+      }
+    }
+
+    // Use TreeWalker to find <!--au:N--> comments
+    // Comment markers are always present (for text nodes and render locations)
+    const walker = platform.document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
+    const markerComments: Comment[] = [];
+    let node: Comment | null;
+    while ((node = walker.nextNode() as Comment | null) !== null) {
+      if (node.nodeValue?.startsWith('au:')) {
+        markerComments.push(node);
+      }
+    }
+
+    // Process marker comments: <!--au:N--> where N IS the target index
+    let marker: Comment;
+    let target: Node | IRenderLocation;
+    let targetId: number;
+    for (let i = 0, ii = markerComments.length; ii > i; ++i) {
+      marker = markerComments[i];
+      // Parse index from "au:N" format
+      targetId = parseInt(marker.nodeValue!.slice(3), 10);
       target = marker.nextSibling!;
       marker.remove();
-      if (target.nodeType === 8) {
-        marker = target as Element;
-        (target = target.nextSibling as IRenderLocation).$start = marker as unknown as Comment;
+
+      // If target is au-start, find matching au-end (handling nested pairs)
+      if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
+        const startMarker = target as IRenderLocation;
+        let endMarker = target.nextSibling;
+        let depth = 1; // Start at 1 for the initial au-start
+        while (endMarker !== null && depth > 0) {
+          if (endMarker.nodeType === 8) {
+            const text = (endMarker as Comment).textContent;
+            if (text === 'au-start') {
+              depth++;
+            } else if (text === 'au-end') {
+              depth--;
+            }
+          }
+          if (depth > 0) {
+            endMarker = endMarker.nextSibling;
+          }
+        }
+        if (endMarker !== null) {
+          target = endMarker as IRenderLocation;
+          (target as IRenderLocation).$start = startMarker;
+          // Store target index for SSR hydration manifest lookup
+          (target as IRenderLocation).$targetIndex = targetId;
+        }
       }
-      targets[i] = target;
-      ++i;
+      targets[targetId] = target;
     }
 
-    const childNodeList = fragment.childNodes;
-    const childNodes = this.childNodes = Array(ii = childNodeList.length) as Node[];
-    i = 0;
-    while (ii > i) {
-      childNodes[i] = childNodeList[i];
-      ++i;
-    }
+    return targets;
+  }
 
-    this._firstChild = fragment.firstChild;
-    this._lastChild = fragment.lastChild;
+  /**
+   * Resolve an element from a child-index path.
+   *
+   * @param root - The root element to start from
+   * @param path - Array of child indices, e.g., [0, 2, 1] means root.children[0].children[2].children[1]
+   * @returns The element at the specified path
+   *
+   * @internal
+   */
+  private _resolvePath(root: Element, path: number[]): Element {
+    let node: Element = root;
+    for (let i = 0, ii = path.length; ii > i; ++i) {
+      node = node.children[path[i]] as Element;
+    }
+    return node;
   }
 
   public findTargets(): ArrayLike<Node> {

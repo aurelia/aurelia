@@ -274,45 +274,51 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
       } else if (hasKey) {
-        const oldKeys = Array<unknown>(oldLen);
-
+        // Build a map of oldKey -> oldIndex for O(1) lookups
+        const oldKeyToIndex = new Map<unknown, number>();
         for (i = 0; i < oldLen; ++i) {
-          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local);
+          oldKeyToIndex.set(getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local), i);
         }
 
-        const newKeys = Array<unknown>(oldLen);
-
+        // Build a set of new keys for O(1) deletion checks
+        const newKeySet = new Set<unknown>();
         for (i = 0; i < newLen; ++i) {
-          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
+          const newKey = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
+          newKeySet.add(newKey);
+
+          const oldIndex = oldKeyToIndex.get(newKey);
+          indexMap[i] = oldIndex !== void 0 ? oldIndex : -2;
         }
 
-        for (i = 0; i < newLen; ++i) {
-          if (oldKeys.includes(newKeys[i])) {
-            indexMap[i] = oldKeys.indexOf(newKeys[i]);
-          } else {
-            indexMap[i] = -2;
-          }
-        }
-
-        for (i = 0; i < oldLen; ++i) {
-          if (!newKeys.includes(oldKeys[i])) {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+        // Find deleted items (old keys not in new keys)
+        for (const [oldKey, oldIndex] of oldKeyToIndex) {
+          if (!newKeySet.has(oldKey)) {
+            indexMap.deletedIndices.push(oldIndex);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[oldIndex], binding, local));
           }
         }
       } else {
-        for (i = 0; i < newLen; ++i) {
-          if (oldScopes.includes(newScopes[i])) {
-            indexMap[i] = oldScopes.indexOf(newScopes[i]);
-          } else {
-            indexMap[i] = -2;
-          }
+        // Build a map of oldScope -> oldIndex for O(1) lookups
+        const oldScopeToIndex = new Map<Scope, number>();
+        for (i = 0; i < oldLen; ++i) {
+          oldScopeToIndex.set(oldScopes[i], i);
         }
 
-        for (i = 0; i < oldLen; ++i) {
-          if (!newScopes.includes(oldScopes[i])) {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+        // Build a set of new scopes for O(1) deletion checks
+        const newScopeSet = new Set<Scope>();
+        for (i = 0; i < newLen; ++i) {
+          const newScope = newScopes[i];
+          newScopeSet.add(newScope);
+
+          const oldIndex = oldScopeToIndex.get(newScope);
+          indexMap[i] = oldIndex !== void 0 ? oldIndex : -2;
+        }
+
+        // Find deleted items (old scopes not in new scopes)
+        for (const [oldScope, oldIndex] of oldScopeToIndex) {
+          if (!newScopeSet.has(oldScope)) {
+            indexMap.deletedIndices.push(oldIndex);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[oldIndex], binding, local));
           }
         }
       }

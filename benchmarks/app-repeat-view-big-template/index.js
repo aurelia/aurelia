@@ -9,34 +9,36 @@ const App = CustomElement.define({
         + '<div><div repeat.for="i of 10">Col ${i}</div></div></div>'
         + '<div repeat.for="i of items">'
             + '<p>Cell <var>${i}</var></p>'
-            + '<p>Cell <strong>${i}</strong></td>'
+            + '<p>Cell <strong>${i}</strong></p>'
             + '<p>Cell <b>${i}</b></p>'
             + '<p>Cell <span>${i}</span></p>'
             + '<p>Cell <div>${i}</div></p>'
 
             + '<p>Cell <var>${i}</var></p>'
-            + '<p>Cell <strong>${i}</strong></td>'
+            + '<p>Cell <strong>${i}</strong></p>'
             + '<p>Cell <b>${i}</b></p>'
             + '<p>Cell <span>${i}</span></p>'
             + '<p>Cell <div>${i}</div></p>'
 
             + '<p>Cell <var>${i}</var></p>'
-            + '<p>Cell <strong>${i}</strong></td>'
+            + '<p>Cell <strong>${i}</strong></p>'
             + '<p>Cell <b>${i}</b></p>'
             + '<p>Cell <span>${i}</span></p>'
             + '<p>Cell <div>${i}</div></p>'
             
             + '<p>Cell <var>${i}</var></p>'
-            + '<p>Cell <strong>${i}</strong></td>'
+            + '<p>Cell <strong>${i}</strong></p>'
             + '<p>Cell <b>${i}</b></p>'
             + '<p>Cell <span>${i}</span></p>'
             + '<p>Cell <div>${i}</div></p>'
             
-            + ('<p>Cell <var>${i}</var></p>'
-            + '<p>Cell <strong>${i}</strong></td>'
-            + '<p>Cell <b>${i}</b></p>'
-            + '<p>Cell <span>${i}</span></p>'
-            + '<p>Cell <div>${i}</div></p>').repeat(100)
+            + Array.from({ length: 200 }, (_, i) =>
+                (`<p data-attr-${i}="false">Cell <var>\${i}</var></p>`
+                + `<p data-attr-${i}${i}="123">Cell <strong>\${i}</strong></p>`
+                + `<p value="text${i}">Cell <b>${i}</b></p>`
+                + `<p blabla="${i}bcd">Cell <span>\${i}</span></p>`
+                + `<p title="some fake title ${i}">Cell <div>\${i}</div></p>`)
+            )
         + '</div>'
     + '</div>'
 }, class {

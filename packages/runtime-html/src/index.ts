@@ -56,6 +56,10 @@ export {
   type IResumeContext,
   IResumeContext as IResumeContextToken,
   ResumeContext,
+  // SSR post-render processing
+  type SSRPostRenderResult,
+  processSSROutput,
+  computeElementPath,
 } from './templating/hydration';
 export {
   type IAppRootConfig,

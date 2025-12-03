@@ -385,4 +385,183 @@ describe('3-runtime-html/ssr-hydration-core.spec.ts', function () {
       assert.strictEqual((targets[0] as HTMLInputElement).value, 'John');
     });
   });
+
+  // ============================================================================
+  // Path-Based Element Target Resolution
+  // ============================================================================
+
+  describe('Path-based element target resolution', function () {
+
+    it('resolves element targets using manifest paths instead of au-hid', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+      const platform = ctx.container.get(IPlatform);
+
+      // HTML without au-hid attributes (as sent by SSR server to client)
+      const parent = doc.createElement('div');
+      parent.innerHTML = '<span>Hello</span><div><input value="John"></div>';
+
+      // Manifest with element paths computed post-render
+      const manifest = {
+        targetCount: 2,
+        controllers: {},
+        elementPaths: {
+          0: [0],      // root.children[0] = <span>
+          1: [1, 0],   // root.children[1].children[0] = <input>
+        }
+      };
+
+      const seq = FragmentNodeSequence.adoptChildren(platform, parent, manifest);
+      const targets = seq.findTargets();
+
+      assert.strictEqual(targets.length, 2);
+      assert.deepStrictEqual(describeTargets(targets), [
+        { type: 'element', tag: 'SPAN' },
+        { type: 'element', tag: 'INPUT' },
+      ]);
+    });
+
+    it('handles empty path (root element itself)', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+      const platform = ctx.container.get(IPlatform);
+
+      // Parent with single child that is the target
+      const parent = doc.createElement('div');
+      parent.innerHTML = '<span>Content</span>';
+
+      const manifest = {
+        targetCount: 1,
+        controllers: {},
+        elementPaths: {
+          0: [0],  // root.children[0] = <span>
+        }
+      };
+
+      const seq = FragmentNodeSequence.adoptChildren(platform, parent, manifest);
+      const targets = seq.findTargets();
+
+      assert.strictEqual(targets.length, 1);
+      assert.strictEqual((targets[0] as Element).tagName, 'SPAN');
+    });
+
+    it('combines path-based elements with comment markers', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+      const platform = ctx.container.get(IPlatform);
+
+      // HTML with comment markers but no au-hid (path-based for elements)
+      const parent = doc.createElement('div');
+      parent.innerHTML = '<span><!--au:1-->Hello</span>';
+
+      const manifest = {
+        targetCount: 2,
+        controllers: {},
+        elementPaths: {
+          0: [0],  // <span> element
+        }
+      };
+
+      const seq = FragmentNodeSequence.adoptChildren(platform, parent, manifest);
+      const targets = seq.findTargets();
+
+      // Target 0 = <span> (from path)
+      // Target 1 = text node "Hello" (from comment marker)
+      assert.strictEqual(targets.length, 2);
+      assert.strictEqual((targets[0] as Element).tagName, 'SPAN');
+      assert.strictEqual((targets[1] as Text).nodeType, 3 /* Text */);
+      assert.strictEqual((targets[1] as Text).textContent, 'Hello');
+    });
+  });
+
+  // ============================================================================
+  // SSR Post-Render Processing
+  // ============================================================================
+
+  describe('SSR post-render processing', function () {
+    // Import dynamically to avoid bundling issues in test environment
+    let processSSROutput: typeof import('@aurelia/runtime-html').processSSROutput;
+    let computeElementPath: typeof import('@aurelia/runtime-html').computeElementPath;
+
+    before(async function () {
+      const hydration = await import('@aurelia/runtime-html');
+      processSSROutput = hydration.processSSROutput;
+      computeElementPath = hydration.computeElementPath;
+    });
+
+    it('computes correct path for nested element', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+
+      const root = doc.createElement('div');
+      root.innerHTML = '<div><span><input></span></div>';
+
+      const input = root.querySelector('input')!;
+      const path = computeElementPath(root, input);
+
+      assert.deepStrictEqual(path, [0, 0, 0]);
+    });
+
+    it('computes correct path for sibling elements', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+
+      const root = doc.createElement('div');
+      root.innerHTML = '<span>First</span><span>Second</span><span>Third</span>';
+
+      const spans = root.querySelectorAll('span');
+      assert.deepStrictEqual(computeElementPath(root, spans[0]), [0]);
+      assert.deepStrictEqual(computeElementPath(root, spans[1]), [1]);
+      assert.deepStrictEqual(computeElementPath(root, spans[2]), [2]);
+    });
+
+    it('strips au-hid and computes paths in processSSROutput', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+
+      const host = doc.createElement('div');
+      host.innerHTML = '<span au-hid="0">Hello</span><div au-hid="1"><input au-hid="2"></div>';
+
+      const initialManifest = {
+        targetCount: 3,
+        controllers: {},
+      };
+
+      const result = processSSROutput(host, initialManifest);
+
+      // HTML should have au-hid stripped
+      assert.strictEqual(result.html.includes('au-hid'), false);
+      assert.strictEqual(result.html, '<span>Hello</span><div><input></div>');
+
+      // Manifest should have element paths
+      assert.deepStrictEqual(result.manifest.elementPaths, {
+        0: [0],      // <span>
+        1: [1],      // <div>
+        2: [1, 0],   // <input> inside <div>
+      });
+    });
+
+    it('preserves comment markers in processSSROutput', function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+
+      const host = doc.createElement('div');
+      host.innerHTML = '<!--au:0--><!--au-start--><span au-hid="1">Text</span><!--au-end-->';
+
+      const initialManifest = {
+        targetCount: 2,
+        controllers: { 0: { type: 'repeat', views: [{ targets: [1] }] } },
+      };
+
+      const result = processSSROutput(host, initialManifest);
+
+      // Comments should be preserved
+      assert.strictEqual(result.html.includes('<!--au:0-->'), true);
+      assert.strictEqual(result.html.includes('<!--au-start-->'), true);
+      assert.strictEqual(result.html.includes('<!--au-end-->'), true);
+
+      // au-hid should be stripped
+      assert.strictEqual(result.html.includes('au-hid'), false);
+    });
+  });
 });

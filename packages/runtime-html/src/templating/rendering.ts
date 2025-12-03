@@ -36,9 +36,10 @@ export interface IRendering {
    * server-rendered HTML.
    *
    * @param host - The element whose children should be adopted
+   * @param manifest - Optional hydration manifest with element paths for path-based resolution
    * @returns A node sequence wrapping the existing children
    */
-  adoptNodes(host: Element): INodeSequence;
+  adoptNodes(host: Element, manifest?: IHydrationManifest): INodeSequence;
 
   render(
     controller: IHydratableController,
@@ -157,8 +158,8 @@ export class Rendering implements IRendering {
         );
   }
 
-  public adoptNodes(host: Element): INodeSequence {
-    return FragmentNodeSequence.adoptChildren(this._platform, host);
+  public adoptNodes(host: Element, manifest?: IHydrationManifest): INodeSequence {
+    return FragmentNodeSequence.adoptChildren(this._platform, host, manifest);
   }
 
   public render(

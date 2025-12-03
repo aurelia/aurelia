@@ -31,6 +31,24 @@ export interface IHydrationManifest {
   };
 
   /**
+   * Element target paths for SSR hydration.
+   *
+   * Maps target indices to child-index paths from the root element.
+   * Computed post-render by the SSR server after stripping `au-hid` attributes.
+   * Used by client hydration to locate element targets without markers in HTML.
+   *
+   * Example: `{ 1: [0, 2, 0], 2: [0, 2, 1] }` means:
+   * - Target 1 is at root.children[0].children[2].children[0]
+   * - Target 2 is at root.children[0].children[2].children[1]
+   *
+   * Only element targets have paths. Comment-based targets (text nodes,
+   * render locations) are still identified via `<!--au:N-->` markers.
+   */
+  elementPaths?: {
+    [targetIndex: number]: number[];
+  };
+
+  /**
    * Runtime property: all collected DOM targets.
    * Set by the root controller after target collection.
    * Template controllers use this with their manifest indices to get actual DOM nodes.
@@ -350,4 +368,130 @@ export class ResumeContext implements IResumeContext {
 
     return view;
   }
+}
+
+// ============================================================================
+// SSR Post-Render Processing
+// ============================================================================
+// These functions run on the SSR server after rendering, before sending HTML
+// to the client. They strip `au-hid` attributes and compute element paths.
+
+/**
+ * Result of SSR post-render processing.
+ */
+export interface SSRPostRenderResult {
+  /**
+   * The cleaned HTML with `au-hid` attributes removed.
+   * Comment markers (`<!--au:N-->`, `<!--au-start-->`, `<!--au-end-->`) are preserved.
+   */
+  html: string;
+
+  /**
+   * The augmented manifest with element paths added.
+   * Client hydration uses these paths instead of `au-hid` attributes.
+   */
+  manifest: IHydrationManifest;
+}
+
+/**
+ * Process SSR output before sending to client.
+ *
+ * This function:
+ * 1. Finds all elements with `au-hid` attributes
+ * 2. Computes their child-index paths from the root
+ * 3. Removes the `au-hid` attributes
+ * 4. Returns cleaned HTML and augmented manifest
+ *
+ * Call this on the SSR server after Aurelia renders, before sending
+ * the HTML response to the client.
+ *
+ * @param host - The root element containing SSR-rendered content
+ * @param initialManifest - The hydration manifest from SSR rendering
+ * @returns Object with cleaned HTML and augmented manifest
+ *
+ * @example
+ * ```typescript
+ * // On SSR server after Aurelia.render()
+ * const { html, manifest } = processSSROutput(hostElement, ssrManifest);
+ *
+ * // Send to client
+ * res.send(`
+ *   <html>
+ *     <body>${html}</body>
+ *     <script>
+ *       window.__AURELIA_MANIFEST__ = ${JSON.stringify(manifest)};
+ *     </script>
+ *   </html>
+ * `);
+ * ```
+ */
+export function processSSROutput(
+  host: Element,
+  initialManifest: IHydrationManifest
+): SSRPostRenderResult {
+  const elementPaths: { [targetIndex: number]: number[] } = {};
+
+  // Find all elements with au-hid, record their paths, then remove the attribute
+  const auHidElements = host.querySelectorAll('[au-hid]');
+  for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
+    const el = auHidElements[i];
+    const targetId = parseInt(el.getAttribute('au-hid')!, 10);
+    elementPaths[targetId] = computeElementPath(host, el);
+    el.removeAttribute('au-hid');
+  }
+
+  // Return augmented manifest and cleaned HTML
+  return {
+    html: host.innerHTML,
+    manifest: {
+      ...initialManifest,
+      elementPaths,
+      // Clear runtime properties that shouldn't be serialized
+      _targets: undefined,
+      _consumed: undefined,
+    }
+  };
+}
+
+/**
+ * Compute the child-index path from root to target element.
+ *
+ * The path is an array of child indices. For example, `[0, 2, 1]` means:
+ * `root.children[0].children[2].children[1]`
+ *
+ * @param root - The root element to compute path from
+ * @param target - The target element to compute path to
+ * @returns Array of child indices from root to target
+ *
+ * @internal
+ */
+export function computeElementPath(root: Element, target: Element): number[] {
+  const path: number[] = [];
+  let current: Element | null = target;
+
+  while (current !== null && current !== root) {
+    const parent: Element | null = current.parentElement;
+    if (parent === null) break;
+
+    const children = parent.children;
+    let index = -1;
+
+    // Find index of current in parent's children
+    for (let i = 0, ii = children.length; ii > i; ++i) {
+      if (children[i] === current) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index === -1) {
+      // Should not happen in valid DOM, but handle gracefully
+      break;
+    }
+
+    path.unshift(index);
+    current = parent;
+  }
+
+  return path;
 }

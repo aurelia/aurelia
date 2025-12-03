@@ -5,6 +5,7 @@ import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
 import { INode } from './dom.node';
+import type { IHydrationManifest } from './templating/hydration';
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
 export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
@@ -254,13 +255,14 @@ export class FragmentNodeSequence implements INodeSequence {
    *
    * @param platform - The platform abstraction
    * @param parent - The element whose children should be adopted
+   * @param manifest - Optional hydration manifest with element paths for path-based resolution
    * @returns A node sequence wrapping the existing children
    */
-  public static adoptChildren(platform: IPlatform, parent: Element): FragmentNodeSequence {
+  public static adoptChildren(platform: IPlatform, parent: Element, manifest?: IHydrationManifest): FragmentNodeSequence {
     // Create empty fragment for potential future unmounting
     // (when remove() is called, nodes will be moved here)
     const fragment = platform.document.createDocumentFragment();
-    const instance = new FragmentNodeSequence(platform, fragment, parent);
+    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest);
     return instance;
   }
 
@@ -273,12 +275,17 @@ export class FragmentNodeSequence implements INodeSequence {
      * @internal
      */
     adoptFrom?: Element,
+    /**
+     * When provided with elementPaths, uses path-based resolution instead of au-hid attributes.
+     * @internal
+     */
+    manifest?: IHydrationManifest,
   ) {
     this.f = fragment;
 
     // Collect targets and children from either the fragment or adopted parent
     const root = adoptFrom ?? fragment;
-    this.t = this._collectTargets(root);
+    this.t = this._collectTargets(root, manifest);
 
     const childNodeList = root.childNodes;
     const ii = childNodeList.length;
@@ -299,6 +306,7 @@ export class FragmentNodeSequence implements INodeSequence {
    *
    * Unified SSR-compatible marker system:
    * 1. Element targets: [au-hid="N"] attribute - value IS the target index
+   *    OR when manifest.elementPaths is present, use path-based resolution
    * 2. Non-element targets: <!--au:N--> comment - N IS the target index
    *
    * Both marker types encode their index directly, eliminating the need
@@ -309,17 +317,39 @@ export class FragmentNodeSequence implements INodeSequence {
    * view boundary information.
    *
    * @param root - DocumentFragment (for template cloning) or Element (for SSR adoption)
+   * @param manifest - Optional hydration manifest with element paths
    * @returns Array of target nodes indexed by their marker values
    *
    * @internal
    */
-  private _collectTargets(root: DocumentFragment | Element): Node[] {
+  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest): Node[] {
     const { platform } = this;
+    const targets: Node[] = [];
 
-    // Find element targets with au-hid attribute
-    const auHidElements = root.querySelectorAll('[au-hid]');
+    // Element targets: use paths from manifest (client hydration) or au-hid attributes (SSR server)
+    if (manifest?.elementPaths != null) {
+      // Path-based resolution: no au-hid attributes in HTML
+      const elementPaths = manifest.elementPaths;
+      for (const targetIdStr in elementPaths) {
+        const targetId = Number(targetIdStr);
+        const path = elementPaths[targetId];
+        targets[targetId] = this._resolvePath(root as Element, path);
+      }
+    } else {
+      // Attribute-based resolution: au-hid attributes present (SSR server render or template cloning)
+      const auHidElements = root.querySelectorAll('[au-hid]');
+      let el: Element;
+      let targetId: number;
+      for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
+        el = auHidElements[i];
+        targetId = parseInt(el.getAttribute('au-hid')!, 10);
+        el.removeAttribute('au-hid');
+        targets[targetId] = el;
+      }
+    }
 
     // Use TreeWalker to find <!--au:N--> comments
+    // Comment markers are always present (for text nodes and render locations)
     const walker = platform.document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
     const markerComments: Comment[] = [];
     let node: Comment | null;
@@ -329,21 +359,10 @@ export class FragmentNodeSequence implements INodeSequence {
       }
     }
 
-    const targets: Node[] = [];
-
-    // Process element targets: au-hid value IS the target index
-    let el: Element;
-    let targetId: number;
-    for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
-      el = auHidElements[i];
-      targetId = parseInt(el.getAttribute('au-hid')!, 10);
-      el.removeAttribute('au-hid');
-      targets[targetId] = el;
-    }
-
     // Process marker comments: <!--au:N--> where N IS the target index
     let marker: Comment;
     let target: Node | IRenderLocation;
+    let targetId: number;
     for (let i = 0, ii = markerComments.length; ii > i; ++i) {
       marker = markerComments[i];
       // Parse index from "au:N" format
@@ -380,6 +399,23 @@ export class FragmentNodeSequence implements INodeSequence {
     }
 
     return targets;
+  }
+
+  /**
+   * Resolve an element from a child-index path.
+   *
+   * @param root - The root element to start from
+   * @param path - Array of child indices, e.g., [0, 2, 1] means root.children[0].children[2].children[1]
+   * @returns The element at the specified path
+   *
+   * @internal
+   */
+  private _resolvePath(root: Element, path: number[]): Element {
+    let node: Element = root;
+    for (let i = 0, ii = path.length; ii > i; ++i) {
+      node = node.children[path[i]] as Element;
+    }
+    return node;
   }
 
   public findTargets(): ArrayLike<Node> {

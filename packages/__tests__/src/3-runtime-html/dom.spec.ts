@@ -148,7 +148,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
       sut.findTargets();
 
       // Check that au:N comments are removed
-      const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_COMMENT);
+      // NodeFilter.SHOW_COMMENT = 128
+      const walker = ctx.doc.createTreeWalker(fragment, 128);
       let commentCount = 0;
       while (walker.nextNode()) {
         const comment = walker.currentNode as Comment;
@@ -166,7 +167,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
       sut.findTargets();
 
       // Check that au-start and au-end remain
-      const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_COMMENT);
+      // NodeFilter.SHOW_COMMENT = 128
+      const walker = ctx.doc.createTreeWalker(fragment, 128);
       const comments: string[] = [];
       while (walker.nextNode()) {
         comments.push((walker.currentNode as Comment).textContent!);

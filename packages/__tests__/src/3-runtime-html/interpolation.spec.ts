@@ -5,7 +5,7 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression, createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
+import { createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
 import {
   BindingMode,
   CustomElement,
@@ -27,19 +27,6 @@ type CaseType = {
   it: string;
   only?: boolean;
 };
-
-function createInterpolationBinding(
-  controller: { state: number },
-  container: any,
-  observerLocator: any,
-  interpolation: Interpolation,
-  target: object,
-  targetProperty: string,
-  mode: BindingMode,
-  strict: boolean,
-) {
-  return new InterpolationBinding(controller as any, container, observerLocator, interpolation, target, targetProperty, mode, strict);
-}
 
 const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
@@ -352,7 +339,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
           )]
         );
         const target = { value: '' };
-        const binding = createInterpolationBinding(
+        const binding = new InterpolationBinding(
           { state: 0 },
           container,
           observerLocator,
@@ -440,7 +427,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
           ]
         );
         const target = { value: '' };
-        const binding = createInterpolationBinding(
+        const binding = new InterpolationBinding(
           { state: 0 },
           container,
           observerLocator,

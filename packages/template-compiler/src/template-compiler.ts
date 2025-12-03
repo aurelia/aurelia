@@ -18,7 +18,6 @@ import {
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
-  PrimitiveLiteralExpression,
   createPrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import { IAttrMapper } from './attribute-mapper';
@@ -43,14 +42,13 @@ import {
   SpreadValueBindingInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
-import { BindingCommand, BindingCommandInstance, ICommandBuildInfo } from './binding-command';
+import { BindingCommand, BindingCommandInstance } from './binding-command';
 import { etInterpolation, etIsProperty, tcObjectFreeze, tcCreateInterface, singletonRegistration, definitionTypeElement } from './utilities';
 import { auLocationStart, auLocationEnd, appendManyToTemplate, appendToTemplate, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
 
 import type {
   IContainer,
   Constructable,
-  Writable,
   Key,
   IRegistry,
 } from '@aurelia/kernel';
@@ -463,7 +461,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // todo: this is a bit ... powerful
     // maybe do not allow it to process its own attributes
     let processContentResult: boolean | undefined | void = true;
-    let elementMetadata: Record<PropertyKey, unknown> = {};
+    const elementMetadata: Record<PropertyKey, unknown> = {};
     if (isCustomElement) {
       processContentResult = elDef.processContent?.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
     }
@@ -554,7 +552,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // Use tcChildContext because the element is in the TC's template
       // and its instructions are in tcChildContext.rows
       if (needsMarker) {
-        if (isCustomElement && (hasContainerless || elDef!.containerless)) {
+        if (isCustomElement && (hasContainerless || elDef.containerless)) {
           this._replaceByMarker(el, tcChildContext);
         } else {
           this._markAsTarget(el, tcChildContext);
@@ -562,7 +560,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       // Step 5: Compile children into the TC's child context
-      const shouldCompileContent = !isCustomElement || !elDef!.containerless && !hasContainerless && processContentResult !== false;
+      const shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
       if (shouldCompileContent) {
         if (el.nodeName === TEMPLATE_NODE_NAME) {
           this._compileNode((el as HTMLTemplateElement).content, tcChildContext);
@@ -657,6 +655,14 @@ export class TemplateCompiler implements ITemplateCompiler {
    * 7. Custom attributes and template controllers
    * 8. Plain attributes - interpolation or binding command
    *
+   * @param el - The element whose attributes to classify
+   * @param elDef - The custom element definition, or null if not a CE
+   * @param captures - Array to collect captured attributes (for CE forwarding)
+   * @param context - The compilation context
+   * @param generateStaticAttrInstructions - If true, generate Set*AttributeInstruction for
+   * static attrs instead of leaving them in the DOM. Used for surrogates where
+   * attrs must be transferred to the actual host element.
+   * @returns Classification result with instructions grouped by category
    * @internal
    */
   private _classifyAttributes(
@@ -671,7 +677,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const hasCaptureFilter = capture != null && typeof capture !== 'boolean';
     const exprParser = context._exprParser;
 
-    let attrs = el.attributes;
+    const attrs = el.attributes;
     let ii = attrs.length;
     let i = 0;
     let attr: Attr;
@@ -823,28 +829,22 @@ export class TemplateCompiler implements ITemplateCompiler {
         // Handle $bindables with binding command
         if (realAttrTarget === '$bindables') {
           if (bindingCommand != null) {
-            const buildInfo = { node: el, attr: attrSyntax, bindable: null, def: elDef } as const;
+            // SpreadValueBindingCommand only needs attr.target and attr.rawValue, not def/bindable
+            const instruction = bindingCommand.build(
+              { node: el, attr: attrSyntax, bindable: null, def: null },
+              context._exprParser,
+              context._attrMapper
+            );
 
             if (__DEV__) {
-              const instruction = bindingCommand.build(
-                buildInfo,
-                context._exprParser,
-                context._attrMapper
-              );
               if (!(instruction instanceof SpreadValueBindingInstruction)) {
                 // eslint-disable-next-line no-console
                 console.warn(`[DEV:aurelia] Binding with "$bindables" on custom element "${elDef.name}" with command ${attrSyntax.command} ` +
                   ` did not result in a spread binding instruction. This likely won't work as expected.`
                 );
               }
-              (elBindableInstructions ??= []).push(instruction);
-            } else {
-              (elBindableInstructions ??= []).push(bindingCommand.build(
-                buildInfo,
-                context._exprParser,
-                context._attrMapper
-              ));
             }
+            (elBindableInstructions ??= []).push(instruction);
           } else if (__DEV__) {
             // eslint-disable-next-line no-console
             console.warn(`[DEV:aurelia] Usage of "$bindables" on custom element "<${elDef.name}>" is ignored.`);

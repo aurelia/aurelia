@@ -9,8 +9,6 @@ import {
   Registration
 } from '@aurelia/kernel';
 import {
-  Interpolation,
-  PrimitiveLiteralExpression,
   IExpressionParser,
   ExpressionParser,
 } from '@aurelia/expression-parser';

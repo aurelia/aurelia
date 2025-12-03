@@ -2,7 +2,7 @@ import { type Writable } from '@aurelia/kernel';
 import { type Scope } from '@aurelia/runtime';
 import { BindingBehavior, type BindingBehaviorInstance } from '@aurelia/runtime-html';
 import { type BindingWithBehavior, ValueConverters } from '../utils';
-import { type BindingBehaviorExpression, IsValueConverter, ValueConverterExpression, createValueConverterExpression } from '@aurelia/expression-parser';
+import { type BindingBehaviorExpression, IsValueConverter, createValueConverterExpression } from '@aurelia/expression-parser';
 
 export class TranslationBindingBehavior implements BindingBehaviorInstance {
 

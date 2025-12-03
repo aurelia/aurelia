@@ -5,9 +5,6 @@ import {
   kebabCase,
 } from '@aurelia/kernel';
 import {
-  Interpolation,
-  AccessScopeExpression,
-  PrimitiveLiteralExpression,
   IExpressionParser,
   ExpressionParser,
   createInterpolation,
@@ -53,8 +50,6 @@ import {
   TestContext,
   verifyBindingInstructionsEqual,
 } from '@aurelia/testing';
-
-const createInterpolationInstruction = (from: string | Interpolation, to: string) => new InterpolationInstruction(from, to);
 
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {
@@ -209,7 +204,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               surrogates,
               [
                 { toVerify: ['type', 'to', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [
-                  createInterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bar')]), 'value')
+                  new InterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bar')]), 'value')
                 ]}
               ],
               'surrogate'
@@ -1866,7 +1861,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [createInterpolationInstruction(createInterpolation(['', 'a'], [createAccessScopeExpression('a')]), 'id')]
+          [new InterpolationInstruction(createInterpolation(['', 'a'], [createAccessScopeExpression('a')]), 'id')]
         );
       });
 
@@ -1941,7 +1936,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
-            createInterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bb')]), 'value')
+            new InterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bb')]), 'value')
           ])]
         );
       });
@@ -2022,7 +2017,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       createAttr: ({ attr, from, to }: { attr: string; from: string; to: string }) =>
         new AttributeBindingInstruction(attr, parser.parse(from, 'IsProperty'), to),
       createInterpolation: ({ from, to }: { from: string; to: string }) =>
-        createInterpolationInstruction(parser.parse(from, 'Interpolation'), to),
+        new InterpolationInstruction(parser.parse(from, 'Interpolation'), to),
       createIterateProp: (expression: string, to: string, props: any[]) =>
         new IteratorBindingInstruction(parser.parse(expression, 'IsIterator'), to, props)
     };

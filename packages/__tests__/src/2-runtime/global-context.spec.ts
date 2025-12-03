@@ -1,4 +1,4 @@
-import { AccessGlobalExpression, ExpressionParser, createAccessGlobalExpression } from '@aurelia/expression-parser';
+import { ExpressionParser, createAccessGlobalExpression } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture, TestContext } from '@aurelia/testing';

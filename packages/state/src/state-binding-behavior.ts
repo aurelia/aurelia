@@ -25,7 +25,7 @@ export class StateBindingBehavior {
       this._store.subscribe(subscriber);
       if (__DEV__ && !binding.useScope) {
         // eslint-disable-next-line no-console
-        console.warn(`Binding ${binding.constructor.name} does not support "state" binding behavior`);
+        console.warn(`[DEV:aurelia] Binding ${binding.constructor.name} does not support "state" binding behavior`);
       }
       binding.useScope?.(scope);
     }

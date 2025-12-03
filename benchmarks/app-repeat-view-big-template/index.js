@@ -32,10 +32,10 @@ const App = CustomElement.define({
             + '<p>Cell <span>${i}</span></p>'
             + '<p>Cell <div>${i}</div></p>'
             
-            + Array.from({ length: 200 }, (_, i) =>
+            + Array.from({ length: 50 }, (_, i) =>
                 (`<p data-attr-${i}="false">Cell <var>\${i}</var></p>`
                 + `<p data-attr-${i}${i}="123">Cell <strong>\${i}</strong></p>`
-                + `<p value="text${i}">Cell <b>${i}</b></p>`
+                + `<p value="text${i}">Cell <b>\${i}</b></p>`
                 + `<p blabla="${i}bcd">Cell <span>\${i}</span></p>`
                 + `<p title="some fake title ${i}">Cell <div>\${i}</div></p>`)
             )

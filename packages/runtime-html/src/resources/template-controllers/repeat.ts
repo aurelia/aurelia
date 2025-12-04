@@ -495,21 +495,23 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /**
    * Rewrite au-hid markers in a view's nodes to use globally unique indices.
-   * Returns the array of global indices that were assigned (for binding targets only).
+   * Returns the array of global indices in instruction order (matching local target indices).
    * Also handles nested controller markers by updating their render location's $targetIndex.
    * @internal
    */
   private _rewriteMarkersForSSR(view: ISyntheticView, ssrContext: ISSRContext): number[] {
-    const globalTargets: number[] = [];
+    // Map from local target index to global target index
+    const localToGlobal: Map<number, number> = new Map();
     const fragment = view.nodes.childNodes;
 
-    // Process all nodes in the view
+    // Process all nodes in the view, extracting local indices and assigning global indices
     const processNode = (node: Node) => {
       if (node.nodeType === 1 /* Element */) {
         const el = node as Element;
         if (el.hasAttribute('au-hid')) {
+          const localIndex = parseInt(el.getAttribute('au-hid')!, 10);
           const globalIndex = ssrContext.allocateGlobalIndex();
-          globalTargets.push(globalIndex);
+          localToGlobal.set(localIndex, globalIndex);
           el.setAttribute('au-hid', String(globalIndex));
         }
         // Process children
@@ -521,12 +523,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const text = comment.textContent ?? '';
         // Check for <!--au:N--> format
         if (text.startsWith('au:')) {
+          const localIndex = parseInt(text.slice(3), 10);
           // Check if this is a controller marker by looking at next sibling
           const nextSibling = comment.nextSibling;
           const isControllerMarker = nextSibling?.nodeType === 8 /* Comment */ &&
             (nextSibling as Comment).textContent === 'au-start';
 
           const globalIndex = ssrContext.allocateGlobalIndex();
+          localToGlobal.set(localIndex, globalIndex);
           comment.textContent = `au:${globalIndex}`;
 
           if (isControllerMarker) {
@@ -549,10 +553,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
               }
               current = current.nextSibling;
             }
-            // Don't add controller markers to globalTargets - they're recorded separately
-          } else {
-            // Regular binding target (text interpolation)
-            globalTargets.push(globalIndex);
           }
         }
       }
@@ -560,6 +560,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (let i = 0; i < fragment.length; ++i) {
       processNode(fragment[i]);
+    }
+
+    // Build globalTargets array in instruction order (sorted by local index)
+    const maxLocalIndex = Math.max(...localToGlobal.keys(), -1);
+    const globalTargets: number[] = [];
+    for (let i = 0; i <= maxLocalIndex; i++) {
+      const globalIndex = localToGlobal.get(i);
+      if (globalIndex !== undefined) {
+        globalTargets.push(globalIndex);
+      }
     }
 
     return globalTargets;

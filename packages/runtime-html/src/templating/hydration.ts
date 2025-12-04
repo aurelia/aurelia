@@ -344,6 +344,7 @@ export const ISSRContext = /*@__PURE__*/createInterface<ISSRContext>('ISSRContex
  * Use this class when rendering on the server:
  * ```typescript
  * const ssrContext = new SSRContext();
+ * ssrContext.setRootTargetCount(definition.instructions.length);
  * container.register(Registration.instance(ISSRContext, ssrContext));
  * // ... render ...
  * const manifest = ssrContext.getManifest();
@@ -356,7 +357,22 @@ export class SSRContext implements ISSRContext {
   private _globalCounter = 0;
 
   /** @internal */
+  private _rootTargetCount = 0;
+
+  /** @internal */
   private readonly _controllers: Record<number, IControllerManifest> = {};
+
+  /**
+   * Set the number of targets in the root template.
+   * This offsets the global counter so nested view targets don't collide
+   * with root template targets.
+   *
+   * Call this before Aurelia starts rendering.
+   */
+  public setRootTargetCount(count: number): void {
+    this._rootTargetCount = count;
+    this._globalCounter = count;
+  }
 
   public allocateGlobalIndex(): number {
     return this._globalCounter++;

@@ -495,7 +495,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /**
    * Rewrite au-hid markers in a view's nodes to use globally unique indices.
-   * Returns the array of global indices that were assigned.
+   * Returns the array of global indices that were assigned (for binding targets only).
+   * Also handles nested controller markers by updating their render location's $targetIndex.
    * @internal
    */
   private _rewriteMarkersForSSR(view: ISyntheticView, ssrContext: ISSRContext): number[] {
@@ -518,11 +519,41 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       } else if (node.nodeType === 8 /* Comment */) {
         const comment = node as Comment;
         const text = comment.textContent ?? '';
-        // Check for <!--au:N--> format (non-element target markers)
+        // Check for <!--au:N--> format
         if (text.startsWith('au:')) {
+          // Check if this is a controller marker by looking at next sibling
+          const nextSibling = comment.nextSibling;
+          const isControllerMarker = nextSibling?.nodeType === 8 /* Comment */ &&
+            (nextSibling as Comment).textContent === 'au-start';
+
           const globalIndex = ssrContext.allocateGlobalIndex();
-          globalTargets.push(globalIndex);
           comment.textContent = `au:${globalIndex}`;
+
+          if (isControllerMarker) {
+            // This is a controller marker - find the render location (au-end) and update its $targetIndex
+            // The render location is the matching <!--au-end--> for this <!--au-start-->
+            let depth = 1;
+            let current = nextSibling?.nextSibling;
+            while (current != null && depth > 0) {
+              if (current.nodeType === 8 /* Comment */) {
+                const currentText = (current as Comment).textContent;
+                if (currentText === 'au-start') {
+                  depth++;
+                } else if (currentText === 'au-end') {
+                  depth--;
+                  if (depth === 0) {
+                    // Found the matching au-end - update its $targetIndex
+                    (current as Comment & { $targetIndex?: number }).$targetIndex = globalIndex;
+                  }
+                }
+              }
+              current = current.nextSibling;
+            }
+            // Don't add controller markers to globalTargets - they're recorded separately
+          } else {
+            // Regular binding target (text interpolation)
+            globalTargets.push(globalIndex);
+          }
         }
       }
     };

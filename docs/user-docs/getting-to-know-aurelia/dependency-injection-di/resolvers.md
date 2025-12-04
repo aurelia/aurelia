@@ -17,7 +17,7 @@ Use the `lazy` resolver when you want to defer the creation of a service until i
 #### Using `@inject` Decorator
 
 ```typescript
-import { lazy, inject } from 'aurelia';
+import { lazy, inject } from '@aurelia/kernel';
 
 @inject(lazy(MyService))
 export class MyClass {
@@ -30,7 +30,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { lazy } from 'aurelia';
+import { lazy } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [lazy(MyService)];
@@ -47,7 +47,7 @@ The `all` resolver is used to inject an array of all instances registered under 
 #### Using `@inject` Decorator
 
 ```typescript
-import { all, inject } from 'aurelia';
+import { all, inject } from '@aurelia/kernel';
 
 @inject(all(MyService))
 export class MyClass {
@@ -60,7 +60,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { all } from 'aurelia';
+import { all } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [all(MyService)];
@@ -77,7 +77,7 @@ The `optional` resolver allows a service to be injected if available, or `undefi
 #### Using `@inject` Decorator
 
 ```typescript
-import { optional, inject } from 'aurelia';
+import { optional, inject } from '@aurelia/kernel';
 
 @inject(optional(MyService))
 export class MyClass {
@@ -90,7 +90,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { optional } from 'aurelia';
+import { optional } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [optional(MyService)];
@@ -107,7 +107,7 @@ The `factory` resolver provides a function to create instances of a service, all
 #### Using `@inject` Decorator
 
 ```typescript
-import { factory, inject } from 'aurelia';
+import { factory, inject } from '@aurelia/kernel';
 
 @inject(factory(MyService))
 export class MyClass {
@@ -120,7 +120,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { factory } from 'aurelia';
+import { factory } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [factory(MyService)];
@@ -137,7 +137,7 @@ Use `newInstanceForScope` when you need a unique instance of a service within a 
 #### Using `@inject` Decorator
 
 ```typescript
-import { newInstanceForScope, inject } from 'aurelia';
+import { newInstanceForScope, inject } from '@aurelia/kernel';
 
 @inject(newInstanceForScope(MyService))
 export class MyClass {
@@ -150,7 +150,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { newInstanceForScope } from 'aurelia';
+import { newInstanceForScope } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [newInstanceForScope(MyService)];
@@ -167,7 +167,7 @@ The `newInstanceOf` resolver ensures that a fresh instance of a service is creat
 #### Using `@inject` Decorator
 
 ```typescript
-import { newInstanceOf, inject } from 'aurelia';
+import { newInstanceOf, inject } from '@aurelia/kernel';
 
 @inject(newInstanceOf(MyService))
 export class MyClass {
@@ -180,7 +180,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { newInstanceOf } from 'aurelia';
+import { newInstanceOf } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [newInstanceOf(MyService)];
@@ -197,7 +197,7 @@ The last resolver is used to inject the last instance registered under a particu
 #### Using `@inject` Decorator
 
 ```typescript
-import { last, inject } from 'aurelia';
+import { last, inject } from '@aurelia/kernel';
 
 @inject(last(MyService))
 export class MyClass {
@@ -210,7 +210,7 @@ export class MyClass {
 #### Using Static `inject` Property
 
 ```typescript
-import { last } from 'aurelia';
+import { last } from '@aurelia/kernel';
 
 export class MyClass {
   static inject = [last(MyService)];
@@ -225,7 +225,7 @@ export class MyClass {
 If you have multiple instances of a service registered under the same key, `last` will ensure that you get the most recently registered instance:
 
 ```typescript
-import { DI, last, Registration } from 'aurelia';
+import { DI, last, Registration } from '@aurelia/kernel';
 
 const container = DI.createContainer();
 container.register(Registration.instance(MyService, new MyService('instance1')));
@@ -245,6 +245,54 @@ const maybeService = container.get(last(MyService));
 console.log(maybeService); // undefined
 ```
 
+### Resource-Aware Resolvers
+
+In addition to the general-purpose resolvers above, the kernel exposes helpers that understand Aurelia's *resource* registration model (custom elements, attributes, value converters, binding behaviors, etc.). These resolvers look first in the requesting container and then optionally fall back to the root, which is essential for multi-root apps, feature modules, or shadow roots with their own DI scopes.
+
+| Resolver | What it returns | Typical use case |
+|----------|----------------|------------------|
+| `resource(key)` | The matching resource from the current container, or the root if not found locally | Reuse built-in resources while still allowing feature overrides |
+| `optionalResource(key)` | Same as `resource`, but returns `undefined` if the resource does not exist in either container | Optional plugin dependencies |
+| `allResources(key)` | Every registration for the resource key from the current container followed by the root container | Layered component registries |
+| `own(key)` | Only the registration on the requesting container (no fallback) | Prevent accidentally using a parent registration |
+
+Because documentation now favors the `resolve()` helper, the examples below use it instead of decorators, but everything also works with `@inject`.
+
+```typescript
+import { resolve, resource, optionalResource, allResources, own } from '@aurelia/kernel';
+import { CustomElement } from '@aurelia/runtime-html';
+
+export class FeatureShell {
+  // Always resolves to whatever the current component container registered
+  private readonly localPanelDefinition =
+    resolve(own(CustomElement.keyFrom('feature-panel')));
+
+  // Falls back to the application root if the feature did not override the element
+  private readonly sharedWidgetDefinition =
+    resolve(resource(CustomElement.keyFrom('shared-widget')));
+
+  // Optional dependency: returns undefined when neither scope registered it
+  private readonly optionalToolbarDefinition =
+    resolve(optionalResource(CustomElement.keyFrom('legacy-toolbar')));
+
+  // Enumerate every registered command palette (feature + root)
+  private readonly commandPaletteDefinitions =
+    resolve(allResources(CustomElement.keyFrom('command-palette')));
+
+  activate() {
+    const paletteCount = this.commandPaletteDefinitions.length;
+    // Use the definitions as needed...
+  }
+}
+```
+
+Notes:
+
+- `CustomElement.keyFrom('name')` (and the equivalent APIs on `CustomAttribute`, `ValueConverter`, etc.) provide stable keys for the resolvers.
+- Because the resolvers respect the requesting container, registering a resource in a child container automatically scopes the resolution to that container.
+- Resolvers such as `own` and `optionalResource` can return `undefined`; add null checks before dereferencing the result.
+- Use `own` when you deliberately want to *prevent* fallback to the root (for example, when a feature must provide its own instance to stay isolated).
+
 ## Custom Resolvers
 
 You can create custom resolvers by implementing the `IResolver` interface. Custom resolvers give you the flexibility to implement complex resolution logic that may not be covered by the built-in resolvers.
@@ -252,8 +300,8 @@ You can create custom resolvers by implementing the `IResolver` interface. Custo
 ### Example of a Custom Resolver
 
 ```typescript
-import { inject } from 'aurelia';
-import type { IContainer, IResolver } from 'aurelia';
+import { inject } from '@aurelia/kernel';
+import type { IContainer, IResolver } from '@aurelia/kernel';
 
 class MyCustomResolver<T> implements IResolver<T> {
   public readonly $isResolver = true;

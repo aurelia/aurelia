@@ -477,6 +477,7 @@ describe('LoadCustomAttribute', () => {
 ### Testing Full Application Flows
 
 ```typescript
+import { tasksSettled } from '@aurelia/runtime';
 import { CustomElement } from '@aurelia/runtime-html';
 
 // App component with routing
@@ -521,14 +522,14 @@ describe('App Integration', () => {
     await router.load('');
     
     // Wait for navigation to complete
-    await ctx.platform.domQueue.flush();
+    await tasksSettled();
     
     expect(host.textContent).toContain('Home Component');
   });
 
   it('should navigate to product detail', async () => {
     await router.load('product/123');
-    await ctx.platform.domQueue.flush();
+    await tasksSettled();
     
     expect(host.textContent).toContain('Product 123');
   });
@@ -536,14 +537,14 @@ describe('App Integration', () => {
   it('should handle navigation with browser back/forward', async () => {
     // Navigate forward
     await router.load('product/123');
-    await ctx.platform.domQueue.flush();
+    await tasksSettled();
     
     await router.load('home');
-    await ctx.platform.domQueue.flush();
+    await tasksSettled();
     
     // Simulate browser back
     history.back();
-    await ctx.platform.domQueue.flush();
+    await tasksSettled();
     
     expect(host.textContent).toContain('Product 123');
   });

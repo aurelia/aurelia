@@ -13,37 +13,21 @@ The Aurelia task queue provides several performance optimization features:
 Batch DOM updates to improve rendering performance:
 
 ```typescript
-import { PLATFORM } from 'aurelia';
+import { batch } from 'aurelia';
 
 // Batch multiple DOM updates in a single frame
-PLATFORM.domQueue.queueTask(() => {
-  // All DOM changes execute in the same animation frame
-  element1.style.left = '100px';
-  element2.style.top = '200px';
-  element3.textContent = 'Updated';
+batch(() => {
+  // both assignment will not immediately trigger rerendering
+  component.prop = someValue;
+  component2.prop = someOtherValue;
 });
-```
 
-#### Preemptive Task Execution
-
-Use `preempt` for critical tasks that need immediate execution:
-
-```typescript
-// Runs synchronously if queue is currently flushing
-PLATFORM.taskQueue.queueTask(() => {
-  updateCriticalUI();
-}, { preempt: true });
-```
-
-#### Suspend Queue for Critical Operations
-
-Use `suspend` to ensure critical async operations complete before other tasks:
-
-```typescript
-// Blocks subsequent tasks until this completes
-PLATFORM.taskQueue.queueTask(async () => {
-  await criticalDataOperation();
-}, { suspend: true });
+// With mordern browser implementation, normally all DOM changes execute in the same task
+// and without triggering layout-ing or reflow unless there's a DOM property read in between
+// that triggers those.
+element1.style.left = '100px';
+element2.style.top = '200px';
+element3.textContent = 'Updated';
 ```
 
 ### State Management Performance
@@ -113,6 +97,12 @@ get expensiveCalculation(): number {
 @computed({ flush: 'sync' })
 get criticalValue(): number {
   return this.criticalComputation();
+}
+
+// Deep observation - watch nested property changes
+@computed({ deep: true })
+get nestedTotal(): number {
+  return this.items.reduce((sum, item) => sum + item.value, 0);
 }
 ```
 
@@ -194,59 +184,138 @@ onCriticalValueChange(newValue: number): void {
 }
 ```
 
+### Binding Behaviors for Performance
+
+#### Throttle Binding Behavior
+
+Limit how often a binding updates, useful for expensive operations triggered by user input:
+
+```html
+<!-- Throttle search updates - max once every 300ms -->
+<input type="text"
+       value.bind="searchQuery & throttle:300">
+
+<!-- Throttle scroll position updates -->
+<div scroll.trigger="handleScroll($event) & throttle:100">
+  <!-- Content -->
+</div>
+
+<!-- Multiple values: delay and signal name -->
+<input value.bind="filterText & throttle:200:'filter-changed'">
+```
+
+```typescript
+import { customElement } from 'aurelia';
+
+@customElement({ name: 'search-box' })
+export class SearchBox {
+  searchQuery = '';
+
+  // This will only be called max once every 300ms
+  searchQueryChanged(newValue: string): void {
+    this.performExpensiveSearch(newValue);
+  }
+
+  private performExpensiveSearch(query: string): void {
+    // Expensive API call or computation
+  }
+}
+```
+
+#### Debounce Binding Behavior
+
+Delay binding updates until user stops typing, ideal for search-as-you-type:
+
+```html
+<!-- Wait 500ms after user stops typing before updating -->
+<input type="text"
+       value.bind="searchTerm & debounce:500">
+
+<!-- Debounce with custom signal -->
+<textarea value.bind="content & debounce:1000:'content-saved'">
+</textarea>
+```
+
+```typescript
+import { customElement } from 'aurelia';
+
+@customElement({ name: 'live-search' })
+export class LiveSearch {
+  searchTerm = '';
+  results: any[] = [];
+
+  // Only called 500ms after user stops typing
+  async searchTermChanged(newValue: string): Promise<void> {
+    if (newValue.length < 3) return;
+
+    // This expensive API call only fires after user stops typing
+    this.results = await this.searchAPI.query(newValue);
+  }
+}
+```
+
+**Performance Tips:**
+- Use **throttle** for continuous events (scroll, mousemove, resize)
+- Use **debounce** for discrete user input (typing, form fields)
+- Throttle allows periodic updates; debounce waits for quiet period
+- Default delay is 200ms if not specified
+
 ### Virtual Repeat Performance
 
 #### Optimize Virtual Repeat for Large Collections
 
-```typescript
-@customElement({
-  name: 'optimized-list',
-  template: `
-    <div virtual-repeat.for="item of items" 
-         virtual-repeat.with="optimizedConfig">
-      <item-view item.bind="item"></item-view>
-    </div>
-  `
-})
-export class OptimizedList {
-  items: Item[] = [];
-  
-  optimizedConfig = {
-    // Increase buffer size for smoother scrolling
-    bufferSize: 20,
-    
-    // Use fixed item height for better performance
-    itemHeight: 60,
-    
-    // Enable scrolling optimization
-    scrollThrottle: 16
-  };
-}
+Configure virtual-repeat inline for optimal performance with large datasets:
+
+```html
+<!-- Fixed item height - best performance -->
+<div virtual-repeat.for="item of items"
+     item-height="60"
+     buffer-size="20">
+  <item-view item.bind="item"></item-view>
+</div>
+
+<!-- Horizontal layout -->
+<div virtual-repeat.for="item of items"
+     layout="horizontal"
+     item-width="200"
+     buffer-size="10">
+  <item-card item.bind="item"></item-card>
+</div>
+
+<!-- Configure minimum views -->
+<div virtual-repeat.for="item of items"
+     item-height="80"
+     min-views="15">
+  <item-row item.bind="item"></item-row>
+</div>
 ```
 
-#### Virtual Repeat with Dynamic Heights
+#### Virtual Repeat with Variable Heights
 
-```typescript
-@customElement({ name: 'dynamic-list' })
-export class DynamicList {
-  items: Item[] = [];
-  
-  // Pre-calculate heights for performance
-  itemHeights = new Map<string, number>();
-  
-  getItemHeight(item: Item): number {
-    if (!this.itemHeights.has(item.id)) {
-      this.itemHeights.set(item.id, this.calculateHeight(item));
-    }
-    return this.itemHeights.get(item.id)!;
-  }
-  
-  private calculateHeight(item: Item): number {
-    // Calculate height based on content
-    return item.content.length > 100 ? 120 : 60;
-  }
-}
+For items with varying heights, enable the `variable-height` option:
+
+```html
+<!-- Variable height support - Aurelia will measure each item -->
+<div virtual-repeat.for="item of items"
+     variable-height="true"
+     buffer-size="20">
+  <div class="item">
+    <h3>${item.title}</h3>
+    <p>${item.description}</p>
+    <!-- Heights can vary based on content -->
+  </div>
+</div>
+
+<!-- Variable width for horizontal layouts -->
+<div virtual-repeat.for="item of items"
+     layout="horizontal"
+     variable-width="true"
+     buffer-size="15">
+  <item-card item.bind="item"></item-card>
+</div>
 ```
+
+**Performance Note:** Variable sizing has more overhead than fixed sizing. Use fixed heights when possible for best performance.
 
 ## Build Optimization
 
@@ -397,19 +466,28 @@ export class EventComponent {
 #### Subscription Management
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { IEventAggregator } from '@aurelia/kernel';
+import { customElement } from 'aurelia';
+
 @customElement({ name: 'subscription-component' })
 export class SubscriptionComponent {
+  private eventAggregator = resolve(IEventAggregator);
   private subscriptions: Subscription[] = [];
-  
+
   attached(): void {
     this.subscriptions.push(
       this.eventAggregator.subscribe('event', this.handleEvent.bind(this))
     );
   }
-  
+
   detached(): void {
     this.subscriptions.forEach(sub => sub.dispose());
     this.subscriptions = [];
+  }
+
+  private handleEvent(data: unknown): void {
+    // Handle event
   }
 }
 ```
@@ -463,6 +541,81 @@ export class MetadataManager {
 }
 ```
 
+### Observable Batching
+
+#### Batch Multiple State Changes
+
+When making multiple property changes, use `batch()` to combine them into a single change notification:
+
+```typescript
+import { batch, observable } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
+
+@customElement({ name: 'user-profile' })
+export class UserProfile {
+  @observable firstName = '';
+  @observable lastName = '';
+  @observable email = '';
+  @observable phoneNumber = '';
+
+  // Without batching: 4 separate change notifications
+  updateUserSlow(data: UserData): void {
+    this.firstName = data.firstName;    // triggers update
+    this.lastName = data.lastName;      // triggers update
+    this.email = data.email;            // triggers update
+    this.phoneNumber = data.phoneNumber; // triggers update
+  }
+
+  // With batching: 1 combined change notification
+  updateUserFast(data: UserData): void {
+    batch(() => {
+      this.firstName = data.firstName;
+      this.lastName = data.lastName;
+      this.email = data.email;
+      this.phoneNumber = data.phoneNumber;
+      // All changes are batched into a single update cycle
+    });
+  }
+}
+```
+
+#### Batch Array Mutations
+
+Batch multiple array operations to prevent repeated re-renders:
+
+```typescript
+import { batch, observable } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
+
+@customElement({ name: 'todo-list' })
+export class TodoList {
+  @observable items: TodoItem[] = [];
+
+  // Batch multiple array operations
+  bulkUpdate(updates: TodoUpdate[]): void {
+    batch(() => {
+      for (const update of updates) {
+        if (update.action === 'add') {
+          this.items.push(update.item);
+        } else if (update.action === 'remove') {
+          const index = this.items.indexOf(update.item);
+          if (index > -1) this.items.splice(index, 1);
+        } else if (update.action === 'update') {
+          Object.assign(update.item, update.changes);
+        }
+      }
+      // Only one change notification for all operations
+    });
+  }
+}
+```
+
+**Performance Benefits:**
+- Reduces the number of change notifications
+- Prevents unnecessary intermediate UI updates
+- Particularly effective when updating multiple related properties
+- Essential for bulk data operations
+
 ## Large Data Handling
 
 ### Pagination Strategies
@@ -497,38 +650,56 @@ export class VirtualPagination {
 #### Infinite Scroll
 
 ```typescript
+import { observable } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
+
+interface IDataService {
+  getItems(offset: number, limit: number): Promise<Item[]>;
+}
+
 @customElement({ name: 'infinite-scroll' })
 export class InfiniteScroll {
   private loadingMore = false;
   private hasMore = true;
-  
+  private scrollContainer!: HTMLElement;
+
   @observable items: Item[] = [];
-  
+
   attached(): void {
     this.scrollContainer.addEventListener('scroll', this.onScroll.bind(this));
   }
-  
+
+  detached(): void {
+    this.scrollContainer.removeEventListener('scroll', this.onScroll.bind(this));
+  }
+
   private onScroll(): void {
     if (this.loadingMore || !this.hasMore) return;
-    
+
     const { scrollTop, scrollHeight, clientHeight } = this.scrollContainer;
     const threshold = 200;
-    
+
     if (scrollTop + clientHeight >= scrollHeight - threshold) {
-      this.loadMoreItems();
+      void this.loadMoreItems();
     }
   }
-  
+
   private async loadMoreItems(): Promise<void> {
     this.loadingMore = true;
-    
+
     try {
-      const newItems = await this.dataService.getItems(this.items.length, 20);
+      // Fetch from your data service
+      const newItems = await this.fetchItems(this.items.length, 20);
       this.items.push(...newItems);
       this.hasMore = newItems.length === 20;
     } finally {
       this.loadingMore = false;
     }
+  }
+
+  private async fetchItems(offset: number, limit: number): Promise<Item[]> {
+    // Your API call here
+    return [] as Item[];
   }
 }
 ```
@@ -538,39 +709,47 @@ export class InfiniteScroll {
 #### Streaming Large Datasets
 
 ```typescript
+import { customElement, batch } from 'aurelia';
+
 @customElement({ name: 'data-stream' })
 export class DataStream {
   private items: Item[] = [];
   private processingQueue: Item[] = [];
-  
+
   async loadData(): Promise<void> {
-    const stream = this.dataService.getStreamingData();
-    
+    const stream = this.getStreamingData();
+
     for await (const chunk of stream) {
       this.processingQueue.push(...chunk);
-      
+
       // Process in batches to avoid blocking the UI
       if (this.processingQueue.length >= 100) {
         await this.processBatch();
       }
     }
-    
+
     // Process remaining items
     if (this.processingQueue.length > 0) {
       await this.processBatch();
     }
   }
-  
+
   private async processBatch(): Promise<void> {
     const batch = this.processingQueue.splice(0, 100);
-    
+
     // Process batch in task queue to avoid blocking
-    await new Promise(resolve => {
-      PLATFORM.taskQueue.queueTask(() => {
+    await new Promise<void>(resolve => {
+      batch(() => {
         this.items.push(...batch);
-        resolve(void 0);
+        resolve();
       });
     });
+  }
+
+  private async *getStreamingData(): AsyncGenerator<Item[]> {
+    // Your streaming data source
+    // Example: fetch data in chunks from API
+    yield [] as Item[];
   }
 }
 ```
@@ -578,33 +757,6 @@ export class DataStream {
 ## Performance Monitoring
 
 ### Runtime Performance Profiling
-
-#### Task Queue Monitoring
-
-```typescript
-// Enable task queue debugging
-PLATFORM.taskQueue._tracer.enabled = true;
-
-// Monitor queue performance
-class TaskQueueMonitor {
-  private taskCounts = new Map<string, number>();
-  
-  startMonitoring(): void {
-    const originalQueueTask = PLATFORM.taskQueue.queueTask;
-    
-    PLATFORM.taskQueue.queueTask = (callback, options) => {
-      const name = callback.name || 'anonymous';
-      this.taskCounts.set(name, (this.taskCounts.get(name) || 0) + 1);
-      
-      return originalQueueTask.call(PLATFORM.taskQueue, callback, options);
-    };
-  }
-  
-  getTaskStatistics(): Map<string, number> {
-    return new Map(this.taskCounts);
-  }
-}
-```
 
 #### Performance Metrics Collection
 
@@ -639,37 +791,277 @@ class PerformanceMetrics {
 }
 ```
 
+## Real-World Performance Scenarios
+
+### Scenario 1: Optimized Data Grid
+
+Build a high-performance data grid with 10,000+ rows:
+
+```typescript
+import { customElement } from 'aurelia';
+
+@customElement({
+  name: 'data-grid',
+  template: `
+    <div class="grid-container">
+      <div class="grid-header">
+        <input type="text"
+               value.bind="filterText & debounce:300"
+               placeholder="Search...">
+      </div>
+
+      <div class="grid-body"
+           virtual-repeat.for="row of filteredRows"
+           item-height="40"
+           buffer-size="20">
+        <div class="grid-row">
+          <span>\${row.id}</span>
+          <span>\${row.name}</span>
+          <span>\${row.email}</span>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class DataGrid {
+  rows: DataRow[] = [];
+  filterText = '';
+
+  @computed({ deps: ['rows', 'filterText'] })
+  get filteredRows(): DataRow[] {
+    if (!this.filterText) return this.rows;
+
+    const search = this.filterText.toLowerCase();
+    return this.rows.filter(row =>
+      row.name.toLowerCase().includes(search) ||
+      row.email.toLowerCase().includes(search)
+    );
+  }
+}
+```
+
+**Performance Features Used:**
+- `debounce` prevents filtering on every keystroke
+- `virtual-repeat` renders only visible rows
+- `@computed` with explicit deps caches filter results
+- Fixed `item-height` enables optimal scrolling
+
+### Scenario 2: Real-Time Dashboard Updates
+
+Handle high-frequency updates efficiently:
+
+```typescript
+import { batch, observable, queueRecurringTask } from '@aurelia/runtime';
+import { customElement, resolve } from 'aurelia';
+import { PLATFORM } from 'aurelia';
+
+@customElement({ name: 'live-dashboard' })
+export class LiveDashboard {
+  @observable metrics: DashboardMetrics = {
+    activeUsers: 0,
+    requestsPerSecond: 0,
+    errorRate: 0,
+    avgResponseTime: 0
+  };
+
+  private updateTask?: any;
+
+  attaching(): void {
+    // Batch multiple metric updates together
+    this.updateTask = queueRecurringTask(() => {
+      this.updateMetrics();
+    }, { interval: 1000 });
+  }
+
+  detaching(): void {
+    this.updateTask?.cancel();
+  }
+
+  private updateMetrics(): void {
+    // Fetch latest metrics from API
+    const newMetrics = this.fetchLatestMetrics();
+
+    // Use batch to update all metrics at once
+    batch(() => {
+      this.metrics.activeUsers = newMetrics.activeUsers;
+      this.metrics.requestsPerSecond = newMetrics.requestsPerSecond;
+      this.metrics.errorRate = newMetrics.errorRate;
+      this.metrics.avgResponseTime = newMetrics.avgResponseTime;
+    });
+  }
+
+  private fetchLatestMetrics(): DashboardMetrics {
+    // API call
+    return {} as DashboardMetrics;
+  }
+}
+```
+
+**Performance Features Used:**
+- `batch()` combines multiple updates into one notification
+- Persistent task with delay for regular updates
+- Task cancellation on component detach prevents leaks
+
+### Scenario 3: Image Gallery with Lazy Loading
+
+Optimize large image galleries:
+
+```html
+<!-- image-gallery.html -->
+<div class="gallery">
+  <div virtual-repeat.for="image of images"
+       variable-height="true"
+       buffer-size="15"
+       layout="horizontal">
+    <img src.bind="image.thumbnail"
+         loading="lazy"
+         alt="\${image.title}">
+  </div>
+</div>
+```
+
+```typescript
+import { customElement, batch } from 'aurelia';
+
+@customElement({ name: 'image-gallery' })
+export class ImageGallery {
+  images: GalleryImage[] = [];
+
+  async attached(): Promise<void> {
+    // Load images in chunks
+    await this.loadImagesInChunks();
+  }
+
+  private async loadImagesInChunks(): Promise<void> {
+    const chunkSize = 50;
+    const allImages = await this.fetchAllImageMetadata();
+
+    for (let i = 0; i < allImages.length; i += chunkSize) {
+      const chunk = allImages.slice(i, i + chunkSize);
+
+      // Use task queue to prevent blocking
+      await new Promise<void>(resolve => {
+        batch(() => {
+          this.images.push(...chunk);
+          resolve();
+        });
+      });
+    }
+  }
+
+  private async fetchAllImageMetadata(): Promise<GalleryImage[]> {
+    // Fetch from API
+    return [] as GalleryImage[];
+  }
+}
+```
+
+**Performance Features Used:**
+- `variable-height` handles different aspect ratios
+- Native lazy loading with `loading="lazy"`
+- Task queue prevents UI blocking during data loading
+- Chunked loading for progressive rendering
+
+### Scenario 4: Complex Form with Validation
+
+Optimize forms with many fields:
+
+```typescript
+import { batch, observable } from '@aurelia/runtime';
+import { customElement } from 'aurelia';
+
+@customElement({ name: 'complex-form' })
+export class ComplexForm {
+  @observable formData: FormData = {
+    personalInfo: {},
+    address: {},
+    preferences: {},
+    settings: {}
+  };
+
+  // Debounce validation to avoid excessive checks
+  template = `
+    <form>
+      <input value.bind="formData.personalInfo.firstName & debounce:200">
+      <input value.bind="formData.personalInfo.lastName & debounce:200">
+      <input value.bind="formData.personalInfo.email & debounce:300">
+      <!-- More fields... -->
+    </form>
+  `;
+
+  loadFormData(data: FormData): void {
+    // Batch all field updates
+    batch(() => {
+      Object.assign(this.formData.personalInfo, data.personalInfo);
+      Object.assign(this.formData.address, data.address);
+      Object.assign(this.formData.preferences, data.preferences);
+      Object.assign(this.formData.settings, data.settings);
+    });
+  }
+
+  @computed({ flush: 'async' })
+  get isFormValid(): boolean {
+    // Expensive validation runs asynchronously
+    return this.validateAllFields();
+  }
+
+  private validateAllFields(): boolean {
+    // Validation logic
+    return true;
+  }
+}
+```
+
+**Performance Features Used:**
+- `debounce` on inputs reduces validation frequency
+- `batch()` when loading initial form data
+- Async flush for validation computation
+- Object.assign for efficient property updates
+
 ## Best Practices Summary
 
 ### 1. Framework Usage
-- Use task queue for DOM updates and async operations
-- Implement memoization for expensive computations
-- Choose appropriate flush modes for computed properties
-- Optimize watch expressions and use computed properties
+- Use `batch` for array mutation operations
+- Implement memoization with `createStateMemoizer` for expensive state computations
+- Choose appropriate flush modes (`sync` or `async`) for computed properties
+- Optimize watch expressions and prefer computed properties
+- Use `throttle` for continuous events, `debounce` for discrete user input
+- Enable `deep` observation only when needed for nested objects
 
 ### 2. Memory Management
-- Always clean up event listeners and subscriptions
-- Use WeakMap for metadata storage
-- Avoid circular references
+- Always clean up event listeners and subscriptions in `detaching()`
+- Use WeakMap for metadata storage that should be garbage collected
+- Avoid circular references or use explicit cleanup
+- Cancel persistent tasks when components detach
 - Monitor memory usage during development
 
 ### 3. Data Handling
-- Implement virtual scrolling for large lists
+- Implement virtual-repeat for lists with 100+ items
+- Use fixed `item-height` for best virtual-repeat performance
+- Enable `variable-height` only when necessary
 - Use pagination or infinite scroll for large datasets
-- Process data in batches to avoid blocking the UI
-- Stream large datasets when possible
+- Process data in batches with `batch()` to avoid blocking the UI
+- Stream large datasets when possible using task queue
 
-### 4. Build Optimization
-- Configure tree shaking properly
-- Use code splitting for routes and components
+### 4. Binding Optimization
+- Use `debounce` on form inputs (300-500ms for text, 200ms for other fields)
+- Use `throttle` on scroll/resize/mousemove handlers (100-200ms)
+- Batch multiple observable changes with `batch()`
+- Prefer `@computed` with explicit `deps` over complex expressions in templates
+- Use `flush: 'async'` (default) unless immediate updates are critical
+
+### 5. Build Optimization
+- Configure tree shaking properly in your bundler
+- Use code splitting for routes and large components
 - Optimize bundle size with selective imports
-- Implement service worker caching
+- Implement service worker caching for production apps
+- Minify and compress assets
 
-### 5. Performance Monitoring
-- Profile task queue usage
+### 6. Performance Monitoring
 - Monitor component lifecycle performance
-- Track memory usage patterns
+- Track memory usage patterns with browser DevTools
 - Use performance metrics to identify bottlenecks
+- Test with realistic data volumes
 
 These optimization techniques will help you build high-performance Aurelia applications that scale well and provide excellent user experiences.
 

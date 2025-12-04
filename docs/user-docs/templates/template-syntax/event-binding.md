@@ -42,6 +42,21 @@ To bind a click event on a button to a method named `handleClick` in your view m
 
 When a user clicks the "Click Me" button, Aurelia will execute the `handleClick` method defined in your associated view model.
 
+### Shorthand syntax for events (`@event`)
+
+To make it easier for teams migrating from Vue or other frameworks, Aurelia also understands the `@event="handler"` shorthand. The compiler converts it to the equivalent `event.trigger` binding, including modifiers after a colon.
+
+```html
+<!-- These two lines are identical -->
+<button click.trigger="save()">Save</button>
+<button @click="save()">Save</button>
+
+<!-- Modifiers work the same way -->
+<button @click:ctrl+enter="send()">Send (Ctrl + Enter)</button>
+```
+
+Use whichever style you prefer—the generated instructions are the same. If you need capturing semantics, use the explicit `event.capture` syntax because the shorthand only targets the bubbling (`.trigger`) command.
+
 ### Passing Event Data to Handlers
 
 Often, you need access to the event object or want to pass additional data to your event handler method. Aurelia provides a straightforward way to do this.
@@ -279,14 +294,13 @@ Parent components can listen for and react to custom events dispatched by child 
 **Custom Element (Child):**
 
 ```typescript
-import { bindable, customElement, Element } from 'aurelia';
-import { inject } from '@aurelia/kernel';
+import { bindable, customElement, resolve } from 'aurelia';
+import { INode } from '@aurelia/runtime-html';
 
 @customElement({ name: 'my-button', template: `<button click.trigger="handleClick()">\${label}</button>` })
-@inject(Element)
 export class MyButton {
+  private element = resolve(INode) as HTMLElement;
   @bindable label = 'Click Me';
-  constructor(private element: Element) {}
 
   handleClick() {
     this.element.dispatchEvent(new CustomEvent('button-clicked', {
@@ -355,6 +369,27 @@ Event modifiers provide a declarative way to apply conditions or actions to even
 ```
 
 Aurelia provides built-in modifiers for common event handling scenarios, and you can extend them with custom mappings.
+
+| Modifier | Works with | Description |
+| --- | --- | --- |
+| `prevent` | Any event | Calls `event.preventDefault()` before running your handler. |
+| `stop` | Any event | Calls `event.stopPropagation()` before running your handler. |
+| `ctrl`, `alt`, `shift`, `meta` | Keyboard/Mouse events | Ensures the corresponding meta key is pressed. Multiple keys can be chained (`:ctrl+enter`). |
+| Named keys (`enter`, `escape`, `tab`, `a`, `ArrowUp`, etc.) | Keyboard events | Only invokes your handler when the pressed key matches. |
+| `left`, `middle`, `right` | Mouse events | Filters mouse buttons. |
+
+```html
+<!-- Submit only on Ctrl + Enter, prevent default form submission -->
+<textarea @keydown:ctrl+enter.prevent="submitDraft()"></textarea>
+
+<!-- Ignore bubbling clicks; only fire when the element itself is clicked -->
+<button click.trigger="destroy()" @click:left.stop.prevent></button>
+
+<!-- When using dot syntax, the command still comes first -->
+<div scroll.trigger="syncScroll($event)" @scroll.prevent></div>
+```
+
+Modifiers are additive: `@click:ctrl+enter.prevent` checks modifier keys first and only then calls your handler (after canceling the DOM default). If a modifier check fails (for example, the required key is not pressed) the handler simply does not run.
 
 #### Mouse and Keyboard Event Modifiers
 
@@ -437,6 +472,38 @@ This makes your template more readable as `:ctrl+upper_k` is more self-explanato
 {% hint style="info" %}
 Aurelia provides default key mappings for lowercase letters 'a' through 'z' (both as key codes and letter names). For uppercase letters, only key code mappings are provided by default (e.g., `:65` for 'A'). You can extend these mappings as shown above to create more semantic modifier names.
 {% endhint %}
+
+#### Extending modifier handling
+
+The runtime registers `EventModifier`, `IModifiedEventHandlerCreator`, and a set of default creators (mouse, keyboard, generic) inside `EventModifierRegistration`. If you need custom semantics—gestures, wheel direction checks, or application-specific shortcuts—add your own creator and register it with the container:
+
+```typescript
+import { EventModifierRegistration, IModifiedEventHandlerCreator } from '@aurelia/runtime-html';
+import { Registration } from '@aurelia/kernel';
+
+class WheelModifier implements IModifiedEventHandlerCreator {
+  public readonly type = 'wheel';
+  public getHandler(modifier: string) {
+    const parts = modifier.split('.');
+    return (event: WheelEvent) => {
+      if (parts.includes('vertical') && Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+        return false; // Ignore horizontal scrolls
+      }
+      if (parts.includes('invert')) {
+        event.deltaY *= -1;
+      }
+      return true;
+    };
+  }
+}
+
+Aurelia.register(
+  EventModifierRegistration,
+  Registration.singleton(IModifiedEventHandlerCreator, WheelModifier)
+);
+```
+
+After registration you can bind to `@wheel:vertical.invert="onScroll($event)"`. Returning `false` from the handler vetoes the event (your view-model method will not be called), while returning `true` allows the binding to proceed.
 
 ## Common Pitfalls and Troubleshooting
 

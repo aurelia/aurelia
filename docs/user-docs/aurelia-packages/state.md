@@ -17,6 +17,10 @@ Before we delve too deeply into Aurelia State and how it can help manage state i
 Think about the state plugin as an event aggregator but customized for state management.
 {% endhint %}
 
+### Scenario driven guides
+
+Ready-made patterns such as optimistic updates, persistence, and replay debugging live in the [state outcome recipes](./state-outcome-recipes.md). Start there when you need an end-to-end solution.
+
 ## Aurelia State guides
 
 ### Installing Aurelia State
@@ -645,7 +649,7 @@ middlewares: [
 You can add and remove middleware at runtime using the store instance:
 
 ```ts
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IStore, MiddlewarePlacement } from '@aurelia/state';
 
 export class MyComponent {
@@ -698,7 +702,7 @@ export const debugMiddleware = (state, action) => {
 You can add and remove middleware at runtime using the store instance:
 
 ```ts
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IStore } from '@aurelia/state';
 
 export class MyComponent {
@@ -789,7 +793,7 @@ export type ClearAction = { type: 'clear' }
 
 Then the store can be declared like this:
 ```ts
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IStore } from '@aurelia/state';
 
 class MyEl {

@@ -689,14 +689,13 @@ Usage:
 Value converters can automatically re-evaluate when specific signals are dispatched, perfect for locale changes, theme updates, or global state changes.
 
 ```typescript
-import { valueConverter, ISignaler } from 'aurelia';
+import { valueConverter, ISignaler, resolve } from 'aurelia';
 
 @valueConverter('localeDate')
 export class LocaleDateConverter {
+  private signaler = resolve(ISignaler);
   public readonly signals = ['locale-changed', 'timezone-changed'];
-  
-  constructor(@ISignaler private signaler: ISignaler) {}
-  
+
   toView(value: string, locale?: string) {
     const currentLocale = locale || this.getCurrentLocale();
     return new Intl.DateTimeFormat(currentLocale, {
@@ -705,7 +704,7 @@ export class LocaleDateConverter {
       year: 'numeric'
     }).format(new Date(value));
   }
-  
+
   private getCurrentLocale() {
     // Get current locale from your app state
     return 'en-US';
@@ -716,9 +715,11 @@ export class LocaleDateConverter {
 To trigger re-evaluation from anywhere in your app:
 
 ```typescript
+import { resolve, ISignaler } from 'aurelia';
+
 export class LocaleService {
-  constructor(@ISignaler private signaler: ISignaler) {}
-  
+  private signaler = resolve(ISignaler);
+
   changeLocale(newLocale: string) {
     // Update your locale
     this.signaler.dispatchSignal('locale-changed');
@@ -1467,8 +1468,11 @@ describe('CurrencyConverter', () => {
 
 2. **Dispatch signals correctly**:
    ```typescript
-   constructor(@ISignaler private signaler: ISignaler) {}
-   
+   import { resolve } from '@aurelia/kernel';
+   import { ISignaler } from '@aurelia/runtime';
+
+   private signaler = resolve(ISignaler);
+
    updateData(): void {
      // Update data first
      this.signaler.dispatchSignal('my-signal');

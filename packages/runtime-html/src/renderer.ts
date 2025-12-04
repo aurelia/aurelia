@@ -407,6 +407,7 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
       childInstruction = childInstructions[i];
       expr = ensureExpression(exprParser, childInstruction.from, etIsProperty);
       renderingCtrl.addBinding(new LetBinding(
+        renderingCtrl,
         container,
         observerLocator,
         expr,

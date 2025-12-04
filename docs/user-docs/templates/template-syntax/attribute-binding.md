@@ -117,6 +117,21 @@ export class MyApp {
 
 *Result:* The input fields and links will reflect the bound properties with varying degrees of reactivity based on the binding keyword used.
 
+### 3. Vue-style shorthand for `.bind`
+
+If you are used to Vue or other template syntaxes, Aurelia ships with an attribute pattern that treats a leading colon as an alias for `.bind`. This allows you to write more compact markup without giving up any functionality.
+
+```html
+<!-- These two lines are equivalent -->
+<input value.bind="firstName">
+<input :value="firstName">
+
+<!-- Works with any attribute -->
+<img :src="profile.avatarUrl" :alt="profile.fullName">
+```
+
+The shorthand always creates a property binding (the same as `attribute.bind`). If you need a different binding mode, fall back to the explicit syntax (`value.two-way`, `value.one-time`, etc.). Event shorthands that start with `@` are handled separately in the [event binding guide](./event-binding.md#shorthand-syntax-for-events).
+
 ### 3. Binding to Images
 
 Binding image attributes such as `src` and `alt` ensures that images update dynamically based on the view model data.
@@ -195,6 +210,23 @@ export class MyApp {
 ## Advanced Binding Techniques
 
 Explore more sophisticated binding scenarios to handle complex data interactions and ensure seamless attribute management.
+
+### 0. Treating existing markup as a custom element with `as-element`
+
+When outside systems dictate the tag name you must render (for example, a CMS that only allows `<div>` and `<section>`), you can still hydrate one of your custom elements by adding `as-element="component-name"` to any real DOM node. The compiler will instantiate `component-name` for that element while leaving the original tag in place.
+
+```html
+<!-- Render a section, but run it through the <page-card> custom element -->
+<section as-element="page-card" header.bind="title">
+  <p>Projected slot content still works as usual.</p>
+</section>
+```
+
+- Use `as-element` when you want the behavior of a custom element but must keep the original tag name for semantic or styling reasons.
+- Unlike `<template as-custom-element="...">`, this does not create a local element definition; it simply aliases an existing element instance.
+- The attribute can appear anywhere inside your markup except on the root `<template>` surrogate (putting it there triggers AUR0702).
+
+This makes `as-element` a handy compatibility feature when integrating Aurelia components into environments with strict HTML requirements.
 
 ### 1. How Attribute Binding Works
 

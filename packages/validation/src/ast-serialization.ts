@@ -51,115 +51,115 @@ export class Deserializer implements IExpressionHydrator {
     switch (raw.$TYPE) {
       case ASTExpressionTypes.AccessMemberExpression: {
         const expr: Pick<AST.AccessMemberExpression, 'object' | 'name'> = raw;
-        return new AST.AccessMemberExpression(this.hydrate(expr.object), expr.name);
+        return AST.createAccessMemberExpression(this.hydrate(expr.object), expr.name);
       }
       case ASTExpressionTypes.AccessKeyedExpression: {
         const expr: Pick<AST.AccessKeyedExpression, 'object' | 'key'> = raw;
-        return new AST.AccessKeyedExpression(this.hydrate(expr.object), this.hydrate(expr.key));
+        return AST.createAccessKeyedExpression(this.hydrate(expr.object), this.hydrate(expr.key));
       }
       case ASTExpressionTypes.AccessThisExpression: {
         const expr: Pick<AST.AccessThisExpression, 'ancestor'> = raw;
-        return new AST.AccessThisExpression(expr.ancestor);
+        return AST.createAccessThisExpression(expr.ancestor);
       }
       case ASTExpressionTypes.AccessBoundaryExpression: {
-        return new AST.AccessBoundaryExpression();
+        return AST.createAccessBoundaryExpression();
       }
       case ASTExpressionTypes.AccessScopeExpression: {
         const expr: Pick<AST.AccessScopeExpression, 'name' | 'ancestor'> = raw;
-        return new AST.AccessScopeExpression(expr.name, expr.ancestor);
+        return AST.createAccessScopeExpression(expr.name, expr.ancestor);
       }
       case ASTExpressionTypes.ArrayLiteralExpression: {
         const expr: Pick<AST.ArrayLiteralExpression, 'elements'> = raw;
-        return new AST.ArrayLiteralExpression(this.hydrate(expr.elements));
+        return AST.createArrayLiteralExpression(this.hydrate(expr.elements));
       }
       case ASTExpressionTypes.ObjectLiteralExpression: {
         const expr: Pick<AST.ObjectLiteralExpression, 'keys' | 'values'> = raw;
-        return new AST.ObjectLiteralExpression(this.hydrate(expr.keys), this.hydrate(expr.values));
+        return AST.createObjectLiteralExpression(this.hydrate(expr.keys), this.hydrate(expr.values));
       }
       case ASTExpressionTypes.PrimitiveLiteralExpression: {
         const expr: Pick<AST.PrimitiveLiteralExpression, 'value'> = raw;
-        return new AST.PrimitiveLiteralExpression(this.hydrate(expr.value));
+        return AST.createPrimitiveLiteralExpression(this.hydrate(expr.value));
       }
       case ASTExpressionTypes.CallFunctionExpression: {
         const expr: Pick<AST.CallFunctionExpression, 'func' | 'args'> = raw;
-        return new AST.CallFunctionExpression(this.hydrate(expr.func), this.hydrate(expr.args));
+        return AST.createCallFunctionExpression(this.hydrate(expr.func), this.hydrate(expr.args));
       }
       case ASTExpressionTypes.CallMemberExpression: {
         const expr: Pick<AST.CallMemberExpression, 'object' | 'name' | 'args'> = raw;
-        return new AST.CallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args));
+        return AST.createCallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args));
       }
       case ASTExpressionTypes.CallScopeExpression: {
         const expr: Pick<AST.CallScopeExpression, 'name' | 'args' | 'ancestor'> = raw;
-        return new AST.CallScopeExpression(expr.name, this.hydrate(expr.args), expr.ancestor);
+        return AST.createCallScopeExpression(expr.name, this.hydrate(expr.args), expr.ancestor);
       }
       case ASTExpressionTypes.TemplateExpression: {
         const expr: Pick<AST.TemplateExpression, 'cooked' | 'expressions'> = raw;
-        return new AST.TemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
+        return AST.createTemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
       }
       case ASTExpressionTypes.TaggedTemplateExpression: {
         const expr: Pick<AST.TaggedTemplateExpression, 'cooked' | 'func' | 'expressions'> & {
           raw: any;
         } = raw;
-        return new AST.TaggedTemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.raw), this.hydrate(expr.func), this.hydrate(expr.expressions));
+        return AST.createTaggedTemplateExpression(this.hydrate(expr.cooked), this.hydrate(expr.raw), this.hydrate(expr.func), this.hydrate(expr.expressions));
       }
       case ASTExpressionTypes.UnaryExpression: {
         const expr: Pick<AST.UnaryExpression, 'operation' | 'expression'> = raw;
-        return new AST.UnaryExpression(expr.operation, this.hydrate(expr.expression));
+        return AST.createUnaryExpression(expr.operation, this.hydrate(expr.expression));
       }
       case ASTExpressionTypes.BinaryExpression: {
         const expr: Pick<AST.BinaryExpression, 'operation' | 'left' | 'right'> = raw;
-        return new AST.BinaryExpression(expr.operation, this.hydrate(expr.left), this.hydrate(expr.right));
+        return AST.createBinaryExpression(expr.operation, this.hydrate(expr.left), this.hydrate(expr.right));
       }
       case ASTExpressionTypes.ConditionalExpression: {
         const expr: Pick<AST.ConditionalExpression, 'condition' | 'yes' | 'no'> = raw;
-        return new AST.ConditionalExpression(this.hydrate(expr.condition), this.hydrate(expr.yes), this.hydrate(expr.no));
+        return AST.createConditionalExpression(this.hydrate(expr.condition), this.hydrate(expr.yes), this.hydrate(expr.no));
       }
       case ASTExpressionTypes.AssignExpression: {
         const expr: Pick<AST.AssignExpression, 'target' | 'value'> = raw;
-        return new AST.AssignExpression(this.hydrate(expr.target), this.hydrate(expr.value));
+        return AST.createAssignExpression(this.hydrate(expr.target), this.hydrate(expr.value));
       }
       case ASTExpressionTypes.ValueConverterExpression: {
         const expr: Pick<AST.ValueConverterExpression, 'expression' | 'name' | 'args'> = raw;
-        return new AST.ValueConverterExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
+        return AST.createValueConverterExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
       }
       case ASTExpressionTypes.BindingBehaviorExpression: {
         const expr: Pick<AST.BindingBehaviorExpression, 'expression' | 'name' | 'args'> = raw;
-        return new AST.BindingBehaviorExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
+        return AST.createBindingBehaviorExpression(this.hydrate(expr.expression), expr.name, this.hydrate(expr.args));
       }
       case ASTExpressionTypes.ArrayBindingPattern: {
         const expr: Pick<AST.ArrayBindingPattern, 'elements'> = raw;
-        return new AST.ArrayBindingPattern(this.hydrate(expr.elements));
+        return AST.createArrayBindingPattern(this.hydrate(expr.elements));
       }
       case ASTExpressionTypes.ObjectBindingPattern: {
         const expr: Pick<AST.ObjectBindingPattern, 'keys' | 'values'> = raw;
-        return new AST.ObjectBindingPattern(this.hydrate(expr.keys), this.hydrate(expr.values));
+        return AST.createObjectBindingPattern(this.hydrate(expr.keys), this.hydrate(expr.values));
       }
       case ASTExpressionTypes.BindingIdentifier: {
         const expr: Pick<AST.BindingIdentifier, 'name'> = raw;
-        return new AST.BindingIdentifier(expr.name);
+        return AST.createBindingIdentifier(expr.name);
       }
       case ASTExpressionTypes.ForOfStatement: {
         const expr: Pick<AST.ForOfStatement, 'declaration' | 'iterable' | 'semiIdx'> = raw;
-        return new AST.ForOfStatement(this.hydrate(expr.declaration), this.hydrate(expr.iterable), this.hydrate(expr.semiIdx));
+        return AST.createForOfStatement(this.hydrate(expr.declaration), this.hydrate(expr.iterable), this.hydrate(expr.semiIdx));
       }
       case ASTExpressionTypes.Interpolation: {
         const expr: {
           cooked: any;
           expressions: any;
         } = raw;
-        return new AST.Interpolation(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
+        return AST.createInterpolation(this.hydrate(expr.cooked), this.hydrate(expr.expressions));
       }
       case ASTExpressionTypes.DestructuringAssignment: {
-        return new AST.DestructuringAssignmentExpression(this.hydrate(raw.$kind), this.hydrate(raw.list), this.hydrate(raw.source), this.hydrate(raw.initializer));
+        return AST.createDestructuringAssignmentExpression(this.hydrate(raw.$kind), this.hydrate(raw.list), this.hydrate(raw.source), this.hydrate(raw.initializer));
       }
       case ASTExpressionTypes.DestructuringSingleAssignment: {
-        return new AST.DestructuringAssignmentSingleExpression(this.hydrate(raw.target), this.hydrate(raw.source), this.hydrate(raw.initializer));
+        return AST.createDestructuringAssignmentSingleExpression(this.hydrate(raw.target), this.hydrate(raw.source), this.hydrate(raw.initializer));
       }
       case ASTExpressionTypes.DestructuringRestAssignment: {
-        return new AST.DestructuringAssignmentRestExpression(this.hydrate(raw.target), this.hydrate(raw.indexOrProperties));
+        return AST.createDestructuringAssignmentRestExpression(this.hydrate(raw.target), this.hydrate(raw.indexOrProperties));
       }
       case ASTExpressionTypes.ArrowFunction: {
-        return new AST.ArrowFunction(this.hydrate(raw.parameters), this.hydrate(raw.body), this.hydrate(raw.rest));
+        return AST.createArrowFunction(this.hydrate(raw.parameters), this.hydrate(raw.body), this.hydrate(raw.rest));
       }
       default:
         if (Array.isArray(raw)) {

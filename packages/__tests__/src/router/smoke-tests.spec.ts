@@ -2331,14 +2331,12 @@ describe('router/smoke-tests.spec.ts', function () {
 <au-viewport></au-viewport>` })
       class Root { }
 
-      const { au, container, host } = await start({
+      const { au, host } = await start({
         appRoot: Root,
         registrations: [
           NotFound,
         ]
       });
-
-      const queue = container.get(IPlatform).domQueue;
 
       const rootVp = host.querySelector('au-viewport');
       let childVp = rootVp.querySelector('au-viewport');
@@ -2346,40 +2344,34 @@ describe('router/smoke-tests.spec.ts', function () {
 
       let [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
       a2.click();
-      queue.flush();
-      await queue.yield();
+      await tasksSettled();
 
       assert.html.textContent(childVp, 'gc12');
 
       nf.click();
-      queue.flush();
-      await queue.yield();
+      await tasksSettled();
 
       assert.html.textContent(childVp, 'nf');
 
       f.click();
-      queue.flush();
-      await queue.yield();
+      await tasksSettled();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc21', host.textContent);
 
       [, a2, nf, f] = Array.from(rootVp.querySelectorAll('a'));
       a2.click();
-      queue.flush();
-      await queue.yield();
+      await tasksSettled();
 
       assert.html.textContent(childVp, 'gc22');
 
       nf.click();
-      queue.flush();
-      await queue.yield();
+      await tasksSettled();
 
       assert.html.textContent(childVp, 'nf');
 
       f.click();
-      queue.flush();
-      await queue.yield();
+      await tasksSettled();
 
       childVp = rootVp.querySelector('au-viewport');
       assert.html.textContent(childVp, 'gc11');
@@ -2673,8 +2665,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
@@ -2693,7 +2684,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 21 gc22', 'round#2 vp1');
     assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
@@ -2704,7 +2695,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp2',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
@@ -2775,8 +2766,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
@@ -2795,7 +2785,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 21 gc22 NA', 'round#2 vp1');
     assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
@@ -2806,7 +2796,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp2',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
@@ -2824,7 +2814,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 21 gc22 42', 'round#4 vp1');
     assert.html.textContent(vps[1], 'c1 gc12', 'round#4 vp2');
@@ -2836,7 +2826,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc12', 'round#5 vp1');
     assert.html.textContent(vps[1], '', 'round#5 vp2');
@@ -2907,8 +2897,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
@@ -2916,14 +2905,14 @@ describe('router/smoke-tests.spec.ts', function () {
 
     // single
     await router.load(() => ChildTwo);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 NA gc21', 'round#2 vp1');
     assert.html.textContent(vps[1], '', 'round#2 vp2');
 
     // sibling
     await router.load([() => ChildTwo, () => ChildOne]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 NA gc21', 'round#3 vp1');
     assert.html.textContent(vps[1], 'c1 gc11', 'round#3 vp2');
@@ -2933,7 +2922,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: () => ChildTwo, viewport: 'vp2' },
       { component: () => ChildOne, viewport: 'vp1' },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#4 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc21', 'round#4 vp2');
@@ -2943,7 +2932,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: () => ChildTwo, viewport: 'vp1', params: { id: 42 } },
       { component: () => ChildOne, viewport: 'vp2' },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 42 gc21', 'round#5 vp1');
     assert.html.textContent(vps[1], 'c1 gc11', 'round#5 vp2');
@@ -2953,7 +2942,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: () => ChildTwo, viewport: 'vp2', children: [() => GrandChildTwoTwo] },
       { component: () => ChildOne, viewport: 'vp1', children: [() => GrandChildOneTwo] },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc12', 'round#6 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc22 NA', 'round#6 vp2');
@@ -2963,7 +2952,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: () => ChildTwo, viewport: 'vp1', params: { id: 42 }, children: [() => GrandChildTwoTwo] },
       { component: () => ChildOne, viewport: 'vp2' },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 42 gc22 NA', 'round#7 vp1');
     assert.html.textContent(vps[1], 'c1 gc11', 'round#7 vp2');
@@ -2973,7 +2962,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: () => ChildTwo, viewport: 'vp2', params: { id: 42 }, children: [{ component: () => GrandChildTwoTwo, params: { id: 21 } }] },
       { component: () => ChildOne, viewport: 'vp1', children: [() => GrandChildOneTwo] },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc12', 'round#8 vp1');
     assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#8 vp2');
@@ -3045,8 +3034,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
@@ -3054,28 +3042,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
     // single - default
     await router.load(Promise.resolve({ default: ChildTwo }));
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 NA gc21', 'round#2 vp1');
     assert.html.textContent(vps[1], '', 'round#2 vp2');
 
     // single - non-default
     await router.load(Promise.resolve({ ChildOne }));
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
     assert.html.textContent(vps[1], '', 'round#3 vp2');
 
     // single - chained
     await router.load(Promise.resolve({ ChildOne, ChildTwo }).then(x => x.ChildTwo));
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 NA gc21', 'round#4 vp1');
     assert.html.textContent(vps[1], '', 'round#4 vp2');
 
     // sibling
     await router.load([Promise.resolve({ ChildTwo }), Promise.resolve({ ChildOne })]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 NA gc21', 'round#5 vp1');
     assert.html.textContent(vps[1], 'c1 gc11', 'round#5 vp2');
@@ -3085,7 +3073,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: Promise.resolve({ ChildTwo }), viewport: 'vp2' },
       { component: Promise.resolve({ ChildOne }), viewport: 'vp1' },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#6 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc21', 'round#6 vp2');
@@ -3095,7 +3083,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: Promise.resolve({ ChildTwo }), viewport: 'vp1', params: { id: 42 } },
       { component: Promise.resolve({ ChildOne }), viewport: 'vp2' },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 42 gc21', 'round#7 vp1');
     assert.html.textContent(vps[1], 'c1 gc11', 'round#7 vp2');
@@ -3105,7 +3093,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: Promise.resolve({ ChildTwo }), viewport: 'vp2', children: [() => GrandChildTwoTwo] },
       { component: Promise.resolve({ ChildOne }), viewport: 'vp1', children: [() => GrandChildOneTwo] },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc12', 'round#8 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc22 NA', 'round#8 vp2');
@@ -3115,7 +3103,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: Promise.resolve({ ChildTwo }), viewport: 'vp1', params: { id: 42 }, children: [() => GrandChildTwoTwo] },
       { component: Promise.resolve({ ChildOne }), viewport: 'vp2' },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 42 gc22 NA', 'round#9 vp1');
     assert.html.textContent(vps[1], 'c1 gc11', 'round#9 vp2');
@@ -3125,7 +3113,7 @@ describe('router/smoke-tests.spec.ts', function () {
       { component: Promise.resolve({ ChildTwo }), viewport: 'vp2', params: { id: 42 }, children: [{ component: () => GrandChildTwoTwo, params: { id: 21 } }] },
       { component: Promise.resolve({ ChildOne }), viewport: 'vp1', children: [() => GrandChildOneTwo] },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc12', 'round#10 vp1');
     assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#10 vp2');
@@ -3196,8 +3184,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#1 vp1');
@@ -3216,7 +3203,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 21 gc22 NA', 'round#2 vp1');
     assert.html.textContent(vps[1], 'c1 gc12', 'round#2 vp2');
@@ -3227,7 +3214,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp2',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#3 vp1');
     assert.html.textContent(vps[1], 'c2 NA gc21', 'round#3 vp2');
@@ -3240,7 +3227,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 42 gc22 21', 'round#4 vp1');
     assert.html.textContent(vps[1], '', 'round#4 vp2');
@@ -3252,7 +3239,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 NA gc22 NA', 'round#5 vp1');
     assert.html.textContent(vps[1], '', 'round#5 vp2');
@@ -3265,7 +3252,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp2',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c1 gc11', 'round#6 vp1');
     assert.html.textContent(vps[1], 'c2 42 gc22 21', 'round#6 vp2');
@@ -3278,7 +3265,7 @@ describe('router/smoke-tests.spec.ts', function () {
         viewport: 'vp1',
       },
     ]);
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(vps[0], 'c2 21 gc22 42', 'round#7 vp1');
     assert.html.textContent(vps[1], '', 'round#7 vp2');
@@ -3309,15 +3296,13 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).taskQueue;
-
     assert.html.textContent(host, 'p2');
 
     await router.load({
       component: 'p1/c1',
       children: [{ component: C2, viewport: '$2' }]
     });
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'p1 c1 c2');
     await au.stop(true);
@@ -3690,7 +3675,7 @@ describe('router/smoke-tests.spec.ts', function () {
     assert.match(anchor.href, /#\/c1\/42\?foo=bar$/);
 
     anchor.click();
-    await container.get(IPlatform).taskQueue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment:');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3725,7 +3710,7 @@ describe('router/smoke-tests.spec.ts', function () {
     const { host, container } = await start({ appRoot: App, useHash: true });
 
     host.querySelector('a').click();
-    await container.get(IPlatform).taskQueue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment:');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3760,7 +3745,7 @@ describe('router/smoke-tests.spec.ts', function () {
     const { host, container } = await start({ appRoot: App, useHash: true });
 
     host.querySelector('a').click();
-    await container.get(IPlatform).taskQueue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1 params: 42 query: foo=bar fragment: for-whatever-reason');
     const path = (container.get(ILocation) as unknown as MockBrowserHistoryLocation).path;
@@ -3966,11 +3951,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
@@ -3979,28 +3963,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#1
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
 
       // Round#3
       await router.load('p2/c21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
 
       // Round#4 - nav:false, but routeable
       await router.load('p3');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4069,11 +4053,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
@@ -4082,28 +4065,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#1
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
 
       // Round#3
       await router.load('p2/c21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
 
       // Round#4 - nav:false, but routeable
       await router.load('p3');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4182,11 +4165,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
@@ -4195,28 +4177,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#1
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
 
       // Round#3
       await router.load('p2/c21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
 
       // Round#4 - nav:false, but routeable
       await router.load('p3');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4295,11 +4277,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
@@ -4308,28 +4289,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#1
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
 
       // Round#3
       await router.load('p2/c21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
 
       // Round#4 - nav:false, but routeable
       await router.load('p3');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4388,11 +4369,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'start root');
@@ -4401,35 +4381,35 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#2
       await router.load('p2/42');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2/:id', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12/:id', text: 'C12', active: true }], 'round#2 child navbar');
 
       // Round#3
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2/:id', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#3 child navbar');
 
       // Round#4
       await router.load('p1/c12/42');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#4 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12/:id', text: 'C12', active: true }], 'round#4 child navbar');
 
       // Round#5
       await router.load('p2/42/C21/21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2/:id', text: 'P2', active: true }], 'round#5 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#5 child navbar');
@@ -4495,11 +4475,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
@@ -4508,28 +4487,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#1
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
 
       // Round#3
       await router.load('p2/c21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
 
       // Round#4 - nav:false, but routeable
       await router.load('p3');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4594,11 +4573,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
@@ -4607,28 +4585,28 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // Round#1
       await router.load('p2');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
 
       // Round#2
       await router.load('p1/c12');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
 
       // Round#3
       await router.load('p2/c21');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
 
       // Round#4 - nav:false, but routeable
       await router.load('p3');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4668,23 +4646,22 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get(IRouter);
 
       // Start
-      await queue.yield();
+      await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1/:id', text: 'P1', active: false }, { href: 'p2/:id', text: 'P2', active: false }], 'start root');
 
       // Round#1
       await router.load('bar/42');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1/:id', text: 'P1', active: false }, { href: 'p2/:id', text: 'P2', active: true }], 'round#1 root');
 
       // Round#2
       await router.load('foo/42');
-      await queue.yield();
+      await tasksSettled();
       rootNavbar.assert([{ href: 'p1/:id', text: 'P1', active: true }, { href: 'p2/:id', text: 'P2', active: false }], 'round#2 root');
 
       await au.stop(true);
@@ -4725,9 +4702,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
-
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'no nav model root no nav model p1 c11');
 
       await au.stop(true);
@@ -4875,14 +4850,13 @@ describe('router/smoke-tests.spec.ts', function () {
     assert.strictEqual(host.querySelector('ce-p2'), null);
 
     anchors[0].click();
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
 
     assert.notEqual(host.querySelector('ce-p1'), null);
     assert.strictEqual(host.querySelector('ce-p2'), null);
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
 
     assert.strictEqual(host.querySelector('ce-p1'), null);
     assert.notEqual(host.querySelector('ce-p2'), null);
@@ -5432,20 +5406,19 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce1/1"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const { au, host } = await start({ appRoot: Root, registrations: [CeOne] });
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2', 'round#2');
 
       // no change
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2', 'round#3');
 
       await au.stop(true);
@@ -5494,20 +5467,19 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><a load="ce1/2@$1+ce2/1@$2"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const { au, host } = await start({ appRoot: Root, registrations: [CeOne] });
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2');
 
       // no change
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#3');
 
       await au.stop(true);
@@ -5538,23 +5510,22 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce1/1"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const { au, host } = await start({ appRoot: Root, registrations: [CeOne] });
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 2', 'round#2');
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 3', 'round#3');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 4', 'round#4');
 
       await au.stop(true);
@@ -5601,41 +5572,40 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1@$1+ce2@$2"></a><a load="ce1/2@$1+ce2/1@$2"></a><a load="ce1/2@$2+ce2/1@$1"></a><a load="ce1/3@$2+ce2/1@$1"></a><au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const { au, host } = await start({ appRoot: Root, registrations: [CeOne] });
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 2 ce2 1 2', 'round#2');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(3)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 2 3 ce1 2 3', 'round#3');
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 3 4 ce2 3 4', 'round#4');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 3 5 ce2 3 5', 'round#5');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(3)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 4 6 ce1 4 6', 'round#6');
 
       // no change
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(3)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 4 6 ce1 4 6', 'round#7');
 
       // change only one vp
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(4)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 4 6 ce1 4 7', 'round#8');
 
       await au.stop(true);
@@ -5698,34 +5668,33 @@ describe('router/smoke-tests.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).domQueue;
 
       await router.load('p1/1/c2/1');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p1 1 1 ce2 1 1', 'round#1');
 
       await router.load('p1/1/c2/2');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p1 1 1 ce2 1 2', 'round#2');
 
       await router.load('p1/2/c2/2');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p1 2 2 ce2 2 3', 'round#3'); // as the parent is replaced, so is the child
 
       await router.load('p2/1/c1/1');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p2 1 1 ce1 1 1', 'round#4');
 
       await router.load('p2/1/c1/2');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p2 1 1 ce1 2 2', 'round#5');
 
       await router.load('p2/2/c1/2');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p2 1 2 ce1 2 2', 'round#6'); // as the parent is not replaced, the child is also not replaced, as there is no change in the parameters
 
       await router.load('p2/3/c1/3');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p2 1 3 ce1 3 3', 'round#7');
 
       await au.stop(true);
@@ -5760,17 +5729,16 @@ describe('router/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 2', 'round#2');
 
       await au.stop(true);
@@ -5823,17 +5791,16 @@ describe('router/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2 ce2 1 2', 'round#2');
 
       await au.stop(true);
@@ -5890,17 +5857,16 @@ describe('router/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2 ce2 2 2', 'round#2'); // this happens as the ce-one (parent) is replaced causing replacement of child
 
       await au.stop(true);
@@ -5957,17 +5923,16 @@ describe('router/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1 ce2 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
       await router.currentTr.promise;
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 2 ce2 1 1', 'round#2'); // note that as the parent is not replaced, the child is retained.
 
       await au.stop(true);
@@ -6024,31 +5989,30 @@ describe('router/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root });
-      const queue = container.get(IPlatform).domQueue;
       const router = container.get<Router>(IRouter);
 
       await router.load('ce1/42');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1 42', 'round#1');
 
       await router.load('ce1/43');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 2 43', 'round#2');
 
       await router.load('ce1/44', { transitionPlan: 'replace' });
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 3 44', 'round#3');
 
       await router.load('ce2/42');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 1 1 42', 'round#4');
 
       await router.load('ce2/43');
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 2 2 43', 'round#5');
 
       await router.load('ce2/44', { transitionPlan: 'invoke-lifecycles' });
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce2 2 3 44', 'round#6');
 
       await au.stop(true);
@@ -6080,20 +6044,19 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce2"></a><au-viewport></au-viewport>' })
       class Root { }
 
-      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const { au, host } = await start({ appRoot: Root, registrations: [CeOne] });
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 1 1', 'round#1');
 
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2', 'round#2');
 
       // no change
       host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-      await queue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'ce1 2 2', 'round#3');
 
       await au.stop(true);
@@ -6165,19 +6128,18 @@ describe('router/smoke-tests.spec.ts', function () {
         }
 
         const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne, CeTwo], historyStrategy: data.strategy });
-        const queue = container.get(IPlatform).domQueue;
         const router = container.get<Router>(IRouter);
 
         const expectations = data.expectations;
         const len = expectations.length;
-        await queue.yield();
+        await tasksSettled();
         const history = host.querySelector<HTMLSpanElement>('#history');
         assert.html.textContent(history, expectations[0], 'start');
         const anchors = Array.from(host.querySelectorAll('a'));
         for (let i = 1; i < len; i++) {
           anchors[i % 2].click();
           await router.currentTr.promise;
-          await queue.yield();
+          await tasksSettled();
           assert.html.textContent(history, expectations[i], `round#${i}`);
         }
 
@@ -6225,9 +6187,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       const { au, container, host } = await start({ appRoot: Root, historyStrategy: 'push', registrations: [getLocationChangeHandlerRegistration()] });
-      const platform = container.get(IPlatform);
-      const dwQueue = platform.domQueue;
-      await dwQueue.yield();
+      await tasksSettled();
 
       const historyEl = host.querySelector<HTMLSpanElement>('#history');
       const vp = host.querySelector<HTMLSpanElement>('au-viewport');
@@ -6238,34 +6198,34 @@ describe('router/smoke-tests.spec.ts', function () {
       assert.html.textContent(historyEl, '#1 - len: 1 - state: {"au-nav-id":1}', 'start - history');
 
       await router.load('ce2');
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce2', 'round#2 - component');
       assert.html.textContent(historyEl, '#2 - len: 2 - state: {"au-nav-id":2}', 'round#2 - history');
 
       await router.load('ce3', { historyStrategy: 'replace' });
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'round#3 - component');
       assert.html.textContent(historyEl, '#3 - len: 2 - state: {"au-nav-id":3}', 'round#3 - history');
 
       // going back should load the ce1
       const history = container.get(IHistory);
-      const tQueue = platform.taskQueue;
       history.back();
-      await tQueue.yield();
+      await new Promise(r => setTimeout(r, 0));
+
       assert.html.textContent(vp, 'ce1', 'back - component');
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":1}', 'back - history');
 
       // going forward should load ce3
       history.forward();
-      await tQueue.yield();
+      await tasksSettled();
+
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await dwQueue.yield();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
@@ -6312,9 +6272,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       const { au, container, host } = await start({ appRoot: Root, historyStrategy: 'replace', registrations: [getLocationChangeHandlerRegistration()] });
-      const platform = container.get(IPlatform);
-      const dwQueue = platform.domQueue;
-      await dwQueue.yield();
+      await tasksSettled();
 
       const historyEl = host.querySelector<HTMLSpanElement>('#history');
       const vp = host.querySelector<HTMLSpanElement>('au-viewport');
@@ -6325,34 +6283,33 @@ describe('router/smoke-tests.spec.ts', function () {
       assert.html.textContent(historyEl, '#1 - len: 1 - state: {"au-nav-id":1}', 'start - history');
 
       await router.load('ce2');
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce2', 'round#2 - component');
       assert.html.textContent(historyEl, '#2 - len: 1 - state: {"au-nav-id":2}', 'round#2 - history');
 
       await router.load('ce3', { historyStrategy: 'push' });
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'round#3 - component');
       assert.html.textContent(historyEl, '#3 - len: 2 - state: {"au-nav-id":3}', 'round#3 - history');
 
       // going back should load the ce2
       const history = container.get(IHistory);
-      const tQueue = platform.taskQueue;
       history.back();
-      await tQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce2', 'back - component');
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":2}', 'back - history');
 
       // going forward should load ce3
       history.forward();
-      await tQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await dwQueue.yield();
+      await Promise.resolve();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
       await router.load('ce1', { historyStrategy: 'none' });
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce1', 'strategy: none - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":3}', 'strategy: none - history');
 
@@ -6399,9 +6356,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       const { au, container, host } = await start({ appRoot: Root, historyStrategy: 'none', registrations: [getLocationChangeHandlerRegistration()] });
-      const platform = container.get(IPlatform);
-      const dwQueue = platform.domQueue;
-      await dwQueue.yield();
+      await tasksSettled();
 
       const historyEl = host.querySelector<HTMLSpanElement>('#history');
       const vp = host.querySelector<HTMLSpanElement>('au-viewport');
@@ -6412,33 +6367,31 @@ describe('router/smoke-tests.spec.ts', function () {
       assert.html.textContent(historyEl, '#1 - len: 1 - state: {}', 'start - history');
 
       await router.load('ce2');
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce2', 'round#2 - component');
       assert.html.textContent(historyEl, '#2 - len: 1 - state: {}', 'round#2 - history');
 
       await router.load('ce3', { historyStrategy: 'push' });
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'round#3 - component');
       assert.html.textContent(historyEl, '#3 - len: 2 - state: {"au-nav-id":3}', 'round#3 - history');
 
       // going back should load the ce1
       const history = container.get(IHistory);
-      const tQueue = platform.taskQueue;
+
       history.back();
-      await tQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce1', 'back - component');
-      await dwQueue.yield();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
 
       // going forward should load ce3
       history.forward();
-      await tQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await dwQueue.yield();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       await router.load('ce2', { historyStrategy: 'replace' });
-      await dwQueue.yield();
+      await tasksSettled();
       assert.html.textContent(vp, 'ce2', 'round#4 - component');
       assert.html.textContent(historyEl, '#6 - len: 2 - state: {"au-nav-id":6}', 'round#4 - history');
 
@@ -6472,34 +6425,33 @@ describe('router/smoke-tests.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root });
-    const queue = container.get(IPlatform).taskQueue;
+    const { au, host } = await start({ appRoot: Root });
 
     assert.html.textContent(host, 'c1', 'initial');
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c2', 'round#1 of loading c2');
     host.querySelector('a').click(); // <- go to parent #1
-    await queue.yield();
+    await tasksSettled();
 
     // round#2
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #1');
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c2', 'round#2 of loading c2');
     host.querySelector('a').click(); // <- go to parent #2
-    await queue.yield();
+    await tasksSettled();
 
     // round#3
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #2');
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c2', 'round#3 of loading c2');
     host.querySelector('a').click(); // <- go to parent #3
-    await queue.yield();
+    await tasksSettled();
 
     assert.html.textContent(host, 'c1', 'navigate to parent from c2 #3');
 
@@ -6759,7 +6711,7 @@ describe('router/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'p-2/c1 - 42 - 3 - 3');
 
       await router.load('p2/c1/24');
-      await container.get(IPlatform).domQueue.yield();
+      await tasksSettled();
       assert.html.textContent(host, 'p-2/c1 - 24 - 3 - 4');
 
       await au.stop(true);
@@ -7232,25 +7184,24 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, host, container } = await start({ appRoot: Root });
 
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
 
     const router = container.get(IRouter);
 
     await router.load('product/42');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 42', 'round#1');
 
     await router.load('product/foo');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'nf', 'round#2');
 
     await router.load({ component: 'product', params: { id: '42' } });
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 42', 'round#3');
 
     await router.load({ component: 'product', params: { id: 'foo' } });
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'nf', 'round#4');
 
     await au.stop(true);

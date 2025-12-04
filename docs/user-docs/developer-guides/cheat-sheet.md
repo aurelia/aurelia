@@ -1,8 +1,22 @@
 # Cheat Sheet
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 ## Cheat Sheet
 
 A quick reference for different aspects of Aurelia with minimal explanation.
+
+### Migration quick reference
+
+| Concern | Aurelia 1 idiom | Aurelia 2 equivalent | Notes |
+| --- | --- | --- | --- |
+| Bootstrapping | `aurelia.use.standardConfiguration().feature(...).start().then(() => aurelia.setRoot())` | `Aurelia.register(...).app(AppRoot).start()` | The `aurelia` package already registers `StandardConfiguration` plus a `BrowserPlatform`-backed `IPlatform`. Call `app()` with a component type or `{ host, component }`. |
+| Router | `<router-view>` + `configureRouter` | `<au-viewport>` + `static routes`/`@route` + `RouterConfiguration` | Router resources (viewport element, `load`/`href` attributes) live in `@aurelia/router`. Route lifecycle hooks are instance methods (`canLoad`, `loading`, `canUnload`, `unloading`). |
+| Compose | `<compose view-model="'./path'" ...>` | `<au-compose component.bind="ImportedType" template.bind="htmlString">` | String-based module IDs and `PLATFORM.moduleName` are gone. Import classes directly or use `() => import('./module')` factories. |
+| Task queue | `TaskQueue` from `aurelia-task-queue` | `queueTask` + `queueAsyncTask` + `queueRecurringTask` + `runTasks` | `runTasks` also runs recurring tasks, but wont stop it from running in the next interval |
+| Compatibility gap | `aurelia.use.plugin('@aurelia/compat-v1')` | `Aurelia.register(compatRegistration)` | `@aurelia/compat-v1` turns on `delegate`/`call`, `.call` bindings, `BindingEngine`, `inlineView`, and compose aliases so AU1 templates run while you migrate. |
 
 ## Bootstrapping
 
@@ -212,12 +226,67 @@ await new Aurelia(container).app({
 }).start();
 ```
 
+### AppTask lifecycle hooks and deterministic teardown
+
+```typescript
+import { Aurelia, AppTask, IWindow, runTasks } from 'aurelia';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
+
+const au = new Aurelia();
+
+await au
+  .register(
+    RouterConfiguration.customize({ historyStrategy: 'push', useUrlFragmentHash: false, activeClass: 'is-active' }),
+    AppTask.creating(IWindow, (win) => {
+      win.console.debug('App booting at', win.location.href);
+    }),
+    AppTask.activated(IRouter, (router) => router.load('home')),
+  )
+  .app({ host: document.querySelector('app-root')!, component: AppRoot })
+  .start();
+
+await tasksSettled();
+await au.stop(true);
+```
+
+`AppTask` is implemented in `packages/runtime-html/src/app-task.ts` and exposes the same lifecycle slots that `RouterConfiguration` uses internally. `tasksSettled` waits for all tasks to be run first, so tests can flush work deterministically.
+
+### compat-v1 bridge while migrating
+
+```typescript
+import { Aurelia } from 'aurelia';
+import { compatRegistration, BindingEngine, computedFrom, inlineView } from '@aurelia/compat-v1';
+
+Aurelia
+  .register(compatRegistration)
+  .app(AppRoot)
+  .start();
+
+export class LegacyPanel {
+  static inject = [BindingEngine];
+
+  constructor(private readonly engine: BindingEngine) {}
+
+  @computedFrom('items.length')
+  get count() {
+    return this.items.length;
+  }
+}
+
+@inlineView('<div>\n  <compose view-model.bind="childPath" model.bind="params"></compose>\n</div>')
+export class LegacyShell {}
+```
+
+The `compatRegistration` bundle turns on the `.call` binding command, delegate syntax, `BindingEngine`, `inlineView`, and compose aliases so legacy Aurelia 1 templates keep rendering while you port them to native Aurelia 2 patterns.
+
+
 ## Custom elements
 
 ### With conventions
 
 ```typescript
-import { bindable, IHttpClient, resolve } from 'aurelia';
+import { bindable, resolve } from 'aurelia';
+import { IHttpClient } from '@aurelia/fetch-client';
 export class ProductDetailCustomElement {
   static dependencies = [ImageViewerCustomElement, CurrencyValueConverter];
   static containerless = true;
@@ -229,8 +298,9 @@ export class ProductDetailCustomElement {
 ### Without conventions
 
 ```typescript
-import { customElement, bindable, IHttpClient, resolve } from 'aurelia';
-import template from './product-detail.html';
+import { customElement, bindable, resolve } from 'aurelia';
+import { IHttpClient } from '@aurelia/fetch-client';
+import template from './product-detail.html?raw';
 @customElement({
   name: 'product-detail',
   template,
@@ -246,7 +316,8 @@ export class ProductDetail {
 ### Vanilla JS
 
 ```typescript
-import { CustomElement, IHttpClient } from 'aurelia';
+import { CustomElement } from 'aurelia';
+import { IHttpClient } from '@aurelia/fetch-client';
 export const ProductDetail = CustomElement.define({
   name: 'product-detail',
   template: '<div>...</div>',
@@ -490,8 +561,8 @@ export class MyComponent {
 <my-component prop.bind>
 <!-- This is another flavor of interpolation but in normal JS syntax, using .bind -->
 <div class.bind="`col-md-4 bg-${bgColor}`">
-<!-- Conditionally add the 'active' class (the "old-fashioned" way) -->
-<li class="isActive ? 'active' : ''">
+<!-- Conditionally add the 'active' class using explicit class binding -->
+<li class.bind="isActive ? 'active' : ''">
 <!-- Conditionally add the 'active' class (the cleaner way) -->
 <li active.class="isActive">
 <!-- Bind to the 'style' attribute (the "old-fashioned" way) -->
@@ -752,8 +823,8 @@ export class MyComponent {
 }
 
 export class MyComponent {
-  // Explicitly opt-out of DI for one or more parameters (if default parameters must be respected)
-  constructor(@ignore private name: string = 'my-component') {}
+  // Use class properties with default values instead of constructor parameters
+  private name: string = 'my-component';
 }
 
 export class MyComponent {
@@ -824,13 +895,14 @@ export class MyComponent {
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
+import { queueAsyncTask, runTasks } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export class MyComponent {
   private readonly platform = resolve(IPlatform);
 
   loading(params) {
-    this.loadDataTask = this.platform.taskQueue.queueTask(async () => {
+    this.loadDataTask = queueAsyncTask(async () => {
       this.data = await loadData(params.id);
       this.loadDataTask = null;
     });
@@ -842,17 +914,12 @@ export class MyComponent {
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
 
 // Await all pending tasks (useful in unit, integration and e2e tests)
-const platform = resolve(IPlatform);
-await Promise.all([
-  platform.taskQueue.yield(),
-  platform.domQueue.yield(),
-]);
+await tasksSettled();
 ```
-
-In the future, time-slicing will be enabled via these TaskQueue APIs as well, which will allow you to easily chunk work that's been dispatched via the task queues.
 
 ## Router & Navigation
 
@@ -878,26 +945,31 @@ export class AppRoot {
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
+import { IRouter, IRouteContext } from '@aurelia/router';
 
 export class MyComponent {
-  constructor(private router: IRouter = resolve(IRouter)) {}
+  private readonly router = resolve(IRouter);
+  private readonly routeContext = resolve(IRouteContext);
 
   // Navigate to a route
   goToProduct(id: string) {
-    this.router.load('/products/' + id);
+    return this.router.load(`/products/${id}`);
   }
 
   // Navigate with parameters
   goToProductWithQuery(id: string) {
-    this.router.load('/products/' + id + '?tab=reviews');
+    return this.router.load(`/products/${id}`, { queryParams: { tab: 'reviews' } });
   }
 
-  // Check if route is active
+  // Check if a route is active relative to this component's context
   isActive(path: string): boolean {
-    return this.router.isActive(path);
+    return this.router.isActive(path, this.routeContext);
   }
 }
 ```
+
+`IRouter.isActive` always needs a `RouteContextLike`. Inside routed components you can `resolve(IRouteContext)` as shown above; elsewhere pass the owning element/controller or an explicit `IRouteContext` so the router knows which viewport tree to compare against.
+
 
 ### Router Viewports
 
@@ -916,15 +988,17 @@ export class MyComponent {
 ### Router Links in Templates
 
 ```html
-<!-- Basic router link -->
-<a href="/products">Products</a>
+<!-- load triggers router navigation and keeps <a> hrefs in sync automatically -->
+<a load="products">Products</a>
 
-<!-- Router link with parameters -->
-<a href="/products/${product.id}">View Product</a>
+<!-- Supply route params via params.bind (object or array) -->
+<a load="products" params.bind="{ id: product.id }">View Product</a>
 
-<!-- Active class styling -->
-<a href="/products" class="${router.isActive('/products') ? 'active' : ''}">Products</a>
+<!-- Highlight active routes by binding to the 'active' property provided by load -->
+<a load="products" active.class="active">Products</a>
 ```
+Configure `RouterConfiguration.customize({ activeClass: 'active' })` to have the `load` custom attribute toggle that class automatically, or bind `active.two-way`/`active.class` as above for fine-grained control. Because `load` resolves the element's `href` internally, these links continue to work even without JavaScript and honor the app's `base` URL.
+
 
 ## Validation
 
@@ -1289,6 +1363,7 @@ describe('MyComponent', () => {
 
 ```typescript
 import { TestContext } from '@aurelia/testing';
+import { IRouter, IRouteContext } from '@aurelia/router';
 import { AppRoot } from './app-root';
 
 describe('App Integration', () => {
@@ -1302,9 +1377,10 @@ describe('App Integration', () => {
 
     // Test navigation
     const router = app.container.get(IRouter);
+    const routeContext = app.container.get(IRouteContext);
     await router.load('/products');
 
-    expect(router.isActive('/products')).toBe(true);
+    expect(router.isActive('/products', routeContext)).toBe(true);
 
     await tearDown();
   });

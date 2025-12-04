@@ -132,7 +132,7 @@ if (controller) {
 Add logging to component lifecycle methods:
 
 ```typescript
-import { ILogger, resolve } from 'aurelia';
+import { ILogger, resolve } from '@aurelia/kernel';
 
 export class MyComponent {
   private logger = resolve(ILogger).scopeTo('MyComponent');
@@ -178,7 +178,7 @@ Debug binding expressions with logging:
 Create a debug value converter:
 
 ```typescript
-import { valueConverter } from 'aurelia';
+import { valueConverter } from '@aurelia/runtime-html';
 
 @valueConverter('debug')
 export class DebugValueConverter {
@@ -194,7 +194,7 @@ export class DebugValueConverter {
 Debug DI resolution issues:
 
 ```typescript
-import { IContainer, ILogger, resolve } from 'aurelia';
+import { IContainer, ILogger, resolve } from '@aurelia/kernel';
 
 export class DiagnosticService {
   private container = resolve(IContainer);
@@ -236,7 +236,7 @@ Aurelia.register(
 Add router event listeners:
 
 ```typescript
-import { IEventAggregator, resolve } from 'aurelia';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
 
 export class RouterDebugger {
   private ea = resolve(IEventAggregator);
@@ -293,7 +293,7 @@ export class MyComponent {
 }
 
 // ✓ Observable property
-import { observable } from 'aurelia';
+import { observable } from '@aurelia/runtime-html';
 
 export class MyComponent {
   @observable value = '';
@@ -344,7 +344,7 @@ export class MyElement {}
 1. Properly dispose of subscriptions:
 
 ```typescript
-import { IDisposable } from 'aurelia';
+import { IDisposable } from '@aurelia/kernel';
 
 export class MyComponent {
   private subscriptions: IDisposable[] = [];
@@ -392,7 +392,7 @@ Use Chrome DevTools Performance tab:
 Debug slow binding expressions:
 
 ```typescript
-import { computed } from 'aurelia';
+import { computed } from '@aurelia/runtime-html';
 
 export class MyComponent {
   items = [];
@@ -500,7 +500,7 @@ import { MyService } from './my-service.js';
 Create error boundary components:
 
 ```typescript
-import { ILogger, resolve } from 'aurelia';
+import { ILogger, resolve } from '@aurelia/kernel';
 
 export class ErrorBoundary {
   private logger = resolve(ILogger);
@@ -594,7 +594,7 @@ it('should handle user interaction', async () => {
 Create a development-only debug panel:
 
 ```typescript
-import { IContainer, ILogger, resolve } from 'aurelia';
+import { IContainer, ILogger, resolve } from '@aurelia/kernel';
 
 export class DebugPanel {
   private container = resolve(IContainer);
@@ -667,7 +667,8 @@ export class PerformanceMonitor {
 Monitor and debug HTTP requests:
 
 ```typescript
-import { IHttpClient, resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
 
 export class HttpDebugger {
   private http = resolve(IHttpClient);

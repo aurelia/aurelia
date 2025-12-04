@@ -17,7 +17,8 @@ import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-co
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
-import { IResumeContext } from '../../templating/hydration';
+import { IResumeContext, ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
+import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 // NOTE: The "SSR pending -> client resolves" case is not currently handled.
 // If the SSR output rendered the pending branch (promise was unresolved during SSR),
@@ -49,6 +50,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     _controller: IHydratableController,
@@ -65,6 +67,13 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
       this.view = this._factory.create(this.$controller).setLocation(this._location);
       if (ctx != null) {
         this._ssrContext = void 0; // consumed even if empty
+      }
+
+      // SSR recording: process the wrapper view
+      const ssrContext = this._ssrRecordContext;
+      const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+      if (ssrContext != null && controllerTargetIndex != null) {
+        ssrContext.processViewForRecording(this.view, 'promise', controllerTargetIndex, 0);
       }
     }
   }
@@ -195,6 +204,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -221,6 +231,13 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
         }
       } else {
         view = this.view = this._factory.create().setLocation(this._location);
+
+        // SSR recording: process the pending view
+        const ssrContext = this._ssrRecordContext;
+        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+        if (ssrContext != null && controllerTargetIndex != null) {
+          ssrContext.processViewForRecording(view, 'pending', controllerTargetIndex, 0);
+        }
       }
     }
     if (view.isActive) { return; }
@@ -262,6 +279,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -287,6 +305,13 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
       }
       if (view === void 0) {
         view = this.view = this._factory.create().setLocation(this._location);
+
+        // SSR recording: process the fulfilled view
+        const ssrContext = this._ssrRecordContext;
+        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+        if (ssrContext != null && controllerTargetIndex != null) {
+          ssrContext.processViewForRecording(view, 'then', controllerTargetIndex, 0);
+        }
       }
     }
     if (view.isActive) { return; }
@@ -328,6 +353,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -353,6 +379,13 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
       }
       if (view === void 0) {
         view = this.view = this._factory.create().setLocation(this._location);
+
+        // SSR recording: process the rejected view
+        const ssrContext = this._ssrRecordContext;
+        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+        if (ssrContext != null && controllerTargetIndex != null) {
+          ssrContext.processViewForRecording(view, 'catch', controllerTargetIndex, 0);
+        }
       }
     }
     if (view.isActive) { return; }

@@ -22,7 +22,8 @@ import type { Controller, ICustomAttributeController, ICustomAttributeViewModel,
 import type { INode } from '../../dom.node';
 import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
-import { IResumeContext } from '../../templating/hydration';
+import { IResumeContext, ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
+import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -52,6 +53,7 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */ private readonly _location = resolve(IRenderLocation);
 
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     _controller: IHydratableController,
@@ -59,9 +61,17 @@ export class Switch implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    // Skip in SSR - will adopt in attaching()
+    // Skip in SSR hydration - will adopt in attaching()
     if (this._ssrContext) return;
+
     this.view = this._factory.create(this.$controller).setLocation(this._location);
+
+    // SSR recording: process the wrapper view
+    const ssrContext = this._ssrRecordContext;
+    const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+    if (ssrContext != null && controllerTargetIndex != null) {
+      ssrContext.processViewForRecording(this.view, 'switch', controllerTargetIndex, 0);
+    }
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -307,6 +317,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -368,6 +379,13 @@ export class Case implements ICustomAttributeViewModel {
         }
       } else {
         view = this.view = this._factory.create().setLocation(this._location);
+
+        // SSR recording: process the case view
+        const ssrContext = this._ssrRecordContext;
+        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+        if (ssrContext != null && controllerTargetIndex != null) {
+          ssrContext.processViewForRecording(view, 'case', controllerTargetIndex, 0);
+        }
       }
     }
     if (view.isActive) { return; }

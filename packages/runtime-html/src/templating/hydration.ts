@@ -330,6 +330,32 @@ export interface ISSRContext {
    * Contains all controller and view mappings.
    */
   getManifest(): IHydrationManifest;
+
+  /**
+   * Process a view for SSR recording.
+   *
+   * This method:
+   * 1. Records the controller at the given target index (if not already recorded)
+   * 2. Walks the view's nodes and rewrites `au-hid` attributes and `<!--au:N-->`
+   *    comments with globally unique indices
+   * 3. Records the view with the global target mappings
+   *
+   * This is the universal SSR recording API for template controllers.
+   * Both built-in controllers (repeat, if, switch, etc.) and userland
+   * template controllers can use this to properly record their views.
+   *
+   * @param view - The view being activated
+   * @param controllerType - Type of the template controller ('repeat', 'if', etc.)
+   * @param controllerTargetIndex - The render location's $targetIndex
+   * @param viewIndex - Index of this view within the controller (0 for first view, etc.)
+   * @returns The globalTargets array in instruction order (sorted by local target index)
+   */
+  processViewForRecording(
+    view: ISyntheticView,
+    controllerType: string,
+    controllerTargetIndex: number,
+    viewIndex: number,
+  ): number[];
 }
 
 /**
@@ -419,6 +445,96 @@ export class SSRContext implements ISSRContext {
       targetCount: this._globalCounter,
       controllers: { ...this._controllers },
     };
+  }
+
+  public processViewForRecording(
+    view: ISyntheticView,
+    controllerType: string,
+    controllerTargetIndex: number,
+    viewIndex: number,
+  ): number[] {
+    // Step 1: Record the controller (idempotent - only creates if not exists)
+    this.recordController(controllerTargetIndex, controllerType);
+
+    // Step 2: Rewrite markers and build local-to-global mapping
+    const localToGlobal = new Map<number, number>();
+    const fragment = view.nodes.childNodes;
+
+    // Recursive function to process all nodes
+    const processNode = (node: Node): void => {
+      if (node.nodeType === 1 /* Element */) {
+        const el = node as Element;
+        if (el.hasAttribute('au-hid')) {
+          const localIndex = parseInt(el.getAttribute('au-hid')!, 10);
+          const globalIndex = this.allocateGlobalIndex();
+          localToGlobal.set(localIndex, globalIndex);
+          el.setAttribute('au-hid', String(globalIndex));
+        }
+        // Process children
+        for (let i = 0; i < el.childNodes.length; ++i) {
+          processNode(el.childNodes[i]);
+        }
+      } else if (node.nodeType === 8 /* Comment */) {
+        const comment = node as Comment;
+        const text = comment.textContent ?? '';
+        // Check for <!--au:N--> format
+        if (text.startsWith('au:')) {
+          const localIndex = parseInt(text.slice(3), 10);
+          // Check if this is a controller marker by looking at next sibling
+          const nextSibling = comment.nextSibling;
+          const isControllerMarker = nextSibling?.nodeType === 8 /* Comment */ &&
+            (nextSibling as Comment).textContent === 'au-start';
+
+          const globalIndex = this.allocateGlobalIndex();
+          localToGlobal.set(localIndex, globalIndex);
+          comment.textContent = `au:${globalIndex}`;
+
+          if (isControllerMarker) {
+            // This is a controller marker - find the render location (au-end)
+            // and update its $targetIndex for nested controller recording
+            let depth = 1;
+            let current = nextSibling?.nextSibling;
+            while (current != null && depth > 0) {
+              if (current.nodeType === 8 /* Comment */) {
+                const currentText = (current as Comment).textContent;
+                if (currentText === 'au-start') {
+                  depth++;
+                } else if (currentText === 'au-end') {
+                  depth--;
+                  if (depth === 0) {
+                    // Found the matching au-end - update its $targetIndex
+                    (current as Comment & { $targetIndex?: number }).$targetIndex = globalIndex;
+                  }
+                }
+              }
+              current = current.nextSibling;
+            }
+          }
+        }
+      }
+    };
+
+    for (let i = 0; i < fragment.length; ++i) {
+      processNode(fragment[i]);
+    }
+
+    // Step 3: Build globalTargets array in instruction order (sorted by local index)
+    const maxLocalIndex = localToGlobal.size > 0
+      ? Math.max(...localToGlobal.keys())
+      : -1;
+    const globalTargets: number[] = [];
+    for (let i = 0; i <= maxLocalIndex; i++) {
+      const globalIndex = localToGlobal.get(i);
+      if (globalIndex !== undefined) {
+        globalTargets.push(globalIndex);
+      }
+    }
+
+    // Step 4: Record the view
+    const nodeCount = view.nodes.childNodes.length;
+    this.recordView(controllerTargetIndex, viewIndex, globalTargets, nodeCount);
+
+    return globalTargets;
   }
 }
 

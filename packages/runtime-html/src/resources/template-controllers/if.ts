@@ -113,14 +113,11 @@ export class If implements ICustomAttributeViewModel {
           //       instead of always of the [if]
           view.setLocation(this._location);
 
-          // SSR recording: rewrite markers and record view
+          // SSR recording: process view markers for globally unique indices
           const ssrContext = this._ssrRecordContext;
           const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
           if (ssrContext != null && controllerTargetIndex != null) {
-            ssrContext.recordController(controllerTargetIndex, 'if');
-            const globalTargets = this._rewriteMarkersForSSR(view, ssrContext);
-            const nodeCount = view.nodes.childNodes.length;
-            ssrContext.recordView(controllerTargetIndex, 0, globalTargets, nodeCount);
+            ssrContext.processViewForRecording(view, 'if', controllerTargetIndex, 0);
           }
 
           return onResolve(
@@ -134,88 +131,6 @@ export class If implements ICustomAttributeViewModel {
         }
       )
     );
-  }
-
-  /**
-   * Rewrite au-hid markers in a view's nodes to use globally unique indices.
-   * Returns the array of global indices in instruction order (matching local target indices).
-   * Also handles nested controller markers by updating their render location's $targetIndex.
-   * @internal
-   */
-  private _rewriteMarkersForSSR(view: ISyntheticView, ssrContext: ISSRContext): number[] {
-    // Map from local target index to global target index
-    const localToGlobal: Map<number, number> = new Map();
-    const fragment = view.nodes.childNodes;
-
-    // Process all nodes in the view, extracting local indices and assigning global indices
-    const processNode = (node: Node) => {
-      if (node.nodeType === 1 /* Element */) {
-        const el = node as Element;
-        if (el.hasAttribute('au-hid')) {
-          const localIndex = parseInt(el.getAttribute('au-hid')!, 10);
-          const globalIndex = ssrContext.allocateGlobalIndex();
-          localToGlobal.set(localIndex, globalIndex);
-          el.setAttribute('au-hid', String(globalIndex));
-        }
-        // Process children
-        for (let i = 0; i < el.childNodes.length; ++i) {
-          processNode(el.childNodes[i]);
-        }
-      } else if (node.nodeType === 8 /* Comment */) {
-        const comment = node as Comment;
-        const text = comment.textContent ?? '';
-        // Check for <!--au:N--> format
-        if (text.startsWith('au:')) {
-          const localIndex = parseInt(text.slice(3), 10);
-          // Check if this is a controller marker by looking at next sibling
-          const nextSibling = comment.nextSibling;
-          const isControllerMarker = nextSibling?.nodeType === 8 /* Comment */ &&
-            (nextSibling as Comment).textContent === 'au-start';
-
-          const globalIndex = ssrContext.allocateGlobalIndex();
-          localToGlobal.set(localIndex, globalIndex);
-          comment.textContent = `au:${globalIndex}`;
-
-          if (isControllerMarker) {
-            // This is a controller marker - find the render location (au-end) and update its $targetIndex
-            // The render location is the matching <!--au-end--> for this <!--au-start-->
-            let depth = 1;
-            let current = nextSibling?.nextSibling;
-            while (current != null && depth > 0) {
-              if (current.nodeType === 8 /* Comment */) {
-                const currentText = (current as Comment).textContent;
-                if (currentText === 'au-start') {
-                  depth++;
-                } else if (currentText === 'au-end') {
-                  depth--;
-                  if (depth === 0) {
-                    // Found the matching au-end - update its $targetIndex
-                    (current as Comment & { $targetIndex?: number }).$targetIndex = globalIndex;
-                  }
-                }
-              }
-              current = current.nextSibling;
-            }
-          }
-        }
-      }
-    };
-
-    for (let i = 0; i < fragment.length; ++i) {
-      processNode(fragment[i]);
-    }
-
-    // Build globalTargets array in instruction order (sorted by local index)
-    const maxLocalIndex = Math.max(...localToGlobal.keys(), -1);
-    const globalTargets: number[] = [];
-    for (let i = 0; i <= maxLocalIndex; i++) {
-      const globalIndex = localToGlobal.get(i);
-      if (globalIndex !== undefined) {
-        globalTargets.push(globalIndex);
-      }
-    }
-
-    return globalTargets;
   }
 
   /** @internal */

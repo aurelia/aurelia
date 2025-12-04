@@ -91,10 +91,22 @@ export interface IControllerManifest {
  */
 export interface IViewManifest {
   /**
-   * Global target indices for this view.
-   * Positional mapping: targets[i] maps to view's instruction[i].
+   * Local target indices for this view (instruction row order).
+   * These are the indices as used by the instruction rows during compilation.
+   * Positional mapping: targets[i] corresponds to instruction row i.
    */
   targets: number[];
+
+  /**
+   * Global target indices for DOM lookup.
+   * Maps instruction row order to actual positions in the flat targets array.
+   * Used during SSR hydration where nested template controllers may have
+   * overlapping local indices that need to be mapped to unique global positions.
+   *
+   * When present, getViewTargets() uses these indices for DOM lookup.
+   * When absent, falls back to using `targets` directly (non-SSR path).
+   */
+  globalTargets?: number[];
 
   /**
    * Number of root DOM nodes in this view.
@@ -301,7 +313,9 @@ export class ResumeContext implements IResumeContext {
   public getViewTargets(viewIndex: number): INode[] {
     const view = this.manifest.views[viewIndex];
     if (view == null) return [];
-    return view.targets.map(idx => this.targets[idx] as INode);
+    // Use globalTargets for DOM lookup if present (SSR path), else fall back to targets
+    const indices = view.globalTargets ?? view.targets;
+    return indices.map(idx => this.targets[idx] as INode);
   }
 
   public collectViewNodes(viewIndex: number): Node[] {

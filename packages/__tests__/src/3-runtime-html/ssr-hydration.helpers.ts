@@ -885,6 +885,211 @@ export interface PromiseHydrationSetup<T> {
   stop: () => Promise<void>;
 }
 
+// ============================================================================
+// Nested Controller Setup Helpers
+// ============================================================================
+
+export interface RepeatWithIfSetup<T extends { visible: boolean }> {
+  ctx: ReturnType<typeof TestContext.create>;
+  doc: Document;
+  host: HTMLElement;
+  au: Aurelia;
+  vm: { items: T[] };
+  stop: () => Promise<void>;
+}
+
+/**
+ * Setup helper for repeat containing if pattern.
+ * Pattern: <div repeat.for="item of items"><span if.bind="item.visible">...</span></div>
+ */
+export async function setupRepeatWithIf<T extends { visible: boolean }>(options: {
+  items: T[];
+  repeatWrapperTag?: string;
+  ifContentHtml: string;
+  ifContentInstructions: IInstruction[][];
+  ifCondition?: string;
+  hostTag?: string;
+}): Promise<RepeatWithIfSetup<T>> {
+  const ctx = TestContext.create();
+  const doc = ctx.doc;
+
+  const wrapperTag = options.repeatWrapperTag ?? 'div';
+  const ifCondition = options.ifCondition ?? 'item.visible';
+
+  // Create the if view definition
+  const ifViewDef = createViewDef(doc, options.ifContentHtml, options.ifContentInstructions);
+  const ifInstruction = $.if(ifViewDef, ifCondition);
+
+  // Create repeat view template with if inside
+  const repeatViewTemplate = doc.createElement('template');
+  repeatViewTemplate.innerHTML = `<${wrapperTag}><!--au:0--><!--au-start--><!--au-end--></${wrapperTag}>`;
+  const repeatViewDef: ViewDef = {
+    name: 'repeat-view',
+    type: 'custom-element',
+    template: repeatViewTemplate,
+    instructions: [[ifInstruction]],
+    needsCompile: false,
+  };
+
+  const repeatInstruction = $.repeat(repeatViewDef, 'item of items');
+  const parentTemplate = createParentTemplate(doc);
+  const TestApp = createTestComponent(parentTemplate, [[repeatInstruction]], { items: options.items });
+
+  // Build SSR HTML and manifest together to ensure indices match
+  // Target layout:
+  // - 0: repeat controller
+  // - 1..N: if controllers (one per item)
+  // - N+1..: content targets for visible items (sequential)
+  const controllers: Record<number, ControllerManifest> = {
+    0: { type: 'repeat', views: options.items.map((_, idx) => ({ targets: [idx + 1], nodeCount: 1 })) }
+  };
+
+  let nextContentTarget = options.items.length + 1;
+  const ssrViews = options.items.map((item, idx) => {
+    const ifIdx = idx + 1;
+    const hasContent = (item as { visible: boolean }).visible;
+    let contentWithIdx = '';
+
+    if (hasContent) {
+      const contentTarget = options.ifContentInstructions.length > 0 ? nextContentTarget++ : -1;
+      contentWithIdx = contentTarget >= 0
+        ? options.ifContentHtml.replace(/au:0/g, `au:${contentTarget}`)
+        : options.ifContentHtml;
+      controllers[ifIdx] = {
+        type: 'if',
+        views: [{ targets: contentTarget >= 0 ? [contentTarget] : [], nodeCount: 1 }]
+      };
+    } else {
+      controllers[ifIdx] = { type: 'if', views: [] };
+    }
+
+    return `<${wrapperTag}><!--au:${ifIdx}--><!--au-start-->${contentWithIdx}<!--au-end--></${wrapperTag}>`;
+  });
+
+  const host = doc.createElement(options.hostTag ?? 'div');
+  host.innerHTML = SSR.repeat(ssrViews);
+  doc.body.appendChild(host);
+
+  const au = new Aurelia(ctx.container);
+  const root = await au.hydrate({
+    host,
+    component: TestApp,
+    state: { items: options.items },
+    manifest: { targetCount: nextContentTarget, controllers },
+  });
+
+  return {
+    ctx, doc, host, au,
+    vm: root.controller.viewModel as { items: T[] },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
+  };
+}
+
+export interface IfWithRepeatSetup<T> {
+  ctx: ReturnType<typeof TestContext.create>;
+  doc: Document;
+  host: HTMLElement;
+  au: Aurelia;
+  vm: { show: boolean; items: T[] };
+  stop: () => Promise<void>;
+}
+
+/**
+ * Setup helper for if containing repeat pattern.
+ * Pattern: <div if.bind="show"><ul><li repeat.for="item of items">...</li></ul></div>
+ */
+export async function setupIfWithRepeat<T>(options: {
+  show: boolean;
+  items: T[];
+  ifWrapperHtml: string;  // Use <!--repeat--> as placeholder for repeat location
+  repeatItemHtml: string;
+  repeatItemInstructions: IInstruction[][];
+  hostTag?: string;
+}): Promise<IfWithRepeatSetup<T>> {
+  const ctx = TestContext.create();
+  const doc = ctx.doc;
+
+  // Create repeat view definition
+  const repeatViewDef = createViewDef(doc, options.repeatItemHtml, options.repeatItemInstructions);
+  const repeatInstruction = $.repeat(repeatViewDef, 'item of items');
+
+  // Create if view template with repeat placeholder replaced by render location
+  const ifViewTemplate = doc.createElement('template');
+  const ifWrapperWithLocation = options.ifWrapperHtml.replace(
+    '<!--repeat-->',
+    '<!--au:0--><!--au-start--><!--au-end-->'
+  );
+  ifViewTemplate.innerHTML = ifWrapperWithLocation;
+  const ifViewDef: ViewDef = {
+    name: 'if-view',
+    type: 'custom-element',
+    template: ifViewTemplate,
+    instructions: [[repeatInstruction]],
+    needsCompile: false,
+  };
+
+  const ifInstruction = $.if(ifViewDef, 'show');
+  const parentTemplate = createParentTemplate(doc);
+  const TestApp = createTestComponent(parentTemplate, [[ifInstruction]], { show: options.show, items: options.items });
+
+  // Build SSR HTML
+  let ssrHtml: string;
+  let targetCount: number;
+  const controllers: Record<number, ControllerManifest> = {};
+
+  if (options.show) {
+    // Build repeat items HTML
+    const repeatViewsHtml = options.items.map((_, idx) => {
+      const itemIdx = idx + 2; // 0=if, 1=repeat, 2+=items
+      return options.repeatItemHtml.replace(/au:0/g, `au:${itemIdx}`);
+    }).join('');
+
+    // Replace placeholder in wrapper with repeat controller + views
+    const ifContentHtml = options.ifWrapperHtml.replace(
+      '<!--repeat-->',
+      `<!--au:1--><!--au-start-->${repeatViewsHtml}<!--au-end-->`
+    );
+
+    ssrHtml = SSR.controller(0, ifContentHtml);
+    targetCount = 2 + options.items.length;
+
+    controllers[0] = { type: 'if', views: [{ targets: [1], nodeCount: 1 }] };
+    controllers[1] = {
+      type: 'repeat',
+      views: options.items.map((_, idx) => ({
+        targets: options.repeatItemInstructions.length > 0 ? [idx + 2] : [],
+        nodeCount: 1
+      }))
+    };
+  } else {
+    ssrHtml = SSR.controller(0, '');
+    targetCount = 1;
+    controllers[0] = { type: 'if', views: [] };
+  }
+
+  const host = doc.createElement(options.hostTag ?? 'div');
+  host.innerHTML = ssrHtml;
+  doc.body.appendChild(host);
+
+  const au = new Aurelia(ctx.container);
+  const root = await au.hydrate({
+    host,
+    component: TestApp,
+    state: { show: options.show, items: options.items },
+    manifest: { targetCount, controllers },
+  });
+
+  return {
+    ctx, doc, host, au,
+    vm: root.controller.viewModel as { show: boolean; items: T[] },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
+  };
+}
+
+// ============================================================================
+// Promise Hydration Setup
+// ============================================================================
+
 export async function setupPromiseHydration<T>(options: {
   pendingHtml?: string;
   thenHtml?: string;

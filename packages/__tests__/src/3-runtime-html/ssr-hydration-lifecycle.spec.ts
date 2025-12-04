@@ -13,46 +13,16 @@
  */
 
 import { Aurelia, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { IInstruction } from '@aurelia/template-compiler';
+import { PropertyBindingInstruction, BindingMode, HydrateElementInstruction } from '@aurelia/template-compiler';
 import { assert, TestContext } from '@aurelia/testing';
 
 import {
-  $, M,
-  createViewDef,
+  $,
   createParentTemplate,
-  createRepeatComponent,
+  createLifecycleTracker,
 } from './ssr-hydration.helpers.js';
 
 describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
-
-  // ============================================================================
-  // Lifecycle Tracking Utilities
-  // ============================================================================
-
-  interface LifecycleCall {
-    hook: string;
-    component: string;
-    timestamp: number;
-  }
-
-  function createLifecycleTracker() {
-    const calls: LifecycleCall[] = [];
-    let counter = 0;
-
-    return {
-      calls,
-      record: (component: string, hook: string) => {
-        calls.push({ component, hook, timestamp: counter++ });
-      },
-      getHooks: () => calls.map(c => `${c.component}:${c.hook}`),
-      hasHook: (component: string, hook: string) =>
-        calls.some(c => c.component === component && c.hook === hook),
-      clear: () => {
-        calls.length = 0;
-        counter = 0;
-      }
-    };
-  }
 
   // ============================================================================
   // Root Component Lifecycle
@@ -60,7 +30,7 @@ describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
 
   describe('Root component lifecycle', function () {
 
-    it.skip('calls binding, bound, attaching, attached during hydration', async function () {
+    it('calls binding, bound, attaching, attached during hydration', async function () {
       const ctx = TestContext.create();
       const doc = ctx.doc;
       const tracker = createLifecycleTracker();
@@ -98,7 +68,7 @@ describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
       }
     });
 
-    it.skip('calls lifecycle hooks in correct order', async function () {
+    it('calls lifecycle hooks in correct order', async function () {
       const ctx = TestContext.create();
       const doc = ctx.doc;
       const tracker = createLifecycleTracker();
@@ -143,16 +113,21 @@ describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
 
   describe('Child component lifecycle', function () {
 
-    it.skip('calls lifecycle hooks on child elements inside repeat', async function () {
+    // Test that child custom elements inside repeat views receive lifecycle hooks during SSR hydration
+    it('calls lifecycle hooks on child elements inside repeat', async function () {
       const ctx = TestContext.create();
       const doc = ctx.doc;
       const tracker = createLifecycleTracker();
 
-      @customElement({
-        name: 'child-el',
-        template: '<span>${value}</span>',
-      })
-      class ChildEl implements ICustomElementViewModel {
+      // Custom element with lifecycle hooks that track calls
+      class ChildEl {
+        static $au = {
+          type: 'custom-element' as const,
+          name: 'child-el',
+          template: '<span>${value}</span>',
+          needsCompile: true,
+          bindables: { value: {} },
+        };
         value = '';
         binding() { tracker.record('child', 'binding'); }
         bound() { tracker.record('child', 'bound'); }
@@ -162,7 +137,27 @@ describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
         unbinding() { tracker.record('child', 'unbinding'); }
       }
 
-      const viewDef = createViewDef(doc, '<div au-hid="0"><child-el au-hid="1"></child-el></div>', [[$.prop('item', 'value')]]);
+      ctx.container.register(ChildEl);
+
+      // View template: just the element with au-hid marker (bindings are in instructions)
+      const viewTemplate = doc.createElement('template');
+      viewTemplate.innerHTML = '<child-el au-hid="0"></child-el>';
+      const viewDef = {
+        name: 'repeat-view',
+        type: 'custom-element' as const,
+        template: viewTemplate,
+        // HydrateElementInstruction to activate the custom element with its bindings
+        instructions: [[new HydrateElementInstruction(
+          'child-el',
+          [new PropertyBindingInstruction('item', 'value', BindingMode.toView)],
+          null, // projections
+          false, // containerless
+          undefined, // captures
+          {}, // data
+        )]],
+        needsCompile: false as const,
+      };
+
       const repeatInstruction = $.repeat(viewDef, 'item of items');
       const parentTemplate = createParentTemplate(doc);
 
@@ -181,35 +176,179 @@ describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
       const host = doc.createElement('div');
       host.innerHTML = [
         '<!--au:0--><!--au-start-->',
-        '<div au-hid="1"><child-el au-hid="2"><span>Alice</span></child-el></div>',
-        '<div au-hid="3"><child-el au-hid="4"><span>Bob</span></child-el></div>',
+        '<child-el au-hid="1"><span>Alice</span></child-el>',
+        '<child-el au-hid="2"><span>Bob</span></child-el>',
         '<!--au-end-->'
       ].join('');
       doc.body.appendChild(host);
 
       try {
-        ctx.container.register(ChildEl);
         const au = new Aurelia(ctx.container);
-        await au.hydrate({
+        const root = await au.hydrate({
           host,
           component: TestApp,
           state: { items: ['Alice', 'Bob'] },
           manifest: {
-            targetCount: 5,
-            controllers: { 0: { type: 'repeat', views: [{ targets: [1, 2] }, { targets: [3, 4] }] } }
+            targetCount: 3,
+            controllers: { 0: { type: 'repeat', views: [{ targets: [1] }, { targets: [2] }] } }
           }
         });
 
-        // Should have 2 children, each with all 4 hooks
+        // Should have 2 children, each with all 4 hooks (binding, bound, attaching, attached)
         assert.ok(tracker.hasHook('child', 'binding'), 'child binding called');
         assert.ok(tracker.hasHook('child', 'bound'), 'child bound called');
         assert.ok(tracker.hasHook('child', 'attaching'), 'child attaching called');
         assert.ok(tracker.hasHook('child', 'attached'), 'child attached called');
 
+        // Verify the child count is 2
+        assert.strictEqual(host.querySelectorAll('child-el').length, 2, 'should have 2 child-el elements');
+
+        // Debug: Check the controller hierarchy
+        const rootCtrl = root.controller as any;
+        console.log('Root children count:', rootCtrl.children?.length ?? 0);
+        if (rootCtrl.children) {
+          for (const child of rootCtrl.children) {
+            console.log('  Child type:', child.vmKind, 'name:', child.name ?? 'N/A');
+            console.log('    _vm type:', typeof child._vm, '_vm:', child._vm);
+            console.log('    _vmHooks:', child._vmHooks);
+            console.log('    Has children:', child.children?.length ?? 0);
+            // Check if this is the repeat template controller - _vm is the Repeat instance
+            const vm = child._vm;
+            if (vm) {
+              console.log('    vm.views exists:', 'views' in vm);
+              console.log('    vm has:', Object.keys(vm).slice(0, 10).join(', '));
+            }
+            // Try accessing views directly on viewModel
+            const viewModel = child.viewModel;
+            if (viewModel?.views) {
+              console.log('    Repeat views:', viewModel.views.length);
+              for (let i = 0; i < viewModel.views.length; i++) {
+                const view = viewModel.views[i];
+                console.log(`      View ${i} children:`, view.children?.length ?? 0);
+                if (view.children) {
+                  for (const vc of view.children) {
+                    console.log(`        View child: vmKind=${vc.vmKind}, name=${vc.name ?? 'N/A'}`);
+                  }
+                }
+              }
+            }
+          }
+        }
+
         await au.stop(true);
 
+        console.log('Hooks after stop:', tracker.getHooks());
+
+        // Debug: Check view states after stop
+        const viewModel2 = (rootCtrl.children?.[0] as any)?.viewModel;
+        if (viewModel2?.views) {
+          for (let i = 0; i < viewModel2.views.length; i++) {
+            const view = viewModel2.views[i];
+            console.log(`View ${i} state after stop:`, view.state, 'isBound:', view.isBound, 'isActive:', view.isActive);
+            if (view.children) {
+              for (const vc of view.children) {
+                console.log(`  Child state:`, vc.state, 'isBound:', vc.isBound, 'isActive:', vc.isActive);
+              }
+            }
+          }
+        }
+
+        // Teardown hooks SHOULD be called on au.stop()
         assert.ok(tracker.hasHook('child', 'detaching'), 'child detaching called on stop');
         assert.ok(tracker.hasHook('child', 'unbinding'), 'child unbinding called on stop');
+      } finally {
+        doc.body.removeChild(host);
+      }
+    });
+
+    it('calls teardown hooks when repeat item is removed', async function () {
+      const ctx = TestContext.create();
+      const doc = ctx.doc;
+      const tracker = createLifecycleTracker();
+
+      class ChildEl {
+        static $au = {
+          type: 'custom-element' as const,
+          name: 'child-el',
+          template: '<span>${value}</span>',
+          needsCompile: true,
+          bindables: { value: {} },
+        };
+        value = '';
+        binding() { tracker.record('child', 'binding'); }
+        bound() { tracker.record('child', 'bound'); }
+        attaching() { tracker.record('child', 'attaching'); }
+        attached() { tracker.record('child', 'attached'); }
+        detaching() { tracker.record('child', 'detaching'); }
+        unbinding() { tracker.record('child', 'unbinding'); }
+      }
+
+      ctx.container.register(ChildEl);
+
+      const viewTemplate = doc.createElement('template');
+      viewTemplate.innerHTML = '<child-el au-hid="0"></child-el>';
+      const viewDef = {
+        name: 'repeat-view',
+        type: 'custom-element' as const,
+        template: viewTemplate,
+        instructions: [[new HydrateElementInstruction(
+          'child-el',
+          [new PropertyBindingInstruction('item', 'value', BindingMode.toView)],
+          null, false, undefined, {},
+        )]],
+        needsCompile: false as const,
+      };
+
+      const repeatInstruction = $.repeat(viewDef, 'item of items');
+      const parentTemplate = createParentTemplate(doc);
+
+      class TestApp {
+        static $au = {
+          type: 'custom-element' as const,
+          name: 'test-app',
+          template: parentTemplate,
+          instructions: [[repeatInstruction]],
+          needsCompile: false,
+          dependencies: [ChildEl],
+        };
+        items: string[] = [];
+      }
+
+      const host = doc.createElement('div');
+      host.innerHTML = [
+        '<!--au:0--><!--au-start-->',
+        '<child-el au-hid="1"><span>Alice</span></child-el>',
+        '<child-el au-hid="2"><span>Bob</span></child-el>',
+        '<!--au-end-->'
+      ].join('');
+      doc.body.appendChild(host);
+
+      try {
+        const au = new Aurelia(ctx.container);
+        const root = await au.hydrate({
+          host,
+          component: TestApp,
+          state: { items: ['Alice', 'Bob'] },
+          manifest: {
+            targetCount: 3,
+            controllers: { 0: { type: 'repeat', views: [{ targets: [1] }, { targets: [2] }] } }
+          }
+        });
+
+        // Clear tracker after hydration
+        tracker.clear();
+
+        // Remove one item - this should trigger detaching/unbinding on the removed child
+        const vm = root.controller.viewModel as { items: string[] };
+        vm.items.pop(); // Remove 'Bob'
+
+        // Mutations are synchronous - no need to wait
+
+        // The removed child should have teardown hooks called
+        assert.ok(tracker.hasHook('child', 'detaching'), 'child detaching called on item removal');
+        assert.ok(tracker.hasHook('child', 'unbinding'), 'child unbinding called on item removal');
+
+        await au.stop(true);
       } finally {
         doc.body.removeChild(host);
       }
@@ -249,6 +388,7 @@ describe('3-runtime-html/ssr-hydration-lifecycle.spec.ts', function () {
 
   describe('Teardown lifecycle', function () {
 
+    // TODO: Runtime gap - teardown hooks not called on hydrated components during au.stop()
     it.skip('calls detaching, unbinding on stop', async function () {
       const ctx = TestContext.create();
       const doc = ctx.doc;

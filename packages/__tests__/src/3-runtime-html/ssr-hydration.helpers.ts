@@ -1,5 +1,12 @@
 /**
  * SSR Hydration Test Helpers
+ *
+ * Building blocks for hydration tests. Three pillars:
+ * 1. Component (template + instructions + state) - use createTestComponent()
+ * 2. SSR HTML (server output) - write explicitly or use SSR.* helpers
+ * 3. Manifest (hydration metadata) - use M.* helpers
+ *
+ * Keep these orthogonal. Tests should be able to inspect each part.
  */
 
 import { Aurelia } from '@aurelia/runtime-html';
@@ -11,7 +18,7 @@ import {
   HydrateTemplateController,
   IteratorBindingInstruction,
 } from '@aurelia/template-compiler';
-import { TestContext } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 import type { IHydrationManifest, IViewManifest } from '@aurelia/runtime-html';
 
 // ============================================================================
@@ -32,100 +39,65 @@ export type ControllerManifest = {
 };
 
 // ============================================================================
-// Instruction DSL
+// Instruction DSL ($)
+//
+// Thin wrappers for instruction constructors.
+// $.text('x')           -> TextBindingInstruction
+// $.repeat(def, 'i of items') -> HydrateTemplateController
 // ============================================================================
 
-/**
- * Instruction DSL - shorthand for creating binding instructions.
- *
- * Basic:
- *   $.text('item.name')                -> TextBindingInstruction
- *   $.prop('expr', 'to')               -> PropertyBindingInstruction
- *   $.iter('item of items')            -> IteratorBindingInstruction
- *
- * Template controllers:
- *   $.repeat(viewDef, 'item of items') -> HydrateTemplateController
- *   $.if(viewDef, 'condition')         -> HydrateTemplateController
- *   $.with(viewDef, 'obj')             -> HydrateTemplateController
- *   $.promise(viewDef, 'promise')      -> HydrateTemplateController
- */
 export const $ = {
-  /** Text binding: $.text('item.name') */
   text: (from: string) => new TextBindingInstruction(from),
 
-  /** Property binding: $.prop('name', 'value') */
   prop: (from: string, to: string, mode: BindingMode = BindingMode.toView) =>
     new PropertyBindingInstruction(from, to, mode),
 
-  /** Iterator binding: $.iter('item of items') */
   iter: (forOf: string, to = 'items') => new IteratorBindingInstruction(forOf, to, []),
 
-  /** Repeat template controller: $.repeat(viewDef, 'item of items') */
   repeat: (viewDef: ViewDef, forOf: string) =>
     new HydrateTemplateController(viewDef, 'repeat', undefined, [new IteratorBindingInstruction(forOf, 'items', [])]),
 
-  /** If template controller: $.if(viewDef, 'show') */
   if: (viewDef: ViewDef, condition = 'value') =>
     new HydrateTemplateController(viewDef, 'if', undefined, [new PropertyBindingInstruction(condition, 'value', BindingMode.toView)]),
 
-  /** Else template controller (links to previous if): $.else(viewDef) */
   else: (viewDef: ViewDef) =>
     new HydrateTemplateController(viewDef, 'else', undefined, []),
 
-  /** Switch template controller: $.switch(viewDef, 'status') */
   switch: (viewDef: ViewDef, value = 'value') =>
     new HydrateTemplateController(viewDef, 'switch', undefined, [new PropertyBindingInstruction(value, 'value', BindingMode.toView)]),
 
-  /** Case template controller: $.case(viewDef, 'loading') */
   case: (viewDef: ViewDef, caseValue: string) =>
     new HydrateTemplateController(viewDef, 'case', undefined, [new PropertyBindingInstruction(`'${caseValue}'`, 'value', BindingMode.toView)]),
 
-  /** Default case template controller: $.defaultCase(viewDef) */
   defaultCase: (viewDef: ViewDef) =>
     new HydrateTemplateController(viewDef, 'default-case', undefined, []),
 
-  /** With template controller: $.with(viewDef, 'obj') */
   with: (viewDef: ViewDef, value = 'value') =>
     new HydrateTemplateController(viewDef, 'with', undefined, [new PropertyBindingInstruction(value, 'value', BindingMode.toView)]),
 
-  /** Promise template controller: $.promise(viewDef, 'promise') */
   promise: (viewDef: ViewDef, value = 'value') =>
     new HydrateTemplateController(viewDef, 'promise', undefined, [new PropertyBindingInstruction(value, 'value', BindingMode.toView)]),
 
-  /** Pending template controller (inside promise): $.pending(viewDef) */
   pending: (viewDef: ViewDef) =>
     new HydrateTemplateController(viewDef, 'pending', undefined, []),
 
-  /** Then template controller (inside promise): $.then(viewDef, 'data') - binds controller.value to scope.data */
   then: (viewDef: ViewDef, expr = 'value') =>
     new HydrateTemplateController(viewDef, 'then', undefined, [new PropertyBindingInstruction(expr, 'value', BindingMode.fromView)]),
 
-  /** Catch template controller (inside promise): $.catch(viewDef, 'err') - binds controller.value to scope.err */
   catch: (viewDef: ViewDef, expr = 'value') =>
     new HydrateTemplateController(viewDef, 'catch', undefined, [new PropertyBindingInstruction(expr, 'value', BindingMode.fromView)]),
 };
 
 // ============================================================================
-// Manifest Builders
+// Manifest DSL (M)
+//
+// Builders for hydration manifests. Explicit target indices.
+// M.repeat([[1], [2]])  -> 2 views with targets
+// M.if(true, [1])       -> if showing, target at 1
 // ============================================================================
 
-/**
- * Manifest DSL - shorthand for creating hydration manifests.
- *
- * Repeat - explicit targets:
- *   M.repeat([[1], [2], [3]])              -> 3 views, targets at [1], [2], [3]
- *   M.repeat([[1,2], [3,4]], { nodeCount: 2 }) -> 2 views with 2 targets each
- *
- * Repeat - auto-generate sequential targets (indices start at 1):
- *   M.repeat(3, 1)     -> [[1], [2], [3]]
- *   M.repeat(2, 2)     -> [[1, 2], [3, 4]]
- *   M.repeat(3, 1, { nodeCount: 2 }) -> with options
- *
- * If:
- *   M.if(true, [1, 2]) -> if showing, targets at [1, 2]
- *   M.if(false)        -> if not showing
- */
 export const M = {
+  /** M.repeat([[1], [2]]) or M.repeat(2, 1) for auto-sequential */
   repeat: (
     viewTargetsOrCount: number[][] | number,
     optsOrTargetsPerView?: { nodeCount?: number; controllerIndex?: number } | number,
@@ -135,7 +107,6 @@ export const M = {
     let options: { nodeCount?: number; controllerIndex?: number } | undefined;
 
     if (typeof viewTargetsOrCount === 'number') {
-      // M.repeat(viewCount, targetsPerView, opts?) - auto-generate sequential indices
       const viewCount = viewTargetsOrCount;
       const targetsPerView = typeof optsOrTargetsPerView === 'number' ? optsOrTargetsPerView : 1;
       options = opts;
@@ -147,7 +118,6 @@ export const M = {
         viewTargets.push(targets);
       }
     } else {
-      // M.repeat(viewTargets, opts?) - explicit targets
       viewTargets = viewTargetsOrCount;
       options = typeof optsOrTargetsPerView === 'object' ? optsOrTargetsPerView : undefined;
     }
@@ -167,24 +137,8 @@ export const M = {
     };
   },
 
-  /**
-   * If manifest helper.
-   *
-   * @param show - Whether if condition is truthy
-   * @param viewTargets - Target indices for bindings (undefined = no content, [] = static content)
-   * @param nodeCount - Number of DOM nodes in the view
-   *
-   * @example
-   * M.if(true, [1, 2])      // if showing with bindings at targets 1, 2
-   * M.if(true, [])          // if showing with static content (no bindings)
-   * M.if(false)             // if not showing (no else, or else not rendered)
-   * M.if(false, [1, 2])     // else showing with bindings at targets 1, 2
-   * M.if(false, [])         // else showing with static content
-   */
+  /** M.if(true, [1, 2]) or M.if(false) */
   if: (show: boolean, viewTargets?: number[], nodeCount = 1): IHydrationManifest => {
-    // Content exists if:
-    // - show=true (if content, even with no bindings)
-    // - show=false AND viewTargets explicitly provided (else content)
     const hasContent = show || viewTargets !== undefined;
     const targets = viewTargets ?? [];
     const views: IViewManifest[] = hasContent ? [{ targets, nodeCount }] : [];
@@ -196,31 +150,7 @@ export const M = {
     };
   },
 
-  /**
-   * Switch manifest: M.switch(config)
-   *
-   * Creates manifest entries for switch AND each case controller.
-   *
-   * Usage:
-   *   // Switch at target 0, cases at targets 1 and 2, case 1 is active with 1 node
-   *   M.switch({
-   *     caseLocations: [1, 2],
-   *     activeCases: { 1: { nodeCount: 1 } }
-   *   })
-   *
-   *   // With binding targets inside the active case
-   *   M.switch({
-   *     caseLocations: [1, 2],
-   *     activeCases: { 1: { targets: [3], nodeCount: 1 } }
-   *   })
-   *
-   *   // Custom switch target index (default is 0)
-   *   M.switch({
-   *     switchIndex: 5,
-   *     caseLocations: [6, 7],
-   *     activeCases: { 6: { nodeCount: 1 } }
-   *   })
-   */
+  /** M.switch({ caseLocations: [1, 2], activeCases: { 1: { nodeCount: 1 } } }) */
   switch: (config: {
     switchIndex?: number;
     caseLocations: number[];
@@ -231,14 +161,11 @@ export const M = {
       [switchIndex]: { type: 'switch', views: [{ targets: config.caseLocations }] }
     };
 
-    // Create entries for each case
     let maxTarget = switchIndex;
     for (const loc of config.caseLocations) {
       if (loc > maxTarget) maxTarget = loc;
-
       const caseInfo = config.activeCases?.[loc];
       if (caseInfo) {
-        // Case was rendered - has view with content
         const caseTargets = caseInfo.targets ?? [];
         for (const t of caseTargets) if (t > maxTarget) maxTarget = t;
         controllers[loc] = {
@@ -246,50 +173,26 @@ export const M = {
           views: [{ targets: caseTargets, nodeCount: caseInfo.nodeCount ?? 1 }]
         };
       } else {
-        // Case was not rendered - empty views array
         controllers[loc] = { type: 'case', views: [] };
       }
     }
 
-    return {
-      targetCount: maxTarget + 1,
-      controllers
-    };
+    return { targetCount: maxTarget + 1, controllers };
   },
 
-  /**
-   * Compose multiple controller manifests into a single hydration manifest.
-   *
-   * Usage:
-   *   M.compose(10, {
-   *     0: { type: 'repeat', views: [{ targets: [1, 2] }, { targets: [5, 6] }] },
-   *     2: { type: 'if', views: [{ targets: [3, 4] }] },
-   *     6: { type: 'if', views: [] }
-   *   })
-   */
+  /** M.compose(10, { 0: {...}, 2: {...} }) - escape hatch for complex manifests */
   compose: (targetCount: number, controllers: Record<number, ControllerManifest>): IHydrationManifest => ({
     targetCount,
     controllers,
   }),
 
-  /**
-   * Create an empty manifest (no controllers, just targets).
-   */
+  /** M.empty(5) - no controllers */
   empty: (targetCount: number): IHydrationManifest => ({
     targetCount,
     controllers: {},
   }),
 
-  /**
-   * With manifest helper.
-   *
-   * @param viewTargets - Target indices for bindings inside the with view
-   * @param nodeCount - Number of DOM nodes in the view
-   *
-   * @example
-   * M.with([1, 2])      // with showing with bindings at targets 1, 2
-   * M.with([])          // with showing with static content (no bindings)
-   */
+  /** M.with([1, 2]) */
   with: (viewTargets: number[] = [], nodeCount = 1): IHydrationManifest => {
     let maxTarget = 0;
     for (const t of viewTargets) if (t > maxTarget) maxTarget = t;
@@ -299,68 +202,60 @@ export const M = {
     };
   },
 
-  /**
-   * Promise manifest helper.
-   *
-   * Creates manifest entries for promise wrapper and the active sub-controller (pending/then/catch).
-   *
-   * @param wrapperTargets - Targets inside the promise wrapper view (including sub-controller locations)
-   * @param activeSubController - Which sub-controller is active and its config
-   *
-   * @example
-   * // Promise in pending state
-   * M.promise({
-   *   wrapperTargets: [1, 2, 3],  // pending at 1, then at 2, catch at 3
-   *   active: { type: 'pending', location: 1, viewTargets: [4], nodeCount: 1 }
-   * })
-   *
-   * // Promise in resolved state
-   * M.promise({
-   *   wrapperTargets: [1, 2, 3],
-   *   active: { type: 'then', location: 2, viewTargets: [4, 5], nodeCount: 1 }
-   * })
-   */
+  /** M.promise({ wrapperTargets: [1,2,3], active: { type: 'then', location: 2, viewTargets: [4] } }) */
   promise: (config: {
     wrapperTargets?: number[];
-    active?: {
-      type: 'pending' | 'then' | 'catch';
-      location: number;
-      viewTargets?: number[];
-      nodeCount?: number;
-    };
+    active?: { type: 'pending' | 'then' | 'catch'; location: number; viewTargets?: number[]; nodeCount?: number };
     inactiveLocations?: number[];
   }): IHydrationManifest => {
     const wrapperTargets = config.wrapperTargets ?? [];
     const controllers: Record<number, ControllerManifest> = {
-      // Promise wrapper always has a view
       0: { type: 'promise', views: [{ targets: wrapperTargets, nodeCount: 1 }] }
     };
 
     let maxTarget = 0;
     for (const t of wrapperTargets) if (t > maxTarget) maxTarget = t;
 
-    // Add active sub-controller
     if (config.active) {
       const { type, location, viewTargets = [], nodeCount = 1 } = config.active;
-      controllers[location] = {
-        type,
-        views: [{ targets: viewTargets, nodeCount }]
-      };
+      controllers[location] = { type, views: [{ targets: viewTargets, nodeCount }] };
       for (const t of viewTargets) if (t > maxTarget) maxTarget = t;
       if (location > maxTarget) maxTarget = location;
     }
 
-    // Add inactive sub-controllers (empty views)
     for (const loc of config.inactiveLocations ?? []) {
       controllers[loc] = { type: 'promise-branch', views: [] };
       if (loc > maxTarget) maxTarget = loc;
     }
 
-    return {
-      targetCount: maxTarget + 1,
-      controllers
-    };
+    return { targetCount: maxTarget + 1, controllers };
   },
+};
+
+// ============================================================================
+// SSR HTML Helpers
+//
+// Build SSR output strings. Use explicit indices.
+// SSR.repeat(['<div><!--au:1-->A</div>', '<div><!--au:2-->B</div>'])
+// ============================================================================
+
+export const SSR = {
+  /** Wrap views in template controller markers: <!--au:0--><!--au-start-->...<!--au-end--> */
+  controller: (ctrlIdx: number, viewsHtml: string | string[]): string => {
+    const content = Array.isArray(viewsHtml) ? viewsHtml.join('') : viewsHtml;
+    return `<!--au:${ctrlIdx}--><!--au-start-->${content}<!--au-end-->`;
+  },
+
+  /** Shorthand for repeat at index 0 */
+  repeat: (viewsHtml: string[]): string => SSR.controller(0, viewsHtml),
+
+  /** Shorthand for if at index 0 */
+  if: (show: boolean, viewHtml = ''): string =>
+    show ? SSR.controller(0, viewHtml) : SSR.controller(0, ''),
+
+  /** Build nested controller: outer wraps inner */
+  nested: (outerIdx: number, innerHtml: string): string =>
+    `<!--au:${outerIdx}--><!--au-start-->${innerHtml}<!--au-end-->`,
 };
 
 // ============================================================================
@@ -377,6 +272,7 @@ export function createViewDef(
   return { name: 'view', type: 'custom-element', template, instructions, needsCompile: false };
 }
 
+/** Standard parent template with single controller render location */
 export function createParentTemplate(doc: Document): HTMLTemplateElement {
   const template = doc.createElement('template');
   template.innerHTML = '<!--au:0--><!--au-start--><!--au-end-->';
@@ -384,59 +280,389 @@ export function createParentTemplate(doc: Document): HTMLTemplateElement {
 }
 
 // ============================================================================
-// Component Helpers
+// Component Helper
 // ============================================================================
 
+/** Create test component class from template, instructions, and default state */
+export function createTestComponent<T extends object>(
+  template: HTMLTemplateElement,
+  instructions: IInstruction[][],
+  defaults: T
+): { new(): T; $au: object } {
+  return class TestApp {
+    static $au = {
+      type: 'custom-element' as const,
+      name: 'test-app',
+      template,
+      instructions,
+      needsCompile: false,
+    };
+    constructor() {
+      Object.assign(this, defaults);
+    }
+  } as any;
+}
+
+/** Shorthand for creating a repeat component with parent template and repeat instruction */
 export function createRepeatComponent<T extends object>(
   parentTemplate: HTMLTemplateElement,
   repeatInstruction: HydrateTemplateController,
-  defaultItems: T[]
+  items: T[]
 ): { new(): { items: T[] }; $au: object } {
-  return class TestApp {
-    static $au = {
-      type: 'custom-element' as const,
-      name: 'test-app',
-      template: parentTemplate,
-      instructions: [[repeatInstruction]],
-      needsCompile: false,
-    };
-    items: T[] = defaultItems;
-  } as any;
+  return createTestComponent(parentTemplate, [[repeatInstruction]], { items });
 }
 
+/** Shorthand for creating an if component with parent template and if instruction */
 export function createIfComponent(
   parentTemplate: HTMLTemplateElement,
   ifInstruction: HydrateTemplateController,
-  defaultShow = true
+  show: boolean
 ): { new(): { show: boolean }; $au: object } {
-  return class TestApp {
+  return createTestComponent(parentTemplate, [[ifInstruction]], { show });
+}
+
+// ============================================================================
+// Hydration Test Runner
+// ============================================================================
+
+export interface HydrateTestResult<T> {
+  ctx: ReturnType<typeof TestContext.create>;
+  doc: Document;
+  host: HTMLElement;
+  au: Aurelia;
+  vm: T;
+  stop: () => Promise<void>;
+}
+
+/** Run hydration with explicit component, SSR HTML, state, and manifest */
+export async function hydrateTest<T extends object>(options: {
+  component: { new(): T; $au: object };
+  ssrHtml: string;
+  state: T;
+  manifest?: IHydrationManifest;
+  hostTag?: string;
+  register?: unknown[];
+}): Promise<HydrateTestResult<T>> {
+  const ctx = TestContext.create();
+  const doc = ctx.doc;
+
+  if (options.register) {
+    ctx.container.register(...options.register);
+  }
+
+  const host = doc.createElement(options.hostTag ?? 'div');
+  host.innerHTML = options.ssrHtml;
+  doc.body.appendChild(host);
+
+  const au = new Aurelia(ctx.container);
+  const root = await au.hydrate({
+    host,
+    component: options.component,
+    state: options.state,
+    manifest: options.manifest,
+  });
+
+  return {
+    ctx,
+    doc,
+    host,
+    au,
+    vm: root.controller.viewModel as T,
+    stop: async () => {
+      await au.stop(true);
+      doc.body.removeChild(host);
+    },
+  };
+}
+
+// ============================================================================
+// Query Helpers
+// ============================================================================
+
+export function texts(host: Element, selector: string): string[] {
+  return Array.from(host.querySelectorAll(selector)).map(el => el.textContent ?? '');
+}
+
+export function text(host: Element, selector: string): string | undefined {
+  return host.querySelector(selector)?.textContent ?? undefined;
+}
+
+export function count(host: Element, selector: string): number {
+  return host.querySelectorAll(selector).length;
+}
+
+export function attrs(host: Element, selector: string, attr: string): (string | null)[] {
+  return Array.from(host.querySelectorAll(selector)).map(el => el.getAttribute(attr));
+}
+
+export function attr(host: Element, selector: string, attrName: string): string | null | undefined {
+  return host.querySelector(selector)?.getAttribute(attrName);
+}
+
+export function values(host: Element, selector: string): string[] {
+  return Array.from(host.querySelectorAll<HTMLInputElement>(selector)).map(el => el.value);
+}
+
+// ============================================================================
+// Mutation Helpers
+// ============================================================================
+
+/** Flush pending microtasks after mutations. Documents intent better than Promise.resolve(). */
+export function flush(): Promise<void> {
+  return Promise.resolve();
+}
+
+// ============================================================================
+// Assertion Helpers
+// ============================================================================
+
+export function assertTexts(host: Element, selector: string, expected: string[], msg?: string): void {
+  assert.deepStrictEqual(texts(host, selector), expected, msg);
+}
+
+export function assertCount(host: Element, selector: string, expected: number, msg?: string): void {
+  assert.strictEqual(count(host, selector), expected, msg);
+}
+
+export function assertCheckboxes(host: Element, expectedStates: boolean[], msg?: string): void {
+  const checkboxes = Array.from(host.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
+  expectedStates.forEach((expected, i) => {
+    assert.strictEqual(checkboxes[i]?.checked, expected, msg ?? `checkbox ${i}`);
+  });
+}
+
+// ============================================================================
+// Lifecycle Tracking
+// ============================================================================
+
+export interface LifecycleTracker {
+  record(component: string, hook: string): void;
+  getHooks(): string[];
+  hasHook(component: string, hook: string): boolean;
+  clear(): void;
+}
+
+export function createLifecycleTracker(): LifecycleTracker {
+  const calls: { component: string; hook: string; timestamp: number }[] = [];
+  let counter = 0;
+  return {
+    record: (component, hook) => calls.push({ component, hook, timestamp: counter++ }),
+    getHooks: () => calls.map(c => `${c.component}:${c.hook}`),
+    hasHook: (component, hook) => calls.some(c => c.component === component && c.hook === hook),
+    clear: () => { calls.length = 0; counter = 0; },
+  };
+}
+
+/** Factory for custom elements that record lifecycle hooks to a tracker */
+export function createTrackedElement(
+  tracker: LifecycleTracker,
+  name: string,
+  template: string,
+  bindables: Record<string, object> = {},
+  label = name
+) {
+  return class {
     static $au = {
       type: 'custom-element' as const,
-      name: 'test-app',
-      template: parentTemplate,
-      instructions: [[ifInstruction]],
+      name,
+      template,
+      needsCompile: true,
+      bindables,
+    };
+    binding() { tracker.record(label, 'binding'); }
+    bound() { tracker.record(label, 'bound'); }
+    attaching() { tracker.record(label, 'attaching'); }
+    attached() { tracker.record(label, 'attached'); }
+    detaching() { tracker.record(label, 'detaching'); }
+    unbinding() { tracker.record(label, 'unbinding'); }
+  };
+}
+
+// ============================================================================
+// Target Inspection Helpers (for low-level tests)
+// ============================================================================
+
+export interface TargetInfo {
+  type: 'element' | 'text' | 'comment';
+  tag?: string;
+  text?: string;
+}
+
+export function describeTarget(target: Node): TargetInfo {
+  if (target.nodeType === 8) return { type: 'comment', text: (target as Comment).textContent ?? '' };
+  if (target.nodeType === 3) return { type: 'text', text: (target as Text).textContent ?? '' };
+  return { type: 'element', tag: (target as Element).tagName };
+}
+
+export function describeTargets(targets: ArrayLike<Node>): TargetInfo[] {
+  return Array.from(targets).map(describeTarget);
+}
+
+export function isRenderLocation(target: Node): boolean {
+  return target.nodeType === 8 && (target as Comment).textContent === 'au-end' && '$start' in target;
+}
+
+// ============================================================================
+// Scenario Generators
+//
+// Generate the three pillars (component, SSR HTML, manifest) for common patterns.
+// Returns inspectable parts - use with hydrateTest() to run.
+// ============================================================================
+
+export interface Scenario<T> {
+  component: { new(): T; $au: object };
+  ssrHtml: string;
+  manifest: IHydrationManifest;
+  state: T;
+}
+
+export const scenarios = {
+  /**
+   * Simple repeat scenario.
+   *
+   * @example
+   * const s = scenarios.repeat(doc, {
+   *   viewHtml: '<div><!--au:0--> </div>',
+   *   viewInstr: [[$.text('item.name')]],
+   *   items: [{ name: 'A' }, { name: 'B' }],
+   *   ssrViews: ['<div><!--au:1-->A</div>', '<div><!--au:2-->B</div>'],
+   * });
+   * const { host, vm, stop } = await hydrateTest(s);
+   */
+  repeat: <T extends object>(doc: Document, opts: {
+    viewHtml: string;
+    viewInstr: IInstruction[][];
+    items: T[];
+    ssrViews: string[];
+    viewTargets?: number[][];
+  }): Scenario<{ items: T[] }> => {
+    const viewDef = createViewDef(doc, opts.viewHtml, opts.viewInstr);
+    const repeatInstr = $.repeat(viewDef, 'item of items');
+    const parentTemplate = createParentTemplate(doc);
+    const component = createTestComponent(parentTemplate, [[repeatInstr]], { items: opts.items });
+
+    // Default: sequential targets starting at 1
+    const viewTargets = opts.viewTargets ?? opts.ssrViews.map((_, i) => [i + 1]);
+
+    return {
+      component,
+      ssrHtml: SSR.repeat(opts.ssrViews),
+      manifest: M.repeat(viewTargets),
+      state: { items: opts.items },
+    };
+  },
+
+  /**
+   * Simple if scenario.
+   */
+  if: (doc: Document, opts: {
+    viewHtml: string;
+    viewInstr: IInstruction[][];
+    show: boolean;
+    ssrView: string;
+    viewTargets?: number[];
+  }): Scenario<{ show: boolean }> => {
+    const viewDef = createViewDef(doc, opts.viewHtml, opts.viewInstr);
+    const ifInstr = $.if(viewDef, 'show');
+    const parentTemplate = createParentTemplate(doc);
+    const component = createTestComponent(parentTemplate, [[ifInstr]], { show: opts.show });
+
+    const viewTargets = opts.viewTargets ?? (opts.show ? [1] : []);
+
+    return {
+      component,
+      ssrHtml: SSR.if(opts.show, opts.ssrView),
+      manifest: M.if(opts.show, viewTargets),
+      state: { show: opts.show },
+    };
+  },
+
+  /**
+   * Repeat containing If scenario.
+   * Pattern: <div repeat.for="item of items"><span if.bind="item.visible">...</span></div>
+   */
+  repeatWithIf: <T extends { visible: boolean }>(doc: Document, opts: {
+    items: T[];
+    wrapperTag?: string;
+    ifViewHtml: string;
+    ifViewInstr: IInstruction[][];
+    ifCondition?: string;
+    /** SSR output for each item. Must have correct <!--au:N--> indices. */
+    ssrViews: string[];
+    /** Manifest controllers. Build explicitly or derive. */
+    controllers: Record<number, ControllerManifest>;
+    targetCount: number;
+  }): Scenario<{ items: T[] }> => {
+    const wrapperTag = opts.wrapperTag ?? 'div';
+    const ifCondition = opts.ifCondition ?? 'item.visible';
+
+    const ifViewDef = createViewDef(doc, opts.ifViewHtml, opts.ifViewInstr);
+    const ifInstr = $.if(ifViewDef, ifCondition);
+
+    const repeatViewTemplate = doc.createElement('template');
+    repeatViewTemplate.innerHTML = `<${wrapperTag}><!--au:0--><!--au-start--><!--au-end--></${wrapperTag}>`;
+    const repeatViewDef: ViewDef = {
+      name: 'repeat-view',
+      type: 'custom-element',
+      template: repeatViewTemplate,
+      instructions: [[ifInstr]],
       needsCompile: false,
     };
-    show = defaultShow;
-  } as any;
-}
+
+    const repeatInstr = $.repeat(repeatViewDef, 'item of items');
+    const parentTemplate = createParentTemplate(doc);
+    const component = createTestComponent(parentTemplate, [[repeatInstr]], { items: opts.items });
+
+    return {
+      component,
+      ssrHtml: SSR.repeat(opts.ssrViews),
+      manifest: { targetCount: opts.targetCount, controllers: opts.controllers },
+      state: { items: opts.items },
+    };
+  },
+
+  /**
+   * If containing Repeat scenario.
+   * Pattern: <div if.bind="show"><ul><li repeat.for="item of items">...</li></ul></div>
+   */
+  ifWithRepeat: <T>(doc: Document, opts: {
+    show: boolean;
+    items: T[];
+    ifWrapperHtml: string;  // Use <!--au:0--><!--au-start--><!--au-end--> for repeat location
+    repeatViewHtml: string;
+    repeatViewInstr: IInstruction[][];
+    ssrHtml: string;
+    controllers: Record<number, ControllerManifest>;
+    targetCount: number;
+  }): Scenario<{ show: boolean; items: T[] }> => {
+    const repeatViewDef = createViewDef(doc, opts.repeatViewHtml, opts.repeatViewInstr);
+    const repeatInstr = $.repeat(repeatViewDef, 'item of items');
+
+    const ifViewTemplate = doc.createElement('template');
+    ifViewTemplate.innerHTML = opts.ifWrapperHtml;
+    const ifViewDef: ViewDef = {
+      name: 'if-view',
+      type: 'custom-element',
+      template: ifViewTemplate,
+      instructions: [[repeatInstr]],
+      needsCompile: false,
+    };
+
+    const ifInstr = $.if(ifViewDef, 'show');
+    const parentTemplate = createParentTemplate(doc);
+    const component = createTestComponent(parentTemplate, [[ifInstr]], { show: opts.show, items: opts.items });
+
+    return {
+      component,
+      ssrHtml: opts.ssrHtml,
+      manifest: { targetCount: opts.targetCount, controllers: opts.controllers },
+      state: { show: opts.show, items: opts.items },
+    };
+  },
+};
 
 // ============================================================================
-// SSR HTML Builders
-// ============================================================================
-
-export function buildRepeatSsrHtml(_wrapperTag: string, viewsHtml: string[]): string {
-  return `<!--au:0--><!--au-start-->${viewsHtml.join('')}<!--au-end-->`;
-}
-
-export function buildIfSsrHtml(show: boolean, viewHtml = ''): string {
-  return show
-    ? `<!--au:0--><!--au-start-->${viewHtml}<!--au-end-->`
-    : `<!--au:0--><!--au-start--><!--au-end-->`;
-}
-
-// ============================================================================
-// Full Setup Helpers
+// Legacy Setup Helpers (for existing tests - prefer scenarios + hydrateTest)
 // ============================================================================
 
 export interface RepeatHydrationSetup<T extends object> {
@@ -462,10 +688,10 @@ export async function setupRepeatHydration<T extends object>(options: {
   const viewDef = createViewDef(doc, options.viewTemplateHtml, options.viewInstructions);
   const repeatInstruction = $.repeat(viewDef, 'item of items');
   const parentTemplate = createParentTemplate(doc);
-  const TestApp = createRepeatComponent(parentTemplate, repeatInstruction, options.items);
+  const TestApp = createTestComponent(parentTemplate, [[repeatInstruction]], { items: options.items });
 
   const host = doc.createElement(options.hostTag ?? 'div');
-  host.innerHTML = buildRepeatSsrHtml(options.hostTag ?? 'div', options.ssrViewsHtml);
+  host.innerHTML = SSR.repeat(options.ssrViewsHtml);
   doc.body.appendChild(host);
 
   const au = new Aurelia(ctx.container);
@@ -477,15 +703,9 @@ export async function setupRepeatHydration<T extends object>(options: {
   });
 
   return {
-    ctx,
-    doc,
-    host,
-    au,
+    ctx, doc, host, au,
     instance: root.controller.viewModel as { items: T[] },
-    stop: async () => {
-      await au.stop(true);
-      doc.body.removeChild(host);
-    },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
   };
 }
 
@@ -512,10 +732,10 @@ export async function setupIfHydration(options: {
   const viewDef = createViewDef(doc, options.viewTemplateHtml, options.viewInstructions);
   const ifInstruction = $.if(viewDef, 'show');
   const parentTemplate = createParentTemplate(doc);
-  const TestApp = createIfComponent(parentTemplate, ifInstruction, options.show);
+  const TestApp = createTestComponent(parentTemplate, [[ifInstruction]], { show: options.show });
 
   const host = doc.createElement('div');
-  host.innerHTML = buildIfSsrHtml(options.show, options.ssrViewHtml);
+  host.innerHTML = SSR.if(options.show, options.ssrViewHtml);
   doc.body.appendChild(host);
 
   const au = new Aurelia(ctx.container);
@@ -527,137 +747,11 @@ export async function setupIfHydration(options: {
   });
 
   return {
-    ctx,
-    doc,
-    host,
-    au,
+    ctx, doc, host, au,
     instance: root.controller.viewModel as { show: boolean },
-    stop: async () => {
-      await au.stop(true);
-      doc.body.removeChild(host);
-    },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
   };
 }
-
-// ============================================================================
-// Query Helpers (extract data for assertions)
-// ============================================================================
-
-/**
- * Get text content of all matching elements.
- *
- * @example
- * assert.deepStrictEqual(texts(host, 'li'), ['Alice', 'Bob', 'Charlie']);
- */
-export function texts(host: Element, selector: string): string[] {
-  return Array.from(host.querySelectorAll(selector)).map(el => el.textContent ?? '');
-}
-
-/**
- * Get text content of a single element (first match).
- *
- * @example
- * assert.strictEqual(text(host, 'h1'), 'Welcome');
- */
-export function text(host: Element, selector: string): string | undefined {
-  return host.querySelector(selector)?.textContent ?? undefined;
-}
-
-/**
- * Get count of matching elements.
- *
- * @example
- * assert.strictEqual(count(host, 'li'), 3);
- */
-export function count(host: Element, selector: string): number {
-  return host.querySelectorAll(selector).length;
-}
-
-/**
- * Get attribute values from all matching elements.
- *
- * @example
- * assert.deepStrictEqual(attrs(host, 'input', 'value'), ['Alice', 'Bob']);
- */
-export function attrs(host: Element, selector: string, attr: string): (string | null)[] {
-  return Array.from(host.querySelectorAll(selector)).map(el => el.getAttribute(attr));
-}
-
-/**
- * Get attribute value from a single element (first match).
- *
- * @example
- * assert.strictEqual(attr(host, 'input', 'value'), 'Alice');
- */
-export function attr(host: Element, selector: string, attrName: string): string | null | undefined {
-  return host.querySelector(selector)?.getAttribute(attrName);
-}
-
-/**
- * Get values from input elements.
- *
- * @example
- * assert.deepStrictEqual(values(host, 'input'), ['Alice', 'Bob']);
- */
-export function values(host: Element, selector: string): string[] {
-  return Array.from(host.querySelectorAll<HTMLInputElement>(selector)).map(el => el.value);
-}
-
-// ============================================================================
-// Target Query Helpers (for core/low-level tests)
-// ============================================================================
-
-export interface TargetInfo {
-  type: 'element' | 'text' | 'comment';
-  tag?: string;
-  text?: string;
-}
-
-/**
- * Describe a single target node.
- *
- * @example
- * assert.deepStrictEqual(describeTarget(targets[0]), { type: 'comment', text: 'au-end' });
- */
-export function describeTarget(target: Node): TargetInfo {
-  if (target.nodeType === 8 /* Comment */) {
-    return { type: 'comment', text: (target as Comment).textContent ?? '' };
-  }
-  if (target.nodeType === 3 /* Text */) {
-    return { type: 'text', text: (target as Text).textContent ?? '' };
-  }
-  return { type: 'element', tag: (target as Element).tagName };
-}
-
-/**
- * Describe all targets in an array.
- *
- * @example
- * assert.deepStrictEqual(describeTargets(targets), [
- *   { type: 'comment', text: 'au-end' },
- *   { type: 'element', tag: 'DIV' },
- *   { type: 'text', text: 'Hello' },
- * ]);
- */
-export function describeTargets(targets: ArrayLike<Node>): TargetInfo[] {
-  return Array.from(targets).map(describeTarget);
-}
-
-/**
- * Check if a target is a render location (au-end with $start).
- *
- * @example
- * assert.strictEqual(isRenderLocation(targets[0]), true);
- */
-export function isRenderLocation(target: Node): boolean {
-  return target.nodeType === 8 &&
-    (target as Comment).textContent === 'au-end' &&
-    '$start' in target;
-}
-
-// ============================================================================
-// Switch Hydration Setup Helper
-// ============================================================================
 
 export interface SwitchHydrationSetup {
   ctx: ReturnType<typeof TestContext.create>;
@@ -668,45 +762,12 @@ export interface SwitchHydrationSetup {
   stop: () => Promise<void>;
 }
 
-/**
- * Configuration for a case in switch hydration test.
- */
 export interface CaseConfig {
   value: string;
   contentHtml: string;
   instructions?: IInstruction[][];
 }
 
-/**
- * Build SSR HTML for switch with two cases.
- *
- * @param activeCase - Which case is active ('case1' | 'case2' | 'default' | 'none')
- * @param case1Html - HTML content for case 1
- * @param case2Html - HTML content for case 2
- */
-function buildSwitchSsrHtml(
-  activeCase: 'case1' | 'case2' | 'default' | 'none',
-  case1Html: string,
-  case2Html: string,
-): string {
-  const case1Content = activeCase === 'case1' ? case1Html : '';
-  const case2Content = activeCase === 'case2' || activeCase === 'default' ? case2Html : '';
-
-  // Global indices:
-  // 0 = switch render location
-  // 1 = case1 render location
-  // 2 = case2 render location
-  return `<!--au:0--><!--au-start--><!--au:1--><!--au-start-->${case1Content}<!--au-end--><!--au:2--><!--au-start-->${case2Content}<!--au-end--><!--au-end-->`;
-}
-
-/**
- * Set up switch hydration test with two cases.
- *
- * @param options.case1 - Configuration for first case
- * @param options.case2 - Configuration for second case (or default-case)
- * @param options.status - Initial status value
- * @param options.isCase2Default - Whether case2 is a default-case
- */
 export async function setupSwitchHydration(options: {
   case1: CaseConfig;
   case2: CaseConfig;
@@ -716,94 +777,59 @@ export async function setupSwitchHydration(options: {
   const ctx = TestContext.create();
   const doc = ctx.doc;
 
-  // Create case view definitions
   const case1View = createViewDef(doc, options.case1.contentHtml, options.case1.instructions ?? []);
   const case2View = createViewDef(doc, options.case2.contentHtml, options.case2.instructions ?? []);
 
-  // Create case instructions
   const case1Instruction = $.case(case1View, options.case1.value);
-  const case2Instruction = options.isCase2Default
-    ? $.defaultCase(case2View)
-    : $.case(case2View, options.case2.value);
+  const case2Instruction = options.isCase2Default ? $.defaultCase(case2View) : $.case(case2View, options.case2.value);
 
-  // Switch's view template: render locations for each case
   const switchViewTemplate = doc.createElement('template');
   switchViewTemplate.innerHTML = '<!--au:0--><!--au-start--><!--au-end--><!--au:1--><!--au-start--><!--au-end-->';
 
-  const switchView = {
+  const switchView: ViewDef = {
     name: 'switch-view',
-    type: 'custom-element' as const,
+    type: 'custom-element',
     template: switchViewTemplate,
     instructions: [[case1Instruction], [case2Instruction]],
-    needsCompile: false as const,
+    needsCompile: false,
   };
 
   const switchInstruction = $.switch(switchView, 'status');
   const parentTemplate = createParentTemplate(doc);
+  const TestApp = createTestComponent(parentTemplate, [[switchInstruction]], { status: options.status });
 
-  class TestApp {
-    static $au = {
-      type: 'custom-element' as const,
-      name: 'test-app',
-      template: parentTemplate,
-      instructions: [[switchInstruction]],
-      needsCompile: false,
-    };
-    status = options.status;
-  }
-
-  // Determine which case is active based on status
   let activeCase: 'case1' | 'case2' | 'default' | 'none';
-  if (options.status === options.case1.value) {
-    activeCase = 'case1';
-  } else if (options.status === options.case2.value) {
-    activeCase = 'case2';
-  } else if (options.isCase2Default) {
-    activeCase = 'default';
-  } else {
-    activeCase = 'none';
-  }
+  if (options.status === options.case1.value) activeCase = 'case1';
+  else if (options.status === options.case2.value) activeCase = 'case2';
+  else if (options.isCase2Default) activeCase = 'default';
+  else activeCase = 'none';
 
-  // Build SSR HTML
+  const case1Content = activeCase === 'case1' ? options.case1.contentHtml : '';
+  const case2Content = activeCase === 'case2' || activeCase === 'default' ? options.case2.contentHtml : '';
+  const ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start-->${case1Content}<!--au-end--><!--au:2--><!--au-start-->${case2Content}<!--au-end--><!--au-end-->`;
+
   const host = doc.createElement('div');
-  host.innerHTML = buildSwitchSsrHtml(activeCase, options.case1.contentHtml, options.case2.contentHtml);
+  host.innerHTML = ssrHtml;
   doc.body.appendChild(host);
 
-  // Build manifest
   const activeCases: Record<number, { nodeCount: number }> = {};
-  if (activeCase === 'case1') {
-    activeCases[1] = { nodeCount: 1 };
-  } else if (activeCase === 'case2' || activeCase === 'default') {
-    activeCases[2] = { nodeCount: 1 };
-  }
+  if (activeCase === 'case1') activeCases[1] = { nodeCount: 1 };
+  else if (activeCase === 'case2' || activeCase === 'default') activeCases[2] = { nodeCount: 1 };
 
   const au = new Aurelia(ctx.container);
   const root = await au.hydrate({
     host,
     component: TestApp,
     state: { status: options.status },
-    manifest: M.switch({
-      caseLocations: [1, 2],
-      activeCases,
-    }),
+    manifest: M.switch({ caseLocations: [1, 2], activeCases }),
   });
 
   return {
-    ctx,
-    doc,
-    host,
-    au,
+    ctx, doc, host, au,
     instance: root.controller.viewModel as { status: string },
-    stop: async () => {
-      await au.stop(true);
-      doc.body.removeChild(host);
-    },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
   };
 }
-
-// ============================================================================
-// With Hydration Setup Helper
-// ============================================================================
 
 export interface WithHydrationSetup<T extends object> {
   ctx: ReturnType<typeof TestContext.create>;
@@ -814,15 +840,6 @@ export interface WithHydrationSetup<T extends object> {
   stop: () => Promise<void>;
 }
 
-/**
- * Set up with hydration test.
- *
- * @param options.viewTemplateHtml - HTML template for the with view (e.g., '<span><!--au:0--> </span>')
- * @param options.viewInstructions - Instructions for the with view
- * @param options.ssrViewHtml - The SSR-rendered view content (without au-start/au-end)
- * @param options.value - Initial value for with.bind
- * @param options.manifest - Hydration manifest (use M.with())
- */
 export async function setupWithHydration<T extends object>(options: {
   viewTemplateHtml: string;
   viewInstructions: IInstruction[][];
@@ -836,20 +853,10 @@ export async function setupWithHydration<T extends object>(options: {
   const viewDef = createViewDef(doc, options.viewTemplateHtml, options.viewInstructions);
   const withInstruction = $.with(viewDef, 'value');
   const parentTemplate = createParentTemplate(doc);
-
-  class TestApp {
-    static $au = {
-      type: 'custom-element' as const,
-      name: 'test-app',
-      template: parentTemplate,
-      instructions: [[withInstruction]],
-      needsCompile: false,
-    };
-    value: T = options.value;
-  }
+  const TestApp = createTestComponent(parentTemplate, [[withInstruction]], { value: options.value });
 
   const host = doc.createElement('div');
-  host.innerHTML = `<!--au:0--><!--au-start-->${options.ssrViewHtml}<!--au-end-->`;
+  host.innerHTML = SSR.controller(0, options.ssrViewHtml);
   doc.body.appendChild(host);
 
   const au = new Aurelia(ctx.container);
@@ -861,21 +868,13 @@ export async function setupWithHydration<T extends object>(options: {
   });
 
   return {
-    ctx,
-    doc,
-    host,
-    au,
+    ctx, doc, host, au,
     instance: root.controller.viewModel as { value: T },
-    stop: async () => {
-      await au.stop(true);
-      doc.body.removeChild(host);
-    },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
   };
 }
 
-// ============================================================================
-// Promise Hydration Setup Helper
-// ============================================================================
+export type PromiseState = 'pending' | 'resolved' | 'rejected';
 
 export interface PromiseHydrationSetup<T> {
   ctx: ReturnType<typeof TestContext.create>;
@@ -886,21 +885,6 @@ export interface PromiseHydrationSetup<T> {
   stop: () => Promise<void>;
 }
 
-export type PromiseState = 'pending' | 'resolved' | 'rejected';
-
-/**
- * Set up promise hydration test.
- *
- * @param options.pendingHtml - HTML for pending view (static, e.g., '<span>Loading...</span>')
- * @param options.thenHtml - HTML for then view (e.g., '<span><!--au:0--> </span>' for binding)
- * @param options.thenInstructions - Instructions for then view (e.g., [[$.text('value')]])
- * @param options.catchHtml - HTML for catch view (e.g., '<span><!--au:0--> </span>' for binding)
- * @param options.catchInstructions - Instructions for catch view
- * @param options.state - Which state the promise is in ('pending' | 'resolved' | 'rejected')
- * @param options.ssrActiveHtml - The SSR-rendered content for the active branch
- * @param options.resolvedValue - Value for resolved state
- * @param options.rejectedError - Error for rejected state
- */
 export async function setupPromiseHydration<T>(options: {
   pendingHtml?: string;
   thenHtml?: string;
@@ -919,16 +903,15 @@ export async function setupPromiseHydration<T>(options: {
   const thenView = createViewDef(doc, options.thenHtml ?? '<span>Done</span>', options.thenInstructions ?? []);
   const catchView = createViewDef(doc, options.catchHtml ?? '<span>Error</span>', options.catchInstructions ?? []);
 
-  // Promise wrapper view with three sub-controller render locations
   const promiseViewTemplate = doc.createElement('template');
   promiseViewTemplate.innerHTML = '<!--au:0--><!--au-start--><!--au-end--><!--au:1--><!--au-start--><!--au-end--><!--au:2--><!--au-start--><!--au-end-->';
 
-  const promiseView = {
+  const promiseView: ViewDef = {
     name: 'promise-view',
-    type: 'custom-element' as const,
+    type: 'custom-element',
     template: promiseViewTemplate,
     instructions: [[$.pending(pendingView)], [$.then(thenView, 'value')], [$.catch(catchView, 'err')]],
-    needsCompile: false as const,
+    needsCompile: false,
   };
 
   const promiseInstruction = $.promise(promiseView, 'dataPromise');
@@ -947,48 +930,32 @@ export async function setupPromiseHydration<T>(options: {
     err?: unknown;
   }
 
-  // Build SSR HTML based on state
-  // Global indices: 0=promise, 1=pending, 2=then, 3=catch
-  // Content target index: 4 (when there's a binding in the active branch)
   let ssrHtml: string;
   let manifest: IHydrationManifest;
 
   if (options.state === 'pending') {
     ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start-->${options.ssrActiveHtml}<!--au-end--><!--au:2--><!--au-start--><!--au-end--><!--au:3--><!--au-start--><!--au-end--><!--au-end-->`;
-    manifest = M.promise({
-      wrapperTargets: [1, 2, 3],
-      active: { type: 'pending', location: 1, viewTargets: [], nodeCount: 1 },
-      inactiveLocations: [2, 3],
-    });
+    manifest = M.promise({ wrapperTargets: [1, 2, 3], active: { type: 'pending', location: 1, viewTargets: [], nodeCount: 1 }, inactiveLocations: [2, 3] });
   } else if (options.state === 'resolved') {
     ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start--><!--au-end--><!--au:2--><!--au-start-->${options.ssrActiveHtml}<!--au-end--><!--au:3--><!--au-start--><!--au-end--><!--au-end-->`;
     const hasBindings = (options.thenInstructions?.length ?? 0) > 0;
-    manifest = M.promise({
-      wrapperTargets: [1, 2, 3],
-      active: { type: 'then', location: 2, viewTargets: hasBindings ? [4] : [], nodeCount: 1 },
-      inactiveLocations: [1, 3],
-    });
+    manifest = M.promise({ wrapperTargets: [1, 2, 3], active: { type: 'then', location: 2, viewTargets: hasBindings ? [4] : [], nodeCount: 1 }, inactiveLocations: [1, 3] });
   } else {
     ssrHtml = `<!--au:0--><!--au-start--><!--au:1--><!--au-start--><!--au-end--><!--au:2--><!--au-start--><!--au-end--><!--au:3--><!--au-start-->${options.ssrActiveHtml}<!--au-end--><!--au-end-->`;
     const hasBindings = (options.catchInstructions?.length ?? 0) > 0;
-    manifest = M.promise({
-      wrapperTargets: [1, 2, 3],
-      active: { type: 'catch', location: 3, viewTargets: hasBindings ? [4] : [], nodeCount: 1 },
-      inactiveLocations: [1, 2],
-    });
+    manifest = M.promise({ wrapperTargets: [1, 2, 3], active: { type: 'catch', location: 3, viewTargets: hasBindings ? [4] : [], nodeCount: 1 }, inactiveLocations: [1, 2] });
   }
 
   const host = doc.createElement('div');
   host.innerHTML = ssrHtml;
   doc.body.appendChild(host);
 
-  // Create appropriate promise based on state
   let dataPromise: Promise<T>;
   let value: T | undefined;
   let err: unknown;
 
   if (options.state === 'pending') {
-    dataPromise = new Promise(() => {}); // Never resolves
+    dataPromise = new Promise(() => {});
   } else if (options.state === 'resolved') {
     value = options.resolvedValue;
     dataPromise = Promise.resolve(value!);
@@ -1006,14 +973,8 @@ export async function setupPromiseHydration<T>(options: {
   });
 
   return {
-    ctx,
-    doc,
-    host,
-    au,
+    ctx, doc, host, au,
     instance: root.controller.viewModel as { dataPromise: Promise<T>; value?: T; err?: unknown },
-    stop: async () => {
-      await au.stop(true);
-      doc.body.removeChild(host);
-    },
+    stop: async () => { await au.stop(true); doc.body.removeChild(host); },
   };
 }

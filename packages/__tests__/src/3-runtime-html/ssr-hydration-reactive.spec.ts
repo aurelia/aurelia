@@ -25,13 +25,15 @@ import {
   setupIfHydration,
   setupSwitchHydration,
   setupPromiseHydration,
+  setupRepeatWithIf,
+  setupIfWithRepeat,
   createViewDef,
   createParentTemplate,
   createRepeatComponent,
-  createIfComponent,
   texts,
   text,
   count,
+  flush,
 } from './ssr-hydration.helpers.js';
 
 describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
@@ -340,9 +342,37 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
         }
       });
 
-      it.skip('handles rapid successive mutations', async function () {
+      it('handles rapid successive mutations', async function () {
         // push, pop, push, shift, unshift in quick succession
         // Verify final state is correct
+        const setup = await setupRepeatHydration({
+          viewTemplateHtml: '<div><!--au:0--> </div>',
+          viewInstructions: [[$.text('item.name')]],
+          ssrViewsHtml: ['<div><!--au:1-->A</div>', '<div><!--au:2-->B</div>'],
+          items: [{ name: 'A' }, { name: 'B' }],
+          manifest: M.repeat([[1], [2]]),
+        });
+
+        try {
+          // Rapid successive mutations
+          setup.instance.items.push({ name: 'C' });
+          setup.instance.items.pop();
+          setup.instance.items.push({ name: 'D' });
+          setup.instance.items.shift();
+          setup.instance.items.unshift({ name: 'E' });
+
+          // Wait for all updates to process
+          await flush();
+
+          // Final state: E, B, D
+          assert.deepStrictEqual(
+            texts(setup.host, 'div'),
+            ['E', 'B', 'D'],
+            'should have correct final state after rapid mutations'
+          );
+        } finally {
+          await setup.stop();
+        }
       });
     });
   });
@@ -367,7 +397,7 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
         try {
           assert.strictEqual(count(setup.host, 'div'), 1);
           setup.instance.show = false;
-          await Promise.resolve();
+          await flush();
           assert.strictEqual(count(setup.host, 'div'), 0);
         } finally {
           await setup.stop();
@@ -389,7 +419,7 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
         try {
           assert.strictEqual(count(setup.host, 'div'), 0);
           setup.instance.show = true;
-          await Promise.resolve();
+          await flush();
           assert.strictEqual(count(setup.host, 'div'), 1);
         } finally {
           await setup.stop();
@@ -410,11 +440,11 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
         try {
           setup.instance.show = false;
-          await Promise.resolve();
+          await flush();
           setup.instance.show = true;
-          await Promise.resolve();
+          await flush();
           setup.instance.show = false;
-          await Promise.resolve();
+          await flush();
           assert.strictEqual(count(setup.host, 'span'), 0);
         } finally {
           await setup.stop();
@@ -433,10 +463,10 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
         try {
           assert.strictEqual(count(setup.host, 'p'), 1);
           setup.instance.show = false;
-          await Promise.resolve();
+          await flush();
           assert.strictEqual(count(setup.host, 'p'), 0);
           setup.instance.show = true;
-          await Promise.resolve();
+          await flush();
           assert.strictEqual(count(setup.host, 'p'), 1);
         } finally {
           await setup.stop();
@@ -483,10 +513,10 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
           // Hide, update message, show
           instance.show = false;
-          await Promise.resolve();
+          await flush();
           instance.message = 'Updated';
           instance.show = true;
-          await Promise.resolve();
+          await flush();
 
           assert.strictEqual(text(host, 'span'), 'Updated');
           await au.stop(true);
@@ -512,7 +542,7 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
           assert.strictEqual(count(setup.host, 'b'), 1);
           assert.strictEqual(count(setup.host, 'i'), 1);
           setup.instance.show = false;
-          await Promise.resolve();
+          await flush();
           assert.strictEqual(count(setup.host, 'b'), 0);
           assert.strictEqual(count(setup.host, 'i'), 0);
         } finally {
@@ -531,302 +561,104 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
     describe('Repeat containing If', function () {
 
       it('handles if toggle inside repeat item', async function () {
-        const ctx = TestContext.create();
-        const doc = ctx.doc;
+        // Use the new setupRepeatWithIf helper - reduces ~80 lines to ~20
+        const { host, vm, stop } = await setupRepeatWithIf({
+          items: [
+            { name: 'Alice', visible: true },
+            { name: 'Bob', visible: false },
+            { name: 'Carol', visible: true },
+          ],
+          repeatWrapperTag: 'div',
+          ifContentHtml: '<span><!--au:0--> </span>',
+          ifContentInstructions: [[$.text('item.name')]],
+        });
 
-        const ifViewDef = createViewDef(doc, '<span><!--au:0--> </span>', [[$.text('item.name')]]);
-        const ifInstruction = $.if(ifViewDef, 'item.visible');
+        assert.strictEqual(count(host, 'span'), 2, 'initially 2 visible');
 
-        const repeatViewTemplate = doc.createElement('template');
-        repeatViewTemplate.innerHTML = '<div><!--au:0--><!--au-start--><!--au-end--></div>';
-        const repeatViewDef = {
-          name: 'repeat-view',
-          type: 'custom-element' as const,
-          template: repeatViewTemplate,
-          instructions: [[ifInstruction]] as IInstruction[][],
-          needsCompile: false as const,
-        };
+        // Toggle Bob's visibility on
+        vm.items[1].visible = true;
+        await flush();
+        assert.strictEqual(count(host, 'span'), 3, 'Bob now visible');
 
-        const repeatInstruction = $.repeat(repeatViewDef, 'item of items');
-        const parentTemplate = createParentTemplate(doc);
+        // Toggle Alice's visibility off
+        vm.items[0].visible = false;
+        await flush();
+        assert.strictEqual(count(host, 'span'), 2, 'Alice now hidden');
 
-        class TestApp {
-          static $au = {
-            type: 'custom-element' as const,
-            name: 'test-app',
-            template: parentTemplate,
-            instructions: [[repeatInstruction]],
-            needsCompile: false,
-          };
-          items: { name: string; visible: boolean }[] = [];
-        }
-
-        const host = doc.createElement('div');
-        host.innerHTML = [
-          '<!--au:0--><!--au-start-->',
-          '<div><!--au:1--><!--au-start--><span><!--au:2-->Alice</span><!--au-end--></div>',
-          '<div><!--au:3--><!--au-start--><!--au-end--></div>',
-          '<div><!--au:4--><!--au-start--><span><!--au:5-->Carol</span><!--au-end--></div>',
-          '<!--au-end-->'
-        ].join('');
-        doc.body.appendChild(host);
-
-        try {
-          const au = new Aurelia(ctx.container);
-          const root = await au.hydrate({
-            host,
-            component: TestApp,
-            state: {
-              items: [
-                { name: 'Alice', visible: true },
-                { name: 'Bob', visible: false },
-                { name: 'Carol', visible: true }
-              ]
-            },
-            manifest: {
-              targetCount: 6,
-              controllers: {
-                0: { type: 'repeat', views: [{ targets: [1] }, { targets: [3] }, { targets: [4] }] },
-                1: { type: 'if', views: [{ targets: [2] }] },
-                3: { type: 'if', views: [] },
-                4: { type: 'if', views: [{ targets: [5] }] }
-              }
-            }
-          });
-
-          const instance = root.controller.viewModel as TestApp;
-
-          assert.strictEqual(count(host, 'span'), 2);
-
-          // Toggle Bob's visibility on
-          instance.items[1].visible = true;
-          await Promise.resolve();
-          assert.strictEqual(count(host, 'span'), 3);
-
-          // Toggle Alice's visibility off
-          instance.items[0].visible = false;
-          await Promise.resolve();
-          assert.strictEqual(count(host, 'span'), 2);
-
-          await au.stop(true);
-        } finally {
-          doc.body.removeChild(host);
-        }
+        await stop();
       });
 
       it('handles repeat item removal while if is visible', async function () {
-        const ctx = TestContext.create();
-        const doc = ctx.doc;
+        // Uses setupRepeatWithIf with custom ifCondition
+        const { host, vm, stop } = await setupRepeatWithIf({
+          items: [
+            { active: true, visible: true },  // visible is required by type but we use active
+            { active: true, visible: true },
+          ],
+          repeatWrapperTag: 'li',
+          ifContentHtml: '<span>Active</span>',
+          ifContentInstructions: [],
+          ifCondition: 'item.active',
+          hostTag: 'ul',
+        });
 
-        const ifViewDef = createViewDef(doc, '<span>Active</span>', []);
-        const ifInstruction = $.if(ifViewDef, 'item.active');
+        assert.strictEqual(count(host, 'li'), 2);
+        assert.strictEqual(count(host, 'span'), 2);
 
-        const repeatViewTemplate = doc.createElement('template');
-        repeatViewTemplate.innerHTML = '<li><!--au:0--><!--au-start--><!--au-end--></li>';
-        const repeatViewDef = {
-          name: 'repeat-view',
-          type: 'custom-element' as const,
-          template: repeatViewTemplate,
-          instructions: [[ifInstruction]] as IInstruction[][],
-          needsCompile: false as const,
-        };
+        (vm.items as { active: boolean }[]).shift();
+        assert.strictEqual(count(host, 'li'), 1);
+        assert.strictEqual(count(host, 'span'), 1);
 
-        const repeatInstruction = $.repeat(repeatViewDef, 'item of items');
-        const parentTemplate = createParentTemplate(doc);
-
-        class TestApp {
-          static $au = {
-            type: 'custom-element' as const,
-            name: 'test-app',
-            template: parentTemplate,
-            instructions: [[repeatInstruction]],
-            needsCompile: false,
-          };
-          items: { active: boolean }[] = [];
-        }
-
-        const host = doc.createElement('ul');
-        host.innerHTML = [
-          '<!--au:0--><!--au-start-->',
-          '<li><!--au:1--><!--au-start--><span>Active</span><!--au-end--></li>',
-          '<li><!--au:2--><!--au-start--><span>Active</span><!--au-end--></li>',
-          '<!--au-end-->'
-        ].join('');
-        doc.body.appendChild(host);
-
-        try {
-          const au = new Aurelia(ctx.container);
-          const root = await au.hydrate({
-            host,
-            component: TestApp,
-            state: { items: [{ active: true }, { active: true }] },
-            manifest: {
-              targetCount: 3,
-              controllers: {
-                0: { type: 'repeat', views: [{ targets: [1] }, { targets: [2] }] },
-                1: { type: 'if', views: [{ targets: [] }] },
-                2: { type: 'if', views: [{ targets: [] }] }
-              }
-            }
-          });
-
-          const instance = root.controller.viewModel as TestApp;
-
-          assert.strictEqual(count(host, 'li'), 2);
-          assert.strictEqual(count(host, 'span'), 2);
-
-          instance.items.shift();
-          assert.strictEqual(count(host, 'li'), 1);
-          assert.strictEqual(count(host, 'span'), 1);
-
-          await au.stop(true);
-        } finally {
-          doc.body.removeChild(host);
-        }
+        await stop();
       });
     });
 
     describe('If containing Repeat', function () {
 
       it('handles if toggle with repeat inside (show then hide)', async function () {
-        const ctx = TestContext.create();
-        const doc = ctx.doc;
+        // Use setupIfWithRepeat helper - reduces ~70 lines to ~20
+        const { host, vm, stop } = await setupIfWithRepeat({
+          show: true,
+          items: ['A', 'B'],
+          ifWrapperHtml: '<div><ul><!--repeat--></ul></div>',
+          repeatItemHtml: '<li><!--au:0-->{item}</li>',
+          repeatItemInstructions: [[$.text('item')]],
+        });
 
-        const repeatViewDef = createViewDef(doc, '<li><!--au:0--> </li>', [[$.text('item')]]);
-        const repeatInstruction = $.repeat(repeatViewDef, 'item of items');
+        assert.strictEqual(count(host, 'li'), 2);
 
-        const ifViewTemplate = doc.createElement('template');
-        ifViewTemplate.innerHTML = '<div><ul><!--au:0--><!--au-start--><!--au-end--></ul></div>';
-        const ifViewDef = {
-          name: 'if-view',
-          type: 'custom-element' as const,
-          template: ifViewTemplate,
-          instructions: [[repeatInstruction]] as IInstruction[][],
-          needsCompile: false as const,
-        };
+        // Hide the if
+        vm.show = false;
+        await flush();
+        assert.strictEqual(count(host, 'div'), 0);
+        assert.strictEqual(count(host, 'li'), 0);
 
-        const ifInstruction = $.if(ifViewDef, 'showList');
-        const parentTemplate = createParentTemplate(doc);
-
-        class TestApp {
-          static $au = {
-            type: 'custom-element' as const,
-            name: 'test-app',
-            template: parentTemplate,
-            instructions: [[ifInstruction]],
-            needsCompile: false,
-          };
-          showList = true;
-          items: string[] = [];
-        }
-
-        const host = doc.createElement('div');
-        host.innerHTML = [
-          '<!--au:0--><!--au-start-->',
-          '<div><ul>',
-          '<!--au:1--><!--au-start-->',
-          '<li><!--au:2-->A</li>',
-          '<li><!--au:3-->B</li>',
-          '<!--au-end-->',
-          '</ul></div>',
-          '<!--au-end-->'
-        ].join('');
-        doc.body.appendChild(host);
-
-        try {
-          const au = new Aurelia(ctx.container);
-          const root = await au.hydrate({
-            host,
-            component: TestApp,
-            state: { showList: true, items: ['A', 'B'] },
-            manifest: {
-              targetCount: 4,
-              controllers: {
-                0: { type: 'if', views: [{ targets: [1] }] },
-                1: { type: 'repeat', views: [{ targets: [2] }, { targets: [3] }] }
-              }
-            }
-          });
-
-          const instance = root.controller.viewModel as TestApp;
-
-          assert.strictEqual(count(host, 'li'), 2);
-
-          // Hide the if
-          instance.showList = false;
-          await Promise.resolve();
-          assert.strictEqual(count(host, 'div'), 0);
-          assert.strictEqual(count(host, 'li'), 0);
-
-          await au.stop(true);
-        } finally {
-          doc.body.removeChild(host);
-        }
+        await stop();
       });
 
       it('handles if toggle from false then adding items to repeat', async function () {
-        const ctx = TestContext.create();
-        const doc = ctx.doc;
+        // Use setupIfWithRepeat helper starting with show=false
+        const { host, vm, stop } = await setupIfWithRepeat({
+          show: false,
+          items: [] as string[],
+          ifWrapperHtml: '<ul><!--repeat--></ul>',
+          repeatItemHtml: '<li><!--au:0-->{item}</li>',
+          repeatItemInstructions: [[$.text('item')]],
+        });
 
-        const repeatViewDef = createViewDef(doc, '<li><!--au:0--> </li>', [[$.text('item')]]);
-        const repeatInstruction = $.repeat(repeatViewDef, 'item of items');
+        assert.strictEqual(count(host, 'ul'), 0);
 
-        const ifViewTemplate = doc.createElement('template');
-        ifViewTemplate.innerHTML = '<ul><!--au:0--><!--au-start--><!--au-end--></ul>';
-        const ifViewDef = {
-          name: 'if-view',
-          type: 'custom-element' as const,
-          template: ifViewTemplate,
-          instructions: [[repeatInstruction]] as IInstruction[][],
-          needsCompile: false as const,
-        };
+        // Show the if
+        vm.show = true;
+        await flush();
+        assert.strictEqual(count(host, 'ul'), 1);
+        assert.strictEqual(count(host, 'li'), 0);
 
-        const ifInstruction = $.if(ifViewDef, 'showList');
-        const parentTemplate = createParentTemplate(doc);
+        // Add items to repeat
+        vm.items.push('First', 'Second');
+        assert.strictEqual(count(host, 'li'), 2);
 
-        class TestApp {
-          static $au = {
-            type: 'custom-element' as const,
-            name: 'test-app',
-            template: parentTemplate,
-            instructions: [[ifInstruction]],
-            needsCompile: false,
-          };
-          showList = false;
-          items: string[] = [];
-        }
-
-        const host = doc.createElement('div');
-        host.innerHTML = '<!--au:0--><!--au-start--><!--au-end-->';
-        doc.body.appendChild(host);
-
-        try {
-          const au = new Aurelia(ctx.container);
-          const root = await au.hydrate({
-            host,
-            component: TestApp,
-            state: { showList: false, items: [] },
-            manifest: { targetCount: 1, controllers: { 0: { type: 'if', views: [] } } }
-          });
-
-          const instance = root.controller.viewModel as TestApp;
-
-          assert.strictEqual(count(host, 'ul'), 0);
-
-          // Show the if
-          instance.showList = true;
-          await Promise.resolve();
-          assert.strictEqual(count(host, 'ul'), 1);
-          assert.strictEqual(count(host, 'li'), 0);
-
-          // Add items to repeat
-          instance.items.push('First', 'Second');
-          assert.strictEqual(count(host, 'li'), 2);
-
-          await au.stop(true);
-        } finally {
-          doc.body.removeChild(host);
-        }
+        await stop();
       });
 
       // TODO: Fix nested Repeat inside cached If view after hide/show
@@ -905,7 +737,7 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
           // Simultaneously: toggle first item's if AND add a new item
           instance.items[0].show = false;
           instance.items.push({ show: true });
-          await Promise.resolve();
+          await flush();
 
           assert.strictEqual(count(host, 'div'), 3);
           assert.strictEqual(count(host, 'span'), 2);
@@ -939,7 +771,7 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
         // Change status to success
         setup.instance.status = 'success';
-        await Promise.resolve();
+        await flush();
 
         // Should now show success case (created from template)
         assert.strictEqual(text(setup.host, 'span'), 'Done!');
@@ -965,7 +797,7 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
         // Change status to something unmatched
         setup.instance.status = 'unknown';
-        await Promise.resolve();
+        await flush();
 
         // Should now show default case (created from template)
         assert.strictEqual(text(setup.host, 'span'), 'Unknown status');
@@ -987,11 +819,11 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
         // Rapid changes
         setup.instance.status = 'b';
-        await Promise.resolve();
+        await flush();
         setup.instance.status = 'a';
-        await Promise.resolve();
+        await flush();
         setup.instance.status = 'b';
-        await Promise.resolve();
+        await flush();
 
         assert.strictEqual(text(setup.host, 'span'), 'B');
         assert.strictEqual(count(setup.host, 'span'), 1);
@@ -1012,12 +844,12 @@ describe('3-runtime-html/ssr-hydration-reactive.spec.ts', function () {
 
         // Change to success
         setup.instance.status = 'success';
-        await Promise.resolve();
+        await flush();
         assert.strictEqual(text(setup.host, 'div'), 'Done!');
 
         // Change back to loading
         setup.instance.status = 'loading';
-        await Promise.resolve();
+        await flush();
         assert.strictEqual(text(setup.host, 'div'), 'Loading...');
         assert.strictEqual(count(setup.host, 'div'), 1);
       } finally {

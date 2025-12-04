@@ -2,7 +2,7 @@ import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
-import { IHydrationManifest } from './hydration';
+import { IHydrationManifest, ISSRContext } from './hydration';
 
 import { FragmentNodeSequence, INodeSequence } from '../dom';
 import { INode } from '../dom.node';
@@ -66,6 +66,8 @@ export class Rendering implements IRendering {
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
   /** @internal */
   private readonly _empty: INodeSequence;
+  /** @internal */
+  private readonly _preserveMarkers: boolean;
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
@@ -86,6 +88,7 @@ export class Rendering implements IRendering {
     this._exprParser= ctn.get(IExpressionParser);
     this._observerLocator = ctn.get(IObserverLocator);
     this._empty = new FragmentNodeSequence(p, p.document.createDocumentFragment());
+    this._preserveMarkers = ctn.has(ISSRContext, true) ? ctn.get(ISSRContext).preserveMarkers : false;
   }
 
   public compile(
@@ -148,14 +151,23 @@ export class Rendering implements IRendering {
 
       cache.set(definition, fragment);
     }
-    return fragment == null
-      ? this._empty
-      : new FragmentNodeSequence(
-        this._platform,
-        needsImportNode
-          ? doc.importNode(fragment, true)
-          : doc.adoptNode(fragment.cloneNode(true) as DocumentFragment)
-        );
+
+    if (fragment == null) {
+      return this._empty;
+    }
+
+    // Clone the fragment for this view
+    const clonedFragment = needsImportNode
+      ? doc.importNode(fragment, true)
+      : doc.adoptNode(fragment.cloneNode(true) as DocumentFragment);
+
+    return new FragmentNodeSequence(
+      this._platform,
+      clonedFragment,
+      void 0, // adoptFrom - not adopting existing DOM
+      void 0, // manifest - not hydrating
+      this._preserveMarkers,
+    );
   }
 
   public adoptNodes(host: Element, manifest?: IHydrationManifest): INodeSequence {

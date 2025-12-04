@@ -56,6 +56,9 @@ export {
   type IResumeContext,
   IResumeContext as IResumeContextToken,
   ResumeContext,
+  // SSR rendering context
+  type ISSRContext,
+  ISSRContext as ISSRContextToken,
   // SSR post-render processing
   type SSRPostRenderResult,
   processSSROutput,

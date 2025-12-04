@@ -258,6 +258,33 @@ export interface IResumeContext {
 export const IResumeContext = /*@__PURE__*/createInterface<IResumeContext>('IResumeContext');
 
 /**
+ * SSR rendering context.
+ *
+ * When registered with the DI container, this signals that we're rendering
+ * on the server and should preserve hydration markers in the output.
+ *
+ * Without this context, `au-hid` attributes and `<!--au:N-->` comments are
+ * removed during target collection. With it, they're preserved so the client
+ * can find targets during hydration.
+ */
+export interface ISSRContext {
+  /**
+   * When true, `_collectTargets` will not remove `au-hid` attributes
+   * and `<!--au:N-->` comment markers from the DOM.
+   *
+   * This is essential for SSR: the server renders with markers, preserves them,
+   * then sends the HTML to the client. The client uses the markers to find targets.
+   */
+  readonly preserveMarkers: boolean;
+}
+
+/**
+ * DI token for SSR context.
+ * Register this with `preserveMarkers: true` when rendering on the server.
+ */
+export const ISSRContext = /*@__PURE__*/createInterface<ISSRContext>('ISSRContext');
+
+/**
  * Implementation of IResumeContext.
  * Created by the framework when consuming manifest entries for template controllers.
  * @internal

@@ -280,12 +280,18 @@ export class FragmentNodeSequence implements INodeSequence {
      * @internal
      */
     manifest?: IHydrationManifest,
+    /**
+     * When true, preserves `au-hid` attributes and `<!--au:N-->` markers in the DOM.
+     * Used during SSR rendering to keep markers for client hydration.
+     * @internal
+     */
+    preserveMarkers?: boolean,
   ) {
     this.f = fragment;
 
     // Collect targets and children from either the fragment or adopted parent
     const root = adoptFrom ?? fragment;
-    this.t = this._collectTargets(root, manifest);
+    this.t = this._collectTargets(root, manifest, preserveMarkers);
 
     const childNodeList = root.childNodes;
     const ii = childNodeList.length;
@@ -322,7 +328,7 @@ export class FragmentNodeSequence implements INodeSequence {
    *
    * @internal
    */
-  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest): Node[] {
+  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest, preserveMarkers?: boolean): Node[] {
     const { platform } = this;
     const targets: Node[] = [];
 
@@ -343,7 +349,10 @@ export class FragmentNodeSequence implements INodeSequence {
       for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
         el = auHidElements[i];
         targetId = parseInt(el.getAttribute('au-hid')!, 10);
-        el.removeAttribute('au-hid');
+        // Only remove markers when not in SSR preservation mode
+        if (!preserveMarkers) {
+          el.removeAttribute('au-hid');
+        }
         targets[targetId] = el;
       }
     }
@@ -368,7 +377,10 @@ export class FragmentNodeSequence implements INodeSequence {
       // Parse index from "au:N" format
       targetId = parseInt(marker.nodeValue!.slice(3), 10);
       target = marker.nextSibling!;
-      marker.remove();
+      // Only remove markers when not in SSR preservation mode
+      if (!preserveMarkers) {
+        marker.remove();
+      }
 
       // If target is au-start, find matching au-end (handling nested pairs)
       if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {

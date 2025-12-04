@@ -278,6 +278,10 @@ export const IResumeContext = /*@__PURE__*/createInterface<IResumeContext>('IRes
  * Without this context, `au-hid` attributes and `<!--au:N-->` comments are
  * removed during target collection. With it, they're preserved so the client
  * can find targets during hydration.
+ *
+ * The extended recording API allows template controllers to allocate globally
+ * unique indices and record view mappings during SSR, solving the marker
+ * collision problem with nested template controllers.
  */
 export interface ISSRContext {
   /**
@@ -288,6 +292,44 @@ export interface ISSRContext {
    * then sends the HTML to the client. The client uses the markers to find targets.
    */
   readonly preserveMarkers: boolean;
+
+  /**
+   * Allocate the next globally unique target index.
+   * Called by template controllers when creating views during SSR.
+   * Returns the next global index (0, 1, 2, ...).
+   */
+  allocateGlobalIndex(): number;
+
+  /**
+   * Record a template controller at its target index.
+   * Must be called before recording views for this controller.
+   *
+   * @param controllerTargetIndex - The local target index of this controller in its parent template
+   * @param type - The type of controller ('repeat', 'if', 'switch', etc.)
+   */
+  recordController(controllerTargetIndex: number, type: string): void;
+
+  /**
+   * Record a view for a template controller.
+   * Called after creating and activating a view during SSR.
+   *
+   * @param controllerTargetIndex - The local target index of the controller
+   * @param viewIndex - The index of this view within the controller (0, 1, 2, ...)
+   * @param globalTargets - Array of global target indices for this view's targets
+   * @param nodeCount - Number of root DOM nodes in this view
+   */
+  recordView(
+    controllerTargetIndex: number,
+    viewIndex: number,
+    globalTargets: number[],
+    nodeCount: number,
+  ): void;
+
+  /**
+   * Get the recorded hydration manifest after SSR rendering completes.
+   * Contains all controller and view mappings.
+   */
+  getManifest(): IHydrationManifest;
 }
 
 /**
@@ -295,6 +337,74 @@ export interface ISSRContext {
  * Register this with `preserveMarkers: true` when rendering on the server.
  */
 export const ISSRContext = /*@__PURE__*/createInterface<ISSRContext>('ISSRContext');
+
+/**
+ * SSR context implementation with recording capabilities.
+ *
+ * Use this class when rendering on the server:
+ * ```typescript
+ * const ssrContext = new SSRContext();
+ * container.register(Registration.instance(ISSRContext, ssrContext));
+ * // ... render ...
+ * const manifest = ssrContext.getManifest();
+ * ```
+ */
+export class SSRContext implements ISSRContext {
+  public readonly preserveMarkers = true;
+
+  /** @internal */
+  private _globalCounter = 0;
+
+  /** @internal */
+  private readonly _controllers: Record<number, IControllerManifest> = {};
+
+  public allocateGlobalIndex(): number {
+    return this._globalCounter++;
+  }
+
+  public recordController(controllerTargetIndex: number, type: string): void {
+    if (this._controllers[controllerTargetIndex] == null) {
+      this._controllers[controllerTargetIndex] = {
+        type,
+        views: [],
+      };
+    }
+  }
+
+  public recordView(
+    controllerTargetIndex: number,
+    viewIndex: number,
+    globalTargets: number[],
+    nodeCount: number,
+  ): void {
+    const controller = this._controllers[controllerTargetIndex];
+    if (controller == null) {
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[SSRContext] recordView called for unrecorded controller at index ${controllerTargetIndex}`);
+      }
+      return;
+    }
+
+    // Ensure views array is large enough
+    while (controller.views.length <= viewIndex) {
+      controller.views.push({ targets: [], globalTargets: [], nodeCount: 1 });
+    }
+
+    controller.views[viewIndex] = {
+      targets: globalTargets.map((_, i) => i), // Local indices are 0, 1, 2, ...
+      globalTargets,
+      nodeCount,
+    };
+  }
+
+  public getManifest(): IHydrationManifest {
+    return {
+      targetCount: this._globalCounter,
+      controllers: { ...this._controllers },
+    };
+  }
+}
 
 /**
  * Implementation of IResumeContext.

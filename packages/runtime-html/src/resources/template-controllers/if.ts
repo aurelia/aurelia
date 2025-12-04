@@ -8,7 +8,8 @@ import type { IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { IResumeContext } from '../../templating/hydration';
+import { IResumeContext, type ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
+import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -41,6 +42,7 @@ export class If implements ICustomAttributeViewModel {
   /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     if (this._ssrContext) {
@@ -110,6 +112,17 @@ export class If implements ICustomAttributeViewModel {
           // todo: location should be based on either the [if]/[else] attribute
           //       instead of always of the [if]
           view.setLocation(this._location);
+
+          // SSR recording: rewrite markers and record view
+          const ssrContext = this._ssrRecordContext;
+          const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+          if (ssrContext != null && controllerTargetIndex != null) {
+            ssrContext.recordController(controllerTargetIndex, 'if');
+            const globalTargets = this._rewriteMarkersForSSR(view, ssrContext);
+            const nodeCount = view.nodes.childNodes.length;
+            ssrContext.recordView(controllerTargetIndex, 0, globalTargets, nodeCount);
+          }
+
           return onResolve(
             view.activate(view, ctrl, ctrl.scope),
             () => {
@@ -121,6 +134,47 @@ export class If implements ICustomAttributeViewModel {
         }
       )
     );
+  }
+
+  /**
+   * Rewrite au-hid markers in a view's nodes to use globally unique indices.
+   * Returns the array of global indices that were assigned.
+   * @internal
+   */
+  private _rewriteMarkersForSSR(view: ISyntheticView, ssrContext: ISSRContext): number[] {
+    const globalTargets: number[] = [];
+    const fragment = view.nodes.childNodes;
+
+    // Process all nodes in the view
+    const processNode = (node: Node) => {
+      if (node.nodeType === 1 /* Element */) {
+        const el = node as Element;
+        if (el.hasAttribute('au-hid')) {
+          const globalIndex = ssrContext.allocateGlobalIndex();
+          globalTargets.push(globalIndex);
+          el.setAttribute('au-hid', String(globalIndex));
+        }
+        // Process children
+        for (let i = 0; i < el.childNodes.length; ++i) {
+          processNode(el.childNodes[i]);
+        }
+      } else if (node.nodeType === 8 /* Comment */) {
+        const comment = node as Comment;
+        const text = comment.textContent ?? '';
+        // Check for <!--au:N--> format (non-element target markers)
+        if (text.startsWith('au:')) {
+          const globalIndex = ssrContext.allocateGlobalIndex();
+          globalTargets.push(globalIndex);
+          comment.textContent = `au:${globalIndex}`;
+        }
+      }
+    };
+
+    for (let i = 0; i < fragment.length; ++i) {
+      processNode(fragment[i]);
+    }
+
+    return globalTargets;
   }
 
   /** @internal */

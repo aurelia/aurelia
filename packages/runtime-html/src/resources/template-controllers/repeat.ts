@@ -39,7 +39,8 @@ import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attri
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
-import { IResumeContext } from '../../templating/hydration';
+import { IResumeContext, type ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
+import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -97,6 +98,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _resolver = resolve(IRepeatableHandlerResolver);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
+  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
@@ -452,9 +454,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let scope: Scope;
 
-    const { $controller, _factory, _location, _scopes } = this;
+    const { $controller, _factory, _location, _scopes, _ssrRecordContext } = this;
     const newLen = $items.length;
     const views = this.views = Array(newLen);
+
+    // SSR recording: get controller target index and record the controller
+    const controllerTargetIndex = (_location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
+    if (_ssrRecordContext != null && controllerTargetIndex != null) {
+      _ssrRecordContext.recordController(controllerTargetIndex, 'repeat');
+    }
 
     for (let i = 0; i < newLen; ++i) {
       view = views[i] = _factory.create().setLocation(_location);
@@ -463,6 +471,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       if (this.contextual) {
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
+      // SSR recording: rewrite markers and record view
+      if (_ssrRecordContext != null && controllerTargetIndex != null) {
+        const globalTargets = this._rewriteMarkersForSSR(view, _ssrRecordContext);
+        const nodeCount = view.nodes.childNodes.length;
+        _ssrRecordContext.recordView(controllerTargetIndex, i, globalTargets, nodeCount);
       }
 
       ret = view.activate(initiator ?? view, $controller, scope);
@@ -476,6 +491,47 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         ? promises[0]
         : Promise.all(promises) as unknown as Promise<void>;
     }
+  }
+
+  /**
+   * Rewrite au-hid markers in a view's nodes to use globally unique indices.
+   * Returns the array of global indices that were assigned.
+   * @internal
+   */
+  private _rewriteMarkersForSSR(view: ISyntheticView, ssrContext: ISSRContext): number[] {
+    const globalTargets: number[] = [];
+    const fragment = view.nodes.childNodes;
+
+    // Process all nodes in the view
+    const processNode = (node: Node) => {
+      if (node.nodeType === 1 /* Element */) {
+        const el = node as Element;
+        if (el.hasAttribute('au-hid')) {
+          const globalIndex = ssrContext.allocateGlobalIndex();
+          globalTargets.push(globalIndex);
+          el.setAttribute('au-hid', String(globalIndex));
+        }
+        // Process children
+        for (let i = 0; i < el.childNodes.length; ++i) {
+          processNode(el.childNodes[i]);
+        }
+      } else if (node.nodeType === 8 /* Comment */) {
+        const comment = node as Comment;
+        const text = comment.textContent ?? '';
+        // Check for <!--au:N--> format (non-element target markers)
+        if (text.startsWith('au:')) {
+          const globalIndex = ssrContext.allocateGlobalIndex();
+          globalTargets.push(globalIndex);
+          comment.textContent = `au:${globalIndex}`;
+        }
+      }
+    };
+
+    for (let i = 0; i < fragment.length; ++i) {
+      processNode(fragment[i]);
+    }
+
+    return globalTargets;
   }
 
   /** @internal */

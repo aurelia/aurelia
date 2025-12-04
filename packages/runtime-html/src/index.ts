@@ -59,6 +59,7 @@ export {
   // SSR rendering context
   type ISSRContext,
   ISSRContext as ISSRContextToken,
+  SSRContext,
   // SSR post-render processing
   type SSRPostRenderResult,
   processSSROutput,

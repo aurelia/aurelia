@@ -1,4 +1,3 @@
-
 import { IDisposable, IIndexable, IServiceLocator, type Writable } from '@aurelia/kernel';
 import {
   connectable,
@@ -8,9 +7,9 @@ import {
 } from '@aurelia/runtime';
 import { IBinding } from '@aurelia/runtime-html';
 import {
-  IStore,
+  type IStore,
   type Unsubscribable,
-  type IStoreSubscriber
+  type IStoreSubscriber,
 } from './interfaces';
 import { createStateBindingScope, isSubscribable } from './state-utilities';
 
@@ -119,5 +118,6 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
     }
     this._sub = void 0;
   }
+
 }
 connectable(StateGetterBinding, null!);

@@ -18,7 +18,7 @@ import {
 } from '@aurelia/runtime-html';
 import {
   type IStoreSubscriber,
-  type IStore,
+  type IStore
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
 

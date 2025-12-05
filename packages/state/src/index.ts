@@ -14,11 +14,14 @@ export {
   IState,
   IStore,
   type IStoreSubscriber,
+  IStoreRegistry,
   IActionHandler,
   type IRegistrableAction,
   type IStateMiddleware,
   type MiddlewarePlacement,
   type IMiddlewareSettings,
+  type StoreLocator,
+  type IStoreRegistration,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';
@@ -36,3 +39,4 @@ export {
 export { StateBindingBehavior } from './state-binding-behavior';
 export { fromState } from './state-decorator';
 export { createStateMemoizer, type StateMemoizer } from './state-memorizer';
+export { StoreRegistry } from './store-registry';

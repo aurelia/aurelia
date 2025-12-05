@@ -6,6 +6,10 @@ description: >-
 
 # Router Hooks
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 {% hint style="warning" %}
 **Important Security Note:** Router hooks provide client-side route protection and should never be your only line of defense. Always implement proper authentication and authorization on your server-side APIs, as client-side code can be bypassed or manipulated.
 {% endhint %}
@@ -76,7 +80,7 @@ While the router hooks are indeed independent of the components you are routing 
 The component-level hook signatures are identical to the ones described in [Routing lifecycle hooks](./routing-lifecycle.md). Router hooks reuse those signatures but execute outside the component, letting you centralise cross-cutting policies.
 
 ```typescript
-import { lifecycleHooks } from 'aurelia';
+import { lifecycleHooks } from '@aurelia/runtime-html';
 import {
   IRouteViewModel,
   INavigationOptions,
@@ -231,7 +235,7 @@ This is shown below.
 
 {% code title="authentication-hook.ts" %}
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import {
   IRouteViewModel,
   NavigationInstruction,
@@ -265,7 +269,7 @@ This is shown below.
 
 {% code title="authorization-hook.ts" %}
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import {
   IRouteViewModel,
   NavigationInstruction,
@@ -387,7 +391,7 @@ export class FormHook {
 This example demonstrates loading required data before the component is displayed:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { lifecycleHooks } from '@aurelia/runtime-html';
 import { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
 
@@ -436,7 +440,7 @@ export class DataLoadingHook {
 This example shows how to implement fine-grained role-based access control:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { lifecycleHooks } from '@aurelia/runtime-html';
 import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router';
 
@@ -521,7 +525,7 @@ The `isBack` property will be `true` if the navigation is a backward navigation 
 Here's a comprehensive example that implements smooth page transitions using AnimeJS, with different animations based on navigation direction:
 
 ```typescript
-import { lifecycleHooks } from 'aurelia';
+import { lifecycleHooks } from '@aurelia/runtime-html';
 import { INavigationOptions, IRouteViewModel, Params, RouteNode } from '@aurelia/router';
 import { animate, eases } from 'animejs';
 import { IController } from '@aurelia/runtime-html';
@@ -604,7 +608,7 @@ To use these animation hooks, register them as dependencies on your routed compo
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 import { AnimationHooks } from './animation-hooks';
-import template from './home.html';
+import template from './home.html?raw';
 
 @customElement({
   name: 'home',
@@ -838,7 +842,7 @@ You can also do similar reading in `loading`, `canUnload`, etc. This approach ca
 For complex applications, you might want to combine multiple concerns in a single hook:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { lifecycleHooks } from '@aurelia/runtime-html';
 import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router';
 

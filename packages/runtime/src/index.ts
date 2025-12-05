@@ -24,6 +24,7 @@ export {
   getRecurringTasks,
   runTasks,
   tasksSettled,
+  isTaskQueueEmpty,
   Task,
   RecurringTask,
   TaskAbortError,

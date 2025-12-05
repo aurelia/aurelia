@@ -54,11 +54,11 @@ The `@bindable` decorator signals to Aurelia that a property is bindable in our 
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia';
+import { bindable, BindingMode } from 'aurelia';
 
 export class NameComponent {
-    @bindable firstName = '';
-    @bindable lastName  = '';
+    @bindable({ mode: BindingMode.toView }) firstName = '';
+    @bindable({ mode: BindingMode.toView }) lastName  = '';
 }
 ```
 {% endtab %}
@@ -186,7 +186,7 @@ You can change the name of the callback that is fired when a change is made `@bi
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia';
+import { bindable, BindingMode } from 'aurelia';
 
 export class NameComponent {
     @bindable({ mode: BindingMode.twoWay}) firstName = '';
@@ -310,13 +310,15 @@ You can simply use any of the above four methods to enable/disable your feature.
 
 ## Bindable & getter/setter
 
-By default, you'll find yourself work with binable and field most of the time, like the examples given above. But there' cases where
-it makes sense to have bindable as a getter, or a pair of getter/setter to do more logic when get/set.
+By default you'll work with bindable fields most of the time, like the examples above. But there are cases where
+it makes sense to expose a bindable getter (or getter/setter pair) so you can compute the value on the fly.
 
 For example, a component card nav that allow parent component to query its active status.
 With bindable on field, it would be written like this:
 
 ```ts
+import { BindingMode, bindable, customElement, ICustomElementViewModel } from 'aurelia';
+
 @customElement({ name: 'card-nav', template })
 export class CardNav implements ICustomElementViewModel {
   @bindable routes: RouteLink[] = [];
@@ -341,6 +343,8 @@ Note that because `active` value needs to computed from other variables, we have
 
 For cases like this, we can turn `active` into a getter, and decorate it with bindable, like the following:
 ```ts
+import { BindingMode, bindable, customElement, ICustomElementViewModel } from 'aurelia';
+
 @customElement({ name: 'card-nav', template })
 export class CardNav implements ICustomElementViewModel {
   @bindable routes: RouteLink[] = [];

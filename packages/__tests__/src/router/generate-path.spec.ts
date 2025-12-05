@@ -1,6 +1,6 @@
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, NavigationStrategy, Params, route, RouteContext, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
@@ -219,12 +219,9 @@ describe('router/generate-path.spec.ts', function () {
 
         const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2], useHash });
         const router = container.get(IRouter);
-        const platform = container.get(IPlatform);
-        const domQueue = platform.domQueue;
-        const taskQueue = platform.taskQueue;
         const $yield = () => Promise.all([
-          domQueue.yield(),
-          taskQueue.yield(),
+          Promise.resolve(),
+          Promise.resolve(),
         ]);
 
         assert.html.textContent(host, 'p1 c1', 'init');
@@ -926,12 +923,9 @@ describe('router/generate-path.spec.ts', function () {
 
         const { host, au, container } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2], useHash });
         const router = container.get(IRouter);
-        const platform = container.get(IPlatform);
-        const domQueue = platform.domQueue;
-        const taskQueue = platform.taskQueue;
         const $yield = () => Promise.all([
-          domQueue.yield(),
-          taskQueue.yield(),
+          Promise.resolve(),
+          Promise.resolve(),
         ]);
 
         assert.html.textContent(host, 'p1 c1', 'init');
@@ -1118,12 +1112,9 @@ describe('router/generate-path.spec.ts', function () {
 
         const { host, au, container } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2], useHash });
         const router = container.get(IRouter);
-        const platform = container.get(IPlatform);
-        const domQueue = platform.domQueue;
-        const taskQueue = platform.taskQueue;
         const $yield = () => Promise.all([
-          domQueue.yield(),
-          taskQueue.yield(),
+          Promise.resolve(),
+          Promise.resolve(),
         ]);
 
         // we intentionally avoid empty paths for this test, otherwise the path generation will result in empty parent paths.

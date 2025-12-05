@@ -1,19 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  AccessKeyedExpression,
-  AccessMemberExpression,
-  AccessScopeExpression,
-  AccessThisExpression,
   ArrayBindingPattern,
   ArrayLiteralExpression,
-  AssignExpression,
-  BinaryExpression,
-  BindingBehaviorExpression,
   BindingIdentifier,
-  CallFunctionExpression,
-  CallMemberExpression,
-  CallScopeExpression,
-  ConditionalExpression,
   CustomExpression,
   ForOfStatement,
   Interpolation,
@@ -22,8 +11,6 @@ import {
   PrimitiveLiteralExpression,
   TaggedTemplateExpression,
   TemplateExpression,
-  UnaryExpression,
-  ValueConverterExpression,
   AnyBindingExpression,
   BinaryOperator,
   BindingIdentifierOrPattern,
@@ -35,11 +22,7 @@ import {
   IsLeftHandSide,
   IsValueConverter,
   UnaryOperator,
-  DestructuringAssignmentSingleExpression as DASE,
   DestructuringAssignmentExpression as DAE,
-  ArrowFunction,
-  AccessGlobalExpression,
-  CallGlobalExpression,
   type ExpressionKind,
   ekAccessThis,
   ekAccessGlobal,
@@ -50,9 +33,38 @@ import {
   ekObjectBindingPattern,
   ekBindingIdentifier,
   ekObjectDestructuring,
-  AccessBoundaryExpression,
   AssignmentOperator,
-  NewExpression,
+  createAccessThisExpression,
+  createAccessBoundaryExpression,
+  createAccessGlobalExpression,
+  createAccessScopeExpression,
+  createAccessMemberExpression,
+  createAccessKeyedExpression,
+  createNewExpression,
+  createCallScopeExpression,
+  createCallMemberExpression,
+  createCallFunctionExpression,
+  createCallGlobalExpression,
+  createUnaryExpression,
+  createTemplateExpression,
+  createPrimitiveLiteralExpression,
+  createBinaryExpression,
+  createConditionalExpression,
+  createAssignExpression,
+  createValueConverterExpression,
+  createBindingBehaviorExpression,
+  createArrayLiteralExpression,
+  createObjectLiteralExpression,
+  createTaggedTemplateExpression,
+  createBindingIdentifier,
+  createArrayBindingPattern,
+  createObjectBindingPattern,
+  createForOfStatement,
+  createInterpolation as createInterpolationAst,
+  createDestructuringAssignmentExpression,
+  createDestructuringAssignmentSingleExpression,
+  createArrowFunction,
+  PrimitiveLiteral,
 } from './ast';
 import { createLookup } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
@@ -100,7 +112,7 @@ export class ExpressionParser<TCustom extends CustomExpression = CustomExpressio
       default: {
         if (expression.length === 0) {
           if (expressionType === etIsFunction || expressionType === etIsProperty) {
-            return PrimitiveLiteralExpression.$empty;
+            return PrimitiveLiteral.$empty;
           }
           throw invalidEmptyExpression();
         }
@@ -362,13 +374,13 @@ const enum Token {
 }
 _END_CONST_ENUM();
 
-const $false = PrimitiveLiteralExpression.$false;
-const $true = PrimitiveLiteralExpression.$true;
-const $null = PrimitiveLiteralExpression.$null;
-const $undefined = PrimitiveLiteralExpression.$undefined;
-const $this = new AccessThisExpression(0);
-const $parent = new AccessThisExpression(1);
-const boundary = new AccessBoundaryExpression();
+const $false = PrimitiveLiteral.$false;
+const $true = PrimitiveLiteral.$true;
+const $null = PrimitiveLiteral.$null;
+const $undefined = PrimitiveLiteral.$undefined;
+const $this = createAccessThisExpression(0);
+const $parent = createAccessThisExpression(1);
+const boundary = createAccessBoundaryExpression();
 
 const etNone = 'None';
 const etInterpolation = 'Interpolation';
@@ -471,7 +483,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
      */
     const op = TokenValues[$currentToken & Token.Type] as UnaryOperator;
     nextToken();
-    result = new UnaryExpression(op, parse(Precedence.LeftHandSide, expressionType) as IsLeftHandSide);
+    result = createUnaryExpression(op, parse(Precedence.LeftHandSide, expressionType) as IsLeftHandSide);
     $assignable = false;
   } else {
     /**
@@ -523,14 +535,14 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
               $optional = true;
               nextToken();
               if (($currentToken & Token.IdentifierName) === 0) {
-                result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
+                result = ancestor === 0 ? $this : ancestor === 1 ? $parent : createAccessThisExpression(ancestor);
                 optionalThisTail = true;
                 break primary;
               }
               break;
             default:
               if ($currentToken & Token.AccessScopeTerminal) {
-                result = ancestor === 0 ? $this : ancestor === 1 ? $parent : new AccessThisExpression(ancestor);
+                result = ancestor === 0 ? $this : ancestor === 1 ? $parent : createAccessThisExpression(ancestor);
                 break primary;
               }
               throw invalidMemberExpression();
@@ -540,13 +552,13 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       case Token.Identifier: { // identifier
         const id = $tokenValue as string;
         if (expressionType === etIsIterator) {
-          result = new BindingIdentifier(id);
+          result = createBindingIdentifier(id);
         } else if ($accessGlobal && globalNames.includes(id as (typeof globalNames)[number])) {
-          result = new AccessGlobalExpression(id);
+          result = createAccessGlobalExpression(id);
         } else if ($accessGlobal && id === 'import') {
           throw unexpectedImportKeyword();
         } else {
-          result = new AccessScopeExpression(id, ancestor);
+          result = createAccessScopeExpression(id, ancestor);
         }
         $assignable = !$optional;
         nextToken();
@@ -561,7 +573,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           $optional = _optional;
           $scopeDepth = _scopeDepth;
           $assignable = false;
-          result = new ArrowFunction([new BindingIdentifier(id)], body);
+          result = createArrowFunction([createBindingIdentifier(id)], body);
         }
         break;
       }
@@ -580,7 +592,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             result = $parent;
             break;
           default:
-            result = new AccessThisExpression($scopeDepth);
+            result = createAccessThisExpression($scopeDepth);
             break;
         }
         break;
@@ -599,7 +611,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         result = parseObjectLiteralExpression(expressionType);
         break;
       case Token.TemplateTail:
-        result = new TemplateExpression([$tokenValue as string]);
+        result = createTemplateExpression([$tokenValue as string]);
         $assignable = false;
         nextToken();
         break;
@@ -608,7 +620,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         break;
       case Token.StringLiteral:
       case Token.NumericLiteral:
-        result = new PrimitiveLiteralExpression($tokenValue);
+        result = createPrimitiveLiteralExpression($tokenValue);
         $assignable = false;
         nextToken();
         break;
@@ -630,7 +642,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           args = [];
           nextToken();
         }
-        result = new NewExpression(callee, args);
+        result = createNewExpression(callee, args);
         $assignable = false;
         break;
       }
@@ -648,7 +660,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     switch ($currentToken as Token) {
       case Token.PlusPlus:
       case Token.MinusMinus:
-        result = new UnaryExpression(TokenValues[$currentToken & Token.Type] as UnaryOperator, result as IsLeftHandSide, 1);
+        result = createUnaryExpression(TokenValues[$currentToken & Token.Type] as UnaryOperator, result as IsLeftHandSide, 1);
         nextToken();
         $assignable = false;
         break;
@@ -672,10 +684,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           }
 
           if ($currentToken & Token.IdentifierName) {
-            result = new AccessScopeExpression($tokenValue as string, result.ancestor);
+            result = createAccessScopeExpression($tokenValue as string, result.ancestor);
             nextToken();
           } else if (($currentToken as Token) === Token.OpenParen) {
-            result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), true);
+            result = createCallFunctionExpression(result as IsLeftHandSide, parseArguments(), true);
           } else if (($currentToken as Token) === Token.OpenBracket) {
             result = parseKeyedExpression(result, true);
           } else {
@@ -688,14 +700,14 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           if (($currentToken & Token.IdentifierName) === 0) {
             throw expectedIdentifier();
           }
-          result = new AccessScopeExpression($tokenValue as string, result.ancestor);
+          result = createAccessScopeExpression($tokenValue as string, result.ancestor);
           nextToken();
           break;
         case Token.DotDot:
         case Token.DotDotDot:
           throw expectedIdentifier();
         case Token.OpenParen:
-          result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), optionalThisTail);
+          result = createCallFunctionExpression(result as IsLeftHandSide, parseArguments(), optionalThisTail);
           break;
         case Token.OpenBracket:
           result = parseKeyedExpression(result, optionalThisTail);
@@ -755,13 +767,13 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             return result as any;
           }
           if (result.$kind === ekAccessScope) {
-            result = new CallScopeExpression(result.name, parseArguments(), result.ancestor, false);
+            result = createCallScopeExpression(result.name, parseArguments(), result.ancestor, false);
           } else if (result.$kind === ekAccessMember) {
-            result = new CallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
+            result = createCallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
           } else if (result.$kind === ekAccessGlobal) {
-            result = new CallGlobalExpression(result.name, parseArguments());
+            result = createCallGlobalExpression(result.name, parseArguments());
           } else {
-            result = new CallFunctionExpression(result as IsLeftHandSide, parseArguments(), false);
+            result = createCallFunctionExpression(result as IsLeftHandSide, parseArguments(), false);
           }
           break;
         case Token.OpenBracket:
@@ -837,7 +849,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       break;
     }
     nextToken();
-    result = new BinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(opToken & Token.Precedence, expressionType) as IsBinary);
+    result = createBinaryExpression(TokenValues[opToken & Token.Type] as BinaryOperator, result as IsBinary, parse(opToken & Token.Precedence, expressionType) as IsBinary);
     $assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
@@ -859,7 +871,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   if (consumeOpt(Token.Question)) {
     const yes = parse(Precedence.Assign, expressionType) as IsAssign;
     consume(Token.Colon);
-    result = new ConditionalExpression(result as IsBinary, yes, parse(Precedence.Assign, expressionType) as IsAssign);
+    result = createConditionalExpression(result as IsBinary, yes, parse(Precedence.Assign, expressionType) as IsAssign);
     $assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
@@ -892,7 +904,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
       }
       const op = TokenValues[$currentToken & Token.Type] as AssignmentOperator;
       nextToken();
-      result = new AssignExpression(result as IsAssignable, parse(Precedence.Assign, expressionType) as IsAssign, op);
+      result = createAssignExpression(result as IsAssignable, parse(Precedence.Assign, expressionType) as IsAssign, op);
       break;
     }
   }
@@ -913,7 +925,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     while (consumeOpt(Token.Colon)) {
       args.push(parse(Precedence.Assign, expressionType) as IsAssign);
     }
-    result = new ValueConverterExpression(result as IsValueConverter, name, args);
+    result = createValueConverterExpression(result as IsValueConverter, name, args);
   }
 
   /**
@@ -929,7 +941,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     while (consumeOpt(Token.Colon)) {
       args.push(parse(Precedence.Assign, expressionType) as IsAssign);
     }
-    result = new BindingBehaviorExpression(result as IsBindingBehavior, name, args);
+    result = createBindingBehaviorExpression(result as IsBindingBehavior, name, args);
   }
 
   if ($currentToken !== Token.EOF) {
@@ -958,9 +970,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
  * [key,value]
  */
 function parseArrayDestructuring(): DAE {
-  const items: DASE[] = [];
-  const dae = new DAE(ekArrayDestructuring, items, void 0, void 0);
-  let target: string = '';
+  const items: DAE['list'][number][] = [];
+  let target: string | null = null;
   let $continue = true;
   let index = 0;
   while ($continue) {
@@ -981,12 +992,18 @@ function parseArrayDestructuring(): DAE {
     }
   }
   consume(Token.CloseBracket);
-  return dae;
+  return createDestructuringAssignmentExpression(ekArrayDestructuring, items, void 0, void 0);
 
   function addItem() {
-    if (target !== '') {
-      items.push(new DASE(new AccessMemberExpression($this, target), new AccessKeyedExpression($this, new PrimitiveLiteralExpression(index++)), void 0));
-      target = '';
+    if (target !== null) {
+      items.push(
+        createDestructuringAssignmentSingleExpression(
+          createAccessMemberExpression($this, target),
+          createAccessKeyedExpression($this, createPrimitiveLiteralExpression(index++)),
+          void 0,
+        ),
+      );
+      target = null;
     } else {
       index++;
     }
@@ -1016,7 +1033,7 @@ function parseKeyedExpression(result: IsLeftHandSide, optional: boolean) {
   const _optional = $optional;
 
   nextToken();
-  result = new AccessKeyedExpression(result, parse(Precedence.Assign, etNone) as IsAssign, optional);
+  result = createAccessKeyedExpression(result, parse(Precedence.Assign, etNone) as IsAssign, optional);
   consume(Token.CloseBracket);
 
   $assignable = !_optional;
@@ -1039,11 +1056,11 @@ function parseOptionalChainLHS(lhs: IsLeftHandSide) {
 
   if (($currentToken as Token) === Token.OpenParen) {
     if (lhs.$kind === ekAccessScope) {
-      return new CallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true);
+      return createCallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true);
     } else if (lhs.$kind === ekAccessMember) {
-      return new CallMemberExpression(lhs.object, lhs.name, parseArguments(), lhs.optional, true);
+      return createCallMemberExpression(lhs.object, lhs.name, parseArguments(), lhs.optional, true);
     } else {
-      return new CallFunctionExpression(lhs, parseArguments(), true);
+      return createCallFunctionExpression(lhs, parseArguments(), true);
     }
   }
 
@@ -1075,7 +1092,7 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
       }
 
       if (($currentToken as Token) === Token.OpenParen) {
-        return new CallMemberExpression(lhs, rhs, parseArguments(), optional, true);
+        return createCallMemberExpression(lhs, rhs, parseArguments(), optional, true);
       }
 
       $index = indexSave;
@@ -1086,16 +1103,16 @@ function parseMemberExpressionLHS(lhs: IsLeftHandSide, optional: boolean) {
       $assignable = assignableSave;
       $optional = optionalSave;
 
-      return new AccessMemberExpression(lhs, rhs, optional);
+      return createAccessMemberExpression(lhs, rhs, optional);
     }
     case Token.OpenParen: {
       $assignable = false;
-      return new CallMemberExpression(lhs, rhs, parseArguments(), optional, false);
+      return createCallMemberExpression(lhs, rhs, parseArguments(), optional, false);
     }
     default: {
       $assignable = !$optional;
       nextToken();
-      return new AccessMemberExpression(lhs, rhs, optional);
+      return createAccessMemberExpression(lhs, rhs, optional);
     }
   }
 }
@@ -1138,7 +1155,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
       if (($currentToken as Token) !== Token.Identifier) {
         throw expectedIdentifier();
       }
-      arrowParams.push(new BindingIdentifier($tokenValue as string));
+      arrowParams.push(createBindingIdentifier($tokenValue as string));
 
       nextToken();
       if (($currentToken as Token) === Token.Comma) {
@@ -1162,12 +1179,12 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
       $optional = _optional;
       $scopeDepth = _scopeDepth;
       $assignable = false;
-      return new ArrowFunction(arrowParams, body, true);
+      return createArrowFunction(arrowParams, body, true);
     }
 
     switch ($currentToken as Token) {
       case Token.Identifier:
-        arrowParams.push(new BindingIdentifier($tokenValue as string));
+        arrowParams.push(createBindingIdentifier($tokenValue as string));
         nextToken();
         break;
       case Token.CloseParen:
@@ -1248,7 +1265,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
       $optional = _optional;
       $scopeDepth = _scopeDepth;
       $assignable = false;
-      return new ArrowFunction(arrowParams, body);
+      return createArrowFunction(arrowParams, body);
     }
     throw invalidArrowParameterList();
   } else if (paramsState === ArrowFnParams.Valid && arrowParams.length === 0) {
@@ -1339,10 +1356,10 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
 
   consume(Token.CloseBracket);
   if (expressionType === etIsIterator) {
-    return new ArrayBindingPattern(elements);
+    return createArrayBindingPattern(elements);
   } else {
     $assignable = false;
-    return new ArrayLiteralExpression(elements);
+    return createArrayLiteralExpression(elements);
   }
 }
 
@@ -1357,7 +1374,7 @@ function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement
   nextToken();
   const declaration = result;
   const statement = parse(Precedence.Variadic, etIsChainable);
-  return new ForOfStatement(declaration, statement as IsBindingBehavior, $semicolonIndex);
+  return createForOfStatement(declaration, statement as IsBindingBehavior, $semicolonIndex);
 }
 
 /**
@@ -1421,10 +1438,10 @@ function parseObjectLiteralExpression(expressionType: ExpressionType): ObjectBin
 
   consume(Token.CloseBrace);
   if (expressionType === etIsIterator) {
-    return new ObjectBindingPattern(keys, values);
+    return createObjectBindingPattern(keys, values);
   } else {
     $assignable = false;
-    return new ObjectLiteralExpression(keys, values);
+    return createObjectLiteralExpression(keys, values);
   }
 }
 
@@ -1460,7 +1477,7 @@ function parseInterpolation(): Interpolation {
   }
   if (expressions.length) {
     parts.push(result);
-    return new Interpolation(parts, expressions as IsBindingBehavior[]);
+    return createInterpolationAst(parts, expressions as IsBindingBehavior[]);
   }
   return null!;
 }
@@ -1515,10 +1532,10 @@ function parseTemplate(expressionType: ExpressionType, result: IsLeftHandSide, t
   $optional = _optional;
   if (tagged) {
     nextToken();
-    return new TaggedTemplateExpression(cooked, cooked, result, expressions);
+    return createTaggedTemplateExpression(cooked, cooked, result, expressions);
   } else {
     nextToken();
-    return new TemplateExpression(cooked, expressions);
+    return createTemplateExpression(cooked, expressions);
   }
 }
 
@@ -1526,7 +1543,7 @@ function createTemplateTail(result: IsLeftHandSide) {
   $assignable = false;
   const strings = [$tokenValue as string];
   nextToken();
-  return new TaggedTemplateExpression(strings, strings, result);
+  return createTaggedTemplateExpression(strings, strings, result);
 }
 
 function nextToken(): void {

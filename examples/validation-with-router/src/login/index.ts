@@ -5,6 +5,7 @@ import { IRouter, IRouteViewModel } from '@aurelia/router';
 import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { IAuthenticationService, UserLogin } from '../services/AuthenticationService';
 import template from './index.html';
+import { queueAsyncTask } from '@aurelia/runtime';
 
 @customElement({ name: 'auth-view', template })
 export class AuthViewCustomElement implements IRouteViewModel {
@@ -41,7 +42,7 @@ export class AuthViewCustomElement implements IRouteViewModel {
 
     if (!(await this.validationController.validate()).valid) { return; }
 
-    await this.platform.taskQueue.queueTask(async () => {
+    await queueAsyncTask(async () => {
       await this.authService.login({
         username: this.user.username,
         password: this.user.password,

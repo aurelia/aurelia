@@ -1,153 +1,210 @@
-# WebSockets + Aurelia
+# WebSockets + Aurelia 2 (Vite)
 
-## Overview
-WebSockets enable real-time bidirectional communication between clients and servers. Unlike HTTP polling, WebSockets keep a persistent connection open, allowing instant updates. This guide walks through integrating WebSockets into an Aurelia 2 application.
+WebSockets keep a persistent connection open so your Aurelia components can react to server-side events instantly—no polling necessary. The Vite-powered Aurelia 2 starter already ships with everything you need to consume WebSockets from the browser; you only need a small client service and (optionally) a Node-based development server to broadcast messages while you iterate.
 
 ---
 
-## 1. Installing WebSocket Server (Optional)
-If you do not already have a WebSocket server, you can set up a simple Node.js WebSocket server.
+## 1. Optional: spin up a tiny WebSocket server
+
+If you don’t already have a backend, you can scaffold a development server with the popular [`ws`](https://github.com/websockets/ws) package:
 
 ```bash
-npm install ws
+npm install ws --save-dev
 ```
 
-Create `server.js`:
+```js
+// scripts/dev-websocket-server.mjs
+import { WebSocketServer } from 'ws';
 
-```javascript
-const WebSocket = require('ws');
+const wss = new WebSocketServer({ port: 8080 });
 
-const wss = new WebSocket.Server({ port: 8080 });
-
-wss.on('connection', (ws) => {
+wss.on('connection', (socket) => {
   console.log('Client connected');
+  socket.send(JSON.stringify({ type: 'server-ready', timestamp: Date.now() }));
 
-  ws.on('message', (message) => {
-    console.log('Received:', message);
-    ws.send(`Server response: ${message}`);
+  socket.on('message', (data) => {
+    // echo message to everyone (simple chat)
+    wss.clients.forEach(client => {
+      if (client.readyState === 1 /* WebSocket.OPEN */) {
+        client.send(JSON.stringify({
+          type: 'message',
+          text: data.toString(),
+          timestamp: Date.now(),
+        }));
+      }
+    });
   });
-
-  ws.on('close', () => console.log('Client disconnected'));
 });
 
-console.log('WebSocket server running on ws://localhost:8080');
+console.log('WebSocket server listening on ws://localhost:8080');
 ```
 
-Run it with:
-
-```bash
-node server.js
-```
+Run it alongside `npm run dev` so both the Vite dev server and the WebSocket server stay active.
 
 ---
 
-## 2. Create a WebSocket Service in Aurelia
-Create a WebSocket service to manage connections.
+## 2. Configure an environment variable for the WebSocket URL
 
-```typescript
-// src/services/websocket-service.ts
-export class WebSocketService {
-  private socket: WebSocket;
+Keep the WebSocket endpoint in `.env.local` so you can point the frontend at different servers per environment:
 
-  constructor(private url: string) {
-    this.socket = new WebSocket(url);
+```dotenv
+# .env.local
+VITE_WS_URL=ws://localhost:8080
+```
+
+Vite exposes variables prefixed with `VITE_` via `import.meta.env`, letting you inject the URL without hard-coding it in source control.
+
+---
+
+## 3. Create a WebSocket client service
+
+```ts
+// src/services/websocket-client.ts
+import { DI, Registration } from '@aurelia/kernel';
+import { IDisposable } from '@aurelia/kernel';
+
+export interface ChatMessage {
+  type: string;
+  text?: string;
+  timestamp: number;
+}
+
+export const IWebSocketClient = DI.createInterface<IWebSocketClient>('IWebSocketClient');
+
+export interface IWebSocketClient extends IDisposable {
+  connect(url: string, listener: (msg: ChatMessage) => void): void;
+  send(payload: Record<string, unknown>): void;
+  readyState(): number;
+}
+
+export class WebSocketClient implements IWebSocketClient {
+  private socket: WebSocket | null = null;
+  private listener: ((msg: ChatMessage) => void) | null = null;
+
+  connect(url: string, listener: (msg: ChatMessage) => void): void {
+    this.dispose();
+    this.listener = listener;
+
+    const socket = new WebSocket(url);
+    socket.onopen = () => console.info('WebSocket connected');
+    socket.onclose = (event) => {
+      console.info('WebSocket closed', event.reason);
+      this.socket = null;
+    };
+    socket.onerror = (err) => console.error('WebSocket error', err);
+    socket.onmessage = (event: MessageEvent<string>) => {
+      try {
+        const data = JSON.parse(event.data) as ChatMessage;
+        this.listener?.(data);
+      } catch (error) {
+        console.warn('Unparseable message', error, event.data);
+      }
+    };
+
+    this.socket = socket;
   }
 
-  connect(onMessage: (data: string) => void) {
-    this.socket.onmessage = (event) => onMessage(event.data);
-    this.socket.onopen = () => console.log('WebSocket connected');
-    this.socket.onclose = () => console.log('WebSocket closed');
-    this.socket.onerror = (err) => console.error('WebSocket error:', err);
-  }
-
-  sendMessage(message: string) {
-    if (this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(message);
+  send(payload: Record<string, unknown>): void {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(payload));
     } else {
-      console.warn('WebSocket is not open');
+      console.warn('WebSocket not connected yet');
     }
   }
+
+  readyState(): number {
+    return this.socket?.readyState ?? WebSocket.CLOSED;
+  }
+
+  dispose(): void {
+    this.socket?.close();
+    this.socket = null;
+    this.listener = null;
+  }
 }
+
+export const WebSocketClientRegistration = Registration.singleton(IWebSocketClient, WebSocketClient);
 ```
+
+This service encapsulates connection lifecycle, JSON parsing, and basic logging. Because it’s registered as a singleton, every component that resolves `IWebSocketClient` shares the same connection.
 
 ---
 
-## 3. Register the Service in `main.ts`
-```typescript
-import Aurelia from 'aurelia';
-import { WebSocketService } from './services/websocket-service';
+## 4. Register the service when bootstrapping Aurelia
+
+```ts
+// src/main.ts
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { WebSocketClientRegistration } from './services/websocket-client';
 import { MyApp } from './my-app';
 
-Aurelia
-  .register(WebSocketService)
-  .app(MyApp)
+await new Aurelia()
+  .register(StandardConfiguration, WebSocketClientRegistration)
+  .app({ host: document.querySelector('my-app')!, component: MyApp })
   .start();
 ```
 
 ---
 
-## 4. Implement WebSockets in a Component
-Create a simple real-time chat interface.
+## 5. Build a chat component on top of the service
 
-```typescript
+```ts
 // src/components/chat.ts
-import { customElement } from 'aurelia';
-import { WebSocketService } from '../services/websocket-service';
+import { customElement } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
+import { IWebSocketClient, ChatMessage } from '../services/websocket-client';
 
 @customElement({
   name: 'chat',
   template: `
-    <input type="text" value.bind="message" placeholder="Type a message..." />
-    <button click.trigger="sendMessage()">Send</button>
-    <ul>
-      <li repeat.for="msg of messages">${msg}</li>
-    </ul>
-  `
+    <div class="chat">
+      <ul>
+        <li repeat.for="message of messages">
+          <strong>${message.type}:</strong> ${message.text}
+          <span class="timestamp">\${new Date(message.timestamp).toLocaleTimeString()}</span>
+        </li>
+      </ul>
+
+      <form submit.trigger="send()">
+        <input value.bind="draft" autocomplete="off" placeholder="Type a message…" />
+        <button type="submit" disabled.bind="!draft.trim()">Send</button>
+      </form>
+    </div>
+  `,
 })
 export class Chat {
-  message = '';
-  messages: string[] = [];
-  private webSocketService = new WebSocketService('ws://localhost:8080');
+  draft = '';
+  messages: ChatMessage[] = [];
+  private readonly ws = resolve(IWebSocketClient);
+  private readonly url = import.meta.env.VITE_WS_URL as string;
 
-  constructor() {
-    this.webSocketService.connect((data) => {
-      this.messages.push(`Server: ${data}`);
+  binding() {
+    this.ws.connect(this.url, (message) => {
+      this.messages = [...this.messages, message];
     });
   }
 
-  sendMessage() {
-    if (this.message.trim()) {
-      this.messages.push(`You: ${this.message}`);
-      this.webSocketService.sendMessage(this.message);
-      this.message = '';
-    }
+  detaching() {
+    this.ws.dispose(); // or keep alive if other components rely on it
+  }
+
+  send() {
+    if (!this.draft.trim()) return;
+    this.ws.send({ type: 'message', text: this.draft.trim(), timestamp: Date.now() });
+    this.draft = '';
   }
 }
 ```
 
----
-
-## 5. Add the Chat Component to the App
-```html
-<!-- src/my-app.html -->
-<template>
-  <h1>Real-Time Chat</h1>
-  <chat></chat>
-</template>
-```
+The single `chat` element now reflects server updates in real time and can safely send messages through the shared connection.
 
 ---
 
-## Key Features
-- Persistent WebSocket connection for real-time updates.
-- No polling required, reducing unnecessary HTTP requests.
-- Works with any WebSocket server, including GraphQL subscriptions and Firebase real-time database.
-- Easily extendable for authentication, user presence, and additional real-time interactions.
+## 6. Tips & extensions
 
----
+- **Reconnect logic:** wrap the `WebSocket` instantiation in a helper that backs off and retries on `close` events when `event.wasClean` is `false`.
+- **Binary data:** switch to `socket.binaryType = 'arraybuffer'` and send typed arrays when transferring files or images.
+- **Authentication:** include JWTs or session tokens in the initial connection URL (e.g., `ws://host?token=...`) or upgrade request headers depending on your backend.
+- **State integration:** dispatch incoming messages into `@aurelia/state` or another store so multiple components can react without each subscribing to the socket.
 
-## Next Steps
-- Implement server-side authentication for secure WebSocket connections.
-- Use GraphQL subscriptions instead of raw WebSockets.
-- Add presence indicators (e.g., "User is typing...").
-- Extend functionality to support binary data transfer (images, files, etc.).
+With the connection wrapped in a DI-friendly service and the endpoint stored in environment variables, swapping between local, staging, and production WebSocket servers becomes trivial—and you avoid the legacy webpack-specific loader configuration entirely.

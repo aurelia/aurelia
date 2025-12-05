@@ -4,6 +4,10 @@ description: Learn about viewports in Aurelia router and how to create complex l
 
 # Viewports
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 Viewports are the foundation of Aurelia's routing system. The `<au-viewport>` element serves as the "outlet" where the router renders routed components. Understanding viewports is essential for creating complex application layouts with multiple content areas, nested routing, and dynamic UI structures.
 
 ## Viewport Concepts Overview
@@ -81,7 +85,7 @@ The list component itself houses anther viewport, or more accurately a child vie
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 import { route } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Products } from './products';
 
 @route({
@@ -119,7 +123,7 @@ import { route } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import { Product } from './product';
 import { IProductService, ProductDetail } from './product-service';
-import template from './products.html';
+import template from './products.html?raw';
 
 // child route configuration
 @route({
@@ -215,7 +219,7 @@ To this end, let us start with the routing configuration on the root component.
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 import { route } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Products } from './products';
 import { Product } from './product';
 
@@ -525,7 +529,7 @@ import {
   RouteNode,
   ViewportInstruction,
 } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 
 @customElement({ name: 'ce-a', template: 'a' })
 class A {}

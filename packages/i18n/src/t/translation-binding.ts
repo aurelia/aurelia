@@ -56,6 +56,9 @@ export interface TranslationBinding extends IAstEvaluator, IObserverLocatorBased
 
 const forOpts = { optional: true } as const;
 
+const isCustomExpression = (expr: unknown): expr is CustomExpression =>
+  expr instanceof CustomExpression || (expr as CustomExpression | undefined)?.$kind === 'Custom';
+
 export class TranslationBinding implements IBinding {
 
   public static create({
@@ -76,7 +79,7 @@ export class TranslationBinding implements IBinding {
     if (isParameterContext) {
       binding.useParameter(expr as IsExpression);
     } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, etInterpolation) : undefined;
+      const interpolation = isCustomExpression(expr) ? parser.parse(expr.value as string, etInterpolation) : undefined;
       binding.ast = interpolation || expr as IsExpression;
     }
   }
@@ -426,4 +429,3 @@ class ParameterBinding implements IBinding {
     this.isBound = false;
   }
 }
-

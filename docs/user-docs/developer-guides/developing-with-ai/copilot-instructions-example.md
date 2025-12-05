@@ -115,9 +115,12 @@ export class UserProfile {
 
 ### Services
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
+
 @singleton
 export class UserService {
-  constructor(@IHttpClient private readonly http: IHttpClient) {}
+  private readonly http = resolve(IHttpClient);
 }
 ```
 

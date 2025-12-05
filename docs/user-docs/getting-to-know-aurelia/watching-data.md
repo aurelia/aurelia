@@ -320,6 +320,80 @@ class PerformanceMonitor {
 
 **Sync:** Executes callbacks immediately. Use only when you need instant feedback or in testing scenarios.
 
+## Manual Watcher Classes
+
+The decorator syntax is sugar over two exported classes: `ComputedWatcher` (getter-based) and `ExpressionWatcher` (template expression–based). Creating them directly is handy when you are writing tooling, want to observe arbitrary objects, or need to opt in/out of watching at runtime.
+
+### `ComputedWatcher`
+
+```typescript
+import { ComputedWatcher } from '@aurelia/runtime-html';
+import { IObserverLocator } from '@aurelia/runtime';
+import { resolve } from '@aurelia/kernel';
+
+export class MetricsPanel {
+  measurements = [];
+  total = 0;
+
+  private readonly observerLocator = resolve(IObserverLocator);
+  private readonly totalWatcher = new ComputedWatcher(
+    this, // object whose properties are read
+    this.observerLocator,
+    vm => vm.measurements.reduce((sum, m) => sum + m.value, 0),
+    (newTotal) => { this.total = newTotal; },
+    'sync' // flush immediately so charts do not lag behind
+  );
+
+  binding() {
+    this.totalWatcher.bind();
+  }
+
+  unbinding() {
+    this.totalWatcher.unbind();
+  }
+}
+```
+
+- Pass the object you want to observe as the first argument.
+- The getter runs inside Aurelia's dependency tracker; any property you touch becomes a dependency.
+- Always call `unbind()` (for example, during the `unbinding` lifecycle) so observers are released.
+
+### `ExpressionWatcher`
+
+`ExpressionWatcher` observes a parsed Aurelia expression, making it ideal for runtime-configurable dashboards or devtools.
+
+```typescript
+import { ExpressionWatcher } from '@aurelia/runtime-html';
+import { IExpressionParser, ExpressionType, IObserverLocator, Scope } from '@aurelia/runtime';
+import { IContainer, resolve } from '@aurelia/kernel';
+
+export class RouteProbe {
+  private readonly parser = resolve(IExpressionParser);
+  private readonly observerLocator = resolve(IObserverLocator);
+  private readonly locator = resolve(IContainer);
+  private watcher?: ExpressionWatcher;
+
+  binding(_initiator: unknown, scope: Scope) {
+    const expression = this.parser.parse('currentRoute.path', ExpressionType.IsProperty);
+    this.watcher = new ExpressionWatcher(
+      scope,
+      this.locator,
+      this.observerLocator,
+      expression,
+      (path: string) => console.debug('Route changed:', path),
+      'async'
+    );
+    this.watcher.bind();
+  }
+
+  unbinding() {
+    this.watcher?.unbind();
+  }
+}
+```
+
+Because watchers are plain classes, you can create them inside services or diagnostics tooling as well. The only requirements are an `IObserverLocator`, an `IServiceLocator` (usually `IContainer`), and manual lifecycle management.
+
 ## How Dependency Tracking Works
 
 Aurelia uses transparent proxy-based observation. When your computed function runs, it automatically tracks every property you access:

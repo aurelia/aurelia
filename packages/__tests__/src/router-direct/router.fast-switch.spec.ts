@@ -1,6 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { tasksSettled } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('router-direct/router.fast-switch.spec.ts', function () {
@@ -118,20 +119,21 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
 
     for (const routerConfig of routerConfigs) {
       it(`Ensure no duplication with load (${JSON.stringify(routerConfig)})`, async function () {
-        const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, One, Two], routes);
+        const { container, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, One, Two], routes);
 
+        const queue = container.get(IDomQueue);
         try {
           // 0) Default root page
           assert.strictEqual(host.textContent, '!root!', '0) root default page');
 
           // 2) Go to one
-          await $load('/route-one', router, platform);
-          await platform.domQueue.yield();
+          await $load('/route-one', router, queue);
+          await tasksSettled();
           assert.strictEqual(host.textContent, '!one!', `2) /route-one`);
 
           // 3) Go to two
-          await $load('/route-two', router, platform);
-          await platform.domQueue.yield();
+          await $load('/route-two', router, queue);
+          await tasksSettled();
           assert.strictEqual(host.textContent, '!two!', `3) /route-two -`);
 
           // 4) Ok, let's flood
@@ -153,20 +155,21 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
       });
 
       it(`Ensure no duplication with back/forward (${JSON.stringify(routerConfig)})`, async function () {
-        const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, One, Two], routes);
+        const { container, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, One, Two], routes);
 
+        const queue = container.get(IDomQueue);
         try {
           // 0) Default root page
           assert.strictEqual(host.textContent, '!root!', '0) root default page');
 
           // 2) Go to one
-          await $load('/route-one', router, platform);
-          await platform.domQueue.yield();
+          await $load('/route-one', router, queue);
+          await tasksSettled();
           assert.strictEqual(host.textContent, '!one!', `2) /route-one`);
 
           // 3) Go to two
-          await $load('/route-two', router, platform);
-          await platform.domQueue.yield();
+          await $load('/route-two', router, queue);
+          await tasksSettled();
           assert.strictEqual(host.textContent, '!two!', `3) /route-two -`);
 
           for (let i = 0; i < 98; i++) {
@@ -193,23 +196,23 @@ describe('router-direct/router.fast-switch.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.flush();
 };
 
-const $goBack = async (router: IRouter, platform?: IPlatform) => {
+const $goBack = async (router: IRouter, queue?: IDomQueue) => {
   await router.viewer.history.back();
-  if (platform) {
-    platform.domQueue.flush();
-    await platform.domQueue.yield();
+  if (queue) {
+    queue.flush();
+    await tasksSettled();
   }
 };
 
-const $goForward = async (router: IRouter, platform?: IPlatform) => {
+const $goForward = async (router: IRouter, queue?: IDomQueue) => {
   await router.viewer.history.forward();
-  if (platform) {
-    platform.domQueue.flush();
-    await platform.domQueue.yield();
+  if (queue) {
+    queue.flush();
+    await tasksSettled();
   }
 };

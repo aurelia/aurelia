@@ -7,6 +7,10 @@ description: >-
 # Component configured routing
 
 {% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
+{% hint style="info" %}
 `Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
 {% endhint %}
 
@@ -20,7 +24,7 @@ This approach works wonders for situations where you want a section inside your 
 import { customElement, IRouteViewModel, Params, IPlatform, route } from 'aurelia';
 
 
-import template from './user-profile.html';
+import template from './user-profile.html?raw';
 
 @route({
   routes: [

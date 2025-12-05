@@ -1,6 +1,17 @@
-import { DI, IContainer, InstanceProvider, type IResolver, type Key, type Constructable, type IIndexable, resolve } from '@aurelia/kernel';
+import {
+  DI,
+  IContainer,
+  InstanceProvider,
+  type IResolver,
+  type Key,
+  type Constructable,
+  type IIndexable,
+  resolve,
+  camelCase
+} from '@aurelia/kernel';
 
 import {
+  BindableDefinition,
   Controller,
   CustomElement,
   CustomElementDefinition,
@@ -12,6 +23,7 @@ import {
 } from '@aurelia/runtime-html';
 
 export const IWcElementRegistry = /*@__PURE__*/DI.createInterface<IWcElementRegistry>(x => x.singleton(WcCustomElementRegistry));
+
 export interface IWcElementRegistry {
   /**
    * Define a web-component custom element for a set of given parameters
@@ -27,17 +39,18 @@ export interface IWcElementRegistry {
    * @returns the web-component custom element class. This can be used in application to further enhance/spy on its instances
    */
   define(name: string, def: Constructable, options?: ElementDefinitionOptions): Constructable<HTMLElement>;
+
   define(name: string, def: Omit<PartialCustomElementDefinition, 'name'>, options?: ElementDefinitionOptions): Constructable<HTMLElement>;
 }
 
 export type WebComponentViewModelClass =
   | Constructable
   | {
-    bindables?: PartialCustomElementDefinition['bindables'];
-    watches?: PartialCustomElementDefinition['watches'];
-    template?: PartialCustomElementDefinition['template'];
-    shadowOptions?: PartialCustomElementDefinition['shadowOptions'];
-  };
+  bindables?: PartialCustomElementDefinition['bindables'];
+  watches?: PartialCustomElementDefinition['watches'];
+  template?: PartialCustomElementDefinition['template'];
+  shadowOptions?: PartialCustomElementDefinition['shadowOptions'];
+};
 
 /**
  * A default implementation of `IWcElementRegistry` interface.
@@ -78,8 +91,9 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
     const rendering = this.r;
     const bindables = elDef.bindables;
     const p = this.p;
+
     class CustomElementClass extends BaseClass {
-      public static readonly observedAttributes = Object.keys(bindables);
+      public static readonly observedAttributes = Object.keys(bindables).map(v => BindableDefinition.toAttr(v));
 
       private auCtrl!: ICustomElementController;
       private auInited: boolean | undefined;
@@ -124,7 +138,7 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
 
       public attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         this.auInit();
-        (this.auCtrl.viewModel as IIndexable)[name] = newValue;
+        (this.auCtrl.viewModel as IIndexable)[camelCase(name)] = newValue;
       }
     }
 

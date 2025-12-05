@@ -6,6 +6,8 @@ description: Use Aurelia's Event Aggregator for lightweight pub/sub communicatio
 
 The Event Aggregator provides a lightweight pub/sub mechanism for communication between components in your Aurelia applications. This documentation covers the basics of using the Event Aggregator, along with several advanced use cases for cross-component communication.
 
+Aurelia registers a singleton `EventAggregator` behind the `IEventAggregator` interface. Resolving that token gives you the shared broker, and events are dispatched synchronously within the current tick—if a handler does heavy work, offload it to a task queue to keep the UI responsive.
+
 {% hint style="info" %}
 The Event Aggregator is designed solely for handling custom events within your application; it is not intended to replace native DOM events. For native event handling, continue to use standard event listeners.
 {% endhint %}
@@ -55,6 +57,55 @@ export class MyComponent implements ICustomElementViewModel {
   }
 }
 ```
+
+### Strongly typed events
+
+Besides string channels you can publish concrete event classes and subscribe to their constructors. This keeps payloads type-safe and avoids name collisions.
+
+```typescript
+import { IEventAggregator, resolve } from 'aurelia';
+
+export class UserSaved {
+  constructor(public readonly userId: string) {}
+}
+
+export class UserForm {
+  private readonly ea = resolve(IEventAggregator);
+
+  async save(user: User) {
+    await this.api.save(user);
+    this.ea.publish(new UserSaved(user.id));
+  }
+}
+
+export class ToastCenter {
+  private readonly ea = resolve(IEventAggregator);
+  private readonly subscription = this.ea.subscribe(UserSaved, ({ userId }) => {
+    this.toasts.info(`Saved #${userId}`);
+  });
+
+  dispose() {
+    this.subscription.dispose();
+  }
+}
+```
+
+### One-time subscriptions
+
+When a listener should run only once, use `subscribeOnce` so it disposes itself automatically after the first payload.
+
+```typescript
+export class DialogHost {
+  private readonly ea = resolve(IEventAggregator);
+
+  attached() {
+    this.ea.subscribeOnce('dialog:closed', () => {
+      this.reset();
+    });
+  }
+}
+```
+
 
 ### Disposing of Subscriptions
 
@@ -131,14 +182,14 @@ Sometimes a plugin needs to communicate internally without affecting global even
 #### Plugin Component (Internal Communication)
 
 ```typescript
-import { IEventAggregator, IDisposable, NewInstance } from 'aurelia';
+import { IEventAggregator, IDisposable, newInstanceOf, resolve } from 'aurelia';
 
 export class MyGridPlugin {
   searchFilter: string = 'something';
   private subscription: IDisposable;
 
   // Create a new instance for isolated internal communication.
-  constructor(private ea: IEventAggregator = NewInstance.of(IEventAggregator)) {
+  constructor(private readonly ea: IEventAggregator = resolve(newInstanceOf(IEventAggregator))) {
     this.subscription = this.ea.subscribe('filter:cleared', () => {
       this.searchFilter = '';
     });
@@ -169,7 +220,7 @@ export class FilterService {
 A plugin can require both local (plugin-scoped) event handling as well as listening to global events. In this scenario, inject two separate instances of the Event Aggregator.
 
 ```typescript
-import { IEventAggregator, IDisposable, NewInstance, resolve } from 'aurelia';
+import { IEventAggregator, IDisposable, newInstanceOf, resolve } from 'aurelia';
 
 export class MyGridPlugin {
   searchFilter: string = 'something';
@@ -179,7 +230,7 @@ export class MyGridPlugin {
     // Global Event Aggregator for externally triggered events
     private globalEa: IEventAggregator = resolve(IEventAggregator),
     // Plugin-specific Event Aggregator for isolated internal events
-    private pluginEa: IEventAggregator = NewInstance.of(IEventAggregator)
+    private pluginEa: IEventAggregator = resolve(newInstanceOf(IEventAggregator))
   ) {
     this.subscriptions.push(
       this.pluginEa.subscribe('filter:cleared', () => {

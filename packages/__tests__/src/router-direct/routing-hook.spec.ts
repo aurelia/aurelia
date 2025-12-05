@@ -1,6 +1,6 @@
-import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation } from '@aurelia/router-direct';
+import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation, IDomQueue } from '@aurelia/router-direct';
 import { assert, TestContext } from '@aurelia/testing';
-import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
 
 describe('router-direct/routing-hook.spec.ts', function () {
@@ -75,9 +75,9 @@ describe('router-direct/routing-hook.spec.ts', function () {
       router.viewer.history.replaceState = _replace;
     }
   }
-  const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+  const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
     await router.load(path);
-    platform.domQueue.flush();
+    queue.flush();
   };
 
   it('uses a hook', async function () {
@@ -307,33 +307,35 @@ describe('router-direct/routing-hook.spec.ts', function () {
   });
 
   it('can prevent navigation', async function () {
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two']);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two']);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     RouterConfiguration.for(router).addHook((instructions: RoutingInstruction[], navigation: Navigation) => Promise.resolve(false),
       { type: 'beforeNavigation', include: ['two'] });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
     await tearDown();
   });
 
   it('can redirect navigation', async function () {
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     RouterConfiguration.for(router).addHook(
@@ -341,44 +343,46 @@ describe('router-direct/routing-hook.spec.ts', function () {
         Promise.resolve([RoutingInstruction.create('three', instructions[0].viewport.instance)]),
       { type: 'beforeNavigation', include: ['two'] });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
   });
 
   it('can transform from url to string', async function () {
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     RouterConfiguration.for(router).addHook(
       (url: string, navigation: Navigation) => Promise.resolve(url === 'two' ? 'three' : url),
       { type: 'transformFromUrl' });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
   });
 
   it('can transform from url to viewport instructions', async function () {
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three']);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
 
     RouterConfiguration.for(router).addHook(
@@ -386,10 +390,10 @@ describe('router-direct/routing-hook.spec.ts', function () {
         Promise.resolve(url === 'two' ? [RoutingInstruction.create('three')] : url),
       { type: 'transformFromUrl' });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!three!`, `three`);
 
     await tearDown();
@@ -401,13 +405,14 @@ describe('router-direct/routing-hook.spec.ts', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
@@ -419,11 +424,11 @@ describe('router-direct/routing-hook.spec.ts', function () {
             : state[0].component.name === 'two' ? 'hooked-two' : state),
       { type: 'transformToUrl' });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/hooked-two`, `locationPath hooked-two`);
 
@@ -436,13 +441,14 @@ describe('router-direct/routing-hook.spec.ts', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
@@ -453,11 +459,11 @@ describe('router-direct/routing-hook.spec.ts', function () {
           : state[0].component.name === 'two' ? 'hooked-two' : state),
       { type: 'transformToUrl' });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/hooked-two`, `locationPath hooked-two`);
 
@@ -470,13 +476,14 @@ describe('router-direct/routing-hook.spec.ts', function () {
       // console.log(type, data, title, path);
       locationPath = path;
     };
-    const { router, tearDown, platform, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const { router, tearDown, container, host } = await createFixture(undefined, undefined, ['one', 'two', 'three'], locationCallback);
+    const queue = container.get(IDomQueue);
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/two`, `locationPath two`);
 
@@ -487,11 +494,11 @@ describe('router-direct/routing-hook.spec.ts', function () {
           : state[0].component.name === 'two' ? 'hooked-two' : state),
       { type: 'transformToUrl' });
 
-    await $load('one', router, platform);
+    await $load('one', router, queue);
     assert.strictEqual(host.textContent, `!one!`, `one`);
     assert.strictEqual(locationPath, `#/one`, `locationPath one`);
 
-    await $load('two', router, platform);
+    await $load('two', router, queue);
     assert.strictEqual(host.textContent, `!two!`, `two`);
     assert.strictEqual(locationPath, `#/hooked-hooked-two`, `locationPath hooked-hooked-two`);
 

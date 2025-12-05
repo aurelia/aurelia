@@ -7,6 +7,7 @@ import {
   getCollectionObserver,
   Scope,
   tasksSettled,
+  queueAsyncTask,
 } from '@aurelia/runtime';
 import {
   type BindingBehaviorInstance,
@@ -131,7 +132,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       }
 
       public async handleEmployeesChange() {
-        await this.platform.domQueue.queueTask(async () => {
+        await queueAsyncTask(async () => {
           await this.controller.validate();
         }).result;
       }
@@ -1719,12 +1720,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         }
       }
 
-      const { stop, component, platform } = await createFixture(
+      const { stop, component } = await createFixture(
         `<input repeat.for="field of fields" value.two-way="person[field] & validate"></input><input value.two-way="person[addressField][line1Field] & validate"></input>`,
         MyApp,
         [ValidationHtmlConfiguration]
       ).started;
-      const domQueue = platform.domQueue;
 
       // round #1
       const validationController = component.validationController;
@@ -1738,7 +1738,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
       // round #2
       component.person.age = 7;
-      await domQueue.yield();
+      await tasksSettled();
 
       validationResult = await validationController.validate();
       assert.strictEqual(validationResult.valid, false, 'validationResult2.valid 2');
@@ -1752,7 +1752,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       component.person.name = 'foo';
       component.person.age = 18;
       component.person.address = { pin: 123, city: 'foo', line1: 'foo' };
-      await domQueue.yield();
+      await tasksSettled();
 
       validationResult = await validationController.validate();
       assert.strictEqual(validationResult.valid, true, 'validationResult.valid 3');
@@ -1789,12 +1789,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     }
 
     it('replaced binding source validates', async function () {
-      const { stop, component, platform } = await createFixture(
+      const { stop, component } = await createFixture(
         `<input value.two-way="person.name & validate"></input>`,
         MyAppReplaceableSource,
         [ValidationHtmlConfiguration]
       ).started;
-      const domQueue = platform.domQueue;
 
       // round #1
       const validationController = component.validationController;
@@ -1808,7 +1807,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
       // round #2
       component.person.name = 'Aurelia';
-      await domQueue.yield();
+      await tasksSettled();
 
       validationResult = await validationController.validate();
       assert.strictEqual(validationResult.valid, true, 'validationResult2.valid 2');
@@ -1820,7 +1819,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
       // round #3 - replace the binding source
       component.replaceBindingSource(new Person(void 0, void 0));
-      await domQueue.yield();
+      await tasksSettled();
 
       validationResult = await validationController.validate();
       assert.strictEqual(validationResult.valid, false, 'validationResult.valid 1');
@@ -1832,7 +1831,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
       // round #4 - make new binding source valid
       component.person.name = 'Replaced Aurelia';
-      await domQueue.yield();
+      await tasksSettled();
 
       validationResult = await validationController.validate();
       assert.strictEqual(validationResult.valid, true, 'validationResult2.valid 2');
@@ -1846,12 +1845,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     });
 
     it('replaced binding source invalidates cached property info', async function () {
-      const { stop, component, platform } = await createFixture(
+      const { stop, component } = await createFixture(
         `<input value.two-way="person.name & validate"></input>`,
         MyAppReplaceableSource,
         [ValidationHtmlConfiguration]
       ).started;
-      const domQueue = platform.domQueue;
       const controller = component.validationController;
 
       let bindings = Array.from((controller['bindings'] as Map<IBinding, BindingInfo>).values()) as BindingInfo[];
@@ -1869,7 +1867,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       // round #3 - replace the binding source, property info removed
       const replacement = new Person(void 0, void 0);
       component.replaceBindingSource(replacement);
-      await domQueue.yield();
+      await tasksSettled();
       bindings = Array.from((controller['bindings'] as Map<IBinding, BindingInfo>).values()) as BindingInfo[];
       binding = bindings[0];
       assert.equal(binding.propertyInfo, undefined);

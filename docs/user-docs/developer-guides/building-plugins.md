@@ -7,6 +7,10 @@ description: >-
 
 # Building Plugins
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 Aurelia plugins allow you to encapsulate functionality that can be reused across multiple applications. They can include custom elements, value converters, binding behaviors, and other resources. The goal is to create packaged, easily shared, ready-to-use functionalities that integrate seamlessly with Aurelia applications.
 
 ## Understanding Plugin Architecture
@@ -410,7 +414,7 @@ The explicit import approach gives you full control over dependencies and is ide
 
 ```typescript
 import { customElement, bindable, shadowCSS } from '@aurelia/runtime-html';
-import template from './my-button.html';
+import template from './my-button.html?raw';
 import styles from './my-button.css';
 import sharedStyles from '../shared/variables.css';
 
@@ -603,7 +607,7 @@ For UI library plugins, structure your components like this:
 ```typescript
 // src/components/button/au-button.ts
 import { customElement, bindable, shadowCSS } from '@aurelia/runtime-html';
-import template from './au-button.html';
+import template from './au-button.html?raw';
 import styles from './au-button.css';
 
 @customElement({
@@ -884,6 +888,81 @@ This setup allows you to:
 - Build and test everything together
 - Publish individual packages as needed
 
+## Extending the Rendering Pipeline
+
+Public exports from `@aurelia/runtime-html` make it possible to hook into Aurelia’s renderer without forking the framework. This is essential for plugins that add new template syntax, hydrate components into foreign DOM environments, or need to precompile custom elements on the fly.
+
+### Register Custom Instruction Renderers
+
+`IRenderer` implementations are discovered through the `@renderer` decorator. Each renderer receives the instruction at hydration time, so you can translate custom compiler output into DOM mutations.
+
+```typescript
+import { renderer, type IRenderer, IHydratableController } from '@aurelia/runtime-html';
+import type { IInstruction } from '@aurelia/template-compiler';
+import { ITranslationService } from './i18n-service';
+
+interface TranslateInstruction extends IInstruction {
+  type: 'translate';
+  key: string;
+}
+
+@renderer
+export class TranslateRenderer implements IRenderer {
+  public readonly target = 'translate';
+
+  public render(
+    controller: IHydratableController,
+    target: Element,
+    instruction: TranslateInstruction
+  ) {
+    const i18n = controller.container.get(ITranslationService);
+    target.textContent = i18n.translate(instruction.key);
+  }
+}
+```
+
+Once registered (for example via `Aurelia.register(TranslateRenderer)` or `StandardConfiguration.customize({ resources: [TranslateRenderer] })`), any instruction whose `type` matches `TranslateRenderer.target` is routed through your plugin. Combine this with a binding command or template compiler hook to emit `translate` instructions from HTML like `<span t="nav.home"></span>`.
+
+### Use `IRendering` for Dynamic Definitions
+
+Plugins that generate `PartialCustomElementDefinition` objects at runtime can inject `IRendering` to compile them, create node sequences, or materialize `ViewFactory` instances on demand.
+
+```typescript
+import { IRendering, CustomElement } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
+
+export class MarkdownBridge {
+  private readonly rendering = resolve(IRendering);
+
+  compile(template: string) {
+    const definition = CustomElement.define({
+      name: `markdown-view-${crypto.randomUUID()}`,
+      template
+    });
+
+    return this.rendering.getViewFactory(definition, resolve(IContainer));
+  }
+}
+```
+
+`IRendering.createNodes()` returns reusable `FragmentNodeSequence` instances, letting you build headless renderers that project Aurelia content into other host libraries without going through standard component bootstrapping.
+
+### Provide Host Nodes via `registerHostNode`
+
+If you hydrate Aurelia components into DOM nodes created by another framework (for example, inside a CMS widget or micro-frontend shell), call `registerHostNode(container, host)` so that DI can resolve `HTMLElement`, `Element`, or `INode` within that scope.
+
+```typescript
+import { registerHostNode, Aurelia } from '@aurelia/runtime-html';
+
+const host = document.querySelector('#cms-slot');
+const au = new Aurelia();
+
+registerHostNode(au.container, host);
+await au.app({ host, component: WidgetShell }).start();
+```
+
+This mirrors what the runtime does for the default app host and keeps resource lookups such as `resolve(IEventTarget)` or `resolve(IPlatform).HTMLElement` working even when the DOM comes from an embedded document or shadow root.
+
 ## Summary
 
 Building Aurelia plugins involves:
@@ -891,8 +970,9 @@ Building Aurelia plugins involves:
 1. **Basic Structure**: Implement the `register` method pattern
 2. **Configuration**: Use `DI.createInterface()` and the `.customize()` pattern
 3. **Lifecycle Integration**: Leverage `AppTask` for initialization and cleanup
-4. **Best Practices**: Follow naming conventions, handle errors gracefully, and provide TypeScript support
-5. **Testing**: Write comprehensive tests for registration and functionality
-6. **Distribution**: Package properly for npm distribution
+4. **Rendering Extensions**: Reach for `IRenderer`, `IRendering`, and `registerHostNode` when you need custom instructions or alternate hosts
+5. **Best Practices**: Follow naming conventions, handle errors gracefully, and provide TypeScript support
+6. **Testing**: Write comprehensive tests for registration and functionality
+7. **Distribution**: Package properly for npm distribution
 
 By following these patterns and practices, you can create robust, reusable plugins that integrate seamlessly with the Aurelia ecosystem.

@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.link-click-navigation.spec.ts', function () {
@@ -155,15 +155,16 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
     it(`for "${test.load}"`, async function () {
-      const { platform, host, router, $teardown } = await $setup({}, [Nav, One, Two, OneRoute, TwoRoute], routes);
+      const { container, host, router, $teardown } = await $setup({}, [Nav, One, Two, OneRoute, TwoRoute], routes);
+      const queue = container.get(IDomQueue);
 
-      await $load('/nav', router, platform);
-      await platform.domQueue.yield();
+      await $load('/nav', router, queue);
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domQueue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -186,15 +187,16 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
   for (let i = 0; i < bindTests.length; i++) {
     const test = bindTests[i];
     it(`for "${test.load}"`, async function () {
-      const { platform, host, router, $teardown } = await $setup({}, [NavBind, One, Two, OneRoute, TwoRoute], routes);
+      const { container, host, router, $teardown } = await $setup({}, [NavBind, One, Two, OneRoute, TwoRoute], routes);
+      const queue = container.get(IDomQueue);
 
-      await $load('/nav-bind', router, platform);
-      await platform.domQueue.yield();
+      await $load('/nav-bind', router, queue);
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domQueue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -217,15 +219,16 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
   for (let i = 0; i < attributesTests.length; i++) {
     const test = attributesTests[i];
     it(`for "${test.load}"`, async function () {
-      const { platform, host, router, $teardown } = await $setup({}, [NavAttributes, One, Two, OneRoute, TwoRoute], routes);
+      const { container, host, router, $teardown } = await $setup({}, [NavAttributes, One, Two, OneRoute, TwoRoute], routes);
+      const queue = container.get(IDomQueue);
 
-      await $load('/nav-attributes', router, platform);
-      await platform.domQueue.yield();
+      await $load('/nav-attributes', router, queue);
+      await queue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domQueue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -237,7 +240,7 @@ describe('router-direct/router.link-click-navigation.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.flush();
 };

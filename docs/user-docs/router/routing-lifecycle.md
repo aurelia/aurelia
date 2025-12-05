@@ -268,7 +268,7 @@ export class ChildOne implements IRouteViewModel {
 If a child component needs to inspect parameters defined by its parent route, inject `IRouteContext` and use its `parent` property inside the `loading` hook.
 
 ```ts
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouteContext, type Params } from '@aurelia/router';
 
 export class ChildTwo {
@@ -284,7 +284,7 @@ export class ChildTwo {
 Nested routes frequently need identifiers that were captured higher in the URL such as `/company/:companyId/project/:projectId/user/:userId`. Instead of manually walking the `parent` chain, resolve `IRouteContext` and call the `getRouteParameters()` helper to get a merged, read-only view of every matched segment.
 
 ```ts
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouteContext, type Params } from '@aurelia/router';
 
 export class ChildThree {
@@ -339,7 +339,7 @@ If the user agrees to navigate way, then the navigation is performed.
 The navigation is cancelled, if the user does not confirm.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
 import { IPlatform } from '@aurelia/runtime-html';
 

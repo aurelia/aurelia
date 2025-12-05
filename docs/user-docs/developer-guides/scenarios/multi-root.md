@@ -18,7 +18,7 @@ The approach works by starting with a lightweight login application that handles
 
 ## Setting up
 
-In the `src/main.ts` entry point, we first set up the login wall application and subscribe to the authenticated event using an `AppTask`. Inside the event subscription, we stop the Aurelia application that provided the login wall and then call a `start()` function responsible for starting the main app.
+In the `src/main.ts` entry point, keep explicit references to the hosts and to each `Aurelia` instance. Doing so lets you dispose the login root completely before booting the authenticated root, and gives you a place to store any cross-root state the login flow collects.
 
 ```typescript
 // src/main.ts
@@ -27,53 +27,63 @@ import { IEventAggregator, resolve } from '@aurelia/kernel';
 import { LoginWall } from './login-wall';
 import { MyApp } from './my-app';
 
-// Shared event constant - could also be defined in a separate constants file
 export const AUTHENTICATED_EVENT = 'user:authenticated';
+export interface AuthenticatedPayload {
+  username: string;
+  timestamp: Date;
+  token?: string;
+}
 
-async function main() {
-  const host = document.querySelector<HTMLElement>('login-wall')!;
-  const au = new Aurelia();
-  
-  au.register(
+const loginHost = document.querySelector<HTMLElement>('#login-root')!;
+const appHost = document.querySelector<HTMLElement>('#main-root')!;
+
+let loginApp: Aurelia | null = null;
+let mainApp: Aurelia | null = null;
+
+async function startLoginApp() {
+  loginHost.hidden = false;
+
+  loginApp = new Aurelia();
+  loginApp.register(
     StandardConfiguration,
     AppTask.hydrated(() => {
       const ea = resolve(IEventAggregator);
-      ea.subscribeOnce(AUTHENTICATED_EVENT, async () => {
-        await au.stop();
-        await startMainApp();
+      ea.subscribeOnce<AuthenticatedPayload>(AUTHENTICATED_EVENT, async (payload) => {
+        loginHost.hidden = true;
+        await loginApp?.stop(true); // dispose the login root before booting the next one
+        loginApp = null;
+        await startMainApp(payload);
       });
-    })
+    }),
   );
-  
-  au.app({ host, component: LoginWall });
-  await au.start();
+
+  loginApp.app({ host: loginHost, component: LoginWall });
+  await loginApp.start();
 }
 
-main().catch(console.error);
-```
+async function startMainApp(userData?: AuthenticatedPayload) {
+  appHost.hidden = false;
 
-Starting the main app just requires a new Aurelia instance and host element. It is omitted here, but the authenticated event could have been passed to the start function to provide the application with the users auth token and any other user information received in the login process.
-
-```typescript
-async function startMainApp() {
-  const host = document.querySelector<HTMLElement>('my-app')!;
-  const au = new Aurelia();
-  
-  au.register(
-    StandardConfiguration
+  mainApp = new Aurelia();
+  mainApp.register(
+    StandardConfiguration,
     // Add additional configurations for your main app:
-    // RouterConfiguration, 
+    // RouterConfiguration,
     // ValidationConfiguration,
     // etc.
   );
-  
-  au.app({ host, component: MyApp });
-  await au.start();
-  
+
+  mainApp.app({ host: appHost, component: MyApp });
+  await mainApp.start();
+
   // Store reference if you need to stop this app later
-  // window.mainApp = au;
+  // window.mainApp = mainApp;
 }
+
+startLoginApp().catch(console.error);
 ```
+
+Calling `stop(true)` ensures the login root is disposed before the authenticated root starts, which prevents orphaned controllers and DOM nodes. The `AuthenticatedPayload` interface in the snippet documents the data you plan to emit from the login wall—adjust it to match what your back end returns.
 
 
 ## Handling Login and Root Transition
@@ -84,7 +94,7 @@ In `src/login-wall.ts`, we define the `LoginWall` class with a `login` method. T
 // src/login-wall.ts
 import { customElement } from '@aurelia/runtime-html';
 import { IEventAggregator, resolve } from '@aurelia/kernel';
-import { AUTHENTICATED_EVENT } from './main';
+import { AUTHENTICATED_EVENT, AuthenticatedPayload } from './main';
 
 @customElement('login-wall')
 export class LoginWall {
@@ -102,10 +112,11 @@ export class LoginWall {
       await this.authenticate(this.username, this.password);
       
       // Publish success event with user data if needed
-      this.ea.publish(AUTHENTICATED_EVENT, { 
+      const payload: AuthenticatedPayload = {
         username: this.username,
-        timestamp: new Date() 
-      });
+        timestamp: new Date(),
+      };
+      this.ea.publish(AUTHENTICATED_EVENT, payload);
     } catch (error) {
       console.error('Login failed:', error);
       // Handle login error (show message, etc.)
@@ -131,7 +142,7 @@ export class LoginWall {
 
 ## Updating the HTML Structure
 
-In your `index.html` or equivalent, you need to have placeholders for each root component. Make sure to provide unique identifiers for each.
+In your `index.html` or equivalent, you need to have placeholders for each root component. Make sure to provide unique identifiers for each and rely on the native `hidden` attribute so your bootstrap code can switch visibility without adding inline styles.
 
 ```html
 <!DOCTYPE html>
@@ -141,20 +152,20 @@ In your `index.html` or equivalent, you need to have placeholders for each root 
 </head>
 <body>
   <!-- Placeholder for the LoginWall component - initially visible -->
-  <login-wall style="display: block;"></login-wall>
+  <login-wall id="login-root"></login-wall>
 
-  <!-- Placeholder for the main app - initially hidden -->
-  <my-app style="display: none;"></my-app>
+  <!-- Placeholder for the main app - initially hidden via the hidden attribute -->
+  <my-app id="main-root" hidden></my-app>
 
   <!-- Optional: Add a loading indicator -->
-  <div id="loading" style="display: none;">
+  <div id="loading" hidden>
     <p>Loading application...</p>
   </div>
 
   <script>
     // Optional: Show loading during transition
     window.addEventListener('beforeunload', () => {
-      document.getElementById('loading').style.display = 'block';
+      document.getElementById('loading')!.hidden = false;
     });
   </script>
 </body>
@@ -163,9 +174,13 @@ In your `index.html` or equivalent, you need to have placeholders for each root 
 
 ## Example
 
-The following example shows a working skeleton of the approach described.
+To try this locally or in an online sandbox:
 
-{% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-query-jlcrp7rf?file=src%2Flogin.ts,package.json,tsconfig.json,src%2Fabout.html,src%2Fmain.ts,webpack.config.js" %}
+1. Scaffold a fresh Aurelia 2 app (`npm create aurelia@latest`).
+2. Replace the generated `main.ts`, `login-wall.ts`, and `my-app.ts` with the snippets above.
+3. Add two host elements (`<login-root>` and `<my-app>`) to `index.html` and run `npm start`.
+
+The login root will boot first, publish `AUTHENTICATED_EVENT`, and then the authenticated root will take over exactly as described in this recipe.
 
 ## Managing Application State
 
@@ -173,26 +188,37 @@ When switching roots, you need to carefully manage application state since each 
 
 ### Passing Data Between Roots
 
+Define a typed payload and register it as an instance in the authenticated root. `Registration.singleton` expects a constructable type and will try to instantiate it, so use `Registration.instance` for plain objects.
+
 ```typescript
-// In main.ts - capture data from the authenticated event
+// main.ts
+import { DI, Registration, resolve } from '@aurelia/kernel';
+
+export const IUserSession = DI.createInterface<AuthenticatedPayload>('IUserSession');
+
 ea.subscribeOnce(AUTHENTICATED_EVENT, async (userData) => {
-  await au.stop();
-  await startMainApp(userData); // Pass data to main app
+  await loginApp?.stop(true);
+  loginApp = null;
+  await startMainApp(userData);
 });
 
-// Modified startMainApp function
-async function startMainApp(userData?: any) {
-  const host = document.querySelector<HTMLElement>('my-app')!;
-  const au = new Aurelia();
-  
-  au.register(
+async function startMainApp(userData?: AuthenticatedPayload) {
+  appHost.hidden = false;
+  const session = userData ?? { username: '', timestamp: new Date(0) };
+
+  mainApp = new Aurelia();
+  mainApp.register(
     StandardConfiguration,
-    // Register user data as a singleton for the main app
-    Registration.singleton('UserData', userData || {})
+    Registration.instance(IUserSession, session),
   );
-  
-  au.app({ host, component: MyApp });
-  await au.start();
+
+  mainApp.app({ host: appHost, component: MyApp });
+  await mainApp.start();
+}
+
+// Anywhere in your authenticated root
+export class MyApp {
+  private readonly session = resolve(IUserSession);
 }
 ```
 
@@ -213,12 +239,14 @@ When stopping an Aurelia application, most cleanup happens automatically, but be
 // Before stopping, clean up any global listeners you added
 window.removeEventListener('beforeunload', myHandler);
 
-// Stop the application - this cleans up most internal subscriptions
-await au.stop();
+// Stop the application and dispose the root container
+await au.stop(true);
 
 // Clear any global references
 delete window.loginApp;
 ```
+
+If you no longer need the `Aurelia` instance itself, call `au.dispose()` after the stop promise resolves so its container tree is released.
 
 ### Routing Configuration
 
@@ -234,6 +262,8 @@ au.register(
   RouterConfiguration.customize({ /* routing options */ })
 );
 ```
+
+`RouterConfiguration` (from `@aurelia/router`) registers `RouteContext.setRoot` under the hood, so avoid registering it twice in the same container tree. With independent `Aurelia` instances per root this is naturally enforced—just register the router in each `register` call that belongs to that root.
 
 ### Shared Resources
 

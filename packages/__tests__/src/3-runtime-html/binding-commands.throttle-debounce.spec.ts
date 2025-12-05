@@ -45,37 +45,37 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
     //   component.value = '1';
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #1');
-    //   ctx.platform.domQueue.flush();
+    //   runTasks();
     //   assert.strictEqual(receiver.value, '0', 'target value #1');
 
     //   component.value = '2';
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2');
-    //   ctx.platform.domQueue.flush();
+    //   runTasks();
     //   assert.strictEqual(receiver.value, '0', 'target value #2');
 
     //   await wait(20);
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(20)');
-    //   ctx.platform.domQueue.flush();
+    //   runTasks();
     //   assert.strictEqual(receiver.value, '0', 'target value #2 + wait(20)');
 
     //   await wait(10);
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(30)');
-    //   ctx.platform.domQueue.flush();
+    //   runTasks();
     //   assert.strictEqual(receiver.value, '2', 'target value #2 + wait(30) + runTasks()');
 
     //   component.value = '3';
 
     //   assert.strictEqual(receiver.value, '2', 'target value pre #3');
-    //   ctx.platform.domQueue.flush();
+    //   runTasks();
     //   assert.strictEqual(receiver.value, '2', 'target value #3');
 
     //   await wait(50);
 
     //   assert.strictEqual(receiver.value, '3', 'target value pre #4');
-    //   ctx.platform.domQueue.flush();
+    //   runTasks();
     //   assert.strictEqual(receiver.value, '3', 'target value #4');
 
     //   await au.stop();

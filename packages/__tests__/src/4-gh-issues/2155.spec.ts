@@ -25,4 +25,23 @@ describe('4-gh-issues/2155.spec.ts', function () {
     runTasks();
     assertHtml('<div class="active"> <p>active</p> </div>', { compact: true });
   });
+
+  it('should react to array mutation inside text binding', async function () {
+    const { component, assertText } = createFixture(
+      '<div>${text}</div>',
+      class App {
+        text: string | string[] = 'hi';
+      }
+    );
+
+    assertText('hi');
+
+    component.text = ['hello'];
+    runTasks();
+    assertText('hello');
+
+    component.text.push('hi');
+    runTasks();
+    assertText('hello,hi');
+  });
 });

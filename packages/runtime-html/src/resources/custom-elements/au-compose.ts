@@ -115,10 +115,8 @@ export class AuCompose {
   /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
   /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
   /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
-  /** @internal */ private _attached = false;
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    this._attached = true;
     return this._composing = onResolve(
       this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
       (context) => {
@@ -130,7 +128,6 @@ export class AuCompose {
   }
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
-    this._attached = false;
     const cmpstn = this._composition;
     const pending = this._composing;
     this._contextFactory.invalidate();
@@ -140,7 +137,6 @@ export class AuCompose {
 
   /** @internal */
   public propertyChanged(name: ChangeSource): void {
-    if (!this._attached) return;
     if (name === 'composing' || name === 'composition') return;
     if (name === 'model' && this._composition != null) {
       this._composition.update(this.model);

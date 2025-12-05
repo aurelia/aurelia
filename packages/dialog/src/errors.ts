@@ -27,6 +27,7 @@ export const enum ErrorNames {
   dialog_cancelled_with_cancel_on_rejection_setting = 907,
   dialog_custom_error = 908,
   dialog_closed_before_deactivation = 909,
+  dialog_child_settings_not_found = 910,
 }
 _END_CONST_ENUM();
 
@@ -42,6 +43,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting]: 'Dialog cancelled with a rejection on cancel',
   [ErrorNames.dialog_custom_error]: 'Dialog custom error',
   [ErrorNames.dialog_closed_before_deactivation]: 'Dialog was closed before deactivation, did you call dialog.close()?',
+  [ErrorNames.dialog_child_settings_not_found]: 'Child dialog settings not found for the given key {{0}}',
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

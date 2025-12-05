@@ -5,7 +5,7 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { Interpolation, ConditionalExpression, AccessScopeExpression } from '@aurelia/expression-parser';
+import { createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
 import {
   BindingMode,
   CustomElement,
@@ -330,12 +330,12 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       it('handles single', async function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const interpolation = new Interpolation(
+        const interpolation = createInterpolation(
           ['', ''],
-          [new ConditionalExpression(
-            new AccessScopeExpression('checked'),
-            new AccessScopeExpression('yesMsg'),
-            new AccessScopeExpression('noMsg'),
+          [createConditionalExpression(
+            createAccessScopeExpression('checked'),
+            createAccessScopeExpression('yesMsg'),
+            createAccessScopeExpression('noMsg'),
           )]
         );
         const target = { value: '' };
@@ -411,18 +411,18 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       it('handles multiple', async function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
-        const interpolation = new Interpolation(
+        const interpolation = createInterpolation(
           ['', '--', ''],
           [
-            new ConditionalExpression(
-              new AccessScopeExpression('checked1'),
-              new AccessScopeExpression('yes1'),
-              new AccessScopeExpression('no1'),
+            createConditionalExpression(
+              createAccessScopeExpression('checked1'),
+              createAccessScopeExpression('yes1'),
+              createAccessScopeExpression('no1'),
             ),
-            new ConditionalExpression(
-              new AccessScopeExpression('checked2'),
-              new AccessScopeExpression('yes2'),
-              new AccessScopeExpression('no2'),
+            createConditionalExpression(
+              createAccessScopeExpression('checked2'),
+              createAccessScopeExpression('yes2'),
+              createAccessScopeExpression('no2'),
             )
           ]
         );

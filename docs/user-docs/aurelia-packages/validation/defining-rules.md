@@ -288,7 +288,7 @@ There are two ways custom rules can be defined.
 
 *   `satisfiesRule`
 
-    This lets reuse a rule implementation. For this we need to remember two things. Firstly, as mentioned before at the [start of this section](defining-rules.md#associating-validation-rules-with-property) any rule can be applied on a property just by instantiating the rule, and associating with the property. Secondly, every rule needs to be a subtype of `BaseValidationRule`, as discussed in [before](broken-reference).
+    This lets reuse a rule implementation. For this we need to remember two things. Firstly, as mentioned before at the [start of this section](defining-rules.md#associating-validation-rules-with-property) any rule can be applied on a property just by instantiating the rule, and associating with the property. Secondly, every rule needs to be a subtype of `BaseValidationRule`, as discussed earlier in this guide.
 
     The method `satisfiesRule` accepts such an instance of a rule implementation and associates it with the property. It can be used as follows.
 
@@ -778,8 +778,8 @@ Let us now focus on the `ValidateInstruction`, which basically instructs the val
 * `object`: The object to validate.
 * `propertyName`: The property name to validate.
 * `rules`: The specific rules to execute.
-* `objectTag`: When present instructs to validate only specific ruleset defined for a object. Tagging is discussed in detail in the respective [section](broken-reference)
-* `propertyTag`: When present instructs to validate only specific ruleset for a property. Tagging is discussed in detail in the respective [section](broken-reference)
+* `objectTag`: When present instructs to validate only specific ruleset defined for a object. Tagging is discussed in detail in the [tagging rules guide](tagging-rules.md)
+* `propertyTag`: When present instructs to validate only specific ruleset for a property. Tagging is discussed in detail in the [same guide](tagging-rules.md)
 
 Some of the useful combinations are as follows.
 
@@ -793,4 +793,4 @@ Some of the useful combinations are as follows.
 | ✔        | ✔              |         | ✔           |               | Only the rules for the property in the tagged ruleset are used for validation.             |
 | ✔        | ✔              |         | ✔           | ✔             | Only the tagged rules for the property in the tagged ruleset for the object are validated. |
 
-Note that in the presence of `rules` the `objectTag` is ignored. However, we strongly encourage the usage of tags for executing specific set of rules. You can find more details on tagging in [Tagging rules](broken-reference) section. Note that the validate instruction is also respected by [validation controller](broken-reference).
+Note that in the presence of `rules` the `objectTag` is ignored. However, we strongly encourage the usage of tags for executing specific set of rules. You can find more details on tagging in the [tagging rules](tagging-rules.md) section. Note that the validate instruction is also respected by the [validation controller](validation-controller.md).

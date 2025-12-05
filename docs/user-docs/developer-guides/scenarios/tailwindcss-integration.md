@@ -12,55 +12,72 @@ For more information take a look at [Tailwind CSS](https://tailwindcss.com/)
 
 ## How to configure an Aurelia 2 project with Tailwind CSS v4?
 
-### Step 1: Create Aurelia 2 Project
+Tailwind CSS 4.1 introduces a simplified setup: install Tailwind, add the official plugin for your bundler, then import `tailwindcss` once inside your stylesheet. No `@next` tags, no `tailwind.config.js` (unless you want customizations), and no manual content paths.
 
-Run the following command in your terminal:
+### Step 1: Create an Aurelia project
 
 ```bash
 npx makes aurelia
 ```
 
-Choose your preferred bundler (Webpack, Vite, or Parcel) and TypeScript/JavaScript preference.
+Choose your preferred bundler. The steps below highlight Vite first, followed by Webpack, Parcel, and the standalone CLI.
 
-### Step 2: Install Tailwind CSS
+### Step 2: Install Tailwind packages
 
-Choose the installation method based on your bundler:
-
-#### For Webpack Projects
+#### Vite (recommended)
 
 ```bash
-npm install tailwindcss@next @tailwindcss/postcss@next postcss postcss-loader
+npm install tailwindcss @tailwindcss/vite
 ```
 
-#### For Vite Projects (Recommended)
+#### Webpack
 
 ```bash
-npm install tailwindcss@next @tailwindcss/vite@next
+npm install tailwindcss @tailwindcss/postcss postcss postcss-loader
 ```
 
-#### For Parcel Projects
+#### Parcel
 
 ```bash
-npm install tailwindcss@next @tailwindcss/postcss@next
+npm install tailwindcss @tailwindcss/postcss
 ```
 
-### Step 3: Configure Your Bundler
+#### Standalone CLI / static builds
 
-#### Webpack Configuration
+```bash
+npm install tailwindcss @tailwindcss/cli
+```
 
-1. Create a `postcss.config.js` file in your project root:
+### Step 3: Configure your bundler
 
-```javascript
+#### Vite configuration
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import aurelia from '@aurelia/vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  plugins: [aurelia(), tailwindcss()],
+});
+```
+
+#### Webpack configuration
+
+Create `postcss.config.js`:
+
+```js
 export default {
   plugins: {
     '@tailwindcss/postcss': {},
-  }
-}
+  },
+};
 ```
 
-2. Ensure your `webpack.config.js` includes the PostCSS loader:
+Update `webpack.config.js` so `.css` files run through `postcss-loader`:
 
-```javascript
+```js
 module.exports = {
   module: {
     rules: [
@@ -70,27 +87,12 @@ module.exports = {
       },
     ],
   },
-}
+};
 ```
 
-#### Vite Configuration
+#### Parcel configuration
 
-Add the Tailwind CSS plugin to your `vite.config.js`:
-
-```javascript
-import { defineConfig } from 'vite'
-import tailwindcss from '@tailwindcss/vite'
-
-export default defineConfig({
-  plugins: [
-    tailwindcss(),
-  ],
-})
-```
-
-#### Parcel Configuration
-
-Create a `.postcssrc` file in your project root:
+Parcel reads PostCSS config automatically. Create `.postcssrc`:
 
 ```json
 {
@@ -100,101 +102,84 @@ Create a `.postcssrc` file in your project root:
 }
 ```
 
-### Step 4: Add Tailwind CSS to Your Styles
+#### CLI workflow
 
-Add this single line to the **top** of your main CSS file (for example `my-app.css`):
+If you aren’t using a bundler, wire up the CLI directly:
+
+```bash
+npx @tailwindcss/cli -i ./src/input.css -o ./dist/tailwind.css --watch
+```
+
+The CLI watches your HTML entry file and any imports it discovers, so the build remains tree-shaken even without a config file.
+
+### Step 4: Import Tailwind once
+
+Add this line to the top of your root stylesheet (for example `src/my-app.css`):
 
 ```css
 @import "tailwindcss";
 ```
 
-**Note**: In v4, you no longer need the `@tailwind` directives (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`). The single `@import` statement handles everything.
+This single import injects Tailwind’s base, component, and utility layers. The old `@tailwind base;` / `@tailwind utilities;` directives aren’t used in v4.
 
-## How to test it?
+### Step 5: Run the project
 
-In an easy way you can add the following Tailwind CSS snippet code to your project.
+```bash
+npm run dev
+```
 
-```css
+Tailwind’s compiler runs alongside your bundler, so editing Aurelia templates immediately updates the generated CSS.
+
+---
+
+## How to test Tailwind styles quickly
+
+Insert the following snippet into any view:
+
+```html
 <div class="p-6">
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-      <strong class="font-bold">Holy smokes!</strong>
-      <span class="block sm:inline">Something seriously bad happened.</span>
-      <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
-        <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-      </span>
-    </div>
+  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    <strong class="font-bold">Holy smokes!</strong>
+    <span class="block sm:inline">Something seriously bad happened.</span>
+    <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+      <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+    </span>
+  </div>
 </div>
 ```
 
-now you can run the project by
+Seeing the styled alert confirms that Tailwind’s classes are available in your bundle.
 
-```bash
-npm run start
-or
-yarn run
-```
+---
 
-## Content Detection and Optimization
+## Content detection & build optimization
 
-Tailwind CSS v4 includes **automatic content detection** - no configuration required. The framework automatically discovers all your template files and only includes the CSS you're actually using.
+Tailwind v4 automatically scans your project for class usage, removing unused styles during both dev and production builds. You no longer set `content: []` in `tailwind.config.js`. If you need to extend the theme or register plugins, create a config manually:
 
-### Traditional v3 Approach (No Longer Needed)
-
-In previous versions, you needed to manually configure content paths in `tailwind.config.js`:
-
-```javascript
-// NOT NEEDED IN v4
-module.exports = {
-  content: ['./src/**/*.html', './src/**/*.ts'],
-  // ...
-}
-```
-
-### v4 Automatic Detection
-
-In v4, this happens automatically with zero configuration. The framework:
-- Automatically finds all template files
-- Only includes CSS for classes you actually use
-- Optimizes bundle size without manual configuration
-
-### Manual Configuration (Optional)
-
-If you need custom configuration, you can create a `tailwind.config.js` file:
-
-```javascript
+```ts
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{html,ts}'],
   theme: {
     extend: {
-      // Your custom theme extensions
+      colors: {
+        brand: '#8250df',
+      },
     },
   },
   plugins: [],
-}
+};
 ```
 
-### Build Size Optimization
+During `npm run build`, Tailwind’s compiler and Lightning CSS minify the stylesheet and automatically add vendor prefixes.
 
-Tailwind CSS v4 automatically optimizes your CSS bundle size:
+---
 
-```bash
-npm run build
-```
+## Migrating from Tailwind v3
 
-The build process will automatically:
-- Remove unused CSS classes
-- Optimize the final bundle size
-- Include only the styles you're using
+1. Replace the old `@tailwind base/components/utilities` directives with `@import "tailwindcss";`
+2. Uninstall `autoprefixer` and `postcss` unless another tool in your stack needs them—Tailwind v4 handles prefixing internally.
+3. Remove manual `content` arrays unless you want to override the automatic detection.
+4. Install the new plugin for your bundler (`@tailwindcss/vite`, `@tailwindcss/postcss`, or `@tailwindcss/cli`).
 
-## Migration from v3 to v4
-
-If you're upgrading from Tailwind CSS v3:
-
-1. **Remove old directives**: Replace `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;` with `@import "tailwindcss";`
-
-2. **Update dependencies**: Install v4 packages (`tailwindcss@next`, `@tailwindcss/vite@next`, etc.)
-
-3. **Remove autoprefixer**: v4 handles vendor prefixing automatically
-
-4. **Optional config cleanup**: You can remove most `tailwind.config.js` content as v4 works with zero config
+After migrating, you benefit from zero-config tree shaking, smaller CSS bundles, and much faster incremental builds.

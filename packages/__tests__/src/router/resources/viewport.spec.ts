@@ -1,7 +1,8 @@
 import { IRouter, IRouteViewModel, Params, route, Router, ViewportCustomElement } from '@aurelia/router';
-import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/resources/viewport.spec.ts', function () {
 
@@ -41,10 +42,9 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const [vp1, vp2] = Array.from(host.querySelectorAll('au-viewport'));
     const vm1 = CustomElement.for<ViewportCustomElement>(vp1).viewModel;
     const vm2 = CustomElement.for<ViewportCustomElement>(vp2).viewModel;
@@ -54,17 +54,17 @@ describe('router/resources/viewport.spec.ts', function () {
     assert.html.textContent(vp2, '');
 
     await router.load('ce-two');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(vp1, 'ce2');
     assert.html.textContent(vp2, '');
 
     await router.load('ce-one');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(vp1, 'ce1');
     assert.html.textContent(vp2, '');
 
     await router.load('ce-two@$1+ce-one@$2');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(vp1, 'ce2');
     assert.html.textContent(vp2, 'ce1');
 
@@ -129,22 +129,21 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce1 ce11');
 
     await router.load('ce-two');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce2 ce21');
 
     await router.load('ce-one/ce-11');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce1 ce11');
 
     await router.load('ce-two@$1+ce-one@$2');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce2 ce21 ce1 ce11');
 
     await au.stop(true);
@@ -197,10 +196,9 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const [vp1, vp2] = Array.from(host.querySelectorAll('au-viewport'));
     const vm1 = CustomElement.for<ViewportCustomElement>(vp1).viewModel;
     const vm2 = CustomElement.for<ViewportCustomElement>(vp2).viewModel;
@@ -210,12 +208,12 @@ describe('router/resources/viewport.spec.ts', function () {
     assert.html.textContent(vp2, '');
 
     await router.load('ce-two/ce-21');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(vp1, 'ce2 ce21');
     assert.html.textContent(vp2, '');
 
     await router.load('ce-two@$2+ce-one@$1');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(vp1, 'ce1');
     assert.html.textContent(vp2, 'ce2 ce21');
 
@@ -258,14 +256,13 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce1');
 
     await router.load('ce-two/42@$2+ce-one@$1');
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce1 ce2 42');
 
     await au.stop(true);
@@ -312,24 +309,23 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll('au-viewport'));
     const vms = vps.map(vp => CustomElement.for<ViewportCustomElement>(vp).viewModel);
     assert.deepStrictEqual(vms.map(vm => vm.name), ['default', '$1', 'default', '$2', 'default']);
 
     await router.load('ce-one@$1');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', 'ce1', '', '', '']);
 
     await router.load('ce-one@$2+ce-two/42@$1');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', 'ce2 42', '', 'ce1', '']);
 
     await router.load('ce-one+ce-two/42');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['ce1', 'ce2 42', '', '', '']);
 
     await au.stop(true);
@@ -375,20 +371,19 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll('au-viewport'));
     const vms = vps.map(vp => CustomElement.for<ViewportCustomElement>(vp).viewModel);
     assert.deepStrictEqual(vms.map(vm => vm.name), ['default', '$1', 'default', '$2', 'default']);
 
     await router.load('ce-one');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', '', '', 'ce1', '']);
 
     await router.load('ce-one+ce-two/42');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', 'ce2 42', '', 'ce1', '']);
 
     try {
@@ -445,20 +440,19 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll('au-viewport'));
     const vms = vps.map(vp => CustomElement.for<ViewportCustomElement>(vp).viewModel);
     assert.deepStrictEqual(vms.map(vm => vm.name), ['default', '$1']);
 
     await router.load('ce-one');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', 'ce1']);
 
     await router.load('ce-two/42');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', 'ce2 42']);
 
     try {
@@ -510,22 +504,21 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll('au-viewport'));
 
     await router.load('ce-one');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', '', 'ce1']);
 
     await router.load('42/foo/43');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', '42 ce2 43', '']);
 
     await router.load('ce1+43/foo/42');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', '43 ce2 42', 'ce1']);
 
     await au.stop(true);
@@ -571,22 +564,21 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll('au-viewport'));
 
     await router.load('ce-one');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', 'ce1', '']);
 
     await router.load('42/foo/43');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', '42 ce2 43', '']);
 
     await router.load('43/foo/42+ce1');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['', '43 ce2 42', 'ce1']);
 
     try {
@@ -638,22 +630,21 @@ describe('router/resources/viewport.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-    const queue = container.get(IPlatform).domQueue;
     const router = container.get<Router>(IRouter);
 
-    await queue.yield();
+    await tasksSettled();
     const vps = Array.from(host.querySelectorAll('au-viewport'));
 
     await router.load('ce-one');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['ce1', '']);
 
     await router.load('42/foo/43');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['42 ce2 43', '']);
 
     await router.load('43/foo/42+ce1');
-    await queue.yield();
+    await tasksSettled();
     assertText(vps, ['43 ce2 42', 'ce1']);
 
     await au.stop(true);

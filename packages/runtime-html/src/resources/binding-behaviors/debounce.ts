@@ -20,7 +20,6 @@ export class DebounceBindingBehavior implements BindingBehaviorInstance {
       type: 'debounce',
       delay: delay ?? defaultDelay,
       now: this._platform.performanceNow,
-      queue: this._platform.taskQueue,
       signals: isString(signals) ? [signals] : (signals ?? emptyArray),
     };
     const handler = binding.limit?.(opts);
@@ -28,7 +27,7 @@ export class DebounceBindingBehavior implements BindingBehaviorInstance {
       /* istanbul ignore next */
       if (__DEV__) {
         // eslint-disable-next-line no-console
-        console.warn(`Binding ${binding.constructor.name} does not support debounce rate limiting`);
+        console.warn(`[DEV:aurelia] Binding ${binding.constructor.name} does not support debounce rate limiting`);
       }
     } else {
       bindingHandlerMap.set(binding, handler);

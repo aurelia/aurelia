@@ -4,10 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "enter or exit dev pre-mode"
+        description: "enter or exit prerelease mode"
         type: choice
         required: true
         options: [enter, exit]
+      tag:
+        description: "pre tag to use when entering (e.g. beta, rc, dev)"
+        type: string
+        required: false
+        default: beta
 
 permissions:
   contents: write
@@ -49,13 +54,13 @@ jobs:
         shell: bash
         run: |
           if [ "${{ inputs.action }}" = "enter" ]; then
-            npx changeset pre enter dev
-            echo "branch=ci/pre/enter-dev" >> "$GITHUB_OUTPUT"
-            echo "title=ci: enter dev pre-mode" >> "$GITHUB_OUTPUT"
+            npx changeset pre enter "${{ inputs.tag }}"
+            echo "branch=ci/pre/enter-${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "title=ci: enter ${{ inputs.tag }} pre-mode" >> "$GITHUB_OUTPUT"
           else
             npx changeset pre exit
-            echo "branch=ci/pre/exit-dev" >> "$GITHUB_OUTPUT"
-            echo "title=ci: exit dev pre-mode" >> "$GITHUB_OUTPUT"
+            echo "branch=ci/pre/exit" >> "$GITHUB_OUTPUT"
+            echo "title=ci: exit pre-mode" >> "$GITHUB_OUTPUT"
           fi
 
       - name: No-op (already in requested state)
@@ -70,6 +75,7 @@ jobs:
           title: ${{ steps.meta.outputs.title }}
           branch: ${{ steps.meta.outputs.branch }}
           body: |
-            Automated PR to ${{ inputs.action }} dev pre-release mode.
+            Automated PR to **${{ inputs.action }}** prerelease mode
+            (tag: **${{ inputs.tag }}** on enter).
           labels: ci, release
           delete-branch: true

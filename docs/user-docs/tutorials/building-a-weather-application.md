@@ -82,10 +82,11 @@ Create a **Weather Service** to handle API requests:
 
 ```typescript
 // src/services/weather-service.ts
-import { HttpClient } from '@aurelia/fetch-client';
+import { resolve } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
 
 export class WeatherService {
-  private http: HttpClient = new HttpClient();
+  private http = resolve(IHttpClient);
   private apiKey = 'YOUR_API_KEY';
   private baseUrl = 'https://api.openweathermap.org/data/2.5/';
 
@@ -112,16 +113,15 @@ Create a **component** that fetches weather data and manages state:
 
 ```typescript
 // src/components/weather-dashboard.ts
-import { ICustomElementViewModel, inject } from 'aurelia';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 import { WeatherService } from '../services/weather-service';
 
-@inject(WeatherService)
 export class WeatherDashboard implements ICustomElementViewModel {
+  private weatherService = resolve(WeatherService);
   public city = 'Brisbane';
   public weatherData: any = null;
   public errorMessage: string | null = null;
-
-  constructor(private weatherService: WeatherService) {}
 
   async attached() {
     await this.fetchWeather();

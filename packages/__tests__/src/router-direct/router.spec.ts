@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-direct';
-import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
+import { IDomQueue, IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-direct';
+import { CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('router-direct/router.spec.ts', function () {
@@ -179,9 +179,10 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates to foo in left', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
 
     await tearDown();
@@ -206,11 +207,12 @@ describe('router-direct/router.spec.ts', function () {
   it('clears viewport', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
-    await $load('-@left', router, platform);
+    await $load('-@left', router, queue);
     assert.notIncludes(host.textContent, 'foo', `host.textContent`);
 
     await tearDown();
@@ -219,13 +221,14 @@ describe('router-direct/router.spec.ts', function () {
   it('clears all viewports', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    await $load('bar@right', router, platform);
+    await $load('bar@right', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    await $load('-', router, platform);
+    await $load('-', router, queue);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -235,10 +238,11 @@ describe('router-direct/router.spec.ts', function () {
   it('replaces foo in left', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
     const historyLength = router.viewer.history.length;
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.strictEqual(router.viewer.history.length, historyLength + 1, `router.viewer.history.length, actual after foo: ${router.viewer.history.length}`);
 
@@ -253,9 +257,10 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates to bar in right', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar@right', router, platform);
+    await $load('bar@right', router, queue);
     assert.includes(host.textContent, 'bar', `host.textContent`);
 
     await tearDown();
@@ -264,13 +269,14 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates to foo in left then bar in right', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $load('bar@right', router, platform);
+    await $load('bar@right', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -280,13 +286,14 @@ describe('router-direct/router.spec.ts', function () {
   it('reloads state when refresh method is called', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $load('bar@right', router, platform);
+    await $load('bar@right', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -300,13 +307,14 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates back and forward with one viewport', async function () {
     this.timeout(40000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $load('bar@left', router, platform);
+    await $load('bar@left', router, queue);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -326,13 +334,14 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates back and forward with two viewports', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $load('bar@right', router, platform);
+    await $load('bar@right', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -352,9 +361,10 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates to foo/bar in left/right', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left+bar@right', router, platform);
+    await $load('foo@left+bar@right', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.includes(host.textContent, 'bar', `host.textContent`);
 
@@ -364,15 +374,16 @@ describe('router-direct/router.spec.ts', function () {
   it('cancels if not canUnload', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
     quxCantUnload = 1;
 
-    await $load('baz@left+qux@right', router, platform);
+    await $load('baz@left+qux@right', router, queue);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
 
-    await $load('foo@left+bar@right', router, platform);
+    await $load('foo@left+bar@right', router, queue);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -384,16 +395,17 @@ describe('router-direct/router.spec.ts', function () {
   it('cancels if not child canUnload', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
     quxCantUnload = 1;
 
-    await $load('foo@left/qux@foo+uier@right', router, platform);
+    await $load('foo@left/qux@foo+uier@right', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
 
-    await $load('bar@left+baz@right', router, platform);
+    await $load('bar@left+baz@right', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
@@ -406,10 +418,11 @@ describe('router-direct/router.spec.ts', function () {
   it('navigates to foo/bar in left/right containing baz/qux respectively', async function () {
     this.timeout(15000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
     // await $load('foo@left+bar@right+baz@foo+qux@bar', router, platform);
-    await $load('foo@left/baz@foo+bar@right/qux@bar', router, platform);
+    await $load('foo@left/baz@foo+bar@right/qux@bar', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
@@ -421,14 +434,15 @@ describe('router-direct/router.spec.ts', function () {
   it('handles anchor click', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture({ useHref: true });
+    const { container, host, router, tearDown } = await createFixture({ useHref: true });
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
+    await $load('foo@left', router, queue);
     assert.includes(host.textContent, 'foo', `host.textContent`);
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -467,7 +481,8 @@ describe('router-direct/router.spec.ts', function () {
       public constructor() { this['IdName'] = IdName; }
     }
 
-    const { host, router, container, tearDown, platform } = await createFixture({ useHref: false }, App);
+    const { host, router, container, tearDown } = await createFixture({ useHref: false }, App);
+    const queue = container.get(IDomQueue);
 
     container.register(IdName);
 
@@ -476,7 +491,7 @@ describe('router-direct/router.spec.ts', function () {
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 
-      await platform.domQueue.yield();
+      await queue.yield();
 
       assert.includes(host.textContent, '|id-name|', `host.textContent`);
       assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
@@ -491,12 +506,13 @@ describe('router-direct/router.spec.ts', function () {
   it('understands used-by', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('corge@left', router, platform);
+    await $load('corge@left', router, queue);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-    await $load('corge@left/baz', router, platform);
+    await $load('corge@left/baz', router, queue);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await tearDown();
@@ -505,25 +521,26 @@ describe('router-direct/router.spec.ts', function () {
   it('does not update fullStatePath on wrong history entry', async function () {
     this.timeout(40000);
 
-    const { platform, router, tearDown } = await createFixture();
+    const { container, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('foo@left', router, platform);
-    await $load('bar@left', router, platform);
-    await $load('baz@left', router, platform);
-
+    await $load('foo@left', router, queue);
+    await $load('bar@left', router, queue);
+    await $load('baz@left', router, queue);
     await tearDown();
   });
 
   it('parses parameters after component', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar(123)@left', router, platform);
+    await $load('bar(123)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $load('bar(456)@left', router, platform);
+    await $load('bar(456)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
@@ -533,13 +550,14 @@ describe('router-direct/router.spec.ts', function () {
   it('parses named parameters after component', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar(id=123)@left', router, platform);
+    await $load('bar(id=123)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $load('bar(id=456)@left', router, platform);
+    await $load('bar(id=456)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
@@ -549,13 +567,14 @@ describe('router-direct/router.spec.ts', function () {
   it('parses parameters after component individually', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar(123)@left', router, platform);
+    await $load('bar(123)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $load('bar(456)@right', router, platform);
+    await $load('bar(456)@right', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
@@ -566,9 +585,10 @@ describe('router-direct/router.spec.ts', function () {
   it('parses parameters without viewport', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('corge@left/baz(123)', router, platform);
+    await $load('corge@left/baz(123)', router, queue);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
@@ -579,9 +599,10 @@ describe('router-direct/router.spec.ts', function () {
   it('parses named parameters without viewport', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('corge@left/baz(id=123)', router, platform);
+    await $load('corge@left/baz(id=123)', router, queue);
 
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
@@ -593,14 +614,15 @@ describe('router-direct/router.spec.ts', function () {
   it('parses multiple parameters after component', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar(123,OneTwoThree)@left', router, platform);
+    await $load('bar(123,OneTwoThree)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $load('bar(456,FourFiveSix)@left', router, platform);
+    await $load('bar(456,FourFiveSix)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -611,14 +633,15 @@ describe('router-direct/router.spec.ts', function () {
   it('parses multiple name parameters after component', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar(id=123,name=OneTwoThree)@left', router, platform);
+    await $load('bar(id=123,name=OneTwoThree)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $load('bar(name=FourFiveSix,id=456)@left', router, platform);
+    await $load('bar(name=FourFiveSix,id=456)@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -629,13 +652,14 @@ describe('router-direct/router.spec.ts', function () {
   it('parses querystring', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('bar@left?id=123', router, platform);
+    await $load('bar@left?id=123', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $load('bar@left?id=456&name=FourFiveSix', router, platform);
+    await $load('bar@left?id=456&name=FourFiveSix', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -654,21 +678,22 @@ describe('router-direct/router.spec.ts', function () {
     //   browserTitle = title;
     // };
 
-    const { platform, host, router, tearDown } = await createFixture(void 0, void 0);
+    const { container, host, router, tearDown } = await createFixture(void 0, void 0);
+    const queue = container.get(IDomQueue);
 
     let url = 'bar(456)@left?id=123';
-    await $load(url, router, platform);
+    await $load(url, router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
     url = 'bar(456,FourFiveSix)@left?id=123&name=OneTwoThree';
-    await $load(url, router, platform);
+    await $load(url, router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
 
     url = 'bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree';
-    await $load(url, router, platform);
+    await $load(url, router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);
@@ -679,21 +704,22 @@ describe('router-direct/router.spec.ts', function () {
   it('uses default reload behavior', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('plugh(123)@left', router, platform);
+    await $load('plugh(123)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    await $load('plugh(123)@left', router, platform);
+    await $load('plugh(123)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    await $load('plugh(456)@left', router, platform);
+    await $load('plugh(456)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    await $load('plugh(456)@left', router, platform);
+    await $load('plugh(456)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
@@ -703,43 +729,44 @@ describe('router-direct/router.spec.ts', function () {
   it('uses overriding reload behavior', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
     plughReloadBehavior = 'default';
     // This should default
-    await $load('plugh(123)@left', router, platform);
+    await $load('plugh(123)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     let component = (router.getEndpoint('Viewport', 'left') as Viewport).getContent().componentInstance;
     component.reloadBehavior = 'reload';
     // This should reload
-    await $load('plugh(123)@left', router, platform);
+    await $load('plugh(123)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
     component.reloadBehavior = 'refresh';
     // This should refresh
-    await $load('plugh(456)@left', router, platform);
+    await $load('plugh(456)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
     component = (router.getEndpoint('Viewport', 'left') as Viewport).getContent().componentInstance;
 
     component.reloadBehavior = 'default';
     // This should default
-    await $load('plugh(456)@left', router, platform);
+    await $load('plugh(456)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     component.reloadBehavior = 'reload';
     // This should reload
-    await $load('plugh(123)@left', router, platform);
+    await $load('plugh(123)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
     component.reloadBehavior = 'disallow';
     // This should disallow
-    await $load('plugh(456)@left', router, platform);
+    await $load('plugh(456)@left', router, queue);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
@@ -750,30 +777,31 @@ describe('router-direct/router.spec.ts', function () {
   it.skip('loads default when added by if condition becoming true', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('grault@left', router, platform);
+    await $load('grault@left', router, queue);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -787,31 +815,32 @@ describe('router-direct/router.spec.ts', function () {
   it.skip('keeps input when stateful', async function () {
     this.timeout(15000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('grault@left', router, platform);
+    await $load('grault@left', router, queue);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     // NOT going to work since it loads non-stateful parent grault
-    await $load('grault@left/corge@grault', router, platform);
+    await $load('grault@left/corge@grault', router, queue);
 
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-    await $load('grault@left/garply@grault', router, platform);
+    await $load('grault@left/garply@grault', router, queue);
 
     assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -825,9 +854,10 @@ describe('router-direct/router.spec.ts', function () {
   it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('waldo@left', router, platform);
+    await $load('waldo@left', router, queue);
     assert.includes(host.textContent, 'Viewport: waldo', `host.textContent`);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
@@ -835,19 +865,19 @@ describe('router-direct/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await $load('waldo@left/foo@waldo', router, platform);
+    await $load('waldo@left/foo@waldo', router, queue);
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
 
-    await $load('waldo@left/grault@waldo', router, platform);
+    await $load('waldo@left/grault@waldo', router, queue);
 
     assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
@@ -863,7 +893,8 @@ describe('router-direct/router.spec.ts', function () {
   it.skip('keeps children\'s custom element\'s input when navigation history stateful', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown, container } = await createFixture({ statefulHistoryLength: 2 });
+    const { container, host, router, tearDown } = await createFixture({ statefulHistoryLength: 2 });
+    const queue = container.get(IDomQueue);
 
     const GrandGrandChild = CustomElement.define({ name: 'grandgrandchild', template: '|grandgrandchild|<input>' }, null);
     const GrandChild = CustomElement.define({ name: 'grandchild', template: '|grandchild|<input> <grandgrandchild></grandgrandchild>', dependencies: [GrandGrandChild] }, null);
@@ -874,7 +905,7 @@ describe('router-direct/router.spec.ts', function () {
 
     const values = ['parent', 'child', false, 'child-hidden', 'grandchild', 'grandgrandchild'];
 
-    await $load('parent@left/child@parent/grandchild@child', router, platform);
+    await $load('parent@left/child@parent/grandchild@child', router, queue);
 
     assert.includes(host.textContent, '|parent|', `host.textContent`);
     assert.includes(host.textContent, '|child|', `host.textContent`);
@@ -893,7 +924,7 @@ describe('router-direct/router.spec.ts', function () {
       }
     }
 
-    await $load('parent@left/sibling@parent', router, platform);
+    await $load('parent@left/sibling@parent', router, queue);
 
     assert.includes(host.textContent, '|parent|', `host.textContent`);
     assert.includes(host.textContent, '|sibling|', `host.textContent`);
@@ -924,24 +955,25 @@ describe('router-direct/router.spec.ts', function () {
   it.skip('loads scoped viewport', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { container, host, router, tearDown } = await createFixture();
+    const queue = container.get(IDomQueue);
 
-    await $load('quux@left', router, platform);
+    await $load('quux@left', router, queue);
     assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
 
-    await $load('quux@quux!', router, platform);
+    await $load('quux@quux!', router, queue);
     assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
 
-    await $load('quux@left/foo@quux!', router, platform);
+    await $load('quux@left/foo@quux!', router, queue);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
 
-    await platform.domQueue.yield();
+    await queue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
-    await $load('bar@left', router, platform);
+    await $load('bar@left', router, queue);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: quux', `host.textContent`);
 
@@ -952,9 +984,9 @@ describe('router-direct/router.spec.ts', function () {
 let quxCantUnload = 0;
 let plughReloadBehavior = 'default';
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.flush();
 };
 
 const wait = async (time = 500) => {

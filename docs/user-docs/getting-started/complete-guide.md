@@ -11,7 +11,7 @@ description: >-
 
 Build a polished task management app while experiencing Aurelia's key advantages:
 - **🚀 Instant two-way data binding** - no boilerplate code required
-- **⚡ Blazing fast rendering** - direct DOM updates, no virtual DOM overhead  
+- **⚡ Blazing fast rendering** - direct DOM updates, no virtual DOM overhead
 - **🎯 Intuitive component model** - clean, testable architecture
 - **🛠️ Modern TypeScript development** - with built-in dependency injection
 
@@ -20,7 +20,7 @@ Build a polished task management app while experiencing Aurelia's key advantages
 ## Prerequisites
 
 You'll need:
-- **Node.js 16+** ([Download here](https://nodejs.org/))
+- **Node.js 18+ (recommended latest LTS)** ([Download here](https://nodejs.org/))
 - **A code editor** ([VS Code](https://code.visualstudio.com/) recommended)
 - **Basic knowledge** of HTML, CSS, and JavaScript
 
@@ -36,10 +36,10 @@ Want to see Aurelia in action immediately? Copy this into an HTML file:
 </head>
 <body>
   <my-app></my-app>
-  
+
   <script type="module">
     import Aurelia, { CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
-    
+
     const App = CustomElement.define({
       name: 'my-app',
       template: `
@@ -50,7 +50,7 @@ Want to see Aurelia in action immediately? Copy this into an HTML file:
     }, class {
       name = 'World';
     });
-    
+
     new Aurelia()
       .app({ component: App, host: document.querySelector('my-app') })
       .start();
@@ -113,18 +113,16 @@ Aurelia apps are built with **components**. Each component has two parts:
 ```typescript
 export class MyApp {
   message = 'Hello World!';
-  
+
   // Methods and properties go here
 }
 ```
 
-### View (Template)  
+### View (Template)
 **`src/my-app.html`**:
 ```html
-<template>
-  <h1>${message}</h1>
-  <!-- HTML template goes here -->
-</template>
+<h1>${message}</h1>
+<!-- HTML template goes here -->
 ```
 
 The `${}` syntax binds data from your view-model to the template. When `message` changes, the `<h1>` automatically updates!
@@ -138,49 +136,47 @@ Let's transform the hello world app into a task manager. We'll build it step by 
 Replace contents of **`src/my-app.html`**:
 
 ```html
-<template>
-  <div class="app">
-    <h1>My Task Manager</h1>
-    
-    <!-- Add new task form -->
-    <div class="add-task">
-      <input 
-        value.bind="newTaskText" 
-        placeholder="Enter a new task..."
-        keydown.trigger="addTaskOnEnter($event)">
-      <button click.trigger="addTask()">Add Task</button>
-    </div>
-    
-    <!-- Task counter -->
-    <p class="task-count">
-      ${tasks.length} task${tasks.length === 1 ? '' : 's'} total
-    </p>
-    
-    <!-- Task list -->
-    <ul class="task-list">
-      <li repeat.for="task of tasks" class="task-item">
-        <label class="task-label">
-          <input 
-            type="checkbox" 
-            checked.bind="task.completed"
-            change.trigger="updateTaskCount()">
-          <span class="${task.completed ? 'completed' : ''}">${task.text}</span>
-        </label>
-        <button click.trigger="removeTask(task)" class="remove-btn">×</button>
-      </li>
-    </ul>
-    
-    <!-- Empty state -->
-    <p if.bind="tasks.length === 0" class="empty-state">
-      No tasks yet. Add one above!
-    </p>
-    
-    <!-- Completed tasks counter -->
-    <p if.bind="completedTaskCount > 0" class="completed-count">
-      ✅ ${completedTaskCount} completed
-    </p>
+<div class="app">
+  <h1>My Task Manager</h1>
+
+  <!-- Add new task form -->
+  <div class="add-task">
+    <input
+      value.bind="newTaskText"
+      placeholder="Enter a new task..."
+      keydown.trigger="addTaskOnEnter($event)">
+    <button click.trigger="addTask()">Add Task</button>
   </div>
-</template>
+
+  <!-- Task counter -->
+  <p class="task-count">
+    ${tasks.length} task${tasks.length === 1 ? '' : 's'} total
+  </p>
+
+  <!-- Task list -->
+  <ul class="task-list">
+    <li repeat.for="task of tasks" class="task-item">
+      <label class="task-label">
+        <input
+          type="checkbox"
+          checked.bind="task.completed"
+          change.trigger="updateTaskCount()">
+        <span class="${task.completed ? 'completed' : ''}">${task.text}</span>
+      </label>
+      <button click.trigger="removeTask(task)" class="remove-btn">×</button>
+    </li>
+  </ul>
+
+  <!-- Empty state -->
+  <p if.bind="tasks.length === 0" class="empty-state">
+    No tasks yet. Add one above!
+  </p>
+
+  <!-- Completed tasks counter -->
+  <p if.bind="completedTaskCount > 0" class="completed-count">
+    ✅ ${completedTaskCount} completed
+  </p>
+</div>
 ```
 
 ### Step 4: Update the Logic
@@ -388,10 +384,10 @@ h1 {
 
 Save your files and check your browser. You now have a fully functional task manager! Try:
 
-- ✅ **Adding tasks** by typing and clicking "Add Task" or pressing Enter
-- ✅ **Completing tasks** by checking the checkboxes  
-- ✅ **Removing tasks** by clicking the × button
-- ✅ **Watching the counters** update automatically
+- **Adding tasks** by typing and clicking "Add Task" or pressing Enter
+- **Completing tasks** by checking the checkboxes
+- **Removing tasks** by clicking the × button
+- **Watching the counters** update automatically
 
 ## Key Concepts You Just Learned
 

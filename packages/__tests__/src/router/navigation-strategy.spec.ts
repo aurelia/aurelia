@@ -1,8 +1,9 @@
 import { resolve } from '@aurelia/kernel';
 import { IRouter, IRouteViewModel, ITypedNavigationInstruction_string, NavigationStrategy, Params, route, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/navigation-strategy.spec.ts', function () {
   @customElement({ name: 'c-1', template: 'c1' })
@@ -449,7 +450,6 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-    const taskQueue = container.get(IPlatform).taskQueue;
 
     assert.html.textContent(host, '', 'initial');
 
@@ -458,8 +458,7 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     // resolve the promise to trigger the navigation
     resolver!();
-    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
-    await taskQueue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'p1 c2', 'initial');
 
     await au.stop(true);
@@ -519,7 +518,6 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-    const taskQueue = container.get(IPlatform).taskQueue;
 
     assert.html.textContent(host, '', 'initial');
 
@@ -528,8 +526,7 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     // resolve the promise to trigger the navigation
     resolver!();
-    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
-    await taskQueue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'p1 c12 gc12', 'post-data-load');
 
     await au.stop(true);
@@ -605,7 +602,6 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-    const taskQueue = container.get(IPlatform).taskQueue;
 
     assert.html.textContent(host, '', 'initial');
 
@@ -614,8 +610,7 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     // resolve the promise to trigger the navigation
     resolvers[1]();
-    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
-    await taskQueue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'p1 c12 1 gc12', 'post-data-load');
 
     // reset to some other route in the p-1 hierarchy
@@ -627,8 +622,7 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     // resolve the promise to trigger the navigation
     resolvers[2]();
-    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
-    await taskQueue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'p1 c12 2 gc12', 'post-data-load 2');
 
     // go to p-2
@@ -645,8 +639,7 @@ describe('router/navigation-strategy.spec.ts', function () {
 
     // resolve the promise to trigger the navigation
     resolvers[3]();
-    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
-    await taskQueue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'p1 c12 3 gc12', 'post-data-load 3');
 
     await au.stop(true);

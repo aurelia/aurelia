@@ -2,6 +2,7 @@ import { CustomElement, INode } from '@aurelia/runtime-html';
 import { IWcElementRegistry } from '@aurelia/web-components';
 import { assert, createFixture } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
+import { resolve } from '@aurelia/kernel';
 
 describe('3-runtime-html/web-components.spec.ts', function () {
   // do not test in JSDOM
@@ -9,35 +10,29 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     return;
   }
   describe('define', function () {
-    it('throws on invalid WC element name', async function () {
-      const { container, tearDown } = await createFixture(
+    it('throws on invalid WC element name', function () {
+      const { container } = createFixture(
         `<my-element>`,
         class App { }
-      ).started;
+      );
 
       assert.throws(() => container.get(IWcElementRegistry).define('myelement', class MyElement { }));
-
-      await tearDown();
     });
 
-    it('throws on containerless WC element', async function () {
-      const { container, tearDown } = await createFixture(
+    it('throws on containerless WC element', function () {
+      const { container } = createFixture(
         `<my-element>`,
         class App { },
-      ).started;
-
+      );
       assert.throws(() => container.get(IWcElementRegistry).define('myelement', class MyElement { public static containerless = true; }));
       assert.throws(() => container.get(IWcElementRegistry).define('myelement', { containerless: true }));
-
-      await tearDown();
     });
 
     it('works with basic plain class', async function () {
-      const { container, appHost, tearDown } = await createFixture(
+      const { container, appHost } = createFixture(
         `<my-element>`,
         class App { },
-      ).started;
-
+      );
       container.get(IWcElementRegistry).define('my-element', class MyElement {
         public static template = `\${message}`;
 
@@ -45,28 +40,24 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       });
 
       assert.html.textContent(appHost, 'hello world');
-      await tearDown();
     });
 
-    it('works with literal object element definition', async function () {
-      const { container, appHost, tearDown } = await createFixture(
+    it('works with literal object element definition', function () {
+      const { container, appHost } = createFixture(
         `<my-element-1>`,
         class App { },
-      ).started;
+      );
 
       container.get(IWcElementRegistry).define('my-element-1', { template: 'hello world' });
 
       assert.html.textContent(appHost, 'hello world');
-
-      await tearDown();
     });
 
-    it('works with Au custom element class', async function () {
-      const { container, appHost, tearDown } = await createFixture(
+    it('works with Au custom element class', function () {
+      const { container, appHost } = createFixture(
         `<my-element-2>`,
         class App { },
-      ).started;
-
+      );
       container.get(IWcElementRegistry).define(
         'my-element-2',
         CustomElement.define({ name: '1', template: `\${message}` }, class MyElement {
@@ -75,29 +66,26 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       );
 
       assert.html.textContent(appHost, 'hello world');
-      await tearDown();
     });
 
-    it('extends built-in elemenet', async function () {
-      const { container, appHost, tearDown } = await createFixture(
+    it('extends built-in elemenet', function () {
+      const { container, appHost } = createFixture(
         `<button is="my-btn-1">`,
         class App { },
-      ).started;
+      );
 
       container.get(IWcElementRegistry).define('my-btn-1', { template: '<div>hello world</div>' }, { extends: 'button' });
 
       assert.html.innerEqual(appHost.querySelector('button'), '<div>hello world</div>');
-
-      await tearDown();
     });
 
     it('observes attribute on normal custom element', async function () {
-      const { container, appHost, component, tearDown } = await createFixture(
+      const { container, appHost, component } = createFixture(
         `<my-element-3 message.attr="message">`,
         class App {
           public message = 'hello world';
         },
-      ).started;
+      );
 
       container.get(IWcElementRegistry).define(
         'my-element-3',
@@ -115,8 +103,6 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       await tasksSettled();
       assert.html.textContent(appHost, 'hello');
-
-      await tearDown();
     });
 
     it('observes attribute on extended built-in custom element', async function () {
@@ -241,6 +227,29 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       assert.html.innerEqual(myEl8.shadowRoot, '<div>hello world</div>');
 
       await tearDown();
+    });
+
+    it('declares right observed attribute', async function () {
+      const { container } = createFixture(`<my-element-9>`, class App { });
+
+      const called = [];
+      container.get(IWcElementRegistry).define('my-element-9', class {
+          public static bindables = ['myAttr'];
+
+          host = resolve(INode) as Element;
+
+          attached() {
+            this.host.setAttribute('my-attr', 'initial');
+          }
+
+          myAttrChanged(newValue: string, oldValue: string) {
+            called.push({ name: 'my-attr', oldValue, newValue });
+          }
+      });
+
+      assert.deepStrictEqual(called, [
+        { name: 'my-attr', oldValue: undefined, newValue: 'initial' }
+      ]);
     });
   });
 

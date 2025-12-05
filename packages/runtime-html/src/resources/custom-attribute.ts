@@ -1,4 +1,4 @@
-import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString, ILogger } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getEffectiveParentNode } from '../dom';
@@ -117,7 +117,6 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 }
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
-  public static warnDuplicate = true;
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
   public get type(): 'custom-attribute' { return dtAttribute; }
 
@@ -174,22 +173,15 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     const key = typeof aliasName === 'string' ? getAttributeKeyFrom(aliasName) : this.key;
     const aliases = this.aliases;
 
-    if (!container.has(key, false)) {
-      container.register(
-        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
-        aliasRegistration($Type, key),
-        ...aliases.map(alias => aliasRegistration($Type, getAttributeKeyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else {
-      if (CustomAttributeDefinition.warnDuplicate) {
-        container.get(ILogger).warn(createMappedError(ErrorNames.attribute_existed, this.name));
-      }
-      /* istanbul ignore if */
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, this.name)}`);
-      }
+    if (container.has(key, false)) {
+      // eslint-disable-next-line no-console
+      console.warn(createMappedError(ErrorNames.attribute_existed, this.name));
     }
+
+    container.register(
+      singletonRegistration(key, $Type),
+      ...aliases.map(alias => aliasRegistration(key, getAttributeKeyFrom(alias)))
+    );
   }
 
   public toString() {

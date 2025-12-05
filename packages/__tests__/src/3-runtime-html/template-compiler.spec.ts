@@ -5,11 +5,11 @@ import {
   kebabCase,
 } from '@aurelia/kernel';
 import {
-  Interpolation,
-  AccessScopeExpression,
-  PrimitiveLiteralExpression,
   IExpressionParser,
   ExpressionParser,
+  createInterpolation,
+  createAccessScopeExpression,
+  createPrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import {
   bindable,
@@ -204,7 +204,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               surrogates,
               [
                 { toVerify: ['type', 'to', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [
-                  new InterpolationInstruction(new Interpolation(['', ''], [new AccessScopeExpression('bar')]), 'value')
+                  new InterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bar')]), 'value')
                 ]}
               ],
               'surrogate'
@@ -338,7 +338,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           verifyInstructions(instructions[0], [
             { toVerify: ['type', 'from', 'to', 'capture'],
               type: TT.listenerBinding,
-              from: new PrimitiveLiteralExpression(1),
+              from: createPrimitiveLiteralExpression(1),
               to: 'foo',
               capture: false
             },
@@ -380,17 +380,17 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(hydratePropAttrInstruction.props, [
               {
                 toVerify: ['type', 'to', 'from'],
-                type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('p')
+                type: TT.propertyBinding, to: 'value', from: createAccessScopeExpression('p')
               }
             ]);
             verifyInstructions(hydratePropAttrInstruction.def.instructions[0], [
               {
                 toVerify: ['type', 'to', 'from'],
-                type: TT.propertyBinding, to: 'name', from: new AccessScopeExpression('name')
+                type: TT.propertyBinding, to: 'name', from: createAccessScopeExpression('name')
               },
               {
                 toVerify: ['type', 'to', 'from'],
-                type: TT.propertyBinding, to: 'title', from: new AccessScopeExpression('title')
+                type: TT.propertyBinding, to: 'title', from: createAccessScopeExpression('title')
               },
             ]);
           });
@@ -432,7 +432,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 verifyInstructions(templateControllerInst.props, [
                   {
                     toVerify: ['type', 'to', 'from'],
-                    type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('value')
+                    type: TT.propertyBinding, to: 'value', from: createAccessScopeExpression('value')
                   }
                 ]);
                 const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
@@ -1653,7 +1653,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new PropertyBindingInstruction(new AccessScopeExpression('id'), 'id', BindingMode.toView)]
+          [new PropertyBindingInstruction(createAccessScopeExpression('id'), 'id', BindingMode.toView)]
         );
       });
 
@@ -1663,7 +1663,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new InterpolationInstruction(new Interpolation(['', 'a'], [new AccessScopeExpression('a')]), 'id')]
+          [new InterpolationInstruction(createInterpolation(['', 'a'], [createAccessScopeExpression('a')]), 'id')]
         );
       });
 
@@ -1688,7 +1688,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           // default value is '' attr pattern changed it to 'bb'
-          [new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'id', BindingMode.toView)]
+          [new PropertyBindingInstruction(createAccessScopeExpression('bb'), 'id', BindingMode.toView)]
         );
       });
 
@@ -1703,7 +1703,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
-            new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
+            new PropertyBindingInstruction(createAccessScopeExpression('bb'), 'value', BindingMode.toView)
           ])]
         );
       });
@@ -1720,7 +1720,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           result.instructions[0],
           [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
             // this bindingMode.toView is because it's from defaultBindingMode on `@customAttribute`
-            new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
+            new PropertyBindingInstruction(createAccessScopeExpression('bb'), 'value', BindingMode.toView)
           ])]
         );
       });
@@ -1738,7 +1738,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
-            new InterpolationInstruction(new Interpolation(['', ''], [new AccessScopeExpression('bb')]), 'value')
+            new InterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bb')]), 'value')
           ])]
         );
       });

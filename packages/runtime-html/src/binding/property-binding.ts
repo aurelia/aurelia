@@ -22,7 +22,7 @@ import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
-import { activating } from '../templating/controller';
+import { activated, activating } from '../templating/controller';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -90,7 +90,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public handleChange(): void {
-    if (!this.isBound) return;
+    if (!this.isBound || this._controller.state > activated) return;
 
     const shouldQueue = this._controller.state !== activating && (this._targetObserver!.type & atLayout) > 0;
     if (shouldQueue) {

@@ -6,6 +6,8 @@ Forget static HTML pages. Aurelia 2 templates are living, breathing views that a
 
 From the moment you initiate an Aurelia 2 project, you'll find yourself working with templates that are both comfortably familiar in their HTML structure and remarkably powerful in their extended capabilities. Whether you're structuring the layout for a complex component or simply displaying data within your HTML, Aurelia 2's templating syntax is meticulously designed to be both highly expressive and exceptionally developer-friendly, making UI development a truly enjoyable and productive process.
 
+If you need even finer control, dive into the focused guides linked throughout this section—for example, [binding mode behaviors](../binding-behaviors.md#binding-mode-behaviors) for forcing one-time/one-way flow on demand, or the new [event modifier catalog](event-binding.md#event-modifiers) for tailoring DOM events.
+
 ## Key Features of Aurelia Templating
 
 Aurelia's templating engine is packed with features designed to enhance your UI development workflow and capabilities:
@@ -21,3 +23,15 @@ Aurelia's templating engine is packed with features designed to enhance your UI 
 - **Simplified Data Integration with Expressions and Interpolation:**  Seamlessly integrate your application data into your templates using Aurelia's straightforward expression syntax.  Effortlessly bind data to HTML elements and manipulate attributes directly within your templates using interpolation, making data display and interaction a breeze.
 
 Aurelia 2's templating system is more than just a way to write HTML; it's a comprehensive toolkit for building modern, dynamic web applications with efficiency and elegance. By embracing its features, you'll unlock a more productive and enjoyable UI development experience.
+
+## Learn the Syntax by Topic
+
+Jump straight into the focused articles that break down each template capability:
+
+- **Text & expression binding** – Start with the [text interpolation guide](text-interpolation.md) to master `${ }` expressions and formatting tips.
+- **Attribute & property binding** – Control DOM attributes, classes, and styles with the [attribute binding reference](attribute-binding.md).
+- **Event handling** – Wire up DOM interactions plus modifiers using the [event binding guide](event-binding.md#event-modifiers).
+- **Template references** – Capture DOM elements, child components, or controllers via the [template reference walkthrough](template-references.md).
+- **Template variables** – Share computed values inside markup with the [template variables guide](template-variables.md).
+- **Async UI flows** – Render placeholders or await data using the [template promises article](template-promises.md).
+- **Advanced scenarios** – Combine bindings with conditionals, loops, and partials in the [recipes collection](../recipes/README.md) and [forms guide](../forms/README.md).

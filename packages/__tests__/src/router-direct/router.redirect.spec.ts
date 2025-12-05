@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { IDomQueue, IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router-direct';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.redirect.spec.ts', function () {
@@ -193,56 +193,57 @@ describe('router-direct/router.redirect.spec.ts', function () {
       for (const routes of routeSets) {
         for (const test of tests) {
           it(`to route in canLoad (${test.load})`, async function () {
-            const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
+            const { container, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
+            const queue = container.get(IDomQueue);
 
             // 0) Default root page
             assert.strictEqual(host.textContent, '!root!', '0) root default page');
             assert.strictEqual(locationPath, '/', '0) root path');
 
             // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
-            await $load('-', router, platform);
+            await $load('-', router, queue);
 
             assert.strictEqual(host.textContent, '!root!', `1) ${test.load} -`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
 
             // 2) Load the wanted page
-            await $load(test.load, router, platform);
+            await $load(test.load, router, queue);
 
             assert.strictEqual(host.textContent, test.result, `2) ${test.load}`);
             assert.strictEqual(locationPath, test.path, `2) ${test.load} path`);
 
             // 3) Unload
-            await $load('-', router, platform);
+            await $load('-', router, queue);
 
             assert.strictEqual(host.textContent, '!root!', `3) ${test.load} -`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
 
             // 4) reload
-            await $load(test.load, router, platform);
+            await $load(test.load, router, queue);
 
             assert.strictEqual(host.textContent, test.result, `4) ${test.load}`);
             assert.strictEqual(locationPath, test.path, `4) ${test.load} path`);
 
             // 5. back to (3) empty
-            await $goBack(router, platform);
+            await $goBack(router, queue);
 
             assert.strictEqual(host.textContent, '!root!', `5) back to empty content (-)`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `5) back to empty page (-)`);
 
             // 6. back to (2) the page
-            await $goBack(router, platform);
+            await $goBack(router, queue);
 
             assert.strictEqual(host.textContent, test.result, `6) back to ${test.load} content`);
             assert.strictEqual(locationPath, test.path, `6) back to ${test.load} path`);
 
             // 7. back to (1) empty
-            await $goBack(router, platform);
+            await $goBack(router, queue);
 
             assert.strictEqual(host.textContent, '!root!', `7) back to empty content (-)`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `7) back to empty page (-)`);
 
             // 8. back to the root page (0)
-            await $goBack(router, platform);
+            await $goBack(router, queue);
 
             assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
             assert.strictEqual(locationPath, '/', '8) back to root default path');
@@ -255,13 +256,13 @@ describe('router-direct/router.redirect.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, queue: IDomQueue) => {
   await router.load(path);
-  platform.domQueue.flush();
+  queue.flush();
 };
 
-const $goBack = async (router: IRouter, platform: IPlatform) => {
+const $goBack = async (router: IRouter, queue: IDomQueue) => {
   await router.viewer.history.back();
-  platform.domQueue.flush();
-  await platform.domQueue.yield();
+  queue.flush();
+  await queue.yield();
 };

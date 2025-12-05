@@ -205,7 +205,7 @@ class ModifiedMouseEventHandler implements IModifiedEventHandlerCreator {
 
         if (__DEV__) {
           // eslint-disable-next-line no-console
-          console.warn(`Modifier '${m}' is not supported for mouse events.`);
+          console.warn(`[DEV:aurelia]Modifier '${m}' is not supported for mouse events.`);
         }
       }
 

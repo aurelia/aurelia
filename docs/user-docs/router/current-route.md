@@ -29,7 +29,7 @@ To use it, inject the token and read its properties:
 
 ```ts
 import { ICurrentRoute } from '@aurelia/router';
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   private readonly currentRoute = resolve(ICurrentRoute);
@@ -80,7 +80,8 @@ export class AboutPage {
 
 ```ts
 import { IRouterEvents, NavigationStartEvent, IRouter } from '@aurelia/router';
-import { IDisposable, resolve } from 'aurelia';
+import { IDisposable } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 
 export class AboutPage implements IDisposable {
   private readonly subscription: IDisposable;
@@ -108,7 +109,8 @@ export class AboutPage implements IDisposable {
 
 ```ts
 import { IRouterEvents, NavigationEndEvent } from '@aurelia/router';
-import { IDisposable, resolve } from 'aurelia';
+import { IDisposable } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 
 export class AboutPage implements IDisposable {
   private readonly currentRoute = resolve(ICurrentRoute);

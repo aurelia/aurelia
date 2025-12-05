@@ -74,10 +74,14 @@ export class UserProfile {
 
 ### Service Pattern
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { singleton } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
+
 @singleton
 export class UserService {
-  constructor(@IHttpClient private readonly http: IHttpClient) {}
-  
+  private readonly http = resolve(IHttpClient);
+
   public async getUser(id: string): Promise<User> {
     // Implementation with proper error handling
   }

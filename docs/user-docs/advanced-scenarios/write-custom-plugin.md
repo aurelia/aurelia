@@ -1,14 +1,18 @@
 # Write Custom Plugins
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 One of the most important needs of users is to design custom plugins. In the following, we want to get acquainted with how to design a plugin in the form of a mono-repository structure with configuration.
 
 ### What is mono-repository?
 
 A monorepo \(mono repository\) is a single repository that stores all of your code and assets for every project. Using a monorepo is important for many reasons. It creates a single source of truth. It makes it easier to share code. It even makes it easier to refactor code.
 
-### How NPM v7 helps us?
+### How modern npm helps us?
 
-With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. NPM v7 has shipped with Node.js v15.
+With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. npm v7 and above include workspaces by default; the versions bundled with contemporary Node.js releases (for example Node.js 22.12.0 ships with npm 10.9.0) provide everything we need.
 
 ### What is the scenario?
 
@@ -265,7 +269,7 @@ Create `bs-button.ts` file.
 
 ```javascript
 import { customElement, containerless, BindingMode, bindable, resolve } from "aurelia";
-import template from "./bs-button.html";
+import template from "./bs-button.html?raw";
 import { IBootstrapV5Options, Size } from "@my-plugin/bootstrap-v5-core";
 
 @customElement({ name: "bs-button", template })
@@ -409,4 +413,3 @@ Then, call the command
 npm run start
 npm start
 ```
-

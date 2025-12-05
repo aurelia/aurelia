@@ -117,7 +117,9 @@ Inside our HTML, we use the `validate` binding behavior to signal to Aurelia tha
 </form>
 ```
 
-> `resolve(newInstanceForScope(IValidationController))` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](broken-reference/).
+> `resolve(newInstanceForScope(IValidationController))` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on the controller [is covered here](validation-controller.md).
+
+Looking for end-to-end scenarios? Jump to the [validation outcome recipes](./outcome-recipes.md) for step-by-step patterns such as inline feedback, guarded wizards, and server-error integration.
 
 ### Demo
 

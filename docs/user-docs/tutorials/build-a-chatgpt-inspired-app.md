@@ -216,32 +216,18 @@ export type ChatApiResponse = ChatResponse | ChatError;
 
 Create a dedicated service for API communication. Create `src/services/chat-service.ts`:
 
-> **Note:** Aurelia 2 supports two dependency injection patterns:
-> 1. **Constructor injection with `@inject` decorator** (shown below)
-> 2. **Field injection with `resolve()` function** (commented alternatives included)
-
 ```typescript
-import { DI, IHttpClient, ILogger, inject } from 'aurelia';
+import { DI, ILogger, resolve } from '@aurelia/kernel';
+import { IHttpClient } from '@aurelia/fetch-client';
 import { ChatMessage, ChatApiResponse, ChatResponse } from '../types/chat';
 
 export const IChatService = DI.createInterface<IChatService>('IChatService', x => x.singleton(ChatService));
 export interface IChatService extends ChatService {}
 
-@inject(IHttpClient, ILogger)
 export class ChatService {
   private readonly baseUrl = 'http://localhost:3001/api';
-
-  constructor(
-    private readonly http: IHttpClient,
-    private readonly logger: ILogger
-  ) {
-    this.logger = logger.scopeTo('ChatService');
-  }
-
-  // Alternative DI approach using resolve function:
-  // import { resolve } from 'aurelia';
-  // private readonly http = resolve(IHttpClient);
-  // private readonly logger = resolve(ILogger);
+  private readonly http = resolve(IHttpClient);
+  private readonly logger = resolve(ILogger).scopeTo('ChatService');
 
   async sendMessage(messages: ChatMessage[]): Promise<ChatResponse> {
     this.logger.debug('Sending chat message', { messageCount: messages.length });
@@ -290,14 +276,17 @@ export class ChatService {
 Create `src/components/chat.ts`:
 
 ```typescript
-import { bindable, ILogger, inject } from 'aurelia';
+import { bindable } from '@aurelia/runtime-html';
+import { ILogger, resolve } from '@aurelia/kernel';
 import { IChatService } from '../services/chat-service';
 import { ChatMessage } from '../types/chat';
 
-@inject(IChatService, ILogger)
 export class Chat {
+  private readonly chatService = resolve(IChatService);
+  private readonly logger = resolve(ILogger).scopeTo('Chat');
+
   @bindable public title: string = 'AI Chat Assistant';
-  
+
   public userMessage = '';
   public messages: ChatMessage[] = [];
   public isLoading = false;
@@ -307,16 +296,7 @@ export class Chat {
 
   private messagesContainer?: HTMLElement;
 
-  // Alternative DI approach using resolve function:
-  // import { resolve } from 'aurelia';
-  // private readonly chatService = resolve(IChatService);
-  // private readonly logger = resolve(ILogger);
-
-  constructor(
-    private readonly chatService: IChatService,
-    private readonly logger: ILogger
-  ) {
-    this.logger = logger.scopeTo('Chat');
+  constructor() {
     this.checkConnection();
   }
 
@@ -922,8 +902,8 @@ npm start
 
 You should see:
 ```
-🚀 Server is running on http://localhost:3001
-📡 API endpoint: http://localhost:3001/api/chat
+Server is running on http://localhost:3001
+API endpoint: http://localhost:3001/api/chat
 ```
 
 ### Start the Aurelia Frontend
@@ -942,7 +922,7 @@ Your browser should automatically open to `http://localhost:8080` with the chat 
 
 Our ChatGPT-inspired app includes:
 
-### ✅ Core Features
+### Core Features
 - **Modern Aurelia 2 Architecture**: Proper dependency injection, services, and TypeScript types
 - **Real-time Chat Interface**: Smooth messaging experience with loading states
 - **Error Handling**: Comprehensive error handling for API failures, rate limits, and network issues
@@ -952,7 +932,7 @@ Our ChatGPT-inspired app includes:
 - **Typing Indicators**: Visual feedback when the AI is generating a response
 - **Accessibility**: Keyboard navigation and screen reader support
 
-### 🎨 UI/UX Enhancements
+### UI/UX Enhancements
 - **Modern Design**: Clean, modern interface inspired by popular chat applications
 - **Smooth Animations**: Message slide-ins and loading animations
 - **Message Timestamps**: Each message includes a timestamp
@@ -1067,21 +1047,21 @@ curl -X POST http://localhost:3001/api/chat \
 
 ## Conclusion
 
-Congratulations! You've built a modern, feature-rich ChatGPT-inspired application using Aurelia 2. This project demonstrates:
+You've built a modern, feature-rich ChatGPT-inspired application using Aurelia 2. This project demonstrates:
 
-### 🏗️ **Modern Architecture**
-- **Aurelia 2**: Latest framework features with proper dependency injection
+### Modern Architecture
+- **Aurelia 2**: Latest framework features with proper dependency injection using `resolve()`
 - **TypeScript**: Strong typing throughout the application
 - **Service Pattern**: Separation of concerns with dedicated services
 - **Component-Based**: Reusable and maintainable component structure
 
-### 🔧 **Best Practices**
+### Best Practices
 - **Error Handling**: Comprehensive error management and user feedback
 - **Responsive Design**: Mobile-first approach with modern CSS
 - **Performance**: Optimized rendering and smooth animations
 - **Accessibility**: Keyboard navigation and semantic HTML
 
-### 🚀 **Production-Ready Features**
+### Production-Ready Features
 - **Environment Configuration**: Secure API key management
 - **Health Checks**: Server monitoring endpoints
 - **Loading States**: Clear user feedback during operations

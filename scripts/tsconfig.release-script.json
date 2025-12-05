@@ -10,7 +10,6 @@
   },
   "include": [
     "project.ts",
-    "package.json.ts",
-    "publish.ts",
+    "package.json.ts"
   ]
 }

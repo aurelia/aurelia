@@ -199,6 +199,11 @@ export const getRecurringTasks = () => {
 };
 
 /**
+ * @returns - true if there is pending work in the task queue and false otherwise.
+ */
+export const isTaskQueueEmpty = () => queue.length === 0 && pendingAsyncCount === 0;
+
+/**
  * Return a promise that resolves once **all queued work has finished** and the
  * Aurelia scheduler is completely idle.
  *

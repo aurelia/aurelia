@@ -135,4 +135,4 @@ The error rendering process can be completely overridden in the child classes. T
 
 To avoid direct DOM manipulation, it is highly encouraged to use the previously mentioned custom attribute, and custom element.
 
-> One commonality across these components is that all these are different implementations of the [`ValidationResultsSubscriber` interface](broken-reference).
+> One commonality across these components is that all these are different implementations of the [`ValidationResultsSubscriber` interface](validation-controller.md#addsubscriber-and-removesubscriber).

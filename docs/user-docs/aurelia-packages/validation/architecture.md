@@ -62,7 +62,7 @@ classDiagram
   }
 ```
 
-* The validator (`IValidator` instance) allows you to execute a [validate instruction](broken-reference), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
+* The validator (`IValidator` instance) allows you to execute a [validate instruction](defining-rules.md#validateinstruction), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
 
 ```mermaid
 sequenceDiagram

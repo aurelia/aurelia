@@ -8,24 +8,30 @@ Aurelia's design embraces flexibility and interoperability, making it well-suite
 
 ## Install Dependencies
 
-First, ensure that your Aurelia project has the necessary dependencies to use React. You'll need React and ReactDOM, along with any types of TypeScript support if needed.
+First, ensure that your Aurelia project has the necessary dependencies to use React. You'll need React and ReactDOM, plus the matching type packages when you compile with TypeScript.
 
 ```bash
 npm install react react-dom
 npm install --save-dev @types/react @types/react-dom
 ```
 
+> Keep the `@types` versions in sync with the React major you're using (for example, `@types/react@19` with `react@19`). If you're validating a future React release candidate, follow the React upgrade guide instructions to alias the preview `types-react` packages so your compiler picks up the experimental definitions.
+
 ## Create a React Component
 
 For this example, let's create a simple React component. You can replace this with any React component you need.
 
-```jsx
-// src/components/MyReactComponent.jsx
-import React from 'react';
+```tsx
+// src/components/my-react-component.tsx
+import type { FC } from 'react';
 
-const MyReactComponent = ({ message = 'Hello from React!' }) => {
-  return <div>{message}</div>;
-};
+export interface MyReactComponentProps {
+  message?: string;
+}
+
+export const MyReactComponent: FC<MyReactComponentProps> = ({ message = 'Hello from React!' }) => (
+  <div>{message}</div>
+);
 
 export default MyReactComponent;
 ```
@@ -36,14 +42,14 @@ To integrate the React component into Aurelia, create a wrapper Aurelia componen
 
 ```typescript
 // src/resources/elements/react-wrapper.ts
-import { customElement, bindable } from 'aurelia';
-import { createElement } from 'react';
-import { createRoot, Root } from 'react-dom/client';
+import { customElement, bindable } from '@aurelia/runtime-html';
+import { createElement, type ComponentType } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
 
-@customElement({ name: 'react-wrapper', template: '<template><div ref="container"></div></template>' })
+@customElement({ name: 'react-wrapper', template: '<div ref="container"></div>' })
 export class ReactWrapper {
-  @bindable public reactComponent: React.ComponentType<any>;
-  @bindable public props?: Record<string, any>;
+  @bindable public reactComponent?: ComponentType<any>;
+  @bindable public props?: Record<string, unknown>;
   private container!: HTMLDivElement;
   private root: Root | null = null;
 
@@ -69,17 +75,17 @@ export class ReactWrapper {
 
   private renderReactComponent(): void {
     if (this.root && this.reactComponent) {
-      this.root.render(createElement(this.reactComponent, this.props || {}));
+      this.root.render(createElement(this.reactComponent, this.props ?? {}));
     }
   }
 }
 ```
 
-This wrapper takes a React component and optional props as bindable properties. It uses React's `createRoot` API (React 18+) to render the component inside the Aurelia component's DOM container. The wrapper properly handles React lifecycle by creating the root in `attached()` and cleaning up in `detaching()`, and supports reactive updates when props change via `propertyChanged()`.
+This wrapper exposes the React component and its props as bindables. It uses React's `createRoot` API—the modern entry point for React 18 and React 19 apps—to render the component inside Aurelia's DOM container. The wrapper handles the full React lifecycle by creating the root in `attached()`, re-rendering in response to Aurelia bindable updates via `propertyChanged()`, and calling `unmount()` inside `detaching()` so that React cleans up timers and subscriptions.
 
 ## Register the Wrapper Component and Use It
 
-Now, you must register the wrapper component with Aurelia and then use it in your application.
+Now, register the wrapper component with Aurelia and then use it in your application.
 
 ```typescript
 // src/main.ts
@@ -93,23 +99,21 @@ Aurelia
   .start();
 ```
 
-Then, use it in a view:
+Then, reference the wrapper in a view:
 
 ```html
 <!-- src/my-view.html -->
-<template>
-  <react-wrapper 
-    react-component.bind="myReactComponent" 
-    props.bind="reactProps">
-  </react-wrapper>
-</template>
+<react-wrapper
+  react-component.bind="myReactComponent"
+  props.bind="reactProps">
+</react-wrapper>
 ```
 
 Ensure you import and make the React component available in your Aurelia component:
 
 ```typescript
 // src/my-view.ts
-import MyReactComponent from './components/MyReactComponent';
+import MyReactComponent from './components/my-react-component';
 
 export class MyView {
   public myReactComponent = MyReactComponent;
@@ -123,25 +127,30 @@ export class MyView {
 
 For production applications, consider wrapping React components in error boundaries:
 
-```jsx
-// src/components/ErrorBoundary.jsx
-import React from 'react';
+```tsx
+// src/components/error-boundary.tsx
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+interface ErrorBoundaryProps {
+  readonly children?: ReactNode;
+}
 
-  static getDerivedStateFromError(error) {
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = { hasError: false };
+
+  public static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  public componentDidCatch(error: unknown, errorInfo: ErrorInfo): void {
     console.error('React component error:', error, errorInfo);
   }
 
-  render() {
+  public render(): ReactNode {
     if (this.state.hasError) {
       return <div>Something went wrong with the React component.</div>;
     }
@@ -157,27 +166,65 @@ Then modify your wrapper to use the error boundary:
 ```typescript
 private renderReactComponent(): void {
   if (this.root && this.reactComponent) {
-    const wrappedComponent = createElement(ErrorBoundary, {}, 
-      createElement(this.reactComponent, this.props || {})
+    const wrappedComponent = createElement(
+      ErrorBoundary,
+      {},
+      createElement(this.reactComponent, this.props ?? {}),
     );
     this.root.render(wrappedComponent);
   }
 }
 ```
 
+### React Root Error Hooks
+
+React 19 exposes additional root options, letting you hook into caught or uncaught errors even before they reach an error boundary. Add another bindable for `rootOptions` and pass it to `createRoot` when you need centralized logging:
+
+```typescript
+import type { RootOptions } from 'react-dom/client';
+
+@bindable public rootOptions?: RootOptions;
+
+public attached(): void {
+  if (this.container && this.reactComponent) {
+    this.root = createRoot(this.container, this.rootOptions);
+    this.renderReactComponent();
+  }
+}
+```
+
+You can populate `rootOptions` from Aurelia with callbacks such as:
+
+```typescript
+import type { RootOptions } from 'react-dom/client';
+
+export class MyView {
+  public reactRootOptions: RootOptions = {
+    onCaughtError(error, errorInfo) {
+      console.warn('Recoverable React error', error, errorInfo);
+    },
+    onUncaughtError(error, errorInfo) {
+      // Report to an error service
+    },
+  };
+}
+```
+
+Wire it up in the view: `<react-wrapper root-options.bind="reactRootOptions" ...></react-wrapper>`.
+
 ### React 18+ and 19 Compatibility
 
-This integration pattern works with React 18, 19, and future versions. The `createRoot` API is the modern standard and provides:
+This integration pattern embraces the React DOM client API introduced in React 18 and retained in React 19:
 
-- **Concurrent rendering** for better performance
-- **Automatic batching** of state updates  
-- **Improved TypeScript support** in React 19
-- **Better error handling** with onCaughtError and onUncaughtError options
+- `createRoot` is the entry point to Concurrent React. Using it ensures your embedded components can opt into features like transitions without any extra glue.
+- React 18+ automatically batches state updates, so React components you host inside Aurelia get predictable renders even if multiple Aurelia bindings mutate the props in the same tick.
+- React 19 ships improved TypeScript definitions and keeps the expanded root options (`onCaughtError`, `onUncaughtError`, and `onRecoverableError`), letting you consolidate error handling in one place.
 
 ### Performance Considerations
 
 - React components are re-rendered when `props` change via Aurelia's `propertyChanged()` lifecycle
-- Use React's `memo()` for expensive components to prevent unnecessary re-renders
-- Consider implementing `shouldComponentUpdate` logic in your wrapper if needed
+- Use `React.memo()` (or `PureComponent`) for expensive components to prevent unnecessary re-renders when Aurelia pushes the same data reference
+- Avoid recreating prop objects inline in your view—store them on the view-model so Aurelia only notifies React when values actually change
+- Consider implementing `shouldComponentUpdate` logic or memoization in the React component itself for fine-grained control
 
 Following these steps, you can integrate React components into your Aurelia 2 application. This process highlights the flexibility of Aurelia, allowing you to take advantage of React's component library while enjoying the benefits of Aurelia's powerful features.

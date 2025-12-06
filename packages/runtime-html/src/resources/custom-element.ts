@@ -15,7 +15,7 @@ import { Bindable } from '../bindable';
 import { getEffectiveParentNode } from '../dom';
 import { refs } from '../dom.node';
 import { Watch } from '../watch';
-import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
+import { clearMetadata, defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { def, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
@@ -37,7 +37,7 @@ import type { Controller, ICustomElementViewModel, ICustomElementController } fr
 import { ProcessContentHook, type IElementComponentDefinition, IInstruction } from '@aurelia/template-compiler';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtElement, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
+import { dtElement, getDefinitionFromStaticAu, clearStaticAuDefinition, type IResourceKind } from './resources-shared';
 
 export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IElementComponentDefinition<TBindables>, 'type'> & {
   /**
@@ -119,6 +119,13 @@ export type CustomElementKind = IResourceKind & {
     proto?: P,
   ): CustomElementType<Constructable<P>>;
   find(container: IContainer, name: string): CustomElementDefinition | null;
+  /**
+   * Clear cached definition for a custom element type.
+   * Used by SSR to reset definition cache before re-rendering.
+   *
+   * @param Type - The component class to clear cached definitions for
+   */
+  clearDefinition(Type: Constructable): void;
 };
 
 export type CustomElementDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => CustomElementType<T>;
@@ -585,6 +592,22 @@ export const generateElementType = /*@__PURE__*/(function () {
   };
 })();
 
+/**
+ * Clear cached definition for a custom element type.
+ * Used by SSR to reset definition cache before re-rendering.
+ *
+ * This clears:
+ * - elementBaseName metadata (primary definition cache)
+ * - '__au_static_resource__' metadata (static $au cache)
+ *
+ * Note: The definitionLookup WeakMap cannot be cleared directly without
+ * the key, but clearing metadata is sufficient as it's the primary cache.
+ */
+const clearElementDefinition = (Type: Constructable): void => {
+  clearMetadata(Type, elementBaseName);
+  clearStaticAuDefinition(Type);
+};
+
 export const CustomElement = /*@__PURE__*/ objectFreeze<CustomElementKind>({
   name: elementBaseName,
   keyFrom: getElementKeyFrom,
@@ -602,7 +625,8 @@ export const CustomElement = /*@__PURE__*/ objectFreeze<CustomElementKind>({
     return Type == null
       ? null
       : getMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type, elementTypeName, CustomElementDefinition.create) ?? null;
-  }
+  },
+  clearDefinition: clearElementDefinition,
 });
 
 // eslint-disable-next-line @typescript-eslint/ban-types

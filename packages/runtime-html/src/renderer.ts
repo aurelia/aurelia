@@ -8,6 +8,8 @@ import {
   resolve,
   isString,
   registrableMetadataKey,
+  ILogger,
+  LogLevel,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -305,6 +307,7 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
 
 export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateControllerRenderer implements IRenderer {
   /** @internal */ public readonly _rendering = resolve(IRendering);
+  /** @internal */ private _logger: ILogger | undefined;
 
   public readonly target = InstructionType.hydrateTemplateController;
 
@@ -317,6 +320,13 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
+    if (__DEV__) {
+      const logger = this._logger ??= renderingCtrl.container.get(ILogger).root;
+      if (logger.config.level <= LogLevel.trace) {
+        const defName = instruction.def?.name ?? instruction.def?.template?.toString().slice(0, 50) ?? 'NULL';
+        logger.trace(`[TC] res=${typeof instruction.res === 'string' ? instruction.res : instruction.res?.name}, def=${defName}, ctrl=${renderingCtrl.name}`);
+      }
+    }
     /* eslint-disable prefer-const */
     let ctxContainer = renderingCtrl.container;
     let def: CustomAttributeDefinition | null;

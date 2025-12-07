@@ -315,7 +315,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
+  /** @internal */ private _logger: ILogger | undefined;
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
   /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
@@ -340,7 +340,9 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public isMatch(value: unknown): boolean {
-    this._logger.debug('isMatch()');
+    if (__DEV__) {
+      (this._logger ??= resolve(ILogger).scopeTo(`Case-#${this.id}`)).debug('isMatch()');
+    }
     const $value = this.value;
     if (isArray($value)) {
       if (this._observer === void 0) {

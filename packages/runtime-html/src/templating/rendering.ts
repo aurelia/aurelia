@@ -1,4 +1,4 @@
-import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
+import { createLookup, isString, IContainer, resolve, ILogger, LogLevel } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
@@ -69,6 +69,10 @@ export class Rendering implements IRendering {
   private readonly _empty: INodeSequence;
   /** @internal */
   private readonly _preserveMarkers: boolean;
+  /** @internal */
+  private _logger: ILogger | undefined;
+  /** @internal */
+  private _debug: boolean = false;
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
@@ -90,6 +94,10 @@ export class Rendering implements IRendering {
     this._observerLocator = ctn.get(IObserverLocator);
     this._empty = new FragmentNodeSequence(p, p.document.createDocumentFragment());
     this._preserveMarkers = ctn.has(ISSRContext, true) ? ctn.get(ISSRContext).preserveMarkers : false;
+    if (__DEV__) {
+      this._logger = ctn.get(ILogger).root.scopeTo('Rendering');
+      this._debug = this._logger.config.level <= LogLevel.trace;
+    }
   }
 
   public compile(
@@ -185,6 +193,10 @@ export class Rendering implements IRendering {
     const renderers = this.renderers;
     const targetCount = targets.length;
     const rowCount = rows.length;
+
+    if (__DEV__ && this._debug) {
+      this._logger!.trace(`[Render] ctrl=${controller.name}, def=${definition.name}, rows=${rowCount}, targets=${targetCount}`);
+    }
 
     // When hydrating with manifest, we may have more targets than instructions
     // because nested targets (inside template controllers) are collected flat

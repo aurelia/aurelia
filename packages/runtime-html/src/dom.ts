@@ -1,7 +1,7 @@
 import { IContainer, IResolver, InstanceProvider, emptyArray } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
-import { findElementControllerFor } from './resources/custom-element';
+import { CustomElement, findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
 import { INode } from './dom.node';
@@ -258,11 +258,11 @@ export class FragmentNodeSequence implements INodeSequence {
    * @param manifest - Optional hydration manifest with element paths for path-based resolution
    * @returns A node sequence wrapping the existing children
    */
-  public static adoptChildren(platform: IPlatform, parent: Element, manifest?: IHydrationManifest): FragmentNodeSequence {
+  public static adoptChildren(platform: IPlatform, parent: Element, manifest?: IHydrationManifest, container?: IContainer): FragmentNodeSequence {
     // Create empty fragment for potential future unmounting
     // (when remove() is called, nodes will be moved here)
     const fragment = platform.document.createDocumentFragment();
-    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest);
+    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest, false, container);
     return instance;
   }
 
@@ -286,12 +286,18 @@ export class FragmentNodeSequence implements INodeSequence {
      * @internal
      */
     preserveMarkers?: boolean,
+    /**
+     * When provided, used to detect custom element boundaries during target collection.
+     * Elements registered as custom elements in this container will be treated as boundaries.
+     * @internal
+     */
+    container?: IContainer,
   ) {
     this.f = fragment;
 
     // Collect targets and children from either the fragment or adopted parent
     const root = adoptFrom ?? fragment;
-    this.t = this._collectTargets(root, manifest, preserveMarkers);
+    this.t = this._collectTargets(root, manifest, preserveMarkers, container);
 
     const childNodeList = root.childNodes;
     const ii = childNodeList.length;
@@ -328,47 +334,70 @@ export class FragmentNodeSequence implements INodeSequence {
    *
    * @internal
    */
-  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest, preserveMarkers?: boolean): Node[] {
-    const { platform } = this;
+  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest, preserveMarkers?: boolean, container?: IContainer): Node[] {
     const targets: Node[] = [];
 
-    // Element targets: use paths from manifest (client hydration) or au-hid attributes (SSR server)
+    // Path-based resolution from manifest (when elementPaths is present)
     if (manifest?.elementPaths != null) {
-      // Path-based resolution: no au-hid attributes in HTML
       const elementPaths = manifest.elementPaths;
       for (const targetIdStr in elementPaths) {
         const targetId = Number(targetIdStr);
         const path = elementPaths[targetId];
         targets[targetId] = this._resolvePath(root as Element, path);
       }
-    } else {
-      // Attribute-based resolution: au-hid attributes present (SSR server render or template cloning)
-      const auHidElements = root.querySelectorAll('[au-hid]');
-      let el: Element;
-      let targetId: number;
-      for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
-        el = auHidElements[i];
-        targetId = parseInt(el.getAttribute('au-hid')!, 10);
-        // Only remove markers when not in SSR preservation mode
-        if (!preserveMarkers) {
-          el.removeAttribute('au-hid');
-        }
-        targets[targetId] = el;
-      }
     }
 
-    // Use TreeWalker to find <!--au:N--> comments
-    // Comment markers are always present (for text nodes and render locations)
-    const walker = platform.document.createTreeWalker(root, 128 /* NodeFilter.SHOW_COMMENT */);
+    // Collect comment markers that need processing after the walk
     const markerComments: Comment[] = [];
-    let node: Comment | null;
-    while ((node = walker.nextNode() as Comment | null) !== null) {
-      if (node.nodeValue?.startsWith('au:')) {
-        markerComments.push(node);
+
+    // Single boundary-aware tree walk
+    // When container is provided, uses CustomElement.find() to detect CE boundaries
+    // This ensures we only collect targets belonging to THIS component's scope
+    const collect = (node: Node): void => {
+      if (node.nodeType === 1 /* Element */) {
+        const el = node as Element;
+
+        // Collect au-hid element target (if not using path-based resolution)
+        if (manifest?.elementPaths == null && el.hasAttribute('au-hid')) {
+          const targetId = parseInt(el.getAttribute('au-hid')!, 10);
+          targets[targetId] = el;
+          if (!preserveMarkers) {
+            el.removeAttribute('au-hid');
+          }
+        }
+
+        // Check if this is a registered custom element boundary
+        // If so, don't recurse - that element will collect its own targets
+        if (container != null) {
+          const tagName = el.tagName.toLowerCase();
+          const ceDef = CustomElement.find(container, tagName);
+          if (ceDef != null) {
+            // This IS a registered Aurelia custom element - stop recursion
+            return;
+          }
+        }
+
+        // Recurse into children
+        const children = el.childNodes;
+        for (let i = 0, ii = children.length; ii > i; ++i) {
+          collect(children[i]);
+        }
+
+      } else if (node.nodeType === 8 /* Comment */) {
+        const text = (node as Comment).nodeValue;
+        if (text?.startsWith('au:')) {
+          markerComments.push(node as Comment);
+        }
       }
+    };
+
+    // Start collection from root's children
+    const children = root.childNodes;
+    for (let i = 0, ii = children.length; ii > i; ++i) {
+      collect(children[i]);
     }
 
-    // Process marker comments: <!--au:N--> where N IS the target index
+    // Process collected comment markers: <!--au:N--> where N IS the target index
     let marker: Comment;
     let target: Node | IRenderLocation;
     let targetId: number;

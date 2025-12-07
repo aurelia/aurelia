@@ -205,6 +205,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* location         */location,
       /* SlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
     );
+
     component = container.invoke(def.Type);
     childCtrl = Controller.$el(
       /* own container       */container,

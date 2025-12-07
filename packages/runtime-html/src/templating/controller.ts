@@ -469,9 +469,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // SSR Hydration: adopt existing DOM instead of cloning from template
     if (hydrationInst?.adopt) {
       // Pass manifest for path-based element resolution (when elementPaths is present)
+      // Pass container for custom element boundary detection during target collection
       const container = this.container;
       const manifest = container.has(IHydrationManifest, true) ? container.get(IHydrationManifest) : undefined;
-      this.nodes = this._rendering.adoptNodes(host, manifest);
+      this.nodes = this._rendering.adoptNodes(host, manifest, container);
     } else {
       this.nodes = this._rendering.createNodes(compiledDef);
     }

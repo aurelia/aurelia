@@ -213,6 +213,32 @@ export function isRenderLocation(node: INode | INodeSequence): node is IRenderLo
   return (node as Comment).textContent === 'au-end';
 }
 
+/**
+ * Find the matching au-end comment for an au-start marker.
+ * Handles nested au-start/au-end pairs correctly.
+ *
+ * @param startMarker - The au-start comment to find the match for
+ * @returns The matching au-end comment, or null if not found
+ */
+export function findMatchingEndMarker(startMarker: Node): Comment | null {
+  let depth = 1;
+  let current: Node | null = startMarker.nextSibling;
+  while (current !== null) {
+    if (current.nodeType === 8 /* Comment */) {
+      const text = (current as Comment).textContent;
+      if (text === 'au-start') {
+        depth++;
+      } else if (text === 'au-end') {
+        if (--depth === 0) {
+          return current as Comment;
+        }
+      }
+    }
+    current = current.nextSibling;
+  }
+  return null;
+}
+
 export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
   private readonly _firstChild: Node | null;
@@ -414,21 +440,7 @@ export class FragmentNodeSequence implements INodeSequence {
       // If target is au-start, find matching au-end (handling nested pairs)
       if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
         const startMarker = target as IRenderLocation;
-        let endMarker = target.nextSibling;
-        let depth = 1; // Start at 1 for the initial au-start
-        while (endMarker !== null && depth > 0) {
-          if (endMarker.nodeType === 8) {
-            const text = (endMarker as Comment).textContent;
-            if (text === 'au-start') {
-              depth++;
-            } else if (text === 'au-end') {
-              depth--;
-            }
-          }
-          if (depth > 0) {
-            endMarker = endMarker.nextSibling;
-          }
-        }
+        const endMarker = findMatchingEndMarker(target);
         if (endMarker !== null) {
           target = endMarker as IRenderLocation;
           (target as IRenderLocation).$start = startMarker;

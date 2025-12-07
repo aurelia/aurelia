@@ -1,6 +1,6 @@
 import { createInterface } from '../utilities-di';
 import type { INode } from '../dom.node';
-import { FragmentNodeSequence, type IRenderLocation, type INodeSequence } from '../dom';
+import { FragmentNodeSequence, findMatchingEndMarker, type IRenderLocation, type INodeSequence } from '../dom';
 import type { IPlatform } from '../platform';
 import type { IViewFactory } from './view';
 import type { ISyntheticView, ICustomAttributeController, ICustomElementController } from './controller';
@@ -492,22 +492,9 @@ export class SSRContext implements ISSRContext {
           if (isControllerMarker) {
             // This is a controller marker - find the render location (au-end)
             // and update its $targetIndex for nested controller recording
-            let depth = 1;
-            let current = nextSibling?.nextSibling;
-            while (current != null && depth > 0) {
-              if (current.nodeType === 8 /* Comment */) {
-                const currentText = (current as Comment).textContent;
-                if (currentText === 'au-start') {
-                  depth++;
-                } else if (currentText === 'au-end') {
-                  depth--;
-                  if (depth === 0) {
-                    // Found the matching au-end - update its $targetIndex
-                    (current as Comment & { $targetIndex?: number }).$targetIndex = globalIndex;
-                  }
-                }
-              }
-              current = current.nextSibling;
+            const endMarker = findMatchingEndMarker(nextSibling!);
+            if (endMarker !== null) {
+              (endMarker as Comment & { $targetIndex?: number }).$targetIndex = globalIndex;
             }
           }
         }
@@ -653,128 +640,3 @@ export class ResumeContext implements IResumeContext {
   }
 }
 
-// ============================================================================
-// SSR Post-Render Processing
-// ============================================================================
-// These functions run on the SSR server after rendering, before sending HTML
-// to the client. They strip `au-hid` attributes and compute element paths.
-
-/**
- * Result of SSR post-render processing.
- */
-export interface SSRPostRenderResult {
-  /**
-   * The cleaned HTML with `au-hid` attributes removed.
-   * Comment markers (`<!--au:N-->`, `<!--au-start-->`, `<!--au-end-->`) are preserved.
-   */
-  html: string;
-
-  /**
-   * The augmented manifest with element paths added.
-   * Client hydration uses these paths instead of `au-hid` attributes.
-   */
-  manifest: IHydrationManifest;
-}
-
-/**
- * Process SSR output before sending to client.
- *
- * This function:
- * 1. Finds all elements with `au-hid` attributes
- * 2. Computes their child-index paths from the root
- * 3. Removes the `au-hid` attributes
- * 4. Returns cleaned HTML and augmented manifest
- *
- * Call this on the SSR server after Aurelia renders, before sending
- * the HTML response to the client.
- *
- * @param host - The root element containing SSR-rendered content
- * @param initialManifest - The hydration manifest from SSR rendering
- * @returns Object with cleaned HTML and augmented manifest
- *
- * @example
- * ```typescript
- * // On SSR server after Aurelia.render()
- * const { html, manifest } = processSSROutput(hostElement, ssrManifest);
- *
- * // Send to client
- * res.send(`
- *   <html>
- *     <body>${html}</body>
- *     <script>
- *       window.__AURELIA_MANIFEST__ = ${JSON.stringify(manifest)};
- *     </script>
- *   </html>
- * `);
- * ```
- */
-export function processSSROutput(
-  host: Element,
-  initialManifest: IHydrationManifest
-): SSRPostRenderResult {
-  const elementPaths: { [targetIndex: number]: number[] } = {};
-
-  // Find all elements with au-hid, record their paths, then remove the attribute
-  const auHidElements = host.querySelectorAll('[au-hid]');
-  for (let i = 0, ii = auHidElements.length; ii > i; ++i) {
-    const el = auHidElements[i];
-    const targetId = parseInt(el.getAttribute('au-hid')!, 10);
-    elementPaths[targetId] = computeElementPath(host, el);
-    el.removeAttribute('au-hid');
-  }
-
-  // Return augmented manifest and cleaned HTML
-  return {
-    html: host.innerHTML,
-    manifest: {
-      ...initialManifest,
-      elementPaths,
-      // Clear runtime properties that shouldn't be serialized
-      _targets: undefined,
-      _consumed: undefined,
-    }
-  };
-}
-
-/**
- * Compute the child-index path from root to target element.
- *
- * The path is an array of child indices. For example, `[0, 2, 1]` means:
- * `root.children[0].children[2].children[1]`
- *
- * @param root - The root element to compute path from
- * @param target - The target element to compute path to
- * @returns Array of child indices from root to target
- *
- * @internal
- */
-export function computeElementPath(root: Element, target: Element): number[] {
-  const path: number[] = [];
-  let current: Element | null = target;
-
-  while (current !== null && current !== root) {
-    const parent: Element | null = current.parentElement;
-    if (parent === null) break;
-
-    const children = parent.children;
-    let index = -1;
-
-    // Find index of current in parent's children
-    for (let i = 0, ii = children.length; ii > i; ++i) {
-      if (children[i] === current) {
-        index = i;
-        break;
-      }
-    }
-
-    if (index === -1) {
-      // Should not happen in valid DOM, but handle gracefully
-      break;
-    }
-
-    path.unshift(index);
-    current = parent;
-  }
-
-  return path;
-}

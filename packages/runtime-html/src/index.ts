@@ -60,10 +60,6 @@ export {
   type ISSRContext,
   ISSRContext as ISSRContextToken,
   SSRContext,
-  // SSR post-render processing
-  type SSRPostRenderResult,
-  processSSROutput,
-  computeElementPath,
 } from './templating/hydration';
 export {
   type IAppRootConfig,

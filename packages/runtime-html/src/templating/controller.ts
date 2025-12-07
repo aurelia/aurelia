@@ -470,9 +470,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // Check both explicit adopt flag (root CE) and manifest presence (child CEs in hydration mode)
     const container = this.container;
     const manifest = container.has(IHydrationManifest, true) ? container.get(IHydrationManifest) : undefined;
-    if (hydrationInst?.adopt || manifest != null) {
-      // Pass manifest for path-based element resolution (when elementPaths is present)
-      // Pass container for custom element boundary detection during target collection
+    if (hydrationInst?.adopt) {
+      // ROOT CE - collect ALL targets globally (no CE boundary stopping)
+      // This ensures all globalTargets indices are resolvable by any TC
+      this.nodes = this._rendering.adoptNodes(host, manifest, null);
+    } else if (manifest != null) {
+      // Child CE in hydration mode - collect scoped targets for its own rendering
+      // Pass container for CE boundary detection (only collect this CE's targets)
       this.nodes = this._rendering.adoptNodes(host, manifest, container);
     } else {
       this.nodes = this._rendering.createNodes(compiledDef);
@@ -494,10 +498,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const targets = this.nodes!.findTargets();
 
     // Store targets on manifest for template controllers to access
+    // Only ROOT sets this - child CEs must not overwrite the global targets array
     const container = this.container;
     if (container.has(IHydrationManifest, true)) {
       const manifest = container.get(IHydrationManifest);
-      manifest._targets = targets;
+      if (manifest._targets == null) {
+        manifest._targets = targets;
+      }
     }
 
     this._rendering.render(
@@ -559,6 +566,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    * @internal
    */
   private _hydrateAdoptedView(nodes: INodeSequence, targets: ArrayLike<INode>): void {
+    if (__DEV__) {
+      const logger = this.container.get(ILogger).root;
+      if (logger.config.level <= LogLevel.trace) {
+        logger.trace(`[AdoptView] factory=${this.viewFactory?.name}, targets=${targets.length}, def.instructions=${this.viewFactory?.def?.instructions?.length ?? 0}`);
+      }
+    }
     this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container);
     this.nodes = nodes;
     this._rendering.render(

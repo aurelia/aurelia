@@ -4,6 +4,7 @@ import { FragmentNodeSequence, findMatchingEndMarker, type IRenderLocation, type
 import type { IPlatform } from '../platform';
 import type { IViewFactory } from './view';
 import type { ISyntheticView, ICustomAttributeController, ICustomElementController } from './controller';
+import { ILogger, LogLevel } from '@aurelia/kernel';
 
 /**
  * Hydration manifest emitted by SSR compiler.
@@ -531,20 +532,46 @@ export class SSRContext implements ISSRContext {
  * @internal
  */
 export class ResumeContext implements IResumeContext {
+  /** @internal */
+  private readonly _logger: ILogger | undefined;
+  /** @internal */
+  private readonly _debug: boolean;
+
   public constructor(
     public readonly manifest: IControllerManifest,
     public readonly targets: ArrayLike<Node>,
     public readonly location: IRenderLocation,
     /** @internal */
     private readonly _platform: IPlatform,
-  ) {}
+    /** @internal */
+    logger?: ILogger,
+  ) {
+    if (__DEV__ && logger != null) {
+      this._logger = logger.scopeTo('ResumeContext');
+      this._debug = this._logger.config.level <= LogLevel.trace;
+    } else {
+      this._debug = false;
+    }
+  }
 
   public getViewTargets(viewIndex: number): INode[] {
     const view = this.manifest.views[viewIndex];
     if (view == null) return [];
     // Use globalTargets for DOM lookup if present (SSR path), else fall back to targets
     const indices = view.globalTargets ?? view.targets;
-    return indices.map(idx => this.targets[idx] as INode);
+
+    if (__DEV__ && this._debug) {
+      this._logger!.trace(`[getViewTargets] viewIndex=${viewIndex}, indices=${JSON.stringify(indices)}, targets.length=${this.targets?.length ?? 'null'}`);
+    }
+
+    const result = indices.map(idx => {
+      const target = this.targets[idx];
+      if (__DEV__ && this._debug && target == null) {
+        this._logger!.warn(`[getViewTargets] targets[${idx}] is null/undefined`);
+      }
+      return target as INode;
+    });
+    return result;
   }
 
   public collectViewNodes(viewIndex: number): Node[] {

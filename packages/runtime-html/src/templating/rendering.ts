@@ -235,6 +235,11 @@ export class Rendering implements IRendering {
       while (rowCount > i) {
         row = rows[i];
         target = targets[i];
+
+        if (__DEV__ && this._debug && target == null) {
+          this._logger!.warn(`[render] targets[${i}] is null/undefined, ctrl=${controller.name}, def=${definition.name}, rowCount=${rowCount}, targetCount=${targetCount}`);
+        }
+
         j = 0;
         jj = row.length;
         while (jj > j) {

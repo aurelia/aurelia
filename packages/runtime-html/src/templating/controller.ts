@@ -467,11 +467,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (this._vm as Writable<C>).$controller = this;
 
     // SSR Hydration: adopt existing DOM instead of cloning from template
-    if (hydrationInst?.adopt) {
+    // Check both explicit adopt flag (root CE) and manifest presence (child CEs in hydration mode)
+    const container = this.container;
+    const manifest = container.has(IHydrationManifest, true) ? container.get(IHydrationManifest) : undefined;
+    if (hydrationInst?.adopt || manifest != null) {
       // Pass manifest for path-based element resolution (when elementPaths is present)
       // Pass container for custom element boundary detection during target collection
-      const container = this.container;
-      const manifest = container.has(IHydrationManifest, true) ? container.get(IHydrationManifest) : undefined;
       this.nodes = this._rendering.adoptNodes(host, manifest, container);
     } else {
       this.nodes = this._rendering.createNodes(compiledDef);

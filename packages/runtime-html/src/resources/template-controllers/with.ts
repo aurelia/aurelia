@@ -21,7 +21,7 @@ export class With implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  private view!: ISyntheticView;
+  public view!: ISyntheticView;
 
   public valueChanged(
     newValue: unknown,

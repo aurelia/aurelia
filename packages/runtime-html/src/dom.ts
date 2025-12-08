@@ -288,7 +288,10 @@ export class FragmentNodeSequence implements INodeSequence {
     // Create empty fragment for potential future unmounting
     // (when remove() is called, nodes will be moved here)
     const fragment = platform.document.createDocumentFragment();
-    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest, false, container);
+    // During hydration, preserve markers so child CEs can find their own markers
+    // Each CE only collects its own targets (with CE boundary stopping),
+    // but we don't remove markers until all CEs have collected
+    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest, true, container);
     return instance;
   }
 
@@ -363,6 +366,9 @@ export class FragmentNodeSequence implements INodeSequence {
   private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest, preserveMarkers?: boolean, container?: IContainer): Node[] {
     const targets: Node[] = [];
 
+    // eslint-disable-next-line no-console
+    console.log(`[_collectTargets] root.tagName=${(root as Element).tagName ?? 'fragment'}, container=${container != null ? 'yes' : 'no'}, preserveMarkers=${preserveMarkers}`);
+
     // Path-based resolution from manifest (when elementPaths is present)
     if (manifest?.elementPaths != null) {
       const elementPaths = manifest.elementPaths;
@@ -370,6 +376,8 @@ export class FragmentNodeSequence implements INodeSequence {
         const targetId = Number(targetIdStr);
         const path = elementPaths[targetId];
         targets[targetId] = this._resolvePath(root as Element, path);
+        // eslint-disable-next-line no-console
+        console.log(`  [path-based] targetId=${targetId}, path=${path.join('/')}`);
       }
     }
 
@@ -379,13 +387,18 @@ export class FragmentNodeSequence implements INodeSequence {
     // Single boundary-aware tree walk
     // When container is provided, uses CustomElement.find() to detect CE boundaries
     // This ensures we only collect targets belonging to THIS component's scope
-    const collect = (node: Node): void => {
+    const collect = (node: Node, depth: number = 0): void => {
+      const indent = '  '.repeat(depth);
       if (node.nodeType === 1 /* Element */) {
         const el = node as Element;
+        // eslint-disable-next-line no-console
+        console.log(`${indent}[walk] ELEMENT: ${el.tagName}`);
 
         // Collect au-hid element target (if not using path-based resolution)
         if (manifest?.elementPaths == null && el.hasAttribute('au-hid')) {
           const targetId = parseInt(el.getAttribute('au-hid')!, 10);
+          // eslint-disable-next-line no-console
+          console.log(`${indent}  [au-hid] el=${el.tagName}, targetId=${targetId}`);
           targets[targetId] = el;
           if (!preserveMarkers) {
             el.removeAttribute('au-hid');
@@ -398,6 +411,8 @@ export class FragmentNodeSequence implements INodeSequence {
           const tagName = el.tagName.toLowerCase();
           const ceDef = CustomElement.find(container, tagName);
           if (ceDef != null) {
+            // eslint-disable-next-line no-console
+            console.log(`${indent}  [CE-boundary] Stopping at CE: ${tagName}`);
             // This IS a registered Aurelia custom element - stop recursion
             return;
           }
@@ -405,22 +420,44 @@ export class FragmentNodeSequence implements INodeSequence {
 
         // Recurse into children
         const children = el.childNodes;
+        // eslint-disable-next-line no-console
+        console.log(`${indent}  [recurse] ${children.length} children`);
         for (let i = 0, ii = children.length; ii > i; ++i) {
-          collect(children[i]);
+          collect(children[i], depth + 1);
         }
 
       } else if (node.nodeType === 8 /* Comment */) {
         const text = (node as Comment).nodeValue;
+        // eslint-disable-next-line no-console
+        console.log(`${indent}[walk] COMMENT: ${text?.substring(0, 20)}`);
         if (text?.startsWith('au:')) {
+          // eslint-disable-next-line no-console
+          console.log(`${indent}  [marker] found: <!--${text}-->`);
           markerComments.push(node as Comment);
+        }
+      } else if (node.nodeType === 3 /* Text */) {
+        const text = (node as Text).textContent?.trim();
+        if (text) {
+          // eslint-disable-next-line no-console
+          console.log(`${indent}[walk] TEXT: "${text.substring(0, 20)}..."`);
         }
       }
     };
 
     // Start collection from root's children
     const children = root.childNodes;
+    // eslint-disable-next-line no-console
+    console.log(`[_collectTargets] Starting walk, root has ${children.length} direct children`);
     for (let i = 0, ii = children.length; ii > i; ++i) {
-      collect(children[i]);
+      collect(children[i], 0);
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`  [after walk] targets.length=${targets.length}, markerComments.length=${markerComments.length}`);
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i] as Node | undefined;
+      // eslint-disable-next-line no-console
+      console.log(`    targets[${i}] = ${t == null ? 'undefined' : t.nodeType === 1 ? (t as Element).tagName : t.nodeType === 8 ? `comment="${(t as Comment).textContent}"` : `nodeType=${t.nodeType}`}`);
     }
 
     // Process collected comment markers: <!--au:N--> where N IS the target index
@@ -432,6 +469,9 @@ export class FragmentNodeSequence implements INodeSequence {
       // Parse index from "au:N" format
       targetId = parseInt(marker.nodeValue!.slice(3), 10);
       target = marker.nextSibling!;
+      // eslint-disable-next-line no-console
+      console.log(`  [process marker] <!--${marker.nodeValue}-->, targetId=${targetId}, nextSibling=${target == null ? 'null' : target.nodeType === 1 ? (target as Element).tagName : target.nodeType === 8 ? `comment="${(target as Comment).textContent}"` : `nodeType=${target.nodeType}`}`);
+
       // Only remove markers when not in SSR preservation mode
       if (!preserveMarkers) {
         marker.remove();
@@ -441,6 +481,8 @@ export class FragmentNodeSequence implements INodeSequence {
       if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
         const startMarker = target as IRenderLocation;
         const endMarker = findMatchingEndMarker(target);
+        // eslint-disable-next-line no-console
+        console.log(`    [au-start] found, endMarker=${endMarker != null ? 'yes' : 'no'}`);
         if (endMarker !== null) {
           target = endMarker as IRenderLocation;
           (target as IRenderLocation).$start = startMarker;
@@ -448,7 +490,23 @@ export class FragmentNodeSequence implements INodeSequence {
           (target as IRenderLocation).$targetIndex = targetId;
         }
       }
+
+      // Check if we're about to overwrite an existing target
+      if (targets[targetId] != null) {
+        const existing = targets[targetId] as Node;
+        // eslint-disable-next-line no-console
+        console.log(`    [WARNING] Overwriting existing targets[${targetId}]! Was: ${existing.nodeType === 1 ? (existing as Element).tagName : existing.nodeType === 8 ? `comment="${(existing as Comment).textContent}"` : `nodeType=${existing.nodeType}`}`);
+      }
+
       targets[targetId] = target;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`  [final] targets.length=${targets.length}`);
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i] as Node | undefined;
+      // eslint-disable-next-line no-console
+      console.log(`    targets[${i}] = ${t == null ? 'undefined' : t.nodeType === 1 ? (t as Element).tagName : t.nodeType === 8 ? `comment="${(t as Comment).textContent}"` : `nodeType=${t.nodeType}`}`);
     }
 
     return targets;

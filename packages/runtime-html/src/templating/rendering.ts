@@ -180,6 +180,8 @@ export class Rendering implements IRendering {
   }
 
   public adoptNodes(host: Element, manifest?: IHydrationManifest, container?: IContainer): INodeSequence {
+    // eslint-disable-next-line no-console
+    console.log(`[adoptNodes] host.tagName=${(host as Element)?.tagName ?? 'undefined'}, manifest=${manifest != null ? 'yes' : 'no'}, container=${container != null ? 'yes' : 'no'}`);
     return FragmentNodeSequence.adoptChildren(this._platform, host, manifest, container);
   }
 
@@ -231,10 +233,27 @@ export class Rendering implements IRendering {
       }
     }
 
+    // eslint-disable-next-line no-console
+    console.log(`[Rendering.render] ctrl=${controller.name}, rowCount=${rowCount}, targetCount=${targetCount}, isHydrating=${isHydrating}`);
     if (rowCount > 0) {
       while (rowCount > i) {
         row = rows[i];
         target = targets[i];
+
+        // eslint-disable-next-line no-console
+        console.log(`  [row ${i}] target=${target == null ? 'NULL/UNDEFINED' : `nodeType=${(target as Node).nodeType}`}, instructions=${row.length}`);
+
+        if (target == null) {
+          // eslint-disable-next-line no-console
+          console.error(`[Rendering.render] FATAL: target is null/undefined at row ${i}, ctrl=${controller.name}, def=${definition.name}, rowCount=${rowCount}, targetCount=${targetCount}`);
+          // eslint-disable-next-line no-console
+          console.error(`[Rendering.render] Full targets array (length=${targets.length}):`);
+          for (let t = 0; t < targets.length; t++) {
+            const tt = targets[t] as Node | undefined;
+            // eslint-disable-next-line no-console
+            console.error(`  targets[${t}] = ${tt == null ? 'NULL/UNDEFINED' : `nodeType=${tt.nodeType}`}`);
+          }
+        }
 
         if (__DEV__ && this._debug && target == null) {
           this._logger!.warn(`[render] targets[${i}] is null/undefined, ctrl=${controller.name}, def=${definition.name}, rowCount=${rowCount}, targetCount=${targetCount}`);
@@ -244,6 +263,8 @@ export class Rendering implements IRendering {
         jj = row.length;
         while (jj > j) {
           instruction = row[j];
+          // eslint-disable-next-line no-console
+          console.log(`    [instr ${j}] type=${instruction.type}`);
           renderers[instruction.type].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator);
           ++j;
         }

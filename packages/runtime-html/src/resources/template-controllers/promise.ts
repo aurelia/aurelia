@@ -61,7 +61,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const ctx = this._ssrContext;
     if (ctx != null && ctx.hasView(0)) {
       // SSR hydration: adopt existing wrapper view
-      this.view = ctx.adoptView(0, this._factory, this.$controller);
+      this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
       this._ssrContext = void 0; // consumed
     } else {
       this.view = this._factory.create(this.$controller).setLocation(this._location);
@@ -223,14 +223,14 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
         this._ssrContext = void 0;
         if (ctx.hasView(0)) {
           // SSR hydration: adopt existing view
-          view = this.view = ctx.adoptView(0, this._factory);
+          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
         } else {
           // SSR hydration but this branch wasn't rendered - don't create view
           // (pending is always activated in pre-settle; if promise is already resolved, it'll be deactivated immediately)
           return;
         }
       } else {
-        view = this.view = this._factory.create().setLocation(this._location);
+        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
 
         // SSR recording: process the pending view
         const ssrContext = this._ssrRecordContext;
@@ -299,12 +299,12 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
         this._ssrContext = void 0;
         if (ctx.hasView(0)) {
           // SSR hydration: adopt existing view
-          view = this.view = ctx.adoptView(0, this._factory);
+          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
         }
         // If SSR context exists but branch wasn't rendered, fall through to factory creation
       }
       if (view === void 0) {
-        view = this.view = this._factory.create().setLocation(this._location);
+        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
 
         // SSR recording: process the fulfilled view
         const ssrContext = this._ssrRecordContext;
@@ -373,12 +373,12 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
         this._ssrContext = void 0;
         if (ctx.hasView(0)) {
           // SSR hydration: adopt existing view
-          view = this.view = ctx.adoptView(0, this._factory);
+          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
         }
         // If SSR context exists but branch wasn't rendered, fall through to factory creation
       }
       if (view === void 0) {
-        view = this.view = this._factory.create().setLocation(this._location);
+        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
 
         // SSR recording: process the rejected view
         const ssrContext = this._ssrRecordContext;

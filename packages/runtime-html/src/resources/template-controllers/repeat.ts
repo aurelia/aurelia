@@ -178,13 +178,20 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._normalizeToArray();
     this._createScopes(void 0);
 
+    // eslint-disable-next-line no-console
+    console.log(`[Repeat.attaching] _ssrContext=${this._ssrContext != null ? 'YES' : 'NO'}, items.length=${this._normalizedItems?.length ?? 0}`);
+
     if (this._ssrContext) {
       const ctx = this._ssrContext;
       this._ssrContext = void 0;
       this._hasAdoptedViews = true;
+      // eslint-disable-next-line no-console
+      console.log(`[Repeat.attaching] Using _activateHydratedViews with ${this._normalizedItems?.length ?? 0} items`);
       return this._activateHydratedViews(null, this._normalizedItems ?? emptyArray, ctx);
     }
 
+    // eslint-disable-next-line no-console
+    console.log(`[Repeat.attaching] Using _activateAllViews (creating new views)`);
     return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
   }
 
@@ -462,7 +469,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const controllerTargetIndex = (_location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
 
     for (let i = 0; i < newLen; ++i) {
-      view = views[i] = _factory.create().setLocation(_location);
+      view = views[i] = _factory.create($controller).setLocation(_location);
       view.nodes.unlink();
       scope = _scopes[i];
 
@@ -511,7 +518,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const allViewNodes = context.collectAllViewNodes();
 
     for (let i = 0; i < newLen; ++i) {
-      view = views[i] = context.adoptViewWithNodes(i, allViewNodes[i], _factory);
+      view = views[i] = context.adoptViewWithNodes(i, allViewNodes[i], _factory, $controller.parent!);
       view.nodes.unlink();
       scope = _scopes[i];
 
@@ -612,7 +619,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (; newLen > i; ++i) {
       if (indexMap[i] === -2) {
-        view = _factory.create();
+        view = _factory.create($controller);
         views.splice(i, 0, view);
       }
     }

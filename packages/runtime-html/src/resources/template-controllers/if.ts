@@ -95,13 +95,13 @@ export class If implements ICustomAttributeViewModel {
           if (value) {
             view = (this.view = this.ifView = this.cache && this.ifView != null
               ? this.ifView
-              : this._ifFactory.create()
+              : this._ifFactory.create(ctrl)
             );
           } else {
             // truthy -> falsy
             view = (this.view = this.elseView = this.cache && this.elseView != null
               ? this.elseView
-              : this.elseFactory?.create()
+              : this.elseFactory?.create(ctrl)
             );
           }
           // if the value is falsy
@@ -158,7 +158,7 @@ export class If implements ICustomAttributeViewModel {
     factory: IViewFactory,
     branch: 'if' | 'else'
   ): void | Promise<void> {
-    const view = context.adoptView(0, factory);
+    const view = context.adoptView(0, factory, this.$controller.parent!);
 
     if (branch === 'if') {
       this.view = this.ifView = view;

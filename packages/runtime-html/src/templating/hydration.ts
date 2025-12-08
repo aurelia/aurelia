@@ -3,7 +3,8 @@ import type { INode } from '../dom.node';
 import { FragmentNodeSequence, findMatchingEndMarker, type IRenderLocation, type INodeSequence } from '../dom';
 import type { IPlatform } from '../platform';
 import type { IViewFactory } from './view';
-import type { ISyntheticView, ICustomAttributeController, ICustomElementController } from './controller';
+import type { ISyntheticView, ICustomAttributeController, ICustomElementController, IController } from './controller';
+import { CustomElement } from '../resources/custom-element';
 import { ILogger, LogLevel } from '@aurelia/kernel';
 
 /**
@@ -11,6 +12,9 @@ import { ILogger, LogLevel } from '@aurelia/kernel';
  *
  * Provides view boundary information for template controllers,
  * allowing simple flat target collection at runtime.
+ *
+ * The manifest is hierarchical: each custom element has its own sub-manifest
+ * with its controllers, and child CE manifests are nested in `children`.
  */
 export interface IHydrationManifest {
   /**
@@ -20,15 +24,31 @@ export interface IHydrationManifest {
   targetCount: number;
 
   /**
-   * Template controller information, keyed by render location's global target index.
+   * Template controller information for THIS custom element, keyed by local target index.
    *
    * Each controller entry describes the views that were rendered.
    * For repeat: one view per item.
    * For if: 0 or 1 views depending on condition.
    * For switch: 1 view for the matched case.
+   *
+   * Keys are LOCAL to this CE's template (not global).
    */
   controllers: {
     [targetIndex: number]: IControllerManifest;
+  };
+
+  /**
+   * Child custom element manifests, keyed by the CE's global target index.
+   *
+   * When a CE is nested inside another CE, its manifest is stored here
+   * rather than in the parent's controllers. This creates a hierarchical
+   * structure that mirrors the component tree.
+   *
+   * The key is the global target index of the child CE's host element
+   * (the `au-hid` value after SSR marker rewriting).
+   */
+  children?: {
+    [ceTargetIndex: number]: IHydrationManifest;
   };
 
   /**
@@ -48,6 +68,13 @@ export interface IHydrationManifest {
   elementPaths?: {
     [targetIndex: number]: number[];
   };
+
+  /**
+   * Global target indices for this CE's template.
+   * Used by child CEs during hydration to look up targets in ROOT's _targets array.
+   * Only present for child CE manifests (root CE uses all targets).
+   */
+  targets?: number[];
 
   /**
    * Runtime property: all collected DOM targets.
@@ -302,33 +329,8 @@ export interface ISSRContext {
   allocateGlobalIndex(): number;
 
   /**
-   * Record a template controller at its target index.
-   * Must be called before recording views for this controller.
-   *
-   * @param controllerTargetIndex - The local target index of this controller in its parent template
-   * @param type - The type of controller ('repeat', 'if', 'switch', etc.)
-   */
-  recordController(controllerTargetIndex: number, type: string): void;
-
-  /**
-   * Record a view for a template controller.
-   * Called after creating and activating a view during SSR.
-   *
-   * @param controllerTargetIndex - The local target index of the controller
-   * @param viewIndex - The index of this view within the controller (0, 1, 2, ...)
-   * @param globalTargets - Array of global target indices for this view's targets
-   * @param nodeCount - Number of root DOM nodes in this view
-   */
-  recordView(
-    controllerTargetIndex: number,
-    viewIndex: number,
-    globalTargets: number[],
-    nodeCount: number,
-  ): void;
-
-  /**
    * Get the recorded hydration manifest after SSR rendering completes.
-   * Contains all controller and view mappings.
+   * Contains hierarchical controller and view mappings for all CEs.
    */
   getManifest(): IHydrationManifest;
 
@@ -336,10 +338,11 @@ export interface ISSRContext {
    * Process a view for SSR recording.
    *
    * This method:
-   * 1. Records the controller at the given target index (if not already recorded)
-   * 2. Walks the view's nodes and rewrites `au-hid` attributes and `<!--au:N-->`
+   * 1. Derives the containing CE scope by walking up the view's controller hierarchy
+   * 2. Records the controller at the given target index within that CE's scope
+   * 3. Walks the view's nodes and rewrites `au-hid` attributes and `<!--au:N-->`
    *    comments with globally unique indices
-   * 3. Records the view with the global target mappings
+   * 4. Records the view with the global target mappings
    *
    * This is the universal SSR recording API for template controllers.
    * Both built-in controllers (repeat, if, switch, etc.) and userland
@@ -357,6 +360,21 @@ export interface ISSRContext {
     controllerTargetIndex: number,
     viewIndex: number,
   ): number[];
+
+  /**
+   * Rewrite a CE's template markers from local to global indices during SSR.
+   * This must be called AFTER the CE's nodes are created but BEFORE rendering.
+   *
+   * @param ceTargetIndex - The CE's target index (null for root CE)
+   * @param fragment - The CE's template fragment (from createNodes)
+   * @param parentCE - The parent CE's target index (for registering child relationship)
+   * @returns Map from local index to global index
+   */
+  rewriteCETemplateMarkers(
+    ceTargetIndex: number | null,
+    fragment: Node,
+    parentCE: number | null,
+  ): Map<number, number>;
 }
 
 /**
@@ -366,7 +384,7 @@ export interface ISSRContext {
 export const ISSRContext = /*@__PURE__*/createInterface<ISSRContext>('ISSRContext');
 
 /**
- * SSR context implementation with recording capabilities.
+ * SSR context implementation with hierarchical recording capabilities.
  *
  * Use this class when rendering on the server:
  * ```typescript
@@ -376,6 +394,10 @@ export const ISSRContext = /*@__PURE__*/createInterface<ISSRContext>('ISSRContex
  * // ... render ...
  * const manifest = ssrContext.getManifest();
  * ```
+ *
+ * The context derives CE scopes by walking up the view's controller hierarchy
+ * (using `getEffectiveParentNode` concepts). This creates a hierarchical manifest
+ * structure that mirrors the component tree without requiring explicit enter/exit tracking.
  */
 export class SSRContext implements ISSRContext {
   public readonly preserveMarkers = true;
@@ -386,8 +408,24 @@ export class SSRContext implements ISSRContext {
   /** @internal */
   private _rootTargetCount = 0;
 
-  /** @internal */
-  private readonly _controllers: Record<number, IControllerManifest> = {};
+  /**
+   * Hierarchical recording structure.
+   * Key `null` represents root CE, numeric keys are child CE target indices.
+   * @internal
+   */
+  private readonly _ceRecords: Map<number | null, {
+    controllers: Record<number, IControllerManifest>;
+    children: Set<number>;
+    /** Number of targets in this CE's template (excluding controller views) */
+    targetCount: number;
+    /** Global target indices for this CE's template */
+    globalTargets: number[];
+  }> = new Map();
+
+  public constructor() {
+    // Initialize root CE record
+    this._ceRecords.set(null, { controllers: {}, children: new Set(), targetCount: 0, globalTargets: [] });
+  }
 
   /**
    * Set the number of targets in the root template.
@@ -405,22 +443,87 @@ export class SSRContext implements ISSRContext {
     return this._globalCounter++;
   }
 
-  public recordController(controllerTargetIndex: number, type: string): void {
-    if (this._controllers[controllerTargetIndex] == null) {
-      this._controllers[controllerTargetIndex] = {
+  /**
+   * Find the containing CE's target index by walking up the controller hierarchy.
+   * Returns null for root CE (no au-hid), or the CE's global target index.
+   * @internal
+   */
+  private _findContainingCE(view: ISyntheticView): number | null {
+    // eslint-disable-next-line no-console
+    console.log(`[_findContainingCE] view.parent=${view.parent?.constructor?.name ?? 'null'}, vmKind=${view.parent?.vmKind ?? 'N/A'}`);
+    let ctrl: IController | null = view.parent;
+    let depth = 0;
+    while (ctrl != null) {
+      // eslint-disable-next-line no-console
+      console.log(`[_findContainingCE] depth=${depth}, ctrl.vmKind=${ctrl.vmKind}, ctrl.name=${(ctrl as ICustomElementController).name ?? 'N/A'}`);
+      if (ctrl.vmKind === 'customElement') {
+        const host = (ctrl as ICustomElementController).host;
+        const auHid = host?.getAttribute?.('au-hid');
+        // eslint-disable-next-line no-console
+        console.log(`[_findContainingCE] Found CE! host.tagName=${host?.tagName}, au-hid=${auHid}`);
+        if (auHid != null) {
+          return parseInt(auHid, 10);
+        }
+        // Root CE (no au-hid)
+        return null;
+      }
+      ctrl = ctrl.parent;
+      depth++;
+    }
+    // eslint-disable-next-line no-console
+    console.log(`[_findContainingCE] No CE found in parent chain, returning null`);
+    return null;
+  }
+
+  /**
+   * Get or create a CE record.
+   * @internal
+   */
+  private _getCERecord(ceTargetIndex: number | null): {
+    controllers: Record<number, IControllerManifest>;
+    children: Set<number>;
+    targetCount: number;
+    globalTargets: number[];
+  } {
+    let record = this._ceRecords.get(ceTargetIndex);
+    if (record == null) {
+      record = { controllers: {}, children: new Set(), targetCount: 0, globalTargets: [] };
+      this._ceRecords.set(ceTargetIndex, record);
+
+      // Register as child of parent CE
+      // Find parent by walking up... but we don't have the controller here
+      // Instead, we'll build the tree in getManifest() by looking at CE nesting
+    }
+    return record;
+  }
+
+  /**
+   * Record a controller to a specific CE scope.
+   * @internal
+   */
+  private _recordController(ceTargetIndex: number | null, controllerTargetIndex: number, type: string): void {
+    const record = this._getCERecord(ceTargetIndex);
+    if (record.controllers[controllerTargetIndex] == null) {
+      record.controllers[controllerTargetIndex] = {
         type,
         views: [],
       };
     }
   }
 
-  public recordView(
+  /**
+   * Record a view to a specific CE scope.
+   * @internal
+   */
+  private _recordView(
+    ceTargetIndex: number | null,
     controllerTargetIndex: number,
     viewIndex: number,
     globalTargets: number[],
     nodeCount: number,
   ): void {
-    const controller = this._controllers[controllerTargetIndex];
+    const record = this._getCERecord(ceTargetIndex);
+    const controller = record.controllers[controllerTargetIndex];
     if (controller == null) {
       if (__DEV__) {
         // eslint-disable-next-line no-console
@@ -441,11 +544,115 @@ export class SSRContext implements ISSRContext {
     };
   }
 
-  public getManifest(): IHydrationManifest {
-    return {
-      targetCount: this._globalCounter,
-      controllers: { ...this._controllers },
+  /**
+   * Register a child CE relationship.
+   * Called when we process a view containing a CE.
+   * @internal
+   */
+  private _registerChildCE(parentCE: number | null, childCE: number): void {
+    const parentRecord = this._getCERecord(parentCE);
+    parentRecord.children.add(childCE);
+  }
+
+  /**
+   * Rewrite a CE's template markers from local to global indices during SSR.
+   * This must be called AFTER the CE's nodes are created but BEFORE rendering.
+   *
+   * @param ceTargetIndex - The CE's target index (null for root CE)
+   * @param fragment - The CE's template fragment (from createNodes)
+   * @param parentCE - The parent CE's target index (for registering child relationship)
+   * @returns Map from local index to global index
+   */
+  public rewriteCETemplateMarkers(
+    ceTargetIndex: number | null,
+    fragment: Node,
+    parentCE: number | null,
+  ): Map<number, number> {
+    const localToGlobal = new Map<number, number>();
+    const record = this._getCERecord(ceTargetIndex);
+
+    // Register as child of parent (if not root)
+    if (ceTargetIndex !== null && parentCE !== undefined) {
+      this._registerChildCE(parentCE, ceTargetIndex);
+    }
+
+    // Walk the fragment and rewrite markers
+    const rewriteNode = (node: Node): void => {
+      if (node.nodeType === 1 /* Element */) {
+        const el = node as Element;
+
+        // Rewrite au-hid attribute
+        if (el.hasAttribute('au-hid')) {
+          const localIndex = parseInt(el.getAttribute('au-hid')!, 10);
+          let globalIndex = localToGlobal.get(localIndex);
+          if (globalIndex == null) {
+            globalIndex = this.allocateGlobalIndex();
+            localToGlobal.set(localIndex, globalIndex);
+          }
+          el.setAttribute('au-hid', String(globalIndex));
+        }
+
+        // Recurse into children
+        for (let i = 0; i < el.childNodes.length; ++i) {
+          rewriteNode(el.childNodes[i]);
+        }
+      } else if (node.nodeType === 8 /* Comment */) {
+        const comment = node as Comment;
+        const text = comment.textContent ?? '';
+
+        // Rewrite <!--au:N--> markers
+        if (text.startsWith('au:')) {
+          const localIndex = parseInt(text.slice(3), 10);
+          let globalIndex = localToGlobal.get(localIndex);
+          if (globalIndex == null) {
+            globalIndex = this.allocateGlobalIndex();
+            localToGlobal.set(localIndex, globalIndex);
+          }
+          comment.textContent = `au:${globalIndex}`;
+        }
+      }
     };
+
+    // Process the fragment itself (if it's an element) and all its children
+    // When called from controller with childNodes, each child is passed individually
+    // so we need to rewrite the passed node itself, not just its children
+    rewriteNode(fragment);
+
+    // Store the mapping in the CE record
+    record.targetCount = localToGlobal.size;
+    record.globalTargets = Array.from(localToGlobal.values());
+
+    // eslint-disable-next-line no-console
+    console.log(`[rewriteCETemplateMarkers] ceTargetIndex=${ceTargetIndex}, targetCount=${record.targetCount}, globalTargets=${JSON.stringify(record.globalTargets)}`);
+
+    return localToGlobal;
+  }
+
+  public getManifest(): IHydrationManifest {
+    // Build hierarchical manifest from flat CE records
+    const buildManifest = (ceTargetIndex: number | null): IHydrationManifest => {
+      const record = this._ceRecords.get(ceTargetIndex);
+      if (record == null) {
+        return { targetCount: 0, controllers: {} };
+      }
+
+      const children: Record<number, IHydrationManifest> = {};
+      for (const childCE of record.children) {
+        children[childCE] = buildManifest(childCE);
+      }
+
+      // For root CE, use globalCounter; for child CEs, use recorded targetCount
+      // Also include globalTargets so client knows which indices belong to this CE
+      return {
+        targetCount: ceTargetIndex === null ? this._globalCounter : record.targetCount,
+        controllers: record.controllers,
+        children: Object.keys(children).length > 0 ? children : undefined,
+        // Include global target indices for this CE's template
+        targets: record.globalTargets.length > 0 ? record.globalTargets : undefined,
+      };
+    };
+
+    return buildManifest(null);
   }
 
   public processViewForRecording(
@@ -454,12 +661,24 @@ export class SSRContext implements ISSRContext {
     controllerTargetIndex: number,
     viewIndex: number,
   ): number[] {
-    // Step 1: Record the controller (idempotent - only creates if not exists)
-    this.recordController(controllerTargetIndex, controllerType);
+    // eslint-disable-next-line no-console
+    console.log(`[processViewForRecording] type=${controllerType}, targetIndex=${controllerTargetIndex}, viewIndex=${viewIndex}`);
 
-    // Step 2: Rewrite markers and build local-to-global mapping
+    // Step 1: Derive the containing CE scope by walking up the controller hierarchy
+    const ceTargetIndex = this._findContainingCE(view);
+
+    // eslint-disable-next-line no-console
+    console.log(`[processViewForRecording] ceTargetIndex=${ceTargetIndex}`);
+
+    // Step 2: Record the controller to the appropriate CE scope (idempotent)
+    this._recordController(ceTargetIndex, controllerTargetIndex, controllerType);
+
+    // Step 3: Rewrite markers and build local-to-global mapping
     const localToGlobal = new Map<number, number>();
     const fragment = view.nodes.childNodes;
+
+    // Track CE elements we find - we'll register them as children
+    const childCEs: number[] = [];
 
     // Recursive function to process all nodes
     const processNode = (node: Node): void => {
@@ -470,6 +689,10 @@ export class SSRContext implements ISSRContext {
           const globalIndex = this.allocateGlobalIndex();
           localToGlobal.set(localIndex, globalIndex);
           el.setAttribute('au-hid', String(globalIndex));
+
+          // Check if this is a custom element (will have au-hid and be processed as CE)
+          // We register it as a potential child CE - the CE renderer will create its record
+          childCEs.push(globalIndex);
         }
         // Process children
         for (let i = 0; i < el.childNodes.length; ++i) {
@@ -506,7 +729,12 @@ export class SSRContext implements ISSRContext {
       processNode(fragment[i]);
     }
 
-    // Step 3: Build globalTargets array in instruction order (sorted by local index)
+    // Step 4: Register child CE relationships for hierarchy building
+    for (const childCE of childCEs) {
+      this._registerChildCE(ceTargetIndex, childCE);
+    }
+
+    // Step 5: Build globalTargets array in instruction order (sorted by local index)
     const maxLocalIndex = localToGlobal.size > 0
       ? Math.max(...localToGlobal.keys())
       : -1;
@@ -518,9 +746,9 @@ export class SSRContext implements ISSRContext {
       }
     }
 
-    // Step 4: Record the view
+    // Step 6: Record the view to the appropriate CE scope
     const nodeCount = view.nodes.childNodes.length;
-    this.recordView(controllerTargetIndex, viewIndex, globalTargets, nodeCount);
+    this._recordView(ceTargetIndex, controllerTargetIndex, viewIndex, globalTargets, nodeCount);
 
     return globalTargets;
   }
@@ -657,7 +885,16 @@ export class ResumeContext implements IResumeContext {
       viewFragment.appendChild(node);
     }
 
-    const nodes = new FragmentNodeSequence(this._platform, viewFragment);
+    // IMPORTANT: When adopting views during hydration, we MUST preserve markers
+    // inside child CEs. These markers belong to the child CE's template and will
+    // be needed when that CE hydrates. Pass preserveMarkers=true to prevent removal.
+    const nodes = new FragmentNodeSequence(
+      this._platform,
+      viewFragment,
+      void 0, // adoptFrom - not adopting existing DOM
+      void 0, // manifest - not using manifest for this
+      true,   // preserveMarkers - CRITICAL: don't remove child CE markers!
+    );
     const viewTargets = this.getViewTargets(viewIndex);
 
     const view = factory.adopt(nodes, viewTargets, parentController);

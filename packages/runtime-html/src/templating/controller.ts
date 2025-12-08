@@ -46,7 +46,7 @@ import type {
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
 import { ErrorNames, createMappedError } from '../errors';
-import { IHydrationManifest } from './hydration';
+import { IHydrationManifest, ISSRContext } from './hydration';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
@@ -470,16 +470,60 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // Check both explicit adopt flag (root CE) and manifest presence (child CEs in hydration mode)
     const container = this.container;
     const manifest = container.has(IHydrationManifest, true) ? container.get(IHydrationManifest) : undefined;
+    // eslint-disable-next-line no-console
+    console.log(`[ctrl._hydrateCustomElement] name=${this.name}, host.tagName=${host?.tagName ?? 'undefined'}, adopt=${hydrationInst?.adopt}, manifest=${manifest != null ? 'yes' : 'no'}`);
     if (hydrationInst?.adopt) {
-      // ROOT CE - collect ALL targets globally (no CE boundary stopping)
-      // This ensures all globalTargets indices are resolvable by any TC
-      this.nodes = this._rendering.adoptNodes(host, manifest, null);
+      // ROOT CE - collect targets for THIS CE's template only
+      // Use CE boundary detection to stop at nested custom elements
+      // This prevents collecting markers from nested templates (which have conflicting local indices)
+      // eslint-disable-next-line no-console
+      console.log(`  [branch] ROOT adopt - with CE boundary stopping`);
+      this.nodes = this._rendering.adoptNodes(host, manifest, container);
     } else if (manifest != null) {
       // Child CE in hydration mode - collect scoped targets for its own rendering
       // Pass container for CE boundary detection (only collect this CE's targets)
+      // eslint-disable-next-line no-console
+      console.log(`  [branch] CHILD adopt - with CE boundary detection`);
       this.nodes = this._rendering.adoptNodes(host, manifest, container);
     } else {
+      // eslint-disable-next-line no-console
+      console.log(`  [branch] createNodes - no hydration`);
       this.nodes = this._rendering.createNodes(compiledDef);
+
+      // SSR Mode: Rewrite CE template markers from local to global indices
+      // This prevents marker index collisions between different CE templates
+      const hasSSRContext = container.has(ISSRContext, true);
+      // eslint-disable-next-line no-console
+      console.log(`  [SSR check] hasSSRContext=${hasSSRContext}, ISSRContext=${ISSRContext?.toString?.()}`);
+      if (hasSSRContext) {
+        const ssrContext = container.get(ISSRContext);
+        // Get this CE's target index from host's au-hid (null for root CE)
+        const ceTargetIndex = host.hasAttribute?.('au-hid')
+          ? parseInt(host.getAttribute('au-hid')!, 10)
+          : null;
+        // Get parent CE's target index by walking up controller hierarchy
+        let parentCE: number | null = null;
+        let parentCtrl = this.parent;
+        while (parentCtrl != null) {
+          if (parentCtrl.vmKind === 'customElement') {
+            const parentHost = (parentCtrl as ICustomElementController).host;
+            if (parentHost?.hasAttribute?.('au-hid')) {
+              parentCE = parseInt(parentHost.getAttribute('au-hid')!, 10);
+            }
+            break;
+          }
+          parentCtrl = parentCtrl.parent;
+        }
+        // Rewrite markers in the child nodes - FragmentNodeSequence has childNodes public
+        const childNodes = this.nodes!.childNodes;
+        // eslint-disable-next-line no-console
+        console.log(`  [SSR rewrite] childNodes.length=${childNodes?.length}, ceTargetIndex=${ceTargetIndex}, parentCE=${parentCE}`);
+        if (childNodes != null && childNodes.length > 0) {
+          for (const child of childNodes) {
+            ssrContext.rewriteCETemplateMarkers(ceTargetIndex, child, parentCE);
+          }
+        }
+      }
     }
 
     if (this._lifecycleHooks!.hydrated !== void 0) {

@@ -54,7 +54,7 @@ export class With implements ICustomAttributeViewModel {
   /** @internal */
   private _activateView(): void | Promise<void> {
     const { $controller, value } = this;
-    const view = this.view = this._factory.create().setLocation(this._location);
+    const view = this.view = this._factory.create($controller).setLocation(this._location);
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
     return view.activate(view, $controller, scope);
   }
@@ -69,7 +69,7 @@ export class With implements ICustomAttributeViewModel {
     }
 
     // Adopt the existing DOM
-    const view = this.view = context.adoptView(0, this._factory);
+    const view = this.view = context.adoptView(0, this._factory, this.$controller.parent!);
 
     const { value } = this;
     const scope = Scope.fromParent(ctrl.scope, value === void 0 ? {} : value);

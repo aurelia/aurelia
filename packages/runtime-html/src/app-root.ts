@@ -106,8 +106,9 @@ export class AppRoot<
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
 
     if (hydrationOptions?.manifest != null) {
+      // Register on the actual root container so it's accessible from anywhere in the hierarchy
       registerResolver(
-        container,
+        container.root,
         IHydrationManifest,
         new InstanceProvider<IHydrationManifestType>('IHydrationManifest', hydrationOptions.manifest)
       );

@@ -106,7 +106,7 @@ export class Switch implements ICustomAttributeViewModel {
       return this.view.activate(initiator, ctrl, ctrl.scope);
     }
 
-    this.view = context.adoptViewTargetsOnly(0, this._factory, this.$controller);
+    this.view = context.adoptViewTargetsOnly(0, this._factory, ctrl.parent!);
     return this.view.activate(initiator, ctrl, ctrl.scope);
   }
 
@@ -375,12 +375,12 @@ export class Case implements ICustomAttributeViewModel {
         this._ssrContext = void 0;
 
         if (ctx.hasView(0)) {
-          view = this.view = ctx.adoptView(0, this._factory);
+          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
         } else {
-          view = this.view = this._factory.create().setLocation(this._location);
+          view = this.view = this._factory.create(this.$controller).setLocation(this._location);
         }
       } else {
-        view = this.view = this._factory.create().setLocation(this._location);
+        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
 
         // SSR recording: process the case view
         const ssrContext = this._ssrRecordContext;

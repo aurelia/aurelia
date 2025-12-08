@@ -301,10 +301,6 @@ export {
 
   StandardConfiguration,
 } from './configuration';
-export {
-  /** @deprecated - Should be imported directly from `aurelia` or `@aurelia/template-compiler` package */
-  BindingCommand,
-} from '@aurelia/template-compiler';
 
 export {
   type PartialChildrenDefinition,

@@ -356,7 +356,7 @@ export class ForBindingCommand implements BindingCommandInstance {
       : info.bindable.name;
     const forOf = exprParser.parse(info.attr.rawValue, 'IsIterator');
     let props: MultiAttrInstruction[] = emptyArray;
-    
+
     // Parse additional iterator properties after the for-of expression.
     // This supports multiple semicolon-separated properties like:
     // repeat.for="item of items; key: id; previous.bind: true"
@@ -366,11 +366,11 @@ export class ForBindingCommand implements BindingCommandInstance {
       const attrsString = info.attr.rawValue.slice(forOf.semiIdx + 1);
       const attrParts = attrsString.split(';');
       const parsedProps: MultiAttrInstruction[] = [];
-      
+
       for (let j = 0, jj = attrParts.length; j < jj; j++) {
         const attrPart = attrParts[j];
         const colonIdx = attrPart.indexOf(':');
-        
+
         if (colonIdx > -1) {
           const attrName = attrPart.slice(0, colonIdx).trim();
           const attrValue = attrPart.slice(colonIdx + 1).trim();
@@ -378,10 +378,10 @@ export class ForBindingCommand implements BindingCommandInstance {
           parsedProps.push(new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command));
         }
       }
-      
+
       props = parsedProps;
     }
-    
+
     return new IteratorBindingInstruction(forOf, target, props);
   }
 }

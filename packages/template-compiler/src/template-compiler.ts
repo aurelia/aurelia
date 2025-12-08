@@ -1068,7 +1068,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     return instructions;
   }
 
-  /** @internal */
+  /**
+   * Extract the `<template as-custom-element="...">` local templates from the root template
+   * @internal
+   */
   private _compileLocalElement(template: Element | DocumentFragment, context: CompilationContext) {
     const elName = context.root.def.name;
     const root: Element | DocumentFragment = template;

@@ -30,7 +30,7 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
       /* istanbul ignore next */
       if (__DEV__) {
         // eslint-disable-next-line no-console
-        console.warn(`Binding ${binding.constructor.name} does not support debounce rate limiting`);
+        console.warn(`[DEV:aurelia] Binding ${binding.constructor.name} does not support throttle rate limiting`);
       }
     } else {
       bindingHandlerMap.set(binding, handler);

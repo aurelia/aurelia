@@ -439,7 +439,19 @@ export class FragmentNodeSequence implements INodeSequence {
         if (shouldRecurse) {
           const children = el.childNodes;
           for (let i = 0, ii = children.length; ii > i; ++i) {
-            collectFromNode(children[i], false);
+            const child = children[i];
+
+            if (child.nodeType === 8 /* Comment */ && (child as Comment).nodeValue === 'au-start') {
+              const endMarker = findMatchingEndMarker(child);
+              if (endMarker !== null) {
+                while (i < ii && children[i] !== endMarker) {
+                  ++i;
+                }
+              }
+              continue;
+            }
+
+            collectFromNode(child, false);
           }
         }
 

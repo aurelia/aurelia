@@ -7,8 +7,6 @@ import {
   resolve,
   isString,
   registrableMetadataKey,
-  ILogger,
-  LogLevel,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -313,7 +311,6 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
 
 export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateControllerRenderer implements IRenderer {
   /** @internal */ public readonly _rendering = resolve(IRendering);
-  /** @internal */ private _logger: ILogger | undefined;
 
   public readonly target = InstructionType.hydrateTemplateController;
 

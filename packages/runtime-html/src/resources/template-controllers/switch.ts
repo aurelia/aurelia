@@ -296,7 +296,7 @@ export class Case implements ICustomAttributeViewModel {
 
   public isMatch(value: unknown): boolean {
     if (__DEV__) {
-      (this._logger ??= resolve(ILogger).scopeTo(`Case-#${this.id}`)).debug('isMatch()');
+      (this._logger ??= this.$controller.container.get(ILogger).scopeTo(`Case-#${this.id}`)).debug('isMatch()');
     }
     const $value = this.value;
     if (isArray($value)) {

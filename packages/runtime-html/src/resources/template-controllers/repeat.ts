@@ -477,15 +477,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  /**
-   * SSR hydration path: adopt existing DOM nodes instead of creating new ones.
-   *
-   * The server rendered N items between <!--au-start--> and <!--au-end--> markers.
-   * Each item has `nodeCount` sibling nodes. We partition these nodes according
-   * to the manifest's view scopes and create views that adopt them.
-   *
-   * @internal
-   */
+  /** @internal SSR hydration: adopt existing DOM nodes instead of creating new ones. */
   private _hydrateViews(
     initiator: IHydratedController | null,
     $items: unknown[],
@@ -500,10 +492,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const views = this.views = Array(newLen);
     const viewScopes = ssrScope.views;
 
-    // Mark as having adopted views - these can't be cached
     this._hasAdoptedViews = true;
 
-    // Build nodeCounts array and partition the sibling nodes
     const nodeCounts = Array(newLen);
     for (let i = 0; i < newLen; ++i) {
       nodeCounts[i] = viewScopes[i]?.nodeCount ?? 1;
@@ -511,7 +501,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const nodePartitions = partitionSiblingNodes(_location, nodeCounts);
 
     if (nodePartitions.length === 0) {
-      // No start marker found - fall back to normal rendering
       return this._activateAllViewsNormal(initiator, $items);
     }
 
@@ -531,7 +520,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    // Clear the SSR scope after hydration - it's consumed once
     $controller.ssrScope = undefined;
 
     if (promises !== void 0) {
@@ -541,10 +529,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  /**
-   * Normal view activation (non-hydration) - extracted for fallback use.
-   * @internal
-   */
+  /** @internal */
   private _activateAllViewsNormal(
     initiator: IHydratedController | null,
     $items: unknown[],

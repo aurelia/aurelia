@@ -125,42 +125,29 @@ export class If implements ICustomAttributeViewModel {
     );
   }
 
-  /**
-   * SSR hydration: adopt existing DOM instead of creating new views.
-   * @internal
-   */
+  /** @internal SSR hydration: adopt existing DOM instead of creating new views. */
   private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
     const ctrl = this.$controller;
 
-    // Check if the view was rendered on the server
     if (ssrScope.views.length === 0) {
-      // No view was rendered - the condition was false and there was no else,
-      // or the else was rendered but had no content.
       ctrl.ssrScope = void 0;
       return;
     }
 
-    // Get the view scope from the manifest
     const viewScope = ssrScope.views[0];
     const nodeCount = viewScope?.nodeCount ?? 1;
-
-    // The manifest's state.value tells us which branch was rendered:
-    // true = if-branch, false = else-branch
     const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;
-
-    // Determine which factory to use
     const factory = wasIfBranch ? this._ifFactory : this.elseFactory;
+
     if (factory == null) {
       ctrl.ssrScope = void 0;
       return;
     }
 
-    // Partition sibling nodes using the shared helper
     const location = this._location;
     const nodePartitions = partitionSiblingNodes(location, [nodeCount]);
 
     if (nodePartitions.length === 0 || nodePartitions[0].length === 0) {
-      // No nodes found - shouldn't happen if SSR was done correctly
       ctrl.ssrScope = void 0;
       return;
     }
@@ -168,17 +155,13 @@ export class If implements ICustomAttributeViewModel {
     const adoptedNodes = FragmentNodeSequence.adoptSiblings(this._platform, nodePartitions[0]);
     const view = factory.createAdopted(ctrl, adoptedNodes, viewScope);
 
-    // Store the view in the appropriate slot
     if (wasIfBranch) {
       this.view = this.ifView = view;
     } else {
       this.view = this.elseView = view;
     }
 
-    // Set location and activate
     view.setLocation(location);
-
-    // Clear ssrScope - hydration is complete, future changes use normal path
     ctrl.ssrScope = void 0;
 
     return view.activate(view, ctrl, ctrl.scope);

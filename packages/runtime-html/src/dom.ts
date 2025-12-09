@@ -238,17 +238,7 @@ export function findMatchingEndMarker(startMarker: Node): Comment | null {
   return null;
 }
 
-/**
- * Partition sibling nodes between au-start and au-end markers for SSR hydration.
- *
- * Template controllers render their views as sibling nodes between markers.
- * This function partitions those nodes according to the manifest's nodeCount
- * for each view, allowing TCs to adopt the correct DOM nodes for each view.
- *
- * @param location - The render location (au-end marker with $start reference)
- * @param nodeCounts - Array of node counts, one per view to create
- * @returns Array of node arrays, one partition per view
- */
+/** Partition sibling nodes between au-start/au-end markers according to nodeCounts. */
 export function partitionSiblingNodes(
   location: IRenderLocation,
   nodeCounts: number[]
@@ -334,23 +324,11 @@ export class FragmentNodeSequence implements INodeSequence {
     this._lastChild = fragment.lastChild;
   }
 
-  /**
-   * Adopt existing DOM children for SSR hydration.
-   *
-   * Unlike regular construction which clones from a template,
-   * this wraps existing DOM nodes that are already in place.
-   * The nodes are NOT moved - they stay where they are in the DOM.
-   *
-   * @param platform - The platform instance
-   * @param host - The element whose children should be adopted
-   * @returns A FragmentNodeSequence wrapping the existing children
-   */
+  /** Adopt existing DOM children for SSR hydration instead of cloning from a template. */
   public static adoptChildren(platform: IPlatform, host: Element): FragmentNodeSequence {
-    // Create an empty fragment (won't be used for DOM operations)
     const fragment = platform.document.createDocumentFragment();
     const seq = new FragmentNodeSequence(platform, fragment);
 
-    // Capture existing children (they stay in the DOM)
     const children = host.childNodes;
     const childArray: Node[] = Array(children.length);
     for (let i = 0, ii = children.length; ii > i; ++i) {
@@ -360,53 +338,27 @@ export class FragmentNodeSequence implements INodeSequence {
     seq.childNodes = childArray;
     seq._firstChild = childArray[0] ?? null;
     seq._lastChild = childArray[childArray.length - 1] ?? null;
-
-    // Mark as already mounted - nodes are already in the DOM
     seq._isMounted = true;
-
-    // Collect targets from the live DOM (preserving markers for nested components)
     seq.t = seq._collectTargetsFromHost(host);
 
     return seq;
   }
 
-  /**
-   * Adopt a range of sibling nodes for SSR hydration of template controller views.
-   *
-   * Template controllers (repeat, if, etc.) render their views as sibling nodes
-   * between <!--au-start--> and <!--au-end--> markers. During hydration, we need
-   * to "adopt" these existing nodes rather than cloning from a template.
-   *
-   * @param platform - The platform instance
-   * @param nodes - Array of sibling nodes to adopt (already collected from DOM)
-   * @returns A FragmentNodeSequence wrapping the existing siblings
-   */
+  /** Adopt sibling nodes for SSR hydration of TC views (nodes between au-start/au-end). */
   public static adoptSiblings(platform: IPlatform, nodes: Node[]): FragmentNodeSequence {
-    // Create an empty fragment (won't be used for DOM operations)
     const fragment = platform.document.createDocumentFragment();
     const seq = new FragmentNodeSequence(platform, fragment);
 
     seq.childNodes = nodes;
     seq._firstChild = nodes[0] ?? null;
     seq._lastChild = nodes[nodes.length - 1] ?? null;
-
-    // Mark as already mounted - nodes are already in the DOM
     seq._isMounted = true;
-
-    // Collect targets from these sibling nodes
     seq.t = seq._collectTargetsFromSiblings(nodes);
 
     return seq;
   }
 
-  /**
-   * Collect targets from a flat array of sibling nodes.
-   *
-   * Used for TC view hydration where nodes are siblings between markers,
-   * not children of a single host element.
-   *
-   * @internal
-   */
+  /** @internal */
   private _collectTargetsFromSiblings(nodes: Node[]): Node[] {
     const targets: Node[] = [];
     const markerComments: Comment[] = [];
@@ -416,31 +368,24 @@ export class FragmentNodeSequence implements INodeSequence {
         const el = node as Element;
         const hasAuHid = el.hasAttribute('au-hid');
 
-        // Collect au-hid element target
         if (hasAuHid) {
           const targetId = parseInt(el.getAttribute('au-hid')!, 10);
           targets[targetId] = el;
         }
 
-        // Custom elements (tag names with dashes) have their own templates.
-        // Their children belong to their own controller, not this view.
-        // Never recurse into custom elements.
+        // Custom elements have their own templates - don't recurse into their children
         const isCustomElement = el.tagName.includes('-');
         if (isCustomElement) {
-          // Don't recurse - custom element's children are its own template
           return;
         }
 
-        // For ROOT nodes (the ones directly passed to adoptSiblings), ALWAYS recurse
-        // into their children - those children are part of this view.
-        // For NESTED elements with au-hid that are NOT custom elements, they're
-        // regular HTML elements with bindings - recurse to find nested targets.
         const shouldRecurse = isRoot || !hasAuHid;
         if (shouldRecurse) {
           const children = el.childNodes;
           for (let i = 0, ii = children.length; ii > i; ++i) {
             const child = children[i];
 
+            // Skip TC content regions - they belong to nested scopes
             if (child.nodeType === 8 /* Comment */ && (child as Comment).nodeValue === 'au-start') {
               const endMarker = findMatchingEndMarker(child);
               if (endMarker !== null) {
@@ -463,34 +408,28 @@ export class FragmentNodeSequence implements INodeSequence {
       }
     };
 
-    // Process each sibling node - root level nodes should always recurse into children
     for (let i = 0, ii = nodes.length; ii > i; ++i) {
       collectFromNode(nodes[i], true);
     }
 
-    // Process marker comments - handle both text interpolation and TC targets
+    // Process markers: TC targets (followed by au-start) or text interpolation targets
     for (let i = 0, ii = markerComments.length; ii > i; ++i) {
       const comment = markerComments[i];
-      const text = comment.nodeValue!;
-      const targetId = parseInt(text.slice(3), 10); // Skip 'au:'
-
-      // Check what follows this marker
+      const targetId = parseInt(comment.nodeValue!.slice(3), 10);
       const nextSibling = comment.nextSibling;
 
-      // Check if this is a TC target: <!--au:N--><!--au-start-->...<!--au-end-->
       if (nextSibling !== null &&
           nextSibling.nodeType === 8 /* Comment */ &&
           (nextSibling as Comment).nodeValue === 'au-start') {
-        // This is a TC target - find the matching au-end and set up render location
+        // TC target - set up render location
         const startMarker = nextSibling as Comment;
         const endMarker = findMatchingEndMarker(startMarker);
         if (endMarker !== null) {
-          // Set up the render location - au-end needs $start reference
           (endMarker as IRenderLocation).$start = startMarker as IRenderLocation;
           targets[targetId] = endMarker;
         }
       } else {
-        // Text interpolation target - find or create text node
+        // Text interpolation target
         let target: Node | null = nextSibling;
         if (target === null || target.nodeType !== 3 /* Text */) {
           target = this.platform.document.createTextNode('');

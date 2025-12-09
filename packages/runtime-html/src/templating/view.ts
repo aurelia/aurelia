@@ -2,10 +2,10 @@ import { isString, type IContainer } from '@aurelia/kernel';
 import { CustomElementDefinition } from '../resources/custom-element';
 import { createInterface } from '../utilities-di';
 import { Controller } from './controller';
-import { INode } from '../dom.node';
-import { INodeSequence } from '../dom';
 
 import type { ICustomAttributeController, ICustomElementController, ISyntheticView } from './controller';
+import type { INodeSequence } from '../dom';
+import type { ISSRScope } from './ssr';
 
 export interface IViewFactory {
   name: string;
@@ -22,16 +22,19 @@ export interface IViewFactory {
   create(parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
 
   /**
-   * Create a view by adopting existing DOM nodes for SSR hydration.
+   * Create a view that adopts existing DOM nodes for SSR hydration.
    *
-   * @param nodes - The node sequence wrapping existing DOM
-   * @param targets - Pre-collected targets for this view
-   * @param parentController - Optional parent controller
+   * Unlike `create()` which clones from a template, this wraps existing
+   * DOM nodes that were pre-rendered (e.g., by SSR).
+   *
+   * @param parentController - The parent controller
+   * @param adoptedNodes - Pre-existing DOM nodes to adopt
+   * @param ssrScope - SSR manifest scope for nested hydration
    */
-  adopt(
-    nodes: INodeSequence,
-    targets: ArrayLike<INode>,
-    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+  createAdopted(
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
   ): ISyntheticView;
 }
 export const IViewFactory = /*@__PURE__*/createInterface<IViewFactory>('IViewFactory');
@@ -109,11 +112,12 @@ export class ViewFactory implements IViewFactory {
     return controller;
   }
 
-  public adopt(
-    nodes: INodeSequence,
-    targets: ArrayLike<INode>,
-    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+  public createAdopted(
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
   ): ISyntheticView {
-    return Controller.$adoptView(this, nodes, targets, parentController);
+    // Don't use cache for adopted views - they're tied to specific DOM nodes
+    return Controller.$viewAdopted(this, parentController, adoptedNodes, ssrScope);
   }
 }

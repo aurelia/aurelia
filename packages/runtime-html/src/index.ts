@@ -48,19 +48,18 @@ export {
   type ISinglePageAppConfig,
 } from './aurelia';
 export {
-  type IHydrationManifest,
-  IHydrationManifest as IHydrationManifestToken,
-  type IControllerManifest,
-  type IViewManifest,
-  consumeHydrationManifest,
-  type IResumeContext,
-  IResumeContext as IResumeContextToken,
-  ResumeContext,
-  // SSR rendering context
-  type ISSRContext,
-  ISSRContext as ISSRContextToken,
-  SSRContext,
-} from './templating/hydration';
+  // SSR manifest types (tree-shaped, mirrors controller tree)
+  type ISSRManifest,
+  type ISSRScope,
+  type ISSRScopeChild,
+  type ISSRTemplateController,
+  isSSRTemplateController,
+  isSSRScope,
+  ISSRContext,
+  // SSR manifest recording
+  recordManifest,
+  debugControllerTree,
+} from './templating/ssr';
 export {
   type IAppRootConfig,
   AppRoot,

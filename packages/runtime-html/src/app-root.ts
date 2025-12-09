@@ -12,18 +12,7 @@ import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
 import { ErrorNames, createMappedError } from './errors';
 
-import { IHydrationManifest } from './templating/hydration';
-import type { IHydrationManifest as IHydrationManifestType } from './templating/hydration';
-
-/** @internal */
-export interface IHydrationOptions<T = object> {
-  /** When true, adopts existing DOM children instead of cloning from template */
-  adopt?: boolean;
-  /** State to apply to the component instance before bindings are created */
-  state?: Partial<T>;
-  /** Hydration manifest from SSR compiler with view boundary information */
-  manifest?: IHydrationManifest;
-}
+import type { ISSRScope } from './templating/ssr';
 
 export interface IAppRootConfig<T extends object = object> {
   host: HTMLElement;
@@ -45,6 +34,11 @@ export interface IAppRootConfig<T extends object = object> {
    * In this mode, calling an undefined function will return undefined as well.
    */
   strictBinding?: boolean;
+  /**
+   * Tree-shaped SSR manifest scope for hydration.
+   * Built by recordManifest() after SSR render, mirrors the controller tree.
+   */
+  ssrScope?: ISSRScope;
 }
 
 export interface IAppRoot<C extends object = object> extends IDisposable {
@@ -96,7 +90,6 @@ export class AppRoot<
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
     enhance: boolean = false,
-    hydrationOptions?: IHydrationOptions<K>,
   ) {
     this._useOwnAppTasks = enhance;
     const host = this.host = config.host;
@@ -104,15 +97,6 @@ export class AppRoot<
 
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
-
-    if (hydrationOptions?.manifest != null) {
-      // Register on the actual root container so it's accessible from anywhere in the hierarchy
-      registerResolver(
-        container.root,
-        IHydrationManifest,
-        new InstanceProvider<IHydrationManifestType>('IHydrationManifest', hydrationOptions.manifest)
-      );
-    }
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       if (!config.allowActionlessForm !== false) {
@@ -136,16 +120,9 @@ export class AppRoot<
         instance = config.component as ICustomElementViewModel;
       }
 
-      // Apply hydration state before bindings are created
-      // This ensures bindings see the correct initial values from SSR
-      if (hydrationOptions?.state) {
-        Object.assign(instance, hydrationOptions.state);
-      }
-
       const hydrationInst: IControllerElementHydrationInstruction = {
         hydrate: false,
         projections: null,
-        adopt: hydrationOptions?.adopt,
       };
       const definition = enhance
         ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
@@ -157,12 +134,14 @@ export class AppRoot<
         instance as K,
         host,
         hydrationInst,
-        definition
+        definition,
+        /* location  */null,
+        /* ssrScope  */config.ssrScope,
       )) as Controller<K>;
 
       controller._hydrateCustomElement(hydrationInst);
       return onResolve(this._runAppTasks('hydrating'), () => {
-        controller._hydrate(hydrationInst);
+        controller._hydrate();
         return onResolve(this._runAppTasks('hydrated'), () => {
           controller._hydrateChildren();
           this._hydratePromise = void 0;

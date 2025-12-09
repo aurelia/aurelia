@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve, resolve, optional } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { onResolve, resolve } from '@aurelia/kernel';
+import { FragmentNodeSequence, IRenderLocation, partitionSiblingNodes } from '../../dom';
 import { IViewFactory } from '../../templating/view';
+import { IPlatform } from '../../platform';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { IResumeContext, type ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
-import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
+import { isSSRTemplateController, type ISSRTemplateController } from '../../templating/ssr';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -41,14 +41,13 @@ export class If implements ICustomAttributeViewModel {
   /** @internal */ private _swapId: number = 0;
   /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
+  /** @internal */ private readonly _platform = resolve(IPlatform);
 
   public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    if (this._ssrContext) {
-      const ctx = this._ssrContext;
-      this._ssrContext = void 0;
-      return this._activateHydratedView(this.value, ctx);
+    // Check for SSR hydration mode
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
+      return this._hydrateView(ssrScope);
     }
     return this._swap(this.value);
   }
@@ -113,13 +112,6 @@ export class If implements ICustomAttributeViewModel {
           //       instead of always of the [if]
           view.setLocation(this._location);
 
-          // SSR recording: process view markers for globally unique indices
-          const ssrContext = this._ssrRecordContext;
-          const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-          if (ssrContext != null && controllerTargetIndex != null) {
-            ssrContext.processViewForRecording(view, 'if', controllerTargetIndex, 0);
-          }
-
           return onResolve(
             view.activate(view, ctrl, ctrl.scope),
             () => {
@@ -133,43 +125,63 @@ export class If implements ICustomAttributeViewModel {
     );
   }
 
-  /** @internal */
-  private _activateHydratedView(
-    value: unknown,
-    context: IResumeContext
-  ): void | Promise<void> {
+  /**
+   * SSR hydration: adopt existing DOM instead of creating new views.
+   * @internal
+   */
+  private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
     const ctrl = this.$controller;
 
-    if (value && context.hasView(0)) {
-      return this._adoptView(context, ctrl, this._ifFactory, 'if');
+    // Check if the view was rendered on the server
+    if (ssrScope.views.length === 0) {
+      // No view was rendered - the condition was false and there was no else,
+      // or the else was rendered but had no content.
+      ctrl.ssrScope = void 0;
+      return;
     }
 
-    if (!value && this.elseFactory != null && context.hasView(0)) {
-      return this._adoptView(context, ctrl, this.elseFactory, 'else');
+    // Get the view scope from the manifest
+    const viewScope = ssrScope.views[0];
+    const nodeCount = viewScope?.nodeCount ?? 1;
+
+    // The manifest's state.value tells us which branch was rendered:
+    // true = if-branch, false = else-branch
+    const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;
+
+    // Determine which factory to use
+    const factory = wasIfBranch ? this._ifFactory : this.elseFactory;
+    if (factory == null) {
+      ctrl.ssrScope = void 0;
+      return;
     }
 
-    this.view = void 0;
-  }
+    // Partition sibling nodes using the shared helper
+    const location = this._location;
+    const nodePartitions = partitionSiblingNodes(location, [nodeCount]);
 
-  /** @internal */
-  private _adoptView(
-    context: IResumeContext,
-    ctrl: ICustomAttributeController<this>,
-    factory: IViewFactory,
-    branch: 'if' | 'else'
-  ): void | Promise<void> {
-    const view = context.adoptView(0, factory, this.$controller.parent!);
+    if (nodePartitions.length === 0 || nodePartitions[0].length === 0) {
+      // No nodes found - shouldn't happen if SSR was done correctly
+      ctrl.ssrScope = void 0;
+      return;
+    }
 
-    if (branch === 'if') {
+    const adoptedNodes = FragmentNodeSequence.adoptSiblings(this._platform, nodePartitions[0]);
+    const view = factory.createAdopted(ctrl, adoptedNodes, viewScope);
+
+    // Store the view in the appropriate slot
+    if (wasIfBranch) {
       this.view = this.ifView = view;
     } else {
       this.view = this.elseView = view;
     }
 
-    return onResolve(
-      view.activate(view, ctrl, ctrl.scope),
-      () => { this.pending = void 0; }
-    );
+    // Set location and activate
+    view.setLocation(location);
+
+    // Clear ssrScope - hydration is complete, future changes use normal path
+    ctrl.ssrScope = void 0;
+
+    return view.activate(view, ctrl, ctrl.scope);
   }
 
   public dispose(): void {

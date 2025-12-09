@@ -1,4 +1,4 @@
-import { ILogger, onResolve, onResolveAll, optional, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
@@ -17,8 +17,6 @@ import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-co
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
-import { IResumeContext, ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
-import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 // NOTE: The "SSR pending -> client resolves" case is not currently handled.
 // If the SSR output rendered the pending branch (promise was unresolved during SSR),
@@ -49,8 +47,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     _controller: IHydratableController,
@@ -58,24 +54,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    const ctx = this._ssrContext;
-    if (ctx != null && ctx.hasView(0)) {
-      // SSR hydration: adopt existing wrapper view
-      this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
-      this._ssrContext = void 0; // consumed
-    } else {
-      this.view = this._factory.create(this.$controller).setLocation(this._location);
-      if (ctx != null) {
-        this._ssrContext = void 0; // consumed even if empty
-      }
-
-      // SSR recording: process the wrapper view
-      const ssrContext = this._ssrRecordContext;
-      const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-      if (ssrContext != null && controllerTargetIndex != null) {
-        ssrContext.processViewForRecording(this.view, 'promise', controllerTargetIndex, 0);
-      }
-    }
+    this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -203,8 +182,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -218,27 +195,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      const ctx = this._ssrContext;
-      if (ctx != null) {
-        this._ssrContext = void 0;
-        if (ctx.hasView(0)) {
-          // SSR hydration: adopt existing view
-          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
-        } else {
-          // SSR hydration but this branch wasn't rendered - don't create view
-          // (pending is always activated in pre-settle; if promise is already resolved, it'll be deactivated immediately)
-          return;
-        }
-      } else {
-        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-
-        // SSR recording: process the pending view
-        const ssrContext = this._ssrRecordContext;
-        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-        if (ssrContext != null && controllerTargetIndex != null) {
-          ssrContext.processViewForRecording(view, 'pending', controllerTargetIndex, 0);
-        }
-      }
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);
@@ -278,8 +235,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -294,25 +249,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
     this.value = resolvedValue;
     let view = this.view;
     if (view === void 0) {
-      const ctx = this._ssrContext;
-      if (ctx != null) {
-        this._ssrContext = void 0;
-        if (ctx.hasView(0)) {
-          // SSR hydration: adopt existing view
-          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
-        }
-        // If SSR context exists but branch wasn't rendered, fall through to factory creation
-      }
-      if (view === void 0) {
-        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-
-        // SSR recording: process the fulfilled view
-        const ssrContext = this._ssrRecordContext;
-        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-        if (ssrContext != null && controllerTargetIndex != null) {
-          ssrContext.processViewForRecording(view, 'then', controllerTargetIndex, 0);
-        }
-      }
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);
@@ -352,8 +289,6 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -368,25 +303,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     this.value = error;
     let view = this.view;
     if (view === void 0) {
-      const ctx = this._ssrContext;
-      if (ctx != null) {
-        this._ssrContext = void 0;
-        if (ctx.hasView(0)) {
-          // SSR hydration: adopt existing view
-          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
-        }
-        // If SSR context exists but branch wasn't rendered, fall through to factory creation
-      }
-      if (view === void 0) {
-        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-
-        // SSR recording: process the rejected view
-        const ssrContext = this._ssrRecordContext;
-        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-        if (ssrContext != null && controllerTargetIndex != null) {
-          ssrContext.processViewForRecording(view, 'catch', controllerTargetIndex, 0);
-        }
-      }
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);

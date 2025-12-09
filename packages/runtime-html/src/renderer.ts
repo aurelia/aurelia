@@ -1,7 +1,6 @@
 import {
   emptyArray,
   InstanceProvider,
-  optional,
   type IContainer,
   type Constructable,
   type IResolver,
@@ -42,7 +41,7 @@ import { IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import { ErrorNames, createMappedError } from './errors';
-import { IHydrationManifest, IResumeContext, ResumeContext, consumeHydrationManifest } from './templating/hydration';
+import { type ISSRScope, type ISSRScopeChild, type ISSRTemplateController } from './templating/ssr';
 import { SpreadBinding, SpreadValueBinding } from './binding/spread-binding';
 import {
   AttributeBindingInstruction,
@@ -87,6 +86,11 @@ export interface IRenderer {
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
+    /**
+     * SSR manifest scope entry for child-creating instructions (TCs, CEs).
+     * Passed by Rendering.render() based on tree position.
+     */
+    ssrScope?: ISSRScopeChild,
   ): void;
 }
 
@@ -172,6 +176,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
+    ssrScope?: ISSRScopeChild,
   ): void {
     /* eslint-disable prefer-const */
     let def: CustomElementDefinition | null;
@@ -208,44 +213,6 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* SlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
     );
 
-    // Hierarchical manifest: extract child manifest for nested CEs
-    // This allows TCs inside the CE to resolve their own scoped manifest
-    const parentManifest = ctxContainer.root.get(optional(IHydrationManifest));
-    // eslint-disable-next-line no-console
-    console.log(`[CE-hydration] tag=${target.tagName}, parentManifest=${parentManifest != null ? 'yes' : 'no'}, children=${parentManifest?.children != null ? Object.keys(parentManifest.children).join(',') : 'none'}`);
-    if (parentManifest?._targets != null) {
-      // eslint-disable-next-line no-console
-      console.log(`[CE-hydration] parentManifest._targets.length=${parentManifest._targets.length}`);
-      for (let i = 0; i < parentManifest._targets.length; i++) {
-        const t = parentManifest._targets[i];
-        // eslint-disable-next-line no-console
-        console.log(`  [target ${i}] ${t == null ? 'NULL' : `nodeType=${t.nodeType}, ${t.nodeType === 1 ? `tag=${(t as Element).tagName}` : t.nodeType === 8 ? `comment="${(t as Comment).textContent}"` : `text`}`}`);
-      }
-    }
-    if (parentManifest?.children != null) {
-      const auHid = target.getAttribute?.('au-hid');
-      // eslint-disable-next-line no-console
-      console.log(`[CE-hydration] au-hid=${auHid}`);
-      if (auHid != null) {
-        const ceTargetIndex = parseInt(auHid, 10);
-        const childManifest = parentManifest.children[ceTargetIndex];
-        // eslint-disable-next-line no-console
-        console.log(`[CE-hydration] ceTargetIndex=${ceTargetIndex}, childManifest=${childManifest != null ? 'found' : 'NOT FOUND'}`);
-        if (childManifest != null) {
-          // eslint-disable-next-line no-console
-          console.log(`[CE-hydration] childManifest.controllers keys=${Object.keys(childManifest.controllers ?? {}).join(',')}, targetCount=${childManifest.targetCount}`);
-          // Register the child manifest on the CE's container
-          // Also copy _targets from parent so target resolution works
-          childManifest._targets = parentManifest._targets;
-          registerResolver(
-            container,
-            IHydrationManifest,
-            new InstanceProvider('IHydrationManifest', childManifest),
-          );
-        }
-      }
-    }
-
     component = container.invoke(def.Type);
     childCtrl = Controller.$el(
       /* own container       */container,
@@ -253,7 +220,8 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* host                */target,
       /* instruction         */instruction,
       /* definition          */def,
-      /* location            */location
+      /* location            */location,
+      /* ssrScope            */ssrScope as ISSRScope | undefined,
     );
 
     const renderers = this._rendering.renderers;
@@ -357,6 +325,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
+    ssrScope?: ISSRScopeChild,
   ): void {
     if (__DEV__) {
       const logger = this._logger ??= renderingCtrl.container.get(ILogger).root;
@@ -395,33 +364,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
         ? ctxContainer.createChild({ inheritParentResources: true })
         : ctxContainer
     );
-    // eslint-disable-next-line no-console
-    console.log(`[TC-render] res=${typeof instruction.res === 'string' ? instruction.res : instruction.res?.name}, target=${target == null ? 'NULL/UNDEFINED' : `nodeType=${target.nodeType}, ${target.nodeType === 1 ? `tag=${target.tagName}` : target.nodeType === 8 ? `comment="${(target as Comment).textContent}"` : 'text'}`}, ctrl=${renderingCtrl.name}`);
-    if (target == null) {
-      // eslint-disable-next-line no-console
-      console.error(`[TC-render] FATAL: target is ${target}, instruction.res=${typeof instruction.res === 'string' ? instruction.res : instruction.res?.name}, ctrl=${renderingCtrl.name}`);
-      const manifest = ctxContainer.root.get(optional(IHydrationManifest));
-      // eslint-disable-next-line no-console
-      console.error(`[TC-render] manifest present=${manifest != null}, manifest._targets length=${manifest?._targets?.length ?? 'N/A'}, manifest.controllers keys=${manifest?.controllers ? Object.keys(manifest.controllers).join(',') : 'N/A'}`);
-    }
     const renderLocation = convertToRenderLocation(target);
-
-    let resumeContext: IResumeContext | null = null;
-    const manifest = ctxContainer.root.get(optional(IHydrationManifest));
-    // eslint-disable-next-line no-console
-    console.log(`[TC-ResumeContext] manifest=${manifest != null ? 'yes' : 'no'}, _targets=${manifest?._targets != null ? `length=${manifest._targets.length}` : 'null'}, renderLocation.$targetIndex=${renderLocation.$targetIndex}`);
-    if (manifest?._targets != null) {
-      const targetIndex = renderLocation.$targetIndex;
-      const controllerManifest = consumeHydrationManifest(manifest, targetIndex);
-      // eslint-disable-next-line no-console
-      console.log(`[TC-ResumeContext] targetIndex=${targetIndex}, controllerManifest=${controllerManifest != null ? `views=${Object.keys(controllerManifest.views || {}).length}` : 'null'}`);
-      if (controllerManifest != null) {
-        const logger = __DEV__ ? (this._logger ??= renderingCtrl.container.get(ILogger).root) : void 0;
-        resumeContext = new ResumeContext(controllerManifest, manifest._targets, renderLocation, platform, logger);
-        // eslint-disable-next-line no-console
-        console.log(`[TC-ResumeContext] CREATED ResumeContext for ${typeof instruction.res === 'string' ? instruction.res : instruction.res?.name}`);
-      }
-    }
 
     const results = invokeAttribute(
       /* platform         */platform,
@@ -431,14 +374,13 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
       /* instruction      */instruction,
       /* viewFactory      */viewFactory,
       /* location         */renderLocation,
-      /* auSlotsInfo      */void 0,
-      /* resumeContext    */resumeContext,
     );
     const childController = Controller.$attr(
       /* container ct */results.ctn,
       /* viewModel    */results.vm,
       /* host         */target,
       /* definition   */def,
+      /* ssrScope     */ssrScope as ISSRTemplateController | undefined,
     );
 
     refs.set(renderLocation, def.key, childController);
@@ -992,7 +934,6 @@ function invokeAttribute(
   viewFactory?: IViewFactory,
   location?: IRenderLocation,
   auSlotsInfo?: IAuSlotsInfo,
-  resumeContext?: IResumeContext | null,
 ): { vm: ICustomAttributeViewModel; ctn: IContainer } {
   const renderingCtrl = $renderingCtrl instanceof Controller
     ? $renderingCtrl
@@ -1010,9 +951,6 @@ function invokeAttribute(
   registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
     ? noAuSlotProvider
     : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
-  if (resumeContext != null) {
-    registerResolver(ctn, IResumeContext, new InstanceProvider('IResumeContext', resumeContext));
-  }
 
   return { vm: ctn.invoke(definition.Type), ctn };
 }

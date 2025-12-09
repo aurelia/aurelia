@@ -1,11 +1,10 @@
-import { IContainer, IResolver, InstanceProvider, emptyArray } from '@aurelia/kernel';
+import { IResolver, InstanceProvider, emptyArray, type IContainer } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
-import { CustomElement, findElementControllerFor } from './resources/custom-element';
+import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
 import { INode } from './dom.node';
-import type { IHydrationManifest } from './templating/hydration';
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
 export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {
@@ -239,15 +238,55 @@ export function findMatchingEndMarker(startMarker: Node): Comment | null {
   return null;
 }
 
+/**
+ * Partition sibling nodes between au-start and au-end markers for SSR hydration.
+ *
+ * Template controllers render their views as sibling nodes between markers.
+ * This function partitions those nodes according to the manifest's nodeCount
+ * for each view, allowing TCs to adopt the correct DOM nodes for each view.
+ *
+ * @param location - The render location (au-end marker with $start reference)
+ * @param nodeCounts - Array of node counts, one per view to create
+ * @returns Array of node arrays, one partition per view
+ */
+export function partitionSiblingNodes(
+  location: IRenderLocation,
+  nodeCounts: number[]
+): Node[][] {
+  const endMarker = location as Comment;
+  const startMarker = (location as IRenderLocation<Comment>).$start as Comment | undefined;
+
+  if (startMarker == null) {
+    return [];
+  }
+
+  const partitions: Node[][] = [];
+  let current: Node | null = startMarker.nextSibling;
+
+  for (let i = 0, ii = nodeCounts.length; ii > i; ++i) {
+    const count = nodeCounts[i];
+    const nodes: Node[] = [];
+
+    for (let n = 0; n < count && current != null && current !== endMarker; ++n) {
+      nodes.push(current);
+      current = current.nextSibling;
+    }
+
+    partitions.push(nodes);
+  }
+
+  return partitions;
+}
+
 export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
-  private readonly _firstChild: Node | null;
+  private _firstChild: Node | null;
   public get firstChild(): Node | null {
     return this._firstChild;
   }
 
   /** @internal */
-  private readonly _lastChild: Node | null;
+  private _lastChild: Node | null;
   public get lastChild(): Node | null {
     return this._lastChild;
   }
@@ -266,80 +305,190 @@ export class FragmentNodeSequence implements INodeSequence {
   private ref?: Node | null = null;
 
   /** @internal */
-  private readonly t: ArrayLike<Node>;
+  private t: ArrayLike<Node>;
 
   /** @internal */
-  private readonly f: DocumentFragment;
-
-  /**
-   * Adopt existing DOM children for SSR hydration.
-   *
-   * Instead of cloning from a template, this wraps existing DOM nodes
-   * that were pre-rendered (e.g., by SSR). The nodes are already in the DOM,
-   * so `appendTo()` will be a no-op and `remove()` will move them to
-   * an internal fragment for potential re-mounting.
-   *
-   * @param platform - The platform abstraction
-   * @param parent - The element whose children should be adopted
-   * @param manifest - Optional hydration manifest with element paths for path-based resolution
-   * @returns A node sequence wrapping the existing children
-   */
-  public static adoptChildren(platform: IPlatform, parent: Element, manifest?: IHydrationManifest, container?: IContainer): FragmentNodeSequence {
-    // Create empty fragment for potential future unmounting
-    // (when remove() is called, nodes will be moved here)
-    const fragment = platform.document.createDocumentFragment();
-    // During hydration, preserve markers so child CEs can find their own markers
-    // Each CE only collects its own targets (with CE boundary stopping),
-    // but we don't remove markers until all CEs have collected
-    const instance = new FragmentNodeSequence(platform, fragment, parent, manifest, true, container);
-    return instance;
-  }
+  private f: DocumentFragment;
 
   public constructor(
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
-    /**
-     * When provided, adopts children from this parent instead of using fragment.
-     * The fragment is kept empty for future remove() operations.
-     * @internal
-     */
-    adoptFrom?: Element,
-    /**
-     * When provided with elementPaths, uses path-based resolution instead of au-hid attributes.
-     * @internal
-     */
-    manifest?: IHydrationManifest,
     /**
      * When true, preserves `au-hid` attributes and `<!--au:N-->` markers in the DOM.
      * Used during SSR rendering to keep markers for client hydration.
      * @internal
      */
     preserveMarkers?: boolean,
-    /**
-     * When provided, used to detect custom element boundaries during target collection.
-     * Elements registered as custom elements in this container will be treated as boundaries.
-     * @internal
-     */
-    container?: IContainer,
   ) {
     this.f = fragment;
+    this.t = this._collectTargets(fragment, preserveMarkers);
 
-    // Collect targets and children from either the fragment or adopted parent
-    const root = adoptFrom ?? fragment;
-    this.t = this._collectTargets(root, manifest, preserveMarkers, container);
-
-    const childNodeList = root.childNodes;
+    const childNodeList = fragment.childNodes;
     const ii = childNodeList.length;
     const childNodes = this.childNodes = Array(ii) as Node[];
     for (let i = 0; ii > i; ++i) {
       childNodes[i] = childNodeList[i];
     }
 
-    this._firstChild = root.firstChild;
-    this._lastChild = root.lastChild;
+    this._firstChild = fragment.firstChild;
+    this._lastChild = fragment.lastChild;
+  }
 
-    // When adopting, nodes are already in the DOM
-    this._isMounted = adoptFrom !== undefined;
+  /**
+   * Adopt existing DOM children for SSR hydration.
+   *
+   * Unlike regular construction which clones from a template,
+   * this wraps existing DOM nodes that are already in place.
+   * The nodes are NOT moved - they stay where they are in the DOM.
+   *
+   * @param platform - The platform instance
+   * @param host - The element whose children should be adopted
+   * @returns A FragmentNodeSequence wrapping the existing children
+   */
+  public static adoptChildren(platform: IPlatform, host: Element): FragmentNodeSequence {
+    // Create an empty fragment (won't be used for DOM operations)
+    const fragment = platform.document.createDocumentFragment();
+    const seq = new FragmentNodeSequence(platform, fragment);
+
+    // Capture existing children (they stay in the DOM)
+    const children = host.childNodes;
+    const childArray: Node[] = Array(children.length);
+    for (let i = 0, ii = children.length; ii > i; ++i) {
+      childArray[i] = children[i];
+    }
+
+    seq.childNodes = childArray;
+    seq._firstChild = childArray[0] ?? null;
+    seq._lastChild = childArray[childArray.length - 1] ?? null;
+
+    // Mark as already mounted - nodes are already in the DOM
+    seq._isMounted = true;
+
+    // Collect targets from the live DOM (preserving markers for nested components)
+    seq.t = seq._collectTargetsFromHost(host);
+
+    return seq;
+  }
+
+  /**
+   * Adopt a range of sibling nodes for SSR hydration of template controller views.
+   *
+   * Template controllers (repeat, if, etc.) render their views as sibling nodes
+   * between <!--au-start--> and <!--au-end--> markers. During hydration, we need
+   * to "adopt" these existing nodes rather than cloning from a template.
+   *
+   * @param platform - The platform instance
+   * @param nodes - Array of sibling nodes to adopt (already collected from DOM)
+   * @returns A FragmentNodeSequence wrapping the existing siblings
+   */
+  public static adoptSiblings(platform: IPlatform, nodes: Node[]): FragmentNodeSequence {
+    // Create an empty fragment (won't be used for DOM operations)
+    const fragment = platform.document.createDocumentFragment();
+    const seq = new FragmentNodeSequence(platform, fragment);
+
+    seq.childNodes = nodes;
+    seq._firstChild = nodes[0] ?? null;
+    seq._lastChild = nodes[nodes.length - 1] ?? null;
+
+    // Mark as already mounted - nodes are already in the DOM
+    seq._isMounted = true;
+
+    // Collect targets from these sibling nodes
+    seq.t = seq._collectTargetsFromSiblings(nodes);
+
+    return seq;
+  }
+
+  /**
+   * Collect targets from a flat array of sibling nodes.
+   *
+   * Used for TC view hydration where nodes are siblings between markers,
+   * not children of a single host element.
+   *
+   * @internal
+   */
+  private _collectTargetsFromSiblings(nodes: Node[]): Node[] {
+    const targets: Node[] = [];
+    const markerComments: Comment[] = [];
+
+    const collectFromNode = (node: Node, isRoot: boolean): void => {
+      if (node.nodeType === 1 /* Element */) {
+        const el = node as Element;
+        const hasAuHid = el.hasAttribute('au-hid');
+
+        // Collect au-hid element target
+        if (hasAuHid) {
+          const targetId = parseInt(el.getAttribute('au-hid')!, 10);
+          targets[targetId] = el;
+        }
+
+        // Custom elements (tag names with dashes) have their own templates.
+        // Their children belong to their own controller, not this view.
+        // Never recurse into custom elements.
+        const isCustomElement = el.tagName.includes('-');
+        if (isCustomElement) {
+          // Don't recurse - custom element's children are its own template
+          return;
+        }
+
+        // For ROOT nodes (the ones directly passed to adoptSiblings), ALWAYS recurse
+        // into their children - those children are part of this view.
+        // For NESTED elements with au-hid that are NOT custom elements, they're
+        // regular HTML elements with bindings - recurse to find nested targets.
+        const shouldRecurse = isRoot || !hasAuHid;
+        if (shouldRecurse) {
+          const children = el.childNodes;
+          for (let i = 0, ii = children.length; ii > i; ++i) {
+            collectFromNode(children[i], false);
+          }
+        }
+
+      } else if (node.nodeType === 8 /* Comment */) {
+        const text = (node as Comment).nodeValue;
+        if (text?.startsWith('au:')) {
+          markerComments.push(node as Comment);
+        }
+      }
+    };
+
+    // Process each sibling node - root level nodes should always recurse into children
+    for (let i = 0, ii = nodes.length; ii > i; ++i) {
+      collectFromNode(nodes[i], true);
+    }
+
+    // Process marker comments - handle both text interpolation and TC targets
+    for (let i = 0, ii = markerComments.length; ii > i; ++i) {
+      const comment = markerComments[i];
+      const text = comment.nodeValue!;
+      const targetId = parseInt(text.slice(3), 10); // Skip 'au:'
+
+      // Check what follows this marker
+      const nextSibling = comment.nextSibling;
+
+      // Check if this is a TC target: <!--au:N--><!--au-start-->...<!--au-end-->
+      if (nextSibling !== null &&
+          nextSibling.nodeType === 8 /* Comment */ &&
+          (nextSibling as Comment).nodeValue === 'au-start') {
+        // This is a TC target - find the matching au-end and set up render location
+        const startMarker = nextSibling as Comment;
+        const endMarker = findMatchingEndMarker(startMarker);
+        if (endMarker !== null) {
+          // Set up the render location - au-end needs $start reference
+          (endMarker as IRenderLocation).$start = startMarker as IRenderLocation;
+          targets[targetId] = endMarker;
+        }
+      } else {
+        // Text interpolation target - find or create text node
+        let target: Node | null = nextSibling;
+        if (target === null || target.nodeType !== 3 /* Text */) {
+          target = this.platform.document.createTextNode('');
+          comment.parentNode?.insertBefore(target, comment.nextSibling);
+        }
+        targets[targetId] = target!;
+      }
+    }
+
+    return targets;
   }
 
   /**
@@ -347,117 +496,52 @@ export class FragmentNodeSequence implements INodeSequence {
    *
    * Unified SSR-compatible marker system:
    * 1. Element targets: [au-hid="N"] attribute - value IS the target index
-   *    OR when manifest.elementPaths is present, use path-based resolution
    * 2. Non-element targets: <!--au:N--> comment - N IS the target index
    *
    * Both marker types encode their index directly, eliminating the need
    * for runtime DOM transformation.
    *
-   * This method collects ALL targets in a flat pass. For SSR hydration with
-   * template controllers, global indices are used and a manifest provides
-   * view boundary information.
-   *
-   * @param root - DocumentFragment (for template cloning) or Element (for SSR adoption)
-   * @param manifest - Optional hydration manifest with element paths
+   * @param root - DocumentFragment from template cloning
    * @returns Array of target nodes indexed by their marker values
    *
    * @internal
    */
-  private _collectTargets(root: DocumentFragment | Element, manifest?: IHydrationManifest, preserveMarkers?: boolean, container?: IContainer): Node[] {
+  private _collectTargets(root: DocumentFragment, preserveMarkers?: boolean): Node[] {
     const targets: Node[] = [];
-
-    // eslint-disable-next-line no-console
-    console.log(`[_collectTargets] root.tagName=${(root as Element).tagName ?? 'fragment'}, container=${container != null ? 'yes' : 'no'}, preserveMarkers=${preserveMarkers}`);
-
-    // Path-based resolution from manifest (when elementPaths is present)
-    if (manifest?.elementPaths != null) {
-      const elementPaths = manifest.elementPaths;
-      for (const targetIdStr in elementPaths) {
-        const targetId = Number(targetIdStr);
-        const path = elementPaths[targetId];
-        targets[targetId] = this._resolvePath(root as Element, path);
-        // eslint-disable-next-line no-console
-        console.log(`  [path-based] targetId=${targetId}, path=${path.join('/')}`);
-      }
-    }
-
-    // Collect comment markers that need processing after the walk
     const markerComments: Comment[] = [];
 
-    // Single boundary-aware tree walk
-    // When container is provided, uses CustomElement.find() to detect CE boundaries
-    // This ensures we only collect targets belonging to THIS component's scope
-    const collect = (node: Node, depth: number = 0): void => {
-      const indent = '  '.repeat(depth);
+    // Tree walk to collect targets
+    const collect = (node: Node): void => {
       if (node.nodeType === 1 /* Element */) {
         const el = node as Element;
-        // eslint-disable-next-line no-console
-        console.log(`${indent}[walk] ELEMENT: ${el.tagName}`);
 
-        // Collect au-hid element target (if not using path-based resolution)
-        if (manifest?.elementPaths == null && el.hasAttribute('au-hid')) {
+        // Collect au-hid element target
+        if (el.hasAttribute('au-hid')) {
           const targetId = parseInt(el.getAttribute('au-hid')!, 10);
-          // eslint-disable-next-line no-console
-          console.log(`${indent}  [au-hid] el=${el.tagName}, targetId=${targetId}`);
           targets[targetId] = el;
           if (!preserveMarkers) {
             el.removeAttribute('au-hid');
           }
         }
 
-        // Check if this is a registered custom element boundary
-        // If so, don't recurse - that element will collect its own targets
-        if (container != null) {
-          const tagName = el.tagName.toLowerCase();
-          const ceDef = CustomElement.find(container, tagName);
-          if (ceDef != null) {
-            // eslint-disable-next-line no-console
-            console.log(`${indent}  [CE-boundary] Stopping at CE: ${tagName}`);
-            // This IS a registered Aurelia custom element - stop recursion
-            return;
-          }
-        }
-
         // Recurse into children
         const children = el.childNodes;
-        // eslint-disable-next-line no-console
-        console.log(`${indent}  [recurse] ${children.length} children`);
         for (let i = 0, ii = children.length; ii > i; ++i) {
-          collect(children[i], depth + 1);
+          collect(children[i]);
         }
 
       } else if (node.nodeType === 8 /* Comment */) {
         const text = (node as Comment).nodeValue;
-        // eslint-disable-next-line no-console
-        console.log(`${indent}[walk] COMMENT: ${text?.substring(0, 20)}`);
         if (text?.startsWith('au:')) {
-          // eslint-disable-next-line no-console
-          console.log(`${indent}  [marker] found: <!--${text}-->`);
           markerComments.push(node as Comment);
-        }
-      } else if (node.nodeType === 3 /* Text */) {
-        const text = (node as Text).textContent?.trim();
-        if (text) {
-          // eslint-disable-next-line no-console
-          console.log(`${indent}[walk] TEXT: "${text.substring(0, 20)}..."`);
         }
       }
     };
 
     // Start collection from root's children
     const children = root.childNodes;
-    // eslint-disable-next-line no-console
-    console.log(`[_collectTargets] Starting walk, root has ${children.length} direct children`);
     for (let i = 0, ii = children.length; ii > i; ++i) {
-      collect(children[i], 0);
-    }
-
-    // eslint-disable-next-line no-console
-    console.log(`  [after walk] targets.length=${targets.length}, markerComments.length=${markerComments.length}`);
-    for (let i = 0; i < targets.length; i++) {
-      const t = targets[i] as Node | undefined;
-      // eslint-disable-next-line no-console
-      console.log(`    targets[${i}] = ${t == null ? 'undefined' : t.nodeType === 1 ? (t as Element).tagName : t.nodeType === 8 ? `comment="${(t as Comment).textContent}"` : `nodeType=${t.nodeType}`}`);
+      collect(children[i]);
     }
 
     // Process collected comment markers: <!--au:N--> where N IS the target index
@@ -469,8 +553,6 @@ export class FragmentNodeSequence implements INodeSequence {
       // Parse index from "au:N" format
       targetId = parseInt(marker.nodeValue!.slice(3), 10);
       target = marker.nextSibling!;
-      // eslint-disable-next-line no-console
-      console.log(`  [process marker] <!--${marker.nodeValue}-->, targetId=${targetId}, nextSibling=${target == null ? 'null' : target.nodeType === 1 ? (target as Element).tagName : target.nodeType === 8 ? `comment="${(target as Comment).textContent}"` : `nodeType=${target.nodeType}`}`);
 
       // Only remove markers when not in SSR preservation mode
       if (!preserveMarkers) {
@@ -481,8 +563,6 @@ export class FragmentNodeSequence implements INodeSequence {
       if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
         const startMarker = target as IRenderLocation;
         const endMarker = findMatchingEndMarker(target);
-        // eslint-disable-next-line no-console
-        console.log(`    [au-start] found, endMarker=${endMarker != null ? 'yes' : 'no'}`);
         if (endMarker !== null) {
           target = endMarker as IRenderLocation;
           (target as IRenderLocation).$start = startMarker;
@@ -491,42 +571,97 @@ export class FragmentNodeSequence implements INodeSequence {
         }
       }
 
-      // Check if we're about to overwrite an existing target
-      if (targets[targetId] != null) {
-        const existing = targets[targetId] as Node;
-        // eslint-disable-next-line no-console
-        console.log(`    [WARNING] Overwriting existing targets[${targetId}]! Was: ${existing.nodeType === 1 ? (existing as Element).tagName : existing.nodeType === 8 ? `comment="${(existing as Comment).textContent}"` : `nodeType=${existing.nodeType}`}`);
-      }
-
       targets[targetId] = target;
-    }
-
-    // eslint-disable-next-line no-console
-    console.log(`  [final] targets.length=${targets.length}`);
-    for (let i = 0; i < targets.length; i++) {
-      const t = targets[i] as Node | undefined;
-      // eslint-disable-next-line no-console
-      console.log(`    targets[${i}] = ${t == null ? 'undefined' : t.nodeType === 1 ? (t as Element).tagName : t.nodeType === 8 ? `comment="${(t as Comment).textContent}"` : `nodeType=${t.nodeType}`}`);
     }
 
     return targets;
   }
 
   /**
-   * Resolve an element from a child-index path.
+   * Collect targets from existing DOM for SSR adoption.
    *
-   * @param root - The root element to start from
-   * @param path - Array of child indices, e.g., [0, 2, 1] means root.children[0].children[2].children[1]
-   * @returns The element at the specified path
+   * Unlike _collectTargets which removes markers (for cloned templates),
+   * this preserves markers because nested components still need them.
+   *
+   * @param host - The element whose children contain the targets
+   * @returns Array of target nodes indexed by their marker values
    *
    * @internal
    */
-  private _resolvePath(root: Element, path: number[]): Element {
-    let node: Element = root;
-    for (let i = 0, ii = path.length; ii > i; ++i) {
-      node = node.children[path[i]] as Element;
+  private _collectTargetsFromHost(host: Element): Node[] {
+    const targets: Node[] = [];
+    const markerComments: Comment[] = [];
+
+    // Collect targets from siblings, skipping TC content (au-start to au-end regions)
+    const collectSiblings = (nodes: NodeListOf<ChildNode>): void => {
+      for (let i = 0, ii = nodes.length; i < ii; ++i) {
+        const node = nodes[i];
+
+        // Skip TC content regions (between au-start and au-end)
+        if (node.nodeType === 8 /* Comment */ && (node as Comment).nodeValue === 'au-start') {
+          const endMarker = findMatchingEndMarker(node);
+          if (endMarker !== null) {
+            // Skip ahead to the au-end marker
+            while (i < ii && nodes[i] !== endMarker) {
+              ++i;
+            }
+          }
+          continue;
+        }
+
+        if (node.nodeType === 1 /* Element */) {
+          const el = node as Element;
+
+          // Collect au-hid element target (but DON'T remove the attribute)
+          if (el.hasAttribute('au-hid')) {
+            const targetId = parseInt(el.getAttribute('au-hid')!, 10);
+            targets[targetId] = el;
+            // Keep marker for nested component hydration
+          }
+
+          // Recurse into children (also skipping TC content)
+          collectSiblings(el.childNodes);
+
+        } else if (node.nodeType === 8 /* Comment */) {
+          const text = (node as Comment).nodeValue;
+          if (text?.startsWith('au:')) {
+            markerComments.push(node as Comment);
+          }
+        }
+      }
+    };
+
+    // Start collection from host's children
+    collectSiblings(host.childNodes);
+
+    // Process collected comment markers: <!--au:N--> where N IS the target index
+    let marker: Comment;
+    let target: Node | IRenderLocation;
+    let targetId: number;
+    for (let i = 0, ii = markerComments.length; ii > i; ++i) {
+      marker = markerComments[i];
+      // Parse index from "au:N" format
+      targetId = parseInt(marker.nodeValue!.slice(3), 10);
+      target = marker.nextSibling!;
+
+      // DON'T remove marker - nested components need it
+
+      // If target is au-start, find matching au-end (handling nested pairs)
+      if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
+        const startMarker = target as IRenderLocation;
+        const endMarker = findMatchingEndMarker(target);
+        if (endMarker !== null) {
+          target = endMarker as IRenderLocation;
+          (target as IRenderLocation).$start = startMarker;
+          // Store target index for SSR hydration manifest lookup
+          (target as IRenderLocation).$targetIndex = targetId;
+        }
+      }
+
+      targets[targetId] = target;
     }
-    return node;
+
+    return targets;
   }
 
   public findTargets(): ArrayLike<Node> {

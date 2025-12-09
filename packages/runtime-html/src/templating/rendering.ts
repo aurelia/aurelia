@@ -2,7 +2,7 @@ import { createLookup, isString, IContainer, resolve, ILogger, LogLevel } from '
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
-import { IHydrationManifest, ISSRContext } from './hydration';
+import { ISSRContext, type ISSRScope } from './ssr';
 
 import { FragmentNodeSequence, INodeSequence } from '../dom';
 import { INode } from '../dom.node';
@@ -32,15 +32,12 @@ export interface IRendering {
    * Adopt existing DOM children for SSR hydration.
    *
    * Instead of cloning from a template, this wraps existing DOM nodes
-   * that were pre-rendered (e.g., by SSR). Use this when hydrating
-   * server-rendered HTML.
+   * that were pre-rendered (e.g., by SSR). The nodes stay in place.
    *
    * @param host - The element whose children should be adopted
-   * @param manifest - Optional hydration manifest with element paths for path-based resolution
-   * @param container - Optional container for custom element boundary detection
    * @returns A node sequence wrapping the existing children
    */
-  adoptNodes(host: Element, manifest?: IHydrationManifest, container?: IContainer): INodeSequence;
+  adoptNodes(host: Element): INodeSequence;
 
   render(
     controller: IHydratableController,
@@ -173,16 +170,12 @@ export class Rendering implements IRendering {
     return new FragmentNodeSequence(
       this._platform,
       clonedFragment,
-      void 0, // adoptFrom - not adopting existing DOM
-      void 0, // manifest - not hydrating
       this._preserveMarkers,
     );
   }
 
-  public adoptNodes(host: Element, manifest?: IHydrationManifest, container?: IContainer): INodeSequence {
-    // eslint-disable-next-line no-console
-    console.log(`[adoptNodes] host.tagName=${(host as Element)?.tagName ?? 'undefined'}, manifest=${manifest != null ? 'yes' : 'no'}, container=${container != null ? 'yes' : 'no'}`);
-    return FragmentNodeSequence.adoptChildren(this._platform, host, manifest, container);
+  public adoptNodes(host: Element): INodeSequence {
+    return FragmentNodeSequence.adoptChildren(this._platform, host);
   }
 
   public render(
@@ -200,12 +193,11 @@ export class Rendering implements IRendering {
       this._logger!.trace(`[Render] ctrl=${controller.name}, def=${definition.name}, rows=${rowCount}, targets=${targetCount}`);
     }
 
-    // When hydrating with manifest, we may have more targets than instructions
-    // because nested targets (inside template controllers) are collected flat
-    // but belong to the template controller's views, not the parent.
-    const ctn = controller.container;
-    const manifest = ctn.has(IHydrationManifest, true) ? ctn.get(IHydrationManifest) : null;
-    const isHydrating = manifest !== null;
+    // Tree-based SSR: get parent's scope and track child index
+    const parentScope = controller.ssrScope as ISSRScope | undefined;
+    const isHydrating = parentScope != null;
+    const scopeChildren = parentScope?.children;
+    let ssrChildIndex = 0;
 
     let i = 0;
     let j = 0;
@@ -214,7 +206,6 @@ export class Rendering implements IRendering {
     let instruction: IInstruction;
     let target: INode;
 
-    // Only validate length match when not hydrating with manifest
     if (!isHydrating && targetCount !== rowCount) {
       throw createMappedError(ErrorNames.rendering_mismatch_length, targetCount, rowCount);
     }
@@ -233,39 +224,24 @@ export class Rendering implements IRendering {
       }
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`[Rendering.render] ctrl=${controller.name}, rowCount=${rowCount}, targetCount=${targetCount}, isHydrating=${isHydrating}`);
     if (rowCount > 0) {
       while (rowCount > i) {
         row = rows[i];
         target = targets[i];
 
-        // eslint-disable-next-line no-console
-        console.log(`  [row ${i}] target=${target == null ? 'NULL/UNDEFINED' : `nodeType=${(target as Node).nodeType}`}, instructions=${row.length}`);
-
-        if (target == null) {
-          // eslint-disable-next-line no-console
-          console.error(`[Rendering.render] FATAL: target is null/undefined at row ${i}, ctrl=${controller.name}, def=${definition.name}, rowCount=${rowCount}, targetCount=${targetCount}`);
-          // eslint-disable-next-line no-console
-          console.error(`[Rendering.render] Full targets array (length=${targets.length}):`);
-          for (let t = 0; t < targets.length; t++) {
-            const tt = targets[t] as Node | undefined;
-            // eslint-disable-next-line no-console
-            console.error(`  targets[${t}] = ${tt == null ? 'NULL/UNDEFINED' : `nodeType=${tt.nodeType}`}`);
-          }
-        }
-
-        if (__DEV__ && this._debug && target == null) {
-          this._logger!.warn(`[render] targets[${i}] is null/undefined, ctrl=${controller.name}, def=${definition.name}, rowCount=${rowCount}, targetCount=${targetCount}`);
-        }
-
         j = 0;
         jj = row.length;
         while (jj > j) {
           instruction = row[j];
-          // eslint-disable-next-line no-console
-          console.log(`    [instr ${j}] type=${instruction.type}`);
-          renderers[instruction.type].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator);
+
+          // Tree-based SSR: pass scope child to child-creating instructions
+          const instructionType = instruction.type;
+          const createsChild = instructionType === 'rc' || instructionType === 'ra';
+          const childScope = createsChild && scopeChildren != null
+            ? scopeChildren[ssrChildIndex++]
+            : undefined;
+
+          renderers[instructionType].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator, childScope);
           ++j;
         }
         ++i;

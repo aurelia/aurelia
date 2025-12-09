@@ -3,7 +3,6 @@ import {
   ILogger,
   onResolve,
   onResolveAll,
-  optional,
   resolve,
   Writable,
 } from '@aurelia/kernel';
@@ -22,8 +21,6 @@ import type { Controller, ICustomAttributeController, ICustomAttributeViewModel,
 import type { INode } from '../../dom.node';
 import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
-import { IResumeContext, ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
-import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -52,62 +49,22 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
 
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
-
   public link(
     _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    // Skip in SSR hydration - will adopt in attaching()
-    if (this._ssrContext) return;
-
     this.view = this._factory.create(this.$controller).setLocation(this._location);
-
-    // SSR recording: process the wrapper view
-    const ssrContext = this._ssrRecordContext;
-    const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-    if (ssrContext != null && controllerTargetIndex != null) {
-      ssrContext.processViewForRecording(this.view, 'switch', controllerTargetIndex, 0);
-    }
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
     const view = this.view;
     const $controller = this.$controller;
 
-    if (this._ssrContext) {
-      const ctx = this._ssrContext;
-      this._ssrContext = void 0;
-      this.queue(() => this._activateHydratedView(initiator, ctx));
-      this.queue(() => this.swap(initiator, this.value));
-      return this.promise;
-    }
-
     this.queue(() => view.activate(initiator, $controller, $controller.scope));
     this.queue(() => this.swap(initiator, this.value));
     return this.promise;
-  }
-
-  /**
-   * Switch doesn't move DOM - it just provides targets for Case render locations.
-   * Each Case adopts its own content separately.
-   * @internal
-   */
-  private _activateHydratedView(
-    initiator: IHydratedController,
-    context: IResumeContext
-  ): void | Promise<void> {
-    const ctrl = this.$controller;
-
-    if (!context.hasView(0)) {
-      return this.view.activate(initiator, ctrl, ctrl.scope);
-    }
-
-    this.view = context.adoptViewTargetsOnly(0, this._factory, ctrl.parent!);
-    return this.view.activate(initiator, ctrl, ctrl.scope);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -316,8 +273,6 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private _logger: ILogger | undefined;
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
 
   public link(
     controller: IHydratableController,
@@ -370,25 +325,7 @@ export class Case implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      if (this._ssrContext) {
-        const ctx = this._ssrContext;
-        this._ssrContext = void 0;
-
-        if (ctx.hasView(0)) {
-          view = this.view = ctx.adoptView(0, this._factory, this.$controller.parent!);
-        } else {
-          view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-        }
-      } else {
-        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-
-        // SSR recording: process the case view
-        const ssrContext = this._ssrRecordContext;
-        const controllerTargetIndex = (this._location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
-        if (ssrContext != null && controllerTargetIndex != null) {
-          ssrContext.processViewForRecording(view, 'case', controllerTargetIndex, 0);
-        }
-      }
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(initiator ?? view, this.$controller, scope);

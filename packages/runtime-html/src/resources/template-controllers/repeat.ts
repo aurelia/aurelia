@@ -12,7 +12,6 @@ import {
   all,
   emptyArray,
   type IContainer,
-  optional,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
@@ -33,14 +32,14 @@ import {
   type IOverrideContext,
 } from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { IRenderLocation } from '../../dom';
+import { IRenderLocation, FragmentNodeSequence, partitionSiblingNodes } from '../../dom';
+import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
+import { type ISSRTemplateController, type ISSRScope, isSSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
-import { IResumeContext, type ISSRContext, ISSRContext as ISSRContextToken } from '../../templating/hydration';
-import type { IRenderLocation as IRenderLocationWithIndex } from '../../dom';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -97,8 +96,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _resolver = resolve(IRepeatableHandlerResolver);
-  /** @internal */ private _ssrContext: IResumeContext | undefined = resolve(optional(IResumeContext));
-  /** @internal */ private readonly _ssrRecordContext: ISSRContext | undefined = resolve(optional(ISSRContextToken));
+  /** @internal */ private readonly _platform = resolve(IPlatform);
 
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
@@ -177,21 +175,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   ): void | Promise<void> {
     this._normalizeToArray();
     this._createScopes(void 0);
-
-    // eslint-disable-next-line no-console
-    console.log(`[Repeat.attaching] _ssrContext=${this._ssrContext != null ? 'YES' : 'NO'}, items.length=${this._normalizedItems?.length ?? 0}`);
-
-    if (this._ssrContext) {
-      const ctx = this._ssrContext;
-      this._ssrContext = void 0;
-      this._hasAdoptedViews = true;
-      // eslint-disable-next-line no-console
-      console.log(`[Repeat.attaching] Using _activateHydratedViews with ${this._normalizedItems?.length ?? 0} items`);
-      return this._activateHydratedViews(null, this._normalizedItems ?? emptyArray, ctx);
-    }
-
-    // eslint-disable-next-line no-console
-    console.log(`[Repeat.attaching] Using _activateAllViews (creating new views)`);
     return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
   }
 
@@ -456,17 +439,21 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     initiator: IHydratedController | null,
     $items: unknown[],
   ): void | Promise<void> {
+    // Check for SSR hydration mode
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'repeat') {
+      return this._hydrateViews(initiator, $items, ssrScope);
+    }
+
+    // Normal (non-hydration) path
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
     let view: ISyntheticView;
     let scope: Scope;
 
-    const { $controller, _factory, _location, _scopes, _ssrRecordContext } = this;
+    const { $controller, _factory, _location, _scopes } = this;
     const newLen = $items.length;
     const views = this.views = Array(newLen);
-
-    // SSR recording: get controller target index
-    const controllerTargetIndex = (_location as IRenderLocationWithIndex & { $targetIndex?: number }).$targetIndex;
 
     for (let i = 0; i < newLen; ++i) {
       view = views[i] = _factory.create($controller).setLocation(_location);
@@ -475,11 +462,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       if (this.contextual) {
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
-      }
-
-      // SSR recording: process view markers for globally unique indices
-      if (_ssrRecordContext != null && controllerTargetIndex != null) {
-        _ssrRecordContext.processViewForRecording(view, 'repeat', controllerTargetIndex, i);
       }
 
       ret = view.activate(initiator ?? view, $controller, scope);
@@ -495,30 +477,89 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 
-  /** @internal */
-  private _activateHydratedViews(
+  /**
+   * SSR hydration path: adopt existing DOM nodes instead of creating new ones.
+   *
+   * The server rendered N items between <!--au-start--> and <!--au-end--> markers.
+   * Each item has `nodeCount` sibling nodes. We partition these nodes according
+   * to the manifest's view scopes and create views that adopt them.
+   *
+   * @internal
+   */
+  private _hydrateViews(
     initiator: IHydratedController | null,
     $items: unknown[],
-    context: IResumeContext,
+    ssrScope: ISSRTemplateController,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let scope: Scope;
+
+    const { $controller, _factory, _location, _scopes, _platform } = this;
+    const newLen = $items.length;
+    const views = this.views = Array(newLen);
+    const viewScopes = ssrScope.views;
+
+    // Mark as having adopted views - these can't be cached
+    this._hasAdoptedViews = true;
+
+    // Build nodeCounts array and partition the sibling nodes
+    const nodeCounts = Array(newLen);
+    for (let i = 0; i < newLen; ++i) {
+      nodeCounts[i] = viewScopes[i]?.nodeCount ?? 1;
+    }
+    const nodePartitions = partitionSiblingNodes(_location, nodeCounts);
+
+    if (nodePartitions.length === 0) {
+      // No start marker found - fall back to normal rendering
+      return this._activateAllViewsNormal(initiator, $items);
+    }
+
+    for (let i = 0; i < newLen; ++i) {
+      const viewScope = viewScopes[i];
+      const adoptedNodes = FragmentNodeSequence.adoptSiblings(_platform, nodePartitions[i]);
+      const view = views[i] = _factory.createAdopted($controller, adoptedNodes, viewScope).setLocation(_location);
+
+      scope = _scopes[i];
+      if (this.contextual) {
+        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
+      ret = view.activate(initiator ?? view, $controller, scope);
+      if (isPromise(ret)) {
+        (promises ??= []).push(ret);
+      }
+    }
+
+    // Clear the SSR scope after hydration - it's consumed once
+    $controller.ssrScope = undefined;
+
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
+    }
+  }
+
+  /**
+   * Normal view activation (non-hydration) - extracted for fallback use.
+   * @internal
+   */
+  private _activateAllViewsNormal(
+    initiator: IHydratedController | null,
+    $items: unknown[],
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
     let view: ISyntheticView;
     let scope: Scope;
 
-    const { $controller, _factory, _scopes } = this;
+    const { $controller, _factory, _location, _scopes } = this;
     const newLen = $items.length;
     const views = this.views = Array(newLen);
 
-    if (__DEV__ && context.manifest.views.length !== newLen) {
-      throw createMappedError(ErrorNames.hydration_view_count_mismatch, context.manifest.views.length, newLen);
-    }
-
-    // Collect all nodes upfront before moving any (moving removes from DOM)
-    const allViewNodes = context.collectAllViewNodes();
-
     for (let i = 0; i < newLen; ++i) {
-      view = views[i] = context.adoptViewWithNodes(i, allViewNodes[i], _factory, $controller.parent!);
+      view = views[i] = _factory.create($controller).setLocation(_location);
       view.nodes.unlink();
       scope = _scopes[i];
 

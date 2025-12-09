@@ -90,18 +90,18 @@ export class Aurelia implements IDisposable {
    * to the component class - either via decorator or static `$au` property.
    * This is what AOT compilation produces.
    *
-   * @param config - Hydration configuration including host, component, and state
+   * @param config - Hydration configuration including host, component, and ssrScope
    * @returns The app root, or a promise that resolves to it
    *
    * @example
    * ```typescript
-   * // Server renders HTML with markers and sends state
-   * // Client receives pre-rendered HTML in #app and state in window.__SSR_STATE__
+   * // Server renders HTML with markers and manifest
+   * // Client receives pre-rendered HTML in #app and manifest in window.__SSR_MANIFEST__
    *
    * await aurelia.hydrate({
    *   host: document.getElementById('app'),
    *   component: MyApp,  // Has AOT-compiled definition
-   *   state: window.__SSR_STATE__,
+   *   ssrScope: window.__SSR_MANIFEST__,
    * });
    * ```
    */
@@ -109,11 +109,10 @@ export class Aurelia implements IDisposable {
     const container = config.container ?? this.container.createChild();
     const rootProvider = registerResolver(container, IAppRoot, new InstanceProvider<IAppRoot<T>>('IAppRoot'));
     const appRoot: IAppRoot<T> = new AppRoot(
-      { host: config.host, component: config.component },
+      { host: config.host, component: config.component, ssrScope: config.ssrScope },
       container,
       rootProvider,
       false, // not enhance mode
-      { adopt: true, state: config.state, manifest: config.manifest }
     );
     return onResolve(appRoot.activate(), () => appRoot);
   }
@@ -204,7 +203,7 @@ export type IEnhancementConfig<T extends object = object> = IAppRootConfig<T> & 
 };
 
 // Import the type for use in IHydrateConfig
-import type { IHydrationManifest } from './templating/hydration';
+import type { ISSRScope } from './templating/ssr';
 
 export interface IHydrateConfig<T extends object = object> {
   /**
@@ -220,20 +219,10 @@ export interface IHydrateConfig<T extends object = object> {
   component: Constructable<T>;
 
   /**
-   * The state to hydrate the component with. This should match the state
-   * used to render on the server. Applied via Object.assign before bindings
-   * are created.
+   * Tree-shaped SSR manifest scope for the root custom element.
+   * Built by recordManifest() after SSR render, mirrors the controller tree.
    */
-  state?: Partial<T>;
-
-  /**
-   * Hydration manifest from SSR compiler.
-   *
-   * Contains view boundary information for template controllers,
-   * allowing the runtime to know which targets belong to which views
-   * without complex boundary detection.
-   */
-  manifest?: IHydrationManifest;
+  ssrScope?: ISSRScope;
 
   /**
    * Optional container for the hydrated app.

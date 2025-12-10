@@ -139,29 +139,36 @@ export class FeedbackForm {
 
 ### Number and Date Inputs
 
-For specialized input types, Aurelia handles type coercion automatically:
+Browser form controls always provide string values unless you bind to their typed DOM properties. Use Aurelia's `value-as-*` bindings when you need numbers or dates in your view-model.
 
 ```html
 <div class="form-group">
   <label for="age">Age:</label>
-  <input id="age" 
-         type="number" 
-         value.bind="age" 
-         min="18" 
+  <input id="age"
+         type="number"
+         value-as-number.bind="age"
+         min="18"
          max="120" />
 </div>
 <div class="form-group">
   <label for="birthdate">Birth Date:</label>
-  <input id="birthdate" 
-         type="date" 
-         value.bind="birthDate" />
+  <input id="birthdate"
+         type="date"
+         value-as-date.bind="birthDate" />
+</div>
+<div class="form-group">
+  <label for="appointment">Appointment Time:</label>
+  <input id="appointment"
+         type="datetime-local"
+         value-as-date.bind="appointmentTime" />
 </div>
 ```
 
 ```typescript
 export class ProfileForm {
-  age: number = 25;
-  birthDate: Date = new Date('1998-01-01');
+  age = 25;
+  birthDate = new Date('1998-01-01');
+  appointmentTime = new Date();
   
   // Computed property demonstrating reactive updates
   get isAdult(): boolean {
@@ -169,6 +176,8 @@ export class ProfileForm {
   }
 }
 ```
+
+`value-as-number` binds to the input's `valueAsNumber`, so `age` is a `number` (or `NaN` when the field is empty/invalid). `value-as-date` binds to `valueAsDate`, giving you a `Date | null`. If you keep `value.bind`, the value remains a string—be sure to convert it before serializing to JSON for APIs.
 
 ---
 

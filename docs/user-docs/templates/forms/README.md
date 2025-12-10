@@ -119,14 +119,14 @@ export class FeedbackForm {
 
 ### Number and Date Inputs
 
-For specialized input types, Aurelia handles type coercion automatically:
+Browser form controls always provide string values unless you bind to their typed DOM properties. Use Aurelia's `value-as-*` bindings when you need numbers or dates in your view-model.
 
 ```html
 <div class="form-group">
   <label for="age">Age:</label>
   <input id="age"
          type="number"
-         value.bind="age"
+         value-as-number.bind="age"
          min="18"
          max="120" />
 </div>
@@ -135,28 +135,30 @@ For specialized input types, Aurelia handles type coercion automatically:
   <label for="birthdate">Birth Date:</label>
   <input id="birthdate"
          type="date"
-         value.bind="birthDate" />
+         value-as-date.bind="birthDate" />
 </div>
 
 <div class="form-group">
   <label for="appointment">Appointment Time:</label>
   <input id="appointment"
          type="datetime-local"
-         value.bind="appointmentTime" />
+         value-as-date.bind="appointmentTime" />
 </div>
 ```
 
 ```typescript
 export class ProfileForm {
-  age: number = 25;
-  birthDate: Date = new Date('1998-01-01');
-  appointmentTime: Date = new Date();
+  age = 25;
+  birthDate = new Date('1998-01-01');
+  appointmentTime = new Date();
 
   get isAdult(): boolean {
     return this.age >= 18;
   }
 }
 ```
+
+`value-as-number` binds to the input's `valueAsNumber`, so `age` is a `number` (or `NaN` when the field is empty/invalid). `value-as-date` binds to `valueAsDate`, giving you a `Date | null`. If you keep `value.bind`, the value remains a string—convert it before serializing to JSON for APIs.
 
 ### Input Types and Binding
 
@@ -167,15 +169,15 @@ Aurelia supports all HTML5 input types:
 | `text` | string | General text input |
 | `email` | string | Email addresses |
 | `password` | string | Password fields |
-| `number` | number | Numeric input |
+| `number` | string (use `value-as-number` for `number`) | Numeric input |
 | `tel` | string | Phone numbers |
 | `url` | string | Website URLs |
 | `search` | string | Search queries |
-| `date` | Date/string | Date selection |
+| `date` | string (use `value-as-date` for `Date`) | Date selection |
 | `time` | string | Time selection |
-| `datetime-local` | Date/string | Date and time |
+| `datetime-local` | string (use `value-as-date` for `Date`) | Date and time |
 | `color` | string | Color picker |
-| `range` | number | Slider input |
+| `range` | string (use `value-as-number` for `number`) | Slider input |
 
 ### Binding Modes
 

@@ -383,7 +383,7 @@ With a primary property defined, you can bind directly:
 
 ### Bindable Interceptors and Type Coercion
 
-You can intercept and transform values being set on bindable properties using the `set` option, or leverage Aurelia's built-in type coercion system:
+You can intercept and transform values being set on bindable properties using the `set` option, or leverage Aurelia's built-in type coercion system. Coercion is **opt-in**: enable it at startup with `config.coercingOptions.enableCoercion = true`, and be sure each bindable exposes a runtime `type` (for example `type: Number`).
 
 ```typescript
 import { bindable, INode, coercer } from '@aurelia/runtime-html';
@@ -401,7 +401,7 @@ export class ValidatedInputCustomAttribute {
   }) public progress: number = 0;
 
   // Built-in type coercion (automatic number conversion)
-  @bindable() public count: number = 0;
+  @bindable({ type: Number }) public count: number = 0;
 
   // Explicit coercion with nullable handling
   @bindable({ 

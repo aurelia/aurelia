@@ -283,6 +283,8 @@ export class ChildTwo {
 
 Nested routes frequently need identifiers that were captured higher in the URL such as `/company/:companyId/project/:projectId/user/:userId`. Instead of manually walking the `parent` chain, resolve `IRouteContext` and call the `getRouteParameters()` helper to get a merged, read-only view of every matched segment.
 
+> Note: `getRouteParameters()` is available in `@aurelia/router`. If you are using `@aurelia/router-lite`, traverse `routeContext.parent?.params` (or use the `params` argument in your hooks) to read ancestor values.
+
 ```ts
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext, type Params } from '@aurelia/router';

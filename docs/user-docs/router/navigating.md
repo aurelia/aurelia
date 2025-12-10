@@ -1513,6 +1513,18 @@ When a deeply nested component needs the value of the route parameters that were
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext } from '@aurelia/router';
 
+const ctx = resolve(IRouteContext);
+const allParams = ctx.getRouteParameters({ mergeStrategy: 'parent-first', includeQueryParams: true });
+```
+
+> `getRouteParameters()` lives in the full `@aurelia/router`. On `@aurelia/router-lite`, walk `routeContext.parent?.params` or rely on the `params` argument in lifecycle hooks instead.
+
+> `getRouteParameters()` lives in the full `@aurelia/router`. On `@aurelia/router-lite`, walk `routeContext.parent?.params` or rely on the `params` argument in lifecycle hooks instead.
+
+```ts
+import { resolve } from '@aurelia/kernel';
+import { IRouteContext } from '@aurelia/router';
+
 export class DetailsView {
   private readonly params = resolve(IRouteContext)
     .getRouteParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>({

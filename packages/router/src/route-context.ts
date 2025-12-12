@@ -61,6 +61,8 @@ import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialV
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
 import { ILocationManager } from './location-manager';
+import { RouteExpression } from './route-expression';
+import type { IUrlParser } from './url-parser';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -667,7 +669,7 @@ function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: str
   instruction = dotResult.path;
   context = dotResult.context;
 
-  const recognitionCandidate = extractRecognitionCandidate(instruction);
+  const recognitionCandidate = extractRecognitionCandidate(instruction, owner._router.options._urlParser);
   if (recognitionCandidate !== null) {
     const resolvedContext = resolveContextThroughRecognition(recognitionCandidate, context);
     if (resolvedContext !== context) {
@@ -716,31 +718,38 @@ function consumeLeadingDotSegments(path: string, startContext: RouteContext): { 
   return { path: working, context };
 }
 
-function extractRecognitionCandidate(path: string): string | null {
-  let candidate = path.trim();
-  if (candidate.length === 0) return candidate;
-  if (candidate.startsWith('//') || candidate.includes('://') || candidate.includes('+')) return null;
+function extractRecognitionCandidate(path: string, urlParser: IUrlParser): string | null {
+  const trimmed = path.trim();
+  if (trimmed.length === 0) return trimmed;
+  if (trimmed.startsWith('//') || trimmed.includes('://') || trimmed.includes('+')) return null;
 
-  const semicolonIdx = candidate.indexOf(';');
-  if (semicolonIdx >= 0) candidate = candidate.slice(0, semicolonIdx);
+  try {
+    const expr = RouteExpression.parse(urlParser.parse(trimmed));
+    return extractFirstComponentName(expr.root);
+  } catch {
+    return null;
+  }
+}
 
-  const queryIdx = candidate.indexOf('?');
-  if (queryIdx >= 0) candidate = candidate.slice(0, queryIdx);
+function extractFirstComponentName(expression: unknown): string | null {
+  const current = expression as any;
+  if (current == null) return null;
 
-  const hashIdx = candidate.indexOf('#');
-  if (hashIdx >= 0) candidate = candidate.slice(0, hashIdx);
-
-  const spaceIdx = candidate.indexOf(' ');
-  if (spaceIdx >= 0) candidate = candidate.slice(0, spaceIdx);
-
-  const atIdx = candidate.indexOf('@');
-  if (atIdx >= 0) candidate = candidate.slice(0, atIdx);
-
-  const parenIdx = candidate.indexOf('(');
-  if (parenIdx >= 0) candidate = candidate.slice(0, parenIdx);
-
-  candidate = candidate.replace(/^\/+/, '');
-  return candidate.trim();
+  switch (current.kind as string) {
+    case 'CompositeSegment': {
+      const siblings = current.siblings as any[] | undefined;
+      if (siblings == null || siblings.length === 0) return null;
+      return extractFirstComponentName(siblings[0]);
+    }
+    case 'ScopedSegment':
+      return extractFirstComponentName(current.left);
+    case 'SegmentGroup':
+      return extractFirstComponentName(current.expression);
+    case 'Segment':
+      return typeof current.component?.name === 'string' ? current.component.name : null;
+    default:
+      return null;
+  }
 }
 
 /**
@@ -767,7 +776,7 @@ function resolveContextThroughRecognition(path: string, startContext: RouteConte
 }
 
 function extractFirstToken(path: string): string | null {
-  let candidate = stripLeadingSlashes(path).trim();
+  const candidate = stripLeadingSlashes(path).trim();
   if (candidate.length === 0) return null;
   const slashIdx = candidate.indexOf('/');
   const token = slashIdx === -1 ? candidate : candidate.slice(0, slashIdx);

@@ -156,6 +156,16 @@ Seeing the styled alert confirms that Tailwind’s classes are available in your
 
 Tailwind v4 automatically scans your project for class usage, removing unused styles during both dev and production builds. You no longer set `content: []` in `tailwind.config.js`. If you need to extend the theme or register plugins, create a config manually:
 
+{% hint style="warning" %}
+**Aurelia class bindings**: Tailwind’s scanner looks for class names in attribute values. If you put a Tailwind class only in an Aurelia `.class` attribute name (for example `width-[360px].class="condition"`), Tailwind may not detect it and it won’t be generated.
+
+Prefer `class.bind` with the object form (quote keys for Tailwind classes):
+
+```html
+<div class.bind="{ 'width-[360px]': condition }"></div>
+```
+{% endhint %}
+
 ```ts
 /** @type {import('tailwindcss').Config} */
 export default {

@@ -40,6 +40,14 @@ export class MyComponent {
 **Note**: You can use any valid CSS class name, including ones with special characters like `my-awesome-class.class="isAwesome"` or Unicode characters like `✓.class="isComplete"`.
 {% endhint %}
 
+{% hint style="warning" %}
+**TailwindCSS note**: Tailwind’s content scanner won’t pick up class names that only appear in attribute names. For Tailwind classes that include special characters (for example `width-[360px]`), prefer the object form with `class.bind` so the class token appears in an attribute value:
+
+```html
+<div class.bind="{ 'width-[360px]': condition }"></div>
+```
+{% endhint %}
+
 ### Multiple Classes: Comma-Separated Syntax
 
 When you need to toggle multiple related classes together, you can use comma-separated class names:

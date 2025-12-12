@@ -165,8 +165,6 @@ The `../` prefix climbs up one routing context before evaluating the rest of the
 
 Child routes can declare their own parameters and still reuse parent parameters. The router merges them automatically when you call `IRouteContext.getRouteParameters({ includeQueryParams: true })` or receive the `Params` argument in lifecycle hooks. See the [Route parameters guide](./route-parameters.md) for a complete walkthrough.
 
-> `getRouteParameters` is provided by `@aurelia/router`. If you are on `@aurelia/router-lite`, use the `params` hook argument and `routeContext.parent?.params` to reach ancestor values.
-
 ## 6. Lazy-load nested modules
 
 You can reference dynamic imports inside any `component` slot. The router will `await` the module before instantiating the component.

@@ -53,8 +53,6 @@ For asynchronous preparation, use `loading` and throw or return `false` to fail 
 
 Nested routes often need both parent and child IDs (for example `/companies/10/projects/17`). Resolve `IRouteContext` and use `getRouteParameters` to aggregate values.
 
-> Note: `getRouteParameters` ships with the full `@aurelia/router`. If you are on `@aurelia/router-lite`, walk `routeContext.parent?.params` (or pass params through lifecycle hooks) because the helper is not available there yet.
-
 ```typescript
 import { IRouteContext } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';

@@ -217,7 +217,6 @@ export class NestedComponent {
   }
 }
 ```
-> This helper is part of `@aurelia/router`. `@aurelia/router-lite` does not expose `getRouteParameters`; use the `params` hook argument and `routeContext.parent?.params` instead.
 [Aggregate parameters →](./navigating.md#aggregate-parameters-with-getrouteparameters)
 [Route parameters guide →](./route-parameters.md)
 

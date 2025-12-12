@@ -1517,10 +1517,6 @@ const ctx = resolve(IRouteContext);
 const allParams = ctx.getRouteParameters({ mergeStrategy: 'parent-first', includeQueryParams: true });
 ```
 
-> `getRouteParameters()` lives in the full `@aurelia/router`. On `@aurelia/router-lite`, walk `routeContext.parent?.params` or rely on the `params` argument in lifecycle hooks instead.
-
-> `getRouteParameters()` lives in the full `@aurelia/router`. On `@aurelia/router-lite`, walk `routeContext.parent?.params` or rely on the `params` argument in lifecycle hooks instead.
-
 ```ts
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext } from '@aurelia/router';

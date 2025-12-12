@@ -187,8 +187,8 @@ While `value.bind` is automatic two-way binding, you can be explicit:
 <!-- Two-way binding (default for inputs) -->
 <input value.two-way="username">
 
-<!-- One-way (view model → view) -->
-<input value.one-way="displayName">
+<!-- To-view (view model → view) -->
+<input value.to-view="displayName">
 
 <!-- From view (view → view model) -->
 <input value.from-view="searchQuery">
@@ -200,7 +200,7 @@ While `value.bind` is automatic two-way binding, you can be explicit:
 **When to use each:**
 - `.bind` - Default, use for most form inputs
 - `.two-way` - Explicit two-way, same as `.bind` for inputs
-- `.one-way` - Read-only inputs, display-only values
+- `.to-view` - Read-only inputs, display-only values
 - `.from-view` - Capture input without updating view
 - `.one-time` - Static initial values
 

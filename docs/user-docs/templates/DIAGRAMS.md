@@ -9,7 +9,7 @@ Visual diagrams to help understand Aurelia's templating system. Every diagram be
 ```mermaid
 flowchart LR
     VM["View Model<br/>message = 'Hi'"]
-    binding[".one-way / .to-view binding"]
+    binding[".to-view binding"]
     view["View<br/><p>${message}</p> → <p>Hi</p>"]
     VM --> binding --> view
 ```
@@ -49,9 +49,9 @@ flowchart TD
     start --> input{Is it a form control?}
     input -->|Yes| readInput{Need to read user input?}
     readInput -->|Yes| useTwoWay["Use .bind<br/>(default .two-way)"]
-    readInput -->|No| useOneWayInput["Use .one-way"]
+    readInput -->|No| useOneWayInput["Use .to-view"]
     input -->|No| attr{Is it a regular attribute?}
-    attr -->|Value changes often| dynamicAttr["Use .bind or .one-way"]
+    attr -->|Value changes often| dynamicAttr["Use .bind or .to-view"]
     attr -->|Value never changes| staticAttr["Use .one-time"]
 ```
 
@@ -280,10 +280,10 @@ flowchart TD
 | Binding Mode | Setup Cost | Updates | Memory Footprint | Typical Use |
 |--------------|------------|---------|------------------|-------------|
 | `.one-time`  | Set value once | Never updates | No observers hooked up | Static text that never changes |
-| `.one-way` / `.to-view` | Set value + observer | Whenever property changes | One source observer | Displaying reactive state |
+| `.to-view` | Set value + observer | Whenever property changes | One source observer | Displaying reactive state |
 | `.bind` (.two-way) | Bidirectional observers | View ↔ ViewModel | Source observer + DOM listener | Form controls that read/write |
 
-Internals note: the `PropertyBinding.bind` implementation wires observers based on the binding mode flags. `.one-time` evaluates the expression once without connecting, `.one-way` connects the source side so it can re-run when dependencies change, and `.bind`/`.two-way` also subscribes to the target observer (for example, an input element) so user input flows back to the view model. This mirrors the logic in `packages/runtime-html/src/binding/property-binding.ts` where `toView`, `fromView`, and `oneTime` determine which observers are created.
+Internals note: the `PropertyBinding.bind` implementation wires observers based on the binding mode flags. `.one-time` evaluates the expression once without connecting, `.to-view` connects the source side so it can re-run when dependencies change, and `.bind`/`.two-way` also subscribes to the target observer (for example, an input element) so user input flows back to the view model. This mirrors the logic in `packages/runtime-html/src/binding/property-binding.ts` where `toView`, `fromView`, and `oneTime` determine which observers are created.
 
 ## Computed Properties Reactivity
 

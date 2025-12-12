@@ -17,7 +17,7 @@ Find what you need quickly with this task-based guide:
 ### Display Data
 
 - **Show dynamic text?** → [Text Interpolation](template-syntax/text-interpolation.md) - Use `${property}`
-- **Bind to element properties?** → [Attribute Binding](template-syntax/attribute-binding.md) - Use `.bind`, `.one-way`, `.two-way`
+- **Bind to element properties?** → [Attribute Binding](template-syntax/attribute-binding.md) - Use `.bind`, `.to-view`, `.two-way`
 - **Format data for display?** → [Value Converters](value-converters.md) - Use `${value | converter}`
 - **Show/hide elements?** → [Conditional Rendering](conditional-rendering.md) - Use `if.bind` or `show.bind`
 
@@ -158,7 +158,7 @@ Not sure where to start? Follow this path:
 
 ## Performance Tips
 
-- Use `.one-way` binding for display-only data
+- Use `.to-view` binding for display-only data
 - Add `key` to `repeat.for` for dynamic lists
 - Use `show.bind` for frequent visibility toggles
 - Use `if.bind` for infrequent changes
@@ -169,7 +169,7 @@ Not sure where to start? Follow this path:
 
 - **Components not appearing?** → Don't forget `<import from="./component"></import>` (or register globally)
 - **Array changes not detected?** → Use array methods like `push()`, `splice()`, not direct index assignment
-- **Form input not updating?** → Use `.bind` or `.two-way`, not `.one-way`
+- **Form input not updating?** → Use `.bind` or `.two-way`, not `.to-view`
 - **Performance issues with large lists?** → Add `key.bind` or `key:` to `repeat.for`
 - **Bindings not working?** → Check for typos in property names and binding commands
 

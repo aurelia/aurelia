@@ -8,8 +8,8 @@ Quick reference guide for Aurelia 2 templating syntax and common patterns.
 
 | Syntax | Direction | Use Case |
 |--------|-----------|----------|
-| `.bind` | Auto (two-way for form elements, one-way otherwise) | Default choice for most scenarios |
-| `.one-way` / `.to-view` | View Model → View | Display-only data (performance) |
+| `.bind` | Auto (two-way for form elements, to-view otherwise) | Default choice for most scenarios |
+| `.to-view` | View Model → View | Display-only data (performance) |
 | `.two-way` | View Model ↔ View | Form inputs requiring sync |
 | `.from-view` | View → View Model | Capture user input only |
 | `.one-time` | View Model → View (once) | Static data that never changes |
@@ -97,7 +97,7 @@ Quick reference guide for Aurelia 2 templating syntax and common patterns.
 <!-- Event Control -->
 <a click.trigger:prevent="navigate()">Link</a>
 <div click.trigger:stop="handleClick()">Stop Propagation</div>
-<div click.trigger:self="handleSelfClick()">Only Direct Clicks</div>
+<div click.trigger="handleSelfClick() & self">Only Direct Clicks</div>
 ```
 
 ### Binding Behaviors
@@ -379,7 +379,7 @@ Need to toggle visibility?
 Binding to form input?
 ├─ YES → Use .bind (auto two-way)
 └─ NO  → Displaying data only?
-         ├─ YES → Use .one-way (better performance)
+         ├─ YES → Use .to-view (better performance)
          └─ NO  → Need to capture user changes?
                   ├─ YES → Use .two-way
                   └─ NO  → Static data?
@@ -433,7 +433,7 @@ Using repeat.for with dynamic list?
 
 ## Performance Tips
 
-1. **Use appropriate binding modes**: `.one-way` for display-only data
+1. **Use appropriate binding modes**: `.to-view` for display-only data
 2. **Add keys to repeat.for**: Enables efficient DOM reuse
 3. **Use show.bind for frequent toggles**: Avoids DOM manipulation overhead
 4. **Use if.bind for infrequent changes**: Saves memory and resources

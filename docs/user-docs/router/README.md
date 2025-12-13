@@ -555,13 +555,14 @@ import { resolve } from '@aurelia/kernel';
 export class MyComponent {
   private readonly currentRoute = resolve(ICurrentRoute);
 
-  attached() {
+  // Use in bindings or read it after navigation (for example in event handlers).
+  logCurrentRoute() {
     console.log('Current path:', this.currentRoute.path);
     console.log('Parameters:', this.currentRoute.parameterInformation);
   }
 }
 ```
-[Current route →](./configuring-routes.md#retrieving-the-current-route-and-query-parameters)
+[Current route →](./current-route.md)
 
 ---
 

@@ -30,7 +30,7 @@ Choose the method that best fits your use case:
 | Links with parameters | `load` with params | `<a load="route: user; params.bind: {id: userId}">User</a>` |
 | Conditional navigation | `IRouter.load()` | `if (canAccess) router.load('admin')` |
 | Navigation with query params | `IRouter.load()` with options | `router.load('search', { queryParams: { q: 'term' }})` |
-| Dynamic link generation | `router.generatePath()` | `const url = await router.generatePath('user', userId)` |
+| Dynamic link generation | `router.generatePath()` | `const url = await router.generatePath({ component: 'user', params: { id: userId } })` |
 
 ## Using the `href` custom attribute
 
@@ -227,8 +227,7 @@ export class ChildTwo {}
 {% endtabs %}
 
 {% hint style="warning" %}
-Note that using the route-id of a parameterized route with the `href` attribute might be limiting or in some cases non-operational as with `href` attribute there is no way to specify the parameters for the route separately.
-This case is handled by the [`load` attribute](#using-the-load-custom-attribute).
+If the target route expects parameters, `href` cannot pass them as a separate object. Prefer the [`load` attribute](#using-the-load-custom-attribute), or use the route-expression parameter syntax (for example `r1(id=42)`) described below.
 {% endhint %}
 
 ### Targeting viewports
@@ -262,6 +261,27 @@ The example shows the following variations.
 ```
 
 Note that using the viewport name in the routing instruction is optional and when omitted, the router uses the first available viewport.
+
+### Passing component params in the instruction string
+
+When you use the string-based route expression syntax (for example in `href`, `load`, or `router.load('...')`), you can pass component params by appending a parenthesized list to a segment:
+
+```html
+<a href="users(id=42)">User 42</a>
+<a href="products@list(category=shoes)+details@details(id=42)">Shoes</a>
+```
+
+This is equivalent to passing `params` via an object instruction:
+
+```ts
+router.load({ component: 'users', params: { id: '42' } });
+```
+
+Notes:
+
+- Parameter values are strings and are URL-decoded.
+- Named params use `key=value` pairs (for example `users(id=42,tab=settings)`).
+- Positional params are also supported (for example `users(42)`), but named params are recommended for clarity.
 
 ### Navigate in current and ancestor routing context
 
@@ -1271,14 +1291,20 @@ export class SearchComponent {
     await this.router.load('search', {
       queryParams: {
         q: term,
-        page: this.currentPage
+        page: this.currentPage.toString(),
       },
-      // Preserve in browser history state
-      state: {
-        searchTerm: term,
-        timestamp: Date.now()
-      }
     });
+
+    // Persist per-entry UI state by extending the current history entry.
+    // Always merge with the existing state so the router-managed `au-nav-id` stays intact.
+    window.history.replaceState(
+      {
+        ...(window.history.state ?? {}),
+        searchTerm: term,
+        timestamp: Date.now(),
+      },
+      document.title,
+    );
   }
 
   async nextPage() {
@@ -1286,7 +1312,7 @@ export class SearchComponent {
     await this.router.load('search', {
       queryParams: {
         q: this.searchTerm,
-        page: this.currentPage
+        page: this.currentPage.toString(),
       },
       historyStrategy: 'replace' // Don't create new history entry
     });
@@ -1417,7 +1443,7 @@ This will generate the path for the route with the id `route-id`.
 If the route has parameters, then the parameters can be passed as an object.
 
 ```typescript
-const path = await router.generatePath({ component: 'route-id', { id: 42 }});
+const path = await router.generatePath({ component: 'route-id', params: { id: 42 } });
 ```
 
 Other than route id, one can also use the custom element class or the custom element definition.

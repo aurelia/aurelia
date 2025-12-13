@@ -345,7 +345,7 @@ If you prefer using the static `routes` property, the title can be set using a s
 The following example has exactly the same effect as of the previous example.
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import type { IRouteViewModel, Routeable } from '@aurelia/router';
 export class MyApp implements IRouteViewModel {
   static title: string = 'Aurelia'; // <-- this is the base title
   static routes: Routeable[] = [

@@ -189,9 +189,21 @@ This works at every level of the tree, so you pay the cost only when users actua
 Create the parent component via the testing harness, call `router.load` with a path that exercises the child routes, and then assert against the rendered DOM. Because every child route uses a real component (not a string lookup), you get high-confidence integration coverage:
 
 ```typescript
-const { appHost, router } = await createFixture(AdminLayout).startApp();
+import { createFixture } from '@aurelia/testing';
+import { RouterConfiguration, IRouter } from '@aurelia/router';
+
+const { appHost, container, startPromise, stop } = createFixture(
+  '<au-viewport></au-viewport>',
+  AdminLayout,
+  [RouterConfiguration],
+);
+await startPromise;
+
+const router = container.get(IRouter);
 await router.load('reports/daily');
 expect(appHost.querySelector('reports-daily')).not.toBeNull();
+
+await stop(true);
 ```
 
 ## Scenario recipes

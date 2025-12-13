@@ -107,9 +107,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const { to, value, command } = prop;
       if (to === 'key') {
         if (command === null) {
-          this.key = value;
+          this.key = value as string;
         } else if (command === 'bind') {
-          this.key = resolve(IExpressionParser).parse(value, etIsProperty);
+          // AOT: value is pre-parsed AST; JIT: value is string to parse
+          this.key = typeof value === 'string'
+            ? resolve(IExpressionParser).parse(value, etIsProperty)
+            : value;
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
         }
@@ -120,7 +123,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this.contextual = value === 'false' ? false : !!value;
         } else if (command === 'bind') {
           // Expression: contextual.bind: someExpression (evaluated once at bind)
-          this._contextualExpr = resolve(IExpressionParser).parse(value, etIsProperty);
+          // AOT: value is pre-parsed AST; JIT: value is string to parse
+          this._contextualExpr = typeof value === 'string'
+            ? resolve(IExpressionParser).parse(value, etIsProperty)
+            : value;
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_contextual_binding_command, command);
         }

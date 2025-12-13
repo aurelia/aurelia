@@ -117,7 +117,8 @@ export class MultiAttrInstruction {
   public readonly type = multiAttr;
 
   public constructor(
-    public value: string,
+    /** Expression source (JIT) or pre-parsed AST (AOT) */
+    public value: string | IsBindingBehavior,
     public to: string,
     public command: string | null,
   ) {}

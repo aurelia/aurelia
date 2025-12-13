@@ -58,6 +58,10 @@ export {
   isSSRTemplateController,
   isSSRScope,
   ISSRContext,
+  // SSR definition hydration (client-side)
+  type ISSRDefinition,
+  type IHydratedDefinition,
+  hydrateSSRDefinition,
 } from './templating/ssr';
 export {
   type IAppRootConfig,

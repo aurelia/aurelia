@@ -589,7 +589,7 @@ export class RouteContext {
       const isVpInstr = isPartialViewportInstruction(instr);
       let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
       if (typeof $instruction === 'string' && context !== null) {
-        const normalized = normalizeNavigationInstruction(this, $instruction, context as RouteContext);
+        const normalized = normalizeNavigationInstruction(this, $instruction, context as RouteContext, this._router.options._urlParser);
         $instruction = normalized.instruction;
         context = normalized.context;
       }
@@ -649,7 +649,7 @@ interface NormalizedNavigationInstruction {
   context: RouteContext;
 }
 
-function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: string, startContext: RouteContext): NormalizedNavigationInstruction {
+function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: string, startContext: RouteContext, urlParser: IUrlParser): NormalizedNavigationInstruction {
   let instruction = rawInstruction.trim();
   let context = startContext;
 
@@ -669,7 +669,7 @@ function normalizeNavigationInstruction(owner: RouteContext, rawInstruction: str
   instruction = dotResult.path;
   context = dotResult.context;
 
-  const recognitionCandidate = extractRecognitionCandidate(instruction, owner._router.options._urlParser);
+  const recognitionCandidate = extractRecognitionCandidate(instruction, urlParser);
   if (recognitionCandidate !== null) {
     const resolvedContext = resolveContextThroughRecognition(recognitionCandidate, context);
     if (resolvedContext !== context) {
@@ -758,6 +758,8 @@ function extractFirstComponentName(expression: unknown): string | null {
  * This is the minimal amount of look-ahead needed so instructions such as `load="about"`
  * issued from deeply nested components can still resolve to a sibling or root route without
  * forcing every caller to sprinkle `../` prefixes.
+ *
+ * See issue #2256 (Router path interpretation changes).
  */
 function resolveContextThroughRecognition(path: string, startContext: RouteContext): RouteContext {
   if (path.length === 0) return startContext;

@@ -256,7 +256,8 @@ describe('router/resources/load.spec.ts', function () {
     assert.strictEqual(await router.load('users/members/details'), true, 'return to member details');
     await queue.yield();
 
-    const detailsCtx = MemberDetailsView.lastInstance!.ctx;
+    // Issue #2256: after applying dot segments, the router still searches ancestor route contexts
+    // for the first matching route, so `../admins` from `.../members/details` resolves to `/users/admins`.
     anchor = getByTestId<HTMLAnchorElement>('details-parent-admins');
     anchor.click();
     await queue.yield();

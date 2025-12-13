@@ -49,6 +49,8 @@ export {
 } from './aurelia';
 export {
   // SSR manifest types (tree-shaped, mirrors controller tree)
+  // Types and type guards needed for hydration on client
+  // Recording functions moved to @aurelia-ls/build (cross-package awareness)
   type ISSRManifest,
   type ISSRScope,
   type ISSRScopeChild,
@@ -56,9 +58,6 @@ export {
   isSSRTemplateController,
   isSSRScope,
   ISSRContext,
-  // SSR manifest recording
-  recordManifest,
-  debugControllerTree,
 } from './templating/ssr';
 export {
   type IAppRootConfig,

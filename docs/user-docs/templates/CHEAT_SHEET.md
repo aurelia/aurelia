@@ -278,12 +278,12 @@ export class CurrencyValueConverter {
 <input ref="searchInput" value.bind="query">
 <button click.trigger="searchInput.focus()">Focus Input</button>
 
-<!-- Component Reference -->
-<my-component ref="myComponent"></my-component>
+<!-- Component (view-model) Reference -->
+<my-component component.ref="myComponent"></my-component>
 <button click.trigger="myComponent.refresh()">Refresh</button>
 
-<!-- View Model Reference -->
-<div ref="element" view-model.ref="viewModel"></div>
+<!-- Controller Reference -->
+<my-component controller.ref="myComponentController"></my-component>
 ```
 
 ## Template Variables
@@ -351,7 +351,7 @@ export class CurrencyValueConverter {
 <import from="./utils/helpers" as="helpers"></import>
 
 <!-- Usage -->
-<my-component title.bind="pageTitle" onSave.call="handleSave($event)"></my-component>
+<my-component title.bind="pageTitle" on-save.bind="handleSave"></my-component>
 
 <!-- Inline Component -->
 <template as-custom-element="inline-component">

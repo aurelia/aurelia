@@ -655,9 +655,9 @@ The `...$bindables="..."` syntax will only connect properties that are matching 
 <name-tag $bindables.spread="customer1">
 <name-tag $bindables.spread="customer.details">
 <name-tag $bindables.spread="customer[this_that]">
-<name-tag $bindables="customer1 | mapDetails">
-<name-tag $bindables="customer.details | simplify">
-<name-tag $bindables="customer[this_that] | addDetails">
+<name-tag $bindables.spread="customer1 | mapDetails">
+<name-tag $bindables.spread="customer.details | simplify">
+<name-tag $bindables.spread="customer[this_that] | addDetails">
 ```
 
 ### Shorthand syntax

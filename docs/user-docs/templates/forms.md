@@ -1911,14 +1911,14 @@ export class MultiStepFormSubmission {
 
   <!-- Dynamic Step Content -->
   <div class="step-content">
-    <compose 
-      view-model.bind="currentStep.component"
+    <au-compose 
+      component.bind="currentStep.component"
       model.bind="{ 
         data: currentStep.data,
         updateData: updateStepData,
         isValid: currentStep.isValid
       }">
-    </compose>
+    </au-compose>
   </div>
 
   <!-- Submission Progress -->

@@ -27,6 +27,8 @@ import {
   isCustomElementViewModel,
   PartialCustomElementDefinition,
   registerHostNode,
+  type ISSRScope,
+  isSSRScope,
 } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
@@ -493,10 +495,10 @@ export class RouteContext {
     this._hostControllerProvider.prepare(hostController);
     const container = this.container.createChild({ inheritParentResources: true });
 
-    const platform = this._platform;
     const elDefn = routeNode.component;
-    const host = platform.document.createElement(elDefn.name);
-    registerHostNode(container, host, platform);
+    const { host, ssrScope } = this._resolveHostElement(hostController, elDefn.name);
+
+    registerHostNode(container, host, this._platform);
     const componentInstance = container.invoke<IRouteViewModel>(elDefn.Type);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     const task: Promise<void> | void = this.routeConfigContext._childRoutesConfigured
@@ -506,13 +508,38 @@ export class RouteContext {
         config => this.routeConfigContext._processConfig(config)
       );
     return onResolve(task, () => {
-      const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn);
+      const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn,  null, ssrScope);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
       this._hostControllerProvider.dispose();
 
       return componentAgent;
     });
+  }
+
+  /**
+   * Resolve the host element for a routed component.
+   * During SSR hydration, adopts an existing server-rendered element.
+   * Otherwise, creates a new element.
+   * @internal
+   */
+  private _resolveHostElement(hostController: ICustomElementController, componentName: string): { host: HTMLElement; ssrScope: ISSRScope | null } {
+    const parentSsrScope = hostController.ssrScope as ISSRScope | undefined;
+
+    // During hydration, try to adopt existing server-rendered element
+    if (parentSsrScope != null) {
+      const existingEl = hostController.host.querySelector<HTMLElement>(`:scope > ${componentName}`);
+      if (existingEl != null) {
+        const childScope = parentSsrScope.children.find((child): child is ISSRScope => isSSRScope(child) && child.name === componentName);
+        return { host: existingEl, ssrScope: childScope ?? null };
+      }
+    }
+
+    // Normal operation or hydration fallback: create new element
+    return {
+      host: this._platform.document.createElement(componentName),
+      ssrScope: null,
+    };
   }
 
   /**

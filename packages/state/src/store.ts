@@ -206,7 +206,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       throw new Error('Devtools extension is not available');
     }
     if (options.name == null) {
-      options.name = this._name != null ? `Aurelia State: ${this._name}` : 'Aurelia State plugin';
+      options.name = this._name == null ? 'Aurelia State plugin' : `Aurelia State: ${this._name}`;
     }
 
     const devTools = extension.connect(options);

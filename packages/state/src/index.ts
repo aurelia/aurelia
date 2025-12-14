@@ -2,7 +2,7 @@ export { Store } from './store';
 
 export {
   StateDefaultConfiguration,
-  type IStateConfigurationOptions,
+  type IStoreConfigurationOptions as IStateConfigurationOptions,
   type IConfigurationInit,
   type IStateConfiguration,
   type IMiddlewareRegistration,
@@ -20,8 +20,6 @@ export {
   type IStateMiddleware,
   type MiddlewarePlacement,
   type IMiddlewareSettings,
-  type StoreLocator,
-  type IStoreRegistration,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';

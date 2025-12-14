@@ -1,6 +1,6 @@
-import { IContainer, Protocol, Registration } from '@aurelia/kernel';
+import { IContainer, isString, Protocol, Registration } from '@aurelia/kernel';
 import { IHydratedComponentController, ILifecycleHooks, LifecycleHooks } from '@aurelia/runtime-html';
-import { IStore, IStoreRegistry, type StoreLocator } from './interfaces';
+import { IStore, IStoreRegistry } from './interfaces';
 import { StateGetterBinding } from './state-getter-binding';
 
 /**
@@ -18,16 +18,17 @@ export function fromState<T, K = unknown>(
   getValue: (state: T) => K
 ): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void);
 export function fromState<T, K = unknown>(
-  storeLocator: StoreLocator,
+  storeName: string,
   getValue: (state: T) => K
 ): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void);
 export function fromState<T, K = unknown>(
-  storeOrGetter: StoreLocator | ((state: T) => K),
+  storeNameOrGetter: string | ((state: T) => K),
   maybeGetter?: (state: T) => K
 ): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void) {
-  const hasStoreLocator = typeof maybeGetter === 'function';
-  const storeLocator = hasStoreLocator ? storeOrGetter as StoreLocator : void 0;
-  const getValue = (hasStoreLocator ? maybeGetter : storeOrGetter) as (state: T) => K;
+  const hasStoreName = isString(storeNameOrGetter);
+  const storeName = hasStoreName ? storeNameOrGetter : void 0;
+  const getValue = hasStoreName ? maybeGetter! : storeNameOrGetter;
+
   return function (
     target: unknown,
     context: ClassFieldDecoratorContext<unknown,K> | ClassSetterDecoratorContext<unknown, K>,
@@ -37,25 +38,24 @@ export function fromState<T, K = unknown>(
     }
 
     const key = context.name;
+    const dependenciesKey = Protocol.annotation.keyFor('dependencies');
     const dependencies = (context.metadata[dependenciesKey] as unknown[]) ??= [];
 
     // As we don't have a way to grab the constructor function here, we add both the hooks as dependencies.
     // However, the hooks checks how the component is used and adds only a single binding.
     // Improvement idea: add a way to declare the target types for the hooks and lazily create the hooks only for those types (sort of hook factory?).
     dependencies.push(
-      new HydratingLifecycleHooks(getValue, key, storeLocator),
-      new CreatedLifecycleHooks(getValue, key, storeLocator)
+      new HydratingLifecycleHooks(getValue, key, storeName),
+      new CreatedLifecycleHooks(getValue, key, storeName)
     );
   };
 }
-
-const dependenciesKey = Protocol.annotation.keyFor('dependencies');
 
 class HydratingLifecycleHooks {
   public constructor(
     private readonly $get: (s: any) => unknown,
     private readonly key: PropertyKey,
-    private readonly storeLocator?: StoreLocator,
+    private readonly storeName = 'default',
   ) {
 
   }
@@ -76,9 +76,9 @@ class HydratingLifecycleHooks {
   }
 
   private resolveStore(container: IContainer) {
-    return this.storeLocator == null
+    return this.storeName == null
       ? container.get(IStore)
-      : container.get(IStoreRegistry).getStore(this.storeLocator);
+      : container.get(IStoreRegistry).getStore(this.storeName);
   }
 }
 LifecycleHooks.define({}, HydratingLifecycleHooks);
@@ -87,7 +87,7 @@ class CreatedLifecycleHooks {
   public constructor(
     private readonly $get: (s: any) => unknown,
     private readonly key: PropertyKey,
-    private readonly storeLocator?: StoreLocator,
+    private readonly storeLocator = 'default',
   ) {}
 
   public register(c: IContainer) {

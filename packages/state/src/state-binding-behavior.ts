@@ -1,9 +1,9 @@
-import { type Writable, resolve } from '@aurelia/kernel';
+import { type Writable, isString, resolve } from '@aurelia/kernel';
 import { type IOverrideContext, type ISubscriber, Scope } from '@aurelia/runtime';
 import { BindingBehavior, type IBinding } from '@aurelia/runtime-html';
-import { IStore, IStoreRegistry, type IStoreSubscriber, type StoreLocator } from './interfaces';
+import { IStore, IStoreRegistry, type IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
-import { createStateBindingScope, isStoreInstance } from './state-utilities';
+import { createStateBindingScope } from './state-utilities';
 
 export class StateBindingBehavior {
 
@@ -11,9 +11,9 @@ export class StateBindingBehavior {
   /** @internal */ private readonly _storeRegistry = resolve(IStoreRegistry);
   /** @internal */ private readonly _subs: WeakMap<IBinding, StateSubscriber> = new WeakMap();
 
-  public bind(scope: Scope, binding: IBinding, storeLocator?: StoreLocator | IStore<object>): void {
+  public bind(scope: Scope, binding: IBinding, storeOrName?: string | IStore<object>): void {
     const isStateBinding = binding instanceof StateBinding;
-    const store = this._resolveStore(storeLocator);
+    const store = storeOrName == null || isString(storeOrName) ? this._storeRegistry.getStore(storeOrName ?? 'default') : storeOrName;
     const effectiveScope = isStateBinding ? scope : createStateBindingScope(store.getState(), scope);
 
     if (!isStateBinding) {
@@ -38,17 +38,6 @@ export class StateBindingBehavior {
       sub.stop();
     }
     this._subs.delete(binding);
-  }
-
-  /** @internal */
-  private _resolveStore(locator?: StoreLocator | IStore<object>): IStore<object> {
-    if (locator == null) {
-      return this._defaultStore;
-    }
-    if (isStoreInstance(locator)) {
-      return locator;
-    }
-    return this._storeRegistry.getStore(locator);
   }
 }
 BindingBehavior.define('state', StateBindingBehavior);

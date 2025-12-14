@@ -258,9 +258,10 @@ describe('state/state.spec.ts', function () {
           <span id="product" textcontent.state="title & state:'products'"></span>
         `
         .deps(
-          StateDefaultConfiguration.init({}),
-          StateDefaultConfiguration.init({ name: 'Alice' }, { storeName: 'users' }),
-          StateDefaultConfiguration.init({ title: 'Laptop' }, { storeName: 'products' }),
+          StateDefaultConfiguration.
+            init({})
+            .withStore('users', { name: 'Alice' })
+            .withStore('products', { title: 'Laptop' }),
         )
         .build().started;
 
@@ -278,13 +279,14 @@ describe('state/state.spec.ts', function () {
           <button id="users" click.dispatch="{ type: 'increment' } & state:'users'">users</button>
         `
         .deps(
-          StateDefaultConfiguration.init({ count: 0 }, incrementDefault),
-          StateDefaultConfiguration.init({ count: 10 }, { storeName: 'users' }, incrementUsers),
+          StateDefaultConfiguration
+            .init({ count: 0 }, incrementDefault)
+            .withStore('users', { count: 10 }, incrementUsers),
         )
         .build().started;
 
       const manager = ctx.container.get(IStoreRegistry);
-      const defaultStore = manager.getStore<{ count: number }>();
+      const defaultStore = manager.getStore<{ count: number }>('default');
       const usersStore = manager.getStore<{ count: number }>('users');
 
       getBy('#default').click();
@@ -305,8 +307,9 @@ describe('state/state.spec.ts', function () {
       const { getBy } = await createFixture
         .html`<span id="label" textcontent.bind="label & state:'users'"></span>`
         .deps(
-          StateDefaultConfiguration.init({ label: 'Default' }),
-          StateDefaultConfiguration.init({ label: 'User Label' }, { storeName: 'users' }),
+          StateDefaultConfiguration
+            .init({ label: 'Default' })
+            .withStore('users', { label: 'User Label' }),
         )
         .build().started;
 
@@ -332,8 +335,9 @@ describe('state/state.spec.ts', function () {
         .html`<decorator-test></decorator-test>`
         .deps(
           DecoratorTest,
-          StateDefaultConfiguration.init({ greeting: 'hello' }),
-          StateDefaultConfiguration.init({ greeting: 'hi' }, { storeName: 'users' }),
+          StateDefaultConfiguration
+            .init({ greeting: 'hello' })
+            .withStore('users', { greeting: 'hi' }),
         )
         .build().started;
 

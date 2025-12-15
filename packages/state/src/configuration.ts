@@ -46,7 +46,10 @@ export const StateDefaultConfiguration = {
         const store = new Store<T, unknown>(initialState, normalizedHandlers, logger, getDevTools, name);
         container.get(IStoreRegistry).registerStore(name, store);
         if (name === 'default') {
-          container.register(Registration.instance(IStore, store));
+          container.register(
+            Registration.instance(Store, store),
+            Registration.aliasTo(Store, IStore),
+          );
         }
 
         if (options.middlewares) {
@@ -71,9 +74,7 @@ export const StateDefaultConfiguration = {
     let registered = false;
     return {
       register: (c: IContainer) => {
-        if (!c.has(IStoreRegistry, false)) {
-          c.register(Registration.singleton(IStoreRegistry, StoreRegistry));
-        }
+        Registration.singleton(IStoreRegistry, StoreRegistry).register(c);
         c.register(
           ...standardRegistrations,
           ...storeRegistrations,

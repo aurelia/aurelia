@@ -12,7 +12,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   /** @internal */ private _dispatching = false;
   /** @internal */ private readonly _dispatchQueues: TAction[] = [];
   /** @internal */ private readonly _getDevTools: () => IDevToolsExtension;
-  /** @internal */ private readonly _name?: string;
+  /** @internal */ public readonly name?: string;
 
   public constructor(
     initialState: T,
@@ -25,7 +25,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     this._handlers = handlers;
     this._logger = logger;
     this._getDevTools = getDevTools;
-    this._name = name;
+    this.name = name;
   }
 
   public subscribe(subscriber: IStoreSubscriber<T>): void {
@@ -206,7 +206,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       throw new Error('Devtools extension is not available');
     }
     if (options.name == null) {
-      options.name = this._name == null ? 'Aurelia State plugin' : `Aurelia State: ${this._name}`;
+      options.name = this.name == null ? 'Aurelia State plugin' : `Aurelia State: ${this.name}`;
     }
 
     const devTools = extension.connect(options);

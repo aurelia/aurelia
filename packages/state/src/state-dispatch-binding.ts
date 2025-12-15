@@ -14,11 +14,11 @@ import {
 import {
   mixinAstEvaluator,
   mixingBindingLimited,
-  type IBinding,
 } from '@aurelia/runtime-html';
 import {
   type IStoreSubscriber,
-  type IStore
+  type IStore,
+  IStoreBinding
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
 
@@ -26,7 +26,7 @@ import { createStateBindingScope } from './state-utilities';
  * A binding that handles the connection of the global state to a property of a target object
  */
 export interface StateDispatchBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
-export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> {
+export class StateDispatchBinding implements IStoreBinding, IStoreSubscriber<object> {
   static {
     connectable(StateDispatchBinding, null!);
     mixinAstEvaluator(StateDispatchBinding);
@@ -51,7 +51,8 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
 
   public strict: boolean;
 
-  /** @internal */ private readonly _store: IStore<object>;
+  /** @internal */ private _store: IStore<object>;
+  /** @internal */ private _originalScope?: Scope;
 
   public constructor(
     locator: IServiceLocator,
@@ -81,12 +82,16 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     this.callSource(e);
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      return;
+      if (this._originalScope === scope) {
+        return;
+      }
+      this.unbind();
     }
-    astBind(this.ast, _scope, this);
-    this._scope = createStateBindingScope(this._store.getState(), _scope);
+    this._originalScope = scope;
+    astBind(this.ast, scope, this);
+    this._scope = createStateBindingScope(this._store.getState(), scope);
     this._target.addEventListener(this._targetProperty, this);
     this._store.subscribe(this);
     this.isBound = true;
@@ -108,5 +113,18 @@ export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> 
     const scope = this._scope!;
     const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
     scope.bindingContext = overrideContext.bindingContext = state;
+  }
+
+  public useStore(store: IStore<object>): boolean {
+    if (this._store === store) {
+      return true;
+    }
+    this._store.unsubscribe(this);
+    this._scope = createStateBindingScope(store.getState(), this._originalScope!);
+    (this._store = store).subscribe(this);
+    if (this.isBound) {
+      this.handleStateChange(store.getState());
+    }
+    return true;
   }
 }

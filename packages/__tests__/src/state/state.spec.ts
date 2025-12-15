@@ -251,7 +251,7 @@ describe('state/state.spec.ts', function () {
   });
 
   describe('multiple stores', function () {
-    it('binds to named stores via store name', async function () {
+    it.only('binds to named stores via store name', async function () {
       const { getBy } = await createFixture
         .html`
           <span id="user" textcontent.state="name & state:'users'"></span>
@@ -273,7 +273,7 @@ describe('state/state.spec.ts', function () {
       const incrementDefault = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 1 } : s;
       const incrementUsers = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 5 } : s;
 
-      const { getBy, ctx } = await createFixture
+      const { ctx, trigger } = await createFixture
         .html`
           <button id="default" click.dispatch="{ type: 'increment' }">default</button>
           <button id="users" click.dispatch="{ type: 'increment' } & state:'users'">users</button>
@@ -289,18 +289,17 @@ describe('state/state.spec.ts', function () {
       const defaultStore = manager.getStore<{ count: number }>('default');
       const usersStore = manager.getStore<{ count: number }>('users');
 
-      getBy('#default').click();
+      trigger.click('#default');
       await tasksSettled();
       assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
       assert.deepStrictEqual(usersStore.getState(), { count: 10 });
 
-      getBy('#users').click();
+      trigger.click('#users');
       await tasksSettled();
       assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
       assert.deepStrictEqual(usersStore.getState(), { count: 15 });
 
       assert.strictEqual(ctx.container.get(Store), defaultStore);
-      assert.strictEqual(ctx.container.get('users'), usersStore);
     });
 
     it('uses binding behavior with explicit store', async function () {

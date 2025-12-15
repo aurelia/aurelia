@@ -55,7 +55,7 @@ class HydratingLifecycleHooks {
   public constructor(
     private readonly $get: (s: any) => unknown,
     private readonly key: PropertyKey,
-    private readonly storeName = 'default',
+    private readonly _storeName = 'default',
   ) {
 
   }
@@ -76,9 +76,9 @@ class HydratingLifecycleHooks {
   }
 
   private resolveStore(container: IContainer) {
-    return this.storeName == null
+    return this._storeName == null
       ? container.get(IStore)
-      : container.get(IStoreRegistry).getStore(this.storeName);
+      : container.get(IStoreRegistry).getStore(this._storeName);
   }
 }
 LifecycleHooks.define({}, HydratingLifecycleHooks);
@@ -87,7 +87,7 @@ class CreatedLifecycleHooks {
   public constructor(
     private readonly $get: (s: any) => unknown,
     private readonly key: PropertyKey,
-    private readonly storeLocator = 'default',
+    private readonly _storeName = 'default',
   ) {}
 
   public register(c: IContainer) {
@@ -106,9 +106,9 @@ class CreatedLifecycleHooks {
   }
 
   private resolveStore(container: IContainer) {
-    return this.storeLocator == null
+    return this._storeName == null
       ? container.get(IStore)
-      : container.get(IStoreRegistry).getStore(this.storeLocator);
+      : container.get(IStoreRegistry).getStore(this._storeName);
   }
 }
 LifecycleHooks.define({}, CreatedLifecycleHooks);

@@ -251,11 +251,29 @@ describe('state/state.spec.ts', function () {
   });
 
   describe('multiple stores', function () {
-    it.only('binds to named stores via store name', async function () {
+    it('binds to named stores via store name', async function () {
       const { getBy } = await createFixture
         .html`
           <span id="user" textcontent.state="name & state:'users'"></span>
           <span id="product" textcontent.state="title & state:'products'"></span>
+        `
+        .deps(
+          StateDefaultConfiguration.
+            init({})
+            .withStore('users', { name: 'Alice' })
+            .withStore('products', { title: 'Laptop' }),
+        )
+        .build().started;
+
+      assert.strictEqual(getBy('#user').textContent, 'Alice');
+      assert.strictEqual(getBy('#product').textContent, 'Laptop');
+    });
+
+    it('binds to named stores via state command', async function () {
+      const { getBy } = await createFixture
+        .html`
+          <span id="user" textcontent.state:users="name"></span>
+          <span id="product" textcontent.state:products="title"></span>
         `
         .deps(
           StateDefaultConfiguration.
@@ -277,6 +295,39 @@ describe('state/state.spec.ts', function () {
         .html`
           <button id="default" click.dispatch="{ type: 'increment' }">default</button>
           <button id="users" click.dispatch="{ type: 'increment' } & state:'users'">users</button>
+        `
+        .deps(
+          StateDefaultConfiguration
+            .init({ count: 0 }, incrementDefault)
+            .withStore('users', { count: 10 }, incrementUsers),
+        )
+        .build().started;
+
+      const manager = ctx.container.get(IStoreRegistry);
+      const defaultStore = manager.getStore<{ count: number }>('default');
+      const usersStore = manager.getStore<{ count: number }>('users');
+
+      trigger.click('#default');
+      await tasksSettled();
+      assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
+      assert.deepStrictEqual(usersStore.getState(), { count: 10 });
+
+      trigger.click('#users');
+      await tasksSettled();
+      assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
+      assert.deepStrictEqual(usersStore.getState(), { count: 15 });
+
+      assert.strictEqual(ctx.container.get(Store), defaultStore);
+    });
+
+    it('dispatches actions to the targeted store with specifier syntax', async function () {
+      const incrementDefault = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 1 } : s;
+      const incrementUsers = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 5 } : s;
+
+      const { ctx, trigger } = await createFixture
+        .html`
+          <button id="default" click.dispatch:default="{ type: 'increment' }">default</button>
+          <button id="users" click.dispatch:users="{ type: 'increment' }">users</button>
         `
         .deps(
           StateDefaultConfiguration

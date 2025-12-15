@@ -120,7 +120,7 @@ If you are familiar with Redux, you'll find this plugin familiar. The most obvio
 
 #### Multiple stores
 
-Large applications often need more than a single global store. You can register additional stores by providing either a `storeName` (string alias) or a `storeKey` (DI key) when calling `StateDefaultConfiguration.init`:
+Large applications often need more than a single global store. You can register additional stores by providing a `storeName` (string) when calling `StateDefaultConfiguration.init`:
 
 ```ts
 import { inject, singleton } from '@aurelia/kernel';
@@ -128,13 +128,10 @@ import { IStoreRegistry, StateDefaultConfiguration } from '@aurelia/state';
 
 Aurelia.register(
   // Default store – available through IStore for backwards compatibility
-  StateDefaultConfiguration.init({ counter: 0 }, counterHandler),
-
-  // Named store – resolved as "users"
-  StateDefaultConfiguration.init({ users: [] }, { storeName: 'users' }, usersHandler),
-
-  // Store tied to a custom DI key
-  StateDefaultConfiguration.init({ catalog: [] }, { storeKey: CatalogStore }, catalogHandler),
+  StateDefaultConfiguration
+    .init({ counter: 0 }, counterHandler)
+    .withStore('users', { users: [] }, usersHandler)
+    .withStore('catalog', { catalog: []}, catalogHandler),
 );
 
 @singleton()
@@ -190,7 +187,16 @@ Note: by default, bindings created from `.state` and `.dispatch` commands will o
 
 ### Targeting specific stores
 
-Use the `& state:'name'` helper to bind against a non-default store:
+To bind against non-default store:
+
+Use the `:{store-name} specifier:
+
+```html
+<div textcontent.state:users="users.length"></div>
+<button click.dispatch:users="{ type: 'reload' }">Reload users</button>
+```
+
+Use the `& state:'name'` binding behavior:
 
 ```html
 <div textcontent.state="users.length & state:'users'"></div>

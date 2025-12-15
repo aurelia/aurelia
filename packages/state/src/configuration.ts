@@ -5,6 +5,7 @@ import { StateBindingBehavior } from './state-binding-behavior';
 import {
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
+  StateAttributePattern,
   StateBindingCommand,
   StateBindingInstructionRenderer,
 } from './state-templating';
@@ -24,6 +25,7 @@ export const StateDefaultConfiguration = {
    */
   init: <T1>(state: T1, optionsOrHandler?: IStoreConfigurationOptions | IActionHandler<T1>, ...actionHandlers: IActionHandler[]): IStateConfiguration => {
     const standardRegistrations = [
+      StateAttributePattern,
       StateBindingCommand,
       StateBindingInstructionRenderer,
 

@@ -7,7 +7,8 @@ The Event Aggregator is a pub/sub event package that allows you to publish and s
 To use the Event Aggregator, we inject the `IEventAggregator` interface into our component. In the following code example, we inject it as `ea` on our component class.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
 
 export class MyComponent implements ICustomElementViewModel {
     readonly ea: IEventAggregator = resolve(IEventAggregator);
@@ -19,7 +20,8 @@ export class MyComponent implements ICustomElementViewModel {
 The Event Aggregator provides a subscribe method to subscribe to published events.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
 
 export class MyComponent implements ICustomElementViewModel {
     readonly ea: IEventAggregator = resolve(IEventAggregator);
@@ -35,7 +37,8 @@ export class MyComponent implements ICustomElementViewModel {
 In some situations, you might only want to subscribe to an event once. To do that, we can use the `subscribeOnce` method which will listen to the event and then dispose of itself once it has been fired.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
 
 export class MyComponent implements ICustomElementViewModel {
     readonly ea: IEventAggregator = resolve(IEventAggregator);
@@ -53,7 +56,8 @@ export class MyComponent implements ICustomElementViewModel {
 To publish (emit) an event, we use the `publish` method. You can provide an object to the publish method which allows you to emit data via the event (accessible as a parameter on the subscribe method).
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { IEventAggregator, resolve } from '@aurelia/kernel';
 
 export class MyComponent implements ICustomElementViewModel {
     readonly ea: IEventAggregator = resolve(IEventAggregator);
@@ -77,7 +81,8 @@ export class MyComponent implements ICustomElementViewModel {
 It's considered best practice to dispose of your event listeners when you are finished with them. Inside of a component, you would usually do this inside of the `unbinding` method. The event will be of type `IDisposable` which we will use to strongly type our class property.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator, IDisposable, resolve } from 'aurelia';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { IEventAggregator, IDisposable, resolve } from '@aurelia/kernel';
 
 export class MyComponent implements ICustomElementViewModel {
     private myEvent: IDisposable;

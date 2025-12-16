@@ -401,12 +401,27 @@ Using repeat.for with dynamic list?
 ### Loading States
 
 ```html
+<!-- Using switch for multiple states -->
+<template switch.bind="state">
+  <div case="loading">Loading...</div>
+  <div case="error">Error: ${error.message}</div>
+  <div case="empty">No items found</div>
+  <div default-case>
+    <div repeat.for="item of items; key: id">${item.name}</div>
+  </div>
+</template>
+
+<!-- Or using nested if/else -->
 <div if.bind="isLoading">Loading...</div>
-<div else-if.bind="error">Error: ${error.message}</div>
-<div else-if.bind="items.length === 0">No items found</div>
-<div else>
-  <div repeat.for="item of items; key: id">${item.name}</div>
-</div>
+<template else>
+  <div if.bind="error">Error: ${error.message}</div>
+  <template else>
+    <div if.bind="items.length === 0">No items found</div>
+    <div else>
+      <div repeat.for="item of items; key: id">${item.name}</div>
+    </div>
+  </template>
+</template>
 ```
 
 ### Form Validation Display

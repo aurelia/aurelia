@@ -58,7 +58,7 @@ const errorsMap: Record<ErrorNames, string>  = {
   [ErrorNames.null_resolver_from_register]: `Invalid resolver, null/undefined returned from the static register method.`,
   [ErrorNames.no_jit_interface]: `Attempted to jitRegister an interface: {{0}}`,
   [ErrorNames.no_instance_provided]: `Cannot call resolve '{{0}}' before calling prepare or after calling dispose.`,
-  [ErrorNames.null_undefined_key]: `Key cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?` +
+  [ErrorNames.null_undefined_key]: `Key cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI? ` +
     `A common cause is circular dependency with bundler, did you accidentally introduce circular dependency into your module graph?`,
   [ErrorNames.no_construct_native_fn]: `'{{0}}' is a native function and cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`,
   [ErrorNames.no_active_container_for_resolve]: `There is not a currently active container to resolve "{{0}}". Are you trying to "new Class(...)" that has a resolve(...) call?`,

@@ -423,12 +423,14 @@ export function error(logger: ILogger, event: Events, ...optionalParameters: unk
 /** @internal */
 export function getMessage(event: Events, ...optionalParameters: unknown[]) {
   if (__DEV__) {
+    const paddedCode = String(event).padStart(4, '0');
+    const link = `https://docs.aurelia.io/developer-guides/error-messages/router/aur${paddedCode}`;
     let message = eventMessageMap[event];
     let offset = 0;
     while (message.includes('%s') || offset < optionalParameters.length) {
       message = message.replace('%s', String(optionalParameters[offset++]));
     }
-    return `AUR${event}: ${message}`;
+    return `AUR${event}: ${message}\n\nFor more information, see: ${link}`;
   }
   return `AUR${event}:${optionalParameters.map(p => String(p)).join(':')}`;
 }

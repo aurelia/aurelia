@@ -1,14 +1,15 @@
 ---
-description: Errors 0203 to 0227 are @aurelia/runtime package related errors.
+description: Errors 0199 to 0228 are @aurelia/runtime package related errors.
 ---
 
-# 0203 to 0227
+# 0199 to 0228
 
 Please see below a reference to each [@aurelia/runtime](https://github.com/aurelia/aurelia/tree/master/packages/runtime) package related error with explanations and resources for debugging and solving.
 
-## Runtime Core Errors (0203-0227)
+## Runtime Core Errors (0199-0228)
 These errors occur in the core runtime functionality including scoping, observation, dirty checking, and computed properties.
 
+* [AUR0199](aur0199.md) - Observing null/undefined
 * [AUR0203](aur0203.md) - Null scope
 * [AUR0204](aur0204.md) - Create scope with null context
 * [AUR0206](aur0206.md) - Switch on null connectable
@@ -25,3 +26,4 @@ These errors occur in the core runtime functionality including scoping, observat
 * [AUR0225](aur0225.md) - Stopping a stopped effect
 * [AUR0226](aur0226.md) - Effect maximum recursion reached
 * [AUR0227](aur0227.md) - Computed mutating
+* [AUR0228](aur0228.md) - Computed not getter

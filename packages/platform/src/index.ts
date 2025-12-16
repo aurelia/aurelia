@@ -6,7 +6,7 @@ const createError = (msg: string) => new Error(msg);
 const notImplemented = (name: string): (...args: any[]) => any => {
   return () => {
     throw __DEV__
-      ? createError(`AUR1005: The PLATFORM did not receive a valid reference to the global function '${name}'.`) // TODO: link to docs describing how to fix this issue
+      ? createError(`AUR1005: The PLATFORM did not receive a valid reference to the global function '${name}'.\n\nFor more information, see: https://docs.aurelia.io/developer-guides/error-messages/platform/aur1005`)
       : createError(`AUR1005:${name}`);
   };
 };

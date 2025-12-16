@@ -110,11 +110,12 @@ export class NameComponent {
 
     propertyChanged(key, newVal, oldVal) {
       if (key === 'firstName') {
-
+        // Handle firstName change
       } else if (key === 'lastName') {
-
+        // Handle lastName change
       }
     }
+}
 ```
 
 In the above example, even though `propertyChanged` can be used for multiple properties (like `firstName` and `lastName`), it's only called individually for each of those properties.

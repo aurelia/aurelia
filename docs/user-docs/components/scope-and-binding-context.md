@@ -75,15 +75,105 @@ Every scope in Aurelia has three main parts:
 The **binding context** is usually your component's instance – the object containing all your properties and methods:
 
 ```typescript
+export class MyComponent {
+  message = 'Hello, World!';
+  count = 42;
+
+  greet() {
+    return `The count is ${this.count}`;
+  }
+}
+```
+
+When Aurelia evaluates `${message}` in the template, it looks at the binding context (your component instance) and finds the `message` property.
+
+### 2. Override Context: Special Contextual Values
+
+The **override context** holds special values that aren't part of your component but are available in templates. The most common example is loop variables:
+
+```html
+<div repeat.for="item of items">
+  ${$index}: ${item.name}  <!-- $index comes from override context -->
+</div>
+```
+
+In this example:
+- `item` is added to a child scope's binding context
+- `$index`, `$first`, `$last`, etc. are added to the override context
+
+### 3. Scope Hierarchy and Parent Access
+
+Scopes form a hierarchy. Each component creates its own scope, and child components can access parent data using `$parent`:
+
+```html
+<!-- parent-component.html -->
+<div>
+  <child-component></child-component>
+</div>
+
+<!-- child-component.html -->
+<p>Parent's title: ${$parent.title}</p>
+```
+
+### 4. Component Boundaries
+
+Component boundaries are important to understand. When you create a custom element, Aurelia marks that scope as a **boundary**. This affects how property resolution works:
+
+- Within a component, Aurelia searches up the scope chain automatically
+- At component boundaries, you must use `$parent` explicitly to access parent component data
+
+```html
+<!-- This works within the same component -->
+<div with.bind="user">
+  ${name}  <!-- Finds user.name, then falls back to component properties -->
+</div>
+
+<!-- To access parent component data, use $parent -->
+<child-component>
+  <!-- Inside child, to get parent's data: -->
+  ${$parent.parentProperty}
+</child-component>
+```
+
+### 5. The `$host` Keyword
+
+In slot projections, `$host` gives you access to the component that defines the slot:
+
+```html
+<!-- my-card.html (defines slots) -->
+<div class="card">
+  <slot></slot>
+</div>
+
+<!-- Usage with projected content -->
+<my-card>
+  <p>Card title: ${$host.title}</p>  <!-- Accesses my-card's title -->
+</my-card>
+```
+
+## Debugging Scopes
+
+When you need to debug scope issues, you can access the scope in the browser console:
+
+```typescript
+// In your component, expose the scope for debugging
+export class DebugComponent {
+  created() {
+    (window as any).debugScope = this.$controller.scope;
+  }
+}
+```
+
 Then in the browser console:
+
 ```javascript
 // Explore the scope structure
-debugScope.bindingContext
-debugScope.overrideContext
-debugScope.parent
+debugScope.bindingContext      // Your component instance
+debugScope.overrideContext     // Special contextual values
+debugScope.parent              // Parent scope (if any)
 
-// Test property resolution
-Scope.getContext(debugScope, 'propertyName', 0)
+// Check if it's a component boundary
+debugScope.isBoundary
 ```
 
 ## Best Practices

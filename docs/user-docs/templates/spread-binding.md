@@ -1,14 +1,14 @@
-# Spread Operators (`...$bindables`, `$bindables.spread`, `...$attrs`)
+# Spread Operators
 
-Aurelia supports two different “spread” features in templates:
+Aurelia supports two different spread features in templates:
 
 1. **Bindables spreading**: bind multiple properties from an object onto a custom element’s bindable properties.
 2. **Attribute transferring**: forward captured attributes/bindings from a custom element usage to an element inside its template.
 
 This page focuses on the **template syntax** and common gotchas. For the deeper conceptual guide, see:
 
-- `docs/user-docs/components/bindable-properties.md` (Bindables spreading, Attributes Transferring)
-- `docs/user-docs/getting-to-know-aurelia/introduction/attribute-transferring.md`
+- [Bindable Properties](../components/bindable-properties.md) (Bindables spreading, Attributes Transferring)
+- [Attribute Transferring](../getting-to-know-aurelia/introduction/attribute-transferring.md)
 
 ---
 
@@ -19,6 +19,15 @@ Bindables spreading is for **custom element usage**. It creates one-way (`to-vie
 ### Syntax options
 
 ```html
+<!-- Recommended: put the expression in the attribute value -->
+<user-card ...$bindables="user"></user-card>
+
+<!-- Equivalent: explicit binding command form -->
+<user-card $bindables.spread="user"></user-card>
+
+<!-- Shorthand: put the expression in the attribute name (no spaces!) -->
+<user-card ...user></user-card>
+```
 <!-- Recommended: put the expression in the attribute value -->
 <user-card ...$bindables="user"></user-card>
 

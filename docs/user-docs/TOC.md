@@ -42,7 +42,7 @@
 * [Value converters (pipes)](templates/value-converters.md)
 * [Binding behaviors](templates/binding-behaviors.md)
 * [@slotted Decorator](templates/slotted-decorator.md)
-* [Spread operators (`...$bindables`, `...$attrs`)](templates/spread-binding.md)
+* [Spread operators](templates/spread-binding.md)
 * Forms
   * [Form Basics](templates/forms/README.md)
   * [Collections (Checkboxes, Radios, Select)](templates/forms/collections.md)

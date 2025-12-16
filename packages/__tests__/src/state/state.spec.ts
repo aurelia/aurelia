@@ -1,7 +1,7 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
 
 import { tasksSettled } from '@aurelia/runtime';
-import { StateDefaultConfiguration, fromState, createStateMemoizer, Store } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, createStateMemoizer, Store, IStoreRegistry } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -247,6 +247,151 @@ describe('state/state.spec.ts', function () {
       trigger('button', 'click');
       await tasksSettled();
       assertText('center', '456');
+    });
+  });
+
+  describe('multiple stores', function () {
+    it('binds to named stores via store name', async function () {
+      const { getBy } = await createFixture
+        .html`
+          <span id="user" textcontent.state="name & state:'users'"></span>
+          <span id="product" textcontent.state="title & state:'products'"></span>
+        `
+        .deps(
+          StateDefaultConfiguration.
+            init({})
+            .withStore('users', { name: 'Alice' })
+            .withStore('products', { title: 'Laptop' }),
+        )
+        .build().started;
+
+      assert.strictEqual(getBy('#user').textContent, 'Alice');
+      assert.strictEqual(getBy('#product').textContent, 'Laptop');
+    });
+
+    it('binds to named stores via state command', async function () {
+      const { getBy } = await createFixture
+        .html`
+          <span id="user" textcontent.state:users="name"></span>
+          <span id="product" textcontent.state:products="title"></span>
+        `
+        .deps(
+          StateDefaultConfiguration.
+            init({})
+            .withStore('users', { name: 'Alice' })
+            .withStore('products', { title: 'Laptop' }),
+        )
+        .build().started;
+
+      assert.strictEqual(getBy('#user').textContent, 'Alice');
+      assert.strictEqual(getBy('#product').textContent, 'Laptop');
+    });
+
+    it('dispatches actions to the targeted store', async function () {
+      const incrementDefault = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 1 } : s;
+      const incrementUsers = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 5 } : s;
+
+      const { ctx, trigger } = await createFixture
+        .html`
+          <button id="default" click.dispatch="{ type: 'increment' }">default</button>
+          <button id="users" click.dispatch="{ type: 'increment' } & state:'users'">users</button>
+        `
+        .deps(
+          StateDefaultConfiguration
+            .init({ count: 0 }, incrementDefault)
+            .withStore('users', { count: 10 }, incrementUsers),
+        )
+        .build().started;
+
+      const manager = ctx.container.get(IStoreRegistry);
+      const defaultStore = manager.getStore<{ count: number }>('default');
+      const usersStore = manager.getStore<{ count: number }>('users');
+
+      trigger.click('#default');
+      await tasksSettled();
+      assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
+      assert.deepStrictEqual(usersStore.getState(), { count: 10 });
+
+      trigger.click('#users');
+      await tasksSettled();
+      assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
+      assert.deepStrictEqual(usersStore.getState(), { count: 15 });
+
+      assert.strictEqual(ctx.container.get(Store), defaultStore);
+    });
+
+    it('dispatches actions to the targeted store with specifier syntax', async function () {
+      const incrementDefault = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 1 } : s;
+      const incrementUsers = (s: { count: number }, action: { type: string }) => action.type === 'increment' ? { ...s, count: s.count + 5 } : s;
+
+      const { ctx, trigger } = await createFixture
+        .html`
+          <button id="default" click.dispatch:default="{ type: 'increment' }">default</button>
+          <button id="users" click.dispatch:users="{ type: 'increment' }">users</button>
+        `
+        .deps(
+          StateDefaultConfiguration
+            .init({ count: 0 }, incrementDefault)
+            .withStore('users', { count: 10 }, incrementUsers),
+        )
+        .build().started;
+
+      const manager = ctx.container.get(IStoreRegistry);
+      const defaultStore = manager.getStore<{ count: number }>('default');
+      const usersStore = manager.getStore<{ count: number }>('users');
+
+      trigger.click('#default');
+      await tasksSettled();
+      assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
+      assert.deepStrictEqual(usersStore.getState(), { count: 10 });
+
+      trigger.click('#users');
+      await tasksSettled();
+      assert.deepStrictEqual(defaultStore.getState(), { count: 1 });
+      assert.deepStrictEqual(usersStore.getState(), { count: 15 });
+
+      assert.strictEqual(ctx.container.get(Store), defaultStore);
+    });
+
+    it('uses binding behavior with explicit store', async function () {
+      const { getBy } = await createFixture
+        .html`<span id="label" textcontent.bind="label & state:'users'"></span>`
+        .deps(
+          StateDefaultConfiguration
+            .init({ label: 'Default' })
+            .withStore('users', { label: 'User Label' }),
+        )
+        .build().started;
+
+      assert.strictEqual(getBy('#label').textContent, 'User Label');
+    });
+
+    it('supports decorator with named store', async function () {
+      @customElement({ name: 'decorator-test', template: `\${defaultGreeting}|\${userGreeting}` })
+      class DecoratorTest {
+        @fromState<{ greeting: string }>(state => state.greeting)
+        defaultGreeting!: string;
+
+        @fromState('users', (state: { greeting: string }) => state.greeting)
+        userGreeting!: string;
+      }
+
+      class DecoratorHost {
+        public decorator!: DecoratorTest;
+      }
+
+      const { getBy } = await createFixture
+        .component(DecoratorHost)
+        .html`<decorator-test></decorator-test>`
+        .deps(
+          DecoratorTest,
+          StateDefaultConfiguration
+            .init({ greeting: 'hello' })
+            .withStore('users', { greeting: 'hi' }),
+        )
+        .build().started;
+
+      assert.strictEqual(getBy('decorator-test').textContent, 'hello|hi');
     });
   });
 

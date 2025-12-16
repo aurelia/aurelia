@@ -2,7 +2,7 @@ export { Store } from './store';
 
 export {
   StateDefaultConfiguration,
-  type IStateConfigurationOptions,
+  type IStoreConfigurationOptions as IStateConfigurationOptions,
   type IConfigurationInit,
   type IStateConfiguration,
   type IMiddlewareRegistration,
@@ -14,6 +14,7 @@ export {
   IState,
   IStore,
   type IStoreSubscriber,
+  IStoreRegistry,
   IActionHandler,
   type IRegistrableAction,
   type IStateMiddleware,
@@ -36,3 +37,4 @@ export {
 export { StateBindingBehavior } from './state-binding-behavior';
 export { fromState } from './state-decorator';
 export { createStateMemoizer, type StateMemoizer } from './state-memorizer';
+export { StoreRegistry } from './store-registry';

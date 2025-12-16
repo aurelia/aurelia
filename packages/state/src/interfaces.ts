@@ -1,6 +1,7 @@
-import { type IRegistry, type IDisposable } from '@aurelia/kernel';
+import { type IDisposable, type IRegistry } from '@aurelia/kernel';
 import { IDevToolsOptions } from './interfaces-devtools';
 import { createInterface } from './state-utilities';
+import { IBinding } from '@aurelia/runtime-html';
 
 export const IActionHandler = /*@__PURE__*/createInterface<IActionHandler>('IActionHandler');
 export type IActionHandler<T = any> = (state: T, action: unknown) => T | Promise<T>;
@@ -48,7 +49,17 @@ export interface IStore<T extends object, TAction = unknown> {
 
 export const IState = /*@__PURE__*/createInterface<object>('IState');
 
+export const IStoreRegistry = /*@__PURE__*/createInterface<IStoreRegistry>('IStoreRegistry');
+export interface IStoreRegistry {
+  registerStore<T extends object>(name: string, store: IStore<T>): void;
+  getStore<T extends object>(name: string): IStore<T>;
+}
+
 export type IRegistrableAction = IActionHandler & IRegistry;
+
+export type IStoreBinding = IBinding & {
+  useStore(store: IStore<object>): boolean;
+};
 
 export interface IStoreSubscriber<T extends object> {
   handleStateChange(state: T, prevState: T): void;

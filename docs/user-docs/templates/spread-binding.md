@@ -28,15 +28,6 @@ Bindables spreading is for **custom element usage**. It creates one-way (`to-vie
 <!-- Shorthand: put the expression in the attribute name (no spaces!) -->
 <user-card ...user></user-card>
 ```
-<!-- Recommended: put the expression in the attribute value -->
-<user-card ...$bindables="user"></user-card>
-
-<!-- Equivalent: explicit binding command form -->
-<user-card $bindables.spread="user"></user-card>
-
-<!-- Shorthand: put the expression in the attribute name (no spaces!) -->
-<user-card ...user></user-card>
-```
 
 ### Example
 

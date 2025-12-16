@@ -449,6 +449,7 @@ export class TypedInputsCustomAttribute {
     }
   }) public tags: string[] = [];
 }
+```
 
 ### Custom Change Callbacks
 
@@ -1114,10 +1115,11 @@ export class PluginHostTemplateController {
 @templateController('simple-conditional')  
 export class SimpleConditionalTemplateController {
   @bindable() public condition: boolean;
-  
+
   // Simple conditional rendering doesn't need service isolation
   // Sharing parent container is more efficient
 }
+```
 
 ### Default Binding Mode
 

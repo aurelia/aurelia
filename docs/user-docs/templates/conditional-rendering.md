@@ -62,6 +62,20 @@ The `show.bind` directive toggles element visibility without removing them from 
 <div show.bind="!isLoading">Content is ready</div>
 ```
 
+### `hide.bind` (inverse of `show.bind`)
+
+`hide` is an alias of `show` with inverted logic:
+
+```html
+<div hide.bind="isHidden">Hidden when true</div>
+```
+
+This is equivalent to:
+
+```html
+<div show.bind="!isHidden">Hidden when true</div>
+```
+
 ### When to Use show.bind vs if.bind
 
 ```html

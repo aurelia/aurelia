@@ -59,7 +59,7 @@ interface NavigationEndEvent {
 ```
 
 ### `NavigationCancelEvent`
-Emitted when navigation is cancelled by lifecycle hooks returning `false` or throwing.
+Emitted when navigation is cancelled by lifecycle hooks (for example by returning `false` or returning a redirect instruction).
 
 ```typescript
 interface NavigationCancelEvent {
@@ -287,13 +287,13 @@ export class LoadingApp {
   private readonly subscriptions = [
     resolve(IRouterEvents).subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
       this.isNavigating = true;
-      console.log(`Starting navigation to: ${event.instructions.toUrl()}`);
+      console.log(`Starting navigation to: ${event.instructions.toUrl(false, this.router.options._urlParser, true)}`);
     }),
 
     resolve(IRouterEvents).subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
       this.isNavigating = false;
       this.updateBreadcrumbs();
-      console.log(`Navigation completed: ${event.finalInstructions.toUrl()}`);
+      console.log(`Navigation completed: ${event.finalInstructions.toUrl(true, this.router.options._urlParser, true)}`);
     }),
 
     resolve(IRouterEvents).subscribe('au:router:navigation-cancel', () => {
@@ -363,7 +363,7 @@ export class AnalyticsService {
   }
 
   private trackPageView(event: NavigationEndEvent): void {
-    const url = event.finalInstructions.toUrl();
+    const url = event.finalInstructions.toUrl(true, this.router.options._urlParser, true);
     const title = this.extractPageTitle();
     
     // Send to analytics service (Google Analytics, Adobe Analytics, etc.)
@@ -420,7 +420,7 @@ interface ErrorRecoveryStrategy {
   recover(error: unknown): Promise<void>;
 }
 
-@singleton  
+@singleton
 export class NavigationErrorService {
   private readonly router: IRouter = resolve(IRouter);
   private errorHistory: Array<{timestamp: number, error: unknown, url: string}> = [];
@@ -455,7 +455,7 @@ export class NavigationErrorService {
   }
 
   private async handleNavigationError(event: NavigationErrorEvent): Promise<void> {
-    const url = event.instructions.toUrl();
+    const url = event.instructions.toUrl(false, this.router.options._urlParser, true);
     
     // Log error for debugging
     this.errorHistory.push({
@@ -481,13 +481,14 @@ export class NavigationErrorService {
 
     // Fallback: show error page or go to home
     this.showErrorNotification(`Navigation failed: ${url}`);
-    await this.router.load('/error', { 
-      state: { originalUrl: url, error: event.error } 
+    // If you need to pass error details to the error page, store them in a service/store.
+    await this.router.load('/error', {
+      queryParams: { from: url },
     });
   }
 
   private handleNavigationCancel(event: NavigationCancelEvent): void {
-    const url = event.instructions.toUrl();
+    const url = event.instructions.toUrl(false, this.router.options._urlParser, true);
     console.warn(`⚠️ Navigation cancelled for ${url}:`, event.reason);
     
     // Show user-friendly message
@@ -519,7 +520,7 @@ Track and manage complex navigation states:
 
 ```typescript
 import { singleton, resolve, observable } from '@aurelia/kernel';
-import { IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
+import { IRouter, IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
 
 interface NavigationHistoryEntry {
   id: number;
@@ -535,6 +536,7 @@ export class NavigationStateService {
   @observable navigationHistory: NavigationHistoryEntry[] = [];
   @observable isNavigating: boolean = false;
 
+  private readonly router = resolve(IRouter);
   private pendingNavigations = new Map<number, NavigationHistoryEntry>();
 
   public constructor() {
@@ -543,7 +545,7 @@ export class NavigationStateService {
     events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
       const entry: NavigationHistoryEntry = {
         id: event.id,
-        url: event.instructions.toUrl(),
+        url: event.instructions.toUrl(false, this.router.options._urlParser, true),
         timestamp: Date.now(),
         trigger: event.trigger
       };
@@ -557,7 +559,7 @@ export class NavigationStateService {
       const entry = this.pendingNavigations.get(event.id);
       if (entry) {
         entry.duration = Date.now() - entry.timestamp;
-        entry.url = event.finalInstructions.toUrl(); // Use final URL
+        entry.url = event.finalInstructions.toUrl(true, this.router.options._urlParser, true); // Use final URL
         
         this.navigationHistory.push(entry);
         this.pendingNavigations.delete(event.id);
@@ -673,8 +675,12 @@ events.subscribe('au:router:navigation-end', (event) => {
 Enable detailed logging for debugging:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { IRouter, IRouterEvents } from '@aurelia/router';
+
 export class RouterDebugService {
   constructor() {
+    const router = resolve(IRouter);
     const events = resolve(IRouterEvents);
     
     if (process.env.NODE_ENV === 'development') {
@@ -695,7 +701,7 @@ export class RouterDebugService {
 
       events.subscribe('au:router:navigation-end', (event) => {
         console.group(`✅ Navigation End #${event.id}`);
-        console.log('Final URL:', event.finalInstructions.toUrl());
+        console.log('Final URL:', event.finalInstructions.toUrl(true, router.options._urlParser, true));
         console.groupEnd();
       });
 

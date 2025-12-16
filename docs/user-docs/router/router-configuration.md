@@ -21,12 +21,12 @@ The router accepts the following configuration options through `RouterConfigurat
 | `historyStrategy` | `'push' \| 'replace' \| 'none' \| (instructions) => HistoryStrategy` | `'push'` | Controls how each navigation interacts with `history`. Provide a function to choose per navigation. |
 | `basePath` | `string \| null` | `null` | Overrides the base segment used to resolve relative routes. Defaults to `document.baseURI`. |
 | `activeClass` | `string \| null` | `null` | CSS class applied by the `load` attribute when a link is active. |
-| `useNavigationModel` | boolean | `true` | Generates the navigation model so you can build menus from `IRouter.navigation`. |
+| `useNavigationModel` | boolean | `true` | Generates the navigation model so you can build menus from `IRouteContext.routeConfigContext.navigationModel`. |
 | `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises how page titles are produced. Return `null` to skip title updates. |
 | `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
 | `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
 
-> Pass a partial options object—the router merges your values with the defaults so you only specify what changes. If you need to adjust settings later, resolve `IRouterOptions` from DI and mutate it at runtime. Unlike `RouterConfiguration.customize` in `@aurelia/router-direct`, this overload does not accept a callback—use app tasks or register your own startup code if you need to defer `router.start()`.
+> Pass a partial options object—the router merges your values with the defaults so you only specify what changes. Configure options before the router starts (for example, via `AppTask`) so navigations consistently use the same settings.
 
 ## Choose between hash and pushState routing using `useUrlFragmentHash`
 
@@ -146,6 +146,7 @@ import template from './my-app.html?raw';
 import { Home } from './home';
 import { About } from './about';
 import { DI } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 
 export const ITenant = DI.createInterface<string>('tenant');
 
@@ -180,7 +181,7 @@ Note that when you switch to a tenant, the links in the `a` tags also now includ
 If your host does not behave like a normal browser history stack (for example, a native WebView, an Electron shell, or a sandbox that proxies URLs), override the router’s location manager. The router always resolves `ILocationManager` from DI and ships with a browser-based implementation. Register your own class that implements the same public surface (`startListening`, `stopListening`, `handleEvent`, `pushState`, `replaceState`, `getPath`, `addBaseHref`, `removeBaseHref`) before the router starts:
 
 ```typescript
-import { Aurelia } from '@aurelia/runtime-html';
+import Aurelia from 'aurelia';
 import { RouterConfiguration, ILocationManager } from '@aurelia/router';
 import { Registration } from '@aurelia/kernel';
 
@@ -191,7 +192,7 @@ class WebViewLocationManager implements ILocationManager {
   stopListening() {/* disconnect */}
   handleEvent() {/* publish au:router:location-change */}
   pushState(state: unknown, title: string, url: string) {
-    this.host.history.replaceState(state, title, `/app/${url}`);
+    this.host.history.pushState(state, title, `/app/${url}`);
   }
   replaceState(state: unknown, title: string, url: string) {
     this.host.history.replaceState(state, title, `/app/${url}`);
@@ -216,24 +217,26 @@ Because `RouterConfiguration` registers `BrowserLocationManager` as a singleton,
 `RouterOptions` stores an `_urlParser` instance that is derived from `useUrlFragmentHash`. Advanced apps can replace that parser before any navigation happens. The `_urlParser` field is marked `readonly`, so use `Writable<T>` from `@aurelia/kernel` when mutating:
 
 ```typescript
+import Aurelia from 'aurelia';
 import { RouterConfiguration, RouterOptions, IRouterOptions, type IUrlParser } from '@aurelia/router';
-import { AppTask, Writable } from '@aurelia/runtime-html';
+import { AppTask } from '@aurelia/runtime-html';
+import type { Writable } from '@aurelia/kernel';
 
-const signedParser: IUrlParser = {
+const createSignedParser = (baseParser: IUrlParser): IUrlParser => ({
   parse(value) {
     const raw = value.replace(/;sig=.*$/, '');
-    return RouterOptions.create({})._urlParser.parse(raw);
+    return baseParser.parse(raw);
   },
   stringify(path, query, fragment, isRooted) {
-    const base = RouterOptions.create({})._urlParser.stringify(path, query, fragment, isRooted);
+    const base = baseParser.stringify(path, query, fragment, isRooted);
     return `${base};sig=${sessionStorage.getItem('signature') ?? ''}`;
   },
-};
+});
 
 Aurelia.register(
   RouterConfiguration.customize(),
   AppTask.creating(IRouterOptions, (options: RouterOptions) => {
-    (options as Writable<RouterOptions>)._urlParser = signedParser;
+    (options as Writable<RouterOptions>)._urlParser = createSignedParser(options._urlParser);
   }),
 );
 ```
@@ -292,7 +295,7 @@ However, there are enough hooks that can be leveraged to translate the title.
 To this end, we would use the [`data` property](./configuring-routes.md#advanced-route-configuration-options) in the route configuration to store the i18n key.
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import type { IRouteViewModel, Routeable } from '@aurelia/router';
 export class MyApp implements IRouteViewModel {
   static title: string = 'Aurelia';
   static routes: Routeable[] = [
@@ -570,7 +573,7 @@ With the default `true` setting, if navigation fails (due to guards returning fa
 Beyond setting up routes, hash/push mode, or titles, you can optionally observe the active route and track query parameters. One way is to inject `ICurrentRoute` in any of your components. Another is to watch router events:
 
 ```typescript
-import { RouterConfiguration, IRouterEvents, NavigationEndEvent, ICurrentRoute } from '@aurelia/router';
+import { RouterConfiguration, IRouter, IRouterEvents, NavigationEndEvent, ICurrentRoute } from '@aurelia/router';
 import { DI } from '@aurelia/kernel';
 
 const container = DI.createContainer();
@@ -580,9 +583,10 @@ container.register(
 
 const routerEvents = container.get(IRouterEvents);
 const currentRoute = container.get(ICurrentRoute);
+const router = container.get(IRouter);
 
 routerEvents.subscribe('au:router:navigation-end', (evt: NavigationEndEvent) => {
-  console.log('Navigation ended on:', evt.finalInstructions.toUrl());
+  console.log('Navigation ended on:', evt.finalInstructions.toUrl(true, router.options._urlParser, true));
   console.log('Active route object:', currentRoute.path);
 });
 ```
@@ -594,8 +598,7 @@ This can help debug or log your router's runtime state. See the [ICurrentRoute d
 When the `treatQueryAsParameters` property in the router configuration is set to `true`, the router will treat query parameters as path parameters. The default value is `false`.
 
 {% hint style="warning" %}
-This is a temporary option to help developers transitioning from `router-direct` to `router`.
-It will be removed in the future version.
+`treatQueryAsParameters` is deprecated and will be removed in the next major version.
 {% endhint %}
 
 ## Advanced Configuration Scenarios
@@ -703,25 +706,30 @@ RouterConfiguration.customize({
 })
 ```
 
-## Manual router lifecycle control
+## Router lifecycle (advanced)
 
-The router instance exposes `start(performInitialNavigation: boolean)` and `stop()` so you can decide when navigation begins or ends. `RouterConfiguration` normally starts the router automatically, but embedded scenarios (micro-frontends, SSR hand-off, wizard-style shells) often need to defer the first navigation until data is ready:
+The router exposes `start(performInitialNavigation: boolean)` and `stop()`, but when you register `RouterConfiguration` the router is started and stopped automatically via `AppTask`.
+
+- Use `router.stop()` if you temporarily need to suspend routing (for example, while showing a modal flow that should ignore browser back/forward).
+- If you call `router.stop()`, call `router.start(false)` to resume listening without triggering another initial navigation.
+- Delaying the *very first* navigation requires a custom router configuration, because `RouterConfiguration` always starts the router during app activation.
 
 ```typescript
-import { Aurelia, AppTask } from '@aurelia/runtime-html';
-import { RouterConfiguration, IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 
-Aurelia.register(
-  RouterConfiguration.customize(),
-  AppTask.activated(IRouter, router => router.start(false)), // skip initial navigation
-  AppTask.deactivated(IRouter, router => router.stop()),
-);
+export class DebugPanel {
+  private readonly router = resolve(IRouter);
+
+  pauseRouting() {
+    this.router.stop();
+  }
+
+  resumeRouting() {
+    this.router.start(false);
+  }
+}
 ```
-
-- Passing `false` prevents the router from immediately loading `location.pathname`. Call `router.load()` yourself once prerequisites are satisfied.
-- `stop()` unsubscribes the router from `au:router:location-change` events and stops listening to browser history so you can safely dispose of the hosting view.
-
-Because this matches the same methods used inside the framework, it stays aligned with the code linked above.
 
 ## Troubleshooting Configuration Issues
 

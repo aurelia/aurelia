@@ -17,7 +17,7 @@ Find what you need quickly with this task-based guide:
 ### Display Data
 
 - **Show dynamic text?** → [Text Interpolation](template-syntax/text-interpolation.md) - Use `${property}`
-- **Bind to element properties?** → [Attribute Binding](template-syntax/attribute-binding.md) - Use `.bind`, `.one-way`, `.two-way`
+- **Bind to element properties?** → [Attribute Binding](template-syntax/attribute-binding.md) - Use `.bind`, `.to-view`, `.two-way`
 - **Format data for display?** → [Value Converters](value-converters.md) - Use `${value | converter}`
 - **Show/hide elements?** → [Conditional Rendering](conditional-rendering.md) - Use `if.bind` or `show.bind`
 
@@ -72,6 +72,11 @@ Find what you need quickly with this task-based guide:
 - **Control binding behavior?** → [Binding Behaviors](binding-behaviors.md)
 - **Work with promises?** → [Template Promises](template-syntax/template-promises.md) - Use `promise.bind`
 - **Create local template variables?** → [Template Variables](template-syntax/template-variables.md) - Use `<let>`
+- **Change binding context for a section?** → [`with.bind`](with.md)
+- **Bind element focus state?** → [`focus`](focus.md) - Use `focus.bind`
+- **Spread config objects / forward captured attrs?** → [Spread operators](spread-binding.md) - Use `...$bindables` / `...$attrs`
+- **Render markup elsewhere in the DOM?** → [Portalling elements](../getting-to-know-aurelia/portalling-elements.md) - Use `portal`
+- **Compose components dynamically?** → [Dynamic composition](../getting-to-know-aurelia/dynamic-composition.md) - Use `<au-compose>`
 - **Work with SVG?** → [SVG](svg.md)
 - **Use lambda expressions?** → [Lambda Expressions](lambda-expressions.md)
 
@@ -89,7 +94,9 @@ Find what you need quickly with this task-based guide:
 - **[Event Binding](template-syntax/event-binding.md)** - Handle user interactions
 - **[Template References](template-syntax/template-references.md)** - Access DOM elements with `ref`
 - **[Template Variables](template-syntax/template-variables.md)** - Create local variables with `<let>`
+- **[`with.bind`](with.md)** - Re-scope a section to an object
 - **[Template Promises](template-syntax/template-promises.md)** - Handle async data with `promise.bind`
+- **[Spread operators](spread-binding.md)** - Bindables spreading and attribute transferring
 - **[Globals](globals.md)** - Built-in global functions and values
 
 ### Display Logic
@@ -158,7 +165,7 @@ Not sure where to start? Follow this path:
 
 ## Performance Tips
 
-- Use `.one-way` binding for display-only data
+- Use `.to-view` binding for display-only data
 - Add `key` to `repeat.for` for dynamic lists
 - Use `show.bind` for frequent visibility toggles
 - Use `if.bind` for infrequent changes
@@ -169,7 +176,7 @@ Not sure where to start? Follow this path:
 
 - **Components not appearing?** → Don't forget `<import from="./component"></import>` (or register globally)
 - **Array changes not detected?** → Use array methods like `push()`, `splice()`, not direct index assignment
-- **Form input not updating?** → Use `.bind` or `.two-way`, not `.one-way`
+- **Form input not updating?** → Use `.bind` or `.two-way`, not `.to-view`
 - **Performance issues with large lists?** → Add `key.bind` or `key:` to `repeat.for`
 - **Bindings not working?** → Check for typos in property names and binding commands
 

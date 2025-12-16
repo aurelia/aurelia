@@ -30,7 +30,7 @@ If you worked with Aurelia 1, you might know these by their previous name: route
 
 ## Types of Router Hooks
 
-Aurelia 2 provides four types of router hooks (similar to router guards in other frameworks) that correspond to different stages of the navigation lifecycle:
+Aurelia 2 provides five router hooks (similar to router guards in other frameworks) that correspond to different stages of the navigation lifecycle:
 
 ### canLoad
 **Purpose:** Controls whether a component can be loaded (activated) for a route.
@@ -49,6 +49,15 @@ Aurelia 2 provides four types of router hooks (similar to router guards in other
 - Setting up application state
 - Showing loading indicators
 - Preparing resources
+
+**Returns:** `void` or `Promise<void>`
+
+### loaded
+**Purpose:** Runs after the component is activated and swapped into the viewport.
+**Use Cases:**
+- Post-render work (focus management, scroll restoration)
+- Analytics / telemetry
+- Kicking off UI effects that should happen after content is visible
 
 **Returns:** `void` or `Promise<void>`
 
@@ -102,6 +111,13 @@ class MySharedHooks {
     | NavigationInstruction[]
     | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   loading?(
+    viewModel: IRouteViewModel,
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null,
+    options: INavigationOptions
+  ): void | Promise<void>;
+  loaded?(
     viewModel: IRouteViewModel,
     params: Params,
     next: RouteNode,

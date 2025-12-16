@@ -14,17 +14,24 @@ interface INavigationModel {
   /**
    * Collection of routes.
    */
-  readonly routes: readonly {
-    readonly id: string;
-    readonly path: string[];
-    readonly redirectTo: string | null;
-    readonly title: string | ((node: RouteNode) => string | null) | null;
-    readonly data: Record<string, unknown>;
-    readonly isActive: boolean;
-  }[];
+  readonly routes: readonly INavigationRoute[];
+
+  /**
+   * Wait for async route configurations.
+   */
+  resolve(): Promise<void> | void;
+}
+
+interface INavigationRoute {
+  readonly id: string | null;
+  readonly path: string[];
+  readonly title: string | ((node: RouteNode) => string | null) | null;
+  readonly data: Record<string, unknown>;
+  readonly isActive: boolean;
 }
 ```
-Note that apart from [`isActive`](#using-the-isactive-property), all other properties of the route object are same as the corresponding configured route.
+
+The navigation model contains a view-friendly subset of each route's configuration (`id`, `path`, `title`, and `data`) plus an `isActive` flag. Redirect-only routes are excluded.
 
 This section provides example of how to use navigation model while discussing different aspects of it.
 

@@ -34,7 +34,7 @@ _END_CONST_ENUM();
 const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
-  [ErrorNames.dialog_not_all_dialogs_closed]: `Failured to close all dialogs when deactivating the application, There are still {{0}} open dialog(s).`,
+  [ErrorNames.dialog_not_all_dialogs_closed]: `Failed to close all dialogs when deactivating the application, There are still {{0}} open dialog(s).`,
   [ErrorNames.dialog_settings_invalid]: `Invalid Dialog Settings. You must provide either "component" or "template" or both.`,
   [ErrorNames.dialog_no_empty_default_configuration]: `Invalid dialog configuration. ` +
     'Specify default renderer or use the DialogConfigurationStandard/DialogConfigurationClassic export.',

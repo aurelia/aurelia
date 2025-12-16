@@ -53,9 +53,7 @@ Below are illustrative examples showing how to use these built-in globals in Aur
 Serialize an object for debugging or quick display:
 
 ```html
-<template>
-  <pre>${JSON.stringify(user, null, 2)}</pre>
-</template>
+<pre>${JSON.stringify(user, null, 2)}</pre>
 ```
 
 ### 2. Mathematical Operations with Math
@@ -63,9 +61,7 @@ Serialize an object for debugging or quick display:
 Perform simple or complex calculations:
 
 ```html
-<template>
-  <p>The square root of 16 is: ${Math.sqrt(16)}</p>
-</template>
+<p>The square root of 16 is: ${Math.sqrt(16)}</p>
 ```
 
 ### 3. Conditional Rendering with isNaN
@@ -73,10 +69,8 @@ Perform simple or complex calculations:
 Use global numeric checks to conditionally display elements:
 
 ```html
-<template>
-  <input type="text" value.bind="value" />
-  <p if.bind="isNaN(value)">This is not a valid number!</p>
-</template>
+<input type="text" value.bind="value" />
+<p if.bind="isNaN(value)">This is not a valid number!</p>
 ```
 
 ### 4. Regular Expressions with RegExp
@@ -84,12 +78,10 @@ Use global numeric checks to conditionally display elements:
 Construct inline regular expressions for quick validation:
 
 ```html
-<template>
-  <input value.bind="email" placeholder="Enter email" />
-  <p if.bind="new RegExp('^\\S+@\\S+\\.\\S+$').test(email)">
-    Valid Email Address
-  </p>
-</template>
+<input value.bind="email" placeholder="Enter email" />
+<p if.bind="new RegExp('^\\S+@\\S+\\.\\S+$').test(email)">
+  Valid Email Address
+</p>
 ```
 
 ### 5. Dynamic Property Access with Object
@@ -97,9 +89,7 @@ Construct inline regular expressions for quick validation:
 Use Object methods for reflection or retrieval:
 
 ```html
-<template>
-  <p>Property Value: ${Object.getOwnPropertyDescriptor(user, selectedProp)?.value}</p>
-</template>
+<p>Property Value: ${Object.getOwnPropertyDescriptor(user, selectedProp)?.value}</p>
 ```
 
 ### 6. Set Operations with Set
@@ -107,9 +97,7 @@ Use Object methods for reflection or retrieval:
 De-duplicate arrays or combine sets inline:
 
 ```html
-<template>
-  <p>Unique Values: ${[...new Set(numbersArray)]}</p>
-</template>
+<p>Unique Values: ${[...new Set(numbersArray)]}</p>
 ```
 
 ### 7. Encoding & Decoding URLs
@@ -117,10 +105,8 @@ De-duplicate arrays or combine sets inline:
 Leverage encodeURI / decodeURI for safe link construction:
 
 ```html
-<template>
-  <a href.bind="encodeURI(externalLink)">Visit External Site</a>
-  <p>Original URL: ${decodeURI(externalLink)}</p>
-</template>
+<a href.bind="encodeURI(externalLink)">Visit External Site</a>
+<p>Original URL: ${decodeURI(externalLink)}</p>
 ```
 
 ### 8. Number Formatting with Intl.NumberFormat
@@ -128,9 +114,7 @@ Leverage encodeURI / decodeURI for safe link construction:
 Localize numbers, currency, or dates easily:
 
 ```html
-<template>
-  <p>Price: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)}</p>
-</template>
+<p>Price: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)}</p>
 ```
 
 ### 9. Complex Array Manipulations
@@ -138,9 +122,7 @@ Localize numbers, currency, or dates easily:
 Filter, map, and transform arrays:
 
 ```html
-<template>
-  <p>Active Items: ${Array.from(dataSet).filter(i => i.active).map(i => i.name).join(', ')}</p>
-</template>
+<p>Active Items: ${Array.from(dataSet).filter(i => i.active).map(i => i.name).join(', ')}</p>
 ```
 
 ---

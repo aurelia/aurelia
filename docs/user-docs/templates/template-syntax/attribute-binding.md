@@ -12,7 +12,7 @@ The fundamental syntax for binding to attributes in Aurelia is simple and intuit
 
 - `attribute-name.bind="value"`: The binding declaration.
   - `attribute-name`: The target HTML attribute you want to bind to.
-  - `.bind`: The binding command indicating a two-way binding by default.
+  - `.bind`: The default binding command (uses Aurelia's default binding mode for that target).
   - `value`: The expression or property from the view model to bind.
 
 You can bind to virtually any attribute listed in the [HTML Attributes Reference](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes).
@@ -73,7 +73,7 @@ export class MyApp {
 Aurelia supports several binding keywords that define the direction and frequency of data flow between the view model and the view:
 
 - **`.one-time`**: Updates the view from the view model only once. Subsequent changes in the view model do not affect the view.
-- **`.to-view` / `.one-way`**: Continuously updates the view from the view model.
+- **`.to-view`**: Continuously updates the view from the view model.
 - **`.from-view`**: Updates the view model based on changes in the view.
 - **`.two-way`**: Establishes a two-way data flow, keeping both the view and view model in sync.
 - **`.bind`**: Automatically determines the appropriate binding mode. Defaults to `.two-way` for form elements (e.g., `input`, `textarea`) and `.to-view` for most other elements.
@@ -85,8 +85,8 @@ Aurelia supports several binding keywords that define the direction and frequenc
 <!-- Two-way binding: changes in input update 'firstName' and vice versa -->
 <input type="text" value.two-way="firstName" placeholder="First Name">
 
-<!-- One-way binding: changes in 'lastName' update the input, but not vice versa -->
-<input type="text" value.one-way="lastName" placeholder="Last Name">
+<!-- To-view binding: changes in 'lastName' update the input, but not vice versa -->
+<input type="text" value.to-view="lastName" placeholder="Last Name">
 
 <!-- One-time binding: input value is set once from 'middleName' -->
 <input type="text" value.one-time="middleName" placeholder="Middle Name">
@@ -658,10 +658,19 @@ import { computed } from '@aurelia/runtime';
 export class MyApp {
   items = [];
 
-  @computed({ dependencies: ['items.length'] })
+  @computed({ deps: ['items'] })
   get itemCount() {
     return this.items.length;
   }
+}
+```
+
+You can also use the shorthand syntax for simple dependencies:
+
+```typescript
+@computed('items')
+get itemCount() {
+  return this.items.length;
 }
 ```
 

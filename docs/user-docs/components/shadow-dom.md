@@ -169,9 +169,147 @@ Aurelia
 
 Global styles are applied first, followed by component-local styles.
 
+### Shadow DOM CSS Selectors
+
+Shadow DOM provides special CSS selectors for enhanced styling control:
+
+#### The `:host` Selector
+
+Style the component's host element from within the shadow root:
+
+```css
+/* Inside your component's shadow DOM styles */
+:host {
+  display: block;
+  border: 1px solid #e1e1e1;
+  padding: 16px;
+}
+
+/* Style the host when it has a specific class */
+:host(.highlighted) {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+}
+
+/* Style the host when it has a specific attribute */
+:host([disabled]) {
+  opacity: 0.5;
+  pointer-events: none;
+}
+```
+
+#### The `:host-context()` Selector
+
+Style the host based on an ancestor's context:
+
+```css
+/* When the component is inside a dark theme container */
+:host-context(.dark-theme) {
+  background-color: #2d3748;
+  color: #ffffff;
+}
+
+/* When the component is inside a specific page */
+:host-context(.admin-page) {
+  border-left: 4px solid #dc3545;
+}
+```
+
+#### The `::slotted()` Selector
+
+Style content that has been projected into a slot:
+
+```css
+/* Style all slotted elements */
+::slotted(*) {
+  margin: 8px 0;
+}
+
+/* Style specific slotted elements */
+::slotted(p) {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Style slotted elements with a specific class */
+::slotted(.highlight) {
+  background-color: yellow;
+}
+```
+
+{% hint style="warning" %}
+**Important**: The `::slotted()` selector only works on direct children of the slot. It cannot select nested descendants within slotted content.
+{% endhint %}
+
+#### The `::part()` Selector
+
+Expose specific elements for external styling using `part` attributes:
+
+{% tabs %}
+{% tab title="my-card.ts" %}
+```typescript
+import { customElement, useShadowDOM, shadowCSS } from 'aurelia';
+
+@customElement({
+  name: 'my-card',
+  template: `
+    <div part="container" class="card">
+      <header part="header" class="card-header">
+        <slot name="header"></slot>
+      </header>
+      <div part="body" class="card-body">
+        <slot></slot>
+      </div>
+      <footer part="footer" class="card-footer">
+        <slot name="footer"></slot>
+      </footer>
+    </div>
+  `,
+  dependencies: [
+    shadowCSS(`
+      .card { border: 1px solid #ddd; border-radius: 8px; }
+      .card-header { padding: 16px; background: #f8f9fa; }
+      .card-body { padding: 16px; }
+      .card-footer { padding: 12px 16px; background: #f8f9fa; }
+    `)
+  ]
+})
+@useShadowDOM()
+export class MyCard {}
+```
+{% endtab %}
+
+{% tab title="app.css" %}
+```css
+/* Style the exposed parts from outside the component */
+my-card::part(header) {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+my-card::part(body) {
+  min-height: 100px;
+}
+
+my-card::part(footer) {
+  border-top: 1px solid #ddd;
+}
+
+/* Combine with pseudo-classes */
+my-card::part(header):hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+}
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="info" %}
+The `::part()` selector is the recommended way to create styling hooks for consumers of your components. It provides explicit control over which internal elements can be styled externally.
+{% endhint %}
+
 ### Styling from Outside: CSS Custom Properties
 
-The only way to style Shadow DOM components from outside is using CSS custom properties (CSS variables):
+The most flexible way to style Shadow DOM components from outside is using CSS custom properties (CSS variables):
 
 {% tabs %}
 {% tab title="my-button.ts" %}
@@ -218,6 +356,49 @@ export class MyButton {}
 ```
 {% endtab %}
 {% endtabs %}
+
+### Using CSS Modules with Shadow DOM
+
+CSS Modules provide class name transformation for avoiding naming conflicts. You can combine `cssModules()` with Shadow DOM for both style encapsulation and class name scoping:
+
+```typescript
+import { customElement, useShadowDOM, shadowCSS, cssModules } from 'aurelia';
+
+// CSS Module mapping (typically imported from a .module.css file via your bundler)
+const styles = {
+  card: 'card_abc123',
+  header: 'header_def456',
+  body: 'body_ghi789'
+};
+
+@customElement({
+  name: 'module-card',
+  template: `
+    <div class="card">
+      <header class="header"><slot name="header"></slot></header>
+      <div class="body"><slot></slot></div>
+    </div>
+  `,
+  dependencies: [
+    cssModules(styles),
+    shadowCSS(`
+      .card_abc123 { border: 1px solid #ddd; }
+      .header_def456 { background: #f5f5f5; padding: 12px; }
+      .body_ghi789 { padding: 16px; }
+    `)
+  ]
+})
+@useShadowDOM()
+export class ModuleCard {}
+```
+
+{% hint style="info" %}
+**How it works**: `cssModules()` transforms class names in your template at compile time, while `shadowCSS()` injects the actual CSS into the shadow root. When using CSS Modules with Shadow DOM, ensure your CSS rules use the transformed class names.
+{% endhint %}
+
+{% hint style="warning" %}
+**Note**: CSS Modules mappings do not inherit to child components. Each component must register its own `cssModules()` dependency.
+{% endhint %}
 
 ## Shadow DOM and Slots
 
@@ -685,15 +866,32 @@ shadowCSS(`
 
 ### 4. Consider Performance with Constructable Stylesheets
 
-For components that may be instantiated many times, use `CSSStyleSheet` objects instead of strings:
+For optimal performance, Aurelia uses [Constructable Stylesheets](https://developers.google.com/web/updates/2019/02/constructable-stylesheets) when supported by the browser, falling back to `<style>` elements otherwise.
+
+**Automatic caching**: When you pass CSS strings to `shadowCSS()`, Aurelia automatically caches the compiled `CSSStyleSheet` instances. This means multiple instances of the same component share the same stylesheet object in memory.
+
+For maximum control, you can create `CSSStyleSheet` objects directly:
 
 ```typescript
-// Create once, reuse many times
-const sharedStyles = new CSSStyleSheet();
-sharedStyles.replaceSync(`/* styles */`);
+// Create once at module level, reuse across all component instances
+const cardStyles = new CSSStyleSheet();
+cardStyles.replaceSync(`
+  .card { border: 1px solid #ddd; padding: 16px; }
+  .card-header { font-weight: bold; }
+`);
 
-dependencies: [shadowCSS(sharedStyles)]
+@customElement({
+  name: 'my-card',
+  template: '<div class="card"><slot></slot></div>',
+  dependencies: [shadowCSS(cardStyles)] // Same CSSStyleSheet instance is reused
+})
+@useShadowDOM()
+export class MyCard {}
 ```
+
+{% hint style="info" %}
+Using pre-created `CSSStyleSheet` objects is slightly more efficient than CSS strings because it skips the string-to-stylesheet conversion step, though Aurelia's caching makes this difference minimal for most applications.
+{% endhint %}
 
 ### 5. Use Open Mode Unless You Have a Reason Not To
 
@@ -718,6 +916,28 @@ If your component supports theming, document the available CSS variables:
 @useShadowDOM()
 export class ThemableCard {}
 ```
+
+### 7. Convention-Based CSS Does Not Auto-Inject into Shadow DOM
+
+Aurelia's convention-based CSS loading (where `my-component.css` is auto-imported alongside `my-component.ts`) does **not** automatically inject styles into Shadow DOM. For Shadow DOM components, you must explicitly use `shadowCSS()`:
+
+```typescript
+// my-card.ts
+import { customElement, useShadowDOM, shadowCSS } from 'aurelia';
+import styles from './my-card.css?inline'; // Import CSS as string (bundler-specific)
+
+@customElement({
+  name: 'my-card',
+  template: '<div class="card"><slot></slot></div>',
+  dependencies: [shadowCSS(styles)] // Explicitly inject into shadow root
+})
+@useShadowDOM()
+export class MyCard {}
+```
+
+{% hint style="info" %}
+Convention-based CSS loading works well for Light DOM components where styles are added to the document. For Shadow DOM components, always use `shadowCSS()` to ensure styles are properly scoped within the shadow root.
+{% endhint %}
 
 ## Additional Resources
 

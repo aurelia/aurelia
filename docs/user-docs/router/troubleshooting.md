@@ -244,7 +244,7 @@ export class ProductComponent implements IRouteViewModel {
 
 #### 1. Setting Query Parameters
 ```typescript
-// ✅ Correct way to set query parameters
+// ✅ Recommended: let the router stringify query parameters for you
 await this.router.load('search', {
   queryParams: {
     q: 'search term',
@@ -252,8 +252,8 @@ await this.router.load('search', {
   }
 });
 
-// ❌ Don't include query params in path
-await this.router.load('search?q=term'); // Incorrect
+// ✅ Also supported: include query (and fragment) directly in the instruction string
+await this.router.load('search?q=term#results');
 ```
 
 #### 2. Reading Query Parameters
@@ -309,7 +309,7 @@ app.get('*', (req, res) => {
 <!-- ✅ Correct base tag -->
 <base href="/">
 
-<!-- ❌ Incorrect - missing trailing slash -->
+<!-- ❌ Incorrect - empty base href breaks URL resolution -->
 <base href="">
 ```
 

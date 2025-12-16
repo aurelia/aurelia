@@ -93,7 +93,7 @@ export class AboutPage implements IDisposable {
     this.subscription = events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
       // Access route information immediately from the event
       console.log('Navigating to path:', event.instructions.toPath());
-      console.log('Navigating to URL:', event.instructions.toUrl(false, router.options._urlParser));
+      console.log('Navigating to URL:', event.instructions.toUrl(false, router.options._urlParser, true));
       console.log('Navigation ID:', event.id);
       console.log('Trigger:', event.trigger);
     });

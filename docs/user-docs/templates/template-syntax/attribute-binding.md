@@ -658,10 +658,19 @@ import { computed } from '@aurelia/runtime';
 export class MyApp {
   items = [];
 
-  @computed({ dependencies: ['items.length'] })
+  @computed({ deps: ['items'] })
   get itemCount() {
     return this.items.length;
   }
+}
+```
+
+You can also use the shorthand syntax for simple dependencies:
+
+```typescript
+@computed('items')
+get itemCount() {
+  return this.items.length;
 }
 ```
 

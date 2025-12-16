@@ -100,6 +100,20 @@ Quick reference guide for Aurelia 2 templating syntax and common patterns.
 <div click.trigger="handleSelfClick() & self">Only Direct Clicks</div>
 ```
 
+### Available Key Modifiers
+
+| Category | Modifiers |
+|----------|-----------|
+| Meta keys | `ctrl`, `alt`, `shift`, `meta` |
+| Special keys | `enter`, `escape`, `space`, `tab` |
+| Arrow keys | `arrowup`, `arrowdown`, `arrowleft`, `arrowright` |
+| Letters | `a`-`z` (case-insensitive) |
+| Numbers | `0`-`9` |
+| Event control | `prevent`, `stop` |
+| Mouse buttons | `left`, `middle`, `right` |
+
+Combine with `+`: `keydown.trigger:ctrl+shift+enter="handler()"`
+
 ### Binding Behaviors
 
 ```html
@@ -108,14 +122,27 @@ Quick reference guide for Aurelia 2 templating syntax and common patterns.
 
 <!-- Debounce (wait until user stops) -->
 <input input.trigger="search($event.target.value) & debounce:500">
+
+<!-- Update trigger - control when binding updates -->
+<input value.bind="name & updateTrigger:'blur'">
+<input value.bind="name & updateTrigger:'blur':'paste'">
+
+<!-- Signal - manual update triggering -->
+<span>${expensiveComputation | format & signal:'refresh'}</span>
+<!-- Then in code: signaler.dispatchSignal('refresh') -->
+
+<!-- Self - only handle events from the element itself -->
+<div click.trigger="onClick() & self">
+  <button>Click me</button> <!-- Won't trigger onClick -->
+</div>
 ```
 
 ## Conditional Rendering
 
-### if.bind vs show.bind
+### if.bind vs show.bind vs hide.bind
 
-| Feature | `if.bind` | `show.bind` |
-|---------|-----------|-------------|
+| Feature | `if.bind` | `show.bind` / `hide.bind` |
+|---------|-----------|---------------------------|
 | DOM Manipulation | Adds/removes from DOM | Shows/hides (display: none) |
 | Performance | Better for infrequent changes | Better for frequent toggles |
 | Resources | Cleans up events/bindings | Keeps everything in memory |
@@ -129,9 +156,16 @@ Quick reference guide for Aurelia 2 templating syntax and common patterns.
 <!-- show.bind - CSS display control -->
 <div show.bind="isVisible">Toggled content</div>
 
+<!-- hide.bind - Inverse of show.bind -->
+<div hide.bind="isHidden">Hidden when true</div>
+
 <!-- if with caching control -->
 <expensive-component if="value.bind: showComponent; cache: false"></expensive-component>
 ```
+
+{% hint style="info" %}
+`hide.bind` is an alias for `show.bind` with inverted logic. `hide.bind="true"` is equivalent to `show.bind="false"`.
+{% endhint %}
 
 ### switch.bind
 
@@ -282,16 +316,30 @@ export class CurrencyValueConverter {
 <my-component component.ref="myComponent"></my-component>
 <button click.trigger="myComponent.refresh()">Refresh</button>
 
-<!-- Controller Reference -->
+<!-- Controller Reference (for advanced use) -->
 <my-component controller.ref="myComponentController"></my-component>
+
+<!-- Custom Attribute Reference -->
+<div my-tooltip.ref="tooltipInstance" my-tooltip="Hello"></div>
 ```
+
+| Ref Type | Returns | Use Case |
+|----------|---------|----------|
+| `ref` | HTMLElement | DOM manipulation |
+| `component.ref` | View model instance | Call component methods |
+| `controller.ref` | Controller instance | Advanced lifecycle access |
+| `my-attr.ref` | Custom attribute instance | Access attribute methods |
 
 ## Template Variables
 
 ```html
-<!-- let - Local Variables -->
+<!-- let - Local Variables (kebab-case converts to camelCase) -->
 <let full-name.bind="firstName + ' ' + lastName"></let>
 <h1>Hello, ${fullName}</h1>
+
+<!-- let with to-binding-context - Assigns to view model -->
+<let to-binding-context computed-value.bind="items.length * 2"></let>
+<!-- Now this.computedValue is available in the view model -->
 
 <!-- with - Scope Binding -->
 <div with.bind="user">
@@ -305,6 +353,10 @@ export class CurrencyValueConverter {
 <p>${greeting}, ${name}!</p>
 ```
 
+{% hint style="info" %}
+By default, `<let>` creates template-local variables. Add `to-binding-context` to assign values directly to the view model instead.
+{% endhint %}
+
 ## Class & Style Binding
 
 ```html
@@ -312,10 +364,26 @@ export class CurrencyValueConverter {
 <div class.bind="isActive ? 'active' : 'inactive'"></div>
 <div class.bind="cssClasses"></div>
 
+<!-- Single class toggle -->
+<div active.class="isActive"></div>
+
 <!-- Style Binding -->
 <div style.bind="{ color: textColor, 'font-size': fontSize + 'px' }"></div>
 <div style.background-color.bind="bgColor"></div>
 <div style.width.bind="width + 'px'"></div>
+```
+
+## Attribute Binding
+
+```html
+<!-- Force attribute (not property) binding with & attr -->
+<img src.bind="imageUrl & attr">
+
+<!-- Useful for ARIA and data attributes -->
+<button aria-label.bind="label & attr" aria-pressed.bind="isPressed & attr">
+<div data-id.bind="item.id & attr">
+
+<!-- Without & attr, bindings target DOM properties by default -->
 ```
 
 ## Promises in Templates
@@ -331,6 +399,29 @@ export class CurrencyValueConverter {
   </span>
 </div>
 ```
+
+## Spread Binding
+
+```html
+<!-- Spread all bindable properties from an object -->
+<user-card ...$bindables="user"></user-card>
+
+<!-- Equivalent explicit syntax -->
+<user-card $bindables.spread="user"></user-card>
+
+<!-- Shorthand (expression in attribute name) -->
+<user-card ...user></user-card>
+```
+
+```typescript
+// If user = { name: 'Jane', email: 'jane@example.com', avatarUrl: '...' }
+// And UserCard has @bindable name, email, avatarUrl
+// Then spread passes all matching properties automatically
+```
+
+{% hint style="info" %}
+Spread binding is always one-way (to-view). Only properties that exist in the object at evaluation time create bindings.
+{% endhint %}
 
 ## Custom Attributes
 
@@ -355,10 +446,41 @@ export class CurrencyValueConverter {
 
 <!-- Inline Component -->
 <template as-custom-element="inline-component">
+  <bindable name="title"></bindable>
   <h1>${title}</h1>
 </template>
 
 <inline-component title="Hello"></inline-component>
+```
+
+## Dynamic Composition
+
+```html
+<!-- Compose with component reference -->
+<au-compose component.bind="MyComponent"></au-compose>
+
+<!-- Compose with view model and view -->
+<au-compose view-model.bind="dynamicViewModel" view.bind="dynamicView"></au-compose>
+
+<!-- Compose with model data -->
+<au-compose component.bind="CardComponent" model.bind="{ title: 'Hello', content: cardContent }"></au-compose>
+
+<!-- Compose with string path -->
+<au-compose view-model="./components/dynamic-panel"></au-compose>
+```
+
+## Focus Management
+
+```html
+<!-- Two-way focus binding -->
+<input focus.bind="isInputFocused">
+
+<!-- Focus on condition -->
+<input focus.bind="shouldFocus">
+
+<!-- Programmatic focus via ref -->
+<input ref="nameInput">
+<button click.trigger="nameInput.focus()">Focus Input</button>
 ```
 
 ## Quick Decision Trees
@@ -446,6 +568,33 @@ Using repeat.for with dynamic list?
 </div>
 ```
 
+## Component Lifecycle (Quick Reference)
+
+| Hook | When Called | Common Use |
+|------|-------------|------------|
+| `constructor` | Instance created | Inject dependencies with `resolve()` |
+| `created` | After constructor | Access `$controller` |
+| `binding` | Before bindings evaluated | Initialize from bindables |
+| `bound` | Bindings connected | Setup dependent on bound values |
+| `attaching` | Before DOM attachment | Async setup work |
+| `attached` | In DOM | DOM manipulation, third-party libs |
+| `detaching` | Before DOM removal | Cleanup, save state |
+| `unbinding` | Bindings disconnecting | Cleanup subscriptions |
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+
+export class MyComponent {
+  // Properties injected via DI
+  private api = resolve(IApiService);
+
+  // Lifecycle methods
+  binding() { /* Called first */ }
+  attached() { /* DOM is ready */ }
+  detaching() { /* Cleanup */ }
+}
+```
+
 ## Performance Tips
 
 1. **Use appropriate binding modes**: `.to-view` for display-only data
@@ -455,6 +604,16 @@ Using repeat.for with dynamic list?
 5. **Debounce/throttle rapid events**: Prevents excessive handler calls
 6. **Keep expressions simple**: Move complex logic to view model
 7. **Use value converters**: Separate formatting from view model logic
+
+## Common Gotchas
+
+| Issue | Problem | Solution |
+|-------|---------|----------|
+| Binding not updating | Object/array mutation | Use `splice()`, reassign, or use observable |
+| Event not firing | Wrong event name | Check: `click.trigger` not `onclick.trigger` |
+| Style not applied | CSS property name | Use kebab-case: `background-color` not `backgroundColor` |
+| Async data undefined | Template renders before data | Use `promise.bind` or `if.bind="data"` |
+| `$parent` undefined | Not in a repeat | Only available inside `repeat.for` |
 
 ## Accessibility Reminders
 
@@ -480,9 +639,14 @@ Using repeat.for with dynamic list?
 ## Related Documentation
 
 - [Template Syntax Overview](template-syntax/overview.md)
+- [Attribute Binding](template-syntax/attribute-binding.md)
+- [Event Binding](template-syntax/event-binding.md)
 - [Conditional Rendering](conditional-rendering.md)
 - [List Rendering](repeats-and-list-rendering.md)
 - [Value Converters](value-converters.md)
-- [Event Binding](template-syntax/event-binding.md)
+- [Binding Behaviors](binding-behaviors.md)
 - [Form Inputs](forms/README.md)
 - [Class & Style Binding](class-and-style-bindings.md)
+- [Spread Binding](spread-binding.md)
+- [Local Templates](local-templates.md)
+- [Lambda Expressions](lambda-expressions.md)

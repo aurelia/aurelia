@@ -30,7 +30,6 @@
     "packages/addons",
     "packages/aurelia",
     "packages/__tests__",
-    "packages-tooling/http-server",
     "packages-tooling/plugin-gulp",
     "packages-tooling/plugin-conventions",
     "packages-tooling/vite-plugin",

@@ -9,8 +9,7 @@
   "version": "0.8.0",
   "scripts": {
     "watch": "webpack serve",
-    "build": "rimraf --glob dist && webpack",
-    "serve": "au-http-server au.conf.js"
+    "build": "rimraf --glob dist && webpack"
   },
   "dependencies": {
     "@aurelia/fetch-client": "dev",
@@ -23,7 +22,6 @@
     "aurelia": "dev"
   },
   "devDependencies": {
-    "@aurelia/http-server": "dev",
     "@types/node": "^20.16.10",
     "html-loader": "^1.3.2",
     "html-webpack-plugin": "^5.5.0",

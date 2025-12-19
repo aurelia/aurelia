@@ -7,9 +7,7 @@
     "start": "webpack serve",
     "build": "rimraf --glob dist && webpack --mode=production",
     "watch": "webpack serve --no-inline",
-    "serve": "au-http-server au.conf.js",
     "dev": "webpack serve",
-    "build-serve": "rimraf --glob dist && webpack --mode=production && au-http-server au.conf.js",
     "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
@@ -24,7 +22,6 @@
     "@aurelia/runtime-html": "2.0.0-beta.26"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-beta.26",
     "@aurelia/ts-jest": "2.0.0-beta.26",
     "@aurelia/webpack-loader": "2.0.0-beta.26",
     "@types/node": "^20.16.10",

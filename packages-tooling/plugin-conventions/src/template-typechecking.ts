@@ -1,15 +1,13 @@
 import { DI, isArray, Writable } from '@aurelia/kernel';
-import type {
-  AccessKeyedExpression,
-  DestructuringAssignmentExpression,
-  DestructuringAssignmentRestExpression,
-  DestructuringAssignmentSingleExpression,
-  IsAssign,
-  IsBindingBehavior,
-  IsLeftHandSide,
-  PrimitiveLiteralExpression,
-} from '@aurelia/expression-parser';
 import {
+  type AccessKeyedExpression,
+  type DestructuringAssignmentExpression,
+  type DestructuringAssignmentRestExpression,
+  type DestructuringAssignmentSingleExpression,
+  type IsAssign,
+  type IsBindingBehavior,
+  type IsLeftHandSide,
+  type PrimitiveLiteralExpression,
   type AccessMemberExpression,
   type AccessScopeExpression,
   ExpressionParser,

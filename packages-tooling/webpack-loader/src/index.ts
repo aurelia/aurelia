@@ -141,19 +141,26 @@ const getHmrCode = (className: string): string => {
           }
         });
         const h = controller.host;
-        delete controller._compiledDef;
-        controller.viewModel = controller.container.invoke(currentClassType);
-        controller.definition = newDefinition;
-        Object.assign(controller.viewModel, values);
-        controller.deactivate(controller, controller.parent ?? null, 0);
-        $$refs.clear(h);
-        if (controller._hydrateCustomElement) {
-          controller._hydrateCustomElement(hydrationInst, hydrationContext);
-        } else {
-          controller.hE(hydrationInst, hydrationContext);
-        }
-        h.parentNode.replaceChild(controller.host, h);
-        controller.activate(controller, controller.parent ?? null, 0);
+        const oldDef = delete controller._compiledDef;
+        $$onResolve(controller.deactivate(controller, controller.parent ?? null, 0), () => {
+          controller.container.deregister(oldDef.key);
+          controller.container.deregister(oldDef.Type);
+          delete controller._compiledDef;
+          $$refs.clear(h);
+          controller.viewModel = controller.container.invoke(currentClassType);
+          controller.definition = newDefinition;
+
+          console.log('transferring old component bindable props:', values);
+          Object.assign(controller.viewModel, values);
+
+          if (controller._hydrateCustomElement) {
+            controller._hydrateCustomElement(hydrationInst, hydrationContext);
+          } else {
+            controller.hE(hydrationInst, hydrationContext);
+          }
+          h.parentNode.replaceChild(controller.host, h);
+          controller.activate(controller, controller.parent ?? null, 0);
+        });
       });
     }
   }`;

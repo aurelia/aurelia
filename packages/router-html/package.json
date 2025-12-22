@@ -7,9 +7,12 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
+      "development": {
+        "require": "./dist/cjs/index.dev.cjs",
+        "import": "./dist/esm/index.dev.mjs"
+      },
       "require": "./dist/cjs/index.cjs",
-      "import": "./dist/esm/index.mjs",
-      "development": "./dist/esm/index.dev.mjs"
+      "import": "./dist/esm/index.mjs"
     },
     "./development": {
       "types": "./dist/types/index.d.ts",

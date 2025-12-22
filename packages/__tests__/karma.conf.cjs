@@ -98,8 +98,8 @@ module.exports =
     { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/**/*.js` }, // 2.3
     { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/src/**/*.ts` }, // 2.4
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
-      { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
+      { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.dev.mjs` }, // 3.1
+      { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.dev.mjs.map` }, // 3.2
       { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),
     // for i18n tests
@@ -350,10 +350,10 @@ function prepareIndexMap() {
 
   return {
     ...packageNames.reduce((map, pkg) => {
-      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
+      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.dev.mjs`;
       return map;
     }, {
-      'aurelia': `/base/packages/aurelia/dist/esm/index.mjs`,
+      'aurelia': `/base/packages/aurelia/dist/esm/index.dev.mjs`,
       'i18next': '/base/node_modules/i18next/dist/esm/i18next.js',
       'tslib': '/base/node_modules/tslib/tslib.es6.js',
     }),

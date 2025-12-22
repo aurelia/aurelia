@@ -27,10 +27,10 @@ document.write(`<script type="importmap">${JSON.stringify({
       'validation-i18n',
       'web-components',
     ].reduce((map, pkg) => {
-      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
+      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.dev.mjs`;
       return map;
     }, {
-      'aurelia': `/base/packages/aurelia/dist/esm/index.mjs`
+      'aurelia': `/base/packages/aurelia/dist/esm/index.dev.mjs`
     })),
     'i18next': '/base/node_modules/i18next/dist/esm/i18next.js',
     'tslib': '/base/node_modules/tslib/tslib.es6.js',

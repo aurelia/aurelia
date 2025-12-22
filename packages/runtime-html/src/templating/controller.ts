@@ -705,8 +705,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       this._enterActivating();
       ret.then(() => {
-        // Resolve this controller's promise so deactivation can proceed if it's waiting
-        this._resolve();
         this._leaveActivating();
       }).catch((err: Error) => {
         this._reject(err);

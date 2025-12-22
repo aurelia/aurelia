@@ -58,6 +58,11 @@ export {
   isSSRTemplateController,
   isSSRScope,
   ISSRContext,
+  // SSR view adoption helpers (for template controllers)
+  type AdoptedViewResult,
+  type AdoptedViewsResult,
+  adoptSSRView,
+  adoptSSRViews,
   // SSR definition hydration (client-side)
   type ISSRDefinition,
   type IHydratedDefinition,

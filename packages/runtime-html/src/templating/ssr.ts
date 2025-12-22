@@ -34,6 +34,10 @@ import {
   type ForOfStatement,
   type Interpolation,
 } from '@aurelia/expression-parser';
+import { FragmentNodeSequence, IRenderLocation, partitionSiblingNodes } from '../dom';
+import { IPlatform } from '../platform';
+import type { IViewFactory } from './view';
+import type { ICustomAttributeController, ISyntheticView } from './controller';
 
 /** Root SSR manifest structure. */
 export interface ISSRManifest {
@@ -84,6 +88,72 @@ export interface ISSRContext {
 
 /** DI token for SSR context. Register with `preserveMarkers: true` on server. */
 export const ISSRContext = /*@__PURE__*/createInterface<ISSRContext>('ISSRContext');
+
+export interface AdoptedViewResult {
+  view: ISyntheticView;
+  viewScope: ISSRScope;
+}
+
+export interface AdoptedViewsResult {
+  views: ISyntheticView[];
+  viewScopes: ISSRScope[];
+}
+
+/** Adopt a single view from SSR manifest. For TCs with at most one view (if, with). */
+export function adoptSSRView(
+  ssrScope: ISSRTemplateController,
+  factory: IViewFactory,
+  controller: ICustomAttributeController,
+  location: IRenderLocation,
+  platform: IPlatform,
+): AdoptedViewResult | null {
+  const viewScope = ssrScope.views[0];
+  if (viewScope == null) {
+    return null;
+  }
+
+  const nodeCount = viewScope.nodeCount ?? 1;
+  const partitions = partitionSiblingNodes(location, [nodeCount]);
+
+  if (partitions.length === 0 || partitions[0].length === 0) {
+    return null;
+  }
+
+  const adoptedNodes = FragmentNodeSequence.adoptSiblings(platform, partitions[0]);
+  const view = factory.createAdopted(controller, adoptedNodes, viewScope);
+  view.setLocation(location);
+
+  return { view, viewScope };
+}
+
+/** Adopt multiple views from SSR manifest. For TCs with multiple views (repeat). */
+export function adoptSSRViews(
+  ssrScope: ISSRTemplateController,
+  factory: IViewFactory,
+  controller: ICustomAttributeController,
+  location: IRenderLocation,
+  platform: IPlatform,
+): AdoptedViewsResult {
+  const viewScopes = ssrScope.views;
+  const viewCount = viewScopes.length;
+  const nodeCounts: number[] = Array(viewCount);
+  for (let i = 0; i < viewCount; ++i) {
+    nodeCounts[i] = viewScopes[i]?.nodeCount ?? 1;
+  }
+
+  const partitions = partitionSiblingNodes(location, nodeCounts);
+  const views: ISyntheticView[] = Array(viewCount);
+
+  for (let i = 0; i < viewCount; ++i) {
+    const nodes = partitions[i] ?? [];
+    const adoptedNodes = FragmentNodeSequence.adoptSiblings(platform, nodes);
+    const view = factory.createAdopted(controller, adoptedNodes, viewScopes[i]);
+    view.setLocation(location);
+    views[i] = view;
+  }
+
+  return { views, viewScopes };
+}
 
 /* =============================================================================
  * SSR Definition Hydration

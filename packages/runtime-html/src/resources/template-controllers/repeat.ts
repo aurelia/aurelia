@@ -32,10 +32,10 @@ import {
   type IOverrideContext,
 } from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { IRenderLocation, FragmentNodeSequence, partitionSiblingNodes } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
-import { type ISSRTemplateController, type ISSRScope, isSSRTemplateController } from '../../templating/ssr';
+import { isSSRTemplateController, adoptSSRViews, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
@@ -489,38 +489,28 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     $items: unknown[],
     ssrScope: ISSRTemplateController,
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-    let scope: Scope;
-
     const { $controller, _factory, _location, _scopes, _platform } = this;
     const newLen = $items.length;
-    const views = this.views = Array(newLen);
-    const viewScopes = ssrScope.views;
+    const { views: adoptedViews } = adoptSSRViews(ssrScope, _factory, $controller, _location, _platform);
+
+    if (adoptedViews.length === 0) {
+      $controller.ssrScope = undefined;
+      return this._activateAllViewsFresh(initiator, $items);
+    }
 
     this._hasAdoptedViews = true;
+    this.views = adoptedViews;
 
-    const nodeCounts = Array(newLen);
+    let promises: Promise<void>[] | undefined = void 0;
     for (let i = 0; i < newLen; ++i) {
-      nodeCounts[i] = viewScopes[i]?.nodeCount ?? 1;
-    }
-    const nodePartitions = partitionSiblingNodes(_location, nodeCounts);
+      const view = adoptedViews[i];
+      const scope = _scopes[i];
 
-    if (nodePartitions.length === 0) {
-      return this._activateAllViewsNormal(initiator, $items);
-    }
-
-    for (let i = 0; i < newLen; ++i) {
-      const viewScope = viewScopes[i];
-      const adoptedNodes = FragmentNodeSequence.adoptSiblings(_platform, nodePartitions[i]);
-      const view = views[i] = _factory.createAdopted($controller, adoptedNodes, viewScope).setLocation(_location);
-
-      scope = _scopes[i];
       if (this.contextual) {
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
       }
 
-      ret = view.activate(initiator ?? view, $controller, scope);
+      const ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);
       }
@@ -536,29 +526,25 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   /** @internal */
-  private _activateAllViewsNormal(
+  private _activateAllViewsFresh(
     initiator: IHydratedController | null,
     $items: unknown[],
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-    let view: ISyntheticView;
-    let scope: Scope;
-
     const { $controller, _factory, _location, _scopes } = this;
     const newLen = $items.length;
     const views = this.views = Array(newLen);
 
+    let promises: Promise<void>[] | undefined = void 0;
     for (let i = 0; i < newLen; ++i) {
-      view = views[i] = _factory.create($controller).setLocation(_location);
+      const view = views[i] = _factory.create($controller).setLocation(_location);
       view.nodes.unlink();
-      scope = _scopes[i];
+      const scope = _scopes[i];
 
       if (this.contextual) {
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
       }
 
-      ret = view.activate(initiator ?? view, $controller, scope);
+      const ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);
       }

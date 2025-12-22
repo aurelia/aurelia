@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { onResolve, resolve } from '@aurelia/kernel';
-import { FragmentNodeSequence, IRenderLocation, partitionSiblingNodes } from '../../dom';
+import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
 
@@ -9,7 +9,7 @@ import type { IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { isSSRTemplateController, type ISSRTemplateController } from '../../templating/ssr';
+import { isSSRTemplateController, adoptSSRView, type ISSRTemplateController } from '../../templating/ssr';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -128,42 +128,28 @@ export class If implements ICustomAttributeViewModel {
   /** @internal SSR hydration: adopt existing DOM instead of creating new views. */
   private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
     const ctrl = this.$controller;
-
-    if (ssrScope.views.length === 0) {
-      ctrl.ssrScope = void 0;
-      return;
-    }
-
-    const viewScope = ssrScope.views[0];
-    const nodeCount = viewScope?.nodeCount ?? 1;
     const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;
     const factory = wasIfBranch ? this._ifFactory : this.elseFactory;
 
-    if (factory == null) {
+    if (factory == null || ssrScope.views.length === 0) {
       ctrl.ssrScope = void 0;
       return;
     }
 
-    const location = this._location;
-    const nodePartitions = partitionSiblingNodes(location, [nodeCount]);
-
-    if (nodePartitions.length === 0 || nodePartitions[0].length === 0) {
+    const result = adoptSSRView(ssrScope, factory, ctrl, this._location, this._platform);
+    if (result == null) {
       ctrl.ssrScope = void 0;
       return;
     }
 
-    const adoptedNodes = FragmentNodeSequence.adoptSiblings(this._platform, nodePartitions[0]);
-    const view = factory.createAdopted(ctrl, adoptedNodes, viewScope);
-
+    const { view } = result;
     if (wasIfBranch) {
       this.view = this.ifView = view;
     } else {
       this.view = this.elseView = view;
     }
 
-    view.setLocation(location);
     ctrl.ssrScope = void 0;
-
     return view.activate(view, ctrl, ctrl.scope);
   }
 

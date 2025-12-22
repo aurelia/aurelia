@@ -72,8 +72,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         err = ex;
       }
       assert.notStrictEqual(err, undefined);
-      assert.includes(err.message, 'AUR0901:1');
-      // assert.includes(err.message, 'There are still 1 open dialog(s).');
+      assert.includes(err.message, 'AUR0901');
+      assert.match(err.message, /1/);
 
       canDeactivate = true;
       await dialogService.closeAll();

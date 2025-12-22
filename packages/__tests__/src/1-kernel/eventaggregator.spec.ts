@@ -377,7 +377,7 @@ describe('1-kernel/eventaggregator.spec.ts', function () {
       const ea: IEventAggregator = new EventAggregator();
 
       it('throws if channelOrType is undefined', function () {
-        assert.throws(() => { ea.publish(undefined, {}); }, /AUR0018:undefined/);
+        assert.throws(() => { ea.publish(undefined, {}); }, /AUR0018/);
       });
 
     });

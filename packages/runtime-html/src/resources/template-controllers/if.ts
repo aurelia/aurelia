@@ -85,7 +85,7 @@ export class If implements ICustomAttributeViewModel {
 
     return onResolve(this.pending,
       () => this.pending = onResolve(
-        currView?.deactivate(currView, ctrl),
+        currView?.isActive ? currView.deactivate(currView, ctrl) : void 0,
         () => {
           if (!isCurrent()) {
             return;

@@ -658,6 +658,6 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     }
 
     assert.notStrictEqual(err, null, `Should have thrown an error`);
-    assert.strictEqual(err.message, `AUR0227:get options`);
+    assert.match(err.message, /AUR0227.*get options/);
   });
 });

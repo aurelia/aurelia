@@ -705,6 +705,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._ensurePromise();
       this._enterActivating();
       ret.then(() => {
+        // Resolve this controller's promise so deactivation can proceed if it's waiting
+        this._resolve();
         this._leaveActivating();
       }).catch((err: Error) => {
         this._reject(err);
@@ -766,6 +768,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // This mirrors the pattern used for async detaching hooks (see below).
     const asyncPrevActivation = isPromise(prevActivation) && initiator !== this;
     if (asyncPrevActivation) {
+      (initiator as Controller)._ensurePromise();
       (initiator as Controller)._enterDetaching();
     }
 

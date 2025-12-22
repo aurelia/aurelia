@@ -8,16 +8,21 @@ import {
 } from '@aurelia/testing';
 
 describe('3-runtime-html/controller.async-activation.spec.ts', function () {
-  // These tests demonstrate a controller lifecycle coordination bug that surfaces
-  // when deactivating a component while its async activation is still in progress.
+  // These tests verify that lifecycle hooks are properly called when deactivating
+  // a component while its async activation is still in progress.
   //
   // Real-world scenario: User navigates to a page, a component starts loading data
   // in its `attaching` hook, then the user quickly navigates away before the data
   // loads. The `unbinding` hook should still be called to clean up resources.
-  //
-  // The bug: When deactivating during async activation, the initiator's _detachingStack
-  // can reach 0 before async children complete their deactivation callbacks, causing
-  // the unbinding phase to run prematurely and skip those children.
+
+  // Helper to flush microtasks from If template controller's swap promise chain.
+  // The If._swap method creates promises that aren't tracked by the task queue,
+  // so tasksSettled() returns before the lifecycle hooks complete.
+  const flushMicrotasks = async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  };
 
   it('calls unbinding on child component when deactivating during async attaching', async function () {
     let resolveChildAttaching: () => void;
@@ -46,11 +51,9 @@ describe('3-runtime-html/controller.async-activation.spec.ts', function () {
 
     // Start showing - child begins async attaching but won't complete until we resolve
     rootVm.show = true;
-
-    // Give the activation a chance to start (but it's blocked on our promise)
     await Promise.resolve();
 
-    // Now hide while attaching is still in progress - simulates user navigating away
+    // Hide while attaching is still in progress - simulates user navigating away
     rootVm.show = false;
 
     // Resolve the attaching promise to let the deactivation proceed
@@ -58,6 +61,7 @@ describe('3-runtime-html/controller.async-activation.spec.ts', function () {
 
     // Wait for all lifecycle operations to complete
     await tasksSettled();
+    await flushMicrotasks();
 
     // unbinding should be called to allow cleanup of subscriptions, event listeners, etc.
     assert.strictEqual(childUnbindingCalled, true, 'unbinding should be called even when deactivating during async activation');
@@ -104,6 +108,7 @@ describe('3-runtime-html/controller.async-activation.spec.ts', function () {
 
     resolveGrandchildAttaching!();
     await tasksSettled();
+    await flushMicrotasks();
 
     // Deeper nesting makes the timing issue more likely in real apps
     assert.strictEqual(grandchildUnbindingCalled, true, 'nested child unbinding should be called');

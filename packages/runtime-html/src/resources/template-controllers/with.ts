@@ -1,7 +1,9 @@
 import { resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
+import { adoptSSRView, isSSRTemplateController, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, ISyntheticView } from '../../templating/controller';
 
@@ -19,6 +21,7 @@ export class With implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
   public view!: ISyntheticView;
 
   public valueChanged(
@@ -42,9 +45,32 @@ export class With implements ICustomAttributeViewModel {
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     const { $controller, value } = this;
+    const ssrScope = $controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'with') {
+      return this._hydrateView(ssrScope);
+    }
+
     const view = this.view = this._factory.create($controller).setLocation(this._location);
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
     return view.activate(view, $controller, scope);
+  }
+
+  /** @internal */
+  private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
+    const { $controller, value, _factory, _location, _platform } = this;
+
+    const result = adoptSSRView(ssrScope, _factory, $controller, _location, _platform);
+    if (result == null) {
+      $controller.ssrScope = undefined;
+      const view = this.view = _factory.create($controller).setLocation(_location);
+      const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
+      return view.activate(view, $controller, scope);
+    }
+
+    this.view = result.view;
+    $controller.ssrScope = undefined;
+    const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
+    return result.view.activate(result.view, $controller, scope);
   }
 
   public detaching(

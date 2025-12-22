@@ -857,6 +857,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._enterDetaching();
     }
 
+    // If deactivating during activation, increment initiator's detaching counter
+    // so the initiator waits for this controller's deactivation callback to complete.
+    // This mirrors the pattern used for async detaching hooks (see below).
+    const asyncPrevActivation = isPromise(prevActivation) && initiator !== this;
+    if (asyncPrevActivation) {
+      (initiator as Controller)._enterDetaching();
+    }
+
     let i = 0;
     let ret: void | Promise<void>;
 
@@ -910,6 +918,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // The rest is handled by the initiator.
         // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
         // controller api calls, or race conditions might occur.
+        if (asyncPrevActivation) {
+          (initiator as Controller)._leaveDetaching();
+        }
         return;
       }
 

@@ -29,11 +29,11 @@ jobs:
   bench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cache node modules
         id: cache_npm
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: node_modules
@@ -45,7 +45,7 @@ jobs:
 
       - name: Cache build output
         id: cache_build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: ${{ runner.os }}-build-dist-${{ github.sha }}
           restore-keys: |
@@ -90,10 +90,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
 
       # - name: Restore cached node modules
       #   id: restore-cache-npm
@@ -133,10 +133,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
 
       # - name: Restore cached node modules
       #   id: restore-cache-npm
@@ -176,10 +176,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
       - run: npm ci
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name
@@ -200,10 +200,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
       - run: npm ci
       - run: npm run build:release
       # Run benchmarks. Ensure each job's results file has a unique name

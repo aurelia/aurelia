@@ -295,7 +295,9 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public isMatch(value: unknown): boolean {
-    this._logger.debug('isMatch()');
+    if (__DEV__) {
+      this._logger.debug('isMatch()');
+    }
     const $value = this.value;
     if (isArray($value)) {
       if (this._observer === void 0) {

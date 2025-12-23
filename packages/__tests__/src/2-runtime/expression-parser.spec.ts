@@ -102,13 +102,12 @@ function verifyResultOrError(expr: string, expected: any, expectedMsg?: string, 
     if (error == null) {
       throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${exprType} to throw "${expectedMsg}", but no error was thrown`);
     } else {
-      // In dev mode, error messages are verbose: "AUR0158: Expression error: left hand side..."
-      // In prod mode, error messages are minimal: "AUR0158:$this=a"
-      // Extract the error code and check that it matches
-      const expectedCode = expectedMsg.split(':')[0];
-      const actualCode = error.message.split(':')[0];
-      if (actualCode !== expectedCode) {
-        throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${exprType} to throw "${expectedCode}", but got "${actualCode}" instead`);
+      // Handle both prod format (AUR0167:expr) and dev format (AUR0167: Description... "expr")
+      const [expectedCode, expectedContext] = expectedMsg.split(':');
+      const hasExpectedCode = error.message.startsWith(expectedCode);
+      const hasExpectedContext = expectedContext == null || error.message.includes(expectedContext);
+      if (!hasExpectedCode || !hasExpectedContext) {
+        throw new Error(`Expected expression "${expr}" with (${name}) ExpressionType.${exprType} to throw "${expectedMsg}", but got "${error.message}" instead`);
       }
     }
   }

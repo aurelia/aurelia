@@ -6,7 +6,10 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "development": "./dist/esm/index.dev.mjs",
+      "development": {
+        "require": "./dist/cjs/index.dev.cjs",
+        "import": "./dist/esm/index.dev.mjs"
+      },
       "require": "./dist/cjs/index.cjs",
       "import": "./dist/esm/index.mjs"
     },

@@ -47,7 +47,7 @@ export class UserDetail implements IRouteViewModel {
 }
 ```
 
-For asynchronous preparation, use `loading` and throw or return `false` to fail the navigation if something looks wrong.
+For asynchronous preparation, use `loading` and throw to fail the navigation (or return `false` from `canLoad`) if something looks wrong.
 
 ## 2. Access parent and child parameters together
 
@@ -137,9 +137,37 @@ For stricter validation, pair regex-constrained paths with `canLoad` type checks
 Unit tests can render a component, navigate to a parameterized path, and assert how parameters flow through the lifecycle.
 
 ```typescript
-const fixture = await createFixture(UserDetail).startApp();
-await fixture.router.load('users/10');
-expect(fixture.root.controller.viewModel.userId).toBe('10');
+import { customElement } from '@aurelia/runtime-html';
+import { createFixture, assert } from '@aurelia/testing';
+import { RouterConfiguration, IRouter, IRouteViewModel, Params, route } from '@aurelia/router';
+
+@customElement({ name: 'user-detail', template: 'User ${userId}' })
+class UserDetail implements IRouteViewModel {
+  userId = '';
+
+  canLoad(params: Params) {
+    this.userId = params.id ?? '';
+    return true;
+  }
+}
+
+@route({
+  routes: [{ path: 'users/:id', component: UserDetail }],
+})
+class App {}
+
+const { appHost, container, startPromise, stop } = createFixture(
+  '<au-viewport></au-viewport>',
+  App,
+  [RouterConfiguration],
+);
+await startPromise;
+
+const router = container.get(IRouter);
+await router.load('users/10');
+assert.html.textContent(appHost, 'User 10');
+
+await stop(true);
 ```
 
 You can also mock `IRouteContext` or `ICurrentRoute` to simulate specific parameter sets without spinning up the full router.

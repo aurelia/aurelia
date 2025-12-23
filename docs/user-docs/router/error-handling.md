@@ -147,17 +147,21 @@ RouterConfiguration.customize({
 In strict mode, handle errors explicitly:
 
 ```typescript
-export class StrictErrorHandler {
-  private routerEvents = resolve(IRouterEvents);
+import { IRouter, IRouterEvents, NavigationErrorEvent } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
 
-  attached() {
-    this.routerEvents.subscribe('au:router:navigation-error', (event) => {
+export class StrictErrorHandler {
+  private readonly router = resolve(IRouter);
+  private readonly routerEvents = resolve(IRouterEvents);
+
+  public constructor() {
+    this.routerEvents.subscribe('au:router:navigation-error', (event: NavigationErrorEvent) => {
       // Manual error handling required
       this.handleError(event.error);
       
       // Manually restore or navigate to error page
-      this.router.load('error', {
-        state: { originalError: event.error }
+      void this.router.load('error', {
+        queryParams: { from: event.instructions.toPath() },
       });
     });
   }
@@ -216,11 +220,9 @@ export class GlobalRouterErrorHandler {
 
   private handleGenericError(event: NavigationErrorEvent) {
     // Navigate to generic error page
+    // If you need to pass error details to the error page, store them in a service/store.
     this.router.load('error', {
-      state: { 
-        error: event.error,
-        attemptedRoute: event.instructions.toPath()
-      }
+      queryParams: { from: event.instructions.toPath() },
     });
   }
 }

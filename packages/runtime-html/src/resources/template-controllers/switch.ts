@@ -354,7 +354,14 @@ export class Case implements ICustomAttributeViewModel {
       }
     }
     if (view.isActive) { return; }
-    return view.activate(initiator ?? view, this.$controller, scope);
+    const ret = view.activate(initiator ?? view, this.$controller, scope);
+    if (ret instanceof Promise) {
+      return ret.catch(() => {
+        // Activation failed. Deactivate the view to clean up its state
+        // so that subsequent case activations can work correctly.
+        return view.deactivate(view, this.$controller);
+      });
+    }
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {

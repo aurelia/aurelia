@@ -97,7 +97,7 @@ The `<bindable>` tag accepts:
 
 - `name` (required): The property name in your view model.
 - `attribute` (optional): The DOM attribute name. If unspecified, Aurelia will convert the property name to dash-case by default.
-- `mode` (optional): The binding mode (e.g., oneWay, twoWay, or fromView). Defaults to one-way.
+- `mode` (optional): The binding mode (`toView`, `fromView`, `twoWay`, `oneTime`, or `default`). Defaults to `default` (which resolves to the element/bindable default; typically `toView`).
 
 This is functionally equivalent to using the @bindable decorator in a separate .ts file.
 

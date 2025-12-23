@@ -164,7 +164,11 @@ You can also parse HTML strings and render the resulting elements:
 {% code title="my-app.ts" %}
 ```typescript
 export class MyApp {
-  content = Document.parseHTMLUnsafe('<button>Parsed Button</button>').documentElement;
+  content = (() => {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = '<button>Parsed Button</button>';
+    return tpl.content.firstElementChild as HTMLElement;
+  })();
 }
 ```
 {% endcode %}
@@ -176,7 +180,7 @@ export class MyApp {
 {% endcode %}
 
 {% hint style="warning" %}
-When using `Document.parseHTMLUnsafe()`, be cautious about the source of your HTML strings to avoid XSS vulnerabilities. Only use this with trusted content.
+Be cautious about the source of your HTML strings to avoid XSS vulnerabilities. Only do this with trusted content, or sanitize it first.
 {% endhint %}
 
 ### Security Considerations
@@ -245,9 +249,9 @@ export class MyApp {
 
 While template interpolation is powerful, there are a few limitations to keep in mind:
 
-1. You cannot chain expressions using `;` or `,`.
-2. You cannot use certain primitives or operators such as `Boolean`, `String`, `instanceof`, or `typeof`.
-3. The pipe character `|` is reserved for Aurelia value converters and cannot be used as a bitwise operator inside interpolation.
+1. Aurelia parses **expressions**, not statements (so things like `if`, `for`, `return`, and `function` declarations are not supported inside `${...}`).
+2. Some JavaScript tokens are repurposed: `|` is reserved for value converters and `&` is reserved for binding behaviors (so bitwise `|` / `&` are not available).
+3. The comma operator (`,`) is not supported.
 
 {% hint style="info" %}
 For complex transformations or formatting, consider using Aurelia's value converters instead of cramming too much logic into an interpolation.

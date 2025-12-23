@@ -110,11 +110,12 @@ export class NameComponent {
 
     propertyChanged(key, newVal, oldVal) {
       if (key === 'firstName') {
-
+        // Handle firstName change
       } else if (key === 'lastName') {
-
+        // Handle lastName change
       }
     }
+}
 ```
 
 In the above example, even though `propertyChanged` can be used for multiple properties (like `firstName` and `lastName`), it's only called individually for each of those properties.
@@ -198,6 +199,55 @@ export class NameComponent {
 {% endtab %}
 {% endtabs %}
 
+### Change the attribute name using attribute
+
+By default, Aurelia converts camelCase property names to kebab-case attribute names (e.g., `firstName` becomes `first-name`). You can override this with the `attribute` option:
+
+```typescript
+import { bindable } from 'aurelia';
+
+export class UserCard {
+    @bindable({ attribute: 'user-id' }) id = '';
+}
+```
+
+This allows the component to be used with a custom attribute name:
+
+```html
+<user-card user-id="123"></user-card>
+```
+
+### Set a primary bindable for custom attributes
+
+When creating custom attributes, you can mark a bindable property as `primary`. The primary bindable receives the attribute value when the attribute is used without specifying a property name:
+
+```typescript
+import { bindable, customAttribute } from 'aurelia';
+
+@customAttribute('tooltip')
+export class TooltipCustomAttribute {
+    @bindable({ primary: true }) message = '';
+    @bindable position = 'top';
+}
+```
+
+This allows a simpler usage syntax:
+
+```html
+<!-- The value "Hello" goes to the primary bindable (message) -->
+<div tooltip="Hello"></div>
+
+<!-- Equivalent explicit syntax -->
+<div tooltip="message: Hello"></div>
+
+<!-- Using multiple bindables -->
+<div tooltip="message: Hello; position: bottom"></div>
+```
+
+{% hint style="info" %}
+Only one bindable property per custom attribute should have `primary: true`.
+{% endhint %}
+
 Bindable properties support many different binding modes determining the direction the data is bound in and how it is bound.
 
 ### One way binding
@@ -212,7 +262,7 @@ Bindable properties without a `mode` explicitly set will be `toView` (one-way) b
 import { bindable, BindingMode } from 'aurelia';
 
 export class Loader {
-    @bindable({ mode: BindingMode.toView })
+    @bindable({ mode: BindingMode.toView }) loading = false;
 }
 ```
 
@@ -224,7 +274,31 @@ Unlike the default, the two-way binding mode allows data to flow in both directi
 import { bindable, BindingMode } from 'aurelia';
 
 export class Loader {
-    @bindable({ mode: BindingMode.twoWay})
+    @bindable({ mode: BindingMode.twoWay }) loading = false;
+}
+```
+
+### One-time binding
+
+The one-time binding mode binds a value once and never updates it again, even if the source value changes. This is useful for static values that won't change after initial binding.
+
+```typescript
+import { bindable, BindingMode } from 'aurelia';
+
+export class Loader {
+    @bindable({ mode: BindingMode.oneTime }) config = {};
+}
+```
+
+### From-view binding
+
+The from-view binding mode allows data to flow from the view (target) to the view model (source), but not the other way. This is the opposite of `toView`.
+
+```typescript
+import { bindable, BindingMode } from 'aurelia';
+
+export class Loader {
+    @bindable({ mode: BindingMode.fromView }) userInput = '';
 }
 ```
 
@@ -655,9 +729,9 @@ The `...$bindables="..."` syntax will only connect properties that are matching 
 <name-tag $bindables.spread="customer1">
 <name-tag $bindables.spread="customer.details">
 <name-tag $bindables.spread="customer[this_that]">
-<name-tag $bindables="customer1 | mapDetails">
-<name-tag $bindables="customer.details | simplify">
-<name-tag $bindables="customer[this_that] | addDetails">
+<name-tag $bindables.spread="customer1 | mapDetails">
+<name-tag $bindables.spread="customer.details | simplify">
+<name-tag $bindables.spread="customer[this_that] | addDetails">
 ```
 
 ### Shorthand syntax

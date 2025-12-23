@@ -10,27 +10,23 @@ An instance of the validation controller can be injected using `resolve(newInsta
 
 ```typescript
 // parent-ce.ts
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationController } from '@aurelia/validation-html';
 
 @customElement({name:'parent-ce', template:`<child-ce></child-ce>`})
 export class ParentCe {
-  public constructor(
-    // new instance of validation controller; let us name it c1
-    private controller: IValidationController = resolve(newInstanceForScope(IValidationController))
-  ) { }
+  // new instance of validation controller; let us name it c1
+  private controller = resolve(newInstanceForScope(IValidationController));
 }
 
 // child-ce.ts
 import { resolve } from '@aurelia/kernel';
-import { IValidationController } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
 
-export class Parent {
-  public constructor(
-    // the c1 instance is injected here
-    private controller: IValidationController = resolve(IValidationController)
-  ) { }
+export class ChildCe {
+  // the c1 instance is injected here
+  private controller = resolve(IValidationController);
 }
 ```
 

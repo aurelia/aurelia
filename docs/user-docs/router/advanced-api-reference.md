@@ -1,638 +1,163 @@
 ---
-description: Advanced router APIs, utilities, and lesser-known features for complex routing scenarios.
+description: Low-level and advanced APIs for @aurelia/router (router-lite).
 ---
 
-# Advanced Router API Reference
+# Advanced router API reference
 
-This guide covers advanced router APIs, utilities, and lesser-known features that provide powerful capabilities for complex routing scenarios. These APIs are particularly useful for building sophisticated applications with dynamic routing requirements.
+This page documents low-level router APIs that are useful for diagnostics, dynamic link generation, and advanced integrations.
 
-## Router Advanced APIs
+## Instruction trees (`ViewportInstructionTree`)
 
-### Router State Management
+Many advanced APIs revolve around the `ViewportInstructionTree` type (often abbreviated as “VIT”). Router events expose instruction trees, and you can also create them yourself.
 
-#### `router.routeTree`
-Access the current route tree structure for advanced navigation analysis:
+### Create an instruction tree
 
-```typescript
-import { IRouter, RouteNode } from '@aurelia/router';
+```ts
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
 
-export class RouteAnalyzer {
-  private router = resolve(IRouter);
+const router = resolve(IRouter);
 
-  analyzeCurrentRoutes(): void {
-    const routeTree = this.router.routeTree;
-    
-    console.log('Root route:', routeTree.root);
-    console.log('Active routes:', this.getActiveRoutes(routeTree.root));
-    console.log('Route depth:', this.getRouteDepth(routeTree.root));
-  }
-
-  private getActiveRoutes(node: RouteNode): RouteNode[] {
-    const active = [node];
-    node.children.forEach(child => {
-      active.push(...this.getActiveRoutes(child));
-    });
-    return active;
-  }
-
-  private getRouteDepth(node: RouteNode, depth = 0): number {
-    if (node.children.length === 0) return depth;
-    return Math.max(...node.children.map(child => 
-      this.getRouteDepth(child, depth + 1)
-    ));
-  }
-}
+const instructions = router.createViewportInstructions('users');
 ```
 
-#### `router.currentTr` (Current Transition)
-Access detailed information about the current navigation transition:
+### Convert an instruction tree to a path or URL
 
-```typescript
-export class TransitionMonitor {
-  private router = resolve(IRouter);
+`ViewportInstructionTree` has two key helpers:
 
-  inspectCurrentTransition(): void {
-    const transition = this.router.currentTr;
-    
-    console.log('Transition ID:', transition.id);
-    console.log('Trigger:', transition.trigger); // 'api', 'popstate', 'hashchange'
-    console.log('Previous instructions:', transition.prevInstructions);
-    console.log('Current instructions:', transition.instructions);
-    console.log('Final instructions:', transition.finalInstructions);
-    console.log('Options:', transition.options);
-    console.log('Route tree:', transition.routeTree);
-    console.log('Previous route tree:', transition.previousRouteTree);
-  }
+- `toPath()` returns an instruction path (no leading `/`, siblings separated by `+`).
+- `toUrl(isFinalInstruction, parser, isRooted)` returns a URL string.
 
-  async waitForTransition(): Promise<boolean> {
-    // Wait for current transition to complete
-    const transition = this.router.currentTr;
-    if (transition.promise) {
-      return await transition.promise;
-    }
-    return true;
-  }
-}
-```
+```ts
+import { IRouter, IRouterEvents, type NavigationStartEvent } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
 
-### Advanced Navigation Options
+export class NavigationLogger {
+  private readonly router = resolve(IRouter);
 
-#### Navigation with Custom State
-Store custom data with navigation history:
+  public constructor() {
+    resolve(IRouterEvents).subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
+      // Instruction path (example: 'users+details@right')
+      console.log('toPath:', event.instructions.toPath());
 
-```typescript
-export class StatefulNavigation {
-  private router = resolve(IRouter);
-
-  async navigateWithState(route: string, customData: any): Promise<boolean> {
-    return this.router.load(route, {
-      state: {
-        timestamp: Date.now(),
-        userData: customData,
-        source: 'application'
-      }
-    });
-  }
-
-  async navigateWithContext(route: string, context: IRouteContext): Promise<boolean> {
-    return this.router.load(route, {
-      context: context, // Navigate relative to specific context
-      historyStrategy: 'push'
+      // URL string (example: '/users+details@right')
+      console.log(
+        'toUrl:',
+        event.instructions.toUrl(false, this.router.options._urlParser, true),
+      );
     });
   }
 }
 ```
 
-#### Advanced Query Parameter Handling
-```typescript
-export class QueryParameterManager {
-  private router = resolve(IRouter);
-  private currentRoute = resolve(ICurrentRoute);
+`toUrl` parameters:
 
-  // Merge new query params with existing ones
-  async updateQueryParams(newParams: Record<string, string>): Promise<boolean> {
-    const currentQuery = this.currentRoute.query;
-    const mergedParams = new URLSearchParams(currentQuery);
-    
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value === null || value === undefined) {
-        mergedParams.delete(key);
-      } else {
-        mergedParams.set(key, value);
-      }
-    });
+- `isFinalInstruction`: pass `true` when the instruction tree is final/absolute; pass `false` to include parent segments when the instruction tree is relative to a routing context.
+- `parser`: use `router.options._urlParser` to match your router configuration (hash vs pushState).
+- `isRooted`: pass `true` to generate a rooted URL (leading `/` or `#/` depending on the parser).
 
-    return this.router.load(this.currentRoute.path, {
-      queryParams: Object.fromEntries(mergedParams),
-      historyStrategy: 'replace' // Don't create new history entry
-    });
-  }
+## Path generation (`router.generatePath`)
 
-  // Batch query parameter updates
-  async batchUpdateQueryParams(updates: Array<{key: string, value: string | null}>): Promise<boolean> {
-    const currentQuery = this.currentRoute.query;
-    const newParams = new URLSearchParams(currentQuery);
-    
-    updates.forEach(({key, value}) => {
-      if (value === null) {
-        newParams.delete(key);
-      } else {
-        newParams.set(key, value);
-      }
-    });
+Use `generatePath` when you want a URL string **without navigating**.
 
-    return this.router.load(this.currentRoute.path, {
-      queryParams: Object.fromEntries(newParams),
-      historyStrategy: 'replace'
-    });
+```ts
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class LinkBuilder {
+  private readonly router = resolve(IRouter);
+
+  public userHref(userId: string) {
+    return this.router.generatePath({ component: 'users', params: { id: userId } });
   }
 }
 ```
 
-## Advanced Route Configuration
+Notes:
 
-### Dynamic Route Configuration
-Create routes programmatically at runtime:
+- The **first** argument is a navigation instruction (or instruction array).
+- The **second** argument (optional) is a **routing context** for relative path generation (for example an `IRouteContext`, a routeable component instance, or an `HTMLElement` inside a routed component).
 
-```typescript
-export class DynamicRouteManager {
-  private router = resolve(IRouter);
+```ts
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
 
-  async addDynamicRoute(routeConfig: IChildRouteConfig, context: IRouteContext): Promise<void> {
-    // Get the route configuration context
-    const routeConfigContext = context.routeConfigContext;
-    
-    // Add new route to existing configuration
-    const newRoutes = [...routeConfigContext.config.routes || [], routeConfig];
-    
-    // Update configuration (this is a simplified example)
-    // In practice, you'd need to handle this through proper route tree updates
-    console.log('Adding dynamic route:', routeConfig);
-  }
+export class ChildViewModel {
+  private readonly router = resolve(IRouter);
 
-  createConditionalRoute(condition: () => boolean): IChildRouteConfig {
-    return {
-      path: 'conditional',
-      component: condition() ? ComponentA : ComponentB
-    };
+  public siblingHref() {
+    // Generate relative to the current routeable component instance.
+    return this.router.generatePath('../sibling', this);
   }
 }
 ```
 
-### Route Data and Metadata
-Advanced usage of route data for feature flags, permissions, and metadata:
+## Active state checks (`router.isActive`)
 
-```typescript
-export interface RouteMetadata {
-  requiresAuth?: boolean;
-  permissions?: string[];
-  feature?: string;
-  analytics?: {
-    category: string;
-    action: string;
-  };
-  breadcrumb?: {
-    label: string;
-    icon?: string;
-  };
-}
+To determine whether a link/instruction is currently active, use `router.isActive`.
 
-@route({
-  routes: [
-    {
-      path: 'admin',
-      component: AdminComponent,
-      data: {
-        requiresAuth: true,
-        permissions: ['admin.access'],
-        feature: 'admin-panel',
-        breadcrumb: { label: 'Administration', icon: 'settings' }
-      } as RouteMetadata
-    }
-  ]
-})
-export class App {}
+```ts
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
 
-// Access route metadata
-export class MetadataReader {
-  private currentRoute = resolve(ICurrentRoute);
+export class NavBar {
+  private readonly router = resolve(IRouter);
 
-  getRouteMetadata(): RouteMetadata | null {
-    const paramInfo = this.currentRoute.parameterInformation[0];
-    return paramInfo?.config?.data as RouteMetadata || null;
-  }
-
-  checkPermissions(): boolean {
-    const metadata = this.getRouteMetadata();
-    if (!metadata?.permissions) return true;
-    
-    return metadata.permissions.every(permission => 
-      this.authService.hasPermission(permission)
-    );
+  public isUsersActive() {
+    return this.router.isActive('users', this);
   }
 }
 ```
 
-## Advanced Viewport Features
+If you are building navigation menus, also see the navigation model (`IRouteContext.routeConfigContext.navigationModel`) and the `load` custom attribute’s `activeClass` option.
 
-### Viewport Agents
-Direct interaction with viewport agents for custom behaviors:
+## Route tree and transitions
 
-```typescript
-export class AdvancedViewportController {
-  private routeContext = resolve(IRouteContext);
+The router keeps a live route tree and transition state for diagnostics:
 
-  getViewportAgents(): ViewportAgent[] {
-    return this.routeContext.getAvailableViewportAgents();
+- `router.routeTree` is the active `RouteTree`.
+- `router.currentTr` is the current `Transition`.
+- `router.isNavigating` indicates whether a transition is currently running.
+
+```ts
+import { IRouter } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class RouterDebugPanel {
+  private readonly router = resolve(IRouter);
+
+  public log() {
+    console.log('isNavigating:', this.router.isNavigating);
+    console.log('currentTr:', this.router.currentTr);
+    console.log('routeTree:', this.router.routeTree);
   }
+}
+```
 
-  async loadComponentInSpecificViewport(
-    component: any, 
-    viewportName: string
-  ): Promise<void> {
-    const agents = this.getViewportAgents();
-    const targetAgent = agents.find(agent => 
-      agent.viewport.name === viewportName
-    );
+## Managed browser history state (`AuNavId` / `ManagedState`)
 
-    if (targetAgent) {
-      // Advanced viewport manipulation
-      console.log('Loading component in viewport:', viewportName);
-      // Implementation would involve direct viewport agent manipulation
-    }
-  }
+When the router writes to the browser history, it stores a small managed state object containing an `au-nav-id` field (exported as `AuNavId`). This lets the router detect back/forward navigations later.
 
-  monitorViewportChanges(): void {
-    const agents = this.getViewportAgents();
-    agents.forEach(agent => {
-      // Monitor viewport state changes
-      console.log('Viewport agent:', agent.viewport.name);
+If you want to persist additional metadata per history entry, extend the **current** entry using `window.history.replaceState`, and always merge with existing state so `au-nav-id` remains intact:
+
+```ts
+import { IRouterEvents, type NavigationEndEvent } from '@aurelia/router';
+import { resolve } from '@aurelia/kernel';
+
+export class HistoryMetadataService {
+  public constructor() {
+    resolve(IRouterEvents).subscribe('au:router:navigation-end', (_event: NavigationEndEvent) => {
+      window.history.replaceState(
+        {
+          ...(window.history.state ?? {}),
+          lastVisitedAt: Date.now(),
+        },
+        document.title,
+      );
     });
   }
 }
 ```
 
-### Named Viewport Coordination
-Coordinate multiple named viewports:
+On a later Back/Forward navigation, the restored state is surfaced via `NavigationStartEvent.managedState`.
 
-```typescript
-export class MultiViewportController {
-  private router = resolve(IRouter);
-
-  async loadSiblingComponents(components: {
-    [viewportName: string]: any
-  }): Promise<boolean> {
-    const instructions = Object.entries(components).map(([viewport, component]) => ({
-      component,
-      viewport
-    }));
-
-    return this.router.load(instructions);
-  }
-
-  async loadHierarchicalComponents(hierarchy: {
-    parent: any;
-    children: { [viewport: string]: any };
-  }): Promise<boolean> {
-    // Load parent first, then children
-    const success = await this.router.load(hierarchy.parent);
-    if (!success) return false;
-
-    // Load children into named viewports
-    return this.loadSiblingComponents(hierarchy.children);
-  }
-}
-```
-
-## Router Events and Hooks Advanced Usage
-
-### Custom Router Event Publisher
-Create custom router events for application-specific needs:
-
-```typescript
-export class CustomRouterEvents {
-  private routerEvents = resolve(IRouterEvents);
-  private eventAggregator = resolve(IEventAggregator);
-
-  publishCustomNavigationEvent(eventType: string, data: any): void {
-    const customEvent = {
-      name: `au:app:${eventType}`,
-      timestamp: Date.now(),
-      data
-    };
-
-    // Publish through event aggregator
-    this.eventAggregator.publish(customEvent.name, customEvent);
-  }
-
-  subscribeToNavigationPattern(
-    pattern: RegExp, 
-    callback: (event: any) => void
-  ): IDisposable {
-    return this.routerEvents.subscribe('au:router:navigation-end', (event) => {
-      const path = event.finalInstructions.toPath();
-      if (pattern.test(path)) {
-        callback(event);
-      }
-    });
-  }
-}
-```
-
-### Advanced Lifecycle Hook Composition
-Compose multiple lifecycle behaviors:
-
-```typescript
-export class CompositeLifecycleHook implements IRouteViewModel {
-  private hooks: IRouteViewModel[] = [];
-
-  constructor(...hooks: IRouteViewModel[]) {
-    this.hooks = hooks;
-  }
-
-  async canLoad(params: Params, next: RouteNode, current: RouteNode | null): Promise<boolean> {
-    // Run all canLoad hooks
-    for (const hook of this.hooks) {
-      if (hook.canLoad) {
-        const result = await hook.canLoad(params, next, current);
-        if (!result) return false;
-      }
-    }
-    return true;
-  }
-
-  async loading(params: Params, next: RouteNode, current: RouteNode | null): Promise<void> {
-    // Run all loading hooks in parallel
-    const promises = this.hooks
-      .filter(hook => hook.loading)
-      .map(hook => hook.loading!(params, next, current));
-
-    await Promise.all(promises);
-  }
-
-  async loaded(params: Params, next: RouteNode, current: RouteNode | null): Promise<void> {
-    // Run all loaded hooks in parallel
-    const promises = this.hooks
-      .filter(hook => hook.loaded)
-      .map(hook => hook.loaded!(params, next, current));
-
-    await Promise.all(promises);
-  }
-}
-
-// Usage
-export class MyComponent extends CompositeLifecycleHook {
-  constructor() {
-    super(
-      new AuthenticationHook(),
-      new AnalyticsHook(),
-      new DataLoadingHook()
-    );
-  }
-}
-```
-
-## Advanced Path Generation and Parsing
-
-### Custom Path Generators
-Generate complex paths with custom logic:
-
-```typescript
-export class AdvancedPathGenerator {
-  private router = resolve(IRouter);
-
-  async generatePathWithFallback(
-    primary: NavigationInstruction,
-    fallback: NavigationInstruction
-  ): Promise<string> {
-    try {
-      return await this.router.generatePath(primary);
-    } catch {
-      return await this.router.generatePath(fallback);
-    }
-  }
-
-  generatePathsForPermutations(
-    baseRoute: string,
-    params: Record<string, string[]>
-  ): Promise<string[]> {
-    const permutations = this.generatePermutations(params);
-    
-    return Promise.all(
-      permutations.map(permutation =>
-        this.router.generatePath(baseRoute, { params: permutation })
-      )
-    );
-  }
-
-  private generatePermutations(params: Record<string, string[]>): Record<string, string>[] {
-    const keys = Object.keys(params);
-    if (keys.length === 0) return [{}];
-
-    const [firstKey, ...restKeys] = keys;
-    const firstValues = params[firstKey];
-    const restParams = Object.fromEntries(restKeys.map(key => [key, params[key]]));
-    const restPermutations = this.generatePermutations(restParams);
-
-    return firstValues.flatMap(value =>
-      restPermutations.map(perm => ({ [firstKey]: value, ...perm }))
-    );
-  }
-}
-```
-
-### Route Pattern Matching
-Advanced route pattern matching and validation:
-
-```typescript
-export class RoutePatternMatcher {
-  private router = resolve(IRouter);
-
-  matchesPattern(path: string, pattern: string): boolean {
-    // Convert Aurelia route pattern to RegExp
-    const regexPattern = pattern
-      .replace(/:[^/]+/g, '([^/]+)')      // Required params
-      .replace(/:[^/]+\?/g, '([^/]*)')    // Optional params
-      .replace(/\*/g, '(.*)')             // Wildcard
-      .replace(/\//g, '\\/');             // Escape slashes
-
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(path);
-  }
-
-  extractParameters(path: string, pattern: string): Record<string, string> {
-    const paramNames = this.extractParameterNames(pattern);
-    const values = this.extractParameterValues(path, pattern);
-    
-    return Object.fromEntries(
-      paramNames.map((name, index) => [name, values[index] || ''])
-    );
-  }
-
-  private extractParameterNames(pattern: string): string[] {
-    const matches = pattern.match(/:([^/?]+)/g) || [];
-    return matches.map(match => match.slice(1).replace('?', ''));
-  }
-
-  private extractParameterValues(path: string, pattern: string): string[] {
-    const regexPattern = pattern
-      .replace(/:[^/]+\?/g, '([^/]*)')
-      .replace(/:[^/]+/g, '([^/]+)')
-      .replace(/\*/g, '(.*)')
-      .replace(/\//g, '\\/');
-
-    const regex = new RegExp(`^${regexPattern}$`);
-    const match = path.match(regex);
-    return match ? match.slice(1) : [];
-  }
-}
-```
-
-## Performance Optimization APIs
-
-### Route Preloading
-Preload routes for better performance:
-
-```typescript
-export class RoutePreloader {
-  private router = resolve(IRouter);
-  private preloadedComponents = new Map<string, any>();
-
-  async preloadRoute(route: string): Promise<void> {
-    if (this.preloadedComponents.has(route)) return;
-
-    try {
-      // Generate instructions without navigating
-      const instructions = await this.router.createViewportInstructions(route, null, true);
-      
-      // Pre-load component modules
-      await this.preloadInstructionComponents(instructions);
-      
-      console.log(`Preloaded route: ${route}`);
-    } catch (error) {
-      console.warn(`Failed to preload route ${route}:`, error);
-    }
-  }
-
-  private async preloadInstructionComponents(instructions: any): Promise<void> {
-    // Implementation would traverse instruction tree and preload components
-    console.log('Preloading components for instructions:', instructions);
-  }
-
-  async preloadCriticalRoutes(routes: string[]): Promise<void> {
-    await Promise.all(routes.map(route => this.preloadRoute(route)));
-  }
-}
-```
-
-### Route Caching
-Cache route resolution for performance:
-
-```typescript
-export class RouteCache {
-  private cache = new Map<string, any>();
-  private maxAge = 5 * 60 * 1000; // 5 minutes
-
-  getCachedRoute(key: string): any | null {
-    const cached = this.cache.get(key);
-    if (!cached) return null;
-
-    if (Date.now() - cached.timestamp > this.maxAge) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return cached.data;
-  }
-
-  setCachedRoute(key: string, data: any): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now()
-    });
-  }
-
-  clearCache(): void {
-    this.cache.clear();
-  }
-
-  getStats(): { size: number; keys: string[] } {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys())
-    };
-  }
-}
-```
-
-## Best Practices for Advanced Usage
-
-### 1. Resource Management
-```typescript
-// ✅ Good - Proper cleanup of advanced router features
-export class AdvancedRouterFeature {
-  private subscriptions: IDisposable[] = [];
-  private timers: number[] = [];
-
-  initialize() {
-    const subscription = this.routerEvents.subscribe(/* ... */);
-    this.subscriptions.push(subscription);
-  }
-
-  dispose() {
-    this.subscriptions.forEach(sub => sub.dispose());
-    this.timers.forEach(timer => clearTimeout(timer));
-  }
-}
-```
-
-### 2. Error Handling in Advanced Scenarios
-```typescript
-// ✅ Good - Robust error handling for complex operations
-export class RobustRouterOperations {
-  async performComplexNavigation(): Promise<boolean> {
-    try {
-      const preloadSuccess = await this.preloadRequiredComponents();
-      if (!preloadSuccess) return false;
-
-      const navigationSuccess = await this.router.load(/* ... */);
-      if (!navigationSuccess) return false;
-
-      await this.performPostNavigationTasks();
-      return true;
-    } catch (error) {
-      this.handleNavigationError(error);
-      return false;
-    }
-  }
-}
-```
-
-### 3. Type Safety
-```typescript
-// ✅ Good - Strong typing for advanced router usage
-interface NavigationResult<T = any> {
-  success: boolean;
-  data?: T;
-  error?: Error;
-}
-
-export class TypeSafeRouterOperations {
-  async navigateWithResult<T>(
-    route: string,
-    options?: INavigationOptions
-  ): Promise<NavigationResult<T>> {
-    try {
-      const success = await this.router.load(route, options);
-      return { success };
-    } catch (error) {
-      return { 
-        success: false, 
-        error: error instanceof Error ? error : new Error(String(error))
-      };
-    }
-  }
-}
-```
-
-This advanced API reference provides developers with comprehensive guidance on leveraging the router's more sophisticated features for complex routing scenarios.

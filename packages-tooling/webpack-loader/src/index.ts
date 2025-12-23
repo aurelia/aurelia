@@ -56,6 +56,7 @@ const getHmrCode = (className: string): string => {
 
   const code = `
     import { Metadata as $$M } from '@aurelia/metadata';
+    import { onResolve as $$onResolve } from '@aurelia/kernel';
     import { Controller as $$C, CustomElement as $$CE, IHydrationContext as $$IHC, refs as $$refs } from '@aurelia/runtime-html';
 
     // @ts-ignore
@@ -141,7 +142,7 @@ const getHmrCode = (className: string): string => {
           }
         });
         const h = controller.host;
-        const oldDef = delete controller._compiledDef;
+        const oldDef = controller._compiledDef;
         $$onResolve(controller.deactivate(controller, controller.parent ?? null, 0), () => {
           controller.container.deregister(oldDef.key);
           controller.container.deregister(oldDef.Type);

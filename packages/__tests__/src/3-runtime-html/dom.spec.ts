@@ -28,22 +28,21 @@ describe('3-runtime-html/dom.spec.ts', function () {
   const widthArr = [1, 2, 3];
   const depthArr = [0, 1, 2, 3];
 
-  describe('[UNIT] findTargets - unified marker system', function () {
-    it('finds element targets with au-hid attribute', function () {
+  describe('[UNIT] findTargets - <au-m> marker system', function () {
+    it('finds element targets via <au-m> marker', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><div au-hid="0"></div></template>`;
+      node.innerHTML = `<template><au-m></au-m><div></div></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
 
       assert.strictEqual(actual.length, 1, 'should find 1 target');
       assert.strictEqual((actual[0] as Element).tagName, 'DIV', 'target should be the div');
-      assert.strictEqual((actual[0] as Element).hasAttribute('au-hid'), false, 'au-hid should be removed');
     });
 
-    it('finds multiple element targets with sequential au-hid', function () {
+    it('finds multiple element targets in document order', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><div au-hid="0"></div><span au-hid="1"></span><p au-hid="2"></p></template>`;
+      node.innerHTML = `<template><au-m></au-m><div></div><au-m></au-m><span></span><au-m></au-m><p></p></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -56,8 +55,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds comment marker targets (text interpolation)', function () {
       const node = ctx.doc.createElement('div');
-      // <!--au:0--> followed by text node (space)
-      node.innerHTML = `<template><!--au:0--> </template>`;
+      // <au-m></au-m> followed by text node (space)
+      node.innerHTML = `<template><au-m></au-m> </template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -69,8 +68,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds render location targets (containerless/TC)', function () {
       const node = ctx.doc.createElement('div');
-      // <!--au:0--><!--au-start--><!--au-end-->
-      node.innerHTML = `<template><!--au:0--><!--au-start--><!--au-end--></template>`;
+      // <au-m></au-m><!--au-start--><!--au-end-->
+      node.innerHTML = `<template><au-m></au-m><!--au-start--><!--au-end--></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -86,7 +85,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
     it('finds mixed element and comment targets with correct indices', function () {
       const node = ctx.doc.createElement('div');
       // Mix: text interpolation, element, TC, element
-      node.innerHTML = `<template><!--au:0--> <div au-hid="1"></div><!--au:2--><!--au-start--><!--au-end--><span au-hid="3"></span></template>`;
+      node.innerHTML = `<template><au-m></au-m> <au-m></au-m><div></div><au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><span></span></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -100,7 +99,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds deeply nested element targets', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><div><span><p au-hid="0"></p></span></div></template>`;
+      node.innerHTML = `<template><div><span><au-m></au-m><p></p></span></div></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -109,26 +108,24 @@ describe('3-runtime-html/dom.spec.ts', function () {
       assert.strictEqual((actual[0] as Element).tagName, 'P', 'target should be the nested p');
     });
 
-    it('finds targets with non-sequential au-hid indices', function () {
+    it('finds targets in document order (implicit indexing)', function () {
       const node = ctx.doc.createElement('div');
-      // Indices 0, 2, 5 (sparse)
-      node.innerHTML = `<template><div au-hid="0"></div><span au-hid="2"></span><p au-hid="5"></p></template>`;
+      // 3 markers, targets in document order (0, 1, 2)
+      node.innerHTML = `<template><au-m></au-m><div></div><au-m></au-m><span></span><au-m></au-m><p></p></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
 
-      assert.strictEqual(actual.length, 6, 'array should be sized to max index + 1');
+      assert.strictEqual(actual.length, 3, 'should find 3 targets');
       assert.strictEqual((actual[0] as Element).tagName, 'DIV', 'target 0 should be div');
-      assert.strictEqual(actual[1], undefined, 'target 1 should be undefined');
-      assert.strictEqual((actual[2] as Element).tagName, 'SPAN', 'target 2 should be span');
-      assert.strictEqual(actual[3], undefined, 'target 3 should be undefined');
-      assert.strictEqual(actual[4], undefined, 'target 4 should be undefined');
-      assert.strictEqual((actual[5] as Element).tagName, 'P', 'target 5 should be p');
+      assert.strictEqual((actual[1] as Element).tagName, 'SPAN', 'target 1 should be span');
+      assert.strictEqual((actual[2] as Element).tagName, 'P', 'target 2 should be p');
     });
 
-    it('handles 10+ targets correctly (higher hids)', function () {
+    it('handles 10+ targets correctly (implicit ordering)', function () {
       const node = ctx.doc.createElement('div');
-      const elements = Array(12).fill(0).map((_, i) => `<div au-hid="${i}"></div>`).join('');
+      // Each <au-m> marker is followed by a <div> target
+      const elements = Array(12).fill(0).map(() => `<au-m></au-m><div></div>`).join('');
       node.innerHTML = `<template>${elements}</template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
@@ -140,28 +137,21 @@ describe('3-runtime-html/dom.spec.ts', function () {
       }
     });
 
-    it('removes au:N comment markers after processing', function () {
+    it('removes <au-m> markers after processing', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><!--au:0--> <!--au:1--> </template>`;
+      node.innerHTML = `<template><au-m></au-m> <au-m></au-m> </template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       sut.findTargets();
 
-      // Check that au:N comments are removed
-      // NodeFilter.SHOW_COMMENT = 128
-      const walker = ctx.doc.createTreeWalker(fragment, 128);
-      let commentCount = 0;
-      while (walker.nextNode()) {
-        const comment = walker.currentNode as Comment;
-        assert.strictEqual(comment.textContent?.startsWith('au:'), false, 'no au:N comments should remain');
-        commentCount++;
-      }
-      assert.strictEqual(commentCount, 0, 'no comments should remain in simple case');
+      // Check that <au-m> elements are removed
+      const markers = fragment.querySelectorAll('au-m');
+      assert.strictEqual(markers.length, 0, 'no <au-m> markers should remain');
     });
 
     it('preserves au-start/au-end comments for render locations', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><!--au:0--><!--au-start--><!--au-end--></template>`;
+      node.innerHTML = `<template><au-m></au-m><!--au-start--><!--au-end--></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       sut.findTargets();

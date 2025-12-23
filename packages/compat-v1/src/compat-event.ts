@@ -76,10 +76,12 @@ export class DelegateBindingCommand implements BindingCommandInstance {
   }
 }
 
+export const itDelegate = 141;
+
 /** @internal */
 export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer implements IRenderer {
 
-  public readonly target = 'dl';
+  public readonly target = itDelegate;
   /** @internal */
   private readonly _eventDelegator = resolve(IEventDelegator);
 
@@ -103,7 +105,7 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
 }, null!);
 
 export class DelegateBindingInstruction implements IInstruction {
-  public readonly type = 'dl';
+  public readonly type = itDelegate;
 
   public constructor(
     public from: string | IsBindingBehavior,

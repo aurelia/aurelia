@@ -10,7 +10,7 @@ import {
   astEvaluate,
   astUnbind,
 } from '@aurelia/runtime';
-import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
+import { BindingMode, IInstruction, ITemplateCompiler, itSpreadTransferedBinding, itSpreadElementProp, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
 import { ErrorNames, createMappedError } from '../errors';
 import { IPlatform } from '../platform';
 import { IHasController, } from '../renderer';
@@ -74,10 +74,10 @@ export class SpreadBinding implements IBinding, IHasController {
       let inst: IInstruction;
       for (inst of instructions) {
         switch (inst.type) {
-          case InstructionType.spreadTransferedBinding:
+          case itSpreadTransferedBinding:
             renderSpreadInstruction(ancestor + 1);
             break;
-          case InstructionType.spreadElementProp:
+          case itSpreadElementProp:
             renderers[(inst as SpreadElementPropBindingInstruction).instruction.type].render(
               spreadBinding,
               findElementControllerFor(target),

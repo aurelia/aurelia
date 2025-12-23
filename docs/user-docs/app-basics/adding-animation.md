@@ -280,7 +280,6 @@ export class MyApp {
 This guide covered CSS-based animations, which handle most common scenarios. For more advanced techniques, check out:
 
 - **[Comprehensive Animation Guide](../developer-guides/animation.md)** - Web Animations API, lifecycle hooks, third-party libraries
-- **[Router Animations](../router-direct/router-animation.md)** - Page transition effects
 - **[Component Lifecycles](../components/component-lifecycles.md)** - Understanding when components attach/detach for animation timing
 
 ## Common Patterns Quick Reference

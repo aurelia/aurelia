@@ -144,8 +144,8 @@ export class Rendering implements IRendering {
         fragment = tpl.content;
         needsImportNode = true;
       }
-      // No marker transformation needed - the unified marker system uses
-      // au-hid attributes and <!--au:N--> comments directly
+      // No marker transformation needed - <au-m> markers are used directly
+      // and targets are found via querySelectorAll('au-m')
 
       cache.set(definition, fragment);
     }

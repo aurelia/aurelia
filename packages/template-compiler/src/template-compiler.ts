@@ -588,7 +588,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         tcTemplate = context.t();
         // Each outer TC template has exactly 1 marker at index 0
         appendManyToTemplate(tcTemplate, [
-          context._marker(0),
+          context._marker(),
           context._comment(auLocationStart),
           context._comment(auLocationEnd),
         ]);
@@ -954,12 +954,9 @@ export class TemplateCompiler implements ITemplateCompiler {
         insertBefore(parent, context._text(part), node);
       }
       for (i = 0, ii = expressions.length; ii > i; ++i) {
-        // Get target ID and increment counter
-        const targetId = context._nextTargetId++;
-
-        // foreach expression part, turn into a marker with ID
+        // foreach expression part, turn into a marker
         insertManyBefore(parent, node, [
-          context._marker(targetId),
+          context._marker(),
           // empty text node will not be cloned when doing fragment.cloneNode()
           // so give it an empty space instead
           context._text(' '),
@@ -1234,32 +1231,28 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
-   * Mark an element as a hydration target by adding the `au-hid` attribute.
-   * The attribute value is a unique ID within the template.
+   * Mark an element as a hydration target by inserting an <au-m> marker before it.
    *
    * @internal
    */
   private _markAsTarget<T extends Element>(el: T, context: CompilationContext): T {
-    el.setAttribute('au-hid', String(context._nextTargetId++));
+    insertBefore(el.parentNode!, context._marker(), el);
     return el;
   }
 
   /**
    * Replace an element with a marker, and return the marker.
    * Used for containerless elements and template controllers.
-   * Creates `<!--au:N--><!--au-start--><!--au-end-->` structure.
+   * Creates `<au-m><!--au-start--><!--au-end-->` structure.
    *
    * @internal
    */
-  private _replaceByMarker(node: Node, context: CompilationContext): Comment {
+  private _replaceByMarker(node: Node, context: CompilationContext): Element {
     if (isMarker(node)) {
       return node;
     }
-    // Get the target ID and increment counter
-    const targetId = context._nextTargetId++;
-
     const parent = node.parentNode!;
-    const marker = context._marker(targetId);
+    const marker = context._marker();
     insertManyBefore(parent, node, [
       marker,
       context._comment(auLocationStart),
@@ -1430,9 +1423,9 @@ export class TemplateCompiler implements ITemplateCompiler {
 }
 
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
-/** Check if a node is an au:N marker comment */
-const isMarker = (el: Node): el is Comment =>
-  el.nodeType === 8 && (el.nodeValue?.startsWith('au:') ?? false);
+/** Check if a node is an <au-m> marker element */
+const isMarker = (el: Node): el is Element =>
+  el.nodeType === 1 && (el as Element).nodeName === 'AU-M';
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
@@ -1457,14 +1450,6 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: Constructable[] | null = null;
-
-  /**
-   * Counter for generating unique hydration IDs within a template.
-   * Lives on the root context and is shared across all child contexts.
-   * @internal
-   */
-  public _nextTargetId: number = 0;
-
   /** @internal */
   private readonly c: IContainer;
 
@@ -1510,11 +1495,12 @@ class CompilationContext {
   }
 
   /**
-   * Create a marker comment with the given hydration ID.
-   * Format: `<!--au:N-->` where N is the target index.
+   * Create an `<au-m>` marker element.
+   * The target node is always the marker's nextSibling.
+   * Implicit indexing via document order.
    */
-  public _marker(id: number) {
-    return this._comment(`au:${id}`);
+  public _marker() {
+    return this.h('au-m');
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];

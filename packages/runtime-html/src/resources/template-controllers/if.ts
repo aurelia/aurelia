@@ -102,14 +102,28 @@ export class If implements ICustomAttributeViewModel {
           // todo: location should be based on either the [if]/[else] attribute
           //       instead of always of the [if]
           view.setLocation(this._location);
-          return onResolve(
-            view.activate(view, ctrl, ctrl.scope),
-            () => {
-              if (isCurrent()) {
-                this.pending = void 0;
+          const ret = view.activate(view, ctrl, ctrl.scope);
+          if (ret instanceof Promise) {
+            return ret.then(
+              () => {
+                if (isCurrent()) {
+                  this.pending = void 0;
+                }
+              },
+              () => {
+                // Activation failed. Deactivate the view to clean up its state
+                // so that subsequent swaps can work correctly.
+                // The error is intentionally swallowed to allow recovery.
+                if (isCurrent()) {
+                  this.pending = void 0;
+                }
+                void view!.deactivate(view!, ctrl);
               }
-            }
-          );
+            );
+          }
+          if (isCurrent()) {
+            this.pending = void 0;
+          }
         }
       )
     );

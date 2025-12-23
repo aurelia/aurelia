@@ -6,7 +6,6 @@
         "inputs": [
           "src/*",
           "karma.conf.js",
-          "importmap.js",
           "import-env-vars.js"
         ],
         "outputs": ["dist/**/*"]

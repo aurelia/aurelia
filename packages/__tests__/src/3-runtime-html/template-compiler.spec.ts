@@ -184,7 +184,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             attrs.forEach(attr => {
               assert.throws(
                 () => compileWith(`<template ${attr}="${attr}"></template>`, []),
-                /(Attribute id is invalid on surrogate)|(AUR0702:id)/,
+                /AUR0702.*id/,
               );
             });
           });

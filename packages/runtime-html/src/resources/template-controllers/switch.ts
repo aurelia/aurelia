@@ -295,7 +295,9 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public isMatch(value: unknown): boolean {
-    this._logger.debug('isMatch()');
+    if (__DEV__) {
+      this._logger.debug('isMatch()');
+    }
     const $value = this.value;
     if (isArray($value)) {
       if (this._observer === void 0) {
@@ -326,7 +328,14 @@ export class Case implements ICustomAttributeViewModel {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
-    return view.activate(initiator ?? view, this.$controller, scope);
+    const ret = view.activate(initiator ?? view, this.$controller, scope);
+    if (ret instanceof Promise) {
+      return ret.catch(() => {
+        // Activation failed. Deactivate the view to clean up its state
+        // so that subsequent case activations can work correctly.
+        return view.deactivate(view, this.$controller);
+      });
+    }
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {

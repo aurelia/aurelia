@@ -517,6 +517,25 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // 'deactivated' and 'none' are treated the same because, from an activation perspective, they mean the same thing.
         this.state = activating;
         break;
+      case deactivating:
+        // Handle the case where a previous deactivation-during-activation was rejected,
+        // leaving the controller stuck in deactivating state.
+        // In this state, the deactivation may have been interrupted before completing.
+        // We need to carefully reset the controller to allow re-activation.
+        if (!(parent === null || parent.isActive)) {
+          return;
+        }
+        // Reset flags that may be in an inconsistent state
+        this._isBindingDone = false;
+        this.isBound = false;
+        // Clear any leftover linked list pointers from interrupted deactivation
+        this.head = this.tail = this.next = null;
+        // Reset all stack counters to ensure clean activation
+        this._activatingStack = 0;
+        this._detachingStack = 0;
+        this._unbindingStack = 0;
+        this.state = activating;
+        break;
       case activated:
         // If we're already activated, no need to do anything.
         return;
@@ -738,10 +757,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         prevActivation = this.$promise?.catch(__DEV__
           /* istanbul-ignore-next */
           ? err => {
-            this.logger.warn('The activation error will be ignored, as the controller is already scheduled for deactivation. The activation was rejected with: %s', err);
+            this.logger?.warn('The activation error will be ignored, as the controller is already scheduled for deactivation. The activation was rejected with: %s', err);
           }
           : noop);
         break;
+      case deactivating:
+        // Already deactivating, return the existing promise to let caller wait for completion
+        return this.$promise;
       case none:
       case deactivated:
       case disposed:
@@ -759,6 +781,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (initiator === this) {
       this._enterDetaching();
+    }
+
+    // If deactivating during activation, increment initiator's detaching counter
+    // so the initiator waits for this controller's deactivation callback to complete.
+    // This mirrors the pattern used for async detaching hooks (see below).
+    const asyncPrevActivation = isPromise(prevActivation) && initiator !== this;
+    if (asyncPrevActivation) {
+      (initiator as Controller)._ensurePromise();
+      (initiator as Controller)._enterDetaching();
     }
 
     let i = 0;
@@ -814,6 +845,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // The rest is handled by the initiator.
         // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
         // controller api calls, or race conditions might occur.
+        if (asyncPrevActivation) {
+          (initiator as Controller)._leaveDetaching();
+        }
         return;
       }
 

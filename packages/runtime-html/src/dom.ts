@@ -385,32 +385,57 @@ export class FragmentNodeSequence implements INodeSequence {
     const targets: Node[] = [];
     const markers: Element[] = [];
 
-    // Collect <au-m> markers from the sibling nodes (and their children, but not into CEs)
-    const collect = (node: Node): void => {
-      if (node.nodeType === 1 /* Element */) {
-        const el = node as Element;
-        if (el.nodeName === 'AU-M') {
-          markers.push(el);
-          return;
+    // Collect <au-m> markers at the current template level.
+    // Skip content between au-start/au-end as that belongs to nested templates.
+    const collectFromChildren = (nodeList: NodeListOf<ChildNode>): void => {
+      let skipDepth = 0;
+      for (let i = 0, ii = nodeList.length; ii > i; ++i) {
+        const node = nodeList[i];
+
+        // Track au-start/au-end depth to skip nested template content
+        if (node.nodeType === 8 /* Comment */) {
+          const text = (node as Comment).textContent;
+          if (text === 'au-start') {
+            skipDepth++;
+            continue;
+          } else if (text === 'au-end') {
+            skipDepth--;
+            continue;
+          }
         }
-        // Custom elements have their own templates - don't recurse
-        if (el.tagName.includes('-')) {
-          return;
-        }
-        const children = el.childNodes;
-        for (let i = 0, ii = children.length; ii > i; ++i) {
-          collect(children[i]);
+
+        // Skip nodes inside au-start/au-end regions
+        if (skipDepth > 0) continue;
+
+        if (node.nodeType === 1 /* Element */) {
+          const el = node as Element;
+          if (el.nodeName === 'AU-M') {
+            markers.push(el);
+            continue;
+          }
+          // Custom elements have their own templates - don't recurse
+          if (el.tagName.includes('-')) {
+            continue;
+          }
+          // Recurse into element's children
+          collectFromChildren(el.childNodes);
         }
       }
     };
 
-    // Collect from all sibling nodes
+    // Collect from the top-level sibling nodes
+    // Top level nodes are already partitioned, so just handle au-m markers
+    // and recurse into elements
     for (let i = 0, ii = nodes.length; ii > i; ++i) {
       const node = nodes[i];
       if (node.nodeType === 1 && (node as Element).nodeName === 'AU-M') {
         markers.push(node as Element);
-      } else {
-        collect(node);
+      } else if (node.nodeType === 1) {
+        const el = node as Element;
+        // Custom elements have their own templates - don't recurse
+        if (!el.tagName.includes('-')) {
+          collectFromChildren(el.childNodes);
+        }
       }
     }
 
@@ -442,6 +467,11 @@ export class FragmentNodeSequence implements INodeSequence {
    * Unlike the constructor, this preserves markers because nested components
    * still need them for their own hydration.
    *
+   * IMPORTANT: Only collects markers at the current template level.
+   * Markers inside au-start/au-end regions belong to nested templates
+   * and are NOT collected here - they'll be collected when the nested
+   * template controller processes its own view.
+   *
    * @param host - The element whose children contain the targets
    * @returns Array of target nodes in document order
    *
@@ -451,30 +481,46 @@ export class FragmentNodeSequence implements INodeSequence {
     const targets: Node[] = [];
     const markers: Element[] = [];
 
-    // Collect <au-m> markers from host's children (and their descendants, but not into CEs)
-    const collect = (node: Node): void => {
-      if (node.nodeType === 1 /* Element */) {
-        const el = node as Element;
-        if (el.nodeName === 'AU-M') {
-          markers.push(el);
-          return;
+    // Collect <au-m> markers at the current template level.
+    // Skip content between au-start/au-end as that belongs to nested templates.
+    const collectSiblings = (nodeList: NodeListOf<ChildNode>): void => {
+      let skipDepth = 0;
+      for (let i = 0, ii = nodeList.length; ii > i; ++i) {
+        const node = nodeList[i];
+
+        // Track au-start/au-end depth to skip nested template content
+        if (node.nodeType === 8 /* Comment */) {
+          const text = (node as Comment).textContent;
+          if (text === 'au-start') {
+            skipDepth++;
+            continue;
+          } else if (text === 'au-end') {
+            skipDepth--;
+            continue;
+          }
         }
-        // Custom elements have their own templates - don't recurse
-        if (el.tagName.includes('-')) {
-          return;
-        }
-        const children = el.childNodes;
-        for (let i = 0, ii = children.length; ii > i; ++i) {
-          collect(children[i]);
+
+        // Skip nodes inside au-start/au-end regions
+        if (skipDepth > 0) continue;
+
+        if (node.nodeType === 1 /* Element */) {
+          const el = node as Element;
+          if (el.nodeName === 'AU-M') {
+            markers.push(el);
+            continue;
+          }
+          // Custom elements have their own templates - don't recurse
+          if (el.tagName.includes('-')) {
+            continue;
+          }
+          // Recurse into element's children
+          collectSiblings(el.childNodes);
         }
       }
     };
 
     // Start collection from host's children
-    const children = host.childNodes;
-    for (let i = 0, ii = children.length; ii > i; ++i) {
-      collect(children[i]);
-    }
+    collectSiblings(host.childNodes);
 
     // Process markers in document order (implicit indexing)
     // Note: markers are NOT removed - nested components need them for hydration

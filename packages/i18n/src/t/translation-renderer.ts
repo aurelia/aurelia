@@ -21,10 +21,13 @@ import type {
 } from '@aurelia/runtime-html';
 import { etIsProperty, bmToView } from '../utils';
 
-export const TranslationInstructionType = 'tt';
+/**
+ * i18n instruction types (range 100-119)
+ */
+export const itTranslation = 100;
 
 export class TranslationBindingInstruction {
-  public readonly type: string = TranslationInstructionType;
+  public readonly type: number = itTranslation;
   public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
@@ -51,7 +54,7 @@ export class TranslationBindingCommand implements BindingCommandInstance {
 }
 
 export const TranslationBindingRenderer = /*@__PURE__*/ renderer(class TranslationBindingRenderer implements IRenderer {
-  public readonly target = TranslationInstructionType;
+  public readonly target = itTranslation;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -72,10 +75,10 @@ export const TranslationBindingRenderer = /*@__PURE__*/ renderer(class Translati
   }
 }, null!);
 
-export const TranslationBindInstructionType = 'tbt';
+export const itTranslationBind = 101;
 
 export class TranslationBindBindingInstruction {
-  public readonly type: string = TranslationBindInstructionType;
+  public readonly type: number = itTranslationBind;
   public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
@@ -102,7 +105,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
 }
 
 export const TranslationBindBindingRenderer = /*@__PURE__*/ renderer(class TranslationBindBindingRenderer implements IRenderer {
-  public target = TranslationBindInstructionType;
+  public target = itTranslationBind;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,

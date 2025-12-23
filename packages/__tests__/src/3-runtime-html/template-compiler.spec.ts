@@ -28,22 +28,32 @@ import {
   IInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
-  InstructionType as HTT,
-  InstructionType as TT,
   HydrateLetElementInstruction,
-  HydrateAttributeInstruction,
   AttrSyntax,
   attributePattern,
   PropertyBindingInstruction,
   InterpolationInstruction,
-  InstructionType,
   IteratorBindingInstruction,
   RefBindingInstruction,
   AttributeBindingInstruction,
   SetPropertyInstruction,
   IElementComponentDefinition,
   ITemplateCompiler,
-  SpreadValueBindingInstruction,
+  itHydrateElement,
+  itHydrateAttribute,
+  itHydrateTemplateController,
+  itInterpolation,
+  itPropertyBinding,
+  itSetProperty,
+  itSetClassAttribute,
+  itSetStyleAttribute,
+  itRefBinding,
+  itAttributeBinding,
+  itIteratorBinding,
+  itListenerBinding,
+  itSpreadValueBinding,
+  itHydrateLetElement,
+  itLetBinding,
 } from '@aurelia/template-compiler';
 import {
   assert,
@@ -137,7 +147,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(instructions, []);
             verifyInstructions(
               surrogates,
-              [{ toVerify: ['type', 'value'], type: HTT.setClassAttribute, value: 'h-100' }]
+              [{ toVerify: ['type', 'value'], type: itSetClassAttribute, value: 'h-100' }]
             );
           });
 
@@ -149,7 +159,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(instructions, []);
             verifyInstructions(
               surrogates,
-              [{ toVerify: ['type', 'value'], type: HTT.setStyleAttribute, value: 'background: red' }]
+              [{ toVerify: ['type', 'value'], type: itSetStyleAttribute, value: 'background: red' }]
             );
           });
 
@@ -161,7 +171,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(instructions, [], 'normal');
             verifyInstructions(
               surrogates,
-              [{ toVerify: ['type', 'to'], type: TT.propertyBinding, to: 'class' }],
+              [{ toVerify: ['type', 'to'], type: itPropertyBinding, to: 'class' }],
               'surrogate'
             );
           });
@@ -174,7 +184,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(instructions, [], 'normal');
             verifyInstructions(
               surrogates,
-              [{ toVerify: ['type', 'to'], type: TT.interpolation, to: 'class' }],
+              [{ toVerify: ['type', 'to'], type: itInterpolation, to: 'class' }],
               'surrogate'
             );
           });
@@ -193,7 +203,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             const { instructions, surrogates } = compileWith(`<template foo>hello</template>`);
             verifyInstructions(instructions, [], 'normal');
             verifyInstructions(surrogates, [
-              { toVerify: ['type', 'to', 'res', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [] }
+              { toVerify: ['type', 'to', 'res', 'props'], type: itHydrateAttribute, res: 'foo', props: [] }
             ], 'surrogate');
           });
 
@@ -203,8 +213,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(
               surrogates,
               [
-                { toVerify: ['type', 'to', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [
-                  new InterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bar')]), 'value')
+                { toVerify: ['type', 'to', 'props'], type: itHydrateAttribute, res: 'foo', props: [
+                  { type: itInterpolation, from: createInterpolation(['', ''], [createAccessScopeExpression('bar')]), to: 'value' }
                 ]}
               ],
               'surrogate'
@@ -234,12 +244,12 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           // the target has only 1 instruction, which is hydrate custom element <el>
           assert.strictEqual(actual.instructions[0].length, 1, `actual.instructions[0].length`);
 
-          const rootInstructions = actual.instructions[0][0]['props'];
+          const rootInstructions = actual.instructions[0][0]['props'] as readonly IInstruction[];
           const expectedRootInstructions = [
-            { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop1' },
-            { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop2' },
-            { toVerify: ['type', 'res', 'to'], type: TT.propertyBinding, to: 'prop3' },
-            { toVerify: ['type', 'res', 'to'], type: TT.setProperty, to: 'prop3' }
+            { toVerify: ['type', 'res', 'to'], type: itPropertyBinding, to: 'prop1' },
+            { toVerify: ['type', 'res', 'to'], type: itPropertyBinding, to: 'prop2' },
+            { toVerify: ['type', 'res', 'to'], type: itPropertyBinding, to: 'prop3' },
+            { toVerify: ['type', 'res', 'to'], type: itSetProperty, to: 'prop3' }
           ];
           verifyInstructions(rootInstructions, expectedRootInstructions);
         });
@@ -260,12 +270,12 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const rootInstructions = actual.instructions[0];
           const expectedRootInstructions = [
-            { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
+            { toVerify: ['type', 'res'], type: itHydrateElement, res: 'el' }
           ];
           verifyInstructions(rootInstructions, expectedRootInstructions);
 
           const expectedElInstructions = [
-            { toVerify: ['type', 'to', 'value'], type: TT.setProperty, to: 'name', value: 'name' }
+            { toVerify: ['type', 'to', 'value'], type: itSetProperty, to: 'name', value: 'name' }
           ];
           verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
         });
@@ -287,7 +297,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           const rootInstructions = actual.instructions[0];
 
           const expectedElInstructions = [
-            { toVerify: ['type', 'value', 'to'], type: TT.setProperty, value: 'label', to: 'backgroundColor' },
+            { toVerify: ['type', 'value', 'to'], type: itSetProperty, value: 'label', to: 'backgroundColor' },
           ];
           verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
         });
@@ -322,7 +332,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             { toVerify: ['type', 'mode', 'to'], mode: BindingMode.fromView, to: 'prop4' },
             { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: 'propProp5' },
           ].map((e: any) => {
-            e.type = TT.propertyBinding;
+            e.type = itPropertyBinding;
             return e;
           });
           verifyInstructions((rootInstructions[0] as HydrateElementInstruction).props, expectedElInstructions);
@@ -337,7 +347,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           assertTemplateHtml(template, '<!--au*--><el></el>');
           verifyInstructions(instructions[0], [
             { toVerify: ['type', 'from', 'to', 'capture'],
-              type: TT.listenerBinding,
+              type: itListenerBinding,
               from: createPrimitiveLiteralExpression(1),
               to: 'foo',
               capture: false
@@ -380,17 +390,17 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions(hydratePropAttrInstruction.props, [
               {
                 toVerify: ['type', 'to', 'from'],
-                type: TT.propertyBinding, to: 'value', from: createAccessScopeExpression('p')
+                type: itPropertyBinding, to: 'value', from: createAccessScopeExpression('p')
               }
             ]);
             verifyInstructions(hydratePropAttrInstruction.def.instructions[0], [
               {
                 toVerify: ['type', 'to', 'from'],
-                type: TT.propertyBinding, to: 'name', from: createAccessScopeExpression('name')
+                type: itPropertyBinding, to: 'name', from: createAccessScopeExpression('name')
               },
               {
                 toVerify: ['type', 'to', 'from'],
-                type: TT.propertyBinding, to: 'title', from: createAccessScopeExpression('title')
+                type: itPropertyBinding, to: 'title', from: createAccessScopeExpression('title')
               },
             ]);
           });
@@ -403,7 +413,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               verifyInstructions(instructions[0], [
                 {
                   toVerify: ['type', 'res'],
-                  type: TT.hydrateElement, res: 'not-div'
+                  type: itHydrateElement, res: 'not-div'
                 }
               ]);
             });
@@ -425,21 +435,21 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 verifyInstructions(instructions[0], [
                   {
                     toVerify: ['type', 'res', 'to'],
-                    type: TT.hydrateTemplateController, res: 'if'
+                    type: itHydrateTemplateController, res: 'if'
                   }
                 ]);
                 const templateControllerInst = instructions[0][0] as HydrateTemplateController;
                 verifyInstructions(templateControllerInst.props, [
                   {
                     toVerify: ['type', 'to', 'from'],
-                    type: TT.propertyBinding, to: 'value', from: createAccessScopeExpression('value')
+                    type: itPropertyBinding, to: 'value', from: createAccessScopeExpression('value')
                   }
                 ]);
                 const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
                 verifyInstructions([hydrateNotDivInstruction], [
                   {
                     toVerify: ['type', 'res'],
-                    type: TT.hydrateElement, res: 'not-div'
+                    type: itHydrateElement, res: 'not-div'
                   }
                 ]);
                 verifyInstructions(hydrateNotDivInstruction.props, []);
@@ -470,7 +480,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [Let]
             );
             verifyInstructions(instructions[0], [
-              { toVerify: ['type'], type: TT.hydrateLetElement }
+              { toVerify: ['type'], type: itHydrateLetElement }
             ]);
           });
 
@@ -479,11 +489,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             verifyInstructions((instructions[0][0] as HydrateLetElementInstruction).instructions, [
               {
                 toVerify: ['type', 'to', 'srcOrExp'],
-                type: TT.letBinding, to: 'a', from: 'b'
+                type: itLetBinding, to: 'a', from: 'b'
               },
               {
                 toVerify: ['type', 'to'],
-                type: TT.letBinding, to: 'c'
+                type: itLetBinding, to: 'c'
               }
             ]);
           });
@@ -497,11 +507,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             it('ignores [to-binding-context] order', function () {
               let instructions = compileWith(`<template><let a.bind="a" to-binding-context></let></template>`).instructions[0];
               verifyInstructions(instructions, [
-                { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
+                { toVerify: ['type', 'toBindingContext'], type: itHydrateLetElement, toBindingContext: true }
               ]);
               instructions = compileWith(`<template><let to-binding-context a.bind="a"></let></template>`).instructions[0];
               verifyInstructions(instructions, [
-                { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
+                { toVerify: ['type', 'toBindingContext'], type: itHydrateLetElement, toBindingContext: true }
               ]);
             });
           });
@@ -885,7 +895,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           template: '<template><!--au*--><div></div></template>',
           needsCompile: false,
           instructions: [[{
-            type: TT.hydrateAttribute,
+            type: itHydrateAttribute,
             res: CustomAttribute.getDefinition(MyAttr),
             props: []
           }]],
@@ -903,7 +913,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           template: '<template><!--au*--><div></div></template>',
           needsCompile: false,
           instructions: [[{
-            type: TT.hydrateAttribute,
+            type: itHydrateAttribute,
             res: CustomAttribute.getDefinition(MyAttr),
             props: [createInterpolation({ from: '${attr}', to: 'value' })]
           }]],
@@ -921,7 +931,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           template: '<template><!--au*--><div></div></template>',
           needsCompile: false,
           instructions: [[{
-            type: TT.hydrateAttribute,
+            type: itHydrateAttribute,
             res: CustomAttribute.getDefinition(MyAttr),
             props: [createPropBinding({ from: 'v', to: 'value' })]
           }]],
@@ -939,7 +949,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           template: '<template><!--au*--><template></template></template>',
           needsCompile: false,
           instructions: [[{
-            type: TT.hydrateAttribute,
+            type: itHydrateAttribute,
             res: CustomAttribute.getDefinition(MyAttr),
             props: [createPropBinding({ from: 'v', to: 'value' })]
           }]],
@@ -961,9 +971,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       it('compiles an attribute with 2 bindings', function () {
         const { result, createPropBinding: createProp } = compileTemplate('<div my-attr="a.bind: 1; b: 2">', MyAttr);
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(MyAttr),
-          props: [createProp({ from: '1', to: 'a' }), { type: InstructionType.setProperty, value: '2', to: 'b' }]
+          props: [createProp({ from: '1', to: 'a' }), { type: itSetProperty, value: '2', to: 'b' }]
         });
       });
 
@@ -973,14 +983,14 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           ...[MyAttr, YourAttr]
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(MyAttr),
-          props: [createProp({ from: '1', to: 'a' }), { type: InstructionType.setProperty, value: '2', to: 'b' }]
+          props: [createProp({ from: '1', to: 'a' }), { type: itSetProperty, value: '2', to: 'b' }]
         });
         verifyBindingInstructionsEqual(result.instructions[0][1], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(YourAttr),
-          props: [{ type: InstructionType.setProperty, value: '3', to: 'c' }, createProp({ from: '4', to: 'd', mode: BindingMode.oneTime })]
+          props: [{ type: itSetProperty, value: '3', to: 'c' }, createProp({ from: '4', to: 'd', mode: BindingMode.oneTime })]
         });
       });
 
@@ -990,7 +1000,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           MyAttr
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(MyAttr),
           props: [createInterpolation({ from: '${hey}', to: 'a' })]
         });
@@ -1002,7 +1012,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           MyAttr
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(MyAttr),
           props: [createInterpolation({ from: '${hey}', to: 'a' }), createProp({from: '1', to: 'b' })]
         });
@@ -1014,7 +1024,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           NoMultiAttr
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(NoMultiAttr),
           props: [createInterpolation({ from: 'a: ${hey}; b.bind: 1', to: 'a' })]
         });
@@ -1026,7 +1036,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           TemplateControllerAttr
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateTemplateController,
+          type: itHydrateTemplateController,
           res: CustomAttribute.getDefinition(TemplateControllerAttr),
           props: [createInterpolation({ from: '${hey}', to: 'value' })],
           def: {
@@ -1045,7 +1055,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           AttrWithLongBindable
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
-          type: InstructionType.hydrateAttribute,
+          type: itHydrateAttribute,
           res: CustomAttribute.getDefinition(AttrWithLongBindable),
           props: [createInterpolation({ from: '${hey}', to: 'a' })]
         });
@@ -1070,7 +1080,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           hasSlots: false,
           type: 'custom-element',
           instructions: [[{
-            type: InstructionType.hydrateTemplateController,
+            type: itHydrateTemplateController,
             res: CustomAttribute.getDefinition(Foo),
             props: [],
             def: {
@@ -1078,7 +1088,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               needsCompile: false,
               template: '<template><div><!--au*--><!--au-start--><!--au-end--></div></template>',
               instructions: [[{
-                type: InstructionType.hydrateTemplateController,
+                type: itHydrateTemplateController,
                 res: CustomAttribute.getDefinition(Bar),
                 props: [],
                 def: {
@@ -1087,7 +1097,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   template: '<template><div id="2"><!--au*--><!--au-start--><!--au-end--></div></template>',
                   type: 'custom-element',
                   instructions: [[{
-                    type: InstructionType.hydrateTemplateController,
+                    type: itHydrateTemplateController,
                     res: CustomAttribute.getDefinition(Baz),
                     props: [],
                     def: {
@@ -1096,7 +1106,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                       template: '<template><div id="3"><!--au*--><!--au-start--><!--au-end--></div></template>',
                       type: 'custom-element',
                       instructions: [[{
-                        type: InstructionType.hydrateTemplateController,
+                        type: itHydrateTemplateController,
                         res: CustomAttribute.getDefinition(Qux),
                         props: [],
                         def: {
@@ -1144,7 +1154,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             hasSlots: false,
             type: 'custom-element',
             instructions: [[{
-              type: InstructionType.hydrateTemplateController,
+              type: itHydrateTemplateController,
               res: resolveResources ? CustomAttribute.getDefinition(Foo) : 'foo',
               props: [],
               def: {
@@ -1153,7 +1163,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 needsCompile: false,
                 type: 'custom-element',
                 instructions: [[{
-                  type: InstructionType.hydrateTemplateController,
+                  type: itHydrateTemplateController,
                   res: resolveResources ? CustomAttribute.getDefinition(Bar) : 'bar',
                   props: [createIterateProp('i of ii', 'value', [])],
                   def: {
@@ -1162,7 +1172,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     needsCompile: false,
                     type: 'custom-element',
                     instructions: [[{
-                      type: InstructionType.hydrateTemplateController,
+                      type: itHydrateTemplateController,
                       res: resolveResources ? CustomAttribute.getDefinition(Baz) : 'baz',
                       props: [],
                       def: {
@@ -1171,7 +1181,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                         needsCompile: false,
                         type: 'custom-element',
                         instructions: [[{
-                          type: InstructionType.hydrateTemplateController,
+                          type: itHydrateTemplateController,
                           res: resolveResources ? CustomAttribute.getDefinition(Qux) : 'qux',
                           props: [createIterateProp('i of ii', 'value', [])],
                           def: {
@@ -1180,7 +1190,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                             needsCompile: false,
                             type: 'custom-element',
                             instructions: [[{
-                              type: InstructionType.hydrateTemplateController,
+                              type: itHydrateTemplateController,
                               res: resolveResources ? CustomAttribute.getDefinition(Quux) : 'quux',
                               props: [],
                               def: {
@@ -1221,7 +1231,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             hasSlots: false,
             type: 'custom-element',
             instructions: [[{
-              type: InstructionType.hydrateTemplateController,
+              type: itHydrateTemplateController,
               res: resolveResources ? CustomAttribute.getDefinition(Foo) : 'foo',
               props: [],
               def: {
@@ -1230,7 +1240,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 needsCompile: false,
                 type: 'custom-element',
                 instructions: [[{
-                  type: InstructionType.hydrateTemplateController,
+                  type: itHydrateTemplateController,
                   res: resolveResources ? CustomAttribute.getDefinition(Bar) : 'bar',
                   props: [createIterateProp('i of ii', 'value', [])],
                   def: {
@@ -1239,7 +1249,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     needsCompile: false,
                     type: 'custom-element',
                     instructions: [[{
-                      type: InstructionType.hydrateTemplateController,
+                      type: itHydrateTemplateController,
                       res: resolveResources ? CustomAttribute.getDefinition(Baz) : 'baz',
                       props: [],
                       def: {
@@ -1248,7 +1258,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                         needsCompile: false,
                         type: 'custom-element',
                         instructions: [[{
-                          type: InstructionType.hydrateTemplateController,
+                          type: itHydrateTemplateController,
                           res: resolveResources ? CustomAttribute.getDefinition(Qux) : 'qux',
                           props: [createIterateProp('i of ii', 'value', [])],
                           def: {
@@ -1257,7 +1267,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                             needsCompile: false,
                             type: 'custom-element',
                             instructions: [[{
-                              type: InstructionType.hydrateTemplateController,
+                              type: itHydrateTemplateController,
                               res: resolveResources ? CustomAttribute.getDefinition(Quux) : 'quux',
                               props: [],
                               def: {
@@ -1297,7 +1307,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             name: 'unamed',
             template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
             instructions: [[{
-              type: InstructionType.hydrateTemplateController,
+              type: itHydrateTemplateController,
               res: CustomAttribute.getDefinition(Foo),
               props: [],
               def: {
@@ -1306,7 +1316,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 needsCompile: false,
                 type: 'custom-element',
                 instructions: [[{
-                  type: InstructionType.hydrateTemplateController,
+                  type: itHydrateTemplateController,
                   res: CustomAttribute.getDefinition(Bar),
                   props: [],
                   def: {
@@ -1336,7 +1346,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           instructions: [[{
             // for foo=""
             name: 'unamed',
-            type: InstructionType.hydrateTemplateController,
+            type: itHydrateTemplateController,
             res: CustomAttribute.getDefinition(Foo),
             props: [],
             def: {
@@ -1346,7 +1356,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
               instructions: [[{
                 // for bar.for
-                type: InstructionType.hydrateTemplateController,
+                type: itHydrateTemplateController,
                 res: CustomAttribute.getDefinition(Bar),
                 props: [createIterateProp('i of ii', 'value', [])],
                 def: {
@@ -1355,7 +1365,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   needsCompile: false,
                   template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
-                    type: InstructionType.hydrateTemplateController,
+                    type: itHydrateTemplateController,
                     res: CustomAttribute.getDefinition(Baz),
                     props: [createPropBinding({ from: 'e', to: 'value' })],
                     def: {
@@ -1386,7 +1396,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           instructions: [[{
             // for foo=""
             name: 'unamed',
-            type: InstructionType.hydrateTemplateController,
+            type: itHydrateTemplateController,
             res: CustomAttribute.getDefinition(Foo),
             props: [],
             def: {
@@ -1397,7 +1407,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               instructions: [[{
                 // for bar.for
                 name: 'unamed',
-                type: InstructionType.hydrateTemplateController,
+                type: itHydrateTemplateController,
                 res: CustomAttribute.getDefinition(Bar),
                 props: [createIterateProp('i of ii', 'value', [])],
                 def: {
@@ -1407,7 +1417,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
                     name: 'unamed',
-                    type: InstructionType.hydrateTemplateController,
+                    type: itHydrateTemplateController,
                     res: CustomAttribute.getDefinition(Baz),
                     props: [createPropBinding({ from: 'e', to: 'value', mode: 2 })],
                     def: {
@@ -1446,7 +1456,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               ctor: MyEl
             }),
             {
-              type: InstructionType.hydrateAttribute,
+              type: itHydrateAttribute,
               res: CustomAttribute.getDefinition(MyAttr),
               props: []
           }]],
@@ -1617,7 +1627,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         sut.resolveResources = false;
         const definition = sut.compile({ name: 'rando', template: '<my-element ...item>' }, container);
         verifyBindingInstructionsEqual(definition.instructions[0], [
-          new HydrateElementInstruction('my-element', [new SpreadValueBindingInstruction('$bindables', 'item')], null, false, [], {}),
+          { type: itHydrateElement, res: 'my-element', props: [{ type: itSpreadValueBinding, target: '$bindables', from: 'item' }], projections: null, containerless: false, captures: [], data: {} },
         ]);
       });
 
@@ -1626,7 +1636,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         sut.resolveResources = false;
         const definition = sut.compile({ name: 'rando', template: '<my-element ...$bindables="item">' }, container);
         verifyBindingInstructionsEqual(definition.instructions[0], [
-          new HydrateElementInstruction('my-element', [new SpreadValueBindingInstruction('$bindables', 'item')], null, false, [], {}),
+          { type: itHydrateElement, res: 'my-element', props: [{ type: itSpreadValueBinding, target: '$bindables', from: 'item' }], projections: null, containerless: false, captures: [], data: {} },
         ]);
       });
     });
@@ -1653,7 +1663,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new PropertyBindingInstruction(createAccessScopeExpression('id'), 'id', BindingMode.toView)]
+          [{ type: itPropertyBinding, from: createAccessScopeExpression('id'), to: 'id', mode: BindingMode.toView }]
         );
       });
 
@@ -1663,7 +1673,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new InterpolationInstruction(createInterpolation(['', 'a'], [createAccessScopeExpression('a')]), 'id')]
+          [{ type: itInterpolation, from: createInterpolation(['', 'a'], [createAccessScopeExpression('a')]), to: 'id' }]
         );
       });
 
@@ -1688,7 +1698,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           // default value is '' attr pattern changed it to 'bb'
-          [new PropertyBindingInstruction(createAccessScopeExpression('bb'), 'id', BindingMode.toView)]
+          [{ type: itPropertyBinding, from: createAccessScopeExpression('bb'), to: 'id', mode: BindingMode.toView }]
         );
       });
 
@@ -1702,9 +1712,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
-            new PropertyBindingInstruction(createAccessScopeExpression('bb'), 'value', BindingMode.toView)
-          ])]
+          [{ type: itHydrateAttribute, res: CustomAttribute.getDefinition(MyAttr), alias: undefined, props: [
+            { type: itPropertyBinding, from: createAccessScopeExpression('bb'), to: 'value', mode: BindingMode.toView }
+          ]}]
         );
       });
 
@@ -1718,10 +1728,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+          [{ type: itHydrateAttribute, res: CustomAttribute.getDefinition(MyAttr), alias: undefined, props: [
             // this bindingMode.toView is because it's from defaultBindingMode on `@customAttribute`
-            new PropertyBindingInstruction(createAccessScopeExpression('bb'), 'value', BindingMode.toView)
-          ])]
+            { type: itPropertyBinding, from: createAccessScopeExpression('bb'), to: 'value', mode: BindingMode.toView }
+          ]}]
         );
       });
 
@@ -1737,9 +1747,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
-            new InterpolationInstruction(createInterpolation(['', ''], [createAccessScopeExpression('bb')]), 'value')
-          ])]
+          [{ type: itHydrateAttribute, res: CustomAttribute.getDefinition(MyAttr), alias: undefined, props: [
+            { type: itInterpolation, from: createInterpolation(['', ''], [createAccessScopeExpression('bb')]), to: 'value' }
+          ]}]
         );
       });
     });
@@ -1809,19 +1819,19 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         containerless?: boolean;
         captures?: AttrSyntax[];
         data?: Record<PropertyKey, unknown>;
-      }) =>
-        new HydrateElementInstruction(CustomElement.getDefinition(ctor), props, projections as Record<string, IElementComponentDefinition>, containerless, captures, data),
-      createSetProp: ({ value, to }: { value: unknown; to: string }) =>
-        new SetPropertyInstruction(value, to),
-      createRef: (name: string, to: string) => new RefBindingInstruction(parser.parse(name, 'IsProperty'), to),
-      createPropBinding: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
-        new PropertyBindingInstruction(parser.parse(from, 'IsFunction'), to, mode),
-      createAttr: ({ attr, from, to }: { attr: string; from: string; to: string }) =>
-        new AttributeBindingInstruction(attr, parser.parse(from, 'IsProperty'), to),
-      createInterpolation: ({ from, to }: { from: string; to: string }) =>
-        new InterpolationInstruction(parser.parse(from, 'Interpolation'), to),
-      createIterateProp: (expression: string, to: string, props: any[]) =>
-        new IteratorBindingInstruction(parser.parse(expression, 'IsIterator'), to, props)
+      }): HydrateElementInstruction =>
+        ({ type: itHydrateElement, res: CustomElement.getDefinition(ctor), props, projections: projections as Record<string, IElementComponentDefinition>, containerless, captures, data }),
+      createSetProp: ({ value, to }: { value: unknown; to: string }): SetPropertyInstruction =>
+        ({ type: itSetProperty, value, to }),
+      createRef: (name: string, to: string): RefBindingInstruction => ({ type: itRefBinding, from: parser.parse(name, 'IsProperty'), to }),
+      createPropBinding: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }): PropertyBindingInstruction =>
+        ({ type: itPropertyBinding, from: parser.parse(from, 'IsFunction'), to, mode }),
+      createAttr: ({ attr, from, to }: { attr: string; from: string; to: string }): AttributeBindingInstruction =>
+        ({ type: itAttributeBinding, attr, from: parser.parse(from, 'IsProperty'), to }),
+      createInterpolation: ({ from, to }: { from: string; to: string }): InterpolationInstruction =>
+        ({ type: itInterpolation, from: parser.parse(from, 'Interpolation'), to }),
+      createIterateProp: (expression: string, to: string, props: any[]): IteratorBindingInstruction =>
+        ({ type: itIteratorBinding, forOf: parser.parse(expression, 'IsIterator'), to, props })
     };
   }
 });

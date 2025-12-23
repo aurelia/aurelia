@@ -5,7 +5,7 @@ import {
 import {
   ITemplateCompiler,
   IInstruction,
-  InstructionType as TT,
+  itPropertyBinding,
 } from '@aurelia/template-compiler';
 import {
   assert,
@@ -54,7 +54,7 @@ describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
-        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: bindingProp, type: TT.propertyBinding }
+        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.twoWay, to: bindingProp, type: itPropertyBinding }
       ];
       verifyInstructions(rootInstructions[0], expectedElInstructions);
     });
@@ -101,7 +101,7 @@ describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
-        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.toView, to: bindingProp, type: TT.propertyBinding }
+        { toVerify: ['type', 'mode', 'to'], mode: BindingMode.toView, to: bindingProp, type: itPropertyBinding }
       ];
       verifyInstructions(rootInstructions[0], expectedElInstructions);
     });

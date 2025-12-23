@@ -272,7 +272,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private _logger: ILogger | undefined;
+  /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
 
   public link(
     controller: IHydratableController,
@@ -296,7 +296,7 @@ export class Case implements ICustomAttributeViewModel {
 
   public isMatch(value: unknown): boolean {
     if (__DEV__) {
-      (this._logger ??= this.$controller.container.get(ILogger).scopeTo(`Case-#${this.id}`)).debug('isMatch()');
+      this._logger.debug('isMatch()');
     }
     const $value = this.value;
     if (isArray($value)) {

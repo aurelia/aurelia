@@ -1,4 +1,4 @@
-import { createLookup, isString, IContainer, resolve, ILogger, LogLevel } from '@aurelia/kernel';
+import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 

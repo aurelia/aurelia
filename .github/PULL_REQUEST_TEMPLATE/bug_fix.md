@@ -39,6 +39,14 @@ Provide some notes for reviewers to help them provide targeted feedback.
 Please provide a summary of the tests affected by this work and any unique strategies employed in testing the fixes.
 -->
 
+## 📦 Changeset
+
+<!---
+Bug fixes require a changeset. Run `npx changeset`, select `aurelia`, choose `patch`, and write a summary.
+-->
+
+- [ ] Added a changeset via `npx changeset`
+
 ## ⏭ Next Steps
 
 <!---

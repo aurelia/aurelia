@@ -1,241 +1,252 @@
-# Aurelia 2 – Releasing via GitHub Workflows
+# Releasing Aurelia 2
 
-This doc shows **how to cut releases** with our two GitHub workflows, for both the **prerelease** lane (configurable tag, default **beta**) and the **latest** (stable) lane. It's designed to be fast to follow and hard to misuse.
+## What Is This?
 
----
+We use [Changesets](https://github.com/changesets/changesets) to manage versioning and changelogs. Here's the basic idea:
 
-## TL;DR – One‑page cheat sheet
+1. **Contributors** add a small markdown file (a "changeset") to their PR describing what changed
+2. **Release managers** run a GitHub Action that collects all changesets, bumps versions, updates changelogs, and publishes to npm
 
-**Prerelease lane (default tag = `beta`)**
-
-```
-1) Actions → Dev Pre-release → Run → action: enter (tag: beta) → merge the PR
-2) On a feature PR, run `npx changeset` and commit the changeset file
-3) Actions → Release (manual) → lane: dev (or auto) → dry_run: true
-   → Review the "Version Packages (prerelease)" PR
-4) Merge that PR
-5) Actions → Release (manual) → lane: dev (or auto) → dry_run: false
-   → Publishes to npm@<tag> (beta by default)
-6) Verify: `npm view aurelia dist-tags`
-```
-
-**Latest lane (stable)**
-
-```
-1) Actions → Dev Pre-release → Run → action: exit → merge the PR
-2) Ensure changesets are on master (from feature PRs)
-3) Actions → Release (manual) → lane: latest (or auto) → dry_run: true
-   → Review "Version Packages" PR
-4) Merge that PR
-5) Actions → Release (manual) → lane: latest (or auto) → dry_run: false
-   → Publishes to npm@latest
-6) (Optional) Re-enter prerelease: Actions → Dev Pre-release → action: enter (tag: beta)
-```
-
-> **Nothing publishes automatically.** Always merge the **Version Packages PR** first and then run **Release (manual)** again (not dry‑run) to actually publish.
+This keeps changelogs accurate and automates the tedious parts of releasing.
 
 ---
 
-## Workflows & roles
+## Quick Glossary
 
-* **Dev Pre-release**
-  Toggles prerelease mode by opening a PR that adds/removes `.changeset/pre.json`.
-
-  * **Enter** ⇒ subsequent releases target the **prerelease lane**; the **npm dist‑tag and semver pre‑id** come from the workflow input **`tag`** (default `beta`).
-    Example: `2.0.0-beta.26`, published to **`beta`**.
-  * **Exit**  ⇒ subsequent releases target **latest** (stable).
-    It's safe to close the PR if you change your mind—state changes only when merged.
-
-* **Release (manual)**
-  Manually builds and runs Changesets. Two phases:
-
-  1. **Plan phase** (`dry_run: true`) – opens/updates a **Version Packages** PR that bumps versions and writes changelogs.
-     *No tags, no npm publish.*
-  2. **Publish phase** (`dry_run: false`) – after you merge that PR, actually **publishes to npm** (to the prerelease tag from `pre.json` or to `latest`).
+| Term | Meaning |
+|------|---------|
+| **Changeset** | A markdown file in `.changeset/` that describes a change (created by running `npx changeset`) |
+| **Pre-mode** | When the repo is configured to release prereleases like `2.0.0-beta.27` instead of stable versions |
+| **Version PR** | A pull request automatically created by the release workflow that bumps all package versions and updates changelogs |
+| **dist-tag** | npm's way of labeling versions (e.g., `latest` for stable, `beta` for prereleases) |
 
 ---
 
-## Prerequisites
+## Check Current State
 
-* **Secrets:** `NPM_TOKEN` (publish to all packages).
-* **Changesets config:** `.changeset/config.json` with:
-
-  * `fixed`: **explicit lockstep list** of all publishable packages (so a single `"aurelia": patch` bumps everything together and updates inter‑package ranges).
-  * `ignore`: non‑publish workspaces (examples, e2e, test helpers, benchmarks).
-  * `privatePackages: { "version": false, "tag": false }`.
-* **Commit hooks:** The Release workflow disables Husky hooks so the bot can commit its "Version Packages" branch cleanly.
-* **Each feature PR:** includes a **changeset** created with `npx changeset` (short summaries). With a **fixed** group, selecting **`aurelia`** is enough—everything bumps in lockstep.
-
----
-
-## Prerelease lane — step‑by‑step (default tag = `beta`)
-
-### 1) Enter prerelease mode
-
-* **Actions → Dev Pre-release → Run workflow →**
-  **action:** `enter`, **tag:** `beta` (or `rc`, etc.) → merge the PR that adds `.changeset/pre.json`.
-
-### 2) Land changes with a changeset
-
-On your feature branch:
+Before releasing, check what state the repo is in:
 
 ```bash
-# Make your change inside a publishable package
-npx changeset
-# pick target package(s) (tip: select "aurelia"), choose patch/minor/major, write a short summary
-git add .
-git commit -m "feat: thing X (changeset)"
-git push
-# open PR and merge as usual
-```
+# Are we in pre-mode (beta/rc) or stable mode?
+ls .changeset/pre.json 2>/dev/null && echo "In pre-mode (beta/rc releases)" || echo "In stable mode"
 
-### 3) Draft the release (no publishing)
-
-* **Actions → Release (manual) → Run workflow**
-
-  * **lane:** `dev` (or `auto`)
-  * **dry_run:** `true`
-* This opens/updates a **"Version Packages (prerelease)"** PR with:
-
-  * version bumps,
-  * per‑package `CHANGELOG.md` entries (from your changeset summaries),
-  * dependency range updates across packages (lockstep).
-
-Review the PR. If it looks wrong, adjust/add changesets in a new PR, merge, and re‑run the plan to regenerate.
-
-### 4) Approve the release plan
-
-* **Merge** the "Version Packages (prerelease)" PR into `master`.
-  *(Merging does not publish.)*
-
-### 5) Publish to npm@<tag>
-
-* **Actions → Release (manual) → Run workflow** again:
-
-  * **lane:** `dev` (or `auto`)
-  * **dry_run:** `false`
-* Publishes the prepared versions to **npm with the prerelease dist‑tag** from `.changeset/pre.json` (e.g. `beta`).
-
-### 6) Verify
-
-```bash
+# What's currently published?
 npm view aurelia dist-tags
-npm view @aurelia/kernel versions | tail -n 10
+
+# Any pending changesets waiting to be released?
+npx changeset status
 ```
 
-`beta` (or your chosen tag) should point to your new `x.y.z-<tag>.N`. `latest` remains unchanged.
+---
+
+## For Contributors
+
+When your PR changes published packages (features, bug fixes, refactors), add a changeset:
+
+```bash
+npx changeset
+```
+
+The wizard asks three questions:
+1. **Which packages?** → Select `aurelia` (all 30+ packages release together as one version)
+2. **Bump type?** → `patch` for fixes, `minor` for features, `major` for breaking changes
+3. **Summary?** → One line describing the change (this goes in the changelog)
+
+This creates a file like `.changeset/friendly-words-here.md`. Commit it with your PR.
+
+**When to skip:** Docs-only changes, test-only changes, examples, and e2e tests don't need changesets.
 
 ---
 
-## Latest lane (stable) — step‑by‑step
+## For Release Managers
 
-### 1) Exit prerelease mode
+### Releasing a Beta (e.g., beta.27)
 
-* **Actions → Dev Pre-release → Run workflow → action: `exit`** → merge the PR that removes `.changeset/pre.json`.
+The repo must be in pre-mode. Check with `ls .changeset/pre.json`.
 
-### 2) Draft the release
+**Steps:**
 
-* Ensure pending changesets exist on `master` (from feature PRs).
-* **Actions → Release (manual) → Run workflow**
+1. **Check for pending changesets**
+   ```bash
+   npx changeset status
+   ```
+   If empty, no PRs included changesets — you need at least one to release.
 
-  * **lane:** `latest` (or `auto`)
-  * **dry_run:** `true`
-* Review the **"Version Packages"** PR (stable). If needed, adjust changesets and re‑run.
+2. **Create the Version PR**
+   - Go to GitHub → Actions → **Release (manual)**
+   - Set: `lane: auto`, `dry_run: true`
+   - Click "Run workflow"
 
-### 3) Approve and publish
+   This creates a PR titled "Version Packages (prerelease)" that shows:
+   - Version bumps (e.g., `beta.26` → `beta.27`)
+   - Changelog updates
+   - The changeset files will be deleted (they've been "consumed")
 
-* **Merge** the Version Packages PR.
-* **Run Release (manual)** again (lane `latest`, `dry_run: false`) to publish to **npm@latest**.
+3. **Review and merge the Version PR**
 
-### 4) (Optional) Re‑enter prerelease
+   Check that versions and changelog look right. Merge when satisfied.
 
-* **Actions → Dev Pre-release → Run → action: `enter` (tag: `beta`)**
-  Now future cuts go to your prerelease tag again.
+   ⚠️ Merging does NOT publish to npm yet.
+
+4. **Publish to npm**
+   - Go to GitHub → Actions → **Release (manual)**
+   - Set: `lane: auto`, `dry_run: false`
+   - Click "Run workflow"
+
+5. **Verify**
+   ```bash
+   npm view aurelia dist-tags
+   # Should show: beta: 2.0.0-beta.27
+   ```
+
+6. **Add @latest dist-tag** (optional but recommended)
+
+   Users expect `npm install aurelia` to get the current beta. To also tag the release as `@latest`:
+
+   - Go to GitHub → Actions → **Add @latest dist-tags (manual)**
+   - Enter the version: `2.0.0-beta.27`
+   - Optionally enable `dry_run` to preview first
+   - Click "Run workflow"
+
+   This runs `npm dist-tag add <package>@<version> latest` for all packages.
+
+### Releasing Stable (e.g., 2.0.0)
+
+First, exit pre-mode to switch from beta versions to stable versions.
+
+**Steps:**
+
+1. **Exit pre-mode**
+   - Go to GitHub → Actions → **Dev Pre-release**
+   - Set: `action: exit`
+   - Click "Run workflow"
+   - This creates a PR that removes `.changeset/pre.json` — merge it
+
+2. **Create the Version PR** (same as beta, step 2)
+   - Actions → **Release (manual)** → `lane: auto`, `dry_run: true`
+   - The PR will show stable versions (e.g., `2.0.0` not `2.0.0-beta.X`)
+
+3. **Review and merge the Version PR**
+
+4. **Publish to npm**
+   - Actions → **Release (manual)** → `lane: auto`, `dry_run: false`
+
+5. **Verify**
+   ```bash
+   npm view aurelia dist-tags
+   # Should show: latest: 2.0.0
+   ```
+
+6. **(Optional) Re-enter pre-mode** for the next beta cycle
+   - Actions → **Dev Pre-release** → `action: enter`, `tag: beta`
+
+### Entering Pre-Mode (Starting a Beta Cycle)
+
+If you want to start releasing betas (e.g., for 2.1.0):
+
+- Go to GitHub → Actions → **Dev Pre-release**
+- Set: `action: enter`, `tag: beta`
+- Click "Run workflow"
+- Merge the PR that's created
+
+Now all releases will be `X.Y.Z-beta.N` until you exit pre-mode.
 
 ---
 
-## Understanding **`lane`** and **`dry_run`**
+## How the Pieces Fit Together
 
-* **`lane` input:** `auto | dev | latest`
+```
+Contributors                          Release Managers
+     │                                      │
+     │  1. Make code changes                │
+     │  2. Run: npx changeset               │
+     │  3. Commit the .changeset/*.md file  │
+     │  4. Open PR ─────────────────────►  Merge PR
+     │                                      │
+     │                            5. Run workflow (dry_run: true)
+     │                               └─► Creates "Version PR"
+     │                                      │
+     │                            6. Review Version PR
+     │                               └─► Versions, changelogs look good?
+     │                                      │
+     │                            7. Merge Version PR
+     │                               └─► Changeset files deleted
+     │                               └─► Versions bumped in package.json
+     │                               └─► CHANGELOGs updated
+     │                                      │
+     │                            8. Run workflow (dry_run: false)
+     │                               └─► Published to npm!
+```
 
-  * `auto` = if `.changeset/pre.json` exists → **dev** (prerelease); else **latest** (stable).
-  * `dev`   = force **prerelease** lane (uses the tag inside `.changeset/pre.json`, e.g. `beta`).
-  * `latest`= force **stable** lane.
-
-* **`dry_run: true` (plan only):**
-
-  * **Does not** run `changeset publish`.
-  * **Does not** create git tags.
-  * **Does** open/update the **Version Packages PR**.
-
-* **`dry_run: false` (publish):**
-
-  * After you merge the Version PR, it **publishes to npm** and creates git tags.
-
-> We **do not** create GitHub Releases in the workflows (to avoid size limits on large monorepos). Your source of truth is the per‑package `CHANGELOG.md` plus git tags. If you want Releases for stable cuts, add them separately.
-
----
-
-## Common tasks
-
-### Cancel / postpone a release
-
-* **Close** the Version Packages PR. Nothing publishes.
-  Re‑run **Release (manual)** later to regenerate it.
-
-### Prevent accidental publishes
-
-* Keep non‑publish workspaces `"private": true` and listed in `ignore`.
-* Release is **manual**; nothing happens on a normal push to `master`.
+**Key safety feature:** Nothing publishes automatically. You always have to:
+1. Review the Version PR
+2. Explicitly run the publish step
 
 ---
 
 ## Troubleshooting
 
-* **Wizard says "no packages changed"**
-  You edited only root files or ignored/private workspaces.
-  Edit inside a publishable package, or use the wizard's "show all packages", or add a changeset file manually.
+### "No packages changed" error
+No changeset files exist. Either:
+- Merge a PR that includes a changeset, or
+- Create one manually: `npx changeset` → select `aurelia` → commit and push
 
-* **Examples/e2e/benchmarks show up**
-  Ensure they are `"private": true` and listed in `ignore` by **package name**.
+### Version PR shows wrong versions
+Close the PR, fix the changesets, and re-run the workflow with `dry_run: true`.
 
-* **Release run did nothing**
-  There were no changesets on `master`. Create/merge a PR with a changeset and re‑run.
+### Want to cancel a release
+Just close the Version PR. Nothing publishes until you explicitly run `dry_run: false`.
 
-* **Want to switch prerelease id/tag (e.g., dev → beta)**
-  Run **Dev Pre-release → action: exit** → merge.
-  Then **Dev Pre-release → action: enter (tag: beta)** → merge.
-  Run **Release (manual)** with `dry_run: true` to regenerate the Version PR with `-beta.N`, merge, then publish.
+### Config error about a deleted package
+A package was removed but still listed in `.changeset/config.json`. Edit the `fixed` array to remove it.
 
 ---
 
-## Quick reference commands
+## Reference
 
-Preview the plan locally:
+### Workflow Inputs
+
+**Release (manual):**
+| Input | Options | What it does |
+|-------|---------|--------------|
+| `lane` | `auto` | Detects beta vs stable from pre.json |
+| | `dev` | Force prerelease mode |
+| | `latest` | Force stable mode |
+| `dry_run` | `true` | Only create/update Version PR |
+| | `false` | Actually publish to npm |
+
+**Dev Pre-release:**
+| Input | Options | What it does |
+|-------|---------|--------------|
+| `action` | `enter` | Start releasing betas/rcs |
+| | `exit` | Switch back to stable releases |
+| `tag` | `beta`, `rc`, etc. | The prerelease label |
+
+**Add @latest dist-tags (manual):**
+| Input | Options | What it does |
+|-------|---------|--------------|
+| `version` | e.g., `2.0.0-beta.27` | Version to tag as `@latest` |
+| `dry_run` | `true` | Preview commands only |
+| | `false` | Actually update dist-tags |
+
+### Local Commands
 
 ```bash
-npx changeset status --verbose
-```
-
-Check npm tags:
-
-```bash
-npm view aurelia dist-tags
-npm view @aurelia/router versions | tail -n 10
+npx changeset status          # See pending changesets
+npx changeset                 # Create a new changeset
+npx changeset pre enter beta  # Enter pre-mode locally
+npx changeset pre exit        # Exit pre-mode locally
 ```
 
 ---
 
-## Release cadence recommendation
+## First-Time Setup
 
-Keep the repo **in prerelease most of the time**:
+If changesets has never been used or the config is broken:
 
-```
-[enter (tag: beta)] --beta.0--> --beta.1--> --beta.2--> [exit] --latest--> [enter (tag: beta)] --beta.0--> ...
-```
+1. Check `.changeset/config.json` exists and lists all packages in the `fixed` array
+2. Enter pre-mode if releasing betas: `npx changeset pre enter beta`
+3. Create at least one changeset summarizing changes since last release
+4. Run the release workflow
 
-Early adopters pull `@beta` often while stable users only see intentional cuts to `latest`.
-
----
-
-If anything in the workflows changes, update this doc in the repo (`docs/RELEASING.md`) so the steps stay in sync.
+See [PR #2332](https://github.com/aurelia/aurelia/pull/2332) for an example of bootstrapping the workflow.

@@ -1261,7 +1261,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
-   * Mark an element as a hydration target by inserting an <au-m> marker before it.
+   * Mark an element as a hydration target by inserting an <!--au--> marker before it.
    *
    * @internal
    */
@@ -1273,11 +1273,11 @@ export class TemplateCompiler implements ITemplateCompiler {
   /**
    * Replace an element with a marker, and return the marker.
    * Used for containerless elements and template controllers.
-   * Creates `<au-m><!--au-start--><!--au-end-->` structure.
+   * Creates `<!--au--><!--au-start--><!--au-end-->` structure.
    *
    * @internal
    */
-  private _replaceByMarker(node: Node, context: CompilationContext): Element {
+  private _replaceByMarker(node: Node, context: CompilationContext): Comment {
     if (isMarker(node)) {
       return node;
     }
@@ -1453,9 +1453,9 @@ export class TemplateCompiler implements ITemplateCompiler {
 }
 
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
-/** Check if a node is an <au-m> marker element */
-const isMarker = (el: Node): el is Element =>
-  el.nodeType === 1 && (el as Element).nodeName === 'AU-M';
+/** Check if a node is an <!--au--> marker comment */
+const isMarker = (el: Node): el is Comment =>
+  el.nodeType === 8 && (el as Comment).textContent === 'au';
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
@@ -1525,12 +1525,12 @@ class CompilationContext {
   }
 
   /**
-   * Create an `<au-m>` marker element.
+   * Create an `<!--au-->` marker comment.
    * The target node is always the marker's nextSibling.
    * Implicit indexing via document order.
    */
   public _marker() {
-    return this.h('au-m');
+    return this._comment('au');
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];

@@ -518,8 +518,8 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
 
   const createStartLocation = () => PLATFORM.document.createComment('au-start');
   const createEndLocation = () => PLATFORM.document.createComment('au-end');
-  // Use <au-m> marker element - target is marker.nextSibling
-  const marker = PLATFORM.document.createElement('au-m');
+  // Use <!--au--> marker comment - target is marker.nextSibling
+  const marker = PLATFORM.document.createComment('au');
   const text = PLATFORM.document.createTextNode(' ');
   const textTemplate = PLATFORM.document.createElement('template');
   // Order matters: marker followed by text node (the target for text interpolation)

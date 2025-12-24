@@ -28,10 +28,10 @@ describe('3-runtime-html/dom.spec.ts', function () {
   const widthArr = [1, 2, 3];
   const depthArr = [0, 1, 2, 3];
 
-  describe('[UNIT] findTargets - <au-m> marker system', function () {
-    it('finds element targets via <au-m> marker', function () {
+  describe('[UNIT] findTargets - <!--au--> marker system', function () {
+    it('finds element targets via <!--au--> marker', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><au-m></au-m><div></div></template>`;
+      node.innerHTML = `<template><!--au--><div></div></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -42,7 +42,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds multiple element targets in document order', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><au-m></au-m><div></div><au-m></au-m><span></span><au-m></au-m><p></p></template>`;
+      node.innerHTML = `<template><!--au--><div></div><!--au--><span></span><!--au--><p></p></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -55,8 +55,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds comment marker targets (text interpolation)', function () {
       const node = ctx.doc.createElement('div');
-      // <au-m></au-m> followed by text node (space)
-      node.innerHTML = `<template><au-m></au-m> </template>`;
+      // <!--au--> followed by text node (space)
+      node.innerHTML = `<template><!--au--> </template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -68,8 +68,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds render location targets (containerless/TC)', function () {
       const node = ctx.doc.createElement('div');
-      // <au-m></au-m><!--au-start--><!--au-end-->
-      node.innerHTML = `<template><au-m></au-m><!--au-start--><!--au-end--></template>`;
+      // <!--au--><!--au-start--><!--au-end-->
+      node.innerHTML = `<template><!--au--><!--au-start--><!--au-end--></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -85,7 +85,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
     it('finds mixed element and comment targets with correct indices', function () {
       const node = ctx.doc.createElement('div');
       // Mix: text interpolation, element, TC, element
-      node.innerHTML = `<template><au-m></au-m> <au-m></au-m><div></div><au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><span></span></template>`;
+      node.innerHTML = `<template><!--au--> <!--au--><div></div><!--au--><!--au-start--><!--au-end--><!--au--><span></span></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -99,7 +99,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('finds deeply nested element targets', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><div><span><au-m></au-m><p></p></span></div></template>`;
+      node.innerHTML = `<template><div><span><!--au--><p></p></span></div></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -111,7 +111,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
     it('finds targets in document order (implicit indexing)', function () {
       const node = ctx.doc.createElement('div');
       // 3 markers, targets in document order (0, 1, 2)
-      node.innerHTML = `<template><au-m></au-m><div></div><au-m></au-m><span></span><au-m></au-m><p></p></template>`;
+      node.innerHTML = `<template><!--au--><div></div><!--au--><span></span><!--au--><p></p></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       const actual = sut.findTargets();
@@ -124,8 +124,8 @@ describe('3-runtime-html/dom.spec.ts', function () {
 
     it('handles 10+ targets correctly (implicit ordering)', function () {
       const node = ctx.doc.createElement('div');
-      // Each <au-m> marker is followed by a <div> target
-      const elements = Array(12).fill(0).map(() => `<au-m></au-m><div></div>`).join('');
+      // Each <!--au--> marker is followed by a <div> target
+      const elements = Array(12).fill(0).map(() => `<!--au--><div></div>`).join('');
       node.innerHTML = `<template>${elements}</template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
@@ -137,21 +137,27 @@ describe('3-runtime-html/dom.spec.ts', function () {
       }
     });
 
-    it('removes <au-m> markers after processing', function () {
+    it('removes <!--au--> markers after processing', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><au-m></au-m> <au-m></au-m> </template>`;
+      node.innerHTML = `<template><!--au--> <!--au--> </template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       sut.findTargets();
 
-      // Check that <au-m> elements are removed
-      const markers = fragment.querySelectorAll('au-m');
-      assert.strictEqual(markers.length, 0, 'no <au-m> markers should remain');
+      // Check that <!--au--> markers are removed
+      // NodeFilter.SHOW_COMMENT = 128
+      const walker = ctx.doc.createTreeWalker(fragment, 128);
+      const comments: string[] = [];
+      while (walker.nextNode()) {
+        comments.push((walker.currentNode as Comment).textContent!);
+      }
+      // No 'au' comments should remain
+      assert.strictEqual(comments.filter(c => c === 'au').length, 0, 'no <!--au--> markers should remain');
     });
 
     it('preserves au-start/au-end comments for render locations', function () {
       const node = ctx.doc.createElement('div');
-      node.innerHTML = `<template><au-m></au-m><!--au-start--><!--au-end--></template>`;
+      node.innerHTML = `<template><!--au--><!--au-start--><!--au-end--></template>`;
       const fragment = (node.firstElementChild as HTMLTemplateElement).content;
       sut = new FragmentNodeSequence(ctx.platform, fragment);
       sut.findTargets();

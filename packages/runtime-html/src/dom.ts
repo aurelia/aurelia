@@ -268,6 +268,23 @@ export function partitionSiblingNodes(
   return partitions;
 }
 
+/**
+ * Collect all `<!--au-->` marker comments from a fragment in document order.
+ * Uses native TreeWalker with SHOW_COMMENT filter for optimal performance.
+ */
+function collectMarkerComments(fragment: DocumentFragment): Comment[] {
+  const markers: Comment[] = [];
+  // NodeFilter.SHOW_COMMENT = 128
+  const walker = fragment.ownerDocument!.createTreeWalker(fragment, 128);
+  let node: Comment | null;
+  while ((node = walker.nextNode() as Comment | null) !== null) {
+    if (node.textContent === 'au') {
+      markers.push(node);
+    }
+  }
+  return markers;
+}
+
 export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
   private _firstChild: Node | null;
@@ -304,22 +321,22 @@ export class FragmentNodeSequence implements INodeSequence {
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
     /**
-     * When true, preserves `<au-m>` markers in the DOM.
+     * When true, preserves `<!--au-->` markers in the DOM.
      * Used during SSR rendering to keep markers for client hydration.
      * @internal
      */
     preserveMarkers?: boolean,
   ) {
-    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
+    const markers = collectMarkerComments(this.f = fragment);
     let i = 0;
-    let ii = targetNodeList.length;
+    let ii = markers.length;
     // eslint-disable-next-line
     let targets = this.t = Array(ii);
     let target: Node | IRenderLocation;
-    let marker: Element;
+    let marker: Comment;
 
     while (ii > i) {
-      marker = targetNodeList[i];
+      marker = markers[i];
       target = marker.nextSibling!;
       if (!preserveMarkers) {
         marker.remove();
@@ -383,9 +400,9 @@ export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
   private _collectTargetsFromSiblings(nodes: Node[]): Node[] {
     const targets: Node[] = [];
-    const markers: Element[] = [];
+    const markers: Comment[] = [];
 
-    // Collect <au-m> markers at the current template level.
+    // Collect <!--au--> markers at the current template level.
     // Skip content between au-start/au-end as that belongs to nested templates.
     const collectFromChildren = (nodeList: NodeListOf<ChildNode>): void => {
       let skipDepth = 0;
@@ -395,7 +412,13 @@ export class FragmentNodeSequence implements INodeSequence {
         // Track au-start/au-end depth to skip nested template content
         if (node.nodeType === 8 /* Comment */) {
           const text = (node as Comment).textContent;
-          if (text === 'au-start') {
+          if (text === 'au') {
+            // Only collect marker if not inside au-start/au-end region
+            if (skipDepth === 0) {
+              markers.push(node as Comment);
+            }
+            continue;
+          } else if (text === 'au-start') {
             skipDepth++;
             continue;
           } else if (text === 'au-end') {
@@ -409,10 +432,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
         if (node.nodeType === 1 /* Element */) {
           const el = node as Element;
-          if (el.nodeName === 'AU-M') {
-            markers.push(el);
-            continue;
-          }
           // Custom elements have their own templates - don't recurse
           if (el.tagName.includes('-')) {
             continue;
@@ -424,12 +443,12 @@ export class FragmentNodeSequence implements INodeSequence {
     };
 
     // Collect from the top-level sibling nodes
-    // Top level nodes are already partitioned, so just handle au-m markers
+    // Top level nodes are already partitioned, so just handle <!--au--> markers
     // and recurse into elements
     for (let i = 0, ii = nodes.length; ii > i; ++i) {
       const node = nodes[i];
-      if (node.nodeType === 1 && (node as Element).nodeName === 'AU-M') {
-        markers.push(node as Element);
+      if (node.nodeType === 8 && (node as Comment).textContent === 'au') {
+        markers.push(node as Comment);
       } else if (node.nodeType === 1) {
         const el = node as Element;
         // Custom elements have their own templates - don't recurse
@@ -463,7 +482,7 @@ export class FragmentNodeSequence implements INodeSequence {
   /**
    * Collect targets from existing DOM for SSR adoption.
    *
-   * Uses <au-m> markers with implicit indexing (document order).
+   * Uses `<!--au-->` markers with implicit indexing (document order).
    * Unlike the constructor, this preserves markers because nested components
    * still need them for their own hydration.
    *
@@ -479,9 +498,9 @@ export class FragmentNodeSequence implements INodeSequence {
    */
   private _collectTargetsFromHost(host: Element): Node[] {
     const targets: Node[] = [];
-    const markers: Element[] = [];
+    const markers: Comment[] = [];
 
-    // Collect <au-m> markers at the current template level.
+    // Collect <!--au--> markers at the current template level.
     // Skip content between au-start/au-end as that belongs to nested templates.
     const collectSiblings = (nodeList: NodeListOf<ChildNode>): void => {
       let skipDepth = 0;
@@ -491,7 +510,13 @@ export class FragmentNodeSequence implements INodeSequence {
         // Track au-start/au-end depth to skip nested template content
         if (node.nodeType === 8 /* Comment */) {
           const text = (node as Comment).textContent;
-          if (text === 'au-start') {
+          if (text === 'au') {
+            // Only collect marker if not inside au-start/au-end region
+            if (skipDepth === 0) {
+              markers.push(node as Comment);
+            }
+            continue;
+          } else if (text === 'au-start') {
             skipDepth++;
             continue;
           } else if (text === 'au-end') {
@@ -505,10 +530,6 @@ export class FragmentNodeSequence implements INodeSequence {
 
         if (node.nodeType === 1 /* Element */) {
           const el = node as Element;
-          if (el.nodeName === 'AU-M') {
-            markers.push(el);
-            continue;
-          }
           // Custom elements have their own templates - don't recurse
           if (el.tagName.includes('-')) {
             continue;

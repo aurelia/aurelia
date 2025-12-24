@@ -144,8 +144,8 @@ export class Rendering implements IRendering {
         fragment = tpl.content;
         needsImportNode = true;
       }
-      // No marker transformation needed - <au-m> markers are used directly
-      // and targets are found via querySelectorAll('au-m')
+      // No marker transformation needed - <!--au--> markers are used directly
+      // and targets are found via comment text matching
 
       cache.set(definition, fragment);
     }

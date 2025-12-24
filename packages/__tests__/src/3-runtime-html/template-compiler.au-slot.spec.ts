@@ -57,7 +57,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
   it('compiles default <au-slot> as the only child', function () {
     const { template, instructions } = compileTemplate('<au-slot></au-slot>');
-    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end-->');
+    assertTemplateEqual(template, '<!--au--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
   });
 
@@ -67,7 +67,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     );
     assertTemplateEqual(
       template,
-      '<au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><!--au-start--><!--au-end-->'
+      '<!--au--><!--au-start--><!--au-end--><!--au--><!--au-start--><!--au-end-->'
     );
     assertAuSlotFallback(instructions[0][0], null);
     assertAuSlotFallback(instructions[1][0], null);
@@ -79,11 +79,11 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     );
     assertTemplateEqual(
       template,
-      '<au-m></au-m><!--au-start--><!--au-end-->'
+      '<!--au--><!--au-start--><!--au-end-->'
     );
     assertAuSlotFallback(
       instructions[0][0],
-      { template: '<au-m></au-m><div></div>', instructions: [
+      { template: '<!--au--><div></div>', instructions: [
         [createProp({ from: 'b', to: 'a' })]
       ]}
     );
@@ -95,11 +95,11 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     );
     assertTemplateEqual(
       template,
-      '<au-m></au-m><!--au-start--><!--au-end-->'
+      '<!--au--><!--au-start--><!--au-end-->'
     );
     assertAuSlotFallback(
       instructions[0][0],
-      { template: '<au-m></au-m> ', instructions: [
+      { template: '<!--au--> ', instructions: [
         [createTextInterpolation({ from: 'message' })]
       ]}
     );
@@ -107,19 +107,19 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
   it('compiles together with slot', function () {
     const { template, instructions } = compileTemplate('<slot></slot><au-slot></au-slot>');
-    assertTemplateEqual(template, '<slot></slot><au-m></au-m><!--au-start--><!--au-end-->');
+    assertTemplateEqual(template, '<slot></slot><!--au--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
   });
 
   it('compiles named <au-slot>', function () {
     const { template, instructions } = compileTemplate('<au-slot name="s1"></au-slot>');
-    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end-->');
+    assertTemplateEqual(template, '<!--au--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
   });
 
   it('compiles default <au-slot> mixed with named <au-slot>', function () {
     const { template, instructions } = compileTemplate('<au-slot name="s1"></au-slot><au-slot></au-slot>');
-    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><!--au-start--><!--au-end-->');
+    assertTemplateEqual(template, '<!--au--><!--au-start--><!--au-end--><!--au--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
     assertAuSlotFallback(instructions[1][0], null);
   });
@@ -129,9 +129,9 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><div au-slot a.bind="b">',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], { default: {
-      template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]]
+      template: '<!--au--><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]]
     } });
   });
 
@@ -140,7 +140,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><div>',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], { default: {
       template: '<div></div>', instructions: []
     } });
@@ -151,7 +151,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><div au-slot="">',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], { default: {
       template: '<div></div>', instructions: []
     } });
@@ -162,7 +162,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<au-slot></au-slot><el><div au-slot="">',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><!--au-start--><!--au-end--><au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><!--au-start--><!--au-end--><!--au--><el></el>');
     assertAuSlotFallback(instructions[0][0], null);
     assertProjection(instructions[1][0], { default: {
       template: '<div></div>', instructions: []
@@ -174,9 +174,9 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><div au-slot="s1" a.bind="b">',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], { s1: {
-      template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]]
+      template: '<!--au--><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]]
     } });
   });
 
@@ -185,7 +185,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><div></div><div au-slot="s1">',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], {
       default: { template: '<div></div>', instructions: [] },
       s1: { template: '<div></div>', instructions: [] },
@@ -197,9 +197,9 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><au-slot au-slot>',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], { default: {
-      template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything
+      template: '<!--au--><!--au-start--><!--au-end-->', instructions: anything
     } });
     assertAuSlotFallback(
       (instructions[0][0] as HydrateElementInstruction).projections.default.instructions[0][0],
@@ -212,13 +212,13 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       '<el><au-slot au-slot"><div a.bind="b">',
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], { default: {
-      template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything
+      template: '<!--au--><!--au-start--><!--au-end-->', instructions: anything
     } });
     assertAuSlotFallback(
       (instructions[0][0] as HydrateElementInstruction).projections.default.instructions[0][0],
-      { template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]] }
+      { template: '<!--au--><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]] }
     );
   });
 
@@ -234,18 +234,18 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       ].join(''),
       $createCustomElement('', 'el')
     );
-    assertTemplateEqual(template, '<au-m></au-m><el></el>');
+    assertTemplateEqual(template, '<!--au--><el></el>');
     assertProjection(instructions[0][0], {
-      default: { template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything },
-      s1: { template: '<au-m></au-m><!--au-start--><!--au-end-->', instructions: anything }
+      default: { template: '<!--au--><!--au-start--><!--au-end-->', instructions: anything },
+      s1: { template: '<!--au--><!--au-start--><!--au-end-->', instructions: anything }
     });
     assertAuSlotFallback(
       (instructions[0][0] as HydrateElementInstruction).projections.default.instructions[0][0],
-      { template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]] }
+      { template: '<!--au--><div></div>', instructions: [[createProp({ from: 'b', to: 'a' })]] }
     );
     assertAuSlotFallback(
       (instructions[0][0] as HydrateElementInstruction).projections.s1.instructions[0][0],
-      { template: '<au-m></au-m><div></div>', instructions: [[createProp({ from: 'a', to: 'b' })]] }
+      { template: '<!--au--><div></div>', instructions: [[createProp({ from: 'a', to: 'b' })]] }
     );
   });
 
@@ -272,7 +272,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     yield new TestData(
       `<my-element><au-slot au-slot><div au-slot="s1">p1</div><div au-slot="s1">p2</div></au-slot></my-element>`,
       [$createCustomElement('', 'my-element')],
-      [['my-element', { 'default': '<au-m></au-m><!--au-start--><!--au-end-->' }]],
+      [['my-element', { 'default': '<!--au--><!--au-start--><!--au-end-->' }]],
       [],
     );
 

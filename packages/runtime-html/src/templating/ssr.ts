@@ -96,7 +96,7 @@ export function isSSRScope(child: ISSRScopeChild): child is ISSRScope {
 }
 
 export interface ISSRContext {
-  /** When true, preserve `<au-m>` markers in DOM for hydration. */
+  /** When true, preserve `<!--au-->` markers in DOM for hydration. */
   readonly preserveMarkers: boolean;
 }
 

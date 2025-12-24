@@ -38,7 +38,6 @@
       "@aurelia/validation-i18n",
       "@aurelia/web-components",
       "@aurelia/babel-jest",
-      "@aurelia/http-server",
       "@aurelia/parcel-transformer",
       "@aurelia/plugin-conventions",
       "@aurelia/plugin-gulp",

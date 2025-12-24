@@ -202,23 +202,29 @@ interface NestedTemplateHtmlNode {
   nested: NestedTemplateHtmlNode[];
 }
 
-/** Binding mode string */
-type BindingModeString = 'default' | 'oneTime' | 'toView' | 'fromView' | 'twoWay';
+/** Binding mode (numeric, matches BindingMode enum) */
+type BindingModeValue = typeof BindingMode[keyof typeof BindingMode];
 
-/** Union of all serialized instruction types */
+/** Instruction type codes (numeric, matches itXxx constants) */
+type InstructionType = typeof itPropertyBinding | typeof itTextBinding | typeof itInterpolation
+  | typeof itListenerBinding | typeof itRefBinding | typeof itSetProperty | typeof itSetAttribute
+  | typeof itHydrateElement | typeof itHydrateAttribute | typeof itHydrateTemplateController
+  | typeof itHydrateLetElement | typeof itIteratorBinding;
+
+/** Union of all serialized instruction types (numeric type discriminants) */
 type SerializedInstruction =
-  | { type: 'propertyBinding'; exprId: ExprId; to: string; mode: BindingModeString }
-  | { type: 'textBinding'; exprIds: ExprId[]; parts: string[] }
-  | { type: 'interpolation'; exprIds: ExprId[]; parts: string[]; to: string }
-  | { type: 'listenerBinding'; exprId: ExprId; to: string; capture: boolean; modifier?: string | null }
-  | { type: 'refBinding'; exprId: ExprId; to: string }
-  | { type: 'setProperty'; value: unknown; to: string }
-  | { type: 'setAttribute'; value: string; to: string }
-  | { type: 'hydrateElement'; resource: string; instructions: SerializedInstruction[]; containerless?: boolean }
-  | { type: 'hydrateAttribute'; resource: string; alias?: string; instructions: SerializedInstruction[] }
-  | { type: 'hydrateTemplateController'; resource: string; templateIndex: number; instructions: SerializedInstruction[] }
-  | { type: 'hydrateLetElement'; bindings: { exprId: ExprId; to: string }[]; toBindingContext: boolean }
-  | { type: 'iteratorBinding'; exprId: ExprId; to: string; aux?: { exprId: ExprId; name: string }[] };
+  | { type: typeof itPropertyBinding; exprId: ExprId; to: string; mode: BindingModeValue }
+  | { type: typeof itTextBinding; exprIds: ExprId[]; parts: string[] }
+  | { type: typeof itInterpolation; exprIds: ExprId[]; parts: string[]; to: string }
+  | { type: typeof itListenerBinding; exprId: ExprId; to: string; capture: boolean; modifier?: string | null }
+  | { type: typeof itRefBinding; exprId: ExprId; to: string }
+  | { type: typeof itSetProperty; value: unknown; to: string }
+  | { type: typeof itSetAttribute; value: string; to: string }
+  | { type: typeof itHydrateElement; resource: string; instructions: SerializedInstruction[]; containerless?: boolean }
+  | { type: typeof itHydrateAttribute; resource: string; alias?: string; instructions: SerializedInstruction[] }
+  | { type: typeof itHydrateTemplateController; resource: string; templateIndex: number; instructions: SerializedInstruction[] }
+  | { type: typeof itHydrateLetElement; bindings: { exprId: ExprId; to: string }[]; toBindingContext: boolean }
+  | { type: typeof itIteratorBinding; exprId: ExprId; to: string; aux?: { exprId: ExprId; name: string }[] };
 
 /** SSR definition in expression table format (wire format) */
 export interface ISSRDefinition {
@@ -316,17 +322,17 @@ function translateDefinition(
 
 function translateInstruction(ins: SerializedInstruction, ctx: TranslationContext): IInstruction {
   switch (ins.type) {
-    case 'propertyBinding': {
+    case itPropertyBinding: {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
       return {
         type: itPropertyBinding,
         from: expr,
         to: ins.to,
-        mode: translateBindingMode(ins.mode),
+        mode: ins.mode, // Already numeric, no translation needed
       } as PropertyBindingInstruction;
     }
 
-    case 'textBinding': {
+    case itTextBinding: {
       const expressions = ins.exprIds.map(id => getExpr(ctx.exprMap, id) as IsBindingBehavior);
       const interpolation = createInterpolation(ins.parts, expressions);
       return {
@@ -335,7 +341,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as TextBindingInstruction;
     }
 
-    case 'interpolation': {
+    case itInterpolation: {
       const expressions = ins.exprIds.map(id => getExpr(ctx.exprMap, id) as IsBindingBehavior);
       const interpolation = createInterpolation(ins.parts, expressions);
       return {
@@ -345,7 +351,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as InterpolationInstruction;
     }
 
-    case 'listenerBinding': {
+    case itListenerBinding: {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
       return {
         type: itListenerBinding,
@@ -356,7 +362,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as ListenerBindingInstruction;
     }
 
-    case 'refBinding': {
+    case itRefBinding: {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
       return {
         type: itRefBinding,
@@ -365,21 +371,21 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as RefBindingInstruction;
     }
 
-    case 'setProperty':
+    case itSetProperty:
       return {
         type: itSetProperty,
         value: ins.value,
         to: ins.to,
       } as SetPropertyInstruction;
 
-    case 'setAttribute':
+    case itSetAttribute:
       return {
         type: itSetAttribute,
         value: ins.value ?? '',
         to: ins.to,
       } as SetAttributeInstruction;
 
-    case 'hydrateElement': {
+    case itHydrateElement: {
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
       return {
         type: itHydrateElement,
@@ -392,7 +398,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as HydrateElementInstruction;
     }
 
-    case 'hydrateAttribute': {
+    case itHydrateAttribute: {
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
       return {
         type: itHydrateAttribute,
@@ -402,7 +408,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as HydrateAttributeInstruction;
     }
 
-    case 'hydrateTemplateController': {
+    case itHydrateTemplateController: {
       const nestedDef = ctx.nestedDefs[ins.templateIndex];
       if (!nestedDef) {
         throw new Error(`Missing nested template at index ${ins.templateIndex}`);
@@ -424,7 +430,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as HydrateTemplateController;
     }
 
-    case 'hydrateLetElement': {
+    case itHydrateLetElement: {
       const bindings = ins.bindings.map(b => {
         const expr = getExpr(ctx.exprMap, b.exprId) as IsBindingBehavior | Interpolation;
         return {
@@ -440,7 +446,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       } as HydrateLetElementInstruction;
     }
 
-    case 'iteratorBinding': {
+    case itIteratorBinding: {
       const forOf = getExpr(ctx.exprMap, ins.exprId) as unknown as ForOfStatement;
       const props: MultiAttrInstruction[] = [];
       if (ins.aux) {
@@ -474,14 +480,3 @@ function getExpr(exprMap: Map<ExprId, AnyBindingExpression>, id: ExprId): AnyBin
   }
   return expr;
 }
-
-function translateBindingMode(mode: BindingModeString): typeof BindingMode[keyof typeof BindingMode] {
-  switch (mode) {
-    case 'oneTime': return BindingMode.oneTime;
-    case 'toView': return BindingMode.toView;
-    case 'fromView': return BindingMode.fromView;
-    case 'twoWay': return BindingMode.twoWay;
-    default: return BindingMode.default;
-  }
-}
-

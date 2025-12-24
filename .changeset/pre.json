@@ -62,5 +62,7 @@
     "@aurelia/validation-i18n": "2.0.0-beta.26",
     "@aurelia/web-components": "2.0.0-beta.26"
   },
-  "changesets": []
+  "changesets": [
+    "beta-27-release"
+  ]
 }

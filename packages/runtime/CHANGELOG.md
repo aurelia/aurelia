@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.0.0-beta.27
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @aurelia/expression-parser@2.0.0-beta.27
+  - @aurelia/kernel@2.0.0-beta.27
+  - @aurelia/metadata@2.0.0-beta.27
+  - @aurelia/platform@2.0.0-beta.27
+
 ## 2.0.0-beta.26
 
 ### Patch Changes

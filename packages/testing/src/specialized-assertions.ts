@@ -1,5 +1,20 @@
 import { CustomElement } from '@aurelia/runtime-html';
-import { InstructionType } from '@aurelia/template-compiler';
+import {
+  itTextBinding,
+  itInterpolation,
+  itPropertyBinding,
+  itIteratorBinding,
+  itListenerBinding,
+  itRefBinding,
+  itStylePropertyBinding,
+  itSetProperty,
+  itSetAttribute,
+  itHydrateElement,
+  itHydrateAttribute,
+  itHydrateTemplateController,
+  itHydrateLetElement,
+  itLetBinding,
+} from '@aurelia/template-compiler';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -84,38 +99,38 @@ export function getVisibleText(host: Node, removeWhiteSpace?: boolean): string |
   return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
-export function instructionTypeName(type: string): string {
+export function instructionTypeName(type: number): string {
   switch (type) {
-    case InstructionType.textBinding:
+    case itTextBinding:
       return 'textBinding';
-    case InstructionType.interpolation:
+    case itInterpolation:
       return 'interpolation';
-    case InstructionType.propertyBinding:
+    case itPropertyBinding:
       return 'propertyBinding';
-    case InstructionType.iteratorBinding:
+    case itIteratorBinding:
       return 'iteratorBinding';
-    case InstructionType.listenerBinding:
+    case itListenerBinding:
       return 'listenerBinding';
-    case InstructionType.refBinding:
+    case itRefBinding:
       return 'refBinding';
-    case InstructionType.stylePropertyBinding:
+    case itStylePropertyBinding:
       return 'stylePropertyBinding';
-    case InstructionType.setProperty:
+    case itSetProperty:
       return 'setProperty';
-    case InstructionType.setAttribute:
+    case itSetAttribute:
       return 'setAttribute';
-    case InstructionType.hydrateElement:
+    case itHydrateElement:
       return 'hydrateElement';
-    case InstructionType.hydrateAttribute:
+    case itHydrateAttribute:
       return 'hydrateAttribute';
-    case InstructionType.hydrateTemplateController:
+    case itHydrateTemplateController:
       return 'hydrateTemplateController';
-    case InstructionType.hydrateLetElement:
+    case itHydrateLetElement:
       return 'hydrateLetElement';
-    case InstructionType.letBinding:
+    case itLetBinding:
       return 'letBinding';
     default:
-      return type;
+      return String(type);
   }
 }
 

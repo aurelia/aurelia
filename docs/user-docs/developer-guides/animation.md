@@ -543,7 +543,7 @@ export class ListItem {
 
 ## Router Transition Animations
 
-Animate page transitions using router lifecycle hooks. These techniques work with both `@aurelia/router` (recommended) and router-direct. See the dedicated [Router Animation Guide](../router-direct/router-animation.md) for comprehensive coverage.
+Animate page transitions using router lifecycle hooks.
 
 ### Quick Router Animation Example
 
@@ -1303,4 +1303,4 @@ Aurelia provides a flexible animation system that works with:
 - **Lifecycle hooks** for component and route transitions
 - **Third-party libraries** for advanced effects
 
-Choose the right tool for your needs, prioritize performance, and always consider accessibility. For router-specific animations (works with both `@aurelia/router` and router-direct), see the [Router Animation Guide](../router-direct/router-animation.md).
+Choose the right tool for your needs, prioritize performance, and always consider accessibility.

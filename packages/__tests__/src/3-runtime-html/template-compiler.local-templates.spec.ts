@@ -12,7 +12,7 @@ import {
   PartialCustomElementDefinition,
 } from '@aurelia/runtime-html';
 import { runTasks } from '@aurelia/runtime';
-import { HydrateElementInstruction } from '@aurelia/template-compiler';
+import { HydrateElementInstruction, itHydrateElement, IInstruction } from '@aurelia/template-compiler';
 import {
   assert,
   generateCartesianProduct,
@@ -240,7 +240,7 @@ class LocalTemplateTestData {
     for (const [name, info] of this.expectedResources) {
       assert.deepStrictEqual(ElementInfo.from(CustomElement.find(container, name), void 0), info, 'element info');
     }
-    const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i) => i instanceof HydrateElementInstruction) as HydrateElementInstruction[];
+    const ceInstructions: HydrateElementInstruction[] = definition.instructions.flatMap((i) => i).filter((i: IInstruction) => i.type === itHydrateElement) as HydrateElementInstruction[];
     for (const [template, freq] of this.templateFreq) {
       assert.strictEqual(ceInstructions.filter((i) => i.res === template).length, freq, 'HydrateElementInstruction.freq');
     }

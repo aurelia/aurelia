@@ -3,11 +3,19 @@ import { Protocol, camelCase, emptyArray, firstDefined, getResourceKeyFor, merge
 import { defineMetadata, getMetadata } from './utilities-metadata';
 import { IAttrMapper } from './attribute-mapper';
 import {
-  AttributeBindingInstruction,
+  itAttributeBinding,
+  itIteratorBinding,
+  itListenerBinding,
+  itMultiAttr,
+  itPropertyBinding,
+  itRefBinding,
+  itSpreadValueBinding,
+  type MultiAttrInstruction,
+  type PropertyBindingInstruction,
+  type IInstruction,
   IteratorBindingInstruction,
   ListenerBindingInstruction,
-  MultiAttrInstruction,
-  PropertyBindingInstruction,
+  AttributeBindingInstruction,
   RefBindingInstruction,
   SpreadValueBindingInstruction,
 } from './instructions';
@@ -25,7 +33,6 @@ import type {
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { ErrorNames, createMappedError } from './errors';
 import { IAttributeComponentDefinition, IElementComponentDefinition, IComponentBindablePropDefinition } from './interfaces-template-compiler';
-import type { IInstruction } from './instructions';
 import { BindingMode, InternalBindingMode } from './binding-mode';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition;
@@ -223,7 +230,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.oneTime);
+    return { type: itPropertyBinding, from: exprParser.parse(value, etIsProperty), to: target, mode: InternalBindingMode.oneTime };
   }
 }
 
@@ -247,7 +254,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.toView);
+    return { type: itPropertyBinding, from: exprParser.parse(value, etIsProperty), to: target, mode: InternalBindingMode.toView };
   }
 }
 
@@ -271,7 +278,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.fromView);
+    return { type: itPropertyBinding, from: exprParser.parse(value, etIsProperty), to: target, mode: InternalBindingMode.fromView };
   }
 }
 
@@ -295,7 +302,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.twoWay);
+    return { type: itPropertyBinding, from: exprParser.parse(value, etIsProperty), to: target, mode: InternalBindingMode.twoWay };
   }
 }
 
@@ -329,13 +336,14 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         : bindable.mode;
       target = bindable.name;
     }
-    return new PropertyBindingInstruction(
-      exprParser.parse(value, etIsProperty),
-      target,
-      isString(mode)
+    return {
+      type: itPropertyBinding,
+      from: exprParser.parse(value, etIsProperty),
+      to: target,
+      mode: isString(mode)
         ? BindingMode[mode as keyof typeof BindingMode] ?? InternalBindingMode.default
         : mode as BindingMode
-    );
+    };
   }
 }
 
@@ -350,7 +358,7 @@ export class ForBindingCommand implements BindingCommandInstance {
   /** @internal */
   private readonly _attrParser = resolve(IAttributeParser);
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IteratorBindingInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.name;
@@ -375,14 +383,14 @@ export class ForBindingCommand implements BindingCommandInstance {
           const attrName = attrPart.slice(0, colonIdx).trim();
           const attrValue = attrPart.slice(colonIdx + 1).trim();
           const attrSyntax = this._attrParser.parse(attrName, attrValue);
-          parsedProps.push(new MultiAttrInstruction(attrValue, attrSyntax.target, attrSyntax.command));
+          parsedProps.push({ type: itMultiAttr, value: attrValue, to: attrSyntax.target, command: attrSyntax.command });
         }
       }
 
       props = parsedProps;
     }
 
-    return new IteratorBindingInstruction(forOf, target, props);
+    return { type: itIteratorBinding, forOf, to: target, props };
   }
 }
 
@@ -393,13 +401,14 @@ export class TriggerBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return true; }
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(
-      exprParser.parse(info.attr.rawValue, etIsFunction),
-      info.attr.target,
-      false,
-      info.attr.parts?.[2] ?? null
-    );
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): ListenerBindingInstruction {
+    return {
+      type: itListenerBinding,
+      from: exprParser.parse(info.attr.rawValue, etIsFunction),
+      to: info.attr.target,
+      capture: false,
+      modifier: info.attr.parts?.[2] ?? null
+    };
   }
 }
 
@@ -410,13 +419,14 @@ export class CaptureBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return true; }
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(
-      exprParser.parse(info.attr.rawValue, etIsFunction),
-      info.attr.target,
-      true,
-      info.attr.parts?.[2] ?? null
-    );
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): ListenerBindingInstruction {
+    return {
+      type: itListenerBinding,
+      from: exprParser.parse(info.attr.rawValue, etIsFunction),
+      to: info.attr.target,
+      capture: true,
+      modifier: info.attr.parts?.[2] ?? null
+    };
   }
 }
 
@@ -430,12 +440,12 @@ export class AttrBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return true; }
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): AttributeBindingInstruction {
     const attr = info.attr;
     const target = attr.target;
     let value = attr.rawValue;
     value = value === '' ? camelCase(target) : value;
-    return new AttributeBindingInstruction(target, exprParser.parse(value, etIsProperty), target);
+    return { type: itAttributeBinding, attr: target, from: exprParser.parse(value, etIsProperty), to: target };
   }
 }
 
@@ -449,8 +459,8 @@ export class StyleBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return true; }
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): AttributeBindingInstruction {
+    return { type: itAttributeBinding, attr: 'style', from: exprParser.parse(info.attr.rawValue, etIsProperty), to: info.attr.target };
   }
 }
 
@@ -464,7 +474,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return true; }
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): AttributeBindingInstruction {
     let target = info.attr.target;
 
     if (target.includes(",")) {
@@ -479,7 +489,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
       target = classes.join(' ');
     }
 
-    return new AttributeBindingInstruction("class", exprParser.parse(info.attr.rawValue, etIsProperty), target);
+    return { type: itAttributeBinding, attr: 'class', from: exprParser.parse(info.attr.rawValue, etIsProperty), to: target };
   }
 }
 
@@ -493,8 +503,8 @@ export class RefBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return true; }
 
-  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
+  public build(info: ICommandBuildInfo, exprParser: IExpressionParser): RefBindingInstruction {
+    return { type: itRefBinding, from: exprParser.parse(info.attr.rawValue, etIsProperty), to: info.attr.target };
   }
 }
 
@@ -505,7 +515,7 @@ export class SpreadValueBindingCommand implements BindingCommandInstance {
   };
   public get ignoreAttr() { return false; }
 
-  public build(info: ICommandBuildInfo): IInstruction {
-    return new SpreadValueBindingInstruction(info.attr.target as '$bindables' | '$element', info.attr.rawValue);
+  public build(info: ICommandBuildInfo): SpreadValueBindingInstruction {
+    return { type: itSpreadValueBinding, target: info.attr.target as '$bindables' | '$element', from: info.attr.rawValue };
   }
 }

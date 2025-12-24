@@ -80,8 +80,14 @@ export class DispatchBindingCommand implements BindingCommandInstance {
   }
 }
 
+/**
+ * State instruction types (range 120-139)
+ */
+export const itStateBinding = 120;
+export const itDispatchBinding = 121;
+
 export class StateBindingInstruction {
-  public readonly type = 'sb';
+  public readonly type = itStateBinding;
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
@@ -90,7 +96,7 @@ export class StateBindingInstruction {
 }
 
 export class DispatchBindingInstruction {
-  public readonly type = 'sd';
+  public readonly type = itDispatchBinding;
   public constructor(
     public from: string,
     public ast: string | IsBindingBehavior,
@@ -99,7 +105,7 @@ export class DispatchBindingInstruction {
 }
 
 export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindingInstructionRenderer implements IRenderer {
-  public readonly target = 'sb';
+  public readonly target = itStateBinding;
 
   /** @internal */ public readonly _stateContainer = resolve(IStore);
   /** @internal */ public readonly _storeRegistry = resolve(IStoreRegistry);
@@ -129,7 +135,7 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
 
 export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer implements IRenderer {
 
-  public readonly target = 'sd';
+  public readonly target = itDispatchBinding;
   /** @internal */ public readonly _stateContainer = resolve(IStore);
   /** @internal */ public readonly _storeRegistry = resolve(IStoreRegistry);
 

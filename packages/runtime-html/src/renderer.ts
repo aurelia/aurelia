@@ -48,7 +48,6 @@ import {
   HydrateTemplateController,
   IInstruction,
   ITemplateCompiler,
-  InstructionType,
   InterpolationInstruction,
   IteratorBindingInstruction,
   LetBindingInstruction,
@@ -62,7 +61,25 @@ import {
   SpreadTransferedBindingInstruction,
   SpreadValueBindingInstruction,
   StylePropertyBindingInstruction,
-  TextBindingInstruction
+  TextBindingInstruction,
+  itSetProperty,
+  itHydrateElement,
+  itHydrateAttribute,
+  itHydrateTemplateController,
+  itHydrateLetElement,
+  itRefBinding,
+  itInterpolation,
+  itPropertyBinding,
+  itIteratorBinding,
+  itTextBinding,
+  itListenerBinding,
+  itSetAttribute,
+  itSetClassAttribute,
+  itSetStyleAttribute,
+  itStylePropertyBinding,
+  itAttributeBinding,
+  itSpreadTransferedBinding,
+  itSpreadValueBinding,
 } from '@aurelia/template-compiler';
 import { ClassAttributeAccessor } from './observation/class-attribute-accessor';
 import { fromHydrationContext } from './resources/resolvers';
@@ -72,7 +89,7 @@ import { fromHydrationContext } from './resources/resolvers';
  * its target property will be used to match instruction types dynamically at render time
  */
 export interface IRenderer {
-  target: string;
+  target: number;
   render(
     /**
      * The controller that is current invoking this renderer
@@ -140,7 +157,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
 }
 
 export const SetPropertyRenderer = /*@__PURE__*/ renderer(class SetPropertyRenderer implements IRenderer {
-  public readonly target = InstructionType.setProperty;
+  public readonly target = itSetProperty;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -159,7 +176,7 @@ export const SetPropertyRenderer = /*@__PURE__*/ renderer(class SetPropertyRende
 export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementRenderer implements IRenderer {
   /** @internal */ public readonly _rendering = resolve(IRendering);
 
-  public readonly target = InstructionType.hydrateElement;
+  public readonly target = itHydrateElement;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -232,7 +249,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
 export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttributeRenderer implements IRenderer {
   /** @internal */ public readonly _rendering = resolve(IRendering);
 
-  public readonly target = InstructionType.hydrateAttribute;
+  public readonly target = itHydrateAttribute;
 
   public render(
     /**
@@ -303,7 +320,7 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
 export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateControllerRenderer implements IRenderer {
   /** @internal */ public readonly _rendering = resolve(IRendering);
 
-  public readonly target = InstructionType.hydrateTemplateController;
+  public readonly target = itHydrateTemplateController;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -382,7 +399,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
 }, null!);
 
 export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer implements IRenderer {
-  public readonly target = InstructionType.hydrateLetElement;
+  public readonly target = itHydrateLetElement;
   public constructor() {
     LetBinding.mix();
   }
@@ -421,7 +438,7 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
 }, null!);
 
 export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.refBinding;
+  public readonly target = itRefBinding;
   public constructor() {
     RefBinding.mix();
   }
@@ -444,7 +461,7 @@ export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRendere
 }, null!);
 
 export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.interpolation;
+  public readonly target = itInterpolation;
   public constructor() {
     InterpolationPartBinding.mix();
   }
@@ -476,7 +493,7 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
 }, null!);
 
 export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.propertyBinding;
+  public readonly target = itPropertyBinding;
   public constructor() {
     PropertyBinding.mix();
   }
@@ -508,7 +525,7 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
 }, null!);
 
 export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.iteratorBinding;
+  public readonly target = itIteratorBinding;
   public constructor() {
     PropertyBinding.mix();
   }
@@ -534,7 +551,7 @@ export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBind
 }, null!);
 
 export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.textBinding;
+  public readonly target = itTextBinding;
   public constructor() {
     ContentBinding.mix();
   }
@@ -590,7 +607,7 @@ export const IListenerBindingOptions = createInterface<IListenerBindingOptions>(
 }));
 
 export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.listenerBinding;
+  public readonly target = itListenerBinding;
 
   /** @internal */
   public readonly _modifierHandler = resolve(IEventModifier);
@@ -621,7 +638,7 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
 }, null!);
 
 export const SetAttributeRenderer = /*@__PURE__*/ renderer(class SetAttributeRenderer implements IRenderer {
-  public readonly target = InstructionType.setAttribute;
+  public readonly target = itSetAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -632,7 +649,7 @@ export const SetAttributeRenderer = /*@__PURE__*/ renderer(class SetAttributeRen
 }, null!);
 
 export const SetClassAttributeRenderer = /*@__PURE__*/ renderer(class SetClassAttributeRenderer implements IRenderer {
-  public readonly target = InstructionType.setClassAttribute;
+  public readonly target = itSetClassAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -643,7 +660,7 @@ export const SetClassAttributeRenderer = /*@__PURE__*/ renderer(class SetClassAt
 }, null!);
 
 export const SetStyleAttributeRenderer = /*@__PURE__*/ renderer(class SetStyleAttributeRenderer implements IRenderer {
-  public readonly target = InstructionType.setStyleAttribute;
+  public readonly target = itSetStyleAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -679,7 +696,7 @@ const ambiguousStyles = [
 ];
 
 export const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePropertyBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.stylePropertyBinding;
+  public readonly target = itStylePropertyBinding;
   public constructor() {
     PropertyBinding.mix();
   }
@@ -732,7 +749,7 @@ class DevStylePropertyBinding extends PropertyBinding {
 }
 
 export const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBindingRenderer implements IRenderer {
-  public readonly target = InstructionType.attributeBinding;
+  public readonly target = itAttributeBinding;
   public constructor() {
     AttributeBinding.mix();
   }
@@ -769,7 +786,7 @@ export const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer implem
   /** @internal */ public readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ public readonly _rendering = resolve(IRendering);
 
-  public readonly target = InstructionType.spreadTransferedBinding;
+  public readonly target = itSpreadTransferedBinding;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -794,7 +811,7 @@ export const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer implem
 }, null!);
 
 export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRenderer implements IRenderer {
-  public readonly target = InstructionType.spreadValueBinding;
+  public readonly target = itSpreadValueBinding;
   public constructor() {
     SpreadValueBinding.mix();
   }

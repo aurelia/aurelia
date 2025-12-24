@@ -8,10 +8,12 @@ import {
 } from '@aurelia/runtime-html';
 import {
   HydrateElementInstruction,
-  InstructionType,
   IInstruction,
   PropertyBindingInstruction,
   TextBindingInstruction,
+  itPropertyBinding,
+  itTextBinding,
+  itHydrateElement,
 } from '@aurelia/template-compiler';
 import {
   assert, TestContext
@@ -326,7 +328,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
       for (const expectedSlotInfo of expectedSlotInfos) {
         const actualInstruction = allInstructions.find((i) =>
-          i.type === InstructionType.hydrateElement
+          i.type === itHydrateElement
           && ((i as HEI).res === 'au-slot'
             || (i as HEI).res === CustomElement.getDefinition(AuSlot)
           )
@@ -347,7 +349,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
       for (const [elName, projections] of allExpectedProjections) {
         const elementInstruction = allInstructions.find(i =>
-          i.type === InstructionType.hydrateElement
+          i.type === itHydrateElement
           && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string) === elName
             || (i as HEI).res === CustomElement.find(container, elName)
           )
@@ -379,10 +381,10 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
     return {
       ...sut.compile(templateDefinition, container),
-      createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
-        new PropertyBindingInstruction(parser.parse(from, 'IsProperty'), to, mode),
-      createTextInterpolation: ({ from }: { from: string }) =>
-        new TextBindingInstruction(parser.parse(from, 'IsProperty')),
+      createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }): PropertyBindingInstruction =>
+        ({ type: itPropertyBinding, from: parser.parse(from, 'IsProperty'), to, mode }),
+      createTextInterpolation: ({ from }: { from: string }): TextBindingInstruction =>
+        ({ type: itTextBinding, from: parser.parse(from, 'IsProperty') }),
     };
   }
 
@@ -412,7 +414,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     } = expectedAuslotFallback ?? {};
 
     const { data: { name }, projections: { default: { template, instructions } } = { default: {} } } = $auslotInstruction;
-    assert.strictEqual($auslotInstruction.type, InstructionType.hydrateElement, `#instruction.type ${message}`);
+    assert.strictEqual($auslotInstruction.type, itHydrateElement, `#instruction.type ${message}`);
     assert.strictEqual(name, expectedName, `#fallback.slotname ${message}`);
     assertTemplateEqual(template, expectedTemplate, `#fallback.template ${message}`);
     if (expectedInstructions !== anything) {

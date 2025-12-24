@@ -25,6 +25,7 @@ import {
   TextBindingInstruction,
   HydrateTemplateController,
   ITemplateCompiler,
+  itTextBinding,
 } from '@aurelia/template-compiler';
 import {
   eachCartesianJoin,
@@ -543,7 +544,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
           template: textTemplate.content.cloneNode(true),
           instructions: [
             [
-              new TextBindingInstruction(createAccessScopeExpression('item')),
+              { type: itTextBinding, from: createAccessScopeExpression('item') } as TextBindingInstruction,
             ],
           ],
           needsCompile: false,

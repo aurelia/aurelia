@@ -11,22 +11,36 @@
 
 import { createInterface } from '../utilities-di';
 import {
-  PropertyBindingInstruction,
-  TextBindingInstruction,
-  InterpolationInstruction,
-  ListenerBindingInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  SetAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateAttributeInstruction,
-  HydrateTemplateController,
-  HydrateLetElementInstruction,
-  LetBindingInstruction,
-  IteratorBindingInstruction,
-  MultiAttrInstruction,
+  type PropertyBindingInstruction,
+  type TextBindingInstruction,
+  type InterpolationInstruction,
+  type ListenerBindingInstruction,
+  type RefBindingInstruction,
+  type SetPropertyInstruction,
+  type SetAttributeInstruction,
+  type HydrateElementInstruction,
+  type HydrateAttributeInstruction,
+  type HydrateTemplateController,
+  type HydrateLetElementInstruction,
+  type LetBindingInstruction,
+  type IteratorBindingInstruction,
+  type MultiAttrInstruction,
   BindingMode,
   type IInstruction,
+  itPropertyBinding,
+  itTextBinding,
+  itInterpolation,
+  itListenerBinding,
+  itRefBinding,
+  itSetProperty,
+  itSetAttribute,
+  itHydrateElement,
+  itHydrateAttribute,
+  itHydrateTemplateController,
+  itHydrateLetElement,
+  itLetBinding,
+  itIteratorBinding,
+  itMultiAttr,
 } from '@aurelia/template-compiler';
 import {
   createInterpolation,
@@ -304,45 +318,88 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
   switch (ins.type) {
     case 'propertyBinding': {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
-      return new PropertyBindingInstruction(expr, ins.to, translateBindingMode(ins.mode));
+      return {
+        type: itPropertyBinding,
+        from: expr,
+        to: ins.to,
+        mode: translateBindingMode(ins.mode),
+      } as PropertyBindingInstruction;
     }
 
     case 'textBinding': {
       const expressions = ins.exprIds.map(id => getExpr(ctx.exprMap, id) as IsBindingBehavior);
       const interpolation = createInterpolation(ins.parts, expressions);
-      return new TextBindingInstruction(interpolation as unknown as IsBindingBehavior);
+      return {
+        type: itTextBinding,
+        from: interpolation as unknown as IsBindingBehavior,
+      } as TextBindingInstruction;
     }
 
     case 'interpolation': {
       const expressions = ins.exprIds.map(id => getExpr(ctx.exprMap, id) as IsBindingBehavior);
       const interpolation = createInterpolation(ins.parts, expressions);
-      return new InterpolationInstruction(interpolation, ins.to);
+      return {
+        type: itInterpolation,
+        from: interpolation,
+        to: ins.to,
+      } as InterpolationInstruction;
     }
 
     case 'listenerBinding': {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
-      return new ListenerBindingInstruction(expr, ins.to, ins.capture, ins.modifier ?? null);
+      return {
+        type: itListenerBinding,
+        from: expr,
+        to: ins.to,
+        capture: ins.capture,
+        modifier: ins.modifier ?? null,
+      } as ListenerBindingInstruction;
     }
 
     case 'refBinding': {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
-      return new RefBindingInstruction(expr, ins.to);
+      return {
+        type: itRefBinding,
+        from: expr,
+        to: ins.to,
+      } as RefBindingInstruction;
     }
 
     case 'setProperty':
-      return new SetPropertyInstruction(ins.value, ins.to);
+      return {
+        type: itSetProperty,
+        value: ins.value,
+        to: ins.to,
+      } as SetPropertyInstruction;
 
     case 'setAttribute':
-      return new SetAttributeInstruction(ins.value ?? '', ins.to);
+      return {
+        type: itSetAttribute,
+        value: ins.value ?? '',
+        to: ins.to,
+      } as SetAttributeInstruction;
 
     case 'hydrateElement': {
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
-      return new HydrateElementInstruction(ins.resource, props, null, ins.containerless ?? false, void 0, {});
+      return {
+        type: itHydrateElement,
+        res: ins.resource,
+        props,
+        projections: null,
+        containerless: ins.containerless ?? false,
+        captures: void 0,
+        data: {},
+      } as HydrateElementInstruction;
     }
 
     case 'hydrateAttribute': {
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
-      return new HydrateAttributeInstruction(ins.resource, ins.alias, props);
+      return {
+        type: itHydrateAttribute,
+        res: ins.resource,
+        alias: ins.alias,
+        props,
+      } as HydrateAttributeInstruction;
     }
 
     case 'hydrateTemplateController': {
@@ -358,15 +415,29 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         instructions: nestedDef.instructions,
         needsCompile: false,
       };
-      return new HydrateTemplateController(def, ins.resource, void 0, props);
+      return {
+        type: itHydrateTemplateController,
+        def,
+        res: ins.resource,
+        alias: void 0,
+        props,
+      } as HydrateTemplateController;
     }
 
     case 'hydrateLetElement': {
       const bindings = ins.bindings.map(b => {
         const expr = getExpr(ctx.exprMap, b.exprId) as IsBindingBehavior | Interpolation;
-        return new LetBindingInstruction(expr, b.to);
+        return {
+          type: itLetBinding,
+          from: expr,
+          to: b.to,
+        } as LetBindingInstruction;
       });
-      return new HydrateLetElementInstruction(bindings, ins.toBindingContext);
+      return {
+        type: itHydrateLetElement,
+        instructions: bindings,
+        toBindingContext: ins.toBindingContext,
+      } as HydrateLetElementInstruction;
     }
 
     case 'iteratorBinding': {
@@ -375,10 +446,20 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       if (ins.aux) {
         for (const aux of ins.aux) {
           const expr = getExpr(ctx.exprMap, aux.exprId);
-          props.push(new MultiAttrInstruction(expr as IsBindingBehavior, aux.name, 'bind'));
+          props.push({
+            type: itMultiAttr,
+            value: expr as IsBindingBehavior,
+            to: aux.name,
+            command: 'bind',
+          } as MultiAttrInstruction);
         }
       }
-      return new IteratorBindingInstruction(forOf, ins.to, props);
+      return {
+        type: itIteratorBinding,
+        forOf,
+        to: ins.to,
+        props,
+      } as IteratorBindingInstruction;
     }
 
     default:

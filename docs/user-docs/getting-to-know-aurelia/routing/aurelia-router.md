@@ -57,10 +57,6 @@ Keep the [live StackBlitz examples](https://stackblitz.com/@Sayan751/collections
 | Persist and observe route state | Inject `ICurrentRoute` / `IRouter` | [Router state management](../../router/router-state-management.md) |
 | Customize transitions | Provide a `transitionPlan` or set per-route strategies | [Transition plans](../../router/transition-plans.md) |
 
-## Router vs. router-direct
-
-Use the standard `@aurelia/router` when you want a centrally managed route tree, multiple viewports, or explicit lifecycle control. The [`@aurelia/router-direct` guides](./router-direct.md) describe a component-driven option that minimizes up-front configuration by letting each feature declare its own routes. Both routers can coexist in the same documentation set, but they solve different problems, so pick the router that matches your app's navigation style.
-
 ## Where to go next
 
 - Explore targeted recipes in the [developer guides](../../developer-guides/routing/configured-routing.md).

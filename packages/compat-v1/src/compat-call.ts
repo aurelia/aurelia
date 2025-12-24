@@ -43,10 +43,13 @@ export const callSyntax = {
   }
 };
 
-const instructionType = 'rh';
+/**
+ * compat-v1 instruction types (range 140-159)
+ */
+export const itCall = 140;
 
 export class CallBindingInstruction {
-  public readonly type = instructionType;
+  public readonly type = itCall;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -74,7 +77,7 @@ export class CallBindingCommand implements BindingCommandInstance {
 }
 
 export const CallBindingRenderer = /*@__PURE__*/ renderer(class CallBindingRenderer implements IRenderer {
-  public readonly target = instructionType;
+  public readonly target = itCall;
 
   public render(
     renderingCtrl: IHydratableController,

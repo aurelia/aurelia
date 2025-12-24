@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 /* eslint-disable max-lines-per-function */
 /* eslint-disable function-call-argument-newline */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -23,23 +24,37 @@ import {
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateLetElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  LetBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetPropertyInstruction,
-  SetStyleAttributeInstruction,
-  TextBindingInstruction,
-  PropertyBindingInstruction,
-  SpreadElementPropBindingInstruction,
-  propertyBinding,
+  itHydrateAttribute,
+  itHydrateElement,
+  itHydrateLetElement,
+  itHydrateTemplateController,
+  itInterpolation,
+  itLetBinding,
+  itSetAttribute,
+  itSetClassAttribute,
+  itSetProperty,
+  itSetStyleAttribute,
+  itTextBinding,
+  itPropertyBinding,
+  itSpreadElementProp,
+  itSpreadTransferedBinding,
+  itSpreadValueBinding,
   IInstruction,
-  SpreadTransferedBindingInstruction,
-  SpreadValueBindingInstruction,
+  type HydrateAttributeInstruction,
+  type HydrateElementInstruction,
+  type HydrateLetElementInstruction,
+  type HydrateTemplateController,
+  type InterpolationInstruction,
+  type LetBindingInstruction,
+  type SetAttributeInstruction,
+  type SetClassAttributeInstruction,
+  type SetPropertyInstruction,
+  type SetStyleAttributeInstruction,
+  type TextBindingInstruction,
+  type PropertyBindingInstruction,
+  type SpreadElementPropBindingInstruction,
+  type SpreadTransferedBindingInstruction,
+  type SpreadValueBindingInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
@@ -172,7 +187,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrValue = attrSyntax.rawValue;
 
       if (attrTarget === '...$attrs') {
-        instructions.push(new SpreadTransferedBindingInstruction());
+        instructions.push({ type: itSpreadTransferedBinding } as SpreadTransferedBindingInstruction);
         continue;
       }
 
@@ -202,19 +217,21 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (bindable !== void 0) {
           if (bindingCommand == null) {
             expr = exprParser.parse(attrValue, etInterpolation);
-            instructions.push(
-              new SpreadElementPropBindingInstruction(
-                expr == null
-                  ? new SetPropertyInstruction(attrValue, bindable.name)
-                  : new InterpolationInstruction(expr, bindable.name)
-              )
-            );
+            instructions.push({
+              type: itSpreadElementProp,
+              instruction: expr == null
+                ? { type: itSetProperty, value: attrValue, to: bindable.name } as SetPropertyInstruction
+                : { type: itInterpolation, from: expr, to: bindable.name } as InterpolationInstruction
+            } as SpreadElementPropBindingInstruction);
           } else {
-            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
-              { node: target, attr: attrSyntax, bindable, def: elDef },
-              context._exprParser,
-              context._attrMapper
-            )));
+            instructions.push({
+              type: itSpreadElementProp,
+              instruction: bindingCommand.build(
+                { node: target, attr: attrSyntax, bindable, def: elDef },
+                context._exprParser,
+                context._attrMapper
+              )
+            } as SpreadElementPropBindingInstruction);
           }
           continue;
         }
@@ -230,14 +247,15 @@ export class TemplateCompiler implements ITemplateCompiler {
           /* treatEmptyAsNoBinding */ false
         );
 
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+        (attrInstructions ??= []).push({
+          type: itHydrateAttribute,
           // todo: def/ def.Type or def.name should be configurable
           //       example: AOT/runtime can use def.Type, but there are situation
           //       where instructions need to be serialized, def.name should be used
-          this.resolveResources ? attrDef : attrDef.name,
-          attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
-          attrBindableInstructions
-        ));
+          res: this.resolveResources ? attrDef : attrDef.name,
+          alias: attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
+          props: attrBindableInstructions
+        } as HydrateAttributeInstruction);
         continue;
       }
 
@@ -249,26 +267,27 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a plain attribute
 
         if (expr != null) {
-          instructions.push(new InterpolationInstruction(
-            expr,
+          instructions.push({
+            type: itInterpolation,
+            from: expr,
             // if not a bindable, then ensure plain attribute are mapped correctly:
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLength etc...
-            context._attrMapper.map(target, attrTarget) ?? camelCase(attrTarget)
-          ));
+            to: context._attrMapper.map(target, attrTarget) ?? camelCase(attrTarget)
+          } as InterpolationInstruction);
         } else {
           switch (attrTarget) {
             case 'class':
-              instructions.push(new SetClassAttributeInstruction(attrValue));
+              instructions.push({ type: itSetClassAttribute, value: attrValue } as SetClassAttributeInstruction);
               break;
             case 'style':
-              instructions.push(new SetStyleAttributeInstruction(attrValue));
+              instructions.push({ type: itSetStyleAttribute, value: attrValue } as SetStyleAttributeInstruction);
               break;
             default:
               // if not a custom attribute + no binding command + not a bindable + not an interpolation
               // then it's just a plain attribute
-              instructions.push(new SetAttributeInstruction(attrValue, attrTarget));
+              instructions.push({ type: itSetAttribute, value: attrValue, to: attrTarget } as SetAttributeInstruction);
           }
         }
       } else {
@@ -399,10 +418,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null) {
         if (attrSyntax.command === 'bind') {
-          letInstructions.push(new LetBindingInstruction(
-            exprParser.parse(realAttrValue, etIsProperty),
-            camelCase(realAttrTarget)
-          ));
+          letInstructions.push({
+            type: itLetBinding,
+            from: exprParser.parse(realAttrValue, etIsProperty),
+            to: camelCase(realAttrTarget)
+          } as LetBindingInstruction);
         } else {
           throw createMappedError(ErrorNames.compiler_invalid_let_command, attrSyntax);
         }
@@ -420,12 +440,17 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      letInstructions.push(new LetBindingInstruction(
-        expr === null ? createPrimitiveLiteralExpression(realAttrValue) : expr,
-        camelCase(realAttrTarget)
-      ));
+      letInstructions.push({
+        type: itLetBinding,
+        from: expr === null ? createPrimitiveLiteralExpression(realAttrValue) : expr,
+        to: camelCase(realAttrTarget)
+      } as LetBindingInstruction);
     }
-    context.rows.push([new HydrateLetElementInstruction(letInstructions, toBindingContext)]);
+    context.rows.push([{
+      type: itHydrateLetElement,
+      instructions: letInstructions,
+      toBindingContext
+    } as HydrateLetElementInstruction]);
     // probably no need to replace
     // as the let itself can be used as is
     // though still need to mark el as target to ensure the instruction is matched with a target
@@ -486,14 +511,15 @@ export class TemplateCompiler implements ITemplateCompiler {
       // todo: def/ def.Type or def.name should be configurable
       //       example: AOT/runtime can use def.Type, but there are situations
       //       where instructions need to be serialized, def.name should be used
-      elementInstruction = new HydrateElementInstruction(
-        this.resolveResources ? elDef : elDef.name,
-        (elBindableInstructions ?? emptyArray) as IInstruction[],
-        null,
-        hasContainerless,
+      elementInstruction = {
+        type: itHydrateElement,
+        res: this.resolveResources ? elDef : elDef.name,
+        props: (elBindableInstructions ?? emptyArray) as IInstruction[],
+        projections: null,
+        containerless: hasContainerless,
         captures,
-        elementMetadata,
-      );
+        data: elementMetadata,
+      };
     }
 
     // 3. Merge instructions in correct order:
@@ -544,7 +570,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (processContentResult !== false) {
         const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
         if (projections != null) {
-          elementInstruction!.projections = projections;
+          (elementInstruction as { projections: typeof projections }).projections = projections;
         }
       }
 
@@ -573,7 +599,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       // Step 6: Attach the compiled definition to the innermost TC
-      tcInstruction.def = {
+      (tcInstruction as { def: IElementComponentDefinition }).def = {
         name: generateElementName(),
         type: definitionTypeElement,
         template: innermostTemplate,
@@ -593,7 +619,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           context._comment(auLocationEnd),
         ]);
 
-        tcInstruction.def = {
+        (tcInstruction as { def: IElementComponentDefinition }).def = {
           name: generateElementName(),
           type: definitionTypeElement,
           template: tcTemplate,
@@ -615,7 +641,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (processContentResult !== false) {
         const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
         if (projections != null) {
-          elementInstruction!.projections = projections;
+          (elementInstruction as { projections: typeof projections }).projections = projections;
         }
       }
 
@@ -757,7 +783,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       // 3. Handle spread transferred bindings (...$attrs)
       if (realAttrTarget === '...$attrs') {
-        (plainAttrInstructions ??= []).push(new SpreadTransferedBindingInstruction());
+        (plainAttrInstructions ??= []).push({ type: itSpreadTransferedBinding } as SpreadTransferedBindingInstruction);
         removeAttr();
         continue;
       }
@@ -776,10 +802,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       // 5. Spread bindables (...$bindables, ...propName) - spread to all bindable properties
       if (realAttrTarget.indexOf('...') === 0) {
         if (isCustomElement && (realAttrTarget = realAttrTarget.slice(3)) !== '$element') {
-          (elBindableInstructions ??= []).push(new SpreadValueBindingInstruction(
-            '$bindables',
-            realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
-          ));
+          (elBindableInstructions ??= []).push({
+            type: itSpreadValueBinding,
+            target: '$bindables',
+            from: realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
+          } as SpreadValueBindingInstruction);
           removeAttr();
           continue;
         }
@@ -803,8 +830,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr = exprParser.parse(realAttrValue, etInterpolation);
             (elBindableInstructions ??= []).push(
               expr == null
-                ? new SetPropertyInstruction(realAttrValue, bindable.name)
-                : new InterpolationInstruction(expr, bindable.name)
+                ? { type: itSetProperty, value: realAttrValue, to: bindable.name } as SetPropertyInstruction
+                : { type: itInterpolation, from: expr, to: bindable.name } as InterpolationInstruction
             );
           } else {
             (elBindableInstructions ??= []).push(bindingCommand.build(
@@ -839,7 +866,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             );
 
             if (__DEV__) {
-              if (!(instruction instanceof SpreadValueBindingInstruction)) {
+              if (instruction.type !== itSpreadValueBinding) {
                 // eslint-disable-next-line no-console
                 console.warn(`[DEV:aurelia] Binding with "$bindables" on custom element "${elDef.name}" with command ${attrSyntax.command} ` +
                   ` did not result in a spread binding instruction. This likely won't work as expected.`
@@ -876,18 +903,20 @@ export class TemplateCompiler implements ITemplateCompiler {
         //       example: AOT/runtime can use def.Type, but there are situations
         //       where instructions need to be serialized, def.name should be used
         if (attrDef.isTemplateController) {
-          (tcInstructions ??= []).push(new HydrateTemplateController(
-            voidDefinition,
-            this.resolveResources ? attrDef : attrDef.name,
-            void 0,
-            attrBindableInstructions,
-          ));
+          (tcInstructions ??= []).push({
+            type: itHydrateTemplateController,
+            def: voidDefinition,
+            res: this.resolveResources ? attrDef : attrDef.name,
+            alias: void 0,
+            props: attrBindableInstructions,
+          } satisfies HydrateTemplateController);
         } else {
-          (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-            this.resolveResources ? attrDef : attrDef.name,
-            attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
-            attrBindableInstructions
-          ));
+          (attrInstructions ??= []).push({
+            type: itHydrateAttribute,
+            res: this.resolveResources ? attrDef : attrDef.name,
+            alias: attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
+            props: attrBindableInstructions
+          } as HydrateAttributeInstruction);
         }
         continue;
       }
@@ -897,21 +926,22 @@ export class TemplateCompiler implements ITemplateCompiler {
         expr = exprParser.parse(realAttrValue, etInterpolation);
         if (expr != null) {
           removeAttr();
-          (plainAttrInstructions ??= []).push(new InterpolationInstruction(
-            expr,
-            context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
-          ));
+          (plainAttrInstructions ??= []).push({
+            type: itInterpolation,
+            from: expr,
+            to: context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
+          } as InterpolationInstruction);
         } else if (generateStaticAttrInstructions) {
           // For surrogates: generate instruction to transfer static attr to host element
           switch (attrName) {
             case 'class':
-              (plainAttrInstructions ??= []).push(new SetClassAttributeInstruction(realAttrValue));
+              (plainAttrInstructions ??= []).push({ type: itSetClassAttribute, value: realAttrValue } as SetClassAttributeInstruction);
               break;
             case 'style':
-              (plainAttrInstructions ??= []).push(new SetStyleAttributeInstruction(realAttrValue));
+              (plainAttrInstructions ??= []).push({ type: itSetStyleAttribute, value: realAttrValue } as SetStyleAttributeInstruction);
               break;
             default:
-              (plainAttrInstructions ??= []).push(new SetAttributeInstruction(realAttrValue, attrName));
+              (plainAttrInstructions ??= []).push({ type: itSetAttribute, value: realAttrValue, to: attrName } as SetAttributeInstruction);
           }
         }
         // else: plain static attribute, left on the element (no instruction needed)
@@ -966,7 +996,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           insertBefore(parent, context._text(part), node);
         }
         // and the corresponding instruction
-        context.rows.push([new TextBindingInstruction(expressions[i])]);
+        context.rows.push([{ type: itTextBinding, from: expressions[i] } as TextBindingInstruction]);
       }
       parent.removeChild(node);
     }
@@ -1041,8 +1071,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (command === null) {
           expr = context._exprParser.parse(attrValue, etInterpolation);
           instructions.push(expr === null
-            ? new SetPropertyInstruction(attrValue, bindable.name)
-            : new InterpolationInstruction(expr, bindable.name)
+            ? { type: itSetProperty, value: attrValue, to: bindable.name } as SetPropertyInstruction
+            : { type: itInterpolation, from: expr, to: bindable.name } as InterpolationInstruction
           );
         } else {
           instructions.push(command.build(
@@ -1167,7 +1197,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1
       || nodeName === 'SELECT' && (
         (el as HTMLSelectElement).hasAttribute('multiple')
-        || instructions?.some(i => i.type === propertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
+        || instructions?.some(i => i.type === itPropertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
       );
   }
 
@@ -1315,10 +1345,10 @@ export class TemplateCompiler implements ITemplateCompiler {
           // Empty attribute like `<div my-attr>` produces no bindings
           return [];
         }
-        return [new SetPropertyInstruction(attrValue, primaryBindable.name)];
+        return [{ type: itSetProperty, value: attrValue, to: primaryBindable.name } as SetPropertyInstruction];
       }
       // Has interpolation
-      return [new InterpolationInstruction(expr, primaryBindable.name)];
+      return [{ type: itInterpolation, from: expr, to: primaryBindable.name } as InterpolationInstruction];
     }
 
     // Single value WITH binding command: `my-attr.bind="expr"`

@@ -13,11 +13,11 @@ import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
 import { ErrorNames, createMappedError } from '../errors';
-import { IInstruction, ITemplateCompiler } from '@aurelia/template-compiler';
+import { IInstruction, ITemplateCompiler, itHydrateElement, itHydrateTemplateController } from '@aurelia/template-compiler';
 
 export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering {
-  get renderers(): Record<string, IRenderer>;
+  get renderers(): Record<number, IRenderer>;
 
   compile(
     definition: CustomElementDefinition,
@@ -55,7 +55,7 @@ export class Rendering implements IRendering {
   /** @internal */
   private readonly _observerLocator: IObserverLocator;
   /** @internal */
-  private _renderers: Record<string, IRenderer> | undefined;
+  private _renderers: Record<number, IRenderer> | undefined;
   /** @internal */
   private readonly _platform: IPlatform;
   /** @internal */
@@ -67,7 +67,7 @@ export class Rendering implements IRendering {
   /** @internal */
   private readonly _preserveMarkers: boolean;
 
-  public get renderers(): Record<string, IRenderer> {
+  public get renderers(): Record<number, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
       if (__DEV__) {
         if (all[r.target] !== void 0) {
@@ -224,7 +224,7 @@ export class Rendering implements IRendering {
 
           // Tree-based SSR: pass scope child to child-creating instructions
           const instructionType = instruction.type;
-          const createsChild = instructionType === 'rc' || instructionType === 'ra';
+          const createsChild = instructionType === itHydrateTemplateController || instructionType === itHydrateElement;
           const childScope = createsChild && scopeChildren != null
             ? scopeChildren[ssrChildIndex++]
             : undefined;

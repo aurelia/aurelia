@@ -384,6 +384,8 @@ export {
   convertToRenderLocation,
   isRenderLocation,
   registerHostNode,
+  findMatchingEndMarker,
+  partitionSiblingNodes,
 } from './dom';
 export {
   refs,

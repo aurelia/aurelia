@@ -1,5 +1,5 @@
 import { resolve } from '@aurelia/kernel';
-import { INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode } from '@aurelia/router';
+import { INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode, ServerLocationManager } from '@aurelia/router';
 import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { isNode } from '../util.js';
@@ -547,4 +547,117 @@ describe('router/location-manager.spec.ts', function () {
       await au.stop(true);
     });
   }
+});
+
+// =============================================================================
+// ServerLocationManager - SSR Location Manager
+// =============================================================================
+
+describe('router/ServerLocationManager', function () {
+  describe('getPath', function () {
+    it('returns normalized path from constructor', function () {
+      const manager = new ServerLocationManager('/products/123', '/');
+      assert.strictEqual(manager.getPath(), '/products/123');
+    });
+
+    it('preserves path without leading slash', function () {
+      const manager = new ServerLocationManager('products/123', '/');
+      // normalizePath does NOT add leading slash, only removes trailing
+      assert.strictEqual(manager.getPath(), 'products/123');
+    });
+
+    it('handles root path', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // normalizePath removes trailing slash, so '/' becomes ''
+      assert.strictEqual(manager.getPath(), '');
+    });
+
+    it('handles empty path', function () {
+      const manager = new ServerLocationManager('', '/');
+      // Empty path remains empty
+      assert.strictEqual(manager.getPath(), '');
+    });
+
+    it('preserves query string in path', function () {
+      const manager = new ServerLocationManager('/search?q=test', '/');
+      assert.strictEqual(manager.getPath(), '/search?q=test');
+    });
+  });
+
+  describe('addBaseHref', function () {
+    it('adds base href to path', function () {
+      const manager = new ServerLocationManager('/', '/app');
+      assert.strictEqual(manager.addBaseHref('/page'), '/app/page');
+    });
+
+    it('handles base href with trailing slash', function () {
+      const manager = new ServerLocationManager('/', '/app/');
+      assert.strictEqual(manager.addBaseHref('/page'), '/app/page');
+    });
+
+    it('handles path without leading slash', function () {
+      const manager = new ServerLocationManager('/', '/app');
+      assert.strictEqual(manager.addBaseHref('page'), '/app/page');
+    });
+
+    it('handles empty base href', function () {
+      const manager = new ServerLocationManager('/', '');
+      assert.strictEqual(manager.addBaseHref('/page'), '/page');
+    });
+
+    it('handles root base href', function () {
+      const manager = new ServerLocationManager('/', '/');
+      assert.strictEqual(manager.addBaseHref('/page'), '/page');
+    });
+  });
+
+  describe('removeBaseHref', function () {
+    it('removes base href from path', function () {
+      const manager = new ServerLocationManager('/', '/app');
+      assert.strictEqual(manager.removeBaseHref('/app/page'), '/page');
+    });
+
+    it('returns normalized path when base href not present', function () {
+      const manager = new ServerLocationManager('/', '/app');
+      assert.strictEqual(manager.removeBaseHref('/other/page'), '/other/page');
+    });
+
+    it('handles root base href', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // Base '/' removes from '/page' → 'page', normalize doesn't add leading slash
+      assert.strictEqual(manager.removeBaseHref('/page'), 'page');
+    });
+  });
+
+  describe('no-op methods', function () {
+    it('startListening does nothing', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // Should not throw
+      manager.startListening();
+    });
+
+    it('stopListening does nothing', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // Should not throw
+      manager.stopListening();
+    });
+
+    it('handleEvent does nothing', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // Should not throw
+      manager.handleEvent();
+    });
+
+    it('pushState does nothing', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // Should not throw
+      manager.pushState({}, 'title', '/new-url');
+    });
+
+    it('replaceState does nothing', function () {
+      const manager = new ServerLocationManager('/', '/');
+      // Should not throw
+      manager.replaceState({}, 'title', '/new-url');
+    });
+  });
 });

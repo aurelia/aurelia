@@ -45,6 +45,8 @@ export class With implements ICustomAttributeViewModel {
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     const { $controller, value } = this;
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateView clears ssrScope, so reactivation takes the normal path.
     const ssrScope = $controller.ssrScope;
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'with') {
       return this._hydrateView(ssrScope);

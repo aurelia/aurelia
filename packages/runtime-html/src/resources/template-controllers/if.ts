@@ -44,7 +44,8 @@ export class If implements ICustomAttributeViewModel {
   /** @internal */ private readonly _platform = resolve(IPlatform);
 
   public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    // Check for SSR hydration mode
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateView clears ssrScope, so reactivation takes the normal path.
     const ssrScope = this.$controller.ssrScope;
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
       return this._hydrateView(ssrScope);

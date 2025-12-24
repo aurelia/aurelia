@@ -72,6 +72,8 @@ export class Switch implements ICustomAttributeViewModel {
     const $controller = this.$controller;
     const ssrScope = $controller.ssrScope;
 
+    // SSR hydration: capture view scopes for cases to adopt existing DOM.
+    // Clearing ssrScope ensures reactivation takes the normal path.
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'switch') {
       this._ssrViewScopes = ssrScope.views.slice();
       $controller.ssrScope = undefined;

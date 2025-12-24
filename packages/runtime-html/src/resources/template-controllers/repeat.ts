@@ -445,7 +445,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     initiator: IHydratedController | null,
     $items: unknown[],
   ): void | Promise<void> {
-    // Check for SSR hydration mode
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateViews clears ssrScope, so reactivation takes the normal path.
     const ssrScope = this.$controller.ssrScope;
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'repeat') {
       return this._hydrateViews(initiator, $items, ssrScope);

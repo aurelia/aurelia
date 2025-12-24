@@ -99,6 +99,17 @@ The repo must be in pre-mode. Check with `ls .changeset/pre.json`.
    # Should show: beta: 2.0.0-beta.27
    ```
 
+6. **Add @latest dist-tag** (optional but recommended)
+
+   Users expect `npm install aurelia` to get the current beta. To also tag the release as `@latest`:
+
+   - Go to GitHub → Actions → **Add @latest dist-tags (manual)**
+   - Enter the version: `2.0.0-beta.27`
+   - Optionally enable `dry_run` to preview first
+   - Click "Run workflow"
+
+   This runs `npm dist-tag add <package>@<version> latest` for all packages.
+
 ### Releasing Stable (e.g., 2.0.0)
 
 First, exit pre-mode to switch from beta versions to stable versions.
@@ -210,6 +221,13 @@ A package was removed but still listed in `.changeset/config.json`. Edit the `fi
 | `action` | `enter` | Start releasing betas/rcs |
 | | `exit` | Switch back to stable releases |
 | `tag` | `beta`, `rc`, etc. | The prerelease label |
+
+**Add @latest dist-tags (manual):**
+| Input | Options | What it does |
+|-------|---------|--------------|
+| `version` | e.g., `2.0.0-beta.27` | Version to tag as `@latest` |
+| `dry_run` | `true` | Preview commands only |
+| | `false` | Actually update dist-tags |
 
 ### Local Commands
 

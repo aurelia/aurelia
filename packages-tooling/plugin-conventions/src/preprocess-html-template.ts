@@ -138,7 +138,7 @@ export function preprocessHtmlTemplate(
   }
   statements.forEach(st => m.append(st));
   m.append(`export const name = ${s(name)};
-export const template = ${s(html)};
+export const template = ${s(options.transformHtml?.(html) ?? html)};
 export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
 `);

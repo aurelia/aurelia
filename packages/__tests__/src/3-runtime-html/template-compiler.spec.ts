@@ -555,8 +555,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           });
         });
 
-        describe('with higher number hids (stress tests)', function () {
-          it('compiles 10 text interpolations with sequential hids', function () {
+        describe('with many interpolations (stress tests)', function () {
+          it('compiles 10 text interpolations with sequential markers', function () {
             const { template, instructions } = compileWith(
               '${a}${b}${c}${d}${e}${f}${g}${h}${i}${j}',
               []
@@ -625,19 +625,19 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           });
         });
 
-        describe('with deeply nested hids', function () {
-          it('compiles template controller with nested element binding (child template has fresh hid counter)', function () {
+        describe('with deeply nested templates', function () {
+          it('compiles template controller with nested element binding (child template has fresh target index)', function () {
             const If = CustomAttribute.define({ name: 'if', isTemplateController: true }, class {});
             const { template, instructions } = compileWith(
               '<div if.bind="show" a.bind="1"></div>',
               [If]
             );
 
-            // Outer template: TC marker at hid 0
+            // Outer template: TC marker at target 0
             assertTemplateHtml(template, '<!--au--><!--au-start--><!--au-end-->');
             assert.strictEqual(instructions.length, 1, 'outer should have 1 instruction row');
 
-            // Inner template: element at hid 0 (fresh counter)
+            // Inner template: element at target 0 (fresh index per template)
             const tcInstruction = instructions[0][0] as HydrateTemplateController;
             assertTemplateHtml(tcInstruction.def.template!, '<!--au--><div></div>');
             assert.strictEqual(tcInstruction.def.instructions!.length, 1, 'inner should have 1 instruction row');
@@ -673,7 +673,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             // Outer: TC marker (div gets unwrapped)
             assertTemplateHtml(template, '<!--au--><!--au-start--><!--au-end-->');
 
-            // Inner template: should have the span with hid 0
+            // Inner template: span is marked as target 0
             const tcInstruction = instructions[0][0] as HydrateTemplateController;
             assertTemplateHtml(tcInstruction.def.template!, '<div><!--au--><span></span></div>');
             // The span has 3 bindings but only 1 target (the element itself)
@@ -689,10 +689,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [El, If]
             );
 
-            // Outer template:
-            // - div element at hid 0
-            // - text inside div at hid 1
-            // - TC for span at hid 2
+            // Outer template targets:
+            // - div element (target 0)
+            // - text interpolation inside div (target 1)
+            // - TC for span (target 2)
             assertTemplateHtml(template, '<!--au--><div><!--au--> <!--au--><!--au-start--><!--au-end--></div>');
             assert.strictEqual(instructions.length, 3, 'outer should have 3 instruction rows');
 
@@ -712,7 +712,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               [TC1, TC2, TC3, TC4, TC5]
             );
 
-            // Verify each level has its own hid 0
+            // Verify each level has its own target index starting at 0
             assertTemplateHtml(template, '<!--au--><!--au-start--><!--au-end-->');
 
             let currentInstructions = instructions;
@@ -728,7 +728,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             assert.strictEqual(lastTC.def.instructions!.length, 1, 'leaf should have 1 instruction row');
           });
 
-          it('compiles sibling template controllers with independent hid sequences', function () {
+          it('compiles sibling template controllers with independent target indices', function () {
             const If = CustomAttribute.define({ name: 'if', isTemplateController: true }, class {});
             const { template, instructions } = compileWith(
               '<div if.bind="a" x.bind="1"></div><div if.bind="b" y.bind="2"></div><div if.bind="c" z.bind="3"></div>',
@@ -743,7 +743,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             );
             assert.strictEqual(instructions.length, 3, 'should have 3 instruction rows');
 
-            // Each child template should have its own hid 0
+            // Each child template has its own target index starting at 0
             for (let i = 0; i < 3; i++) {
               const tc = instructions[i][0] as HydrateTemplateController;
               assertTemplateHtml(tc.def.template!, '<!--au--><div></div>');

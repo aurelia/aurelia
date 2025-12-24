@@ -110,7 +110,7 @@ describe('3-runtime-html/ssr-hydration.spec.ts', function () {
       const { container, platform, doc } = TestContext.create();
 
       const parent = doc.createElement('div');
-      const { location, nodes } = createLocationWithNodes(doc, parent, ['A']);
+      const { location } = createLocationWithNodes(doc, parent, ['A']);
 
       const ssrScope: ISSRTemplateController = {
         type: 'if',
@@ -132,7 +132,7 @@ describe('3-runtime-html/ssr-hydration.spec.ts', function () {
       const { container, platform, doc } = TestContext.create();
 
       const parent = doc.createElement('div');
-      const { location, nodes } = createLocationWithNodes(doc, parent, ['A', 'B', 'C']);
+      const { location } = createLocationWithNodes(doc, parent, ['A', 'B', 'C']);
 
       const ssrScope: ISSRTemplateController = {
         type: 'with',

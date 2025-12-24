@@ -279,138 +279,86 @@ function appendChildren(parent: HTMLElement, child: HTMLElement, count: number):
 describe('[UNIT] findMatchingEndMarker', function () {
   const ctx = TestContext.create();
 
+  /** Get all comment nodes from a parent element */
+  function getComments(parent: Element): Comment[] {
+    return Array.from(parent.childNodes).filter((n): n is Comment => n.nodeType === 8);
+  }
+
   it('finds matching end for simple au-start/au-end pair', function () {
     const parent = ctx.doc.createElement('div');
-    const start = ctx.doc.createComment('au-start');
-    const content = ctx.doc.createElement('span');
-    const end = ctx.doc.createComment('au-end');
+    parent.innerHTML = '<!--au-start--><span></span><!--au-end-->';
 
-    parent.appendChild(start);
-    parent.appendChild(content);
-    parent.appendChild(end);
-
-    const result = findMatchingEndMarker(start);
-    assert.strictEqual(result, end, 'should find the matching au-end');
+    const [start, end] = getComments(parent);
+    assert.strictEqual(findMatchingEndMarker(start), end, 'should find the matching au-end');
   });
 
   it('handles nested au-start/au-end pairs correctly', function () {
     const parent = ctx.doc.createElement('div');
-    // Outer: au-start ... au-end
-    //   Inner: au-start ... au-end
-    const outerStart = ctx.doc.createComment('au-start');
-    const innerStart = ctx.doc.createComment('au-start');
-    const innerContent = ctx.doc.createElement('span');
-    const innerEnd = ctx.doc.createComment('au-end');
-    const outerContent = ctx.doc.createElement('div');
-    const outerEnd = ctx.doc.createComment('au-end');
+    // Structure: <!--outer-start--><!--inner-start--><span/><!--inner-end--><div/><!--outer-end-->
+    parent.innerHTML = '<!--au-start--><!--au-start--><span></span><!--au-end--><div></div><!--au-end-->';
 
-    parent.appendChild(outerStart);
-    parent.appendChild(innerStart);
-    parent.appendChild(innerContent);
-    parent.appendChild(innerEnd);
-    parent.appendChild(outerContent);
-    parent.appendChild(outerEnd);
+    const [outerStart, innerStart, innerEnd, outerEnd] = getComments(parent);
 
-    // Finding end for outer should skip the inner pair
-    const resultOuter = findMatchingEndMarker(outerStart);
-    assert.strictEqual(resultOuter, outerEnd, 'should find outer au-end, not inner');
-
-    // Finding end for inner should find the inner end
-    const resultInner = findMatchingEndMarker(innerStart);
-    assert.strictEqual(resultInner, innerEnd, 'should find inner au-end');
+    assert.strictEqual(findMatchingEndMarker(outerStart), outerEnd, 'outer start should find outer end');
+    assert.strictEqual(findMatchingEndMarker(innerStart), innerEnd, 'inner start should find inner end');
   });
 
   it('handles deeply nested pairs (3 levels)', function () {
     const parent = ctx.doc.createElement('div');
-    const level1Start = ctx.doc.createComment('au-start');
-    const level2Start = ctx.doc.createComment('au-start');
-    const level3Start = ctx.doc.createComment('au-start');
-    const level3End = ctx.doc.createComment('au-end');
-    const level2End = ctx.doc.createComment('au-end');
-    const level1End = ctx.doc.createComment('au-end');
+    // 3 levels deep: <!--1--><!--2--><!--3--><!--/3--><!--/2--><!--/1-->
+    parent.innerHTML = '<!--au-start--><!--au-start--><!--au-start--><!--au-end--><!--au-end--><!--au-end-->';
 
-    parent.appendChild(level1Start);
-    parent.appendChild(level2Start);
-    parent.appendChild(level3Start);
-    parent.appendChild(level3End);
-    parent.appendChild(level2End);
-    parent.appendChild(level1End);
+    const [l1Start, l2Start, l3Start, l3End, l2End, l1End] = getComments(parent);
 
-    assert.strictEqual(findMatchingEndMarker(level1Start), level1End);
-    assert.strictEqual(findMatchingEndMarker(level2Start), level2End);
-    assert.strictEqual(findMatchingEndMarker(level3Start), level3End);
+    assert.strictEqual(findMatchingEndMarker(l1Start), l1End, 'level 1');
+    assert.strictEqual(findMatchingEndMarker(l2Start), l2End, 'level 2');
+    assert.strictEqual(findMatchingEndMarker(l3Start), l3End, 'level 3');
   });
 
   it('returns null when no matching end is found', function () {
     const parent = ctx.doc.createElement('div');
-    const start = ctx.doc.createComment('au-start');
-    const content = ctx.doc.createElement('span');
-    // No au-end
+    parent.innerHTML = '<!--au-start--><span></span>';
 
-    parent.appendChild(start);
-    parent.appendChild(content);
-
-    const result = findMatchingEndMarker(start);
-    assert.strictEqual(result, null, 'should return null when no match');
+    const [start] = getComments(parent);
+    assert.strictEqual(findMatchingEndMarker(start), null, 'should return null when no match');
   });
 
   it('returns null when unbalanced (more starts than ends)', function () {
     const parent = ctx.doc.createElement('div');
-    const start1 = ctx.doc.createComment('au-start');
-    const start2 = ctx.doc.createComment('au-start');
-    const end1 = ctx.doc.createComment('au-end');
-    // Missing second au-end
+    // Two starts, one end - first start has no matching end
+    parent.innerHTML = '<!--au-start--><!--au-start--><!--au-end-->';
 
-    parent.appendChild(start1);
-    parent.appendChild(start2);
-    parent.appendChild(end1);
-
-    // start1 should not find a match (end1 belongs to start2)
-    const result = findMatchingEndMarker(start1);
-    assert.strictEqual(result, null, 'should return null for unbalanced pairs');
+    const [start1] = getComments(parent);
+    assert.strictEqual(findMatchingEndMarker(start1), null, 'should return null for unbalanced pairs');
   });
 });
 
 describe('[UNIT] partitionSiblingNodes', function () {
   const ctx = TestContext.create();
 
-  function createRenderLocation(parent: Element, children: Node[]): IRenderLocation<Comment> {
-    const start = ctx.doc.createComment('au-start');
-    const end = ctx.doc.createComment('au-end') as IRenderLocation<Comment>;
+  /** Create a render location from innerHTML. Returns the end marker with $start set. */
+  function createLocation(html: string): IRenderLocation<Comment> {
+    const parent = ctx.doc.createElement('div');
+    parent.innerHTML = html;
+    const comments = Array.from(parent.childNodes).filter((n): n is Comment => n.nodeType === 8);
+    const start = comments.find(c => c.textContent === 'au-start')!;
+    const end = comments.find(c => c.textContent === 'au-end')! as IRenderLocation<Comment>;
     end.$start = start;
-
-    parent.appendChild(start);
-    for (const child of children) {
-      parent.appendChild(child);
-    }
-    parent.appendChild(end);
-
     return end;
   }
 
   it('partitions nodes according to nodeCounts', function () {
-    const parent = ctx.doc.createElement('div');
-    const nodes = [
-      ctx.doc.createElement('span'),
-      ctx.doc.createElement('span'),
-      ctx.doc.createElement('span'),
-      ctx.doc.createElement('span'),
-    ];
-    nodes[0].textContent = 'A';
-    nodes[1].textContent = 'B';
-    nodes[2].textContent = 'C';
-    nodes[3].textContent = 'D';
+    // 4 spans between start/end, partition as [1, 2, 1]
+    const location = createLocation(
+      '<!--au-start--><span>A</span><span>B</span><span>C</span><span>D</span><!--au-end-->'
+    );
 
-    const location = createRenderLocation(parent, nodes);
-
-    // Partition into groups of [1, 2, 1]
     const result = partitionSiblingNodes(location, [1, 2, 1]);
 
     assert.strictEqual(result.length, 3, 'should have 3 partitions');
-    assert.strictEqual(result[0].length, 1, 'partition 0 should have 1 node');
-    assert.strictEqual(result[1].length, 2, 'partition 1 should have 2 nodes');
-    assert.strictEqual(result[2].length, 1, 'partition 2 should have 1 node');
-
+    assert.strictEqual(result[0].length, 1);
+    assert.strictEqual(result[1].length, 2);
+    assert.strictEqual(result[2].length, 1);
     assert.strictEqual((result[0][0] as Element).textContent, 'A');
     assert.strictEqual((result[1][0] as Element).textContent, 'B');
     assert.strictEqual((result[1][1] as Element).textContent, 'C');
@@ -418,21 +366,16 @@ describe('[UNIT] partitionSiblingNodes', function () {
   });
 
   it('handles empty nodeCounts array', function () {
-    const parent = ctx.doc.createElement('div');
-    const nodes = [ctx.doc.createElement('span')];
-    const location = createRenderLocation(parent, nodes);
+    const location = createLocation('<!--au-start--><span></span><!--au-end-->');
 
     const result = partitionSiblingNodes(location, []);
-
     assert.strictEqual(result.length, 0, 'should return empty array');
   });
 
   it('handles nodeCounts exceeding available nodes', function () {
-    const parent = ctx.doc.createElement('div');
-    const nodes = [ctx.doc.createElement('span'), ctx.doc.createElement('span')];
-    const location = createRenderLocation(parent, nodes);
+    const location = createLocation('<!--au-start--><span></span><span></span><!--au-end-->');
 
-    // Request more nodes than available
+    // Request 5 nodes but only 2 available
     const result = partitionSiblingNodes(location, [5]);
 
     assert.strictEqual(result.length, 1, 'should have 1 partition');
@@ -440,27 +383,24 @@ describe('[UNIT] partitionSiblingNodes', function () {
   });
 
   it('handles zero in nodeCounts', function () {
-    const parent = ctx.doc.createElement('div');
-    const nodes = [ctx.doc.createElement('span'), ctx.doc.createElement('span')];
-    const location = createRenderLocation(parent, nodes);
+    const location = createLocation('<!--au-start--><span>A</span><span>B</span><!--au-end-->');
 
     const result = partitionSiblingNodes(location, [0, 1, 0, 1]);
 
     assert.strictEqual(result.length, 4, 'should have 4 partitions');
-    assert.strictEqual(result[0].length, 0, 'partition 0 should be empty');
-    assert.strictEqual(result[1].length, 1, 'partition 1 should have 1 node');
-    assert.strictEqual(result[2].length, 0, 'partition 2 should be empty');
-    assert.strictEqual(result[3].length, 1, 'partition 3 should have 1 node');
+    assert.strictEqual(result[0].length, 0, 'partition 0 empty');
+    assert.strictEqual(result[1].length, 1, 'partition 1 has 1');
+    assert.strictEqual(result[2].length, 0, 'partition 2 empty');
+    assert.strictEqual(result[3].length, 1, 'partition 3 has 1');
   });
 
   it('returns empty array when location has no $start', function () {
     const parent = ctx.doc.createElement('div');
-    const end = ctx.doc.createComment('au-end') as IRenderLocation<Comment>;
-    // Not setting $start
-    parent.appendChild(end);
+    parent.innerHTML = '<!--au-end-->';
+    const end = parent.firstChild as IRenderLocation<Comment>;
+    // Intentionally not setting $start
 
     const result = partitionSiblingNodes(end, [1, 2]);
-
     assert.strictEqual(result.length, 0, 'should return empty array');
   });
 });
@@ -470,22 +410,13 @@ describe('[UNIT] FragmentNodeSequence.adoptChildren', function () {
 
   it('adopts all children from host element', function () {
     const host = ctx.doc.createElement('div');
-    const child1 = ctx.doc.createElement('span');
-    const child2 = ctx.doc.createElement('p');
-    const child3 = ctx.doc.createTextNode('text');
-
-    child1.textContent = 'span';
-    child2.textContent = 'paragraph';
-
-    host.appendChild(child1);
-    host.appendChild(child2);
-    host.appendChild(child3);
+    host.innerHTML = '<span>span</span><p>paragraph</p>text';
 
     const seq = FragmentNodeSequence.adoptChildren(ctx.platform, host);
 
     assert.strictEqual(seq.childNodes.length, 3, 'should have 3 children');
-    assert.strictEqual(seq.firstChild, child1, 'firstChild should be span');
-    assert.strictEqual(seq.lastChild, child3, 'lastChild should be text node');
+    assert.strictEqual((seq.firstChild as Element).tagName, 'SPAN');
+    assert.strictEqual(seq.lastChild!.nodeType, 3, 'lastChild should be text node');
   });
 
   it('collects <!--au--> markers as targets', function () {
@@ -513,43 +444,46 @@ describe('[UNIT] FragmentNodeSequence.adoptChildren', function () {
 
   it('handles empty host', function () {
     const host = ctx.doc.createElement('div');
+    // Empty - no innerHTML
 
     const seq = FragmentNodeSequence.adoptChildren(ctx.platform, host);
 
     assert.strictEqual(seq.childNodes.length, 0, 'should have no children');
-    assert.strictEqual(seq.firstChild, null, 'firstChild should be null');
-    assert.strictEqual(seq.lastChild, null, 'lastChild should be null');
+    assert.strictEqual(seq.firstChild, null);
+    assert.strictEqual(seq.lastChild, null);
   });
 });
 
 describe('[UNIT] FragmentNodeSequence.adoptSiblings', function () {
   const ctx = TestContext.create();
 
-  it('adopts provided node array', function () {
-    const node1 = ctx.doc.createElement('span');
-    const node2 = ctx.doc.createElement('p');
-    node1.textContent = 'span';
-    node2.textContent = 'paragraph';
+  /** Helper to create nodes from innerHTML */
+  function nodesFrom(html: string): Node[] {
+    const parent = ctx.doc.createElement('div');
+    parent.innerHTML = html;
+    return Array.from(parent.childNodes);
+  }
 
-    const seq = FragmentNodeSequence.adoptSiblings(ctx.platform, [node1, node2]);
+  it('adopts provided node array', function () {
+    const nodes = nodesFrom('<span>span</span><p>paragraph</p>');
+
+    const seq = FragmentNodeSequence.adoptSiblings(ctx.platform, nodes);
 
     assert.strictEqual(seq.childNodes.length, 2, 'should have 2 children');
-    assert.strictEqual(seq.firstChild, node1, 'firstChild should be span');
-    assert.strictEqual(seq.lastChild, node2, 'lastChild should be p');
+    assert.strictEqual((seq.firstChild as Element).tagName, 'SPAN');
+    assert.strictEqual((seq.lastChild as Element).tagName, 'P');
   });
 
   it('handles empty node array', function () {
     const seq = FragmentNodeSequence.adoptSiblings(ctx.platform, []);
 
-    assert.strictEqual(seq.childNodes.length, 0, 'should have no children');
-    assert.strictEqual(seq.firstChild, null, 'firstChild should be null');
-    assert.strictEqual(seq.lastChild, null, 'lastChild should be null');
+    assert.strictEqual(seq.childNodes.length, 0);
+    assert.strictEqual(seq.firstChild, null);
+    assert.strictEqual(seq.lastChild, null);
   });
 
   it('collects targets from adopted siblings', function () {
-    const parent = ctx.doc.createElement('div');
-    parent.innerHTML = '<!--au--><span></span><!--au--><p></p>';
-    const nodes = Array.from(parent.childNodes);
+    const nodes = nodesFrom('<!--au--><span></span><!--au--><p></p>');
 
     const seq = FragmentNodeSequence.adoptSiblings(ctx.platform, nodes);
     const targets = seq.findTargets();
@@ -560,13 +494,12 @@ describe('[UNIT] FragmentNodeSequence.adoptSiblings', function () {
   });
 
   it('handles single node', function () {
-    const node = ctx.doc.createElement('div');
-    node.textContent = 'single';
+    const nodes = nodesFrom('<div>single</div>');
 
-    const seq = FragmentNodeSequence.adoptSiblings(ctx.platform, [node]);
+    const seq = FragmentNodeSequence.adoptSiblings(ctx.platform, nodes);
 
-    assert.strictEqual(seq.childNodes.length, 1, 'should have 1 child');
-    assert.strictEqual(seq.firstChild, node, 'firstChild should be the node');
-    assert.strictEqual(seq.lastChild, node, 'lastChild should be the same node');
+    assert.strictEqual(seq.childNodes.length, 1);
+    assert.strictEqual((seq.firstChild as Element).textContent, 'single');
+    assert.strictEqual(seq.firstChild, seq.lastChild, 'first and last should be same');
   });
 });

@@ -102,7 +102,8 @@ export interface SetPropertyInstruction extends IInstruction {
 
 export interface MultiAttrInstruction extends IInstruction {
   readonly type: typeof itMultiAttr;
-  readonly value: string;
+  /** Expression source (JIT) or pre-parsed AST (AOT) */
+  readonly value: string | IsBindingBehavior;
   readonly to: string;
   readonly command: string | null;
 }

@@ -3,7 +3,7 @@ import { IPlatform } from '../../platform';
 import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 
 import type { ICustomAttributeViewModel } from '../../templating/controller';
-import { IInstruction, HydrateAttributeInstruction } from '@aurelia/template-compiler';
+import { IInstruction, type HydrateAttributeInstruction } from '@aurelia/template-compiler';
 import { resolve } from '@aurelia/kernel';
 import { queueTask } from '@aurelia/runtime';
 

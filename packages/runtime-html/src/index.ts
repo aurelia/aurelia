@@ -39,6 +39,7 @@ export {
   Aurelia,
   IAurelia,
   type IEnhancementConfig,
+  type IHydrateConfig,
   /**
    * @deprecated
    * Use `ISinglePageAppConfig` instead
@@ -46,6 +47,27 @@ export {
   type ISinglePageAppConfig as ISinglePageApp,
   type ISinglePageAppConfig,
 } from './aurelia';
+export {
+  // SSR manifest types (tree-shaped, mirrors controller tree)
+  // Types and type guards needed for hydration on client
+  // Recording functions moved to @aurelia-ls/build (cross-package awareness)
+  type ISSRManifest,
+  type ISSRScope,
+  type ISSRScopeChild,
+  type ISSRTemplateController,
+  isSSRTemplateController,
+  isSSRScope,
+  ISSRContext,
+  // SSR view adoption helpers (for template controllers)
+  type AdoptedViewResult,
+  type AdoptedViewsResult,
+  adoptSSRView,
+  adoptSSRViews,
+  // SSR definition hydration (client-side)
+  type ISSRDefinition,
+  type IHydratedDefinition,
+  hydrateSSRDefinition,
+} from './templating/ssr';
 export {
   type IAppRootConfig,
   AppRoot,
@@ -362,6 +384,8 @@ export {
   convertToRenderLocation,
   isRenderLocation,
   registerHostNode,
+  findMatchingEndMarker,
+  partitionSiblingNodes,
 } from './dom';
 export {
   refs,

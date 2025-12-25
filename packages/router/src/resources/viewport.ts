@@ -29,6 +29,13 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   public default: string = '';
   public fallback: Routeable | FallbackFunction = '';
 
+  /**
+   * The controller of the currently active routed component, if any.
+   */
+  public get currentController(): ICustomElementController | null {
+    return this._agent?.currentController ?? null;
+  }
+
   /** @internal */ private _agent: ViewportAgent = (void 0)!;
   /** @internal */ private _controller: ICustomElementController = (void 0)!;
 

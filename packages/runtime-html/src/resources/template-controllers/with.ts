@@ -1,9 +1,11 @@
 import { resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
+import { adoptSSRView, isSSRTemplateController, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, ISyntheticView } from '../../templating/controller';
 
 export class With implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -17,7 +19,10 @@ export class With implements ICustomAttributeViewModel {
 
   public value?: object;
 
-  private view = resolve(IViewFactory).create().setLocation(resolve(IRenderLocation));
+  /** @internal */ private readonly _factory = resolve(IViewFactory);
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
+  public view!: ISyntheticView;
 
   public valueChanged(
     newValue: unknown,
@@ -36,12 +41,38 @@ export class With implements ICustomAttributeViewModel {
   }
 
   public attaching(
-    initiator: IHydratedController,
+    _initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     const { $controller, value } = this;
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateView clears ssrScope, so reactivation takes the normal path.
+    const ssrScope = $controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'with') {
+      return this._hydrateView(ssrScope);
+    }
+
+    const view = this.view = this._factory.create($controller).setLocation(this._location);
     const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, scope);
+    return view.activate(view, $controller, scope);
+  }
+
+  /** @internal */
+  private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
+    const { $controller, value, _factory, _location, _platform } = this;
+
+    const result = adoptSSRView(ssrScope, _factory, $controller, _location, _platform);
+    if (result == null) {
+      $controller.ssrScope = undefined;
+      const view = this.view = _factory.create($controller).setLocation(_location);
+      const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
+      return view.activate(view, $controller, scope);
+    }
+
+    this.view = result.view;
+    $controller.ssrScope = undefined;
+    const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
+    return result.view.activate(result.view, $controller, scope);
   }
 
   public detaching(
@@ -52,7 +83,7 @@ export class With implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
-    this.view.dispose();
+    this.view?.dispose();
     this.view = (void 0)!;
   }
 

@@ -2,6 +2,8 @@ import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
+import { ISSRContext, type ISSRScope } from './ssr';
+
 import { FragmentNodeSequence, INodeSequence } from '../dom';
 import { INode } from '../dom.node';
 import { IPlatform } from '../platform';
@@ -11,11 +13,11 @@ import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
 import { ErrorNames, createMappedError } from '../errors';
-import { IInstruction, ITemplateCompiler } from '@aurelia/template-compiler';
+import { IInstruction, ITemplateCompiler, itHydrateElement, itHydrateTemplateController } from '@aurelia/template-compiler';
 
 export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering {
-  get renderers(): Record<string, IRenderer>;
+  get renderers(): Record<number, IRenderer>;
 
   compile(
     definition: CustomElementDefinition,
@@ -25,6 +27,17 @@ export interface IRendering {
   getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
 
   createNodes(definition: CustomElementDefinition): INodeSequence;
+
+  /**
+   * Adopt existing DOM children for SSR hydration.
+   *
+   * Instead of cloning from a template, this wraps existing DOM nodes
+   * that were pre-rendered (e.g., by SSR). The nodes stay in place.
+   *
+   * @param host - The element whose children should be adopted
+   * @returns A node sequence wrapping the existing children
+   */
+  adoptNodes(host: Element): INodeSequence;
 
   render(
     controller: IHydratableController,
@@ -42,7 +55,7 @@ export class Rendering implements IRendering {
   /** @internal */
   private readonly _observerLocator: IObserverLocator;
   /** @internal */
-  private _renderers: Record<string, IRenderer> | undefined;
+  private _renderers: Record<number, IRenderer> | undefined;
   /** @internal */
   private readonly _platform: IPlatform;
   /** @internal */
@@ -52,9 +65,9 @@ export class Rendering implements IRendering {
   /** @internal */
   private readonly _empty: INodeSequence;
   /** @internal */
-  private readonly _marker: Node;
+  private readonly _preserveMarkers: boolean;
 
-  public get renderers(): Record<string, IRenderer> {
+  public get renderers(): Record<number, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
       if (__DEV__) {
         if (all[r.target] !== void 0) {
@@ -72,8 +85,8 @@ export class Rendering implements IRendering {
     const p = this._platform = ctn.get(IPlatform);
     this._exprParser= ctn.get(IExpressionParser);
     this._observerLocator = ctn.get(IObserverLocator);
-    this._marker = p.document.createElement('au-m');
     this._empty = new FragmentNodeSequence(p, p.document.createDocumentFragment());
+    this._preserveMarkers = ctn.has(ISSRContext, true) ? ctn.get(ISSRContext).preserveMarkers : false;
   }
 
   public compile(
@@ -102,7 +115,7 @@ export class Rendering implements IRendering {
 
   public createNodes(definition: CustomElementDefinition): INodeSequence {
     if (definition.enhance === true) {
-      return new FragmentNodeSequence(this._platform, this._transformMarker(definition.template as Node) as DocumentFragment);
+      return new FragmentNodeSequence(this._platform, definition.template as DocumentFragment);
     }
     let fragment: DocumentFragment | null | undefined;
     let needsImportNode = false;
@@ -131,18 +144,30 @@ export class Rendering implements IRendering {
         fragment = tpl.content;
         needsImportNode = true;
       }
-      this._transformMarker(fragment);
+      // No marker transformation needed - <!--au--> markers are used directly
+      // and targets are found via comment text matching
 
       cache.set(definition, fragment);
     }
-    return fragment == null
-      ? this._empty
-      : new FragmentNodeSequence(
-        this._platform,
-        needsImportNode
-          ? doc.importNode(fragment, true)
-          : doc.adoptNode(fragment.cloneNode(true) as DocumentFragment)
-        );
+
+    if (fragment == null) {
+      return this._empty;
+    }
+
+    // Clone the fragment for this view
+    const clonedFragment = needsImportNode
+      ? doc.importNode(fragment, true)
+      : doc.adoptNode(fragment.cloneNode(true) as DocumentFragment);
+
+    return new FragmentNodeSequence(
+      this._platform,
+      clonedFragment,
+      this._preserveMarkers,
+    );
+  }
+
+  public adoptNodes(host: Element): INodeSequence {
+    return FragmentNodeSequence.adoptChildren(this._platform, host);
   }
 
   public render(
@@ -153,17 +178,24 @@ export class Rendering implements IRendering {
   ): void {
     const rows = definition.instructions;
     const renderers = this.renderers;
-    const ii = targets.length;
+    const targetCount = targets.length;
+    const rowCount = rows.length;
+
+    // Tree-based SSR: get parent's scope and track child index
+    const parentScope = controller.ssrScope as ISSRScope | undefined;
+    const isHydrating = parentScope != null;
+    const scopeChildren = parentScope?.children;
+    let ssrChildIndex = 0;
 
     let i = 0;
     let j = 0;
-    let jj = rows.length;
+    let jj = rowCount;
     let row: readonly IInstruction[];
     let instruction: IInstruction;
     let target: INode;
 
-    if (ii !== jj) {
-      throw createMappedError(ErrorNames.rendering_mismatch_length, ii, jj);
+    if (!isHydrating && targetCount !== rowCount) {
+      throw createMappedError(ErrorNames.rendering_mismatch_length, targetCount, rowCount);
     }
 
     // host is only null when rendering a synthetic view
@@ -180,77 +212,28 @@ export class Rendering implements IRendering {
       }
     }
 
-    if (ii > 0) {
-      while (ii > i) {
+    if (rowCount > 0) {
+      while (rowCount > i) {
         row = rows[i];
         target = targets[i];
+
         j = 0;
         jj = row.length;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator);
+
+          // Tree-based SSR: pass scope child to child-creating instructions
+          const instructionType = instruction.type;
+          const createsChild = instructionType === itHydrateTemplateController || instructionType === itHydrateElement;
+          const childScope = createsChild && scopeChildren != null
+            ? scopeChildren[ssrChildIndex++]
+            : undefined;
+
+          renderers[instructionType].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator, childScope);
           ++j;
         }
         ++i;
       }
     }
-  }
-
-  /** @internal */
-  private _transformMarker(fragment: Node | null) {
-    if (fragment == null) {
-      return null;
-    }
-    const walker = this._platform.document.createTreeWalker(fragment, /* NodeFilter.SHOW_COMMENT */ 128);
-    let currentNode: Node | null;
-    while ((currentNode = walker.nextNode()) != null) {
-      if (currentNode.nodeValue === 'au*') {
-        currentNode.parentNode!.replaceChild(walker.currentNode = this._marker.cloneNode(), currentNode);
-      }
-    }
-    return fragment;
-    // below is a homemade "comment query selector that seems to be as efficient as the TreeWalker
-    // also it works with very minimal set of APIs (.nextSibling, .parentNode, .insertBefore, .removeChild)
-    // while TreeWalker maynot be always available in platform that we may potentially support
-    //
-    // so leaving it here just in case we need it again, TreeWalker is slightly less code
-
-    // let parent: Node = fragment;
-    // let current: Node | null | undefined = parent.firstChild;
-    // let next: Node | null | undefined = null;
-
-    // while (current != null) {
-    //   if (current.nodeType === 8 && current.nodeValue === 'au*') {
-    //     next = current.nextSibling!;
-    //     parent.removeChild(current);
-    //     parent.insertBefore(this._marker(), next);
-    //     if (next.nodeType === 8) {
-    //       current = next.nextSibling;
-    //       // todo: maybe validate?
-    //     } else {
-    //       current = next;
-    //     }
-    //   }
-
-    //   next = current?.firstChild;
-    //   if (next == null) {
-    //     next = current?.nextSibling;
-    //     if (next == null) {
-    //       current = parent.nextSibling;
-    //       parent = parent.parentNode!;
-    //       // needs to keep walking up all the way til a valid next node
-    //       while (current == null && parent != null) {
-    //         current = parent.nextSibling;
-    //         parent = parent.parentNode!;
-    //       }
-    //     } else {
-    //       current = next;
-    //     }
-    //   } else {
-    //     parent = current!;
-    //     current = next;
-    //   }
-    // }
-    // return fragment;
   }
 }

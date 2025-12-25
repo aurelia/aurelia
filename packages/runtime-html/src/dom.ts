@@ -1,4 +1,4 @@
-import { IContainer, IResolver, InstanceProvider, emptyArray } from '@aurelia/kernel';
+import { IResolver, InstanceProvider, emptyArray, type IContainer } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { findElementControllerFor } from './resources/custom-element';
@@ -21,6 +21,8 @@ export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTa
 export const IRenderLocation = /*@__PURE__*/createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
+  /** Target index for SSR hydration manifest lookup */
+  $targetIndex?: number;
 };
 
 /** @internal */
@@ -210,15 +212,88 @@ export function isRenderLocation(node: INode | INodeSequence): node is IRenderLo
   return (node as Comment).textContent === 'au-end';
 }
 
+/**
+ * Find the matching au-end comment for an au-start marker.
+ * Handles nested au-start/au-end pairs correctly.
+ *
+ * @param startMarker - The au-start comment to find the match for
+ * @returns The matching au-end comment, or null if not found
+ */
+export function findMatchingEndMarker(startMarker: Node): Comment | null {
+  let depth = 1;
+  let current: Node | null = startMarker.nextSibling;
+  while (current !== null) {
+    if (current.nodeType === 8 /* Comment */) {
+      const text = (current as Comment).textContent;
+      if (text === 'au-start') {
+        depth++;
+      } else if (text === 'au-end') {
+        if (--depth === 0) {
+          return current as Comment;
+        }
+      }
+    }
+    current = current.nextSibling;
+  }
+  return null;
+}
+
+/** Partition sibling nodes between au-start/au-end markers according to nodeCounts. */
+export function partitionSiblingNodes(
+  location: IRenderLocation,
+  nodeCounts: number[]
+): Node[][] {
+  const endMarker = location as Comment;
+  const startMarker = (location as IRenderLocation<Comment>).$start as Comment | undefined;
+
+  if (startMarker == null) {
+    return [];
+  }
+
+  const partitions: Node[][] = [];
+  let current: Node | null = startMarker.nextSibling;
+
+  for (let i = 0, ii = nodeCounts.length; ii > i; ++i) {
+    const count = nodeCounts[i];
+    const nodes: Node[] = [];
+
+    for (let n = 0; n < count && current != null && current !== endMarker; ++n) {
+      nodes.push(current);
+      current = current.nextSibling;
+    }
+
+    partitions.push(nodes);
+  }
+
+  return partitions;
+}
+
+/**
+ * Collect all `<!--au-->` marker comments from a fragment in document order.
+ * Uses native TreeWalker with SHOW_COMMENT filter for optimal performance.
+ */
+function collectMarkerComments(fragment: DocumentFragment): Comment[] {
+  const markers: Comment[] = [];
+  // NodeFilter.SHOW_COMMENT = 128
+  const walker = fragment.ownerDocument!.createTreeWalker(fragment, 128);
+  let node: Comment | null;
+  while ((node = walker.nextNode() as Comment | null) !== null) {
+    if (node.textContent === 'au') {
+      markers.push(node);
+    }
+  }
+  return markers;
+}
+
 export class FragmentNodeSequence implements INodeSequence {
   /** @internal */
-  private readonly _firstChild: Node | null;
+  private _firstChild: Node | null;
   public get firstChild(): Node | null {
     return this._firstChild;
   }
 
   /** @internal */
-  private readonly _lastChild: Node | null;
+  private _lastChild: Node | null;
   public get lastChild(): Node | null {
     return this._lastChild;
   }
@@ -237,30 +312,40 @@ export class FragmentNodeSequence implements INodeSequence {
   private ref?: Node | null = null;
 
   /** @internal */
-  private readonly t: ArrayLike<Node>;
+  private t: ArrayLike<Node>;
 
   /** @internal */
-  private readonly f: DocumentFragment;
+  private f: DocumentFragment;
 
   public constructor(
     public readonly platform: IPlatform,
     fragment: DocumentFragment,
+    /**
+     * When true, preserves `<!--au-->` markers in the DOM.
+     * Used during SSR rendering to keep markers for client hydration.
+     * @internal
+     */
+    preserveMarkers?: boolean,
   ) {
-    const targetNodeList = (this.f = fragment).querySelectorAll('au-m');
+    const markers = collectMarkerComments(this.f = fragment);
     let i = 0;
-    let ii = targetNodeList.length;
+    let ii = markers.length;
     // eslint-disable-next-line
     let targets = this.t = Array(ii);
     let target: Node | IRenderLocation;
-    let marker: Element;
+    let marker: Comment;
 
     while (ii > i) {
-      marker = targetNodeList[i];
+      marker = markers[i];
       target = marker.nextSibling!;
-      marker.remove();
+      if (!preserveMarkers) {
+        marker.remove();
+      }
       if (target.nodeType === 8) {
-        marker = target as Element;
-        (target = target.nextSibling as IRenderLocation).$start = marker as unknown as Comment;
+        // Target is au-start comment, actual target is au-end (next sibling)
+        const startMarker = target;
+        target = target.nextSibling as IRenderLocation;
+        (target as IRenderLocation).$start = startMarker as unknown as Comment;
       }
       targets[i] = target;
       ++i;
@@ -276,6 +361,208 @@ export class FragmentNodeSequence implements INodeSequence {
 
     this._firstChild = fragment.firstChild;
     this._lastChild = fragment.lastChild;
+  }
+
+  /** Adopt existing DOM children for SSR hydration instead of cloning from a template. */
+  public static adoptChildren(platform: IPlatform, host: Element): FragmentNodeSequence {
+    const fragment = platform.document.createDocumentFragment();
+    const seq = new FragmentNodeSequence(platform, fragment);
+
+    const children = host.childNodes;
+    const childArray: Node[] = Array(children.length);
+    for (let i = 0, ii = children.length; ii > i; ++i) {
+      childArray[i] = children[i];
+    }
+
+    seq.childNodes = childArray;
+    seq._firstChild = childArray[0] ?? null;
+    seq._lastChild = childArray[childArray.length - 1] ?? null;
+    seq._isMounted = true;
+    seq.t = seq._collectTargetsFromHost(host);
+
+    return seq;
+  }
+
+  /** Adopt sibling nodes for SSR hydration of TC views (nodes between au-start/au-end). */
+  public static adoptSiblings(platform: IPlatform, nodes: Node[]): FragmentNodeSequence {
+    const fragment = platform.document.createDocumentFragment();
+    const seq = new FragmentNodeSequence(platform, fragment);
+
+    seq.childNodes = nodes;
+    seq._firstChild = nodes[0] ?? null;
+    seq._lastChild = nodes[nodes.length - 1] ?? null;
+    seq._isMounted = true;
+    seq.t = seq._collectTargetsFromSiblings(nodes);
+
+    return seq;
+  }
+
+  /** @internal */
+  private _collectTargetsFromSiblings(nodes: Node[]): Node[] {
+    const targets: Node[] = [];
+    const markers: Comment[] = [];
+
+    // Collect <!--au--> markers at the current template level.
+    // Skip content between au-start/au-end as that belongs to nested templates.
+    const collectFromChildren = (nodeList: NodeListOf<ChildNode>): void => {
+      let skipDepth = 0;
+      for (let i = 0, ii = nodeList.length; ii > i; ++i) {
+        const node = nodeList[i];
+
+        // Track au-start/au-end depth to skip nested template content
+        if (node.nodeType === 8 /* Comment */) {
+          const text = (node as Comment).textContent;
+          if (text === 'au') {
+            // Only collect marker if not inside au-start/au-end region
+            if (skipDepth === 0) {
+              markers.push(node as Comment);
+            }
+            continue;
+          } else if (text === 'au-start') {
+            skipDepth++;
+            continue;
+          } else if (text === 'au-end') {
+            skipDepth--;
+            continue;
+          }
+        }
+
+        // Skip nodes inside au-start/au-end regions
+        if (skipDepth > 0) continue;
+
+        if (node.nodeType === 1 /* Element */) {
+          const el = node as Element;
+          // Custom elements have their own templates - don't recurse
+          if (el.tagName.includes('-')) {
+            continue;
+          }
+          // Recurse into element's children
+          collectFromChildren(el.childNodes);
+        }
+      }
+    };
+
+    // Collect from the top-level sibling nodes
+    // Top level nodes are already partitioned, so just handle <!--au--> markers
+    // and recurse into elements
+    for (let i = 0, ii = nodes.length; ii > i; ++i) {
+      const node = nodes[i];
+      if (node.nodeType === 8 && (node as Comment).textContent === 'au') {
+        markers.push(node as Comment);
+      } else if (node.nodeType === 1) {
+        const el = node as Element;
+        // Custom elements have their own templates - don't recurse
+        if (!el.tagName.includes('-')) {
+          collectFromChildren(el.childNodes);
+        }
+      }
+    }
+
+    // Process markers in document order (implicit indexing)
+    for (let i = 0, ii = markers.length; ii > i; ++i) {
+      const marker = markers[i];
+      let target: Node | IRenderLocation = marker.nextSibling!;
+
+      // If target is au-start comment, actual target is au-end
+      if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
+        const startMarker = target as IRenderLocation;
+        const endMarker = findMatchingEndMarker(target);
+        if (endMarker !== null) {
+          target = endMarker as IRenderLocation;
+          (target as IRenderLocation).$start = startMarker;
+        }
+      }
+
+      targets[i] = target;
+    }
+
+    return targets;
+  }
+
+  /**
+   * Collect targets from existing DOM for SSR adoption.
+   *
+   * Uses `<!--au-->` markers with implicit indexing (document order).
+   * Unlike the constructor, this preserves markers because nested components
+   * still need them for their own hydration.
+   *
+   * IMPORTANT: Only collects markers at the current template level.
+   * Markers inside au-start/au-end regions belong to nested templates
+   * and are NOT collected here - they'll be collected when the nested
+   * template controller processes its own view.
+   *
+   * @param host - The element whose children contain the targets
+   * @returns Array of target nodes in document order
+   *
+   * @internal
+   */
+  private _collectTargetsFromHost(host: Element): Node[] {
+    const targets: Node[] = [];
+    const markers: Comment[] = [];
+
+    // Collect <!--au--> markers at the current template level.
+    // Skip content between au-start/au-end as that belongs to nested templates.
+    const collectSiblings = (nodeList: NodeListOf<ChildNode>): void => {
+      let skipDepth = 0;
+      for (let i = 0, ii = nodeList.length; ii > i; ++i) {
+        const node = nodeList[i];
+
+        // Track au-start/au-end depth to skip nested template content
+        if (node.nodeType === 8 /* Comment */) {
+          const text = (node as Comment).textContent;
+          if (text === 'au') {
+            // Only collect marker if not inside au-start/au-end region
+            if (skipDepth === 0) {
+              markers.push(node as Comment);
+            }
+            continue;
+          } else if (text === 'au-start') {
+            skipDepth++;
+            continue;
+          } else if (text === 'au-end') {
+            skipDepth--;
+            continue;
+          }
+        }
+
+        // Skip nodes inside au-start/au-end regions
+        if (skipDepth > 0) continue;
+
+        if (node.nodeType === 1 /* Element */) {
+          const el = node as Element;
+          // Custom elements have their own templates - don't recurse
+          if (el.tagName.includes('-')) {
+            continue;
+          }
+          // Recurse into element's children
+          collectSiblings(el.childNodes);
+        }
+      }
+    };
+
+    // Start collection from host's children
+    collectSiblings(host.childNodes);
+
+    // Process markers in document order (implicit indexing)
+    // Note: markers are NOT removed - nested components need them for hydration
+    for (let i = 0, ii = markers.length; ii > i; ++i) {
+      const marker = markers[i];
+      let target: Node | IRenderLocation = marker.nextSibling!;
+
+      // If target is au-start comment, actual target is au-end
+      if (target.nodeType === 8 && (target as Comment).textContent === 'au-start') {
+        const startMarker = target as IRenderLocation;
+        const endMarker = findMatchingEndMarker(target);
+        if (endMarker !== null) {
+          target = endMarker as IRenderLocation;
+          (target as IRenderLocation).$start = startMarker;
+        }
+      }
+
+      targets[i] = target;
+    }
+
+    return targets;
   }
 
   public findTargets(): ArrayLike<Node> {

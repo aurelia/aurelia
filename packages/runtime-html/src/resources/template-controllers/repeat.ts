@@ -249,65 +249,46 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     if (hasKey || indexMap === void 0) {
       const local = this.local;
-      const newItems = this._normalizedItems as IIndexable[];
-
-      const newLen = newItems.length;
-      const forOf = this.forOf;
-      const dec = forOf.declaration;
+      const dec = this.forOf.declaration;
       const binding = this._forOfBinding;
       const hasDestructuredLocal = this._hasDestructuredLocal;
+      const newLen = newScopes.length;
       indexMap = createIndexMap(newLen);
-      let i = 0;
 
       if (oldLen === 0) {
         // Only add new views
-        for (; i < newLen; ++i) {
+        for (let i = 0; i < newLen; ++i) {
           indexMap[i] = -2;
         }
       } else if (newLen === 0) {
         // Only remove old views
-        for (i = 0; i < oldLen; ++i) {
+        for (let i = 0; i < oldLen; ++i) {
           indexMap.deletedIndices.push(i);
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
-      } else if (hasKey) {
-        const oldKeys = Array<unknown>(oldLen);
-
-        for (i = 0; i < oldLen; ++i) {
-          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local);
-        }
-
-        const newKeys = Array<unknown>(oldLen);
-
-        for (i = 0; i < newLen; ++i) {
-          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
-        }
-
-        for (i = 0; i < newLen; ++i) {
-          if (oldKeys.includes(newKeys[i])) {
-            indexMap[i] = oldKeys.indexOf(newKeys[i]);
-          } else {
-            indexMap[i] = -2;
-          }
-        }
-
-        for (i = 0; i < oldLen; ++i) {
-          if (!newKeys.includes(oldKeys[i])) {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
-          }
-        }
       } else {
-        for (i = 0; i < newLen; ++i) {
-          if (oldScopes.includes(newScopes[i])) {
-            indexMap[i] = oldScopes.indexOf(newScopes[i]);
+        // O(n) matching via scope identity.
+        // _createScopes already matched by key (or item identity), reusing old Scope objects.
+        // So newScopes[i] === oldScopes[j] iff the key/item at new position i came from old position j.
+        const oldScopeToIndex = new Map<Scope, number>();
+        for (let i = 0; i < oldLen; ++i) {
+          oldScopeToIndex.set(oldScopes[i], i);
+        }
+
+        const usedOldIndices = new Set<number>();
+        for (let i = 0; i < newLen; ++i) {
+          const oldIdx = oldScopeToIndex.get(newScopes[i]);
+          if (oldIdx !== void 0) {
+            indexMap[i] = oldIdx;
+            usedOldIndices.add(oldIdx);
           } else {
             indexMap[i] = -2;
           }
         }
 
-        for (i = 0; i < oldLen; ++i) {
-          if (!newScopes.includes(oldScopes[i])) {
+        // Collect deletions in ascending order
+        for (let i = 0; i < oldLen; ++i) {
+          if (!usedOldIndices.has(i)) {
             indexMap.deletedIndices.push(i);
             indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
           }
@@ -971,22 +952,6 @@ const getItem = (
   local: string,
 ): unknown => {
   return hasDestructuredLocal ? astEvaluate(dec, scope, binding, null) : scope.bindingContext[local];
-};
-
-const getKeyValue = (
-  hasDestructuredLocal: boolean,
-  key: string | IsBindingBehavior,
-  dec: ForOfStatement['declaration'],
-  scope: Scope,
-  binding: PropertyBinding,
-  local: string,
-) => {
-  if (typeof key === 'string') {
-    const item = getItem(hasDestructuredLocal, dec, scope, binding, local);
-    return (item as IIndexable)[key];
-  }
-
-  return astEvaluate(key, scope, binding, null);
 };
 
 const getScope = (

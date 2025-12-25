@@ -242,8 +242,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldViews = this.views;
     this._oldViews = oldViews.slice();
     const oldLen = oldViews.length;
-    const key = this.key;
-    const hasKey = key !== null;
+    const hasKey = this.key !== null;
 
     const oldScopes = this._oldScopes;
     const newScopes = this._scopes;
@@ -368,7 +367,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const items = this._normalizedItems!;
     const len = items.length;
-    const scopes = this._scopes = Array(items.length);
+    const scopes = this._scopes = Array(len);
 
     const oldScopeMap = this._scopeMap;
     const newScopeMap = new Map<unknown, Scope | Scope[]>();
@@ -452,36 +451,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return this._hydrateViews(initiator, $items, ssrScope);
     }
 
-    // Normal (non-hydration) path
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-    let view: ISyntheticView;
-    let scope: Scope;
-
-    const { $controller, _factory, _location, _scopes } = this;
-    const newLen = $items.length;
-    const views = this.views = Array(newLen);
-
-    for (let i = 0; i < newLen; ++i) {
-      view = views[i] = _factory.create($controller).setLocation(_location);
-      view.nodes.unlink();
-      scope = _scopes[i];
-
-      if (this.contextual) {
-        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
-      }
-
-      ret = view.activate(initiator ?? view, $controller, scope);
-      if (isPromise(ret)) {
-        (promises ??= []).push(ret);
-      }
-    }
-
-    if (promises !== void 0) {
-      return promises.length === 1
-        ? promises[0]
-        : Promise.all(promises) as unknown as Promise<void>;
-    }
+    return this._activateAllViewsFresh(initiator, $items);
   }
 
   /** @internal SSR hydration: adopt existing DOM nodes instead of creating new ones. */

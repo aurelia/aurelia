@@ -37,6 +37,7 @@ export {
 
 export {
   ILocationManager,
+  ServerLocationManager,
 } from './location-manager';
 
 export {

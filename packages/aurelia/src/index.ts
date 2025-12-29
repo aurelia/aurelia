@@ -679,4 +679,9 @@ export {
   IHistory,
 
   refs,
+
+  // SSR hydration
+  hydrateSSRDefinition,
+  type ISSRDefinition,
+  type IHydratedDefinition,
 } from '@aurelia/runtime-html';

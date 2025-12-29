@@ -45,6 +45,13 @@ export class ViewportAgent {
   /** @internal */ public _currNode: RouteNode | null = null;
   /** @internal */ public _nextNode: RouteNode | null = null;
 
+  /**
+   * The controller of the currently active routed component, if any.
+   */
+  public get currentController(): ICustomElementController | null {
+    return this._curCA?.controller ?? null;
+  }
+
   /** @internal */ private _currTransition: Transition | null = null;
 
   private constructor(

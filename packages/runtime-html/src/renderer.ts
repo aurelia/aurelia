@@ -39,29 +39,30 @@ import { IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import { ErrorNames, createMappedError } from './errors';
+import { type ISSRScope, type ISSRScopeChild, type ISSRTemplateController } from './templating/ssr';
 import { SpreadBinding, SpreadValueBinding } from './binding/spread-binding';
 import {
-  AttributeBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateLetElementInstruction,
-  HydrateTemplateController,
+  type AttributeBindingInstruction,
+  type HydrateAttributeInstruction,
+  type HydrateElementInstruction,
+  type HydrateLetElementInstruction,
+  type HydrateTemplateController,
   IInstruction,
   ITemplateCompiler,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  ListenerBindingInstruction,
-  PropertyBindingInstruction,
-  RefBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetPropertyInstruction,
-  SetStyleAttributeInstruction,
-  SpreadTransferedBindingInstruction,
-  SpreadValueBindingInstruction,
-  StylePropertyBindingInstruction,
-  TextBindingInstruction,
+  type InterpolationInstruction,
+  type IteratorBindingInstruction,
+  type LetBindingInstruction,
+  type ListenerBindingInstruction,
+  type PropertyBindingInstruction,
+  type RefBindingInstruction,
+  type SetAttributeInstruction,
+  type SetClassAttributeInstruction,
+  type SetPropertyInstruction,
+  type SetStyleAttributeInstruction,
+  type SpreadTransferedBindingInstruction,
+  type SpreadValueBindingInstruction,
+  type StylePropertyBindingInstruction,
+  type TextBindingInstruction,
   itSetProperty,
   itHydrateElement,
   itHydrateAttribute,
@@ -100,6 +101,11 @@ export interface IRenderer {
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
+    /**
+     * SSR manifest scope entry for child-creating instructions (TCs, CEs).
+     * Passed by Rendering.render() based on tree position.
+     */
+    ssrScope?: ISSRScopeChild,
   ): void;
 }
 
@@ -185,6 +191,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
+    ssrScope?: ISSRScopeChild,
   ): void {
     /* eslint-disable prefer-const */
     let def: CustomElementDefinition | null;
@@ -220,6 +227,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* location         */location,
       /* SlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
     );
+
     component = container.invoke(def.Type);
     childCtrl = Controller.$el(
       /* own container       */container,
@@ -227,7 +235,8 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* host                */target,
       /* instruction         */instruction,
       /* definition          */def,
-      /* location            */location
+      /* location            */location,
+      /* ssrScope            */ssrScope as ISSRScope | undefined,
     );
 
     const renderers = this._rendering.renderers;
@@ -330,6 +339,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
+    ssrScope?: ISSRScopeChild,
   ): void {
     /* eslint-disable prefer-const */
     let ctxContainer = renderingCtrl.container;
@@ -362,6 +372,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
         : ctxContainer
     );
     const renderLocation = convertToRenderLocation(target);
+
     const results = invokeAttribute(
       /* platform         */platform,
       /* attr definition  */def,
@@ -376,6 +387,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
       /* viewModel    */results.vm,
       /* host         */target,
       /* definition   */def,
+      /* ssrScope     */ssrScope as ISSRTemplateController | undefined,
     );
 
     refs.set(renderLocation, def.key, childController);

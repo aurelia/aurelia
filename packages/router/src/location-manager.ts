@@ -152,3 +152,60 @@ export function normalizePath(path: string): string {
 function normalizeQuery(query: string): string {
   return query.length > 0 && !query.startsWith('?') ? `?${query}` : query;
 }
+
+/**
+ * Server-side LocationManager for SSR environments.
+ *
+ * Use this instead of BrowserLocationManager when rendering on the server
+ * where browser APIs (window, history, location) are not available.
+ * All navigation methods are no-ops; only path retrieval is functional.
+ *
+ * @example
+ * ```ts
+ * // In the SSR render function
+ * import { Registration } from '@aurelia/kernel';
+ * import { ILocationManager, ServerLocationManager } from '@aurelia/router';
+ *
+ * const locationManager = new ServerLocationManager(req.url, '/');
+ * container.register(Registration.instance(ILocationManager, locationManager));
+ * ```
+ */
+export class ServerLocationManager {
+  public constructor(
+    /** The request URL path (e.g., '/products/123') */
+    private readonly _path: string,
+    /** The application base href, defaults to '/' */
+    private readonly _baseHref: string = '/',
+  ) {}
+
+  public startListening(): void { /* no-op */ }
+  public stopListening(): void { /* no-op */ }
+  public handleEvent(): void { /* no-op */ }
+  public pushState(_state: {} | null, _title: string, _url: string): void { /* no-op */ }
+  public replaceState(_state: {} | null, _title: string, _url: string): void { /* no-op */ }
+
+  public getPath(): string {
+    return normalizePath(this._path);
+  }
+
+  public addBaseHref(path: string): string {
+    let base = this._baseHref;
+    if (base.endsWith('/')) {
+      base = base.slice(0, -1);
+    }
+    if (base.length === 0) {
+      return path;
+    }
+    if (path.startsWith('/')) {
+      path = path.slice(1);
+    }
+    return `${base}/${path}`;
+  }
+
+  public removeBaseHref(path: string): string {
+    if (path.startsWith(this._baseHref)) {
+      path = path.slice(this._baseHref.length);
+    }
+    return normalizePath(path);
+  }
+}

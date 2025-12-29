@@ -46,6 +46,7 @@ import type {
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
 import { ErrorNames, createMappedError } from '../errors';
+import type { ISSRScope, ISSRScopeChild, ISSRTemplateController } from './ssr';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
@@ -72,6 +73,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
   public location: IRenderLocation | null = null;
+
+  /**
+   * SSR manifest scope for this controller.
+   * - For CEs: ISSRScope with children array
+   * - For TCs: ISSRTemplateController with views array
+   * Set during hydration, consumed once in attaching().
+   */
+  public ssrScope?: ISSRScopeChild;
 
   /** @internal */
   public _lifecycleHooks: LifecycleHooksLookup<ICompileHooks & IActivationHooks<IHydratedController>> | null = null;
@@ -200,6 +209,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // the associated render location of the host
     // if the element is containerless
     location: IRenderLocation | null = null,
+    // SSR manifest scope for this custom element
+    ssrScope: ISSRScope | null = null,
   ): ICustomElementController<C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
@@ -246,6 +257,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     ));
     controllerLookup.set(viewModel, controller as Controller);
 
+    // Store SSR scope for tree-based hydration
+    if (ssrScope != null) {
+      controller.ssrScope = ssrScope;
+    }
+
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
       controller._hydrateCustomElement(hydrationInst);
     }
@@ -273,6 +289,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
      * If not given, will be the one associated with the constructor of the attribute view model given.
      */
     definition?: CustomAttributeDefinition,
+    /**
+     * SSR manifest entry for template controllers.
+     * Contains views array with nodeCount for DOM partitioning.
+     */
+    ssrScope?: ISSRTemplateController,
   ): ICustomAttributeController<C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomAttributeController<C>;
@@ -296,6 +317,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     controllerLookup.set(viewModel, controller as Controller);
+
+    // Store SSR scope for tree-based hydration (template controllers)
+    if (ssrScope != null) {
+      controller.ssrScope = ssrScope;
+    }
 
     controller._hydrateCustomAttribute();
 
@@ -330,6 +356,45 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controller.parent = parentController ?? null;
 
     controller._hydrateSynthetic();
+
+    return controller as unknown as ISyntheticView;
+  }
+
+  /**
+   * Create a synthetic view (controller) that adopts existing DOM nodes.
+   *
+   * Used for SSR hydration of template controller views. Instead of cloning
+   * from a template, the view wraps pre-existing DOM nodes.
+   *
+   * @param viewFactory - The view factory
+   * @param parentController - Parent controller
+   * @param adoptedNodes - Pre-existing DOM nodes to adopt
+   * @param ssrScope - SSR manifest scope for nested hydration
+   */
+  public static $viewAdopted(
+    viewFactory: IViewFactory,
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
+  ): ISyntheticView {
+    const controller = new Controller(
+      /* container      */viewFactory.container,
+      /* vmKind         */vmkSynth,
+      /* definition     */null,
+      /* viewFactory    */viewFactory,
+      /* viewModel      */null,
+      /* host           */null,
+      /* location       */null
+    );
+    controller.parent = parentController ?? null;
+
+    // Set SSR scope for nested hydration
+    if (ssrScope != null) {
+      controller.ssrScope = ssrScope;
+    }
+
+    // Hydrate with adopted nodes instead of cloning
+    controller._hydrateSyntheticAdopted(adoptedNodes);
 
     return controller as unknown as ISyntheticView;
   }
@@ -431,7 +496,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     (this._vm as Writable<C>).$controller = this;
-    this.nodes = this._rendering.createNodes(compiledDef);
+
+    // SSR hydration: adopt existing DOM instead of cloning from template
+    if (this.ssrScope != null) {
+      this.nodes = this._rendering.adoptNodes(host);
+    } else {
+      this.nodes = this._rendering.createNodes(compiledDef);
+    }
 
     if (this._lifecycleHooks!.hydrated !== void 0) {
       this._lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
@@ -446,9 +517,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public _hydrateChildren(): void {
+    const targets = this.nodes!.findTargets();
+
     this._rendering.render(
       /* controller */this as ICustomElementController,
-      /* targets    */this.nodes!.findTargets(),
+      /* targets    */targets,
       /* definition */this._compiledDef!,
       /* host       */this.host,
     );
@@ -492,6 +565,29 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._rendering.render(
       /* controller */this as ISyntheticView,
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
+      /* definition */this._compiledDef,
+      /* host       */this.host,
+    );
+  }
+
+  /**
+   * Hydrate a synthetic view with adopted DOM nodes (for SSR hydration).
+   *
+   * Instead of creating nodes by cloning, this uses pre-existing DOM nodes
+   * that were rendered by the server. The targets are collected from the
+   * adopted nodes and bindings are applied to them.
+   *
+   * @internal
+   */
+  private _hydrateSyntheticAdopted(adoptedNodes: INodeSequence): void {
+    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container);
+    // Use adopted nodes instead of cloning from template
+    this.nodes = adoptedNodes;
+    // Render to the adopted nodes' targets
+    const targets = adoptedNodes.findTargets();
+    this._rendering.render(
+      /* controller */this as ISyntheticView,
+      /* targets    */targets,
       /* definition */this._compiledDef,
       /* host       */this.host,
     );
@@ -1529,6 +1625,12 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
 
   readonly children: readonly IHydratedController[] | null;
 
+  /**
+   * SSR manifest scope for tree-based hydration.
+   * Set during controller creation, consumed by TCs in attaching().
+   */
+  ssrScope?: ISSRScopeChild;
+
   addChild(controller: IController): void;
 }
 
@@ -1651,6 +1753,12 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
   readonly scope: Scope;
   readonly children: null;
   readonly bindings: null;
+  /**
+   * SSR manifest scope for template controllers during hydration.
+   * Contains views array for repeat, if/else branches, etc.
+   * Set during hydration, consumed once in attaching().
+   */
+  ssrScope?: ISSRScopeChild;
   activate(
     initiator: IHydratedController,
     parent: IHydratedController,

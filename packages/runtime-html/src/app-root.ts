@@ -12,6 +12,8 @@ import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
 import { ErrorNames, createMappedError } from './errors';
 
+import type { ISSRScope } from './templating/ssr';
+
 export interface IAppRootConfig<T extends object = object> {
   host: HTMLElement;
   component: T | Constructable<T>;
@@ -32,6 +34,11 @@ export interface IAppRootConfig<T extends object = object> {
    * In this mode, calling an undefined function will return undefined as well.
    */
   strictBinding?: boolean;
+  /**
+   * Tree-shaped SSR manifest scope for hydration.
+   * Built by recordManifest() after SSR render, mirrors the controller tree.
+   */
+  ssrScope?: ISSRScope;
 }
 
 export interface IAppRoot<C extends object = object> extends IDisposable {
@@ -113,7 +120,10 @@ export class AppRoot<
         instance = config.component as ICustomElementViewModel;
       }
 
-      const hydrationInst: IControllerElementHydrationInstruction = { hydrate: false, projections: null };
+      const hydrationInst: IControllerElementHydrationInstruction = {
+        hydrate: false,
+        projections: null,
+      };
       const definition = enhance
         ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
         // leave the work of figuring out the definition to the controller
@@ -124,7 +134,9 @@ export class AppRoot<
         instance as K,
         host,
         hydrationInst,
-        definition
+        definition,
+        /* location  */null,
+        /* ssrScope  */config.ssrScope,
       )) as Controller<K>;
 
       controller._hydrateCustomElement(hydrationInst);

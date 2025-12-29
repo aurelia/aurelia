@@ -33,7 +33,6 @@ jobs:
           # All 31 public packages in the fixed release group
           PACKAGES=(
             "aurelia"
-            "@aurelia/addons"
             "@aurelia/babel-jest"
             "@aurelia/compat-v1"
             "@aurelia/dialog"

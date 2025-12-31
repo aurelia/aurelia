@@ -8,94 +8,69 @@ import { Metadata } from '@aurelia/metadata';
 /** @internal */ export const defineMetadata = Metadata.define;
 
 /**
- * Returns true if the value is a Promise via checking if it's an instance of Promise.
- * This does not work for objects across different realms (e.g., iframes).
- * An utility to be shared among core packages for better size optimization
+ * Returns true if the value is a thenable (has a `.then` method).
+ * An utility to be shared among core packages for better size optimization.
+ *
+ * Cross-realm safe (works with iframes, JSDOM, vitest, etc.).
+ * Per Promise/A+ spec, a thenable is any object or function with a `.then` method.
  */
-export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
+export const isPromise = <T>(v: unknown): v is Promise<T> =>
+  v != null && typeof (v as Promise<T>).then === 'function';
 
 /**
- * Returns true if the value is an Array via checking if it's an instance of Array.
- * This does not work for objects across different realms (e.g., iframes).
- * An utility to be shared among core packages for better size optimization
+ * Returns true if the value is an Array.
+ * An utility to be shared among core packages for better size optimization.
+ *
+ * Cross-realm safe via Array.isArray (works with iframes, JSDOM, vitest, etc.).
  */
-export const isArray = <T>(v: unknown): v is T[] => v instanceof Array;
+export const isArray = <T>(v: unknown): v is T[] => Array.isArray(v);
 
 /**
- * Returns true if the value is a Set via checking if it's an instance of Set.
- * This does not work for objects across different realms (e.g., iframes).
- * An utility to be shared among core packages for better size optimization
+ * Returns true if the value is a Set.
+ * An utility to be shared among core packages for better size optimization.
+ *
+ * Cross-realm safe via Symbol.toStringTag (works with iframes, JSDOM, vitest, etc.).
+ * Uses Symbol.toStringTag directly instead of Object.prototype.toString.call() for performance.
  */
-export const isSet = <T>(v: unknown): v is Set<T> => v instanceof Set;
+export const isSet = <T>(v: unknown): v is Set<T> =>
+  v != null && (v as Set<T>)[Symbol.toStringTag] === 'Set';
 
 /**
- * Returns true if the value is a Map via checking if it's an instance of Map.
- * This does not work for objects across different realms (e.g., iframes).
- * An utility to be shared among core packages for better size optimization
+ * Returns true if the value is a Map.
+ * An utility to be shared among core packages for better size optimization.
+ *
+ * Cross-realm safe via Symbol.toStringTag (works with iframes, JSDOM, vitest, etc.).
+ * Uses Symbol.toStringTag directly instead of Object.prototype.toString.call() for performance.
  */
-export const isMap = <T, K>(v: unknown): v is Map<T, K> => v instanceof Map;
+export const isMap = <T, K>(v: unknown): v is Map<T, K> =>
+  v != null && (v as Map<T, K>)[Symbol.toStringTag] === 'Map';
 
 /**
- * Returns true if the value is an object via checking if it's an instance of Object.
- * This does not work for objects across different realms (e.g., iframes).
- * An utility to be shared among core packages only for better size optimization
+ * Returns true if the value is an object (excluding null).
+ * An utility to be shared among core packages for better size optimization.
  *
- * This is semi private to core packages and applications should not depend on this.
+ * Cross-realm safe via typeof (works with iframes, JSDOM, vitest, etc.).
+ *
+ * Note: Returns true for arrays and other object types, but NOT functions.
+ * Use `isObjectOrFunction` if you need to include functions.
  */
-export const isObject = (v: unknown): v is object => v instanceof Object;
+export const isObject = (v: unknown): v is object =>
+  typeof v === 'object' && v !== null;
 
 /**
- * IMPORTANT: This is semi private to core packages and applications should not depend on this.
+ * Returns true if the value is an object or function.
+ * Cross-realm safe via typeof (works with iframes, JSDOM, etc.).
  *
- * Determine whether a value is an object.
- *
- * Uses `typeof` to guarantee this works cross-realm, which is where `instanceof Object` might fail.
- *
- * Some environments where these issues are known to arise:
- * - same-origin iframes (accessing the other realm via `window.top`)
- * - `jest`.
- *
- * The exact test is:
- * ```ts
- * typeof value === 'object' && value !== null || typeof value === 'function'
- * ```
- *
- * @param value - The value to test.
- * @returns `true` if the value is an object, otherwise `false`.
- * Also performs a type assertion that defaults to `value is Object | Function` which, if the input type is a union with an object type, will infer the correct type.
- * This can be overridden with the generic type argument.
+ * Use this when you need to check for both objects AND functions.
+ * For objects only, use `isObject`. For functions only, use `isFunction`.
  *
  * @example
- *
  * ```ts
- * class Foo {
- *   bar = 42;
- * }
- *
- * function doStuff(input?: Foo | null) {
- *   input.bar; // Object is possibly 'null' or 'undefined'
- *
- *   // input has an object type in its union (Foo) so that type will be extracted for the 'true' condition
- *   if (isObject(input)) {
- *     input.bar; // OK (input is now typed as Foo)
- *   }
- * }
- *
- * function doOtherStuff(input: unknown) {
- *   input.bar; // Object is of type 'unknown'
- *
- *   // input is 'unknown' so there is no union type to match and it will default to 'Object | Function'
- *   if (isObject(input)) {
- *     input.bar; // Property 'bar' does not exist on type 'Object | Function'
- *   }
- *
- *   // if we know for sure that, if input is an object, it must be a specific type, we can explicitly tell the function to assert that for us
- *   if (isObject<Foo>(input)) {
- *    input.bar; // OK (input is now typed as Foo)
- *   }
- * }
+ * isObjectOrFunction({});        // true
+ * isObjectOrFunction(() => {});  // true
+ * isObjectOrFunction(null);      // false
+ * isObjectOrFunction('string');  // false
  * ```
- *
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isObjectOrFunction<T extends object = Object | Function>(value: unknown): value is T {

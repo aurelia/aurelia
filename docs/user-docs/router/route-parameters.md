@@ -19,12 +19,17 @@ Use the `path` field inside `@route` (or route configs) to describe parameters.
 
 ```typescript
 import { route } from '@aurelia/router';
+import { FileViewer } from './file-viewer';
+import { ProjectDetail } from './project-detail';
+import { UserDetail } from './user-detail';
+import { UserEditor } from './user-editor';
 
 @route({
   routes: [
-    { path: 'users/:id', component: UserDetail },
-    { path: 'users/:id/edit', component: UserEditor },
-    { path: 'files/*path', component: FileViewer },
+    { id: 'user-detail', path: 'users/:id', component: UserDetail },
+    { id: 'user-edit', path: 'users/:id/edit', component: UserEditor },
+    { id: 'company-project-detail', path: 'companies/:companyId/projects/:projectId', component: ProjectDetail },
+    { id: 'file-viewer', path: 'files/*path', component: FileViewer },
   ]
 })
 export class AdminLayout {}
@@ -98,11 +103,17 @@ Use `ICurrentRoute` to observe query changes reactively (see [Router state manag
 
 ## 4. Generate links with parameters
 
-The `load` attribute on `<a>` elements handles interpolation for you. Bind `params` to an object so that the router formats the URL consistently.
+The `load` attribute on `<a>` elements handles interpolation for you. Bind `params` to an object so that the router formats the URL consistently. When you use `route: ...` with `params.bind`, the value must be a **route id** (not a path pattern).
 
 ```html
-<a load="route: users/:id; params.bind: { id: user.id }">Open profile</a>
-<a load="route: companies/:companyId/projects/:projectId; params.bind: { companyId, projectId }"></a>
+<a load="route: user-detail; params.bind: { id: user.id }">Open profile</a>
+<a load="route: company-project-detail; params.bind: { companyId, projectId }"></a>
+```
+
+If you prefer to write a literal path, skip `route:` and provide the full string yourself:
+
+```html
+<a load="users/${user.id}">Open profile</a>
 ```
 
 When generating programmatic instructions, pass `params` alongside the component:

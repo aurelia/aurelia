@@ -730,6 +730,7 @@ Enhance your app with:
 
 - [Templates Overview](../templates/README.md)
 - [Component Basics](../components/components.md)
+- [Extended Tutorial](extended-tutorial/README.md)
 - [Dependency Injection](../essentials/dependency-injection.md)
 - [Form Handling](../templates/forms/README.md)
 - [List Rendering](../templates/repeats-and-list-rendering.md)

@@ -186,9 +186,9 @@ Aurelia
 
 ## Web Standards
 
-Aurelia embraces web standards. Shadow DOM and CSS Modules work out of the box.
+Aurelia embraces web standards. Shadow DOM and CSS Modules are supported, but Light DOM is the default and the most beginner-friendly path when you rely on global CSS.
 
-### Shadow DOM Styles
+### Component Styles (Light DOM by default)
 
 Add a CSS file next to your component:
 
@@ -226,7 +226,11 @@ my-component/
 - Associates it with the component
 - Scopes styles to prevent conflicts
 
+**Note**: These co-located styles are added to the document (Light DOM). If you enable Shadow DOM, you must explicitly register styles with `shadowCSS()` or shared styles. See the [Shadow DOM guide](../../components/shadow-dom.md).
+
 ### Enable Shadow DOM
+
+Shadow DOM isolates styles from the page. Global CSS frameworks won't apply inside a shadow root unless you explicitly share them. Open vs closed mode only changes JavaScript access to the shadow root.
 
 For true style encapsulation:
 
@@ -249,6 +253,8 @@ export class MyComponent {
 - ✅ Uses browser's native Shadow DOM
 
 ### Style Sharing
+
+Shared styles apply to Shadow DOM components. They do not affect Light DOM components.
 
 Share styles across components:
 
@@ -726,4 +732,3 @@ You've now explored Aurelia's conventions, performance modes, web standards supp
 - [Twitter](https://twitter.com/aureliaeffect)
 
 Happy coding! 🚀
-

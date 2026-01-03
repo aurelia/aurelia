@@ -69,11 +69,10 @@ export class Aurelia implements IDisposable {
    */
   public enhance<T extends object>(config: IEnhancementConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
     const container = (config.container ?? this.container.createChild());
-    const rootProvider = registerResolver(container, IAppRoot, new InstanceProvider<IAppRoot<T>>('IAppRoot'));
     const appRoot: IAppRoot<T> = new AppRoot(
       { host: config.host as HTMLElement, component: config.component },
       container,
-      rootProvider,
+      this._rootProvider,
       true
     );
     return onResolve(appRoot.activate(), () => appRoot);
@@ -107,11 +106,10 @@ export class Aurelia implements IDisposable {
    */
   public hydrate<T extends object>(config: IHydrateConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
     const container = config.container ?? this.container.createChild();
-    const rootProvider = registerResolver(container, IAppRoot, new InstanceProvider<IAppRoot<T>>('IAppRoot'));
     const appRoot: IAppRoot<T> = new AppRoot(
       { host: config.host, component: config.component, ssrScope: config.ssrScope },
       container,
-      rootProvider,
+      this._rootProvider,
       false, // not enhance mode
     );
     return onResolve(appRoot.activate(), () => appRoot);

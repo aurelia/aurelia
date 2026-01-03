@@ -497,7 +497,7 @@ export class Container implements IContainer {
     if ((Type as IResolver<K>).$isResolver) {
       RealType = (Type as IResolver<K>).getFactory?.(this)?.Type;
     } else {
-      RealType = isFunction(Type) ? Type : this.getResolver(Type)?.getFactory?.(this)?.Type;
+      RealType = isFunction(Type) ? Type : this.getResolver(Type, false)?.getFactory?.(this)?.Type;
     }
     if (!isFunction(RealType)) {
       throw createMappedError(ErrorNames.unable_jit_non_constructor, RealType);

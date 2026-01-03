@@ -860,6 +860,13 @@ describe('1-kernel/di.get.spec.ts', function () {
       assert.instanceOf(instance2, MyClass);
     });
 
+    it('does not resolve unregistered key', function () {
+      const container = DI.createContainer();
+      assert.throws(() =>
+        container.get(factory('MyClassKey'))()
+      );
+    });
+
     it('does not work with double wrapped factory', function () {
       const container = DI.createContainer();
 

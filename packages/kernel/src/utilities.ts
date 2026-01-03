@@ -15,7 +15,7 @@ import { Metadata } from '@aurelia/metadata';
  * Per Promise/A+ spec, a thenable is any object or function with a `.then` method.
  */
 export const isPromise = <T>(v: unknown): v is Promise<T> =>
-  v != null && typeof (v as Promise<T>).then === 'function';
+  typeof (v as Promise<T> | null | undefined)?.then === 'function';
 
 /**
  * Returns true if the value is an Array.
@@ -23,7 +23,7 @@ export const isPromise = <T>(v: unknown): v is Promise<T> =>
  *
  * Cross-realm safe via Array.isArray (works with iframes, JSDOM, vitest, etc.).
  */
-export const isArray = <T>(v: unknown): v is T[] => Array.isArray(v);
+export const isArray = Array.isArray;
 
 /**
  * Returns true if the value is a Set.
@@ -33,7 +33,7 @@ export const isArray = <T>(v: unknown): v is T[] => Array.isArray(v);
  * Uses Symbol.toStringTag directly instead of Object.prototype.toString.call() for performance.
  */
 export const isSet = <T>(v: unknown): v is Set<T> =>
-  v != null && (v as Set<T>)[Symbol.toStringTag] === 'Set';
+  (v as Set<T> | null | undefined)?.[Symbol.toStringTag] === 'Set';
 
 /**
  * Returns true if the value is a Map.
@@ -43,7 +43,7 @@ export const isSet = <T>(v: unknown): v is Set<T> =>
  * Uses Symbol.toStringTag directly instead of Object.prototype.toString.call() for performance.
  */
 export const isMap = <T, K>(v: unknown): v is Map<T, K> =>
-  v != null && (v as Map<T, K>)[Symbol.toStringTag] === 'Map';
+  (v as Map<T, K> | null | undefined)?.[Symbol.toStringTag] === 'Map';
 
 /**
  * Returns true if the value is an object (excluding null).

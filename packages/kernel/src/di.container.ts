@@ -101,7 +101,7 @@ export class Container implements IContainer {
    *
    * @internal
    */
-  private readonly _factories: Map<Constructable, Factory>;
+  private readonly _factories: Map<Key, Factory>;
 
   /**
    * A map of all resources resolver by their key
@@ -488,18 +488,31 @@ export class Container implements IContainer {
     return this._factories.has(key);
   }
 
-  public getFactory<K extends Constructable>(Type: K): IFactory<K> {
-    let factory = this._factories.get(Type);
+  public getFactory<K extends Constructable>(Type: K | IResolver<K>): IFactory<K> {
+    let factory = this._factories.get(Type as K);
+    if (factory != null) {
+      return factory;
+    }
+    let RealType: Constructable | undefined;
+    if ((Type as IResolver<K>).$isResolver) {
+      RealType = (Type as IResolver<K>).getFactory?.(this)?.Type;
+    } else {
+      RealType = isFunction(Type) ? Type : this.getResolver(Type)?.getFactory?.(this)?.Type;
+    }
+    if (!isFunction(RealType)) {
+      throw createMappedError(ErrorNames.unable_jit_non_constructor, RealType);
+    }
+    factory = this._factories.get(RealType);
     if (factory === void 0) {
-      if (isNativeFunction(Type)) {
+      if (isNativeFunction(RealType)) {
         throw createMappedError(ErrorNames.no_construct_native_fn, Type);
       }
-      this._factories.set(Type, factory = new Factory<K>(Type, getDependencies(Type)));
+      this._factories.set(RealType, factory = new Factory<K>(RealType as K, getDependencies(RealType)));
     }
     return factory;
   }
 
-  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
+  public registerFactory<K extends Constructable>(key: Key, factory: IFactory<K>): void {
     this._factories.set(key, factory as Factory);
   }
 

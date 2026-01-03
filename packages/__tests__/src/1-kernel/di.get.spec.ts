@@ -797,8 +797,85 @@ describe('1-kernel/di.get.spec.ts', function () {
       assert.deepStrictEqual(instance2.params, [3, 4, { a: 3, b: 4 }]);
     });
 
-    // guess we can add a test for factory resolving to a factory resolving to a factory
-    // to see if things work smoothly... TODO?
+    it('resolves a factory when calling .getFactory directly on container', function () {
+      const container = DI.createContainer();
+
+      let callCount = 0;
+      class MyClass {
+        constructor() {
+          callCount++;
+        }
+
+      }
+      const instance = container.getFactory(MyClass).construct(container);
+      assert.strictEqual(callCount, 1);
+
+      assert.instanceOf(instance, MyClass);
+
+      const instance2 = container.getFactory(MyClass).construct(container);
+      assert.strictEqual(callCount, 2);
+      assert.instanceOf(instance2, MyClass);
+
+      assert.notStrictEqual(instance, instance2);
+    });
+
+    it('resolves factory from a key that resolves to a constructor', function () {
+      const container = DI.createContainer();
+
+      let callCount = 0;
+      class MyClass {
+        constructor() {
+          callCount++;
+        }
+      }
+      container.register(Registration.transient('MyClassKey', MyClass));
+
+      const classFactory = container.get(factory('MyClassKey'));
+      const instance1 = classFactory();
+      const instance2 = classFactory();
+      assert.strictEqual(callCount, 2);
+      assert.notStrictEqual(instance1, instance2);
+      assert.instanceOf(instance1, MyClass);
+      assert.instanceOf(instance2, MyClass);
+    });
+
+    it('resolves factory from a key that aliases another singleton key', function () {
+      const container = DI.createContainer();
+
+      let callCount = 0;
+      class MyClass {
+        constructor() {
+          callCount++;
+        }
+      }
+      container.register(Registration.transient('MyClassKey', MyClass));
+      container.register(Registration.aliasTo('MyClassKey', 'Key'));
+
+      const classFactory = container.get(factory('Key'));
+      const instance1 = classFactory();
+      const instance2 = classFactory();
+      assert.strictEqual(callCount, 2);
+      assert.notStrictEqual(instance1, instance2);
+      assert.instanceOf(instance1, MyClass);
+      assert.instanceOf(instance2, MyClass);
+    });
+
+    it('does not work with double wrapped factory', function () {
+      const container = DI.createContainer();
+
+      let callCount = 0;
+      class MyClass {
+        constructor() {
+          callCount++;
+        }
+      }
+      container.register(Registration.singleton('MyClassKey', MyClass));
+
+      assert.throws(() =>
+        container.get(factory(factory('MyClassKey')))()
+      );
+      assert.strictEqual(callCount, 0);
+    });
   });
 
   describe('resolve', function () {

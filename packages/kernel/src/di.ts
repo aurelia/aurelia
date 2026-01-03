@@ -80,7 +80,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   // deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
-  registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
+  registerFactory<T extends Constructable>(key: Key, factory: IFactory<T>): void;
   invoke<T extends {}, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasFactory<T extends Constructable>(key: any): boolean;

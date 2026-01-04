@@ -41,6 +41,7 @@ export const enum ErrorNames {
   invalid_module_transform_input = 21,
   invalid_inject_decorator_usage = 22,
   resource_key_already_registered = 23,
+  factory_not_constructable_resolved = 24,
 }
 _END_CONST_ENUM();
 
@@ -70,6 +71,7 @@ const errorsMap: Record<ErrorNames, string>  = {
   [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`,
   [ErrorNames.invalid_inject_decorator_usage]: `The @inject decorator on the target ('{{0}}') type '{{1}}' is not supported.`,
   [ErrorNames.resource_key_already_registered]: `Resource key '{{0}}' has already been registered.`,
+  [ErrorNames.factory_not_constructable_resolved]: `The resolved factory for key '{{0}}' is not constructable.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

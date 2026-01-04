@@ -87,11 +87,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
     if (component != null && ctx.routeConfigContext.allResolved === null) {
       const params = this.params;
+      // TODO(Sayan): do we need to pass parentRoutePath here?
       const instructions = this._instructions = router.createViewportInstructions(
         typeof params === 'object' && params !== null
           ? { component, params }
           : component,
-        { context: ctx });
+        { context: ctx },
+        null
+      );
       this._href = instructions.toUrl(false, options._urlParser, true);
     } else {
       this._instructions = null;

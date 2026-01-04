@@ -79,8 +79,8 @@ interface RouteParametersBaseOptions {
 
 export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
   TStrategy extends 'child-first'
-    ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
-    : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
+  ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
+  : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
@@ -94,10 +94,10 @@ type RouteParameterAccumulator = Record<string, RouteParameterValue | undefined>
 
 export type RouteParametersResult<TStrategy extends RouteParameterMergeStrategy, TParams extends Record<string, unknown>> =
   TStrategy extends 'append'
-    ? Readonly<Record<string, readonly RouteParameterValue[]>>
-    : TStrategy extends 'by-route'
-      ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
-      : Readonly<TParams>;
+  ? Readonly<Record<string, readonly RouteParameterValue[]>>
+  : TStrategy extends 'by-route'
+  ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
+  : Readonly<TParams>;
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
@@ -525,7 +525,8 @@ export class RouteContext {
    */
   public generateRootedPath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
     return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
+      // TODO(Sayan): do we need to pass parentRoutePath here?
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, null, true),
       vit => {
         const options = this._router.options;
         const relativePath = vit.toUrl(true, options._urlParser, false);
@@ -552,7 +553,8 @@ export class RouteContext {
    */
   public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
+      // TODO(Sayan): do we need to pass parentRoutePath here?
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, null, true),
       // Note that even though this method is for generating relative paths, one can still generate a rooted path using this method.
       // For example, when instructions like `../sibling-route` is used and the parent of the current context is the root context.
       // In such cases, the upward crawl of context will happen, and thus the deciding factor will be if the ViewportInstructionTree
@@ -562,9 +564,9 @@ export class RouteContext {
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
@@ -585,6 +587,7 @@ export class RouteContext {
       routerOptions,
       NavigationOptions.create(routerOptions, { ...options, context }),
       this.root,
+      parentRoutePath,
       traverseChildren as true,
     );
 
@@ -739,7 +742,7 @@ export class RouteConfigContext {
     this._moduleLoader = _rootContainer.get(IModuleLoader);
 
     if (this._options.useNavigationModel) {
-      this._navigationModel = new NavigationModel([]);
+      this._navigationModel = new NavigationModel(this.parentPaths);
     } else {
       this._navigationModel = null;
     }
@@ -909,12 +912,13 @@ export class RouteConfigContext {
   }
 
   /** @internal */
-  public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
-  public _generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren?: boolean): PathGenerationResult | Promise<PathGenerationResult> | null {
+  public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }, parentRoutePath: string | null): PathGenerationResult;
+  public _generateViewportInstruction(instruction: { component: string; params: Params }, parentRoutePath: string | null): PathGenerationResult | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null): PathGenerationResult | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren?: boolean): PathGenerationResult | Promise<PathGenerationResult> | null {
     if (!isEagerInstruction(instruction)) return null;
+    if (!this._options.useEagerLoading) parentRoutePath = null;
     traverseChildren ??= false;
     const component = instruction.component;
     let paths: string[] | undefined;
@@ -985,6 +989,7 @@ export class RouteConfigContext {
     };
 
     function core(path: string): EagerResolutionResult | null {
+      if (parentRoutePath != null && parentRoutePath.length > 0) path = `${parentRoutePath}/${path}`;
       const endpoint = recognizer.getEndpoint(path);
       if (endpoint === null) {
         errors.push(`No endpoint found for the path: '${path}'.`);
@@ -1022,7 +1027,7 @@ export class RouteConfigContext {
     }
 
     // traverse the children
-    async function generateChildrenInstructions(this: RouteConfigContext, parentConfig: RouteConfig): Promise<{ instructions: ViewportInstruction[]; query: Record<string, string | string[]> }> {
+    async function generateChildrenInstructions(this: RouteConfigContext, parentConfig: RouteConfig, parentPath: string): Promise<{ instructions: ViewportInstruction[]; query: Record<string, string | string[]> }> {
       const children = (instruction as IExtendedViewportInstruction).children;
       const numChildren = children?.length ?? 0;
       if (numChildren === 0) return { instructions: emptyArray, query: emptyObject };
@@ -1043,6 +1048,7 @@ export class RouteConfigContext {
             promises[i] = onResolve(
               $routeConfigContext._generateViewportInstruction(
                 isPartialViewportInstruction(child) ? { ...child, params: child.params ?? emptyObject } : { component: child, params: emptyObject },
+                parentPath,
                 traverseChildren as true
               ),
               eagerVi => {
@@ -1060,7 +1066,11 @@ export class RouteConfigContext {
     function createPathGenerationResult(this: RouteConfigContext, result: Exclude<ReturnType<typeof core>, null>): PathGenerationResult | Promise<PathGenerationResult> {
       return onResolve(
         (traverseChildren
-          ? generateChildrenInstructions.call(this, result.endpoint.route.handler as RouteConfig) as Promise<{ instructions: NavigationInstruction[]; query: Record<string, string | string[]> }>
+          ? generateChildrenInstructions.call(
+            this,
+            result.endpoint.route.handler as RouteConfig,
+            parentRoutePath != null && parentRoutePath.length > 0 ? `${parentRoutePath}/${result.endpoint.route.path}` : result.endpoint.route.path
+          ) as Promise<{ instructions: NavigationInstruction[]; query: Record<string, string | string[]> }>
           : { instructions: (instruction as IViewportInstruction).children, query: emptyObject }),
         ({ instructions: children, query: $query }) => {
           return {
@@ -1196,8 +1206,9 @@ export interface INavigationModel {
 // Usage of classical interface pattern is intentional.
 class NavigationModel implements INavigationModel {
   private _promise: Promise<void> | void = void 0;
+  public readonly routes: NavigationRoute[] = [];
   public constructor(
-    public readonly routes: NavigationRoute[],
+    /** @internal */ private readonly _parentPaths: string[] | null,
   ) { }
 
   public resolve(): Promise<void> | void {
@@ -1219,7 +1230,7 @@ class NavigationModel implements INavigationModel {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
       if ((route.nav ?? false) && route.redirectTo === null) {
-        routes.push(NavigationRoute._create(route));
+        routes.push(NavigationRoute._create(route, this._parentPaths));
       }
       return;
     }
@@ -1229,7 +1240,7 @@ class NavigationModel implements INavigationModel {
     promise = this._promise = onResolve(this._promise, () =>
       onResolve(route, rdConfig => {
         if (rdConfig.nav && rdConfig.redirectTo === null) {
-          routes[index] = NavigationRoute._create(rdConfig);
+          routes[index] = NavigationRoute._create(rdConfig, this._parentPaths);
         }
         if (this._promise === promise) {
           for (let i = this.routes.length - 1; i >= 0; --i) {
@@ -1260,15 +1271,17 @@ class NavigationRoute implements INavigationRoute {
     public readonly path: string[],
     public readonly title: string | ((node: RouteNode) => string | null) | null,
     public readonly data: Record<string, unknown>,
+    /** @internal */ private readonly _parentPaths: string[] | null,
   ) { }
 
   /** @internal */
-  public static _create(rdConfig: RouteConfig) {
+  public static _create(rdConfig: RouteConfig, parentPaths: string[] | null) {
     return new NavigationRoute(
       rdConfig.id,
       ensureArrayOfStrings(rdConfig.path ?? emptyArray),
       rdConfig.title,
       rdConfig.data,
+      parentPaths
     );
   }
 
@@ -1281,7 +1294,13 @@ class NavigationRoute implements INavigationRoute {
     let trees = this._trees;
     if (trees === null) {
       const routerOptions = router.options;
-      trees = this._trees = this.path.map(p => {
+
+      // cross product parent paths and own paths to create all possible full paths
+      const paths = this._parentPaths === null || this._parentPaths.length === 0
+        ? this.path
+        : this._parentPaths.flatMap(pp => this.path.map(p => pp.length === 0 ? p : `${pp}/${p}`));
+
+      trees = this._trees = paths.map(p => {
         const ep = context.routeConfigContext._recognizer.getEndpoint(p);
         if (ep === null) throw new Error(getMessage(Events.nmNoEndpoint, p));
         return new ViewportInstructionTree(

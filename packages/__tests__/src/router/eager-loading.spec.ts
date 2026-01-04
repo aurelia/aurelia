@@ -8,8 +8,6 @@ import { start } from './_shared/create-fixture.js';
  */
 describe('router/eager-loading.spec.ts', function () {
   const useEagerLoading = true;
-  // navigation model (also with eager loading) is already tested in smoke-tests.spec.ts (suite: 'navigation model').
-  const useNavigationModel = false;
 
   // issue #2273
   it('enables navigating to parent/child route when parent is configured with paths: ["parent", "parent/:id"]', async function () {
@@ -36,7 +34,7 @@ describe('router/eager-loading.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, container, host } = await start({ appRoot: Root, useEagerLoading, useNavigationModel });
+    const { au, container, host } = await start({ appRoot: Root, useEagerLoading });
     const router = container.get(IRouter);
 
     assert.html.textContent(host, '', 'init');
@@ -75,7 +73,7 @@ describe('router/eager-loading.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, container, host } = await start({ appRoot: Root, useEagerLoading, useNavigationModel });
+    const { au, container, host } = await start({ appRoot: Root, useEagerLoading });
     const router = container.get(IRouter);
 
     assert.html.textContent(host, '', 'init');
@@ -120,7 +118,7 @@ describe('router/eager-loading.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, container, host } = await start({ appRoot: Root, useEagerLoading, useNavigationModel });
+    const { au, container, host } = await start({ appRoot: Root, useEagerLoading });
     const router = container.get(IRouter);
 
     assert.html.textContent(host, '', 'init');
@@ -166,7 +164,7 @@ describe('router/eager-loading.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, container, host } = await start({ appRoot: Root, useEagerLoading, useNavigationModel });
+    const { au, container, host } = await start({ appRoot: Root, useEagerLoading });
     const router = container.get(IRouter);
 
     assert.html.textContent(host, '', 'init');
@@ -249,7 +247,7 @@ describe('router/eager-loading.spec.ts', function () {
     @customElement({ name: 'root-host', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, container, host } = await start({ appRoot: Root, useEagerLoading, useNavigationModel });
+    const { au, container, host } = await start({ appRoot: Root, useEagerLoading });
     const router = container.get(IRouter);
 
     assert.html.textContent(host, '', 'init');

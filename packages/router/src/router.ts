@@ -196,7 +196,7 @@ export class Router {
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
-    this._instructions = ViewportInstructionTree.create('', this.options, null, null);
+    this._instructions = ViewportInstructionTree.create('', this.options, null, null, null);
     this._container.registerResolver(Router, Registration.instance(Router, this));
   }
 
@@ -243,7 +243,7 @@ export class Router {
         const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
         this._lastLocationChangeStateId = auNavId;
         const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });
-        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
+        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx, null);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
         // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
@@ -335,7 +335,8 @@ export class Router {
   public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean>;
   public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean> {
     return onResolve(
-      this.createViewportInstructions(instructionOrInstructions, options ?? null),
+      // TODO(Sayan): do we need to pass parentRoutePath here?
+      this.createViewportInstructions(instructionOrInstructions, options ?? null, null),
       instructions => {
         if (__DEV__) trace(this._logger, Events.rtrLoading, instructions);
 
@@ -348,8 +349,8 @@ export class Router {
     const ctx = this._resolveContext(context);
     const instructions = instructionOrInstructions instanceof ViewportInstructionTree
       ? instructionOrInstructions
-      : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy });
-
+      // TODO(Sayan): do we need to pass parentRoutePath here?
+      : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy }, null);
     if (__DEV__) trace(this._logger, Events.rtrIsActive, instructions, ctx);
 
     return this.routeTree.contains(instructions, false);
@@ -419,19 +420,20 @@ export class Router {
    */
   public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
     return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true),
+      // TODO(Sayan): do we need to pass parentRoutePath here?
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, null, true),
       vit => vit.toUrl(true, this.options._urlParser, (vit.options.context as IRouteContext).isRoot),
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (context !== null) context = (options as Writable<INavigationOptions>).context = this._resolveContext(context);
-    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, traverseChildren as true);
+    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true);
   }
 
   /**

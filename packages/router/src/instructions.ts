@@ -270,12 +270,14 @@ export class ViewportInstructionTree {
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
+    parentRoutePath: string | null,
   ): ViewportInstructionTree;
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
+    parentRoutePath: string | null,
     traverseChildren: true,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree>;
   public static create(
@@ -283,6 +285,7 @@ export class ViewportInstructionTree {
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
+    parentRoutePath: string | null,
     traverseChildren?: boolean,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     options = options instanceof NavigationOptions ? options : NavigationOptions.create(routerOptions, options ?? emptyObject);
@@ -302,7 +305,7 @@ export class ViewportInstructionTree {
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         promises[i] = onResolve(
-          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, traverseChildren as true) : null,
+          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true) : null,
           eagerVi => {
             if (eagerVi !== null) {
               children[i] = eagerVi.vi;
@@ -327,6 +330,7 @@ export class ViewportInstructionTree {
           isPartialViewportInstruction(instructionOrInstructions)
             ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
             : { component: instructionOrInstructions, params: emptyObject },
+          parentRoutePath,
           traverseChildren as true
         )
         : null,

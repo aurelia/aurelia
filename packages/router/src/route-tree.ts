@@ -406,7 +406,7 @@ export function createAndAppendNodes(
           // However, when that's not the case, then we perhaps try to lookup the route-id.
           // This is another early termination.
           if (vi.children.length === 0) {
-            const result = ctx.routeConfigContext._generateViewportInstruction(vi);
+            const result = ctx.routeConfigContext._generateViewportInstruction(vi, node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null);
             if (result !== null) {
               node._tree._mergeQuery(result.query);
               const newVi = result.vi;
@@ -447,16 +447,19 @@ export function createAndAppendNodes(
           const noResidue = residue === null;
           // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
           // Therefore the path matches the configured empty route and puts the whole path into residue.
-          if (rr === null || residue === path) {
+          if (rr == null || residue === path) {
             // check if a route-id is used
-            const eagerResult = ctx.routeConfigContext._generateViewportInstruction({
-              component: vi.component.value,
-              params: vi.params ?? emptyObject,
-              open: vi.open,
-              close: vi.close,
-              viewport: vi.viewport,
-              children: vi.children,
-            });
+            const eagerResult = ctx.routeConfigContext._generateViewportInstruction(
+              {
+                component: vi.component.value,
+                params: vi.params ?? emptyObject,
+                open: vi.open,
+                close: vi.close,
+                viewport: vi.viewport,
+                children: vi.children,
+              },
+              node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null
+            );
             if (eagerResult !== null) {
               node._tree._mergeQuery(eagerResult.query);
               return appendNode(log, node, createConfiguredNode(
@@ -503,8 +506,8 @@ export function createAndAppendNodes(
 
           // need to find a way to avoid this complication
           (vi.component as Writable<ITypedNavigationInstruction_string>).value = noResidue
-              ? path
-              : path.slice(0, -(residue.length + 1));
+            ? path
+            : path.slice(0, -(residue.length + 1));
 
           const numRecognizedChildren = childrenRoutes.length;
           if (numRecognizedChildren > 0) {
@@ -543,14 +546,17 @@ export function createAndAppendNodes(
       return onResolve(
         (resolveCustomElementDefinition(vi.component.value, rc.routeConfigContext) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
         ced => {
-          const { vi: newVi, query } = rc.routeConfigContext._generateViewportInstruction({
-            component: ced,
-            params: vi.params ?? emptyObject,
-            open: vi.open,
-            close: vi.close,
-            viewport: vi.viewport,
-            children: vi.children,
-          })!;
+          const { vi: newVi, query } = rc.routeConfigContext._generateViewportInstruction(
+            {
+              component: ced,
+              params: vi.params ?? emptyObject,
+              open: vi.open,
+              close: vi.close,
+              viewport: vi.viewport,
+              children: vi.children,
+            },
+            node.instruction?.recognizedRoute?.route.endpoint.route.path ?? null
+          )!;
           node._tree._mergeQuery(query);
           return appendNode(log, node, createConfiguredNode(
             log,

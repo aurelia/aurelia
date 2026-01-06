@@ -479,8 +479,11 @@ export class RouteRecognizer<T> {
     const params: Parameter[] = [];
 
     let state = this.rootState as AnyState<T>;
+    const numParentParts = parentPath === null ? 0 : parentPath.split('/').filter(isNotEmpty).length;
+    const numParts = parts.length;
 
-    for (const part of parts) {
+    for (let i = 0; i < numParts; ++i) {
+      const part = parts[i];
       // Each segment always begins with a slash, so we represent this with a non-segment state
       state = state.append(null, '/');
 
@@ -493,7 +496,9 @@ export class RouteRecognizer<T> {
           if (name === RESIDUE) throw new Error(`Invalid parameter name; usage of the reserved parameter name '${RESIDUE}' is used.`);
           const constraint = match?.groups?.constraint;
           const pattern: RegExp | null = constraint != null ? new RegExp(constraint) : null;
-          params.push(new Parameter(name, isOptional, false, pattern));
+          if (i >= numParentParts) {
+            params.push(new Parameter(name, isOptional, false, pattern));
+          }
           state = new DynamicSegment<T>(name, isOptional, pattern).appendTo(state);
           break;
         }
@@ -506,7 +511,9 @@ export class RouteRecognizer<T> {
           } else {
             kind = SegmentKind.star;
           }
-          params.push(new Parameter(name, true, true, null));
+          if (i >= numParentParts) {
+            params.push(new Parameter(name, true, true, null));
+          }
           state = new StarSegment<T>(name, kind).appendTo(state);
           break;
         }

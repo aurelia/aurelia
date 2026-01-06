@@ -17,6 +17,7 @@ describe('router/resources/viewport.spec.ts', function () {
       async function start<TAppRoot>(options: RouterTestStartOptions<TAppRoot>) {
         return $start({ ...options, useEagerLoading });
       }
+      function getEmptyPath(): string[] { return useEagerLoading ? [] : ['']; }
 
       it('sibling viewports with non-default routes are supported by binding the default property to null', async function () {
 
@@ -29,7 +30,7 @@ describe('router/resources/viewport.spec.ts', function () {
         @route({
           routes: [
             {
-              path: ['', 'ce-one'],
+              path: [...getEmptyPath(), 'ce-one'],
               component: CeOne,
             },
             {
@@ -41,7 +42,7 @@ describe('router/resources/viewport.spec.ts', function () {
         @customElement({
           name: 'ro-ot',
           template: `
-                <au-viewport name="$1"></au-viewport>
+                <au-viewport name="$1"${useEagerLoading ? ' default="ce-one"' : ''}></au-viewport>
                 <au-viewport name="$2" default.bind="null"></au-viewport>
             `
         })
@@ -88,35 +89,35 @@ describe('router/resources/viewport.spec.ts', function () {
         @route({
           routes: [
             {
-              path: ['', 'ce-11'],
+              path: [...getEmptyPath(), 'ce-11'],
               component: CeOneOne,
             }
           ]
         })
         @customElement({
           name: 'ce-one', template: `ce1
-        <au-viewport name="$1"></au-viewport>
+        <au-viewport name="$1"${useEagerLoading ? ' default="ce-11"' : ''}></au-viewport>
         <au-viewport name="$2" default.bind="null"></au-viewport>` })
         class CeOne implements IRouteViewModel { }
 
         @route({
           routes: [
             {
-              path: ['', 'ce-21'],
+              path: [...getEmptyPath(), 'ce-21'],
               component: CeTwoOne,
             }
           ]
         })
         @customElement({
           name: 'ce-two', template: `ce2
-    <au-viewport name="$1"></au-viewport>
+    <au-viewport name="$1"${useEagerLoading ? ' default="ce-21"' : ''}></au-viewport>
     <au-viewport name="$2" default.bind="null"></au-viewport>` })
         class CeTwo implements IRouteViewModel { }
 
         @route({
           routes: [
             {
-              path: ['', 'ce-one'],
+              path: [...getEmptyPath(), 'ce-one'],
               component: CeOne,
             },
             {
@@ -128,7 +129,7 @@ describe('router/resources/viewport.spec.ts', function () {
         @customElement({
           name: 'ro-ot',
           template: `
-                <au-viewport name="$1"></au-viewport>
+                <au-viewport name="$1"${useEagerLoading ? ' default="ce-one"' : ''}></au-viewport>
                 <au-viewport name="$2" default.bind="null"></au-viewport>
             `
         })
@@ -168,21 +169,21 @@ describe('router/resources/viewport.spec.ts', function () {
         @route({
           routes: [
             {
-              path: ['', 'ce-21'],
+              path: [...getEmptyPath(), 'ce-21'],
               component: CeTwoOne,
             }
           ]
         })
         @customElement({
           name: 'ce-two', template: `ce2
-    <au-viewport name="$1"></au-viewport>
+    <au-viewport name="$1"${useEagerLoading ? ' default="ce-21"' : ''}></au-viewport>
     <au-viewport name="$2" default.bind="null"></au-viewport>` })
         class CeTwo implements IRouteViewModel { }
 
         @route({
           routes: [
             {
-              path: ['', 'ce-one'],
+              path: [...getEmptyPath(), 'ce-one'],
               component: CeOne,
             },
             {
@@ -195,7 +196,7 @@ describe('router/resources/viewport.spec.ts', function () {
         @customElement({
           name: 'ro-ot',
           template: `
-                <au-viewport name="$1"></au-viewport>
+                <au-viewport name="$1"${useEagerLoading ? ' default="ce-one"' : ''}></au-viewport>
                 <au-viewport name="$2" default.bind="null"></au-viewport>
             `
         })
@@ -243,7 +244,7 @@ describe('router/resources/viewport.spec.ts', function () {
         @route({
           routes: [
             {
-              path: ['', 'ce-one'],
+              path: [...getEmptyPath(), 'ce-one'],
               component: CeOne,
             },
             {
@@ -255,7 +256,7 @@ describe('router/resources/viewport.spec.ts', function () {
         @customElement({
           name: 'ro-ot',
           template: `
-                <au-viewport name="$1"></au-viewport>
+                <au-viewport name="$1"${useEagerLoading ? ' default="ce-one"' : ''}></au-viewport>
                 <au-viewport name="$2" default.bind="null"></au-viewport>
             `
         })

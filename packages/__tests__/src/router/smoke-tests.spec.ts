@@ -3817,7 +3817,7 @@ describe('router/smoke-tests.spec.ts', function () {
             { path: useEagerLoading ? 'ggc1' : '', component: GGC1 },
           ],
         })
-        @customElement({ name: 'gc-1', template: `<au-viewport default="ggc1"></au-viewport>`, })
+        @customElement({ name: 'gc-1', template: `<au-viewport${useEagerLoading ? ' default="ggc1"' : ''}></au-viewport>`, })
         class GC1 { }
 
         @route({
@@ -3826,7 +3826,7 @@ describe('router/smoke-tests.spec.ts', function () {
             { id: 'gc1', path: 'gc1', component: GC1 },
           ],
         })
-        @customElement({ name: 'c-1', template: `<au-viewport default="gc1"></au-viewport>`, })
+        @customElement({ name: 'c-1', template: `<au-viewport${useEagerLoading ? ' default="gc1"' : ''}></au-viewport>`, })
         class C1 { }
 
         @route({
@@ -3835,7 +3835,7 @@ describe('router/smoke-tests.spec.ts', function () {
             { path: 'c1', component: C1, },
           ],
         })
-        @customElement({ name: 'ro-ot', template: `<au-viewport default="c1"></au-viewport>`, })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`, })
         class Root { }
 
         const { au, container, host } = await start({ appRoot: Root });
@@ -6423,7 +6423,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { path: '', component: C1 },
+            { path: useEagerLoading ? 'c1' : '', component: C1 },
             { path: 'c2', component: C2 },
           ]
         })

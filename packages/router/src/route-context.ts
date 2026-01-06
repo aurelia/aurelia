@@ -992,8 +992,7 @@ export class RouteConfigContext {
     };
 
     function core(path: string): EagerResolutionResult | null {
-      if (parentRoutePath != null && parentRoutePath.length > 0) path = `${parentRoutePath}/${path}`;
-      const endpoint = recognizer.getEndpoint(path);
+      const endpoint = recognizer.getEndpoint((parentRoutePath?.length ?? 0) > 0 ? `${parentRoutePath}/${path}` : path);
       if (endpoint === null) {
         errors.push(`No endpoint found for the path: '${path}'.`);
         return null;

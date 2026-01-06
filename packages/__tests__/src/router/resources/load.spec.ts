@@ -24,6 +24,7 @@ describe('router/resources/load.spec.ts', function () {
       async function start<TAppRoot>(options: RouterTestStartOptions<TAppRoot>) {
         return $start({ ...options, useEagerLoading });
       }
+      function getEmptyPath(): string[] { return useEagerLoading ? [] : ['']; }
 
       it('active status works correctly', async function () {
         @customElement({ name: 'fo-o', template: '' })
@@ -256,11 +257,11 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'products', path: ['', 'products'], component: Products },
+            { id: 'products', path: [...getEmptyPath(), 'products'], component: Products },
             { id: 'product', path: 'product/:id', component: Product },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="products"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
@@ -309,11 +310,11 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'products', path: ['', 'products'], component: Products },
+            { id: 'products', path: [...getEmptyPath(), 'products'], component: Products },
             { id: 'product', path: 'product/:id', component: Product },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="products"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
@@ -370,11 +371,11 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'products', path: ['', 'products'], component: Products },
+            { id: 'products', path: [...getEmptyPath(), 'products'], component: Products },
             { id: 'product', path: 'product/:id', component: Product },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="products"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
@@ -416,27 +417,27 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'l21', path: ['', 'l21'], component: L21 },
+            { id: 'l21', path: [...getEmptyPath(), 'l21'], component: L21 },
           ]
         })
-        @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-11', template: `l11 <au-viewport${useEagerLoading ? ' default="l21"' : ''}></au-viewport>` })
         class L11 { }
 
         @route({
           routes: [
-            { id: 'l22', path: ['', 'l22'], component: L22 },
+            { id: 'l22', path: [...getEmptyPath(), 'l22'], component: L22 },
           ]
         })
-        @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-12', template: `l12 <au-viewport${useEagerLoading ? ' default="l22"' : ''}></au-viewport>` })
         class L12 { }
 
         @route({
           routes: [
-            { id: 'l11', path: ['', 'l11'], component: L11 },
+            { id: 'l11', path: [...getEmptyPath(), 'l11'], component: L11 },
             { id: 'l12', path: 'l12', component: L12 },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="l11"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
@@ -462,28 +463,28 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'l21', path: ['', 'l21'], component: L21 },
+            { id: 'l21', path: [...getEmptyPath(), 'l21'], component: L21 },
           ]
         })
-        @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-11', template: `l11 <au-viewport${useEagerLoading ? ' default="l21"' : ''}></au-viewport>` })
         class L11 { }
 
         @route({
           routes: [
-            { id: 'l22', path: ['', 'l22'], component: L22 },
+            { id: 'l22', path: [...getEmptyPath(), 'l22'], component: L22 },
           ]
         })
-        @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-12', template: `l12 <au-viewport${useEagerLoading ? ' default="l22"' : ''}></au-viewport>` })
         class L12 { }
 
         @route({
           routes: [
-            { path: '', redirectTo: 'l11/42' },
+            ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'l11/42' }]),
             { id: 'l11', path: 'l11/:id', component: L11 },
             { id: 'l12', path: 'l12/:id', component: L12 },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="l11/42"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
@@ -521,27 +522,27 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'l21', path: ['', 'l21'], component: L21 },
+            { id: 'l21', path: [...getEmptyPath(), 'l21'], component: L21 },
           ]
         })
-        @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-11', template: `l11 <au-viewport${useEagerLoading ? ' default="l21"' : ''}></au-viewport>` })
         class L11 { }
 
         @route({
           routes: [
-            { id: 'l22', path: ['', 'l22'], component: L22 },
+            { id: 'l22', path: [...getEmptyPath(), 'l22'], component: L22 },
           ]
         })
-        @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-12', template: `l12 <au-viewport${useEagerLoading ? ' default="l22"' : ''}></au-viewport>` })
         class L12 { }
 
         @route({
           routes: [
-            { id: 'l11', path: ['', 'l11'], component: L11 },
+            { id: 'l11', path: [...getEmptyPath(), 'l11'], component: L11 },
             { id: 'l12', path: 'l12', component: L12 },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="l11"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
@@ -595,29 +596,29 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'l21', path: ['', 'l21'], component: L21 },
+            { id: 'l21', path: [...getEmptyPath(), 'l21'], component: L21 },
             { id: 'l22', path: 'l22', component: L22 },
           ]
         })
-        @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-11', template: `l11 <au-viewport${useEagerLoading ? ' default="l21"' : ''}></au-viewport>` })
         class L11 { }
 
         @route({
           routes: [
-            { id: 'l23', path: ['', 'l23'], component: L23 },
+            { id: 'l23', path: [...getEmptyPath(), 'l23'], component: L23 },
             { id: 'l24', path: 'l24', component: L24 },
           ]
         })
-        @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+        @customElement({ name: 'l-12', template: `l12 <au-viewport${useEagerLoading ? ' default="l23"' : ''}></au-viewport>` })
         class L12 { }
 
         @route({
           routes: [
-            { id: 'l11', path: ['', 'l11'], component: L11 },
+            { id: 'l11', path: [...getEmptyPath(), 'l11'], component: L11 },
             { id: 'l12', path: 'l12', component: L12 },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="l11"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
@@ -712,17 +713,17 @@ describe('router/resources/load.spec.ts', function () {
             `
     <a load="c1">C1</a>
     <a load="c2">C2</a>
-    <au-viewport></au-viewport>`,
+    <au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`,
             `c1
     <a load="gc11">gc11</a>
     <a load="gc12">gc12</a>
     <a load="route: c2; context.bind: parentCtx">c2</a>
-    <au-viewport></au-viewport>`,
+    <au-viewport${useEagerLoading ? ' default="gc11"' : ''}></au-viewport>`,
             `c2
     <a load="gc21">gc21</a>
     <a load="gc22">gc22</a>
     <a load="route: c1; context.bind: parentCtx">c1</a>
-    <au-viewport></au-viewport>`
+    <au-viewport${useEagerLoading ? ' default="gc21"' : ''}></au-viewport>`
           ],
           [
             [
@@ -747,17 +748,17 @@ describe('router/resources/load.spec.ts', function () {
             `
     <a load="r1">C1</a>
     <a load="r2">C2</a>
-    <au-viewport></au-viewport>`,
+    <au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`,
             `c1
     <a load="r1">gc11</a>
     <a load="r2">gc12</a>
     <a load="route: r2; context.bind: parentCtx">c2</a>
-    <au-viewport></au-viewport>`,
+    <au-viewport${useEagerLoading ? ' default="gc11"' : ''}></au-viewport>`,
             `c2
     <a load="r1">gc21</a>
     <a load="r2">gc22</a>
     <a load="route: r1; context.bind: parentCtx">c1</a>
-    <au-viewport></au-viewport>`
+    <au-viewport${useEagerLoading ? ' default="gc21"' : ''}></au-viewport>`
           ],
           [
             [
@@ -792,7 +793,7 @@ describe('router/resources/load.spec.ts', function () {
 
           @route({
             routes: [
-              { path: '', redirectTo: 'gc11' },
+              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'gc11' }]),
               { id: 'r1', path: 'gc11', component: GrandChildOneOne },
               { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
             ],
@@ -813,7 +814,7 @@ describe('router/resources/load.spec.ts', function () {
 
           @route({
             routes: [
-              { path: '', redirectTo: 'gc21' },
+              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'gc21' }]),
               { id: 'r1', path: 'gc21', component: GrandChildTwoOne },
               { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
             ],
@@ -828,10 +829,7 @@ describe('router/resources/load.spec.ts', function () {
 
           @route({
             routes: [
-              {
-                path: '',
-                redirectTo: 'c1',
-              },
+              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c1' }]),
               {
                 id: 'r1',
                 path: 'c1',
@@ -905,7 +903,7 @@ describe('router/resources/load.spec.ts', function () {
             `
     <a load="c1">C1</a>
     <a load="c2">C2</a>
-    <au-viewport></au-viewport>`,
+    <au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`,
             `c1
     <a load="gc11+gc12">gc11+gc12</a>
     <a load="gc12+gc13">gc12+gc13</a>
@@ -940,7 +938,7 @@ describe('router/resources/load.spec.ts', function () {
             `
     <a load="r1">C1</a>
     <a load="r2">C2</a>
-    <au-viewport></au-viewport>`,
+    <au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`,
             `c1
     <a load="r1+r2">gc11+gc12</a>
     <a load="r2+r3">gc12+gc13</a>
@@ -1027,10 +1025,7 @@ describe('router/resources/load.spec.ts', function () {
 
           @route({
             routes: [
-              {
-                path: '',
-                redirectTo: 'c1',
-              },
+              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c1' }]),
               {
                 id: 'r1',
                 path: 'c1',
@@ -1139,20 +1134,20 @@ describe('router/resources/load.spec.ts', function () {
 
         @route({
           routes: [
-            { path: '', component: ProductInit },
+            { path: useEagerLoading ? 'product-init' : '', component: ProductInit },
             { path: 'product/:id', component: Product },
           ]
         })
-        @customElement({ name: 'pro-ducts', template: `<au-viewport name="products"></au-viewport>` })
+        @customElement({ name: 'pro-ducts', template: `<au-viewport name="products"${useEagerLoading ? ' default="product-init"' : ''}></au-viewport>` })
         class Products { }
 
         @route({
           routes: [
-            { id: 'products', path: ['', 'products'], component: Products },
+            { id: 'products', path: [...getEmptyPath(), 'products'], component: Products },
           ],
           transitionPlan: 'replace',
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport name="root"></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport name="root"${useEagerLoading ? ' default="products"' : ''}></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });

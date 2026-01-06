@@ -518,7 +518,8 @@ export function createAndAppendNodes(
               const recognizedRoute = childrenRoutes[i];
               childVi = ViewportInstruction.create({ recognizedRoute, component: recognizedRoute.route.path, children: childVi != null ? [childVi] : [] });
             }
-            vi.children.splice(0, vi.children.length, childVi!);
+            (vi as Writable<ViewportInstruction>).children = vi.children.filter(c => c.component.type !== NavigationInstructionType.string);
+            vi.children.unshift(childVi!);
           } else {
             let addResidue = !noResidue;
             for (let i = 0; i < collapse; ++i) {

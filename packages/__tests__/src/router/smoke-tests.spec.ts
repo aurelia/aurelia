@@ -3814,34 +3814,34 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { path: '', component: GGC1 },
+            { path: useEagerLoading ? 'ggc1' : '', component: GGC1 },
           ],
         })
-        @customElement({ name: 'gc-1', template: `<au-viewport></au-viewport>`, })
+        @customElement({ name: 'gc-1', template: `<au-viewport default="ggc1"></au-viewport>`, })
         class GC1 { }
 
         @route({
           routes: [
-            { path: '', redirectTo: 'gc1' },
+            ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'gc1' }]),
             { id: 'gc1', path: 'gc1', component: GC1 },
           ],
         })
-        @customElement({ name: 'c-1', template: `<au-viewport></au-viewport>`, })
+        @customElement({ name: 'c-1', template: `<au-viewport default="gc1"></au-viewport>`, })
         class C1 { }
 
         @route({
           routes: [
-            { path: '', redirectTo: 'c1' },
+            ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c1' }]),
             { path: 'c1', component: C1, },
           ],
         })
-        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>`, })
+        @customElement({ name: 'ro-ot', template: `<au-viewport default="c1"></au-viewport>`, })
         class Root { }
 
         const { au, container, host } = await start({ appRoot: Root });
 
         assert.html.textContent(host, 'gcc1');
-        assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /c1\/gc1$/);
+        assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, useEagerLoading ? /c1\/gc1\/ggc1$/ : /c1\/gc1$/);
 
         await au.stop(true);
       });

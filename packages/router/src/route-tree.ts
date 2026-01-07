@@ -82,6 +82,7 @@ export class RouteNode {
   private _isInstructionsFinalized: boolean = false;
   public get isInstructionsFinalized(): boolean { return this._isInstructionsFinalized; }
   public readonly children: RouteNode[] = [];
+  public readonly pathFromRoot: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
 
   private constructor(
     /**
@@ -134,6 +135,18 @@ export class RouteNode {
     public readonly residue: ViewportInstruction[],
   ) {
     this._originalInstruction ??= instruction;
+    const pathFromRoot: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] = [];
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let cur: RouteNode | null = this;
+    while (cur !== null) {
+      const route = cur.instruction?.recognizedRoute?.route ?? null;
+      if (route === null) break;
+
+      pathFromRoot.unshift(route);
+      cur = cur.context.parent?.node ?? null;
+    }
+    this.pathFromRoot = pathFromRoot.length > 0 ? pathFromRoot : null;
   }
 
   public static create(input: IRouteNodeInitializationOptions): RouteNode {
@@ -440,7 +453,7 @@ export function createAndAppendNodes(
 
           let childrenRoutes: $RecognizedRoute[];
           // eslint-disable-next-line prefer-const
-          ([rr, ...childrenRoutes] = ctx.routeConfigContext.recognize(path, false, node.instruction?.recognizedRoute ?? null) ?? ([null] as unknown as $RecognizedRoute[]));
+          ([rr, ...childrenRoutes] = ctx.routeConfigContext.recognize(path, false, node.pathFromRoot) ?? ([null] as unknown as $RecognizedRoute[]));
           log.trace('createNode recognized route: %s', rr);
           const residue = rr?.residue ?? null;
           log.trace('createNode residue:', residue);
@@ -469,36 +482,7 @@ export function createAndAppendNodes(
                 eagerResult.vi.recognizedRoute!,
                 vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
             }
-
-            // fallback
-            const name = vi.component.value;
-            if (name === '') return;
-            let vp = vi.viewport;
-            if (vp === null || vp.length === 0) vp = defaultViewportName;
-            const vpa = ctx.getFallbackViewportAgent(vp);
-            const fallback = vpa !== null
-              ? vpa.viewport._getFallback(vi, node, ctx)
-              : ctx.routeConfigContext.config._getFallback(vi, node, ctx);
-            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx.routeConfigContext._friendlyPath, vp, name, ctx.routeConfigContext.component.name));
-
-            if (typeof fallback === 'string') {
-              // fallback: id -> route -> CEDefn (Route configuration)
-              // look for a route first
-              log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
-              const rd = (ctx.routeConfigContext.childRoutes as RouteConfig[]).find(x => x.id === fallback);
-              if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
-
-              log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
-              const [rr] = ctx.routeConfigContext.recognize(fallback, true) ?? [null];
-              if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
-            }
-
-            // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
-            log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
-            return onResolve(
-              resolveRouteConfiguration(fallback, false, ctx.routeConfigContext.config, null, ctx.routeConfigContext),
-              rc => appendNode(log, node, createFallbackNode(log, rc, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>))
-            );
+            return createFallbackNode(vi, node, log);
           }
 
           // readjust the children wrt. the residue
@@ -513,10 +497,16 @@ export function createAndAppendNodes(
           if (numRecognizedChildren > 0) {
             // remove all children and replace with the recognized children routes
             // as the chlidren are hierarchical, we need to build it bottom-up and add a single child to the current vi
+            // TODO(Sayan): collect the viewports coming from the original instruction and apply them to the created child VIs
             let childVi: ViewportInstruction | null = null;
             for (let i = numRecognizedChildren - 1; i >= 0; --i) {
               const recognizedRoute = childrenRoutes[i];
-              childVi = ViewportInstruction.create({ recognizedRoute, component: recognizedRoute.route.path, children: childVi != null ? [childVi] : [] });
+              childVi = ViewportInstruction.create({
+                recognizedRoute,
+                component: recognizedRoute.route.path,
+                children: childVi != null ? [childVi] : [],
+                // viewport: vi.viewport, // FIX
+              });
             }
             (vi as Writable<ViewportInstruction>).children = vi.children.filter(c => c.component.type !== NavigationInstructionType.string);
             vi.children.unshift(childVi!);
@@ -567,6 +557,68 @@ export function createAndAppendNodes(
             vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
         });
     }
+  }
+}
+
+function createFallbackNode(
+  vi: ViewportInstruction,
+  node: RouteNode,
+  log: ILogger,
+): void | Promise<void> {
+  const name = vi.component.value;
+  const ctx = node.context;
+  if (name === '') return;
+  let vp = vi.viewport;
+  if (vp === null || vp.length === 0) vp = defaultViewportName;
+  const vpa = ctx.getFallbackViewportAgent(vp);
+  const fallback = vpa !== null
+    ? vpa.viewport._getFallback(vi, node, ctx)
+    : ctx.routeConfigContext.config._getFallback(vi, node, ctx);
+  if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx.routeConfigContext._friendlyPath, vp, name, ctx.routeConfigContext.component.name));
+
+  if (typeof fallback === 'string') {
+    // fallback: id -> route -> CEDefn (Route configuration)
+    // look for a route first
+    log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
+    const rd = (ctx.routeConfigContext.childRoutes as RouteConfig[]).find(x => x.id === fallback);
+    if (rd !== void 0) return appendNode(log, node, createNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
+
+    log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
+    const [rr] = ctx.routeConfigContext.recognize(fallback, true) ?? [null];
+    if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
+  }
+
+  // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
+  log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
+  return onResolve(
+    resolveRouteConfiguration(fallback, false, ctx.routeConfigContext.config, null, ctx.routeConfigContext),
+    rc => appendNode(log, node, createNode(log, rc, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>))
+  );
+
+  /**
+   * Creates route node from the given RouteConfig `rc` for a unknown path (non-configured route).
+   */
+  function createNode(
+    log: ILogger,
+    rc: RouteConfig,
+    node: RouteNode,
+    vi: ViewportInstruction<ITypedNavigationInstruction_string>,
+  ): RouteNode | Promise<RouteNode> {
+    // we aren't migrating the parameters for missing route
+    const rr = new $RecognizedRoute(
+      new RecognizedRoute(
+        new Endpoint(
+          new ConfigurableRoute(rc.path[0], rc.caseSensitive, rc),
+          []
+        ),
+        rc.path[0],
+        emptyObject
+      ),
+      null);
+    // Do not pass on any residue. That is if the current path is unconfigured/what/ever ignore the rest after we hit an unconfigured route.
+    // If need be later a special parameter can be created for this.
+    vi.children.length = 0;
+    return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null);
   }
 }
 
@@ -739,30 +791,4 @@ function appendNode(
     node._appendChild($childNode);
     return $childNode.context.vpa._scheduleUpdate(node._tree.options, $childNode);
   });
-}
-
-/**
- * Creates route node from the given RouteConfig `rc` for a unknown path (non-configured route).
- */
-function createFallbackNode(
-  log: ILogger,
-  rc: RouteConfig,
-  node: RouteNode,
-  vi: ViewportInstruction<ITypedNavigationInstruction_string>,
-): RouteNode | Promise<RouteNode> {
-  // we aren't migrating the parameters for missing route
-  const rr = new $RecognizedRoute(
-    new RecognizedRoute(
-      new Endpoint(
-        new ConfigurableRoute(rc.path[0], rc.caseSensitive, rc),
-        []
-      ),
-      rc.path[0],
-      emptyObject
-    ),
-    null);
-  // Do not pass on any residue. That is if the current path is unconfigured/what/ever ignore the rest after we hit an unconfigured route.
-  // If need be later a special parameter can be created for this.
-  vi.children.length = 0;
-  return createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null);
 }

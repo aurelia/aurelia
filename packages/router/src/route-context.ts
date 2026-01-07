@@ -1077,7 +1077,7 @@ export class RouteConfigContext {
         ({ instructions: children, query: $query }) => {
           return {
             vi: ViewportInstruction.create({
-              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.path, result.consumed), null, parentRoutePath),
+              recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.path, result.consumed), null),
               component: result.path,
               children,
               viewport: (instruction as IViewportInstruction).viewport,
@@ -1090,51 +1090,28 @@ export class RouteConfigContext {
     }
   }
 
-  public recognize(path: string, searchAncestor: boolean = false, parentRoute: $RecognizedRoute | null = null): $RecognizedRoute[] | null {
+  public recognize(path: string, searchAncestor: boolean = false, relativeTo: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null): $RecognizedRoute[] | null {
     if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
-
-    let parentPath = this._options.useEagerLoading ? parentRoute?._pathFromRoot ?? '' : null;
-    if (parentPath !== null && parentPath.length !== 0) path = `${parentPath}/${path}`;
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteConfigContext = this;
     let _continue = true;
     let results: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
     while (_continue) {
-      results = _current._recognizer.recognize(path);
+      results = _current._recognizer.recognize(path, relativeTo);
       if (results === null) {
         if (!searchAncestor || _current.isRoot) return null;
         _current = _current.parent!;
-      } else if (results.length === 1 && (parentPath?.length ?? 0) !== 0) {
-        // basic sanity check: in eager loading context when there is a parent path with expected more than one recognized routes
-        return null;
       } else {
         _continue = false;
       }
     }
 
-    const parentPathOrig = parentPath;
-    // if parent path was appened, we need to remove those parts from the results.
-    // future optimization opportunity.
-    results = [...results!];
-    while (parentPath !== null && parentPath.length > 0) {
-      const result = results[0];
-      const consumedPath = result.path;
-      if (parentPath.startsWith(consumedPath)) {
-        parentPath = parentPath.slice(consumedPath.length);
-        if (parentPath.startsWith('/')) {
-          parentPath = parentPath.slice(1);
-        }
-        results?.splice(0, 1);
-      }
-    }
-
-    return results.map(result => new $RecognizedRoute(
+    return results!.map(result => new $RecognizedRoute(
       result,
       Reflect.has(result.params, RESIDUE)
         ? (result.params[RESIDUE] ?? null)
-        : null,
-      parentPathOrig
+        : null
     ));
   }
 
@@ -1181,23 +1158,10 @@ export class RouteConfigContext {
 }
 
 export class $RecognizedRoute {
-  /**
-   * Used internally in eager loading context to keep track of the full path from the root and aid is path recognition.
-   * @internal
-   */
-  public readonly _pathFromRoot: string | null = null;
   public constructor(
     public readonly route: RecognizedRoute<RouteConfig | Promise<RouteConfig>>,
     public readonly residue: string | null,
-    parentPathFromRoot: string | null = null,
-  ) {
-    if (parentPathFromRoot !== null) {
-      let nonEmptyPath = this.route.path;
-      if (residue !== null && residue.length > 0) nonEmptyPath = nonEmptyPath.replace(new RegExp(`/?${residue}$`), '');
-      if (nonEmptyPath.length === 0) nonEmptyPath = (this.route.endpoint.route.handler as RouteConfig).path.find(p => p.length > 0) ?? '';
-      this._pathFromRoot = parentPathFromRoot.length === 0 ? nonEmptyPath : `${parentPathFromRoot}/${nonEmptyPath}`;
-    }
-  }
+  ) { }
 
   public toString(): string {
     if (!__DEV__) return 'RR';

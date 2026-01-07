@@ -674,21 +674,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [A]]);
 
@@ -722,21 +709,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [A]], '1');
 
@@ -797,21 +771,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [A, [B]]], '1');
 
@@ -858,24 +819,8 @@ describe('router/smoke-tests.spec.ts', function () {
           })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            A,
-          );
-
-          const component = container.get(Root);
+          const { au, host, container } = await start({ appRoot: Root, registrations: [A] });
           const router = container.get(IRouter);
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          au.app({ component, host });
-
-          await au.start();
 
           assertComponentsVisible(host, [Root]);
 
@@ -902,24 +847,8 @@ describe('router/smoke-tests.spec.ts', function () {
           })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            A,
-          );
-
-          const component = container.get(Root);
+          const { au, host, container } = await start({ appRoot: Root, registrations: [A] });
           const router = container.get(IRouter);
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          au.app({ component, host });
-
-          await au.start();
 
           assertComponentsVisible(host, [Root]);
 
@@ -946,24 +875,8 @@ describe('router/smoke-tests.spec.ts', function () {
           })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            A,
-          );
-
-          const component = container.get(Root);
+          const { au, host, container } = await start({ appRoot: Root, registrations: [A] });
           const router = container.get(IRouter);
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          au.app({ component, host });
-
-          await au.start();
 
           assertComponentsVisible(host, [Root]);
 
@@ -994,24 +907,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          NF,
-        );
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root, registrations: [NF] });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [A]]);
 
@@ -1052,21 +949,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root]);
 
@@ -1122,21 +1006,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root]);
 
@@ -1175,21 +1046,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root]);
 
@@ -1224,24 +1082,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          NF1,
-        );
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root, registrations: [NF1] });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [A]]);
 
@@ -1301,25 +1143,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          NF1,
-          NF2,
-        );
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root, registrations: [NF1, NF2] });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [P1, [C1]]], 'round #1');
 
@@ -1359,24 +1184,8 @@ describe('router/smoke-tests.spec.ts', function () {
           }
         }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          NF1,
-        );
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root, registrations: [NF1] });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [A]]);
 
@@ -1442,25 +1251,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          NF1,
-          NF2,
-        );
-
-        const component = container.get(Root);
+        const { au, host, container } = await start({ appRoot: Root, registrations: [NF1, NF2] });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         assertComponentsVisible(host, [Root, [P1, [C1]]]);
 
@@ -2451,21 +2243,8 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, container } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
         await router.load('a1/a/b1/b+a2/c/b2/d');
         await router.load('a1/1/b1/2+a2/3/b2/4');
 
@@ -2540,31 +2319,22 @@ describe('router/smoke-tests.spec.ts', function () {
         })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
         const pushedUrls: string[] = [];
-        container.register(Registration.instance(
-          IHistory,
-          {
-            pushState(_: {} | null, __: string, url: string) {
-              pushedUrls.push(url);
-            },
-            replaceState: noop,
-          }
-        ));
-        container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
-
-        const component = container.get(Root);
+        const { au, container } = await start({
+          appRoot: Root,
+          registrations: [
+            Registration.instance(
+              IHistory,
+              {
+                pushState(_: {} | null, __: string, url: string) {
+                  pushedUrls.push(url);
+                },
+                replaceState: noop,
+              }
+            ),
+          ],
+        });
         const router = container.get(IRouter);
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        au.app({ component, host });
-
-        await au.start();
 
         await router.load({ component: 'a1', params: { a: '12' } });
         let url = pushedUrls.pop();
@@ -3326,7 +3096,7 @@ describe('router/smoke-tests.spec.ts', function () {
         const { container } = ctx;
 
         container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration);
+        container.register(RouterConfiguration.customize({ useEagerLoading }));
 
         const component = container.get(CustomElement.define(
           { name: 'app', template: '<a href.bind="href">' },
@@ -3431,7 +3201,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
           container.register(
             TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration.customize({ buildTitle }),
+            RouterConfiguration.customize({ buildTitle, useEagerLoading }),
           );
 
           const au = new Aurelia(container);
@@ -3940,28 +3710,20 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe();
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            C11,
-            C12,
-            C21,
-            C22,
-            P1,
-            P2,
-            P3,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({
+            appRoot: Root,
+            registrations: [
+              C11,
+              C12,
+              C21,
+              C22,
+              P1,
+              P2,
+              P3,
+              navBarCe,
+            ],
+          });
           const router = container.get(IRouter);
 
           // Start
@@ -4042,28 +3804,20 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe(true);
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            C11,
-            C12,
-            C21,
-            C22,
-            P1,
-            P2,
-            P3,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({
+            appRoot: Root,
+            registrations: [
+              C11,
+              C12,
+              C21,
+              C22,
+              P1,
+              P2,
+              P3,
+              navBarCe,
+            ],
+          });
           const router = container.get(IRouter);
 
           // Start
@@ -4159,28 +3913,20 @@ describe('router/smoke-tests.spec.ts', function () {
             }
           }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe();
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            C11,
-            C12,
-            C21,
-            C22,
-            P1,
-            P2,
-            P3,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({
+            appRoot: Root,
+            registrations: [
+              C11,
+              C12,
+              C21,
+              C22,
+              P1,
+              P2,
+              P3,
+              navBarCe,
+            ],
+          });
           const router = container.get(IRouter);
 
           // Start
@@ -4271,28 +4017,20 @@ describe('router/smoke-tests.spec.ts', function () {
             }
           }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe(true);
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            C11,
-            C12,
-            C21,
-            C22,
-            P1,
-            P2,
-            P3,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({
+            appRoot: Root,
+            registrations: [
+              C11,
+              C12,
+              C21,
+              C22,
+              P1,
+              P2,
+              P3,
+              navBarCe,
+            ],
+          });
           const router = container.get(IRouter);
 
           // Start
@@ -4370,21 +4108,11 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe();
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            navBarCe,
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({
+            appRoot: Root,
+            registrations: [navBarCe],
+          });
           const router = container.get(IRouter);
 
           // Start
@@ -4476,21 +4204,8 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe();
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({ appRoot: Root, registrations: [navBarCe] });
           const router = container.get(IRouter);
 
           // Start
@@ -4574,21 +4289,8 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe(false);
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({ appRoot: Root, registrations: [navBarCe] });
           const router = container.get(IRouter);
 
           // Start
@@ -4647,21 +4349,8 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe();
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({ appRoot: Root, registrations: [navBarCe] });
           const router = container.get(IRouter);
 
           // Start
@@ -4703,20 +4392,8 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
           const navBarCe = getNavBarCe();
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration.customize({ useNavigationModel: false }),
-            navBarCe
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
+          const { au, host } = await start({ appRoot: Root, registrations: [navBarCe], useNavigationModel: false });
 
           await tasksSettled();
           assert.html.textContent(host, 'no nav model root no nav model p1 c11');
@@ -4754,7 +4431,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
             container.register(
               TestRouterConfiguration.for(LogLevel.warn),
-              RouterConfiguration,
+              RouterConfiguration.customize({ useEagerLoading }),
             );
 
             const au = new Aurelia(container);
@@ -4796,20 +4473,7 @@ describe('router/smoke-tests.spec.ts', function () {
           }
         }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          P1,
-          P2,
-        );
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-
-        await au.app({ component: Root, host }).start();
+        const { au, container } = await start({ appRoot: Root, registrations: [P1, P2] });
 
         const log = (au.root.controller.viewModel as Root).isNavigatingLog;
         assert.deepStrictEqual(log, []);
@@ -4849,7 +4513,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
         container.register(
           TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/' }),
+          RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/', useEagerLoading }),
           P1,
           P2,
         );
@@ -4907,20 +4571,8 @@ describe('router/smoke-tests.spec.ts', function () {
         @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          P1,
-          P2,
-        );
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
-        const router = container.get(IRouter);
-
-        await au.app({ component: Root, host }).start();
+          const { au, host, container } = await start({ appRoot: Root, registrations: [P1, P2] });
+          const router = container.get(IRouter);
 
         assert.html.textContent(host, 'p2');
         const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
@@ -4961,20 +4613,8 @@ describe('router/smoke-tests.spec.ts', function () {
         @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport default.bind="null"></au-viewport>' })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          P1,
-          P2,
-        );
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
+        const { au, host, container } = await start({ appRoot: Root, registrations: [P1, P2] });
         const router = container.get(IRouter);
-
-        await au.app({ component: Root, host }).start();
 
         assert.html.textContent(host, 'p2');
         const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
@@ -5024,20 +4664,8 @@ describe('router/smoke-tests.spec.ts', function () {
         @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport default.bind="null"></au-viewport>' })
         class Root { }
 
-        const ctx = TestContext.create();
-        const { container } = ctx;
-        container.register(
-          TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration,
-          P1,
-          P2,
-        );
-
-        const au = new Aurelia(container);
-        const host = ctx.createElement('div');
+        const { au, host, container } = await start({ appRoot: Root, registrations: [P2] });
         const router = container.get(IRouter);
-
-        await au.app({ component: Root, host }).start();
         const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
 
         await router.load('fizz/1/2');
@@ -5079,20 +4707,7 @@ describe('router/smoke-tests.spec.ts', function () {
           })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            Foo,
-            Bar,
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
+          const { au, container } = await start({ appRoot: Root, registrations: [Foo, Bar] });
 
           const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
           const router = container.get(IRouter);
@@ -5192,21 +4807,7 @@ describe('router/smoke-tests.spec.ts', function () {
           })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            Foo,
-            Bar,
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, container } = await start({ appRoot: Root, registrations: [Foo, Bar] });
           const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
           const router = container.get(IRouter);
 
@@ -5321,25 +4922,7 @@ describe('router/smoke-tests.spec.ts', function () {
           })
           class Root { }
 
-          const ctx = TestContext.create();
-          const { container } = ctx;
-
-          container.register(
-            TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration,
-            CeL11,
-            CeL21,
-            CeL22,
-            CeL12,
-            CeL23,
-            CeL24,
-          );
-
-          const au = new Aurelia(container);
-          const host = ctx.createElement('div');
-
-          await au.app({ component: Root, host }).start();
-
+          const { au, host, container } = await start({ appRoot: Root, registrations: [CeL11, CeL21, CeL22, CeL12, CeL23, CeL24] });
           const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
           const router = container.get(IRouter);
 

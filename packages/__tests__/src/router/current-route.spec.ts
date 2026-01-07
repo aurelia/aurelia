@@ -9,6 +9,7 @@ describe('router/current-route.spec.ts', function () {
 
   for (const useEagerLoading of [true, false]) {
     describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
+      function getEmptyPath(): string[] { return useEagerLoading ? [] : ['']; }
       const emptyParams = Object.create(null) as Params;
       function assertCurrentRoute(actual: ICurrentRoute, expected: Partial<ICurrentRoute>, messagePrefix: string = '') {
         assert.strictEqual(actual.path, expected.path, `${messagePrefix} - path`);
@@ -49,7 +50,7 @@ describe('router/current-route.spec.ts', function () {
             { id: 'r2', path: ['c-2', 'c-2/:id2'], component: C2, title: 'C2' },
           ]
         })
-        @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
         class App {
           public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
         }
@@ -183,20 +184,20 @@ describe('router/current-route.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r11', path: ['', 'c-11', 'c-11/:id1'], component: C11, title: 'C11' },
+            { id: 'r11', path: [...getEmptyPath(), 'c-11', 'c-11/:id1'], component: C11, title: 'C11' },
             { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
           ]
         })
-        @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
+        @customElement({ name: 'c-1', template: `c-1 <au-viewport${useEagerLoading ? ' default="c-11"' : ''}></au-viewport>` })
         class C1 implements IRouteViewModel { }
 
         @route({
           routes: [
-            { id: 'r21', path: ['', 'c-21', 'c-21/:id1'], component: C21, title: 'C21' },
+            { id: 'r21', path: [...getEmptyPath(), 'c-21', 'c-21/:id1'], component: C21, title: 'C21' },
             { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
           ]
         })
-        @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
+        @customElement({ name: 'c-2', template: `c-2 <au-viewport${useEagerLoading ? ' default="c-21"' : ''}></au-viewport>` })
         class C2 { }
 
         @route({
@@ -205,7 +206,7 @@ describe('router/current-route.spec.ts', function () {
             { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
           ]
         })
-        @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
         class App {
           public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
         }
@@ -457,29 +458,29 @@ describe('router/current-route.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r11', path: ['', 'c-11/:id1?'], component: C11, title: 'C11' },
+            { id: 'r11', path: [...getEmptyPath(), 'c-11/:id1?'], component: C11, title: 'C11' },
             { id: 'r12', path: ['c-12/:id2?'], component: C12, title: 'C12' },
           ]
         })
-        @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
+        @customElement({ name: 'c-1', template: `c-1 <au-viewport${useEagerLoading ? ' default="c-11"' : ''}></au-viewport>` })
         class C1 implements IRouteViewModel { }
 
         @route({
           routes: [
-            { id: 'r21', path: ['', 'c-21/:id1?'], component: C21, title: 'C21' },
+            { id: 'r21', path: [...getEmptyPath(), 'c-21/:id1?'], component: C21, title: 'C21' },
             { id: 'r22', path: ['c-22/:id2?'], component: C22, title: 'C22' },
           ]
         })
-        @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
+        @customElement({ name: 'c-2', template: `c-2 <au-viewport${useEagerLoading ? ' default="c-21"' : ''}></au-viewport>` })
         class C2 { }
 
         @route({
           routes: [
-            { id: 'r1', path: ['', 'c-1/:id{{^\\d+$}}?'], component: C1, title: 'C1' },
+            { id: 'r1', path: [...getEmptyPath(), 'c-1/:id{{^\\d+$}}?'], component: C1, title: 'C1' },
             { id: 'r2', path: ['c-2/:id{{^\\d+$}}?'], component: C2, title: 'C2' },
           ]
         })
-        @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'app', template: `<au-viewport${useEagerLoading ? ' default="c-1"' : ''}></au-viewport>` })
         class App {
           public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
         }
@@ -590,11 +591,11 @@ describe('router/current-route.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: ['', 'c-1', 'c-1/:id1'], component: C1, title: 'C1' },
+            { id: 'r1', path: [...getEmptyPath(), 'c-1', 'c-1/:id1'], component: C1, title: 'C1' },
             { id: 'r2', path: ['c-2', 'c-2/:id2'], component: C2, title: 'C2' },
           ]
         })
-        @customElement({ name: 'app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2"></au-viewport>' })
+        @customElement({ name: 'app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c-1"' : ''}></au-viewport><au-viewport name="vp2"${useEagerLoading ? ' default="c-1"' : ''}></au-viewport>` })
         class App {
           public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
         }
@@ -770,29 +771,29 @@ describe('router/current-route.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r11', path: ['', 'c-11', 'c-11/:id1'], component: C11, title: 'C11' },
+            { id: 'r11', path: [...getEmptyPath(), 'c-11', 'c-11/:id1'], component: C11, title: 'C11' },
             { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
           ]
         })
-        @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
+        @customElement({ name: 'c-1', template: `c-1 <au-viewport${useEagerLoading ? ' default="c-11"' : ''}></au-viewport>` })
         class C1 implements IRouteViewModel { }
 
         @route({
           routes: [
-            { id: 'r21', path: ['', 'c-21', 'c-21/:id1'], component: C21, title: 'C21' },
+            { id: 'r21', path: [...getEmptyPath(), 'c-21', 'c-21/:id1'], component: C21, title: 'C21' },
             { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
           ]
         })
-        @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
+        @customElement({ name: 'c-2', template: `c-2 <au-viewport${useEagerLoading ? ' default="c-21"' : ''}></au-viewport>` })
         class C2 { }
 
         @route({
           routes: [
-            { id: 'r1', path: ['', 'c-1'], component: C1, title: 'C1' },
+            { id: 'r1', path: [...getEmptyPath(), 'c-1'], component: C1, title: 'C1' },
             { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
           ]
         })
-        @customElement({ name: 'app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2"></au-viewport>' })
+        @customElement({ name: 'app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c-1"' : ''}></au-viewport><au-viewport name="vp2"${useEagerLoading ? ' default="c-1"' : ''}></au-viewport>` })
         class App {
           public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
         }

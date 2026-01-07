@@ -31,10 +31,6 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly document!: TGlobal['document'];
   public readonly customElements!: TGlobal['customElements'];
 
-  public readonly fetch!: TGlobal['window']['fetch'];
-  public readonly requestAnimationFrame!: TGlobal['requestAnimationFrame'];
-  public readonly cancelAnimationFrame!: TGlobal['cancelAnimationFrame'];
-
   // In environments with nodejs types, the node globalThis for some reason overwrites that of the DOM, changing the signature
   // of setTimeout etc to those of node.
   // So, re-declaring these based on the Window type to ensure they have the DOM-based signature.
@@ -46,20 +42,10 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
 
-    const notImplemented = (name: string) => () => {
-      // TODO: link to docs describing how to fix this issue
-      throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`);
-    };
-
     ('Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver '
       + 'window document customElements')
       .split(' ')
       // eslint-disable-next-line
       .forEach(prop => (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop]);
-
-    'fetch requestAnimationFrame cancelAnimationFrame'.split(' ').forEach(prop =>
-      // eslint-disable-next-line
-      (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop))
-    );
   }
 }

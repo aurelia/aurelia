@@ -1,4 +1,4 @@
-import { getPrototypeChain, noop, type Class, createLookup, isString, type Constructable } from '@aurelia/kernel';
+import { getPrototypeChain, noop, type Class, createLookup, isString, type Constructable, isFunction } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { defaultMode, toView, twoWay } from './binding/interfaces-bindings';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
@@ -6,7 +6,7 @@ import { objectFreeze, objectKeys } from './utilities';
 
 import type { InterceptorFunc } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from './errors';
-import { BindingMode, IComponentBindablePropDefinition } from '@aurelia/template-compiler';
+import { BindingMode, IComponentBindablePropDefinition, StringBindingMode } from '@aurelia/template-compiler';
 
 type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
@@ -126,20 +126,33 @@ export function bindable(
 
 const baseName = /*@__PURE__*/getAnnotationKeyFor('bindables');
 
+export type BindableDeclaration =
+  | BindableDefinition
+  | Record<string, Exclude<PartialBindableDefinition, 'name'> | true>
+  | readonly (string | PartialBindableDefinition & { name: string })[] | undefined;
+
+export type GetBindableDefaultBindingMode = () => StringBindingMode | BindingMode | null | undefined;
+
 export const Bindable = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
-  from(...bindableLists: readonly (BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'name'> | true> | readonly (string | PartialBindableDefinition & { name: string })[] | undefined)[]): Record<string, BindableDefinition> {
+  from: ((declarationOrGetDefaultBindingMode: BindableDeclaration | GetBindableDefaultBindingMode, ...bindableLists: readonly BindableDeclaration[]): Record<string, BindableDefinition> => {
+    const defaultBindingMode = isFunction(declarationOrGetDefaultBindingMode)
+      ? declarationOrGetDefaultBindingMode()
+      : undefined;
+    if (!isFunction(declarationOrGetDefaultBindingMode)) {
+      bindableLists = [declarationOrGetDefaultBindingMode, ...bindableLists];
+    }
     const bindables: Record<string, BindableDefinition> = {};
 
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
-      bindables[name] = BindableDefinition.create(name);
+      bindables[name] = BindableDefinition.create(name, void 0, defaultBindingMode);
     }
 
     function addDescription(name: string, def: Exclude<PartialBindableDefinition, 'name'> | true): void {
-      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def === true ? { } : def);
+      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def === true ? { } : def, defaultBindingMode);
     }
 
     function addList(maybeList: BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'name'> | true> | readonly (string | PartialBindableDefinition & { name: string })[] | undefined): void {
@@ -155,6 +168,9 @@ export const Bindable = objectFreeze({
     bindableLists.forEach(addList);
 
     return bindables;
+  }) as {
+    (...bindableLists: readonly BindableDeclaration[]): Record<string, BindableDefinition>;
+    (declarationOrGetDefaultBindingMode: BindableDeclaration | GetBindableDefaultBindingMode, ...bindableLists: readonly BindableDeclaration[]): Record<string, BindableDefinition>;
   },
   getAll(Type: Constructable): readonly BindableDefinition[] {
     const defs: BindableDefinition[] = [];
@@ -196,8 +212,9 @@ export class BindableDefinition {
     return this._cache[prop] ??= prop.replace(/([A-Z])/g, (_, $1: string) => `-${$1.toLowerCase()}`);
   }
 
-  public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
-    const mode = (def.mode ?? toView) as BindingMode;
+  public static create(prop: string, def: PartialBindableDefinition = {}, defaultBindingMode: StringBindingMode | BindingMode | undefined | null = undefined): BindableDefinition {
+    const mode = (def.mode ?? defaultBindingMode ?? toView) as BindingMode;
+
     return new BindableDefinition(
       def.attribute ?? BindableDefinition.toAttr(prop),
       def.callback ?? `${prop}Changed`,

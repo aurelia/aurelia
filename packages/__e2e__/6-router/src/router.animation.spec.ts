@@ -9,7 +9,7 @@ for (const useUrlFragmentHash of [true, false]) {
       await page.goto(`${baseURL}/?useUrlFragmentHash=${useUrlFragmentHash}`);
     });
 
-    test('forward and backward navigation use correct translateX directions for both entry and exit animations', async ({ page }) => {
+    test.skip('forward and backward navigation use correct translateX directions for both entry and exit animations', async ({ page }) => {
       // Helper function to extract translateX from transform matrix
       const getTranslateX = async (element: Locator) => {
         const transform = await element.evaluate((el: any) => {

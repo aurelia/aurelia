@@ -94,7 +94,7 @@ class ResourceResolver implements IResourceResolver<CustomElementDefinition, Cus
           primary = bindable;
         }
 
-        attrs[attr] = BindableDefinition.create(prop, bindable);
+        bindable = attrs[attr] = BindableDefinition.create(prop, bindable, def.defaultBindingMode);
       }
       if (bindable == null && def.type === 'custom-attribute') {
         // if no bindables are present, default to "value"

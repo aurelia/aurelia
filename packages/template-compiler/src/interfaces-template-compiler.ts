@@ -2,6 +2,7 @@ import { Constructable, IContainer, IPlatform, Key } from '@aurelia/kernel';
 import { tcCreateInterface } from './utilities';
 import { AttrSyntax } from './attribute-pattern';
 import { IInstruction } from './instructions';
+import { BindingMode } from './binding-mode';
 
 export interface IElementComponentDefinition<TBindables extends string = string> {
   name: string;
@@ -20,6 +21,7 @@ export interface IElementComponentDefinition<TBindables extends string = string>
   capture?: boolean | ((attrName: string) => boolean);
   enhance?: boolean;
   processContent?: ProcessContentHook | null;
+  defaultBindingMode?: StringBindingMode | BindingMode | null;
   bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true>;
   Type?: Constructable;
 }
@@ -39,7 +41,7 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
   aliases?: readonly string[];
-  defaultBindingMode?: StringBindingMode | number;
+  defaultBindingMode?: StringBindingMode | BindingMode;
   bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true>;
 }
 
@@ -47,7 +49,7 @@ export interface IComponentBindablePropDefinition {
   name: string;
   attribute?: string;
   primary?: boolean;
-  mode?: StringBindingMode | number;
+  mode?: StringBindingMode | BindingMode;
   set?: (v: any) => any;
 }
 

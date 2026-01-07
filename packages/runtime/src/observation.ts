@@ -1,5 +1,4 @@
 import { isFunction, resolve } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
 import { connectable, IObserverLocatorBasedConnectable, type IObserverRecord } from './connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
@@ -48,9 +47,6 @@ export interface IWatchOptions {
 export class Observation implements IObservation {
   /** @internal */
   private readonly oL = resolve(IObserverLocator);
-
-  /** @internal */
-  private readonly _parser = resolve(IExpressionParser);
 
   public run(fn: EffectRunFunc): IEffect {
     const effect = new RunEffect(this.oL, fn);

@@ -1423,7 +1423,7 @@ function createWatchers(
   definition: CustomElementDefinition | CustomAttributeDefinition,
   instance: object,
 ) {
-  const observerLocator = context!.get(IObserverLocator);
+  const observerLocator = context.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
   const watches = definition.watches;
   const scope: Scope = controller.vmKind === vmkCe

@@ -34,7 +34,7 @@ import type {
 import type { BindableDefinition } from '../bindable';
 import type { INode } from '../dom.node';
 import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
-import { ProcessContentHook, type IElementComponentDefinition, IInstruction } from '@aurelia/template-compiler';
+import { ProcessContentHook, type IElementComponentDefinition, IInstruction, BindingMode, StringBindingMode } from '@aurelia/template-compiler';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtElement, getDefinitionFromStaticAu, clearStaticAuDefinition, type IResourceKind } from './resources-shared';
@@ -225,6 +225,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly injectable: InterfaceSymbol<C> | null,
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly IInstruction[],
+    public readonly defaultBindingMode: BindingMode | StringBindingMode | null,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly containerless: boolean,
     public readonly shadowOptions: { mode: 'open' | 'closed' } | null,
@@ -274,6 +275,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       for(const bindable of Object.values(Bindable.from(def.bindables))) {
         Bindable._add(bindable, Type);
       }
+      const defaultBindingMode = fromAnnotationOrDefinitionOrTypeOrDefault('defaultBindingMode', def, Type, returnNull);
+
       return new CustomElementDefinition(
         Type,
         name,
@@ -286,7 +289,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('injectable', def, returnNull),
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
-        Bindable.from(getElementAnnotation(Type, 'bindables'), def.bindables),
+        defaultBindingMode,
+        Bindable.from(() => defaultBindingMode, getElementAnnotation(Type, 'bindables'), def.bindables),
         fromAnnotationOrDefinitionOrTypeOrDefault('containerless', def, Type, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
@@ -303,6 +307,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // TODO: document this behavior
 
     if (isString(nameOrDef)) {
+      const defaultBindingMode = fromAnnotationOrTypeOrDefault('defaultBindingMode', Type, returnNull) as BindingMode | StringBindingMode | null;
+
       return new CustomElementDefinition(
         Type,
         nameOrDef,
@@ -315,7 +321,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InterfaceSymbol | null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
         mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
+        defaultBindingMode,
         Bindable.from(
+          () => defaultBindingMode,
           ...Bindable.getAll(Type),
           getElementAnnotation(Type, 'bindables'),
           Type.bindables,
@@ -340,6 +348,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     for(const bindable of Object.values(Bindable.from(nameOrDef.bindables))) {
       Bindable._add(bindable, Type);
     }
+    const defaultBindingMode = fromAnnotationOrDefinitionOrTypeOrDefault('defaultBindingMode', nameOrDef, Type, returnNull);
+
     return new CustomElementDefinition(
       Type,
       name,
@@ -352,7 +362,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue),
       mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
+      defaultBindingMode,
       Bindable.from(
+        () => defaultBindingMode,
         ...Bindable.getAll(Type),
         getElementAnnotation(Type, 'bindables'),
         Type.bindables,

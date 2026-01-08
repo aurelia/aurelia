@@ -410,8 +410,8 @@ export class ValidatedInputCustomAttribute {
   }) public price: number;
 
   // Custom coercer function
-  @bindable({ 
-    set: coercer(Boolean) // Converts any value to boolean
+  @bindable({
+    set: Boolean // Converts any value to boolean
   }) public isActive: boolean;
 
   private readonly element: HTMLElement = resolve(INode) as HTMLElement;
@@ -625,14 +625,12 @@ export class AdvancedInput {
 Custom attributes support a comprehensive set of lifecycle hooks that allow you to run code at different stages of their existence:
 
 - `created(controller)`: Called after the attribute instance is created
-- `binding(initiator, parent)`: Called before data binding begins
-- `bind()`: Called when data binding begins (simplified version)
+- `binding(initiator, parent)`: Called when data binding begins
 - `bound(initiator, parent)`: Called after data binding is complete
 - `attaching(initiator, parent)`: Called before the element is attached to the DOM
 - `attached(initiator)`: Called after the element is attached to the DOM
 - `detaching(initiator, parent)`: Called before the element is detached from the DOM
-- `unbinding(initiator, parent)`: Called before data binding is removed
-- `unbind()`: Called when data binding is removed (simplified version)
+- `unbinding(initiator, parent)`: Called when data binding is being removed
 
 ### Example: Using Lifecycle Hooks
 
@@ -652,12 +650,8 @@ export class LifecycleDemoCustomAttribute {
   }
 
   binding(initiator: IHydratedController, parent: IHydratedController) {
-    // Called before binding begins - good for setup
+    // Called when binding begins - good for setup
     console.log('Starting to bind');
-  }
-
-  bind() {
-    // Simplified binding hook - most commonly used
     this.applyInitialValue();
   }
 
@@ -687,12 +681,8 @@ export class LifecycleDemoCustomAttribute {
   }
 
   unbinding(initiator: IHydratedController, parent: IHydratedController) {
-    // Called before unbinding
+    // Called when unbinding - good for final cleanup
     console.log('About to unbind');
-  }
-
-  unbind() {
-    // Simplified unbinding hook - good for final cleanup
     this.finalCleanup();
   }
 

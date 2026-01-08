@@ -707,7 +707,7 @@ button:disabled {
 ## What You've Learned
 
 - **Component Composition** - Created reusable TodoForm and TodoItem components
-- **Component Communication** - Used `@bindable` and `.call` for parent-child communication
+- **Component Communication** - Used `@bindable` and callback functions for parent-child communication
 - **Dependency Injection** - Created and injected StorageService
 - **Computed Properties** - Implemented filtered lists and statistics
 - **List Rendering** - Used `repeat.for` with keys for efficient updates

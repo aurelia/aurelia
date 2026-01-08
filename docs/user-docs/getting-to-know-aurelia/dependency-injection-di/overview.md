@@ -577,6 +577,9 @@ export class NotificationService {
 For injecting objects like `Window` with additional properties:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+import { IWindow } from '@aurelia/runtime-html';
+
 export interface IReduxDevTools extends Window {
   devToolsExtension?: DevToolsExtension;
 }

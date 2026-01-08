@@ -1897,7 +1897,7 @@ Usage:
 
 ```html
 <!-- Lazy load images -->
-<img in-viewport="threshold: 0.1; on-enter.call: loadImage(element)"
+<img in-viewport="threshold: 0.1; on-enter.bind: (element) => loadImage(element)"
      data-src="large-image.jpg"
      alt="Lazy loaded">
 
@@ -1910,7 +1910,7 @@ Usage:
 </div>
 
 <!-- Track analytics -->
-<section in-viewport="on-enter.call: trackView('section-name')">
+<section in-viewport="on-enter.bind: () => trackView('section-name')">
   Important content
 </section>
 ```

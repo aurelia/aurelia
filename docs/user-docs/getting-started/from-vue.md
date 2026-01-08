@@ -114,7 +114,7 @@ export class UserCard {
   
   // Events are just methods - no emit setup
   edit() {
-    // Automatically available as edit.call in templates
+    // Pass as callback via .bind, e.g. on-edit.bind="() => edit()"
   }
   
   delete() {

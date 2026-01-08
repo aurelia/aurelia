@@ -1469,7 +1469,7 @@ describe('CurrencyConverter', () => {
 2. **Dispatch signals correctly**:
    ```typescript
    import { resolve } from '@aurelia/kernel';
-   import { ISignaler } from '@aurelia/runtime';
+   import { ISignaler } from '@aurelia/runtime-html';
 
    private signaler = resolve(ISignaler);
 

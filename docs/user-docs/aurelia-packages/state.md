@@ -667,7 +667,7 @@ export class MyComponent {
       return state;
     };
 
-    this.store.registerMiddleware(debugMiddleware, MiddlewarePlacement.Before);
+    this.store.registerMiddleware(debugMiddleware, 'before');
   }
 
   removeDebugMiddleware() {

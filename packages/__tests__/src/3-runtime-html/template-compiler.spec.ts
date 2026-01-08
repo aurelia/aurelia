@@ -843,7 +843,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       if (info === void 0) {
         info = rec[alias] = new ElementInfo(def.name, alias === def.name ? void 0 : alias, def.containerless);
         const bindables = def.bindables;
-        const defaultBindingMode = BindingMode.toView;
 
         let bindable: BindableDefinition;
         let prop: string;
@@ -866,7 +865,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
             mode = bindable.mode;
           } else {
-            mode = defaultBindingMode;
+            mode = BindingMode.toView;
           }
           info.bindables[attr] = new BindableInfo(prop, mode);
         }
@@ -917,9 +916,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       if (info === void 0) {
         info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
         const bindables = def.bindables;
-        const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
-          ? def.defaultBindingMode
-          : BindingMode.toView;
 
         let bindable: BindableDefinition;
         let prop: string;
@@ -937,7 +933,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
             mode = bindable.mode;
           } else {
-            mode = defaultBindingMode;
+            mode = BindingMode.toView;
           }
           isPrimary = bindable.primary === true;
           bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
@@ -955,7 +951,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         }
         // if no bindables are present, default to "value"
         if (info.bindable === null) {
-          info.bindable = new BindableInfo('value', defaultBindingMode);
+          info.bindable = new BindableInfo('value', BindingMode.toView);
         }
       }
       return info;
@@ -980,8 +976,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
        * The pre-processed (default) bindingMode of the bindable, which is (in order of priority):
        *
        * 1. The `mode` from the bindable (if defined and not bindingMode.default)
-       * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
-       * 3. `bindingMode.toView`
+       * 2. `bindingMode.toView`
        */
       public mode: string | number,
     ) { }
@@ -1925,7 +1920,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           [{ type: itHydrateAttribute, res: CustomAttribute.getDefinition(MyAttr), alias: undefined, props: [
-            // this bindingMode.toView is because it's from defaultBindingMode on `@customAttribute`
+            // bindingMode.toView is the default when no explicit mode is set
             { type: itPropertyBinding, from: createAccessScopeExpression('bb'), to: 'value', mode: BindingMode.toView }
           ]}]
         );

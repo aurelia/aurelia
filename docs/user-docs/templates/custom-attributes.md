@@ -1121,24 +1121,6 @@ export class SimpleConditionalTemplateController {
 }
 ```
 
-### Default Binding Mode
-
-You can set a default binding mode for all bindable properties:
-
-```typescript
-import { customAttribute, BindingMode } from '@aurelia/runtime-html';
-
-@customAttribute({
-  name: 'two-way-default',
-  defaultBindingMode: BindingMode.twoWay
-})
-export class TwoWayDefaultCustomAttribute {
-  @bindable() public value1: string; // Will default to two-way binding
-  @bindable() public value2: string; // Will default to two-way binding
-  @bindable({ mode: BindingMode.toView }) public value3: string; // Explicitly one-way
-}
-```
-
 ## Definition Metadata Reference
 
 Decorators and conventions eventually funnel into a `PartialCustomAttributeDefinition`, defined in `@aurelia/runtime-html`. Knowing every field on that definition unlocks advanced behaviors without sprinkling ad-hoc logic through your class. The table below summarizes the metadata you can provide (either via decorators or by calling `CustomAttribute.define()`/`CustomAttributeDefinition.create()` yourself):
@@ -1148,8 +1130,7 @@ Decorators and conventions eventually funnel into a `PartialCustomAttributeDefin
 | `name` | `string` | The canonical attribute name. When omitted, Aurelia infers it from the class name. |
 | `aliases` | `string[]` | Additional attribute names that should map to the same implementation. Use when you need both `awesome-slider` and `awesomeSlider`. |
 | `bindables` | `Record<string, PartialBindableDefinition>` or array | Declares bindable inputs. You can mix shorthand strings with full objects `{ name, mode, callback, attribute }`. |
-| `defaultBindingMode` | `BindingMode` or string | Overrides the default for **all** bindables (unless a bindable explicitly sets its own `mode`). |
-| `isTemplateController` | `boolean` | Marks the attribute as a template controller so Aurelia replaces the host element with the controller’s view. |
+| `isTemplateController` | `boolean` | Marks the attribute as a template controller so Aurelia replaces the host element with the controller's view. |
 | `noMultiBindings` | `boolean` | Treats the attribute value as a single literal string instead of `prop: value` pairs. Useful for URLs and DSL-like syntaxes. |
 | `watches` | `IWatchDefinition[]` | Registers `@watch` entries without decorators—great for framework-level attributes or generated code. |
 | `dependencies` | `Key[]` | Additional registrations to install when the attribute definition is added to a container (for example, helper services). |

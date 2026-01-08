@@ -89,7 +89,7 @@ Aurelia
 
 ### 2. `@customAttribute({ isTemplateController: true })`
 
-If you already use the `@customAttribute` decorator, add the `isTemplateController` flag plus any `bindables`, `defaultBindingMode`, `noMultiBindings`, or `containerStrategy` options you need. This is equivalent to calling `templateController` but keeps all attribute metadata in one place.
+If you already use the `@customAttribute` decorator, add the `isTemplateController` flag plus any `bindables`, `noMultiBindings`, or `containerStrategy` options you need. This is equivalent to calling `templateController` but keeps all attribute metadata in one place.
 
 ### 3. Static `$au` definition / `CustomAttribute.define`
 

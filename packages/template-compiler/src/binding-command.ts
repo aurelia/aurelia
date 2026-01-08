@@ -318,7 +318,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     const bindable = info.bindable;
     let value = attr.rawValue;
     let target = attr.target;
-    let defDefaultMode: string | number;
     let mode: string | number;
     value = value === '' ? camelCase(target) : value;
     if (bindable == null) {
@@ -328,11 +327,8 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      defDefaultMode = (info.def as IAttributeComponentDefinition).defaultBindingMode ?? 0;
       mode = bindable.mode === 0 || bindable.mode == null
-        ? defDefaultMode == null || defDefaultMode === 0
-          ? InternalBindingMode.toView
-          : defDefaultMode
+        ? InternalBindingMode.toView
         : bindable.mode;
       target = bindable.name;
     }

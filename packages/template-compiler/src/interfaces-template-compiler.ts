@@ -39,7 +39,6 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
   aliases?: readonly string[];
-  defaultBindingMode?: StringBindingMode | number;
   bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true>;
 }
 

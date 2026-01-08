@@ -650,33 +650,6 @@ middlewares: [
 ]
 ```
 
-### Runtime middleware management
-
-You can add and remove middleware at runtime using the store instance:
-
-```ts
-import { resolve } from '@aurelia/kernel';
-import { IStore, MiddlewarePlacement } from '@aurelia/state';
-
-export class MyComponent {
-  private store: IStore = resolve(IStore);
-
-  addDebugMiddleware() {
-    const debugMiddleware = (state, action) => {
-      console.log('Debug:', action.type);
-      return state;
-    };
-
-    this.store.registerMiddleware(debugMiddleware, 'before');
-  }
-
-  removeDebugMiddleware() {
-    // Note: You need to keep a reference to the middleware function
-    this.store.unregisterMiddleware(this.debugMiddleware);
-  }
-}
-```
-
 ### Best practices for middleware
 
 1. **Keep middleware focused**: Each middleware should have a single responsibility

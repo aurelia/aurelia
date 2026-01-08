@@ -262,7 +262,7 @@ The missing piece is now adding the actual dynamic composition to our view. Open
 ```html
 <div class="container">
     <template repeat.for="component of components">
-        <au-compose containerless component.bind="component"></au-compose>
+        <au-compose component.bind="component"></au-compose>
     </template>
 </div>
 ```
@@ -270,8 +270,8 @@ The missing piece is now adding the actual dynamic composition to our view. Open
 * We add a div with a class of container which will hold our components
 * We loop over our components using `repeat.for` we do this on a `<template` element so we don't introduce any additional elements to the DOM (template elements don't get shown in the browser)
 * Our `repeat.for` is the equivalent of `for (let component of components)` in Javascript
-* We use the `<au-compose>` element and pass in the instance to `view-model` which will then render the component
-* On `<au-compose>` we also use the `containerless` attribute, which will remove any `<au-compose>` element in the DOM and only leave us with the custom element itself
+* We use the `<au-compose>` element and pass in the component class to `component` which will then render it
+* The `<au-compose>` element is containerless by default, meaning it won't appear in the rendered DOM—only the composed component itself will be visible
 
 If you were to run this app using `npm start` you would see something like this so far:
 

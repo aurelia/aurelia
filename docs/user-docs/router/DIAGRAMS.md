@@ -779,7 +779,7 @@ router.load('/users/2')
 ┌──────────────────────────────┐
 │ 1. Unload current instance   │
 │    - unloading() called      │
-│    - detached() called       │
+│    - detaching() called      │
 │    - Component destroyed     │
 └────────────┬─────────────────┘
              ↓
@@ -797,7 +797,7 @@ router.load('/users/2')
 Timeline:
 ComponentA(id=1)  ComponentA(id=2)
   unloading()
-  detached()
+  detaching()
   [destroyed]
                   canLoad()
                   loading()

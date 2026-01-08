@@ -145,19 +145,27 @@ export class MyComponent {
   }
 
   binding() {
-    // Data binding about to occur
+    // Data binding starts
   }
 
   bound() {
     // Data binding completed
   }
 
+  attaching() {
+    // Before DOM attachment
+  }
+
   attached() {
     // Component attached to DOM
   }
 
-  detached() {
-    // Component removed from DOM
+  detaching() {
+    // Before DOM removal
+  }
+
+  unbinding() {
+    // Data binding being removed
   }
 }
 ```

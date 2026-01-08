@@ -15,11 +15,10 @@ export class FormService {
 
   async submitForm(formElement: HTMLFormElement): Promise<any> {
     const formData = new FormData(formElement);
-    
+
     try {
-      const response = await this.http.post('/api/forms/submit', {
-        body: formData
-      });
+      // Body is the second parameter to post()
+      const response = await this.http.post('/api/forms/submit', formData);
 
       if (!response.ok) {
         throw new Error(`Form submission failed: ${response.statusText}`);
@@ -34,7 +33,7 @@ export class FormService {
 
   async submitFormData(data: Record<string, any>): Promise<any> {
     const formData = new FormData();
-    
+
     // Add form fields
     Object.entries(data).forEach(([key, value]) => {
       if (value !== null && value !== undefined) {
@@ -48,9 +47,8 @@ export class FormService {
       }
     });
 
-    const response = await this.http.post('/api/forms/data', {
-      body: formData
-    });
+    // Body is the second parameter to post()
+    const response = await this.http.post('/api/forms/data', formData);
 
     if (!response.ok) {
       throw new Error(`Form submission failed: ${response.statusText}`);
@@ -78,11 +76,11 @@ export class UrlEncodedFormService {
       }
     });
 
-    const response = await this.http.post('/api/forms/urlencoded', {
+    // Body is second param, headers go in third param
+    const response = await this.http.post('/api/forms/urlencoded', params.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params.toString()
+      }
     });
 
     if (!response.ok) {
@@ -126,9 +124,7 @@ export class FileUploadService {
       });
     }
 
-    const response = await this.http.post('/api/files/upload', {
-      body: formData
-    });
+    const response = await this.http.post('/api/files/upload', formData);
 
     if (!response.ok) {
       throw new Error(`Upload failed: ${response.statusText}`);
@@ -176,9 +172,7 @@ export class MultiFileUploadService {
     formData.append('fileCount', String(fileArray.length));
     formData.append('uploadTimestamp', new Date().toISOString());
 
-    const response = await this.http.post('/api/files/upload-multiple', {
-      body: formData
-    });
+    const response = await this.http.post('/api/files/upload-multiple', formData);
 
     if (!response.ok) {
       throw new Error(`Multi-file upload failed: ${response.statusText}`);
@@ -269,13 +263,12 @@ export class ProgressUploadService {
 
     try {
       // Initialize upload
-      await this.http.post('/api/files/upload/init', {
-        body: JSON.stringify({
-          uploadId,
-          filename: file.name,
-          fileSize: file.size,
-          totalChunks
-        }),
+      await this.http.post('/api/files/upload/init', JSON.stringify({
+        uploadId,
+        filename: file.name,
+        fileSize: file.size,
+        totalChunks
+      }), {
         headers: { 'Content-Type': 'application/json' }
       });
 
@@ -290,17 +283,14 @@ export class ProgressUploadService {
         formData.append('chunkIndex', String(chunkIndex));
         formData.append('chunk', chunk);
 
-        await this.http.post('/api/files/upload/chunk', {
-          body: formData
-        });
+        await this.http.post('/api/files/upload/chunk', formData);
 
         const percentage = Math.round(((chunkIndex + 1) / totalChunks) * 100);
         onProgress(percentage);
       }
 
       // Finalize upload
-      const response = await this.http.post('/api/files/upload/finalize', {
-        body: JSON.stringify({ uploadId }),
+      const response = await this.http.post('/api/files/upload/finalize', JSON.stringify({ uploadId }), {
         headers: { 'Content-Type': 'application/json' }
       });
 
@@ -335,9 +325,7 @@ export class ValidatedFormService {
 
   async submitWithValidation(formData: FormData): Promise<any> {
     try {
-      const response = await this.http.post('/api/forms/validated', {
-        body: formData
-      });
+      const response = await this.http.post('/api/forms/validated', formData);
 
       if (!response.ok) {
         if (response.status === 422) {
@@ -418,9 +406,7 @@ export class DynamicFormService {
     formData.append('_formType', formConfig.type);
     formData.append('_version', formConfig.version);
 
-    const response = await this.http.post('/api/forms/dynamic', {
-      body: formData
-    });
+    const response = await this.http.post('/api/forms/dynamic', formData);
 
     if (!response.ok) {
       throw new Error(`Dynamic form submission failed: ${response.statusText}`);
@@ -445,8 +431,7 @@ export class AbortableUploadService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const uploadPromise = this.http.post('/api/files/upload', {
-      body: formData,
+    const uploadPromise = this.http.post('/api/files/upload', formData, {
       signal: controller.signal
     }).then(response => {
       if (!response.ok) {
@@ -470,8 +455,7 @@ export class AbortableUploadService {
       const formData = new FormData();
       formData.append('file', file);
       
-      return this.http.post('/api/files/upload', {
-        body: formData,
+      return this.http.post('/api/files/upload', formData, {
         signal: controllers[index].signal
       }).then(response => {
         if (!response.ok) {
@@ -529,9 +513,7 @@ export class ComplexFormService {
     // Metadata as JSON
     formData.append('metadata', JSON.stringify(data.metadata));
 
-    const response = await this.http.post('/api/forms/complex', {
-      body: formData
-    });
+    const response = await this.http.post('/api/forms/complex', formData);
 
     if (!response.ok) {
       throw new Error(`Complex form submission failed: ${response.statusText}`);
@@ -603,9 +585,7 @@ export class RobustFormService {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await this.http.post('/api/forms/submit', {
-          body: formData
-        });
+        const response = await this.http.post('/api/forms/submit', formData);
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);

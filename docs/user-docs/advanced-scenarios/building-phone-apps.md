@@ -127,7 +127,7 @@ The complete Capacitor guide covers:
   </header>
 
   <main class="mobile-content">
-    <router-view></router-view>
+    <au-viewport></au-viewport>
   </main>
 
   <nav class="mobile-nav">

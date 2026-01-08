@@ -295,24 +295,18 @@ document.body.addEventListener('aurelia-fetch-client-requests-drained', (e) => {
 The fetch client provides convenient methods for all standard HTTP verbs:
 
 ```typescript
-// GET request  
+// GET request
 const users = await http.get('/api/users');
 const userData = await users.json();
 
-// POST with JSON body
-const newUser = await http.post('/api/users', {
-  body: json({ name: 'John', email: 'john@example.com' })
-});
+// POST with JSON body (body is second parameter)
+const newUser = await http.post('/api/users', json({ name: 'John', email: 'john@example.com' }));
 
 // PUT request
-await http.put(`/api/users/${userId}`, {
-  body: json(updatedUser)
-});
+await http.put(`/api/users/${userId}`, json(updatedUser));
 
 // PATCH request
-await http.patch(`/api/users/${userId}`, {
-  body: json({ status: 'active' })
-});
+await http.patch(`/api/users/${userId}`, json({ status: 'active' }));
 
 // DELETE request
 await http.delete(`/api/users/${userId}`);

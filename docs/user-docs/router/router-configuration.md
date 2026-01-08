@@ -275,7 +275,7 @@ au.register(
   RouterConfiguration.customize({
     buildTitle(tr: Transition) {
       const root = tr.routeTree.root;
-      const baseTitle = root.context.config.title;
+      const baseTitle = root.context.routeConfigContext.config.title;
       const titlePart = root.children.map(c => c.title).join(' - ');
       return `${baseTitle} - ${titlePart}`;
     },
@@ -334,7 +334,7 @@ import { AppTask, Aurelia } from '@aurelia/runtime-html';
         // Use the I18N to translate the titles using the keys from data.i18n.
         i18n ??= container.get(I18N);
         const root = tr.routeTree.root;
-        const baseTitle = root.context.config.title;
+        const baseTitle = root.context.routeConfigContext.config.title;
         const child = tr.routeTree.root.children[0];
         return `${baseTitle} - ${i18n.tr(child.data.i18n as string)}`;
       },

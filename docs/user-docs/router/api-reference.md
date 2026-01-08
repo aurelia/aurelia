@@ -40,7 +40,7 @@ interface IRouter {
    */
   isActive(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
-    context?: RouteContextLike
+    context: RouteContextLike
   ): boolean;
 
   /**
@@ -879,7 +879,8 @@ interface IRouteViewModel extends ICustomElementViewModel {
   canLoad?(
     params: Params,
     next: RouteNode,
-    current: RouteNode | null
+    current: RouteNode | null,
+    options: INavigationOptions
   ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<...>;
 
   /**
@@ -888,7 +889,8 @@ interface IRouteViewModel extends ICustomElementViewModel {
   loading?(
     params: Params,
     next: RouteNode,
-    current: RouteNode | null
+    current: RouteNode | null,
+    options: INavigationOptions
   ): void | Promise<void>;
 
   /**
@@ -897,7 +899,8 @@ interface IRouteViewModel extends ICustomElementViewModel {
   loaded?(
     params: Params,
     next: RouteNode,
-    current: RouteNode | null
+    current: RouteNode | null,
+    options: INavigationOptions
   ): void | Promise<void>;
 
   /**
@@ -906,7 +909,8 @@ interface IRouteViewModel extends ICustomElementViewModel {
    */
   canUnload?(
     next: RouteNode | null,
-    current: RouteNode
+    current: RouteNode,
+    options: INavigationOptions
   ): boolean | Promise<boolean>;
 
   /**
@@ -914,7 +918,8 @@ interface IRouteViewModel extends ICustomElementViewModel {
    */
   unloading?(
     next: RouteNode | null,
-    current: RouteNode
+    current: RouteNode,
+    options: INavigationOptions
   ): void | Promise<void>;
 }
 ```

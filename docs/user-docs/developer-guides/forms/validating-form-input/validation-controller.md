@@ -10,7 +10,7 @@ An instance of the validation controller can be injected using the `resolve(newI
 
 ```typescript
 // parent-ce.ts
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationController } from '@aurelia/validation-html';
 

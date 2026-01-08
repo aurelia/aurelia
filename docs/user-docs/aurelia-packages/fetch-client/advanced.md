@@ -923,7 +923,7 @@ export class RequestQueueService {
   async uploadFiles(files: File[]) {
     const uploadPromises = files.map(file => 
       this.queueRequest(() => 
-        this.http.post('/api/upload', { body: this.createFormData(file) })
+        this.http.post('/api/upload', this.createFormData(file))
       )
     );
 

@@ -143,8 +143,8 @@ export class RedSquare {
 For completeness, the framework also supports defining attributes using a static `$au` property. This approach is primarily used by the framework itself to avoid conventions and decorators, but is available if needed:
 
 ```typescript
-import { INode } from '@aurelia/runtime-html';
-import { resolve, type CustomAttributeStaticAuDefinition } from '@aurelia/kernel';
+import { INode, type CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class RedSquare {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -241,7 +241,7 @@ export class HighlightCustomAttribute {
     this.element.style.borderRadius = '3px';
   }
 
-  bind() {
+  binding() {
     // Override default color if a specific color is provided
     if (this.value) {
       this.element.style.backgroundColor = this.value;
@@ -592,8 +592,8 @@ export class AdvancedInputCustomAttribute {
 Or using the static `$au` approach:
 
 ```typescript
-import { INode, BindingMode } from '@aurelia/runtime-html';
-import { resolve, type CustomAttributeStaticAuDefinition } from '@aurelia/kernel';
+import { INode, BindingMode, type CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class AdvancedInput {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -964,7 +964,7 @@ export class PermissionTemplateController {
     }
   }
 
-  unbind() {
+  unbinding() {
     if (this.view?.isActive) {
       this.view.deactivate(this.view, this.$controller);
     }
@@ -984,8 +984,8 @@ Usage:
 You can also use the static definition approach:
 
 ```typescript
-import { IViewFactory, ISyntheticView, IRenderLocation } from '@aurelia/runtime-html';
-import { resolve, type CustomAttributeStaticAuDefinition } from '@aurelia/kernel';
+import { IViewFactory, ISyntheticView, IRenderLocation, type CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class PermissionTemplateController {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -1225,7 +1225,7 @@ Often, you'll want to incorporate functionality from third-party libraries—suc
 ### When to Use Custom Attributes for Integration
 
 - **DOM Manipulation:** Many libraries require direct access to the DOM element for initialization.
-- **Lifecycle Management:** You can leverage Aurelia's lifecycle hooks (`attached()` and `detached()`) to manage resource allocation and cleanup.
+- **Lifecycle Management:** You can leverage Aurelia's lifecycle hooks (`attached()` and `detaching()`) to manage resource allocation and cleanup.
 - **Dynamic Updates:** With bindable properties, you can pass configuration options to the library and update it reactively when those options change.
 
 ### Example: Integrating a Hypothetical Slider Library
@@ -1268,7 +1268,7 @@ export class AwesomeSliderCustomAttribute {
     }
   }
 
-  detached() {
+  detaching() {
     // Clean up the slider instance when the element is removed from the DOM.
     // This prevents memory leaks and removes event listeners.
     if (this.sliderInstance && typeof this.sliderInstance.destroy === 'function') {

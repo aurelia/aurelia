@@ -300,7 +300,7 @@ describe('LoginForm', () => {
     type('input[type="password"]', 'secret123');
 
     // Submit the form
-    trigger('form', new Event('submit'));
+    trigger('form', 'submit');
 
     // Verify login
     expect(component.isLoggedIn).toBe(true);
@@ -377,8 +377,7 @@ describe('UserList', () => {
     expect(component.activeUsers.length).toBe(2);
 
     // Toggle Bob (inactive -> active)
-    const buttons = getAllBy('button');
-    trigger.click(buttons[1]); // Bob's button
+    trigger.click('li:nth-child(2) button'); // Bob's button
 
     // Now 3 active
     expect(component.activeUsers.length).toBe(3);

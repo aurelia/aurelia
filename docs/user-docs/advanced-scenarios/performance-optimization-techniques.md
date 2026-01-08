@@ -453,7 +453,7 @@ export class EventComponent {
     window.addEventListener('resize', this.resizeHandler);
   }
   
-  detached(): void {
+  detaching(): void {
     window.removeEventListener('resize', this.resizeHandler);
   }
   
@@ -481,7 +481,7 @@ export class SubscriptionComponent {
     );
   }
 
-  detached(): void {
+  detaching(): void {
     this.subscriptions.forEach(sub => sub.dispose());
     this.subscriptions = [];
   }
@@ -669,7 +669,7 @@ export class InfiniteScroll {
     this.scrollContainer.addEventListener('scroll', this.onScroll.bind(this));
   }
 
-  detached(): void {
+  detaching(): void {
     this.scrollContainer.removeEventListener('scroll', this.onScroll.bind(this));
   }
 

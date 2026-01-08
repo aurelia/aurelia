@@ -93,18 +93,24 @@ description: Outcome-based recipes for @aurelia/dialog to help you build confirm
 
 ### Steps
 
-1. Inside the dialog view-model, set `controller.settings.canCancel = false` while the save runs.
-2. Re-enable cancel once the async operation completes or fails.
+1. Implement the `canDeactivate` hook on your dialog component to block closing while saving.
+2. Return `false` from `canDeactivate` to prevent the dialog from closing.
 
 ```typescript
-export class EditProfileDialog {
-  saving = false;
+import { IDialogController, IDialogComponentCanDeactivate, DialogCloseResult } from '@aurelia/dialog';
+import { resolve } from 'aurelia';
 
-  constructor(private readonly controller: IDialogController) {}
+export class EditProfileDialog implements IDialogComponentCanDeactivate {
+  saving = false;
+  private controller = resolve(IDialogController);
+
+  // Prevent closing while save is in progress
+  canDeactivate(result: DialogCloseResult): boolean {
+    return !this.saving;
+  }
 
   async save() {
     this.saving = true;
-    this.controller.settings.canCancel = false;
 
     try {
       await api.saveProfile(this.model);
@@ -113,7 +119,6 @@ export class EditProfileDialog {
       notifications.error('Save failed');
     } finally {
       this.saving = false;
-      this.controller.settings.canCancel = true;
     }
   }
 }
@@ -122,7 +127,7 @@ export class EditProfileDialog {
 ### Checklist
 
 - Clicking the backdrop or pressing Escape does nothing while `saving` is true.
-- Once the save finishes, the dialog can be cancelled again.
+- Once the save finishes, the dialog can be closed normally.
 - The caller receives either `ok` with the payload or `cancel` after an explicit user action.
 
 ## 4. Slide-in drawer using the Standard renderer

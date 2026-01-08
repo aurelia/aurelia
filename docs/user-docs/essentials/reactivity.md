@@ -200,8 +200,8 @@ import { computed } from 'aurelia';
 
 export class ShoppingCart {
   _cart = {
-    items = [],
-    gst = .1,
+    items: [],
+    gst: 0.1,
   }
 
   // we care about any changes inside cart items, or gst

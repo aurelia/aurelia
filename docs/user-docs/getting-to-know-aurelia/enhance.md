@@ -151,7 +151,7 @@ const enhanceRoot = await Aurelia.enhance({
 // <div class="stats">
 //   <span>Login count: ${loginCount}</span>
 // </div>
-// <button click.delegate="refreshData()">Refresh</button>
+// <button click.trigger="refreshData()">Refresh</button>
 ```
 
 ### Widget Integration Example
@@ -213,7 +213,7 @@ const enhanceRoot = await Aurelia.enhance({
 //   </div>
 //   <div>
 //     <input value.bind="newComment" placeholder="Add comment...">
-//     <button click.delegate="addComment()">Post</button>
+//     <button click.trigger="addComment()">Post</button>
 //   </div>
 // </div>
 ```
@@ -278,7 +278,7 @@ export class ModalService {
     modal.className = 'modal';
     modal.innerHTML = `
       <div class="modal-content">
-        <button class="close" click.delegate="closeModal()">&times;</button>
+        <button class="close" click.trigger="closeModal()">&times;</button>
         ${contentHtml}
       </div>
     `;

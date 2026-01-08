@@ -682,20 +682,23 @@ interface UserService {
         <a href="admin" if.bind="isAdmin">Admin</a>
       </nav>
 
-      <!-- Admin layout -->
-      <div if.bind="isAdmin" class="admin-layout">
-        <au-viewport name="admin" fallback="access-denied"></au-viewport>
-      </div>
+      <!-- Conditional layouts using switch -->
+      <template switch.bind="true">
+        <!-- Admin layout -->
+        <div case.bind="isAdmin" class="admin-layout">
+          <au-viewport name="admin" fallback="access-denied"></au-viewport>
+        </div>
 
-      <!-- User layout -->
-      <div else-if.bind="isLoggedIn" class="user-layout">
-        <au-viewport name="user" fallback="user-home"></au-viewport>
-      </div>
+        <!-- User layout -->
+        <div case.bind="isLoggedIn" class="user-layout">
+          <au-viewport name="user" fallback="user-home"></au-viewport>
+        </div>
 
-      <!-- Public layout -->
-      <div else class="public-layout">
-        <au-viewport name="main" default="public"></au-viewport>
-      </div>
+        <!-- Public layout -->
+        <div default-case class="public-layout">
+          <au-viewport name="main" default="public"></au-viewport>
+        </div>
+      </template>
     </div>
   `
 })

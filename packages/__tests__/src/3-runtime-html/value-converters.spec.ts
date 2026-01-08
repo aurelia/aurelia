@@ -32,10 +32,10 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       }
     }
 
-    @customAttribute({ name: 'foo5', aliases: ['foo53'] })
+    @customAttribute({ name: 'foo5', aliases: ['foo53'], defaultProperty: 'value' })
     @alias(...['foo51', 'foo52'])
     class FooAttribute {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
@@ -44,10 +44,10 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       }
     }
 
-    @customAttribute({ name: 'foo4', aliases: ['foo43'] })
+    @customAttribute({ name: 'foo4', aliases: ['foo43'], defaultProperty: 'value' })
     @alias('foo41', 'foo42')
     class FooAttribute2 {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
@@ -216,9 +216,9 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
           return v;
         }
       }
-      @customAttribute('dummy')
+      @customAttribute({ name: 'dummy', defaultProperty: 'value' })
       class DummyAttr {
-        @bindable({ primary: true }) public value!: string;
+        @bindable() public value!: string;
       }
       const resources: any[] = [AttrCallerConverter, DummyAttr];
       const app = class { public value = 'hi'; };

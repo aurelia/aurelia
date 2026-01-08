@@ -217,16 +217,16 @@ This allows the component to be used with a custom attribute name:
 <user-card user-id="123"></user-card>
 ```
 
-### Set a primary bindable for custom attributes
+### Set the default property for custom attributes
 
-When creating custom attributes, you can mark a bindable property as `primary`. The primary bindable receives the attribute value when the attribute is used without specifying a property name:
+When creating custom attributes, you can specify which property receives the value when the attribute is used without explicitly naming a property. Use the `defaultProperty` option on the `@customAttribute` decorator:
 
 ```typescript
 import { bindable, customAttribute } from 'aurelia';
 
-@customAttribute('tooltip')
+@customAttribute({ name: 'tooltip', defaultProperty: 'message' })
 export class TooltipCustomAttribute {
-    @bindable({ primary: true }) message = '';
+    @bindable message = '';
     @bindable position = 'top';
 }
 ```
@@ -234,7 +234,7 @@ export class TooltipCustomAttribute {
 This allows a simpler usage syntax:
 
 ```html
-<!-- The value "Hello" goes to the primary bindable (message) -->
+<!-- The value "Hello" goes to the default property (message) -->
 <div tooltip="Hello"></div>
 
 <!-- Equivalent explicit syntax -->
@@ -245,7 +245,7 @@ This allows a simpler usage syntax:
 ```
 
 {% hint style="info" %}
-Only one bindable property per custom attribute should have `primary: true`.
+If `defaultProperty` is not specified, it defaults to `'value'`. This allows custom attributes without any bindables defined to automatically receive values through a `value` property.
 {% endhint %}
 
 Bindable properties support many different binding modes determining the direction the data is bound in and how it is bound.

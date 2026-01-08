@@ -57,9 +57,10 @@ export class VirtualRepeat implements IVirtualRepeater {
     type: 'custom-attribute',
     name: 'virtual-repeat',
     isTemplateController: true,
+    defaultProperty: 'items',
     bindables: {
       local: true,
-      items: { primary: true }
+      items: true
     }
   };
 

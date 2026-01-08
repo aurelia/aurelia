@@ -916,12 +916,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       if (info === void 0) {
         info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
         const bindables = def.bindables;
+        const defaultProperty = def.defaultProperty ?? 'value';
 
         let bindable: BindableDefinition;
         let prop: string;
         let mode: string | number;
-        let hasPrimary: boolean = false;
-        let isPrimary: boolean = false;
         let bindableInfo: BindableInfo;
 
         for (prop in bindables) {
@@ -935,23 +934,15 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           } else {
             mode = BindingMode.toView;
           }
-          isPrimary = bindable.primary === true;
           bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
-          if (isPrimary) {
-            if (hasPrimary) {
-              throw new Error('primary already exists');
-            }
-            hasPrimary = true;
-            info.bindable = bindableInfo;
-          }
-          // set to first bindable by convention
-          if (info.bindable === null) {
+          // set primary based on defaultProperty
+          if (prop === defaultProperty) {
             info.bindable = bindableInfo;
           }
         }
-        // if no bindables are present, default to "value"
+        // if no bindable matches defaultProperty, create the default bindable
         if (info.bindable === null) {
-          info.bindable = new BindableInfo('value', BindingMode.toView);
+          info.bindable = new BindableInfo(defaultProperty, BindingMode.toView);
         }
       }
       return info;
@@ -1153,9 +1144,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     });
 
     describe('TemplateCompiler - combinations -- custom attributes with multiple bindings', function () {
-      const MyAttr = CustomAttribute.define('my-attr', class MyAttr { static bindables = ['a', 'b']; });
-      const YourAttr = CustomAttribute.define('your-attr', class MyAttr { static bindables = ['c', 'd']; });
-      const NoMultiAttr = CustomAttribute.define({ name: 'no-multi-attr', noMultiBindings: true }, class { static bindables = ['a', 'b']; });
+      const MyAttr = CustomAttribute.define({ name: 'my-attr', defaultProperty: 'a' }, class MyAttr { static bindables = ['a', 'b']; });
+      const YourAttr = CustomAttribute.define({ name: 'your-attr', defaultProperty: 'c' }, class MyAttr { static bindables = ['c', 'd']; });
+      const NoMultiAttr = CustomAttribute.define({ name: 'no-multi-attr', noMultiBindings: true, defaultProperty: 'a' }, class { static bindables = ['a', 'b']; });
       const TemplateControllerAttr = CustomAttribute.define({ name: 'tc-attr', isTemplateController: true }, class {});
       const AttrWithLongBindable = CustomAttribute.define({ name: 'long-attr' }, class { static bindables = [{ name: 'a', attribute: 'a-a' }]; });
 

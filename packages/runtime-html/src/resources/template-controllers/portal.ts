@@ -21,8 +21,9 @@ export class Portal implements ICustomAttributeViewModel {
     type: attrTypeName,
     name: 'portal',
     isTemplateController: true,
+    defaultProperty: 'target',
     bindables: [
-      { name: 'target', primary: true },
+      'target',
       'position',
       'activated',
       'activating',
@@ -32,17 +33,6 @@ export class Portal implements ICustomAttributeViewModel {
       'deactivated',
       'deactivating'
     ],
-    // bindables: {
-    //   target: { primary: true },
-    //   position: true,
-    //   renderContext: { callback: 'targetChanged' },
-    //   activated: true,
-    //   activating: true,
-    //   callbackContext: true,
-    //   deactivated: true,
-    //   deactivating: true,
-    //   strict: true
-    // }
   };
 
   public readonly $controller!: ICustomAttributeController<this>;

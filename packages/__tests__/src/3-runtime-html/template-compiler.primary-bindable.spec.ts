@@ -35,10 +35,10 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
 
   const testCases: IPrimaryBindableTestCase[] = [
     {
-      title: '(1) works in basic scenario',
+      title: '(1) works in basic scenario with explicit defaultProperty',
       template: '<div square="red"></div>',
       attrResources: () => {
-        @customAttribute('square')
+        @customAttribute({ name: 'square', defaultProperty: 'color' })
         class Square {
           @bindable()
           public color: string;
@@ -57,16 +57,16 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     },
     {
-      title: '(2) works in basic scenario, with [primary] 1st position',
+      title: '(2) works with defaultProperty specifying a non-first bindable',
       template: '<div square="red"></div>',
       attrResources: () => {
-        @customAttribute('square')
+        @customAttribute({ name: 'square', defaultProperty: 'color' })
         class Square {
-          @bindable({ primary: true })
-          public color: string;
-
           @bindable()
           public diameter: number;
+
+          @bindable()
+          public color: string;
 
           private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
@@ -83,16 +83,16 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     },
     {
-      title: '(3) works in basic scenario, with [primary] 2nd position',
+      title: '(3) works with defaultProperty specifying first bindable explicitly',
       template: '<div square="red"></div>',
       attrResources: () => {
-        @customAttribute('square')
+        @customAttribute({ name: 'square', defaultProperty: 'color' })
         class Square {
           @bindable()
-          public diameter: number;
-
-          @bindable({ primary: true })
           public color: string;
+
+          @bindable()
+          public diameter: number;
 
           private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
@@ -133,14 +133,15 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     },
     {
-      title: '(5) works in basic scenario, [dynamic options style] + [primary] 1st position',
+      title: '(5) works in basic scenario, [dynamic options style] + [defaultProperty]',
       template: '<div square="color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square'
+          name: 'square',
+          defaultProperty: 'color'
         })
         class Square {
-          @bindable({ primary: true })
+          @bindable()
           public color: string;
 
           @bindable()
@@ -161,34 +162,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     },
     {
-      title: '(6) works in basic scenario, [dynamic options style] + [primary] 2nd position',
-      template: '<div square="color: red"></div>',
-      attrResources: () => {
-        @customAttribute({
-          name: 'square'
-        })
-        class Square {
-          @bindable()
-          public diameter: string;
-
-          @bindable({ primary: true })
-          public color: string;
-
-          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
-
-          public binding() {
-            this.el.style.background = this.color;
-          }
-        }
-
-        return [Square];
-      },
-      assertFn: (_ctx, host, _comp, _attrs) => {
-        assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
-      }
-    },
-    {
-      title: '(7) works with interpolation',
+      title: '(6) works with interpolation',
       template: `<div square="color: \${\`red\`}; diameter: \${5}"></div>`,
       attrResources: () => {
         @customAttribute({
@@ -217,7 +191,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     },
     {
-      title: '(8) default to "value" as primary bindable',
+      title: '(7) default to "value" as default property when no bindables defined',
       template: '<div square.bind="color || `red`">',
       attrResources: () => {
         @customAttribute({ name: 'square' })
@@ -227,6 +201,25 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
 
           public binding() {
             this.el.style.background = this.value;
+          }
+        }
+        return [Square];
+      },
+      assertFn: (_ctx, host, _comp) => {
+        assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
+      }
+    },
+    {
+      title: '(8) defaultProperty can specify a non-bindable property (implicit bindable)',
+      template: '<div square.bind="color || `red`">',
+      attrResources: () => {
+        @customAttribute({ name: 'square', defaultProperty: 'myProp' })
+        class Square {
+          public myProp: string;
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
+
+          public binding() {
+            this.el.style.background = this.myProp;
           }
         }
         return [Square];
@@ -303,38 +296,16 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     },
     {
-      title: 'throws when there are two primaries',
-      template: '<div square="red"></div>',
-      testWillThrow: true,
-      attrResources: () => {
-        @customAttribute({
-          name: 'square'
-        })
-        class Square {
-          @bindable({ primary: true })
-          public diameter: number;
-
-          @bindable({ primary: true })
-          public color: string;
-
-          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
-        }
-        return [Square];
-      },
-      assertFn: (_ctx, _host, _comp, _attrs) => {
-        throw new Error('Should not have run');
-      }
-    },
-    {
       title: 'works with long name, in single binding syntax',
       template: '<div square="5"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square'
+          name: 'square',
+          defaultProperty: 'borderRadius'
         })
         class Square {
 
-          @bindable({ primary: true })
+          @bindable()
           public borderRadius: number;
 
           @bindable()
@@ -360,11 +331,12 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       template: '<div square="border-radius: 5; color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square'
+          name: 'square',
+          defaultProperty: 'borderRadius'
         })
         class Square {
 
-          @bindable({ primary: true })
+          @bindable()
           public borderRadius: number;
 
           @bindable()
@@ -390,11 +362,12 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       template: '<div square="border-radius.bind: 5; color: red"></div>',
       attrResources: () => {
         @customAttribute({
-          name: 'square'
+          name: 'square',
+          defaultProperty: 'borderRadius'
         })
         class Square {
 
-          @bindable({ primary: true })
+          @bindable()
           public borderRadius: number;
 
           @bindable()
@@ -498,7 +471,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       @bindable()
       public href: string;
 
-      @bindable({ primary: true })
+      @bindable()
       public route: string;
 
       public constructor(
@@ -524,7 +497,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       }
     }
 
-    const RouteHref = CustomAttribute.define('route-href', $RouteHref$);
+    const RouteHref = CustomAttribute.define({ name: 'route-href', defaultProperty: 'route' }, $RouteHref$);
 
     const DotConverter = ValueConverter.define(
       {

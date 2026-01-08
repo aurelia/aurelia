@@ -62,6 +62,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     type: attrTypeName,
     name: 'repeat',
     isTemplateController: true,
+    defaultProperty: 'items',
     bindables: ['items'],
   };
 

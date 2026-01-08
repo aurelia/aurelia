@@ -66,7 +66,6 @@ export const enum ErrorNames {
   node_observer_mapping_existed = 653,
   select_observer_array_on_non_multi_select = 654,
 
-  compiler_primary_already_existed = 714,
   compiler_attr_mapper_duplicate_mapping = 719,
   root_not_found = 767,
   aurelia_instance_existed_in_container = 768,
@@ -207,7 +206,6 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.node_observer_mapping_existed]: `Mapping for property {{0}} of <{{1}} /> already exists`,
   [ErrorNames.select_observer_array_on_non_multi_select]: `Array values can only be bound to a multi-select.`,
 
-  [ErrorNames.compiler_primary_already_existed]: `Template compilation error: primary already exists on element/attribute "{{0}}"`,
   [ErrorNames.compiler_attr_mapper_duplicate_mapping]: `Attribute {{0}} has been already registered for {{1:element}}`,
 
   [ErrorNames.root_not_found]: `Aurelia.root was accessed without a valid root.`,

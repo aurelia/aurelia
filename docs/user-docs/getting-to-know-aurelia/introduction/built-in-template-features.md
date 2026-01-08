@@ -139,9 +139,11 @@ Aurelia's binding engine makes several special properties available to you in yo
 * `$index` - In a repeat template, the index of the item in the collection.
 * `$first` - In a repeat template, is `true` if the item is the first item in the array.
 * `$last` - In a repeat template, is `true` if the item is the last item in the array.
+* `$middle` - In a repeat template, is `true` if the item is neither first nor last.
 * `$even` - In a repeat template, is `true` if the item has an even numbered index.
 * `$odd` - In a repeat template, is `true` if the item has an odd numbered index.
 * `$length` - In a repeat template, this indicates the length of the collection.
+* `$previous` - In a repeat template, returns the previous item in the collection (or `undefined` for the first item).
 * `$parent` - Explicitly accesses the outer scope from within a `repeat` template. You may need this when a property on the current scope masks a property on the outer scope. Note that this property is chainable, e.g. `$parent.$parent.foo` is supported.
 
 Inside of the `repeat.for` these can be accessed. In the following example we display the current index value.

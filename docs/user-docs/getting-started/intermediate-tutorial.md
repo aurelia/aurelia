@@ -392,7 +392,7 @@ Update `src/my-app.html`:
 
   <main class="app-main">
     <div class="sidebar">
-      <todo-form on-submit.call="addTodo($event)"></todo-form>
+      <todo-form on-submit.bind="(data) => addTodo(data)"></todo-form>
     </div>
 
     <div class="content">
@@ -437,8 +437,8 @@ Update `src/my-app.html`:
         <todo-item
           repeat.for="todo of filteredTodos; key: id"
           todo.bind="todo"
-          on-toggle.call="toggleTodo($event)"
-          on-delete.call="deleteTodo($event)">
+          on-toggle.bind="(todo) => toggleTodo(todo)"
+          on-delete.bind="(todo) => deleteTodo(todo)">
         </todo-item>
       </div>
     </div>

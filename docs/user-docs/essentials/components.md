@@ -206,8 +206,8 @@ export class UserListPage {
 
   <user-list
     users.bind="users"
-    on-view.call="viewUser($event)"
-    on-delete.call="deleteUser($event)">
+    on-view.bind="(user) => viewUser(user)"
+    on-delete.bind="(user) => deleteUser(user)">
   </user-list>
 </div>
 ```
@@ -437,7 +437,7 @@ export class SearchBox {
 
 ```html
 <!-- Using callback -->
-<search-box on-search.call="performSearch($event)"></search-box>
+<search-box on-search.bind="(query) => performSearch(query)"></search-box>
 
 <!-- Or listen via event aggregator -->
 ```

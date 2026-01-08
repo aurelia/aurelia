@@ -81,7 +81,7 @@ export class UserSearch {
   <div if.bind="loading">Loading...</div>
   <user-card repeat.for="user of filteredUsers" 
              user.bind="user"
-             edit.call="handleEdit">
+             edit.bind="handleEdit">
   </user-card>
 </div>
 ```
@@ -269,7 +269,7 @@ export class ItemList {
   
   // Just call this method from parent template
   selectItem(item: Item) {
-    // Parent can bind to this with select-item.call="handleSelection(item)"
+    // Parent can bind to this with select-item.bind="(item) => handleSelection(item)"
   }
 }
 ```

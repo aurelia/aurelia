@@ -635,7 +635,7 @@ Usage:
     template: `
         <dynamic-form 
             schema.bind="formSchema"
-            on-submit.call="handleSubmit($event)">
+            on-submit.bind="(data) => handleSubmit(data)">
         </dynamic-form>
     `
 })
@@ -819,9 +819,9 @@ export class DashboardBuilder {
     private generateWidgetContent(widget: DashboardWidget): string {
         switch (widget.type) {
             case 'chart':
+                // Note: Initialize chart in component's attached() lifecycle using the ref
                 return `
-                    <canvas ref="chart-${widget.id}"
-                           afterAttach.call="initChart($event, '${widget.id}')">
+                    <canvas ref="chart-${widget.id}">
                     </canvas>
                 `;
             case 'table':

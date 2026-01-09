@@ -7,13 +7,12 @@
 This is the umbrella package for Aurelia 2. It re-exports selected internals from following Aurelia 2 packages:
 
 ```
-@aurelia/fetch-client
-@aurelia/jit
+@aurelia/expression-parser
 @aurelia/kernel
-@aurelia/router-direct
+@aurelia/platform-browser
 @aurelia/runtime
 @aurelia/runtime-html
-@aurelia/runtime-html-browser
+@aurelia/template-compiler
 ```
 
 It's designed to simplify app development, and we recommend all app authors to use this package. Ideally, unused Aurelia 2 features will be tree-shaken off by JavaScript bundlers.

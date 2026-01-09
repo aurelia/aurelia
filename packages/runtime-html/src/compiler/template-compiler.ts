@@ -14,7 +14,6 @@ import { BindableDefinition } from '../bindable';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 
-import { ErrorNames, createMappedError } from '../errors';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import { AttrMapper } from './attribute-mapper';
 

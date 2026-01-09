@@ -18,6 +18,13 @@
 * [Aurelia for New Developers](getting-started/aurelia-for-new-developers.md)
 * [Hello World Tutorial](getting-started/quick-start-guide/README.md)
 * [Intermediate Tutorial](getting-started/intermediate-tutorial.md)
+* [Extended Tutorial](getting-started/extended-tutorial/README.md)
+  * [Step 1: Project setup + app shell](getting-started/extended-tutorial/step-1-project-setup.md)
+  * [Step 2: Routing + nested layouts](getting-started/extended-tutorial/step-2-routing-and-layout.md)
+  * [Step 3: Overview page + filters + events](getting-started/extended-tutorial/step-3-projects-overview.md)
+  * [Step 4: Detail route + guards](getting-started/extended-tutorial/step-4-project-detail-and-guards.md)
+  * [Step 5: Router events + polish](getting-started/extended-tutorial/step-5-router-events-and-polish.md)
+  * [Step 6: Route data + auth roles](getting-started/extended-tutorial/step-6-route-data-and-roles.md)
 
 ### Coming from Another Framework?
 * [From React to Aurelia](getting-started/from-react.md)

@@ -750,10 +750,11 @@ import { resolve } from 'aurelia';
 import { IDialogController } from '@aurelia/dialog';
 
 class MyDialog {
-  constructor() {
-    // change some settings
-    resolve(IDialogController).settings.zIndex = 100;
-  }
+  private controller = resolve(IDialogController);
+
+  // Access dialog controller properties like settings.model, settings.host, etc.
+  // Note: z-index is controlled via startingZIndex in the renderer options
+  // when calling dialogService.open(), not via controller.settings
 }
 ```
 
@@ -796,17 +797,17 @@ By default, the dialog content host is centered horizontally and vertically. It 
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+import { IDialogDom } from '@aurelia/dialog';
 
 export class MyDialog {
-  constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
+  constructor(dialogDom: IDialogDom = resolve(IDialogDom)) {
     dialogDom.contentHost.style.margin = "0 auto"; // only center horizontally
   }
 }
 ```
 
 {% hint style="info" %}
-Note that the `contentHost` property on a `DefaultDialogDom` object is the same with the host element of a component. You can inject `IDialogDom` and retrieve the host element via `contentHost` property, or inject `INode`/`Element`/`HTMLElement` to retrieve it.
+Note that the `contentHost` property on `IDialogDom` is the same as the host element of a component. You can inject `IDialogDom` and retrieve the host element via `contentHost` property, or inject `INode`/`Element`/`HTMLElement` to retrieve it.
 {% endhint %}
 
 #### Styling the overlay
@@ -856,10 +857,10 @@ Note that the `contentHost` property on a `DefaultDialogDom` object is the same 
 
     ```typescript
     import { resolve } from 'aurelia';
-    import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+    import { IDialogDom } from '@aurelia/dialog';
 
     export class MyDialog {
-      constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
+      constructor(dialogDom: IDialogDom = resolve(IDialogDom)) {
         dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
       }
     }

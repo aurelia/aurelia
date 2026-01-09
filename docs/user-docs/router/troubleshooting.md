@@ -463,7 +463,7 @@ export class ComponentWithSubscription {
   }
 
   // ✅ Always clean up subscriptions
-  detached() {
+  detaching() {
     this.subscription?.dispose();
   }
 }

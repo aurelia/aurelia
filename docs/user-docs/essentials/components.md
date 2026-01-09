@@ -145,19 +145,27 @@ export class MyComponent {
   }
 
   binding() {
-    // Data binding about to occur
+    // Data binding starts
   }
 
   bound() {
     // Data binding completed
   }
 
+  attaching() {
+    // Before DOM attachment
+  }
+
   attached() {
     // Component attached to DOM
   }
 
-  detached() {
-    // Component removed from DOM
+  detaching() {
+    // Before DOM removal
+  }
+
+  unbinding() {
+    // Data binding being removed
   }
 }
 ```
@@ -206,8 +214,8 @@ export class UserListPage {
 
   <user-list
     users.bind="users"
-    on-view.call="viewUser($event)"
-    on-delete.call="deleteUser($event)">
+    on-view.bind="(user) => viewUser(user)"
+    on-delete.bind="(user) => deleteUser(user)">
   </user-list>
 </div>
 ```
@@ -437,7 +445,7 @@ export class SearchBox {
 
 ```html
 <!-- Using callback -->
-<search-box on-search.call="performSearch($event)"></search-box>
+<search-box on-search.bind="(query) => performSearch(query)"></search-box>
 
 <!-- Or listen via event aggregator -->
 ```

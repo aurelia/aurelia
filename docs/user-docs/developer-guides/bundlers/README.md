@@ -58,7 +58,7 @@ For TypeScript projects, add this type declaration file:
 ```typescript
 declare module '*.html' {
   import { IContainer } from '@aurelia/kernel';
-  import { BindableDefinition } from '@aurelia/runtime';
+  import { BindableDefinition } from '@aurelia/runtime-html';
   export const name: string;
   export const template: string;
   export default template;
@@ -629,7 +629,7 @@ For TypeScript apps, add this declaration file to your project (usually generate
 ```ts
 declare module '*.html' {
   import { IContainer } from '@aurelia/kernel';
-  import { BindableDefinition } from '@aurelia/runtime';
+  import { BindableDefinition } from '@aurelia/runtime-html';
   export const name: string;
   export const template: string;
   export default template;

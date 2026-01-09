@@ -7,6 +7,10 @@ description: >-
 
 Shadow DOM provides native browser encapsulation for your components, isolating styles and DOM structure. Aurelia makes it easy to enable Shadow DOM for any custom element.
 
+## Quick decision guide
+
+Start with **Light DOM** unless you have a specific reason to enable Shadow DOM. Shadow DOM isolates styles by design, so global CSS frameworks and app-wide themes **do not** flow into components unless you explicitly share them. You can mix Light DOM and Shadow DOM in the same app—use Shadow DOM only on components that need strict isolation or native web component features.
+
 ## Enabling Shadow DOM
 
 ### Using the @useShadowDOM Decorator
@@ -50,6 +54,8 @@ export class ClosedElement {
 }
 ```
 
+Mode only controls JavaScript access to the shadow root. It does **not** change CSS encapsulation—global styles still will not cross the shadow boundary in open mode.
+
 ### Using the Configuration Object
 
 You can also configure Shadow DOM using the `@customElement` decorator's configuration object:
@@ -75,6 +81,18 @@ export class MyElement {
 ## Styling Shadow DOM Components
 
 Shadow DOM provides complete CSS isolation. Styles defined outside the component won't affect elements inside, and styles inside won't leak out.
+
+## Troubleshooting checklist
+
+If styles or slots are not behaving as expected, check these first:
+
+- **Confirm the component actually uses Shadow DOM**: `@useShadowDOM()` or `shadowOptions` must be set.
+- **Global CSS won’t cross the boundary**: Use Light DOM for framework styles, or register shared styles with `StyleConfiguration.shadowDOM({ sharedStyles: [...] })`.
+- **Co-located CSS is not auto-injected**: Import CSS as a string and pass it to `shadowCSS()` for Shadow DOM components.
+- **Use Shadow DOM selectors**: `:host`, `:host-context()`, and `::slotted()` apply inside the shadow root. Use CSS variables or `::part` for safe theming.
+- **Slots require Shadow DOM**: Native `<slot>` only works with Shadow DOM; use `<au-slot>` if you stay in Light DOM.
+- **Containerless is incompatible**: You cannot use Shadow DOM and `@containerless` together.
+- **Debugging needs open mode**: `mode: 'open'` makes it easier to inspect and tweak styles in DevTools.
 
 ### Component-Local Styles
 
@@ -168,6 +186,9 @@ Aurelia
 ```
 
 Global styles are applied first, followed by component-local styles.
+
+Shared styles only apply to components that actually use Shadow DOM. They do not affect Light DOM components, and selectors like `html` or `body` still cannot reach into a shadow root.
+If you want a global CSS framework to style Shadow DOM components, import that stylesheet and include it in `sharedStyles`, or keep those components in Light DOM.
 
 ### Shadow DOM CSS Selectors
 
@@ -589,7 +610,7 @@ export class AlternativeComponent {}
 ### Use Light DOM (no Shadow DOM) When:
 
 - **Easy styling is important**: Parent components or application styles should easily affect the component
-- **Working with global styles**: Your component should inherit application-wide styles
+- **Working with global styles**: You rely on application-wide styles or CSS frameworks (Bulma/Bootstrap/Tailwind) to flow into components
 - **SEO is a concern**: Search engines can more easily index light DOM content
 - **Using `<au-slot>`**: You need Aurelia's slot features like `$host` scope access
 

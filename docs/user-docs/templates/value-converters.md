@@ -216,10 +216,12 @@ Use this feature sparingly, only when you truly need insights into the calling c
 Once `withContext: true` is enabled, your converter receives a `caller` parameter with direct access to the view model and binding information:
 
 ```typescript
+import { valueConverter, type ICallerContext } from '@aurelia/runtime-html';
+
 @valueConverter('vmAware')
 export class ViewModelAwareConverter {
   readonly withContext = true;
-  
+
   toView(value: unknown, caller: ICallerContext): string {
     // Direct access to the view model instance
     const viewModel = caller.source as MyComponent;
@@ -250,6 +252,8 @@ export class ViewModelAwareConverter {
 #### Real-World Example: User Permission Converter
 
 ```typescript
+import { valueConverter, type ICallerContext } from '@aurelia/runtime-html';
+
 interface UserComponent {
   currentUser: { role: string; permissions: string[] };
   isOwner(itemId: string): boolean;
@@ -258,9 +262,9 @@ interface UserComponent {
 @valueConverter('userPermission')
 export class UserPermissionConverter {
   readonly withContext = true;
-  
+
   toView(
-    action: string, 
+    action: string,
     caller: ICallerContext,
     requiredPermission?: string
   ): boolean {
@@ -1469,7 +1473,7 @@ describe('CurrencyConverter', () => {
 2. **Dispatch signals correctly**:
    ```typescript
    import { resolve } from '@aurelia/kernel';
-   import { ISignaler } from '@aurelia/runtime';
+   import { ISignaler } from '@aurelia/runtime-html';
 
    private signaler = resolve(ISignaler);
 

@@ -153,7 +153,7 @@ export class LifecycleComponent {
     this.setupEventListeners();
   }
 
-  detached(): void {
+  detaching(): void {
     this.cleanupEventListeners();
   }
 

@@ -166,7 +166,7 @@ export class InterpolationInstruction {
 
 **Instruction Types:**
 - `PropertyBindingInstruction` - `.bind`, `.one-way`, `.two-way`
-- `ListenerBindingInstruction` - `.trigger`, `.delegate`, `.capture`
+- `ListenerBindingInstruction` - `.trigger`, `.capture`
 - `RefBindingInstruction` - `ref` attribute
 - `IteratorBindingInstruction` - `repeat.for`
 - `HydrateElementInstruction` - Custom elements

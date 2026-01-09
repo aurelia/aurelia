@@ -675,7 +675,7 @@ This can be done by using the `IRouter` decorator on your component constructor 
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
-import { IRouter, IRouteableComponent } from '@aurelia/router';
+import { IRouter, RouteableComponent } from '@aurelia/router';
 
 export class MyComponent {
   private readonly router: IRouter = resolve(IRouter);

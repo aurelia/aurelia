@@ -716,7 +716,7 @@ import { customElement, processContent, IPlatform } from 'aurelia';
 @customElement('content-processor')
 class ContentProcessor {
   @processContent()
-  static processContent(node: HTMLElement, platform: IPlatform): boolean | void {
+  static processContent(node: HTMLElement, platform: IPlatform, data: Record<PropertyKey, unknown>): boolean | void {
     // Modify the element's content before compilation
     const children = Array.from(node.children);
     children.forEach(child => {
@@ -732,7 +732,7 @@ class ContentProcessor {
 @customElement('named-processor')
 @processContent('customProcessor')
 class NamedProcessor {
-  static customProcessor(node: HTMLElement, platform: IPlatform): boolean | void {
+  static customProcessor(node: HTMLElement, platform: IPlatform, data: Record<PropertyKey, unknown>): boolean | void {
     // Process content
     return true;
   }

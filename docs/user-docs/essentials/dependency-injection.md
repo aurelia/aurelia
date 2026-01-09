@@ -150,6 +150,7 @@ Aurelia.register(
 ```typescript
 import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
+import { IApiConfig } from './services/api-config';
 
 export class ApiService {
   private readonly config = resolve(IApiConfig);

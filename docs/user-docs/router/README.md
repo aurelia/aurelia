@@ -661,18 +661,32 @@ export class MyApp {
 
 ## Complete Documentation
 
+### Getting Started
 - [Getting Started](./getting-started.md)
 - [Router Configuration](./router-configuration.md)
+
+### Routes and Navigation
 - [Configuring Routes](./configuring-routes.md)
-- [Child Routing Playbook](./child-routing.md)
 - [Route Parameters Guide](./route-parameters.md)
+- [Route Expression Syntax](./route-expression-syntax.md)
 - [Navigation](./navigating.md)
 - [Viewports](./viewports.md)
+- [Child Routing Playbook](./child-routing.md)
+
+### Lifecycle and Guards
 - [Lifecycle Hooks](./routing-lifecycle.md)
 - [Router Hooks](./router-hooks.md)
 - [Transition Plans](./transition-plans.md)
+
+### State and Events
+- [Current Route](./current-route.md)
 - [Navigation Model](./navigation-model.md)
 - [Router Events](./router-events.md)
+
+### Advanced Topics
 - [Error Handling](./error-handling.md)
 - [Testing Guide](./testing-guide.md)
+
+### Reference
+- [API Reference](./api-reference.md)
 - [Troubleshooting](./troubleshooting.md)

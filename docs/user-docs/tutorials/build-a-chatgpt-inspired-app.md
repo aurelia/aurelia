@@ -241,7 +241,9 @@ export class ChatService {
         model: 'gpt-4o-mini' // Using the more cost-effective model
       };
 
-      const response = await this.http.post(`${this.baseUrl}/chat`, payload);
+      const response = await this.http.post(`${this.baseUrl}/chat`, JSON.stringify(payload), {
+        headers: { 'Content-Type': 'application/json' }
+      });
       const data: ChatApiResponse = await response.json();
 
       if ('error' in data) {

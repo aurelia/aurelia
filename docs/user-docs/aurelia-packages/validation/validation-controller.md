@@ -133,7 +133,7 @@ class ValidationResultTarget {
   public targets: Element[];
 }
 
-class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
+class ValidationResult<TRule extends IValidationRule = IValidationRule> {
     public valid: boolean;
     public message: string | undefined;
     public propertyName: string | undefined;

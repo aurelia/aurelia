@@ -570,6 +570,8 @@ Choose the right collection type for your use case:
 
 ## Matchers Explained
 
+By default, Aurelia compares values with strict equality (`===`). That works for primitives and for objects that are the exact same instance. It does not work when your selected value and your option values are different instances that represent the same logical entity (for example, data reloaded from an API). A matcher lets you define what "equal" means so selections stay in sync.
+
 Matchers tell Aurelia how to compare values:
 
 ```typescript

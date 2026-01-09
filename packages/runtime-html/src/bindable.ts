@@ -11,11 +11,8 @@ import { BindingMode, IComponentBindablePropDefinition } from '@aurelia/template
 type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
 export type PartialBindableDefinition = Omit<IComponentBindablePropDefinition, 'name'> & {
-  // mode?: BindingMode;
   callback?: string;
-  // attribute?: string;
   name?: string;
-  // primary?: boolean;
   set?: InterceptorFunc;
   type?: PropertyType;
 
@@ -185,7 +182,6 @@ export class BindableDefinition {
     public readonly attribute: string,
     public readonly callback: string,
     public readonly mode: BindingMode,
-    public readonly primary: boolean,
     public readonly name: string,
     public readonly set: InterceptorFunc,
   ) { }
@@ -202,7 +198,6 @@ export class BindableDefinition {
       def.attribute ?? BindableDefinition.toAttr(prop),
       def.callback ?? `${prop}Changed`,
       isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
-      def.primary ?? false,
       def.name ?? prop,
       def.set ?? getInterceptor(def),
     );
@@ -231,14 +226,12 @@ function apiTypeCheck() {
     @bindable({ mode: twoWay })
     @bindable({ callback: 'propChanged' })
     @bindable({ attribute: 'prop' })
-    @bindable({ primary: true })
     @bindable({ set: value => String(value) })
     @bindable({ set: value => Number(value) })
     @bindable({
       mode: twoWay,
       callback: 'propChanged',
       attribute: 'prop',
-      primary: true,
       set: value => String(value)
     })
     public prop: unknown;

@@ -129,12 +129,11 @@ class AttrInfo {
     if (info === void 0) {
       info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
       const bindables = def.bindables;
+      const defaultProperty = def.defaultProperty ?? 'value';
 
       let bindable: BindableDefinition;
       let prop: string;
       let mode: string | number;
-      let hasPrimary: boolean = false;
-      let isPrimary: boolean = false;
       let bindableInfo: BindableInfo;
 
       for (prop in bindables) {
@@ -148,23 +147,15 @@ class AttrInfo {
         } else {
           mode = BindingMode.toView;
         }
-        isPrimary = bindable.primary === true;
         bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
-        if (isPrimary) {
-          if (hasPrimary) {
-            throw new Error('primary already exists');
-          }
-          hasPrimary = true;
-          info.bindable = bindableInfo;
-        }
-        // set to first bindable by convention
-        if (info.bindable === null) {
+        // set primary based on defaultProperty
+        if (prop === defaultProperty) {
           info.bindable = bindableInfo;
         }
       }
-      // if no bindables are present, default to "value"
+      // if no bindable matches defaultProperty, create the default bindable
       if (info.bindable === null) {
-        info.bindable = new BindableInfo('value', BindingMode.toView);
+        info.bindable = new BindableInfo(defaultProperty, BindingMode.toView);
       }
     }
     return info;

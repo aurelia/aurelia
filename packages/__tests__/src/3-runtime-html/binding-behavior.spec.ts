@@ -47,10 +47,10 @@ describe('3-runtime-html/binding-behavior.spec.ts', function () {
       }
     }
 
-    @customAttribute({ name: 'foo5', aliases: ['foo53'] })
+    @customAttribute({ name: 'foo5', aliases: ['foo53'], defaultProperty: 'value' })
     @alias(...['foo51', 'foo52'])
     class FooAttr5 {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
@@ -59,10 +59,10 @@ describe('3-runtime-html/binding-behavior.spec.ts', function () {
       }
     }
 
-    @customAttribute({ name: 'foo4', aliases: ['foo43'] })
+    @customAttribute({ name: 'foo4', aliases: ['foo43'], defaultProperty: 'value' })
     @alias('foo41', 'foo42')
     class FooAttr4 {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 

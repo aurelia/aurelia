@@ -24,7 +24,7 @@ Custom attributes in Aurelia empower you to extend and decorate standard HTML el
 5. [Single Value Binding](#single-value-binding)
 6. [Bindable Properties and Change Detection](#bindable-properties-and-change-detection)
    - [Binding Modes](#binding-modes)
-   - [Primary Bindable Property](#primary-bindable-property)
+   - [Default Property](#default-property)
    - [Bindable Interceptors](#bindable-interceptors)
    - [Custom Change Callbacks](#custom-change-callbacks)
 7. [Options Binding for Multiple Properties](#options-binding-for-multiple-properties)
@@ -332,16 +332,17 @@ Available binding modes:
 - `BindingMode.twoWay`: Data flows both ways
 - `BindingMode.oneTime`: Data is set once and never updated
 
-### Primary Bindable Property
+### Default Property
 
-You can mark one property as primary, allowing simpler binding syntax:
+You can specify which property receives the value when the attribute is used with shorthand syntax (without explicitly naming a property). Use the `defaultProperty` option on the `@customAttribute` decorator:
 
 ```typescript
-import { bindable, INode } from '@aurelia/runtime-html';
+import { bindable, customAttribute, INode } from '@aurelia/runtime-html';
 import { resolve } from '@aurelia/kernel';
 
+@customAttribute({ name: 'color-square', defaultProperty: 'color' })
 export class ColorSquareCustomAttribute {
-  @bindable({ primary: true }) public color: string = 'red';
+  @bindable() public color: string = 'red';
   @bindable() public size: string = '100px';
 
   private readonly element: HTMLElement = resolve(INode) as HTMLElement;
@@ -369,7 +370,7 @@ export class ColorSquareCustomAttribute {
 }
 ```
 
-With a primary property defined, you can bind directly:
+With a default property defined, you can bind directly:
 
 ```html
 <import from="./color-square"></import>
@@ -1120,6 +1121,7 @@ Decorators and conventions eventually funnel into a `PartialCustomAttributeDefin
 | `name` | `string` | The canonical attribute name. When omitted, Aurelia infers it from the class name. |
 | `aliases` | `string[]` | Additional attribute names that should map to the same implementation. Use when you need both `awesome-slider` and `awesomeSlider`. |
 | `bindables` | `Record<string, PartialBindableDefinition>` or array | Declares bindable inputs. You can mix shorthand strings with full objects `{ name, mode, callback, attribute }`. |
+| `defaultProperty` | `string` | The name of the property that receives the value when using shorthand syntax (e.g., `my-attr="value"`). Defaults to `'value'`. |
 | `isTemplateController` | `boolean` | Marks the attribute as a template controller so Aurelia replaces the host element with the controller's view. |
 | `noMultiBindings` | `boolean` | Treats the attribute value as a single literal string instead of `prop: value` pairs. Useful for URLs and DSL-like syntaxes. |
 | `watches` | `IWatchDefinition[]` | Registers `@watch` entries without decorators—great for framework-level attributes or generated code. |

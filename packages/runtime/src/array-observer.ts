@@ -17,7 +17,7 @@ import {
 } from './subscriber-collection';
 import { rtDef, rtDefineHiddenProp, rtDefineMetadata, rtGetMetadata } from './utilities';
 import { addCollectionBatch, batching } from './subscriber-batch';
-import { type IIndexable, isFunction } from '@aurelia/kernel';
+import { isFunction } from '@aurelia/kernel';
 
 export interface ArrayObserver extends ICollectionObserver<'array'>, ICollectionSubscriberCollection {
   getIndexObserver(index: number): ArrayIndexObserver;
@@ -29,11 +29,7 @@ export interface ArrayIndexObserver extends IObserver, ISubscriberCollection {
 
 export const getArrayObserver = /*@__PURE__*/ (() => {
 
-  // multiple applications of Aurelia wouldn't have different observers for the same Array object
-  const lookupMetadataKey = Symbol.for('__au_arr_obs__');
-  const observerLookup = ((Array as IIndexable<typeof Array>)[lookupMetadataKey]
-    ?? rtDefineHiddenProp(Array, lookupMetadataKey, new WeakMap())
-  ) as WeakMap<unknown[], ArrayObserverImpl>;
+  const observerLookup = new WeakMap<unknown[], ArrayObserverImpl>();
 
   // https://tc39.github.io/ecma262/#sec-sortcompare
   function sortCompare(x: unknown, y: unknown): number {

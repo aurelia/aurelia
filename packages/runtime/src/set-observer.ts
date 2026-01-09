@@ -1,4 +1,3 @@
-import { IIndexable } from '@aurelia/kernel';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { atObserver, createIndexMap, type AccessorType, type ICollectionObserver, type ICollectionSubscriberCollection } from './interfaces';
 import { addCollectionBatch, batching } from './subscriber-batch';
@@ -8,11 +7,7 @@ import { rtDefineHiddenProp } from './utilities';
 export interface SetObserver extends ICollectionObserver<'set'>, ICollectionSubscriberCollection { }
 
 export const getSetObserver = /*@__PURE__*/ (() => {
-  // multiple applications of Aurelia wouldn't have different observers for the same Set object
-  const lookupMetadataKey = Symbol.for('__au_set_obs__');
-  const observerLookup = ((Set as IIndexable<typeof Set>)[lookupMetadataKey]
-    ?? rtDefineHiddenProp(Set, lookupMetadataKey, new WeakMap())
-  ) as WeakMap<Set<unknown>, SetObserverImpl>;
+  const observerLookup = new WeakMap<Set<unknown>, SetObserverImpl>();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { add: $add, clear: $clear, delete: $delete } = Set.prototype as { [K in keyof Set<any>]: Set<any>[K] & { observing?: boolean } };

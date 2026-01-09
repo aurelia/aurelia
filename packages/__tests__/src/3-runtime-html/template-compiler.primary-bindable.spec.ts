@@ -15,6 +15,7 @@ import {
   CustomAttribute,
   Aurelia,
   ValueConverter,
+  BindingMode,
 } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
 import { runTasks } from '@aurelia/runtime';
@@ -226,6 +227,31 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       },
       assertFn: (_ctx, host, _comp) => {
         assert.equal(host.querySelector('div').style.backgroundColor, 'red', 'background === red');
+      }
+    },
+    {
+      title: '(9) defaultProperty preserves binding mode when pointing to existing bindable with twoWay mode',
+      template: '<div my-attr.bind="value"></div>',
+      root: class App {
+        public value = 'initial';
+      },
+      attrResources: () => {
+        @customAttribute({ name: 'my-attr', defaultProperty: 'data' })
+        class MyAttr {
+          @bindable({ mode: BindingMode.twoWay })
+          public data: string;
+
+          public bound() {
+            // Simulate the attribute updating the value (e.g., from user input)
+            this.data = 'updated-by-attr';
+          }
+        }
+        return [MyAttr];
+      },
+      assertFn: async (_ctx, _host, comp) => {
+        // The two-way binding should have propagated the change back to the component
+        await runTasks();
+        assert.equal(comp.value, 'updated-by-attr', 'two-way binding should update parent component');
       }
     },
     ...[

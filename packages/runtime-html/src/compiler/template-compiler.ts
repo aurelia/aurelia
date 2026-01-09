@@ -11,7 +11,6 @@ import {
   TemplateCompiler,
 } from '@aurelia/template-compiler';
 import { BindableDefinition } from '../bindable';
-import { defaultMode } from '../binding/interfaces-bindings';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 
@@ -98,10 +97,7 @@ class ResourceResolver implements IResourceResolver<CustomElementDefinition, Cus
       }
       if (bindable == null && def.type === 'custom-attribute') {
         // if no bindables are present, default to "value"
-        primary = attrs.value = BindableDefinition.create(
-          'value',
-          { mode: def.defaultBindingMode ?? defaultMode }
-        );
+        primary = attrs.value = BindableDefinition.create('value');
       }
 
       this._bindableCache.set(def, info = new BindablesInfo(attrs, bindables, primary ?? null));

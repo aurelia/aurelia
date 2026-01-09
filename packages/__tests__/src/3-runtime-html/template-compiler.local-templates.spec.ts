@@ -56,7 +56,6 @@ class ElementInfo {
     if (info === void 0) {
       info = rec[alias] = new ElementInfo(def.name, alias === def.name ? void 0 : alias, def.containerless);
       const bindables = def.bindables;
-      const defaultBindingMode = BindingMode.toView;
 
       let bindable: BindableDefinition;
       let prop: string;
@@ -79,7 +78,7 @@ class ElementInfo {
         if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
           mode = bindable.mode;
         } else {
-          mode = defaultBindingMode;
+          mode = BindingMode.toView;
         }
         info.bindables[attr] = new BindableInfo(prop, mode);
       }
@@ -130,9 +129,6 @@ class AttrInfo {
     if (info === void 0) {
       info = rec[alias] = new AttrInfo(def.name, alias === def.name ? void 0 : alias, def.isTemplateController, def.noMultiBindings);
       const bindables = def.bindables;
-      const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
-        ? def.defaultBindingMode
-        : BindingMode.toView;
 
       let bindable: BindableDefinition;
       let prop: string;
@@ -150,7 +146,7 @@ class AttrInfo {
         if (bindable.mode !== void 0 && bindable.mode !== BindingMode.default) {
           mode = bindable.mode;
         } else {
-          mode = defaultBindingMode;
+          mode = BindingMode.toView;
         }
         isPrimary = bindable.primary === true;
         bindableInfo = info.bindables[prop] = new BindableInfo(prop, mode);
@@ -168,7 +164,7 @@ class AttrInfo {
       }
       // if no bindables are present, default to "value"
       if (info.bindable === null) {
-        info.bindable = new BindableInfo('value', defaultBindingMode);
+        info.bindable = new BindableInfo('value', BindingMode.toView);
       }
     }
     return info;
@@ -193,8 +189,7 @@ class BindableInfo {
      * The pre-processed (default) bindingMode of the bindable, which is (in order of priority):
      *
      * 1. The `mode` from the bindable (if defined and not bindingMode.default)
-     * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
-     * 3. `bindingMode.toView`
+     * 2. `bindingMode.toView`
      */
     public mode: string | number,
   ) { }

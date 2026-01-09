@@ -100,7 +100,7 @@ Now, we have to introduce this strongly-typed template to Aurelia via `template`
 ```typescript
 // bs-button.ts
 
-import { buttonTemplate } from "./bs-button-temlate";
+import { buttonTemplate } from "./bs-button-template";
 
 @customElement({ name: "bs-button", template: buttonTemplate /* HERE */ })
 export class BootstrapButton /* view-model */ {

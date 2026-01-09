@@ -66,13 +66,16 @@ description: Outcome-oriented scenarios for @aurelia/i18n covering locale switch
 
 ### Steps
 
-1. Configure the validation message provider to delegate to i18n:
+1. Configure the validation message provider to delegate to i18n using `ValidationI18nConfiguration`:
    ```typescript
-   import { I18nTranslationValidationMessageProvider } from '@aurelia/validation-i18n';
+   import { ValidationI18nConfiguration } from '@aurelia/validation-i18n';
 
-   Aurelia.register(ValidationHtmlConfiguration.customize(options => {
-     options.MessageProviderType = I18nTranslationValidationMessageProvider;
-   }));
+   Aurelia.register(
+     ValidationI18nConfiguration.customize(options => {
+       options.DefaultNamespace = 'validation';
+       options.DefaultKeyPrefix = 'errors';
+     })
+   );
    ```
 2. Provide translations for the built-in validation keys (for example, `validation.required`).
 3. When the locale service changes languages, validation errors re-render with the translated message.
@@ -90,7 +93,7 @@ description: Outcome-oriented scenarios for @aurelia/i18n covering locale switch
 ### Steps
 
 1. Configure `@aurelia/i18n` with a backend (for example `i18next-fetch-backend`) so it can fetch JSON files as needed.
-2. In the route view-model, call `i18n.loadNamespaces` before rendering:
+2. In the route view-model, call `i18n.i18next.loadNamespaces` before rendering (accessing the underlying i18next instance):
    ```typescript
    import { I18N } from '@aurelia/i18n';
    import { resolve } from '@aurelia/kernel';
@@ -99,7 +102,7 @@ description: Outcome-oriented scenarios for @aurelia/i18n covering locale switch
      private readonly i18n = resolve(I18N);
 
      async canLoad() {
-       await this.i18n.loadNamespaces('reports');
+       await this.i18n.i18next.loadNamespaces('reports');
        return true;
      }
    }
@@ -121,15 +124,19 @@ description: Outcome-oriented scenarios for @aurelia/i18n covering locale switch
 1. Enable the relative-time formatter in the i18n options (it is on by default when using `@aurelia/i18n`).
 2. In templates, use the `rt` value converter:
    ```html
+   <!-- Past dates show "X ago" -->
    <p>Updated ${lastUpdated | rt}</p>
-   <p>Expires ${expiresAt | rt:{ future: true }}</p>
+   <!-- Future dates automatically show "in X" -->
+   <p>Expires ${expiresAt | rt}</p>
+   <!-- Optional: customize style -->
+   <p>${someDate | rt:{ style: 'narrow' }}</p>
    ```
 3. Customize thresholds and language by providing translations for `relativeTime` in each locale file if the defaults are insufficient.
 
 ### Checklist
 
-- Switching locale changes phrases like “just now” or “5 minutes ago” automatically.
-- Supplying the `{ future: true }` option flips the wording to “in 2 hours,” etc.
+- Switching locale changes phrases like "just now" or "5 minutes ago" automatically.
+- Past dates render as "X ago" and future dates render as "in X" automatically based on the date value.
 - Dates in the past or future render correctly without manual math.
 
 ## Reference material

@@ -392,7 +392,7 @@ Update `src/my-app.html`:
 
   <main class="app-main">
     <div class="sidebar">
-      <todo-form on-submit.call="addTodo($event)"></todo-form>
+      <todo-form on-submit.bind="(data) => addTodo(data)"></todo-form>
     </div>
 
     <div class="content">
@@ -437,8 +437,8 @@ Update `src/my-app.html`:
         <todo-item
           repeat.for="todo of filteredTodos; key: id"
           todo.bind="todo"
-          on-toggle.call="toggleTodo($event)"
-          on-delete.call="deleteTodo($event)">
+          on-toggle.bind="(todo) => toggleTodo(todo)"
+          on-delete.bind="(todo) => deleteTodo(todo)">
         </todo-item>
       </div>
     </div>
@@ -707,7 +707,7 @@ button:disabled {
 ## What You've Learned
 
 - **Component Composition** - Created reusable TodoForm and TodoItem components
-- **Component Communication** - Used `@bindable` and `.call` for parent-child communication
+- **Component Communication** - Used `@bindable` and callback functions for parent-child communication
 - **Dependency Injection** - Created and injected StorageService
 - **Computed Properties** - Implemented filtered lists and statistics
 - **List Rendering** - Used `repeat.for` with keys for efficient updates
@@ -730,6 +730,7 @@ Enhance your app with:
 
 - [Templates Overview](../templates/README.md)
 - [Component Basics](../components/components.md)
+- [Extended Tutorial](extended-tutorial/README.md)
 - [Dependency Injection](../essentials/dependency-injection.md)
 - [Form Handling](../templates/forms/README.md)
 - [List Rendering](../templates/repeats-and-list-rendering.md)

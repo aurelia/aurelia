@@ -249,7 +249,7 @@ export class AutoSave {
     this.element.addEventListener('blur', this.handleBlur);
   }
 
-  public detached(): void {
+  public detaching(): void {
     this.element.removeEventListener('input', this.handleInput);
     this.element.removeEventListener('blur', this.handleBlur);
     this.clearTimer();
@@ -336,7 +336,7 @@ export class SliderRange {
     this.updateElement();
   }
 
-  public detached(): void {
+  public detaching(): void {
     this.element.removeEventListener('input', this.handleInput);
     this.element.removeEventListener('change', this.handleChange);
   }
@@ -400,7 +400,7 @@ export class LazyLoad {
     this.setupIntersectionObserver();
   }
 
-  public detached(): void {
+  public detaching(): void {
     if (this.observer) {
       this.observer.disconnect();
       this.observer = undefined;
@@ -639,9 +639,9 @@ describe('MyController', () => {
 ## Best Practices
 
 ### 1. **Resource Management**
-Always clean up resources in `detached()`:
+Always clean up resources in `detaching()`:
 ```typescript
-public detached(): void {
+public detaching(): void {
   if (this.observer) {
     this.observer.disconnect();
   }

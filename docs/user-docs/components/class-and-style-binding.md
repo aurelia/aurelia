@@ -658,7 +658,13 @@ export class GoodComponent {
 ### "Shadow DOM is blocking my global styles!"
 
 **Problem**: Global CSS frameworks aren't working inside Shadow DOM components.
-**Solution**: Configure shared styles in your app startup.
+**Why**: Shadow DOM isolates styles; open/closed mode does not change CSS encapsulation.
+**Solutions**:
+- Use Light DOM for components that should inherit global framework styles
+- Register framework CSS as shared styles with `StyleConfiguration.shadowDOM({ sharedStyles: [...] })`
+- Use CSS variables or `::part` to expose safe customization points
+
+**Learn more**: [Shadow DOM guide](shadow-dom.md)
 
 ## Migration and Compatibility
 

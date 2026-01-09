@@ -621,23 +621,23 @@ START: I need to simulate...
 │  │      Example:
 │  │      const select = getBy('select');
 │  │      select.value = 'option2';
-│  │      trigger('select', new Event('change'));
+│  │      trigger.change('select');
 │  │      expect(component.selected).toBe('option2');
 │  │
 │  └─ Form submission?
-│     └─→ trigger('form', new Event('submit'))
+│     └─→ trigger('form', 'submit')
 │         Example:
-│         trigger('form', new Event('submit'));
+│         trigger('form', 'submit');
 │         expect(component.submitted).toBe(true);
 │
 ├─ Mouse events?
 │  │
-│  └─→ Use trigger with MouseEvent
+│  └─→ Use trigger.mousedown/mouseup/etc with init options
 │      Example:
-│      trigger('.draggable', new MouseEvent('mousedown', {
+│      trigger.mousedown('.draggable', {
 │        clientX: 100,
 │        clientY: 100
-│      }));
+│      });
 │
 ├─ Scroll events?
 │  │
@@ -662,7 +662,7 @@ START: I need to simulate...
        Example:
        const input = getBy('input');
        input.focus();
-       trigger('input', new Event('focus'));
+       trigger('input', 'focus');
        expect(component.focused).toBe(true);
 ```
 

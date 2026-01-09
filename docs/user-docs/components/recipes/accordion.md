@@ -308,17 +308,16 @@ describe('Accordion', () => {
       .started;
 
     const panel = getAllBy('.accordion-panel')[0];
-    const button = getAllBy('.accordion-panel__header')[0];
 
     // Initially closed
     expect(panel.classList.contains('accordion-panel--open')).toBe(false);
 
     // Click to open
-    trigger.click(button);
+    trigger.click('.accordion-panel__header');
     expect(panel.classList.contains('accordion-panel--open')).toBe(true);
 
     // Click to close
-    trigger.click(button);
+    trigger.click('.accordion-panel__header');
     expect(panel.classList.contains('accordion-panel--open')).toBe(false);
 
     await stop(true);
@@ -336,14 +335,12 @@ describe('Accordion', () => {
       .build()
       .started;
 
-    const buttons = getAllBy('.accordion-panel__header');
-
     // Open first panel
-    trigger.click(buttons[0]);
+    trigger.click('.accordion-panel:first-child .accordion-panel__header');
     expect(component.openPanels).toEqual([0]);
 
     // Open second panel
-    trigger.click(buttons[1]);
+    trigger.click('.accordion-panel:nth-child(2) .accordion-panel__header');
     expect(component.openPanels).toEqual([1]); // First closed, second open
 
     await stop(true);
@@ -361,14 +358,12 @@ describe('Accordion', () => {
       .build()
       .started;
 
-    const buttons = getAllBy('.accordion-panel__header');
-
     // Open first panel
-    trigger.click(buttons[0]);
+    trigger.click('.accordion-panel:first-child .accordion-panel__header');
     expect(component.openPanels).toEqual([0]);
 
     // Open second panel
-    trigger.click(buttons[1]);
+    trigger.click('.accordion-panel:nth-child(2) .accordion-panel__header');
     expect(component.openPanels).toEqual([0, 1]); // Both open
 
     await stop(true);

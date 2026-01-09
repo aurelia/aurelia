@@ -524,7 +524,7 @@ const { trigger, component } = fixture;
 let submitted = false;
 component.onSubmit = () => { submitted = true; };
 
-trigger('form', new Event('submit'));
+trigger('form', 'submit');
 expect(submitted).toBe(true);
 ```
 
@@ -710,7 +710,7 @@ const { component, getBy, trigger } = await createFixture
 
 const select = getBy('select') as HTMLSelectElement;
 select.value = '2';
-trigger('select', new Event('change'));
+trigger.change('select');
 
 expect(component.selected).toBe('2');
 ```

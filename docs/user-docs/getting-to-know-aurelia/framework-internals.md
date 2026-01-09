@@ -67,7 +67,7 @@ All bindings are added to the component's controller and activated during the bi
 - **`stylePropertyBinding`** - Style bindings (`.style`)
 
 ### Event Handling
-- **`listenerBinding`** - Event listeners (`.trigger`, `.delegate`, `.capture`)
+- **`listenerBinding`** - Event listeners (`.trigger`, `.capture`)
 
 ### Static Values  
 - **`setProperty`** - Static property values

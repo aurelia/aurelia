@@ -811,7 +811,8 @@ Lastly, the shared lifecycle hooks are invoked before the instance lifecycle hoo
 Here is a small snippet added to the `canLoad` or `loading` hook, demonstrating how to read query parameters. The `next` argument contains the `queryParams` which can be read directly:
 
 ```typescript
-import { lifecycleHooks, IRouteViewModel, RouteNode } from '@aurelia/router';
+import { lifecycleHooks } from '@aurelia/runtime-html';
+import { IRouteViewModel, RouteNode } from '@aurelia/router';
 
 @lifecycleHooks()
 export class QueryReadingHooks {

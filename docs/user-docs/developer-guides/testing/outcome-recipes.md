@@ -505,7 +505,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
      type('#email', 'invalid-email');
 
      // Trigger blur event
-     trigger('#email', new Event('blur'));
+     trigger('#email', 'blur');
      await tasksSettled();
 
      // Verify validation error appears
@@ -534,7 +534,7 @@ These recipes show how to test complex real-world scenarios in Aurelia applicati
 1. Test parent-child data binding:
    ```typescript
    import { createFixture } from '@aurelia/testing';
-   import { bindable } from '@aurelia/runtime';
+   import { bindable } from '@aurelia/runtime-html';
 
    describe('Component interactions', () => {
      it('should pass data from parent to child via bindable', async () => {

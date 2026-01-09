@@ -153,10 +153,10 @@ store.registerMiddleware(timestampMiddleware, 'after');
 ```typescript
 import { IStateMiddleware } from '@aurelia/state';
 
-// Async middleware that persists state to localStorage
-const persistMiddleware: IStateMiddleware<AppState> = async (state, action) => {
+// Middleware that persists state to localStorage
+const persistMiddleware: IStateMiddleware<AppState> = (state, action) => {
   try {
-    await localStorage.setItem('app-state', JSON.stringify(state));
+    localStorage.setItem('app-state', JSON.stringify(state));
   } catch (e) {
     console.error('Failed to persist state:', e);
   }

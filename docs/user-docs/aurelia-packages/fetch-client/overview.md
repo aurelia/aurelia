@@ -208,7 +208,7 @@ const formData = new FormData();
 formData.append('file', fileInput.files[0]);
 formData.append('description', 'Profile photo');
 
-await http.post('/upload', { body: formData });
+await http.post('/upload', formData);
 ```
 
 ## Integration with Aurelia DI

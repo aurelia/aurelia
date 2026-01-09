@@ -403,7 +403,7 @@ The example sets the `[title]` attribute of the `span`. A useful example would b
 The same syntax of attribute translation also translates `@bindable` properties of custom elements.
 
 ```typescript
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime-html';
 import template from './custom-message.html?raw';
 
 @customElement({ name: 'custom-message', template })
@@ -558,7 +558,7 @@ import { I18N } from '@aurelia/i18n';
 export class MyDemoVm {
   private status: string = 'dispatched';
 
-  constructor(private readonly i18n: I18N = resolve(I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const statusText = this.i18n.tr('status', { context: this.status });
   }
 }

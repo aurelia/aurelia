@@ -47,7 +47,7 @@ The fluent API syntax has following parts.
 1. Start applying ruleset on a target using `.on`. The target can be an object instance or class.
 2. Select a property from the target using `.ensure`.
 3. Associate rules with the property using `.required`, `.matches` etc.
-4. Customize the property rules using `.wthMessage`, `.when` etc.
+4. Customize the property rules using `.withMessage`, `.when` etc.
 
 ## Specify validation target using `.on`
 
@@ -74,7 +74,7 @@ Specifying the target serves two purposes. Firstly, this initiates an empty coll
 
 ## Specifying target property for validation using `.ensure`
 
-The `.ensure` method can be use used select a property of the target for validation. This adds an instance of `PropertyRule` to the ruleset for the object. The property can be defined using a string or an arrow function expression.
+The `.ensure` method can be used to select a property of the target for validation. This adds an instance of `PropertyRule` to the ruleset for the object. The property can be defined using a string or an arrow function expression.
 
 ```typescript
 validationRules
@@ -85,7 +85,7 @@ validationRules
   //...
   .ensure("address.line1")          // nested property using string literal
   //...
-  .ensure((p) => address.line2)     // nested property using an arrow function expression
+  .ensure((p) => p.address.line2)   // nested property using an arrow function expression
   //...
 ```
 
@@ -310,7 +310,7 @@ There are two ways custom rules can be defined.
 
     validationRules
       .on(person)
-      .ensure(name)
+      .ensure('name')
         .satisfiesRule(new NotTestName([ "John Doe", "Max Mustermann" ]));
     ```
 
@@ -354,7 +354,7 @@ Let us look at one last example before moving to next section. The following exa
 
   validationRules
     .on(person)
-    .ensure(age)
+    .ensure('age')
       .satisfiesRule(new IntegerRangeRule(true, { min:42, max: 84 })); // the age must between 42 and 84 (inclusive) and must be an integer.
 ```
 

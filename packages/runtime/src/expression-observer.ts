@@ -11,23 +11,10 @@ import { subscriberCollection } from './subscriber-collection';
 export interface ExpressionObserver extends IObserverLocatorBasedConnectable, ICollectionSubscriber { }
 export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISubscriber {
 
-  /** @internal */
-  private static _mixed: boolean = false;
-
-  public static create(
-    obj: object,
-    oL: IObserverLocator,
-    expression: IsBindingBehavior,
-    callback: (value: unknown, oldValue: unknown) => void
-  ) {
-    if (!this._mixed) {
-      connectable(ExpressionObserver, null!);
-      subscriberCollection(ExpressionObserver, null!);
-      mixinNoopAstEvaluator(ExpressionObserver);
-      this._mixed = true;
-    }
-
-    return new ExpressionObserver(Scope.create(obj), oL, expression, callback);
+  static {
+    connectable(ExpressionObserver, null!);
+    subscriberCollection(ExpressionObserver, null!);
+    mixinNoopAstEvaluator(ExpressionObserver);
   }
 
   public get type(): AccessorType {
@@ -54,12 +41,12 @@ export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISu
   private readonly _scope: Scope;
 
   public constructor(
-    scope: Scope,
+    obj: object,
     public oL: IObserverLocator,
     expression: IsBindingBehavior,
     callback: (value: unknown, oldValue: unknown) => void
   ) {
-    this._scope = scope;
+    this._scope = Scope.create(obj);
     this.ast = expression;
     this._callback = callback;
   }

@@ -117,12 +117,12 @@ export class ObserverLocator {
     obj: object,
     expression: string,
     callback: (newValue: unknown, oldValue: unknown) => void = noop
-  ): ExpressionObserver {
+  ): IObserver {
     if (this._expressionParser == null) {
-      throw new Error('No available parser');
+      throw createMappedError(ErrorNames.observing_expression_no_parser, expression);
     }
 
-    return ExpressionObserver.create(
+    return new ExpressionObserver(
       obj,
       this,
       this._expressionParser.parse(expression, 'IsProperty'),

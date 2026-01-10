@@ -3,7 +3,6 @@ import { atObserver, createIndexMap } from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
 import { rtDefineHiddenProp } from './utilities';
 
-import { type IIndexable } from '@aurelia/kernel';
 import type {
   AccessorType,
   ICollectionObserver,
@@ -14,11 +13,7 @@ import { addCollectionBatch, batching } from './subscriber-batch';
 export interface MapObserver extends ICollectionObserver<'map'>, ICollectionSubscriberCollection { }
 
 export const getMapObserver = /*@__PURE__*/ (() => {
-  // multiple applications of Aurelia wouldn't have different observers for the same Map object
-  const lookupMetadataKey = Symbol.for('__au_map_obs__');
-  const observerLookup = ((Map as IIndexable<typeof Map>)[lookupMetadataKey]
-    ?? rtDefineHiddenProp(Map, lookupMetadataKey, new WeakMap())
-  ) as WeakMap<Map<unknown, unknown>, MapObserverImpl>;
+  const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserverImpl>();
 
   const { set: $set, clear: $clear, delete: $delete } = Map.prototype;
   const methods = ['set', 'clear', 'delete'] as const;

@@ -1,4 +1,4 @@
-import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, optional, noop } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, optional } from '@aurelia/kernel';
 import { ArrayObserver, getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -116,7 +116,6 @@ export class ObserverLocator {
   public getExpressionObserver(
     obj: object,
     expression: string,
-    callback: (newValue: unknown, oldValue: unknown) => void = noop
   ): IObserver {
     if (this._expressionParser == null) {
       throw createMappedError(ErrorNames.observing_expression_no_parser, expression);
@@ -126,7 +125,6 @@ export class ObserverLocator {
       obj,
       this,
       this._expressionParser.parse(expression, 'IsProperty'),
-      callback
     );
   }
 

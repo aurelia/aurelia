@@ -35,7 +35,7 @@ export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISu
   private readonly ast: IsBindingBehavior;
 
   /** @internal */
-  private _callback: (value: unknown, oldValue: unknown) => void;
+  private _callback?: (value: unknown, oldValue: unknown) => void;
 
   /** @internal */
   private readonly _scope: Scope;
@@ -44,11 +44,11 @@ export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISu
     obj: object,
     public oL: IObserverLocator,
     expression: IsBindingBehavior,
-    callback: (value: unknown, oldValue: unknown) => void
+    // callback: (value: unknown, oldValue: unknown) => void
   ) {
     this._scope = Scope.create(obj);
     this.ast = expression;
-    this._callback = callback;
+    // this._callback = callback;
   }
 
   public getValue(): unknown {
@@ -80,7 +80,7 @@ export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISu
     if (!areEqual(value, oldValue)) {
       this._value = value;
       this.subs.notify(value, oldValue);
-      this._callback.call(void 0, value, oldValue);
+      this._callback?.call(void 0, value, oldValue);
     }
   }
 

@@ -121,21 +121,29 @@ export class Observation implements IObservation {
         // throw or ignore?
       }
     };
-    const observer = this.oL.getExpressionObserver(obj, expression, handleChange);
+    const observer = this.oL.getExpressionObserver(obj, expression);
+    const dummySubscriber: ISubscriber = {
+      handleChange
+    };
+    observer.subscribe(dummySubscriber);
+
+    const initialValue = observer.getValue();
+
     const run = () => {
       if (running) return;
       running = true;
-      observer.run();
+
+      observer.subscribe(dummySubscriber);
     };
     const stop = () => {
       if (!running) return;
       running = false;
-      observer.stop();
+      observer.unsubscribe(dummySubscriber);
       cleanupTask?.();
       cleanupTask = void 0;
     };
     if (options?.immediate !== false) {
-      run();
+      handleChange(initialValue, undefined);
     }
     return { run, stop };
   }

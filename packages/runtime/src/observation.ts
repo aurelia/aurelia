@@ -61,8 +61,8 @@ export class Observation implements IObservation {
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
   ): IEffect;
-  public watch<T extends object, R>(
-    obj: T,
+  public watch<R>(
+    obj: object,
     expression: string,
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,

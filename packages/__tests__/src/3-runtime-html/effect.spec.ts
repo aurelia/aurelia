@@ -415,7 +415,18 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
       });
 
-      it('does not run immediately', async function () {
+      it('runs immediately when initial value is undefined', async function () {
+        let v: number | undefined = undefined;
+        let count = 0;
+        observation.watchExpression<number | undefined>({}, 'a', vv => {
+          v = vv;
+          count++;
+        });
+        assert.strictEqual(v, void 0);
+        assert.strictEqual(count, 1);
+      });
+
+      it('does not run immediately when immediate is false', async function () {
         let v = 0;
         const { run } = observation.watchExpression<number>({ a: 1 }, 'a', vv => v = vv, { immediate: false });
         assert.strictEqual(v, 0);

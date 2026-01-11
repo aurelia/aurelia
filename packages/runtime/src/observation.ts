@@ -1,5 +1,4 @@
 import { isFunction, resolve } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
 import { connectable, IObserverLocatorBasedConnectable, type IObserverRecord } from './connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
@@ -49,9 +48,6 @@ export class Observation implements IObservation {
   /** @internal */
   private readonly oL = resolve(IObserverLocator);
 
-  /** @internal */
-  private readonly _parser = resolve(IExpressionParser);
-
   public run(fn: EffectRunFunc): IEffect {
     const effect = new RunEffect(this.oL, fn);
     // todo: batch effect run after it's in
@@ -80,7 +76,7 @@ export class Observation implements IObservation {
         // throw or ignore?
       }
     };
-    const handler = {
+    const handler: ISubscriber = {
       handleChange
     };
     const run = () => {
@@ -109,12 +105,14 @@ export class Observation implements IObservation {
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions
   ): IEffect {
+    // eslint-disable-next-line no-undef-init
+    let $oldValue: R | undefined = undefined;
     let running = false;
     let cleanupTask: (() => void) | undefined;
     const handleChange = (newValue: unknown, oldValue: unknown) => {
       cleanupTask?.();
       cleanupTask = void 0;
-      const result = callback(newValue as R, oldValue as R);
+      const result = callback(newValue as R, $oldValue = oldValue as R);
       if (isFunction(result)) {
         cleanupTask =  result as NonNullable<typeof cleanupTask>;
       } else {
@@ -122,28 +120,28 @@ export class Observation implements IObservation {
       }
     };
     const observer = this.oL.getExpressionObserver(obj, expression);
-    const dummySubscriber: ISubscriber = {
+    const handler: ISubscriber = {
       handleChange
     };
-    observer.subscribe(dummySubscriber);
-
-    const initialValue = observer.getValue();
+    observer.subscribe(handler);
 
     const run = () => {
       if (running) return;
       running = true;
 
-      observer.subscribe(dummySubscriber);
+      observer.subscribe(handler);
+      handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
       if (!running) return;
       running = false;
-      observer.unsubscribe(dummySubscriber);
+      observer.unsubscribe(handler);
       cleanupTask?.();
       cleanupTask = void 0;
     };
+
     if (options?.immediate !== false) {
-      handleChange(initialValue, undefined);
+      run();
     }
     return { run, stop };
   }

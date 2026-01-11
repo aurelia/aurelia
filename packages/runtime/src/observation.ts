@@ -14,23 +14,23 @@ export interface IObservation {
    */
   run(fn: EffectRunFunc): IEffect;
   /**
+   * Run a expression based observer and call the callback whenever the value has changed
+   *
+   * Use options.immediate to indicate whether the callback should be called immediately on init
+   */
+  watch<R>(
+    obj: object,
+    expression: string,
+    callback: (value: R, oldValue: R | undefined) => unknown,
+    options?: IWatchOptions,
+  ): IEffect;
+  /**
    * Run a getter based on the given object as its first parameter and track the dependencies via this getter,
    * to call the callback whenever the value has changed
    */
   watch<T extends object, R>(
     obj: T,
     getter: (obj: T, watcher: IConnectable) => R,
-    callback: (value: R, oldValue: R | undefined) => unknown,
-    options?: IWatchOptions,
-  ): IEffect;
-  /**
-   * Run a expression based observer and call the callback whenever the value has changed
-   *
-   * Use options.immediate to indicate whether the callback should be called immediately on init
-   */
-  watchExpression<R>(
-    obj: object,
-    expression: string,
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
   ): IEffect;
@@ -60,17 +60,20 @@ export class Observation implements IObservation {
     getter: (obj: T, watcher: IConnectable) => R,
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
-  ): IEffect {
-    return this._doWatch<T, R>(obj, getter, callback, options);
-  }
-
-  public watchExpression<R>(
-    obj: object,
+  ): IEffect;
+  public watch<T extends object, R>(
+    obj: T,
     expression: string,
     callback: (value: R, oldValue: R | undefined) => unknown,
-    options?: IWatchOptions
+    options?: IWatchOptions,
+  ): IEffect;
+  public watch<T extends object, R>(
+    obj: T,
+    getterOrExpression: string | ((obj: T, watcher: IConnectable) => R),
+    callback: (value: R, oldValue: R | undefined) => unknown,
+    options?: IWatchOptions,
   ): IEffect {
-    return this._doWatch<object, R>(obj, expression, callback, options);
+    return this._doWatch<T, R>(obj, getterOrExpression, callback, options);
   }
 
   /** @internal */
@@ -123,7 +126,7 @@ export class Observation implements IObservation {
 function testObservationWatch(a: IObservation) {
   a.watch({ b: 5 }, o => o.b + 1, v => v.toFixed());
   a.watch({ b: { c: '' } }, o => o.b.c === '', v => v);
-  a.watchExpression<number>({ b: { c: { d: 5 }} }, 'b.c.d', v => v.toFixed());
+  a.watch<number>({ b: { c: { d: 5 }} }, 'b.c.d', v => v.toFixed());
 }
 
 export type EffectCleanupFunc = () => void;

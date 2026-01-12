@@ -11,23 +11,10 @@ import { subscriberCollection } from './subscriber-collection';
 export interface ExpressionObserver extends IObserverLocatorBasedConnectable, ICollectionSubscriber { }
 export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISubscriber {
 
-  /** @internal */
-  private static _mixed: boolean = false;
-
-  public static create(
-    obj: object,
-    oL: IObserverLocator,
-    expression: IsBindingBehavior,
-    callback: (value: unknown, oldValue: unknown) => void
-  ) {
-    if (!this._mixed) {
-      connectable(ExpressionObserver, null!);
-      subscriberCollection(ExpressionObserver, null!);
-      mixinNoopAstEvaluator(ExpressionObserver);
-      this._mixed = true;
-    }
-
-    return new ExpressionObserver(Scope.create(obj), oL, expression, callback);
+  static {
+    connectable(ExpressionObserver, null!);
+    subscriberCollection(ExpressionObserver, null!);
+    mixinNoopAstEvaluator(ExpressionObserver);
   }
 
   public get type(): AccessorType {
@@ -48,20 +35,20 @@ export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISu
   private readonly ast: IsBindingBehavior;
 
   /** @internal */
-  private _callback: (value: unknown, oldValue: unknown) => void;
+  private _callback?: (value: unknown, oldValue: unknown) => void;
 
   /** @internal */
   private readonly _scope: Scope;
 
   public constructor(
-    scope: Scope,
+    obj: object,
     public oL: IObserverLocator,
     expression: IsBindingBehavior,
-    callback: (value: unknown, oldValue: unknown) => void
+    // callback: (value: unknown, oldValue: unknown) => void
   ) {
-    this._scope = scope;
+    this._scope = Scope.create(obj);
     this.ast = expression;
-    this._callback = callback;
+    // this._callback = callback;
   }
 
   public getValue(): unknown {
@@ -93,7 +80,7 @@ export class ExpressionObserver implements IObserverLocatorBasedConnectable, ISu
     if (!areEqual(value, oldValue)) {
       this._value = value;
       this.subs.notify(value, oldValue);
-      this._callback.call(void 0, value, oldValue);
+      this._callback?.call(void 0, value, oldValue);
     }
   }
 

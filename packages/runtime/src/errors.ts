@@ -86,6 +86,7 @@ export const enum ErrorNames {
   parse_no_arrow_fn_body = 178,
   parse_unexpected_double_dot = 179,
   observing_null_undefined = 199,
+  observing_expression_no_parser = 200,
 }
 _END_CONST_ENUM();
 
@@ -137,6 +138,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.parse_unexpected_double_dot]: `Expression error: unexpected token '.' at position "{{1}}" in "{{0}}"`,
 
   [ErrorNames.observing_null_undefined]: `Trying to observe property {{0}} on null/undefined`,
+  [ErrorNames.observing_expression_no_parser]: `Trying to observe expression "{{0}}" but there is no expression parser available`,
   [ErrorNames.null_scope]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
   [ErrorNames.create_scope_with_null_context]: 'Trying to create a scope with null/undefined binding context',
 

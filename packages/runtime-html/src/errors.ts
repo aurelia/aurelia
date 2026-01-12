@@ -65,6 +65,7 @@ export const enum ErrorNames {
   node_observer_strategy_not_found = 652,
   node_observer_mapping_existed = 653,
   select_observer_array_on_non_multi_select = 654,
+  watcher_infinite_loop = 655,
 
   compiler_attr_mapper_duplicate_mapping = 719,
   root_not_found = 767,
@@ -204,7 +205,8 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.node_observer_strategy_not_found]: `Aurelia is unable to observe property {{0}}. Register observation mapping with .useConfig().`,
   [ErrorNames.node_observer_mapping_existed]: `Mapping for property {{0}} of <{{1}} /> already exists`,
-  [ErrorNames.select_observer_array_on_non_multi_select]: `Array values can only be bound to a multi-select.`,
+  [ErrorNames.select_observer_array_on_non_multi_select]: `Array values can only be bound to a multi-select`,
+  [ErrorNames.watcher_infinite_loop]: `Possible infinitely recursive side-effect detected in a watcher`,
 
   [ErrorNames.compiler_attr_mapper_duplicate_mapping]: `Attribute {{0}} has been already registered for {{1:element}}`,
 

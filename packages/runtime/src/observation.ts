@@ -1,5 +1,4 @@
-import { isFunction, resolve } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { isFunction, isString, resolve } from '@aurelia/kernel';
 import { connectable, IObserverLocatorBasedConnectable, type IObserverRecord } from './connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
@@ -15,23 +14,23 @@ export interface IObservation {
    */
   run(fn: EffectRunFunc): IEffect;
   /**
-   * Run a getter based on the given object as its first parameter and track the dependencies via this getter,
-   * to call the callback whenever the value has changed
-   */
-  watch<T, R>(
-    obj: T,
-    getter: (obj: T, watcher: IConnectable) => R,
-    callback: (value: R, oldValue: R | undefined) => unknown,
-    options?: IWatchOptions,
-  ): IEffect;
-  /**
    * Run a expression based observer and call the callback whenever the value has changed
    *
    * Use options.immediate to indicate whether the callback should be called immediately on init
    */
-  watchExpression<R>(
+  watch<R>(
     obj: object,
     expression: string,
+    callback: (value: R, oldValue: R | undefined) => unknown,
+    options?: IWatchOptions,
+  ): IEffect;
+  /**
+   * Run a getter based on the given object as its first parameter and track the dependencies via this getter,
+   * to call the callback whenever the value has changed
+   */
+  watch<T extends object, R>(
+    obj: T,
+    getter: (obj: T, watcher: IConnectable) => R,
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
   ): IEffect;
@@ -49,9 +48,6 @@ export class Observation implements IObservation {
   /** @internal */
   private readonly oL = resolve(IObserverLocator);
 
-  /** @internal */
-  private readonly _parser = resolve(IExpressionParser);
-
   public run(fn: EffectRunFunc): IEffect {
     const effect = new RunEffect(this.oL, fn);
     // todo: batch effect run after it's in
@@ -59,35 +55,57 @@ export class Observation implements IObservation {
     return effect;
   }
 
-  public watch<T, R>(
+  public watch<T extends object, R>(
     obj: T,
     getter: (obj: T, watcher: IConnectable) => R,
     callback: (value: R, oldValue: R | undefined) => unknown,
     options?: IWatchOptions,
+  ): IEffect;
+  public watch<R>(
+    obj: object,
+    expression: string,
+    callback: (value: R, oldValue: R | undefined) => unknown,
+    options?: IWatchOptions,
+  ): IEffect;
+  public watch<T extends object, R>(
+    obj: T,
+    getterOrExpression: string | ((obj: T, watcher: IConnectable) => R),
+    callback: (value: R, oldValue: R | undefined) => unknown,
+    options?: IWatchOptions,
+  ): IEffect {
+    return this._doWatch<T, R>(obj, getterOrExpression, callback, options);
+  }
+
+  /** @internal */
+  private _doWatch<T extends object, R>(
+    obj: T,
+    expressionOrGetter: string | ((obj: T, watcher: IConnectable) => R),
+    callback: (value: R, oldValue: R | undefined) => unknown,
+    options?: IWatchOptions
   ): IEffect {
     // eslint-disable-next-line no-undef-init
     let $oldValue: R | undefined = undefined;
     let running = false;
     let cleanupTask: (() => void) | undefined;
-    const observer = this.oL.getObserver(obj, getter);
-    const handleChange = (newValue: R, oldValue: R) => {
+    const handleChange = (newValue: unknown, oldValue: unknown) => {
       cleanupTask?.();
       cleanupTask = void 0;
-      const result = callback(newValue, $oldValue = oldValue);
+      const result = callback(newValue as R, $oldValue = oldValue as R);
       if (isFunction(result)) {
         cleanupTask =  result as NonNullable<typeof cleanupTask>;
       } else {
         // throw or ignore?
       }
     };
-    const handler = {
+    const observer = isString(expressionOrGetter) ? this.oL.getExpressionObserver(obj, expressionOrGetter) : this.oL.getObserver(obj, expressionOrGetter);
+    const handler: ISubscriber = {
       handleChange
     };
     const run = () => {
       if (running) return;
       running = true;
       observer.subscribe(handler);
-      handleChange(observer.getValue(), $oldValue as R);
+      handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
       if (!running) return;
@@ -102,50 +120,13 @@ export class Observation implements IObservation {
     }
     return { run, stop };
   }
-
-  public watchExpression<R>(
-    obj: object,
-    expression: string,
-    callback: (value: R, oldValue: R | undefined) => unknown,
-    options?: IWatchOptions
-  ): IEffect {
-    let running = false;
-    let cleanupTask: (() => void) | undefined;
-    const handleChange = (newValue: unknown, oldValue: unknown) => {
-      cleanupTask?.();
-      cleanupTask = void 0;
-      const result = callback(newValue as R, oldValue as R);
-      if (isFunction(result)) {
-        cleanupTask =  result as NonNullable<typeof cleanupTask>;
-      } else {
-        // throw or ignore?
-      }
-    };
-    const observer = this.oL.getExpressionObserver(obj, expression, handleChange);
-    const run = () => {
-      if (running) return;
-      running = true;
-      observer.run();
-    };
-    const stop = () => {
-      if (!running) return;
-      running = false;
-      observer.stop();
-      cleanupTask?.();
-      cleanupTask = void 0;
-    };
-    if (options?.immediate !== false) {
-      run();
-    }
-    return { run, stop };
-  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testObservationWatch(a: IObservation) {
   a.watch({ b: 5 }, o => o.b + 1, v => v.toFixed());
   a.watch({ b: { c: '' } }, o => o.b.c === '', v => v);
-  a.watchExpression<number>({ b: { c: { d: 5 }} }, 'b.c.d', v => v.toFixed());
+  a.watch<number>({ b: { c: { d: 5 }} }, 'b.c.d', v => v.toFixed());
 }
 
 export type EffectCleanupFunc = () => void;

@@ -43,6 +43,11 @@ jobs:
 
       - run: npm ci
 
+      # Safety check: verify internal dependencies are consistent
+      # This catches manual version changes that bypassed changesets
+      - name: Verify internal dependency consistency
+        run: node scripts/check-internal-deps.cjs
+
       - name: Decide lane
         id: decide
         shell: bash

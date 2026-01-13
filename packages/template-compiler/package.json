@@ -56,9 +56,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "2.0.0-beta.27",
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/expression-parser": "2.0.0-beta.27"
+    "@aurelia/metadata": "2.0.0",
+    "@aurelia/kernel": "2.0.0",
+    "@aurelia/expression-parser": "2.0.0"
   },
   "devDependencies": {
     "typescript": "5.9.2"

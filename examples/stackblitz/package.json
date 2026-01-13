@@ -8,16 +8,16 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "aurelia": "latest",
-    "@aurelia/router": "latest"
+    "aurelia": "2.0.0",
+    "@aurelia/router": "2.0.0"
   },
   "devDependencies": {
     "eslint": "^9.17.0",
     "globals": "^15.14.0",
-    "@aurelia/testing": "latest",
+    "@aurelia/testing": "2.0.0",
     "stylelint": "^16.12.0",
     "stylelint-config-standard": "^36.0.1",
-    "@aurelia/vite-plugin": "latest",
+    "@aurelia/vite-plugin": "2.0.0",
     "vite": "^6.0.3",
     "vite-plugin-node-polyfills": "^0.22.0",
     "vitest": "^2.1.8",

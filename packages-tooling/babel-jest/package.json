@@ -45,11 +45,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/metadata": "2.0.0-beta.27",
-    "@aurelia/platform": "2.0.0-beta.27",
-    "@aurelia/plugin-conventions": "2.0.0-beta.27",
-    "@aurelia/runtime": "2.0.0-beta.27",
+    "@aurelia/kernel": "2.0.0",
+    "@aurelia/metadata": "2.0.0",
+    "@aurelia/platform": "2.0.0",
+    "@aurelia/plugin-conventions": "2.0.0",
+    "@aurelia/runtime": "2.0.0",
     "@babel/core": "^7.18.2",
     "babel-jest": "^29.7.0"
   },

@@ -35,7 +35,7 @@
     "aurelia",
     "router"
   ],
-    "files": [
+  "files": [
     "dist",
     "src/**/*.ts",
     "README.md",
@@ -58,13 +58,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.28",
-    "@aurelia/metadata": "2.0.0-alpha.28",
-    "@aurelia/platform": "2.0.0-alpha.28",
-    "@aurelia/platform-browser": "2.0.0-alpha.28",
-    "@aurelia/route-recognizer": "2.0.0-alpha.28",
-    "@aurelia/runtime": "2.0.0-alpha.28",
-    "@aurelia/runtime-html": "2.0.0-alpha.28"
+    "@aurelia/kernel": "2.0.0",
+    "@aurelia/metadata": "2.0.0",
+    "@aurelia/platform": "2.0.0",
+    "@aurelia/platform-browser": "2.0.0",
+    "@aurelia/route-recognizer": "2.0.0",
+    "@aurelia/runtime": "2.0.0",
+    "@aurelia/runtime-html": "2.0.0"
   },
   "devDependencies": {
     "typescript": "5.9.2"

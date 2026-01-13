@@ -56,10 +56,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/metadata": "2.0.0-beta.27",
-    "@aurelia/platform": "2.0.0-beta.27",
-    "@aurelia/runtime-html": "2.0.0-beta.27",
+    "@aurelia/kernel": "2.0.0",
+    "@aurelia/metadata": "2.0.0",
+    "@aurelia/platform": "2.0.0",
+    "@aurelia/runtime-html": "2.0.0",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

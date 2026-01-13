@@ -58,14 +58,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/metadata": "2.0.0-beta.27",
-    "@aurelia/platform": "2.0.0-beta.27",
-    "@aurelia/platform-browser": "2.0.0-beta.27",
-    "@aurelia/expression-parser": "2.0.0-beta.27",
-    "@aurelia/runtime": "2.0.0-beta.27",
-    "@aurelia/runtime-html": "2.0.0-beta.27",
-    "@aurelia/validation": "2.0.0-beta.27"
+    "@aurelia/kernel": "2.0.0",
+    "@aurelia/metadata": "2.0.0",
+    "@aurelia/platform": "2.0.0",
+    "@aurelia/platform-browser": "2.0.0",
+    "@aurelia/expression-parser": "2.0.0",
+    "@aurelia/runtime": "2.0.0",
+    "@aurelia/runtime-html": "2.0.0",
+    "@aurelia/validation": "2.0.0"
   },
   "devDependencies": {
     "typescript": "5.9.2"

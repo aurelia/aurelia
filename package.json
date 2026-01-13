@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.26",
+  "version": "2.0.0-beta.27",
   "packageManager": "npm@10.9.0",
   "workspaces": [
     "packages/kernel",
@@ -79,7 +79,7 @@
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "changeset": "changeset",
     "changeset:version": "changeset version",
-    "postchangeset:version": "git tag -a v$(node -p \"require('package.json').version\") -m \"v$(node -p \"require('package.json').version\")\"",
+    "postchangeset:version": "npm pkg set version=$(node -p \"require('./packages/aurelia/package.json').version\") && git tag -a v$(node -p \"require('./packages/aurelia/package.json').version\") -m \"v$(node -p \"require('./packages/aurelia/package.json').version\")\"",
     "changeset:publish": "changeset publish --no-git-tag",
     "changeset:pre:enter": "changeset pre enter dev",
     "changeset:pre:exit": "changeset pre exit",

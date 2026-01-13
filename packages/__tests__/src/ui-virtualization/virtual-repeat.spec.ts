@@ -441,6 +441,59 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
   });
 
+  describe('GH #2350 - attached lifecycle', function () {
+    it('calls attached only once when items are assigned in attached hook', async function () {
+      let attachedCallCount = 0;
+
+      const { tearDown } = createFixture(
+        createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
+        class App {
+          items: { idx: number; name: string }[] | undefined;
+
+          attached() {
+            attachedCallCount++;
+            this.items = createItems(10);
+          }
+        },
+        virtualRepeatDeps
+      );
+
+      // Allow time for virtual-repeat to process items
+      await tasksSettled();
+      await new Promise(r => setTimeout(r, 50));
+
+      assert.strictEqual(attachedCallCount, 1, 'attached() should only be called once');
+
+      await tearDown();
+    });
+
+    it('calls attached only once when items are assigned in async attached hook', async function () {
+      let attachedCallCount = 0;
+
+      const { tearDown } = createFixture(
+        createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
+        class App {
+          items: { idx: number; name: string }[] | undefined;
+
+          async attached() {
+            attachedCallCount++;
+            await Promise.resolve();
+            this.items = createItems(10);
+          }
+        },
+        virtualRepeatDeps
+      );
+
+      // Allow time for async attached and virtual-repeat to process items
+      await tasksSettled();
+      await new Promise(r => setTimeout(r, 50));
+
+      assert.strictEqual(attachedCallCount, 1, 'attached() should only be called once even with async assignment');
+
+      await tearDown();
+    });
+  });
+
   function createScrollerTemplate(content: string, styles?: { height?: number | string; padding?: number | string; border?: number | string; boxSizing?: string }) {
     let {
       height = 600,

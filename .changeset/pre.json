@@ -62,5 +62,16 @@
     "@aurelia/validation-i18n": "2.0.0",
     "@aurelia/web-components": "2.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "cross-realm-safe-types",
+    "factory-resolver-fix",
+    "fast-pens-dance",
+    "fix-virtual-repeat-attached-calls",
+    "humble-friends-roll",
+    "move-primary-to-default-property",
+    "remove-ca-default-binding-mode",
+    "silver-clouds-swim",
+    "ssr-hydration-fixes",
+    "strong-zoos-cover"
+  ]
 }

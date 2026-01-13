@@ -18,12 +18,12 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "aurelia": "2.0.0",
-    "@aurelia/router": "2.0.0",
-    "@aurelia/router-direct": "2.0.0"
+    "aurelia": "2.1.0-rc.0",
+    "@aurelia/router": "2.1.0-rc.0",
+    "@aurelia/router-direct": "2.1.0-rc.0"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.0.0",
+    "@aurelia/webpack-loader": "2.1.0-rc.0",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "array-flatten": "^3.0.0",

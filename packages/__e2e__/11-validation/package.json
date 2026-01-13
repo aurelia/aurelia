@@ -27,8 +27,8 @@
     "@types/node": "^20.16.10",
     "@playwright/test": "1.39.0",
     "playwright-watch": "1.3.23",
-    "aurelia": "2.0.0",
-    "@aurelia/validation": "2.0.0",
-    "@aurelia/validation-html": "2.0.0"
+    "aurelia": "2.1.0-rc.0",
+    "@aurelia/validation": "2.1.0-rc.0",
+    "@aurelia/validation-html": "2.1.0-rc.0"
   }
 }

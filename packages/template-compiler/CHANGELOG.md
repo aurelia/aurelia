@@ -1,5 +1,114 @@
 # Change Log
 
+## 2.0.0-rc.28
+
+### Minor Changes
+
+- [#2344](https://github.com/aurelia/aurelia/pull/2344) [`c803ffe`](https://github.com/aurelia/aurelia/commit/c803ffe7fd03835cbb79925ecb6237b8fdd3156b) Thanks [@fkleuver](https://github.com/fkleuver)! - **BREAKING CHANGE:** Replace `primary` on bindable definitions with `defaultProperty` on custom attribute definitions.
+
+  **Before (no longer supported):**
+
+  ```typescript
+  @customAttribute("tooltip")
+  export class TooltipAttribute {
+    @bindable({ primary: true }) message: string;
+    @bindable position: string;
+  }
+  ```
+
+  **After:**
+
+  ```typescript
+  @customAttribute({ name: "tooltip", defaultProperty: "message" })
+  export class TooltipAttribute {
+    @bindable message: string;
+    @bindable position: string;
+  }
+  ```
+
+  If `defaultProperty` is not specified, it defaults to `'value'`.
+
+  ### Migration
+
+  For custom attributes that used `@bindable({ primary: true })`:
+
+  1. Remove `primary: true` from the `@bindable` decorator
+  2. Add `defaultProperty: 'propertyName'` to the `@customAttribute` decorator
+
+  For attributes using `CustomAttribute.define()`:
+
+  ```typescript
+  // Before
+  CustomAttribute.define(
+    {
+      name: "my-attr",
+      bindables: { prop: { primary: true } },
+    },
+    MyAttr
+  );
+
+  // After
+  CustomAttribute.define(
+    {
+      name: "my-attr",
+      defaultProperty: "prop",
+      bindables: { prop: {} },
+    },
+    MyAttr
+  );
+  ```
+
+- [#2341](https://github.com/aurelia/aurelia/pull/2341) [`bf5fb63`](https://github.com/aurelia/aurelia/commit/bf5fb6320c0f0dcdca3da6ab217d922ce538460b) Thanks [@fkleuver](https://github.com/fkleuver)! - **BREAKING CHANGE:** Remove `defaultBindingMode` from custom attribute definitions.
+
+  This property was originally designed in Aurelia 1 to set the binding mode for the implicit `value` property of single-bindable custom attributes. In Aurelia 2, its behavior was unintentionally expanded to apply to all bindables on a custom attribute, which was never the intended design.
+
+  To configure binding modes, use the `mode` option on individual `@bindable` decorators instead:
+
+  ```typescript
+  // Before (no longer supported)
+  @customAttribute({
+    name: "my-attr",
+    defaultBindingMode: BindingMode.twoWay,
+    bindables: ["value1", "value2"],
+  })
+  export class MyAttr {}
+
+  // After
+  @customAttribute({ name: "my-attr" })
+  export class MyAttr {
+    @bindable({ mode: BindingMode.twoWay }) value1: string;
+    @bindable({ mode: BindingMode.twoWay }) value2: string;
+  }
+  ```
+
+  For custom attributes without explicit bindables (using the implicit `value` property), declare the `value` bindable explicitly if you need a non-default binding mode:
+
+  ```typescript
+  // Before
+  @customAttribute({
+    name: "my-attr",
+    defaultBindingMode: BindingMode.twoWay,
+  })
+  export class MyAttr {
+    value: string; // implicit bindable with twoWay mode
+  }
+
+  // After
+  @customAttribute({ name: "my-attr" })
+  export class MyAttr {
+    @bindable({ mode: BindingMode.twoWay }) value: string;
+  }
+  ```
+
+- [#2311](https://github.com/aurelia/aurelia/pull/2311) [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4) Thanks [@fkleuver](https://github.com/fkleuver)! - Add SSR hydration support with manifest-based marker insertion for template controllers and hydration target elements.
+
+### Patch Changes
+
+- Updated dependencies [[`5c309d6`](https://github.com/aurelia/aurelia/commit/5c309d61493f1bb921323edf17aa56a5bc249fa5), [`2f95135`](https://github.com/aurelia/aurelia/commit/2f951351abea4eba9a1178e139905ef00c63642e)]:
+  - @aurelia/kernel@2.0.0-rc.28
+  - @aurelia/expression-parser@2.0.0-rc.28
+  - @aurelia/metadata@2.0.0-rc.28
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

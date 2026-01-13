@@ -1,5 +1,16 @@
 # Change Log
 
+## 2.0.0-rc.28
+
+### Patch Changes
+
+- Updated dependencies [[`5c309d6`](https://github.com/aurelia/aurelia/commit/5c309d61493f1bb921323edf17aa56a5bc249fa5), [`2f95135`](https://github.com/aurelia/aurelia/commit/2f951351abea4eba9a1178e139905ef00c63642e), [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4), [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4), [`c803ffe`](https://github.com/aurelia/aurelia/commit/c803ffe7fd03835cbb79925ecb6237b8fdd3156b), [`bf5fb63`](https://github.com/aurelia/aurelia/commit/bf5fb6320c0f0dcdca3da6ab217d922ce538460b), [`7185ddb`](https://github.com/aurelia/aurelia/commit/7185ddb9252d1766f4b8a6feb08fd43b2e3105e2)]:
+  - @aurelia/kernel@2.0.0-rc.28
+  - @aurelia/runtime-html@2.0.0-rc.28
+  - @aurelia/runtime@2.0.0-rc.28
+  - @aurelia/metadata@2.0.0-rc.28
+  - @aurelia/platform-browser@2.0.0-rc.28
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

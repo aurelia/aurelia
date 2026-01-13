@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/fetch-client",
-  "version": "2.0.0-beta.27",
+  "version": "2.0.0-rc.28",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -57,8 +57,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/metadata": "2.0.0-beta.27"
+    "@aurelia/kernel": "2.0.0-rc.28",
+    "@aurelia/metadata": "2.0.0-rc.28"
   },
   "devDependencies": {
     "typescript": "5.9.2"

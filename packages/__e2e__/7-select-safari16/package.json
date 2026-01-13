@@ -19,14 +19,14 @@
     "test:debugger": "cross-env PWDEBUG=1 npx playwright test"
   },
   "dependencies": {
-    "aurelia": "2.0.0-beta.27",
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/metadata": "2.0.0-beta.27",
-    "@aurelia/platform": "2.0.0-beta.27",
-    "@aurelia/platform-browser": "2.0.0-beta.27",
-    "@aurelia/runtime": "2.0.0-beta.27",
-    "@aurelia/runtime-html": "2.0.0-beta.27",
-    "@aurelia/router-direct": "2.0.0-beta.27"
+    "aurelia": "2.0.0-rc.28",
+    "@aurelia/kernel": "2.0.0-rc.28",
+    "@aurelia/metadata": "2.0.0-rc.28",
+    "@aurelia/platform": "2.0.0-rc.28",
+    "@aurelia/platform-browser": "2.0.0-rc.28",
+    "@aurelia/runtime": "2.0.0-rc.28",
+    "@aurelia/runtime-html": "2.0.0-rc.28",
+    "@aurelia/router-direct": "2.0.0-rc.28"
   },
   "devDependencies": {
     "@playwright/test": "1.39.0",

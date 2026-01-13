@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.0.0-rc.28
+
+### Patch Changes
+
+- Updated dependencies [[`5c309d6`](https://github.com/aurelia/aurelia/commit/5c309d61493f1bb921323edf17aa56a5bc249fa5), [`2f95135`](https://github.com/aurelia/aurelia/commit/2f951351abea4eba9a1178e139905ef00c63642e)]:
+  - @aurelia/kernel@2.0.0-rc.28
+  - @aurelia/metadata@2.0.0-rc.28
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

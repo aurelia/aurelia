@@ -17,7 +17,7 @@ import { IPlatform } from '../../platform';
 import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
-import { adoptSSRView, isSSRTemplateController, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
+import { adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
@@ -51,12 +51,6 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _platform = resolve(IPlatform);
-  /** @internal */ private _ssrViewScopes: ISSRScope[] | undefined;
-
-  /** @internal */
-  public claimSSRViewScope(): ISSRScope | undefined {
-    return this._ssrViewScopes?.shift();
-  }
 
   public link(
     _controller: IHydratableController,
@@ -64,19 +58,29 @@ export class Switch implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'switch') {
+      return;
+    }
     this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
-    const view = this.view;
+    let view = this.view;
     const $controller = this.$controller;
     const ssrScope = $controller.ssrScope;
 
-    // SSR hydration: capture view scopes for cases to adopt existing DOM.
-    // Clearing ssrScope ensures reactivation takes the normal path.
+    // SSR hydration: adopt the switch view so nested cases can hydrate via tree scope.
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'switch') {
-      this._ssrViewScopes = ssrScope.views.slice();
+      const result = adoptSSRView(ssrScope, this._factory, $controller, this._location, this._platform);
+      if (result != null) {
+        view?.dispose();
+        view = this.view = result.view;
+      }
       $controller.ssrScope = undefined;
+    }
+    if (view === void 0) {
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
 
     this.queue(() => view.activate(initiator, $controller, $controller.scope));
@@ -343,13 +347,17 @@ export class Case implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      const ssrViewScope = this.$switch.claimSSRViewScope();
-      if (ssrViewScope != null) {
-        const ssrScope: ISSRTemplateController = { type: 'case', views: [ssrViewScope] };
+      const ssrScope = this.$controller.ssrScope;
+      if (
+        ssrScope != null
+        && isSSRTemplateController(ssrScope)
+        && (ssrScope.type === 'case' || ssrScope.type === 'default-case')
+      ) {
         const result = adoptSSRView(ssrScope, this._factory, this.$controller, this._location, this._platform);
         if (result != null) {
           view = this.view = result.view;
         }
+        this.$controller.ssrScope = undefined;
       }
       if (view === void 0) {
         view = this.view = this._factory.create(this.$controller).setLocation(this._location);

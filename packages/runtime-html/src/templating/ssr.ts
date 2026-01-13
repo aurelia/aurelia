@@ -220,9 +220,9 @@ type SerializedInstruction =
   | { type: typeof itRefBinding; exprId: ExprId; to: string }
   | { type: typeof itSetProperty; value: unknown; to: string }
   | { type: typeof itSetAttribute; value: string; to: string }
-  | { type: typeof itHydrateElement; resource: string; instructions: SerializedInstruction[]; containerless?: boolean }
-  | { type: typeof itHydrateAttribute; resource: string; alias?: string; instructions: SerializedInstruction[] }
-  | { type: typeof itHydrateTemplateController; resource: string; templateIndex: number; instructions: SerializedInstruction[] }
+  | { type: typeof itHydrateElement; res: string; instructions: SerializedInstruction[]; containerless?: boolean }
+  | { type: typeof itHydrateAttribute; res: string; alias?: string; instructions: SerializedInstruction[] }
+  | { type: typeof itHydrateTemplateController; res: string; templateIndex: number; instructions: SerializedInstruction[] }
   | { type: typeof itHydrateLetElement; bindings: { exprId: ExprId; to: string }[]; toBindingContext: boolean }
   | { type: typeof itIteratorBinding; exprId: ExprId; to: string; aux?: { exprId: ExprId; name: string }[] };
 
@@ -389,7 +389,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
       return {
         type: itHydrateElement,
-        res: ins.resource,
+        res: ins.res,
         props,
         projections: null,
         containerless: ins.containerless ?? false,
@@ -402,7 +402,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
       return {
         type: itHydrateAttribute,
-        res: ins.resource,
+        res: ins.res,
         alias: ins.alias,
         props,
       } as HydrateAttributeInstruction;
@@ -424,7 +424,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       return {
         type: itHydrateTemplateController,
         def,
-        res: ins.resource,
+        res: ins.res,
         alias: void 0,
         props,
       } as HydrateTemplateController;

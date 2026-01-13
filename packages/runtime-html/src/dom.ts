@@ -315,7 +315,7 @@ export class FragmentNodeSequence implements INodeSequence {
   private t: ArrayLike<Node>;
 
   /** @internal */
-  private f: DocumentFragment;
+  private readonly f: DocumentFragment;
 
   public constructor(
     public readonly platform: IPlatform,

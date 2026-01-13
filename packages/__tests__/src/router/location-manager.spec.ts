@@ -7,11 +7,9 @@ import { getLocationChangeHandlerRegistration } from './_shared/configuration.js
 import { start } from './_shared/create-fixture.js';
 
 describe('router/location-manager.spec.ts', function () {
-  if (isNode()) {
-    return;
-  }
-  for (const [useHash, event] of [[true, 'hashchange'], [false, 'popstate']] as const) {
-    it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash}`, async function () {
+  if (!isNode()) {
+    for (const [useHash, event] of [[true, 'hashchange'], [false, 'popstate']] as const) {
+      it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash}`, async function () {
       const isBackLog: boolean[] = [];
       @customElement({ name: 'c-1', template: 'c1' })
       class C1 {
@@ -544,10 +542,10 @@ describe('router/location-manager.spec.ts', function () {
       assert.match(eventLog[0][1], /c1\/gc-2$/, 'forward event log path');
 
       subscriber.dispose();
-      await au.stop(true);
-    });
+        await au.stop(true);
+      });
+    }
   }
-});
 
 // =============================================================================
 // ServerLocationManager - SSR Location Manager
@@ -660,4 +658,5 @@ describe('router/ServerLocationManager', function () {
       manager.replaceState({}, 'title', '/new-url');
     });
   });
+});
 });

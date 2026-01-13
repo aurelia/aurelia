@@ -539,12 +539,17 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         loc.$start = PLATFORM.document.createComment('au-start');
         host.append(loc.$start, loc);
 
+        const textBindingInstruction: TextBindingInstruction = {
+          type: itTextBinding,
+          from: createAccessScopeExpression('item'),
+        };
+
         const itemDef = CustomElementDefinition.create({
           name: void 0,
           template: textTemplate.content.cloneNode(true),
           instructions: [
             [
-              { type: itTextBinding, from: createAccessScopeExpression('item') } as TextBindingInstruction,
+              textBindingInstruction,
             ],
           ],
           needsCompile: false,
@@ -552,13 +557,14 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
 
         const itemFactory = container.get(IRendering).getViewFactory(itemDef, container);
 
-        const binding: PropertyBinding = {
+        const binding = {
           target: null,
           targetProperty: 'items',
           ast: createForOfStatement(createBindingIdentifier('item'), createAccessScopeExpression('items'), -1)
-        } as any;
+        };
+        const bindingInstance = binding as unknown as PropertyBinding;
         const hydratable: IHydratableController = {
-          bindings: [binding]
+          bindings: [bindingInstance]
         } as any;
         const instruction: HydrateTemplateController = {
           props: [{ props: [] }]
@@ -572,7 +578,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         );
         const sut = child.invoke(Repeat);
         (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
-        binding.target = sut as any;
+        bindingInstance.target = sut as any;
 
         // -- Round 1 --
         const scope = Scope.create(new BindingContext());

@@ -243,8 +243,6 @@ describe('3-runtime-html/dom.spec.ts', function () {
       }
     }
   });
-});
-
 function createFragment(ctx: TestContext, node: HTMLElement, level: number, depth: number, width: number): DocumentFragment {
   const root: any = ctx.doc.createDocumentFragment();
   appendTree(root, node, level, depth, width);
@@ -502,4 +500,5 @@ describe('[UNIT] FragmentNodeSequence.adoptSiblings', function () {
     assert.strictEqual((seq.firstChild as Element).textContent, 'single');
     assert.strictEqual(seq.firstChild, seq.lastChild, 'first and last should be same');
   });
+});
 });

@@ -250,7 +250,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       },
       assertFn: async (_ctx, _host, comp) => {
         // The two-way binding should have propagated the change back to the component
-        await runTasks();
+        runTasks();
         assert.equal(comp.value, 'updated-by-attr', 'two-way binding should update parent component');
       }
     },

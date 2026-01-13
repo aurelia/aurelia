@@ -12,18 +12,18 @@ import { BindingMode } from './binding-mode';
  * Instruction type numeric ranges:
  *
  * Core instruction types (prefix: it):
- *   0-9:    Hydration instructions (itHydrateElement, itHydrateAttribute, etc.)
- *   10-29:  Property/binding instructions (itSetProperty, itPropertyBinding, etc.)
- *   30-49:  DOM binding instructions (itTextBinding, itListenerBinding, etc.)
- *   50-59:  Spread instructions
- *   60-99:  Reserved for future core use
+ * 0-9: Hydration instructions (itHydrateElement, itHydrateAttribute, etc.)
+ * 10-29: Property/binding instructions (itSetProperty, itPropertyBinding, etc.)
+ * 30-49: DOM binding instructions (itTextBinding, itListenerBinding, etc.)
+ * 50-59: Spread instructions
+ * 60-99: Reserved for future core use
  *
  * Plugin ranges:
- *   100-119: @aurelia/i18n (itTranslation, itTranslationBind, itTranslationParameters)
- *   120-139: @aurelia/state (itStateBinding, itDispatchBinding)
- *   140-159: @aurelia/compat-v1 (itCall, itDelegate)
- *   160-199: Reserved for future official plugins
- *   200+:    Third-party plugins
+ * 100-119: @aurelia/i18n (itTranslation, itTranslationBind, itTranslationParameters)
+ * 120-139: @aurelia/state (itStateBinding, itDispatchBinding)
+ * 140-159: @aurelia/compat-v1 (itCall, itDelegate)
+ * 160-199: Reserved for future official plugins
+ * 200+: Third-party plugins
  */
 
 // Hydration instructions (0-9)

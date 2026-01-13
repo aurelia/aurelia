@@ -324,70 +324,79 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
   switch (ins.type) {
     case itPropertyBinding: {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
-      return {
+      const instruction: PropertyBindingInstruction = {
         type: itPropertyBinding,
         from: expr,
         to: ins.to,
         mode: ins.mode, // Already numeric, no translation needed
-      } as PropertyBindingInstruction;
+      };
+      return instruction;
     }
 
     case itTextBinding: {
       const expressions = ins.exprIds.map(id => getExpr(ctx.exprMap, id) as IsBindingBehavior);
       const interpolation = createInterpolation(ins.parts, expressions);
-      return {
+      const instruction: TextBindingInstruction = {
         type: itTextBinding,
         from: interpolation as unknown as IsBindingBehavior,
-      } as TextBindingInstruction;
+      };
+      return instruction;
     }
 
     case itInterpolation: {
       const expressions = ins.exprIds.map(id => getExpr(ctx.exprMap, id) as IsBindingBehavior);
       const interpolation = createInterpolation(ins.parts, expressions);
-      return {
+      const instruction: InterpolationInstruction = {
         type: itInterpolation,
         from: interpolation,
         to: ins.to,
-      } as InterpolationInstruction;
+      };
+      return instruction;
     }
 
     case itListenerBinding: {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
-      return {
+      const instruction: ListenerBindingInstruction = {
         type: itListenerBinding,
         from: expr,
         to: ins.to,
         capture: ins.capture,
         modifier: ins.modifier ?? null,
-      } as ListenerBindingInstruction;
+      };
+      return instruction;
     }
 
     case itRefBinding: {
       const expr = getExpr(ctx.exprMap, ins.exprId) as IsBindingBehavior;
-      return {
+      const instruction: RefBindingInstruction = {
         type: itRefBinding,
         from: expr,
         to: ins.to,
-      } as RefBindingInstruction;
+      };
+      return instruction;
     }
 
-    case itSetProperty:
-      return {
+    case itSetProperty: {
+      const instruction: SetPropertyInstruction = {
         type: itSetProperty,
         value: ins.value,
         to: ins.to,
-      } as SetPropertyInstruction;
+      };
+      return instruction;
+    }
 
-    case itSetAttribute:
-      return {
+    case itSetAttribute: {
+      const instruction: SetAttributeInstruction = {
         type: itSetAttribute,
         value: ins.value ?? '',
         to: ins.to,
-      } as SetAttributeInstruction;
+      };
+      return instruction;
+    }
 
     case itHydrateElement: {
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
-      return {
+      const instruction: HydrateElementInstruction = {
         type: itHydrateElement,
         res: ins.res,
         props,
@@ -395,17 +404,19 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         containerless: ins.containerless ?? false,
         captures: void 0,
         data: {},
-      } as HydrateElementInstruction;
+      };
+      return instruction;
     }
 
     case itHydrateAttribute: {
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
-      return {
+      const instruction: HydrateAttributeInstruction = {
         type: itHydrateAttribute,
         res: ins.res,
         alias: ins.alias,
         props,
-      } as HydrateAttributeInstruction;
+      };
+      return instruction;
     }
 
     case itHydrateTemplateController: {
@@ -421,29 +432,32 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         instructions: nestedDef.instructions,
         needsCompile: false,
       };
-      return {
+      const instruction: HydrateTemplateController = {
         type: itHydrateTemplateController,
         def,
         res: ins.res,
         alias: void 0,
         props,
-      } as HydrateTemplateController;
+      };
+      return instruction;
     }
 
     case itHydrateLetElement: {
       const bindings = ins.bindings.map(b => {
         const expr = getExpr(ctx.exprMap, b.exprId) as IsBindingBehavior | Interpolation;
-        return {
+        const instruction: LetBindingInstruction = {
           type: itLetBinding,
           from: expr,
           to: b.to,
-        } as LetBindingInstruction;
+        };
+        return instruction;
       });
-      return {
+      const instruction: HydrateLetElementInstruction = {
         type: itHydrateLetElement,
         instructions: bindings,
         toBindingContext: ins.toBindingContext,
-      } as HydrateLetElementInstruction;
+      };
+      return instruction;
     }
 
     case itIteratorBinding: {
@@ -452,20 +466,22 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
       if (ins.aux) {
         for (const aux of ins.aux) {
           const expr = getExpr(ctx.exprMap, aux.exprId);
-          props.push({
+          const instruction: MultiAttrInstruction = {
             type: itMultiAttr,
             value: expr as IsBindingBehavior,
             to: aux.name,
             command: 'bind',
-          } as MultiAttrInstruction);
+          };
+          props.push(instruction);
         }
       }
-      return {
+      const instruction: IteratorBindingInstruction = {
         type: itIteratorBinding,
         forOf,
         to: ins.to,
         props,
-      } as IteratorBindingInstruction;
+      };
+      return instruction;
     }
 
     default:

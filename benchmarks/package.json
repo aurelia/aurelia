@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npm run build:local && npm run build:latest",
     "build:local": "cd local && npm run build",
-    "build:latest": "cd latest && npm run build",
+    "build:latest": "cd latest && npm install --no-package-lock && npm run build",
     "build:kernel": "cd ../packages/kernel && npm run build",
     "build:runtime": "cd ../packages/runtime && npm run build",
     "build:runtime-html": "cd ../packages/runtime-html && npm run build",

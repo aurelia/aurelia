@@ -139,7 +139,8 @@
     "turbo": "2.3.3",
     "typescript": "5.7.2",
     "v8-to-istanbul": "9.3.0",
-    "vite": "^7.0.2"
+    "vite": "^7.0.2",
+    "yaml": "2.8.2"
   },
   "overrides": {
     "yargs": "17.7.2",

@@ -100,5 +100,5 @@
     "ts-node": "10.9.1",
     "xmlbuilder": "15.1.1"
   },
-  "version": "2.0.0-beta.25"
+  "version": "2.0.0"
 }

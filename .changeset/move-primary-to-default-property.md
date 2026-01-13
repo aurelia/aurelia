@@ -1,6 +1,6 @@
 ---
-"@aurelia/runtime-html": major
-"@aurelia/template-compiler": major
+"@aurelia/runtime-html": minor
+"@aurelia/template-compiler": minor
 "@aurelia/router": patch
 "@aurelia/validation-html": patch
 "@aurelia/ui-virtualization": patch

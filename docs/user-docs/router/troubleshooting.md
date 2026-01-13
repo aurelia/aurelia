@@ -163,6 +163,36 @@ RouterConfiguration.customize({
 // Router starts automatically with AppTask
 ```
 
+#### 4. `router.load('../1')` throws `UnknownRouteError`
+
+**Symptom**: `await this.router.load('../1')` rejects with `UnknownRouteError: AUR3401 ... did you forget to add '..1' to the routes list of 'root'?`, yet `<a load="../1">` works.
+
+**Why it happens**: `router.load()` always evaluates instructions in the root routing context unless you pass a `context` option, so `../` cannot be resolved relative to the current child router.
+
+**Fix**: Resolve `IRouteContext` (or pass the component instance created by the router) and provide it in the navigation options.
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { IRouter, IRouteContext } from '@aurelia/router';
+
+export class StepNavigator {
+  private readonly router = resolve(IRouter);
+  private readonly routeContext = resolve(IRouteContext);
+
+  async previousStep() {
+    await this.router.load('../1', { context: this.routeContext });
+  }
+
+  async exitToParent() {
+    await this.router.load('../../summary', {
+      context: this.routeContext.parent ?? null,
+    });
+  }
+}
+```
+
+If you need to navigate relative to different ancestors (for example inside a reusable widget), compute the target context at runtime (e.g., `const parent = this.routeContext.parent ?? this.routeContext;`) before calling `router.load`.
+
 ### 4. Parameters Not Available
 
 **Problem**: Route parameters are undefined or not accessible.
@@ -214,7 +244,7 @@ export class ProductComponent implements IRouteViewModel {
 
 #### 1. Setting Query Parameters
 ```typescript
-// ✅ Correct way to set query parameters
+// ✅ Recommended: let the router stringify query parameters for you
 await this.router.load('search', {
   queryParams: {
     q: 'search term',
@@ -222,8 +252,8 @@ await this.router.load('search', {
   }
 });
 
-// ❌ Don't include query params in path
-await this.router.load('search?q=term'); // Incorrect
+// ✅ Also supported: include query (and fragment) directly in the instruction string
+await this.router.load('search?q=term#results');
 ```
 
 #### 2. Reading Query Parameters
@@ -279,7 +309,7 @@ app.get('*', (req, res) => {
 <!-- ✅ Correct base tag -->
 <base href="/">
 
-<!-- ❌ Incorrect - missing trailing slash -->
+<!-- ❌ Incorrect - empty base href breaks URL resolution -->
 <base href="">
 ```
 
@@ -433,7 +463,7 @@ export class ComponentWithSubscription {
   }
 
   // ✅ Always clean up subscriptions
-  detached() {
+  detaching() {
     this.subscription?.dispose();
   }
 }

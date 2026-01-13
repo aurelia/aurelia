@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { c, createLogger } from './logger';
 import { loadPackageJson, Package, savePackageJson } from './package.json';
 import project from './project';
-import { getGitLog } from './git';
+import { getGitLog, git } from './git';
 import { getCurrentVersion, getNewVersion } from './get-version-info';
 
 const log = createLogger('bump-version');
@@ -39,12 +39,46 @@ export async function updateDependencyVersions(newVersion: string): Promise<void
   writeFileSync(project['package.json'].path, `${JSON.stringify(pkgJson, null, 2)}\n`, { encoding: 'utf8' });
 }
 
+async function hasTag(tag: string): Promise<boolean> {
+  try {
+    await git(`show-ref --tags --verify --quiet refs/tags/${tag}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getLatestTag(): Promise<string | null> {
+  try {
+    const tag = (await git('describe --tags --abbrev=0')).trim();
+    return tag.length > 0 ? tag : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getRecommendedVersionBump(): Promise<'minor' | 'patch'> {
-  const gitLog = await getGitLog(`v${project.pkg.version}`, 'HEAD', project.path);
-  const lines = gitLog.split('\n');
-  if (lines.some(line => /feat(\([^)]+\))?:/.test(line))) {
-    return 'minor';
-  } else {
+  const desiredTag = `v${project.pkg.version}`;
+  let fromTag = desiredTag;
+
+  if (!(await hasTag(fromTag))) {
+    const fallbackTag = await getLatestTag();
+    if (fallbackTag) {
+      log(`${c.yellow('missing tag')} ${desiredTag}; using ${fallbackTag} instead`);
+      fromTag = fallbackTag;
+    } else {
+      log(`${c.yellow('missing tag')} ${desiredTag}; no tags available, defaulting to patch`);
+      return 'patch';
+    }
+  }
+
+  try {
+    const gitLog = await getGitLog(fromTag, 'HEAD', project.path);
+    const lines = gitLog.split('\n');
+    return lines.some(line => /feat(\([^)]+\))?:/.test(line)) ? 'minor' : 'patch';
+  } catch (error) {
+    log(`${c.yellow('git log failed')}; defaulting to patch`);
+    log.error(error);
     return 'patch';
   }
 }

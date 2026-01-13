@@ -1,5 +1,5 @@
 import { Registration, Writable } from '@aurelia/kernel';
-import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, createAccessScopeExpression, createForOfStatement, createBindingIdentifier } from '@aurelia/expression-parser';
 import {
   DirtyChecker,
   Scope,
@@ -25,6 +25,7 @@ import {
   TextBindingInstruction,
   HydrateTemplateController,
   ITemplateCompiler,
+  itTextBinding,
 } from '@aurelia/template-compiler';
 import {
   eachCartesianJoin,
@@ -517,10 +518,12 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
 
   const createStartLocation = () => PLATFORM.document.createComment('au-start');
   const createEndLocation = () => PLATFORM.document.createComment('au-end');
-  const marker = PLATFORM.document.createComment('au*');
-  const text = PLATFORM.document.createTextNode('');
+  // Use <!--au--> marker comment - target is marker.nextSibling
+  const marker = PLATFORM.document.createComment('au');
+  const text = PLATFORM.document.createTextNode(' ');
   const textTemplate = PLATFORM.document.createElement('template');
-  textTemplate.content.append(createStartLocation(), createEndLocation(), marker, text);
+  // Order matters: marker followed by text node (the target for text interpolation)
+  textTemplate.content.append(marker, text);
 
   eachCartesianJoin(
     [duplicateOperationSpecs, bindSpecs],
@@ -536,12 +539,17 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         loc.$start = PLATFORM.document.createComment('au-start');
         host.append(loc.$start, loc);
 
+        const textBindingInstruction: TextBindingInstruction = {
+          type: itTextBinding,
+          from: createAccessScopeExpression('item'),
+        };
+
         const itemDef = CustomElementDefinition.create({
           name: void 0,
           template: textTemplate.content.cloneNode(true),
           instructions: [
             [
-              new TextBindingInstruction(new AccessScopeExpression('item')),
+              textBindingInstruction,
             ],
           ],
           needsCompile: false,
@@ -549,13 +557,14 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
 
         const itemFactory = container.get(IRendering).getViewFactory(itemDef, container);
 
-        const binding: PropertyBinding = {
+        const binding = {
           target: null,
           targetProperty: 'items',
-          ast: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'), -1)
-        } as any;
+          ast: createForOfStatement(createBindingIdentifier('item'), createAccessScopeExpression('items'), -1)
+        };
+        const bindingInstance = binding as unknown as PropertyBinding;
         const hydratable: IHydratableController = {
-          bindings: [binding]
+          bindings: [bindingInstance]
         } as any;
         const instruction: HydrateTemplateController = {
           props: [{ props: [] }]
@@ -569,7 +578,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         );
         const sut = child.invoke(Repeat);
         (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
-        binding.target = sut as any;
+        bindingInstance.target = sut as any;
 
         // -- Round 1 --
         const scope = Scope.create(new BindingContext());

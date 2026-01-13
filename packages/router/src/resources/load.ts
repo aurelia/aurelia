@@ -128,8 +128,9 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 }
 CustomAttribute.define({
   name: 'load',
+  defaultProperty: 'route',
   bindables: {
-    route: { mode: bmToView, primary: true, callback: 'valueChanged' },
+    route: { mode: bmToView, callback: 'valueChanged' },
     params: { mode: bmToView, callback: 'valueChanged' },
     attribute: { mode: bmToView },
     active: { mode: bmFromView },

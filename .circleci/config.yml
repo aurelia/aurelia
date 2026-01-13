@@ -375,6 +375,9 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
+      - run:
+          name: "Check internal dependency consistency"
+          command: node scripts/check-internal-deps.cjs
       - run: npm run lint:ci
       - run: npm run lint:other:ci
 
@@ -679,6 +682,13 @@ workflows:
           requires:
             - tacho_benchmark_prep
 
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_compiler
+          command: npm run bench:startup1k-big
+          requires:
+            - tacho_benchmark_prep
+
   benchmarks:
     when: << pipeline.parameters.run_bench >>
     jobs:
@@ -727,12 +737,14 @@ workflows:
           requires:
             - bench_prep
 
-      - tacho_benchmark:
-          <<: *filter_only_topic
-          name: bench_rerender1k_big
-          command: npm run bench:rerender1k-big
-          requires:
-            - bench_prep
+      # the app has been converted to a compiler focused bench
+      # if we wish to bench rerendering a big template, we need to create a new app for that
+      # - tacho_benchmark:
+      #     <<: *filter_only_topic
+      #     name: bench_rerender1k_big
+      #     command: npm run bench:rerender1k-big
+      #     requires:
+      #       - bench_prep
 
       - tacho_benchmark:
           <<: *filter_only_topic
@@ -900,12 +912,14 @@ workflows:
           command: npm run bench:rerender10k-ce
           requires:
             - tacho_benchmark_prep
-      - tacho_benchmark:
-          <<: *filter_only_master
-          name: benchmark_rerender1k-big-template
-          command: npm run bench:rerender1k-big
-          requires:
-            - tacho_benchmark_prep
+      # the app has been converted to a compiler focused bench
+      # if we wish to bench rerendering a big template, we need to create a new app for that
+      # - tacho_benchmark:
+      #     <<: *filter_only_master
+      #     name: benchmark_rerender1k-big-template
+      #     command: npm run bench:rerender1k-big
+      #     requires:
+      #       - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_startup1k-big-template

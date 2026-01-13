@@ -13,9 +13,11 @@ import {
 } from '@aurelia/runtime';
 import type { IInstruction } from '@aurelia/template-compiler';
 import { IRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
 import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
+import { adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
@@ -48,6 +50,7 @@ export class Switch implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
 
   public link(
     _controller: IHydratableController,
@@ -55,12 +58,30 @@ export class Switch implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'switch') {
+      return;
+    }
     this.view = this._factory.create(this.$controller).setLocation(this._location);
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
-    const view = this.view;
+    let view = this.view;
     const $controller = this.$controller;
+    const ssrScope = $controller.ssrScope;
+
+    // SSR hydration: adopt the switch view so nested cases can hydrate via tree scope.
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'switch') {
+      const result = adoptSSRView(ssrScope, this._factory, $controller, this._location, this._platform);
+      if (result != null) {
+        view?.dispose();
+        view = this.view = result.view;
+      }
+      $controller.ssrScope = undefined;
+    }
+    if (view === void 0) {
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
+    }
 
     this.queue(() => view.activate(initiator, $controller, $controller.scope));
     this.queue(() => this.swap(initiator, this.value));
@@ -272,6 +293,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
 
   public link(
@@ -295,7 +317,9 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public isMatch(value: unknown): boolean {
-    this._logger.debug('isMatch()');
+    if (__DEV__) {
+      this._logger.debug('isMatch()');
+    }
     const $value = this.value;
     if (isArray($value)) {
       if (this._observer === void 0) {
@@ -323,10 +347,31 @@ export class Case implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      const ssrScope = this.$controller.ssrScope;
+      if (
+        ssrScope != null
+        && isSSRTemplateController(ssrScope)
+        && (ssrScope.type === 'case' || ssrScope.type === 'default-case')
+      ) {
+        const result = adoptSSRView(ssrScope, this._factory, this.$controller, this._location, this._platform);
+        if (result != null) {
+          view = this.view = result.view;
+        }
+        this.$controller.ssrScope = undefined;
+      }
+      if (view === void 0) {
+        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
+      }
     }
     if (view.isActive) { return; }
-    return view.activate(initiator ?? view, this.$controller, scope);
+    const ret = view.activate(initiator ?? view, this.$controller, scope);
+    if (ret instanceof Promise) {
+      return ret.catch(() => {
+        // Activation failed. Deactivate the view to clean up its state
+        // so that subsequent case activations can work correctly.
+        return view.deactivate(view, this.$controller);
+      });
+    }
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {

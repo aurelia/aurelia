@@ -11,7 +11,7 @@ import {
   resolve,
   all,
   emptyArray,
-  IContainer,
+  type IContainer,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
@@ -33,7 +33,9 @@ import {
 } from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
+import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
+import { isSSRTemplateController, adoptSSRViews, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { rethrow, etIsProperty } from '../../utilities';
@@ -60,6 +62,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     type: attrTypeName,
     name: 'repeat',
     isTemplateController: true,
+    defaultProperty: 'items',
     bindables: ['items'],
   };
 
@@ -87,10 +90,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _hasDestructuredLocal: boolean = false;
   /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
+  /** @internal */
+  private _hasAdoptedViews: boolean = false;
+
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _resolver = resolve(IRepeatableHandlerResolver);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
 
   public constructor() {
     const instruction = resolve(IInstruction) as HydrateTemplateController;
@@ -101,9 +108,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const { to, value, command } = prop;
       if (to === 'key') {
         if (command === null) {
-          this.key = value;
+          this.key = value as string;
         } else if (command === 'bind') {
-          this.key = resolve(IExpressionParser).parse(value, etIsProperty);
+          // AOT: value is pre-parsed AST; JIT: value is string to parse
+          this.key = typeof value === 'string'
+            ? resolve(IExpressionParser).parse(value, etIsProperty)
+            : value;
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
         }
@@ -114,7 +124,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this.contextual = value === 'false' ? false : !!value;
         } else if (command === 'bind') {
           // Expression: contextual.bind: someExpression (evaluated once at bind)
-          this._contextualExpr = resolve(IExpressionParser).parse(value, etIsProperty);
+          // AOT: value is pre-parsed AST; JIT: value is string to parse
+          this._contextualExpr = typeof value === 'string'
+            ? resolve(IExpressionParser).parse(value, etIsProperty)
+            : value;
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_contextual_binding_command, command);
         }
@@ -169,7 +182,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   ): void | Promise<void> {
     this._normalizeToArray();
     this._createScopes(void 0);
-
     return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
   }
 
@@ -178,8 +190,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
-
-    return this._deactivateAllViews(initiator);
+    // Adopted views can't be cached - their nodes are tied to specific DOM
+    const skipCache = this._hasAdoptedViews;
+    this._hasAdoptedViews = false;
+    const result = this._deactivateAllViews(initiator, skipCache);
+    if (skipCache) {
+      this.views = [];
+    }
+    return result;
   }
 
   public unbinding(
@@ -225,73 +243,53 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldViews = this.views;
     this._oldViews = oldViews.slice();
     const oldLen = oldViews.length;
-    const key = this.key;
-    const hasKey = key !== null;
+    const hasKey = this.key !== null;
 
     const oldScopes = this._oldScopes;
     const newScopes = this._scopes;
 
     if (hasKey || indexMap === void 0) {
       const local = this.local;
-      const newItems = this._normalizedItems as IIndexable[];
-
-      const newLen = newItems.length;
-      const forOf = this.forOf;
-      const dec = forOf.declaration;
+      const dec = this.forOf.declaration;
       const binding = this._forOfBinding;
       const hasDestructuredLocal = this._hasDestructuredLocal;
+      const newLen = newScopes.length;
       indexMap = createIndexMap(newLen);
-      let i = 0;
 
       if (oldLen === 0) {
         // Only add new views
-        for (; i < newLen; ++i) {
+        for (let i = 0; i < newLen; ++i) {
           indexMap[i] = -2;
         }
       } else if (newLen === 0) {
         // Only remove old views
-        for (i = 0; i < oldLen; ++i) {
+        for (let i = 0; i < oldLen; ++i) {
           indexMap.deletedIndices.push(i);
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
-      } else if (hasKey) {
-        const oldKeys = Array<unknown>(oldLen);
-
-        for (i = 0; i < oldLen; ++i) {
-          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local);
-        }
-
-        const newKeys = Array<unknown>(oldLen);
-
-        for (i = 0; i < newLen; ++i) {
-          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
-        }
-
-        for (i = 0; i < newLen; ++i) {
-          if (oldKeys.includes(newKeys[i])) {
-            indexMap[i] = oldKeys.indexOf(newKeys[i]);
-          } else {
-            indexMap[i] = -2;
-          }
-        }
-
-        for (i = 0; i < oldLen; ++i) {
-          if (!newKeys.includes(oldKeys[i])) {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
-          }
-        }
       } else {
-        for (i = 0; i < newLen; ++i) {
-          if (oldScopes.includes(newScopes[i])) {
-            indexMap[i] = oldScopes.indexOf(newScopes[i]);
+        // O(n) matching via scope identity.
+        // _createScopes already matched by key (or item identity), reusing old Scope objects.
+        // So newScopes[i] === oldScopes[j] iff the key/item at new position i came from old position j.
+        const oldScopeToIndex = new Map<Scope, number>();
+        for (let i = 0; i < oldLen; ++i) {
+          oldScopeToIndex.set(oldScopes[i], i);
+        }
+
+        const usedOldIndices = new Set<number>();
+        for (let i = 0; i < newLen; ++i) {
+          const oldIdx = oldScopeToIndex.get(newScopes[i]);
+          if (oldIdx !== void 0) {
+            indexMap[i] = oldIdx;
+            usedOldIndices.add(oldIdx);
           } else {
             indexMap[i] = -2;
           }
         }
 
-        for (i = 0; i < oldLen; ++i) {
-          if (!newScopes.includes(oldScopes[i])) {
+        // Collect deletions in ascending order
+        for (let i = 0; i < oldLen; ++i) {
+          if (!usedOldIndices.has(i)) {
             indexMap.deletedIndices.push(i);
             indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
           }
@@ -351,7 +349,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const items = this._normalizedItems!;
     const len = items.length;
-    const scopes = this._scopes = Array(items.length);
+    const scopes = this._scopes = Array(len);
 
     const oldScopeMap = this._scopeMap;
     const newScopeMap = new Map<unknown, Scope | Scope[]>();
@@ -428,25 +426,78 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     initiator: IHydratedController | null,
     $items: unknown[],
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-    let view: ISyntheticView;
-    let scope: Scope;
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateViews clears ssrScope, so reactivation takes the normal path.
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'repeat') {
+      return this._hydrateViews(initiator, $items, ssrScope);
+    }
 
-    const { $controller, _factory, _location, _scopes } = this;
+    return this._activateAllViewsFresh(initiator, $items);
+  }
+
+  /** @internal SSR hydration: adopt existing DOM nodes instead of creating new ones. */
+  private _hydrateViews(
+    initiator: IHydratedController | null,
+    $items: unknown[],
+    ssrScope: ISSRTemplateController,
+  ): void | Promise<void> {
+    const { $controller, _factory, _location, _scopes, _platform } = this;
     const newLen = $items.length;
-    const views = this.views = Array(newLen);
+    const { views: adoptedViews } = adoptSSRViews(ssrScope, _factory, $controller, _location, _platform);
 
+    if (adoptedViews.length === 0) {
+      $controller.ssrScope = undefined;
+      return this._activateAllViewsFresh(initiator, $items);
+    }
+
+    this._hasAdoptedViews = true;
+    this.views = adoptedViews;
+
+    let promises: Promise<void>[] | undefined = void 0;
     for (let i = 0; i < newLen; ++i) {
-      view = views[i] = _factory.create().setLocation(_location);
-      view.nodes.unlink();
-      scope = _scopes[i];
+      const view = adoptedViews[i];
+      const scope = _scopes[i];
 
       if (this.contextual) {
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
       }
 
-      ret = view.activate(initiator ?? view, $controller, scope);
+      const ret = view.activate(initiator ?? view, $controller, scope);
+      if (isPromise(ret)) {
+        (promises ??= []).push(ret);
+      }
+    }
+
+    $controller.ssrScope = undefined;
+
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
+    }
+  }
+
+  /** @internal */
+  private _activateAllViewsFresh(
+    initiator: IHydratedController | null,
+    $items: unknown[],
+  ): void | Promise<void> {
+    const { $controller, _factory, _location, _scopes } = this;
+    const newLen = $items.length;
+    const views = this.views = Array(newLen);
+
+    let promises: Promise<void>[] | undefined = void 0;
+    for (let i = 0; i < newLen; ++i) {
+      const view = views[i] = _factory.create($controller).setLocation(_location);
+      view.nodes.unlink();
+      const scope = _scopes[i];
+
+      if (this.contextual) {
+        setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
+      }
+
+      const ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);
       }
@@ -462,6 +513,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _deactivateAllViews(
     initiator: IHydratedController | null,
+    skipCache: boolean = false,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
@@ -473,7 +525,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (; ii > i; ++i) {
       view = views[i];
-      view.release();
+      // Adopted views can't be reused
+      if (!skipCache) {
+        view.release();
+      }
       ret = view.deactivate(initiator ?? view, $controller);
       if (isPromise(ret)) {
         (promises ?? (promises = [])).push(ret);
@@ -535,7 +590,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     for (; newLen > i; ++i) {
       if (indexMap[i] === -2) {
-        view = _factory.create();
+        view = _factory.create($controller);
         views.splice(i, 0, view);
       }
     }
@@ -898,22 +953,6 @@ const getItem = (
   local: string,
 ): unknown => {
   return hasDestructuredLocal ? astEvaluate(dec, scope, binding, null) : scope.bindingContext[local];
-};
-
-const getKeyValue = (
-  hasDestructuredLocal: boolean,
-  key: string | IsBindingBehavior,
-  dec: ForOfStatement['declaration'],
-  scope: Scope,
-  binding: PropertyBinding,
-  local: string,
-) => {
-  if (typeof key === 'string') {
-    const item = getItem(hasDestructuredLocal, dec, scope, binding, local);
-    return (item as IIndexable)[key];
-  }
-
-  return astEvaluate(key, scope, binding, null);
 };
 
 const getScope = (

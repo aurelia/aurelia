@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.25",
+  "version": "2.0.0-rc",
   "packageManager": "npm@10.9.0",
   "workspaces": [
     "packages/kernel",
@@ -30,7 +30,6 @@
     "packages/addons",
     "packages/aurelia",
     "packages/__tests__",
-    "packages-tooling/http-server",
     "packages-tooling/plugin-gulp",
     "packages-tooling/plugin-conventions",
     "packages-tooling/vite-plugin",
@@ -75,12 +74,13 @@
     "commit": "git-cz",
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
-    "build": "turbo build --filter=@aurelia/* --filter=aurelia",
-    "build:release": "cross-env RELEASE_BUILD=true turbo rollup --continue --filter=aurelia --filter=@aurelia/*",
+    "build": "turbo build --filter=@aurelia/* --filter=aurelia --filter=!@aurelia/benchmarks",
+    "build:release": "cross-env RELEASE_BUILD=true turbo rollup --continue --filter=aurelia --filter=@aurelia/* --filter=!@aurelia/benchmarks",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "changeset": "changeset",
     "changeset:version": "changeset version",
-    "changeset:publish": "changeset publish",
+    "postchangeset:version": "npm pkg set version=$(node -p \"require('./packages/aurelia/package.json').version\") && git tag -a v$(node -p \"require('./packages/aurelia/package.json').version\") -m \"v$(node -p \"require('./packages/aurelia/package.json').version\")\"",
+    "changeset:publish": "changeset publish --no-git-tag",
     "changeset:pre:enter": "changeset pre enter dev",
     "changeset:pre:exit": "changeset pre exit",
     "clean": "rimraf --glob dist packages/*/dist packages-tooling/*/dist test/*/dist examples/*/dist",
@@ -139,12 +139,14 @@
     "turbo": "2.3.3",
     "typescript": "5.7.2",
     "v8-to-istanbul": "9.3.0",
-    "vite": "^7.0.2"
+    "vite": "^7.0.2",
+    "yaml": "2.8.2"
   },
   "overrides": {
     "yargs": "17.7.2",
     "braces": "3.0.3",
-    "ws": "8.18.0"
+    "ws": "8.18.0",
+    "lmdb": "3.1.6"
   },
   "commitlint": {
     "rules": {

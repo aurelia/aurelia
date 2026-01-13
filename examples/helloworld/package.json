@@ -18,11 +18,11 @@
     "postbuild:all": "rollup -c"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.10",
-    "@aurelia/metadata": "2.0.0-beta.10",
-    "@aurelia/platform": "2.0.0-beta.10",
-    "@aurelia/platform-browser": "2.0.0-beta.10",
-    "@aurelia/runtime-html": "2.0.0-beta.10",
-    "@aurelia/runtime": "2.0.0-beta.10"
+    "@aurelia/kernel": "2.0.0-rc",
+    "@aurelia/metadata": "2.0.0-rc",
+    "@aurelia/platform": "2.0.0-rc",
+    "@aurelia/platform-browser": "2.0.0-rc",
+    "@aurelia/runtime-html": "2.0.0-rc",
+    "@aurelia/runtime": "2.0.0-rc"
   }
 }

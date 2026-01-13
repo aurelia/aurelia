@@ -144,7 +144,7 @@ Additionally, you need to register your custom hydrator implementation using the
 ```typescript
 import Aurelia from 'aurelia';
 import { ValidationConfiguration } from '@aurelia/validation';
-import { CustomModelValidationHydrator } './custom-model-validation-hydrator';
+import { CustomModelValidationHydrator } from './custom-model-validation-hydrator';
 
 Aurelia
   .register(
@@ -206,7 +206,7 @@ export class CustomModelValidationHydrator extends ModelValidationHydrator {
 import Aurelia from 'aurelia';
 import { ValidationConfiguration } from '@aurelia/validation';
 import { MyApp } from './my-app';
-import { CustomModelValidationHydrator } './custom-model-validation-hydrator';
+import { CustomModelValidationHydrator } from './custom-model-validation-hydrator';
 
 Aurelia
   .register(

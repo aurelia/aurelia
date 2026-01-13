@@ -11,11 +11,9 @@ import {
   TemplateCompiler,
 } from '@aurelia/template-compiler';
 import { BindableDefinition } from '../bindable';
-import { defaultMode } from '../binding/interfaces-bindings';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 
-import { ErrorNames, createMappedError } from '../errors';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import { AttrMapper } from './attribute-mapper';
 
@@ -74,34 +72,31 @@ class ResourceResolver implements IResourceResolver<CustomElementDefinition, Cus
       const attrs = createLookup<BindableDefinition>();
       let bindable: BindableDefinition | undefined;
       let prop: string;
-      let hasPrimary: boolean = false;
       let primary: BindableDefinition | undefined;
       let attr: string;
 
-      // from all bindables, pick the first primary bindable
-      // if there is no primary, pick the first bindable
-      // if there's no bindables, create a new primary with property value
+      // For custom attributes, the primary bindable is determined by `defaultProperty`
+      // which defaults to 'value' if not specified
+      const isCustomAttribute = def.type === 'custom-attribute';
+      const defaultProperty = isCustomAttribute ? def.defaultProperty : null;
+
       for (prop in bindables) {
         bindable = bindables[prop];
         attr = bindable.attribute;
-        if (bindable.primary === true) {
-          if (hasPrimary) {
-            throw createMappedError(ErrorNames.compiler_primary_already_existed, def);
-          }
-          hasPrimary = true;
-          primary = bindable;
-        } else if (!hasPrimary && primary == null) {
+
+        // For custom attributes, check if this bindable matches defaultProperty
+        if (defaultProperty != null && prop === defaultProperty) {
           primary = bindable;
         }
 
         attrs[attr] = BindableDefinition.create(prop, bindable);
       }
-      if (bindable == null && def.type === 'custom-attribute') {
-        // if no bindables are present, default to "value"
-        primary = attrs.value = BindableDefinition.create(
-          'value',
-          { mode: def.defaultBindingMode ?? defaultMode }
-        );
+
+      if (isCustomAttribute && primary == null) {
+        // If no bindable matches defaultProperty, create the default bindable
+        // defaultProperty is always defined for custom attributes (defaults to 'value')
+        const defaultProp = defaultProperty!;
+        primary = attrs[defaultProp] = BindableDefinition.create(defaultProp);
       }
 
       this._bindableCache.set(def, info = new BindablesInfo(attrs, bindables, primary ?? null));

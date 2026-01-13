@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+/* eslint-disable max-lines-per-function */
+/* eslint-disable function-call-argument-newline */
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
@@ -16,38 +19,51 @@ import {
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
-  PrimitiveLiteralExpression,
+  createPrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateLetElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  LetBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetPropertyInstruction,
-  SetStyleAttributeInstruction,
-  TextBindingInstruction,
-  PropertyBindingInstruction,
-  SpreadElementPropBindingInstruction,
-  propertyBinding,
+  itHydrateAttribute,
+  itHydrateElement,
+  itHydrateLetElement,
+  itHydrateTemplateController,
+  itInterpolation,
+  itLetBinding,
+  itSetAttribute,
+  itSetClassAttribute,
+  itSetProperty,
+  itSetStyleAttribute,
+  itTextBinding,
+  itPropertyBinding,
+  itSpreadElementProp,
+  itSpreadTransferedBinding,
+  itSpreadValueBinding,
   IInstruction,
-  SpreadTransferedBindingInstruction,
-  SpreadValueBindingInstruction,
+  type HydrateAttributeInstruction,
+  type HydrateElementInstruction,
+  type HydrateLetElementInstruction,
+  type HydrateTemplateController,
+  type InterpolationInstruction,
+  type LetBindingInstruction,
+  type SetAttributeInstruction,
+  type SetClassAttributeInstruction,
+  type SetPropertyInstruction,
+  type SetStyleAttributeInstruction,
+  type TextBindingInstruction,
+  type PropertyBindingInstruction,
+  type SpreadElementPropBindingInstruction,
+  type SpreadTransferedBindingInstruction,
+  type SpreadValueBindingInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
-import { BindingCommand, BindingCommandInstance, ICommandBuildInfo } from './binding-command';
+import { BindingCommand, BindingCommandInstance } from './binding-command';
 import { etInterpolation, etIsProperty, tcObjectFreeze, tcCreateInterface, singletonRegistration, definitionTypeElement } from './utilities';
 import { auLocationStart, auLocationEnd, appendManyToTemplate, appendToTemplate, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
 
 import type {
   IContainer,
   Constructable,
-  Writable,
   Key,
   IRegistry,
 } from '@aurelia/kernel';
@@ -69,6 +85,23 @@ import { ITemplateCompiler } from './interfaces-template-compiler';
 const auslotAttr = 'au-slot';
 const defaultSlotName = 'default';
 export const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
+
+/**
+ * Result of classifying all attributes on an element.
+ * Groups attributes into their semantic categories for instruction generation.
+ */
+interface IAttrClassificationResult {
+  /** Instructions for template controllers (if, repeat, etc.) */
+  tcInstructions: HydrateTemplateController[] | undefined;
+  /** Instructions for custom attributes */
+  attrInstructions: HydrateAttributeInstruction[] | undefined;
+  /** Instructions for custom element bindable properties */
+  elBindableInstructions: IInstruction[] | undefined;
+  /** Instructions for plain attribute bindings/interpolations */
+  plainAttrInstructions: IInstruction[] | undefined;
+  /** Whether the element has the containerless attribute */
+  hasContainerless: boolean;
+}
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register = /*@__PURE__*/ createImplementationRegister(ITemplateCompiler);
@@ -142,10 +175,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrBindableInstructions: IInstruction[];
     let bindablesInfo: IAttributeBindablesInfo | IElementBindablesInfo;
     let bindable: IComponentBindablePropDefinition;
-    let primaryBindable: IComponentBindablePropDefinition;
     let bindingCommand: BindingCommandInstance | null = null;
     let expr: AnyBindingExpression;
-    let isMultiBindings: boolean;
     let attrTarget: string;
     let attrValue: string;
 
@@ -156,7 +187,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrValue = attrSyntax.rawValue;
 
       if (attrTarget === '...$attrs') {
-        instructions.push(new SpreadTransferedBindingInstruction());
+        instructions.push({ type: itSpreadTransferedBinding } as SpreadTransferedBindingInstruction);
         continue;
       }
 
@@ -168,11 +199,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         // background.style="..."
         // my-attr.attr="..."
 
-        commandBuildInfo.node = target;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        instructions.push(bindingCommand.build(
+          { node: target, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
 
         // to next attribute
         continue;
@@ -186,23 +217,21 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (bindable !== void 0) {
           if (bindingCommand == null) {
             expr = exprParser.parse(attrValue, etInterpolation);
-            instructions.push(
-              new SpreadElementPropBindingInstruction(
-                expr == null
-                  ? new SetPropertyInstruction(attrValue, bindable.name)
-                  : new InterpolationInstruction(expr, bindable.name)
-              )
-            );
+            instructions.push({
+              type: itSpreadElementProp,
+              instruction: expr == null
+                ? { type: itSetProperty, value: attrValue, to: bindable.name } as SetPropertyInstruction
+                : { type: itInterpolation, from: expr, to: bindable.name } as InterpolationInstruction
+            } as SpreadElementPropBindingInstruction);
           } else {
-            commandBuildInfo.node = target;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = bindable;
-            commandBuildInfo.def = elDef;
-            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
-              commandBuildInfo,
-              context._exprParser,
-              context._attrMapper
-            )));
+            instructions.push({
+              type: itSpreadElementProp,
+              instruction: bindingCommand.build(
+                { node: target, attr: attrSyntax, bindable, def: elDef },
+                context._exprParser,
+                context._attrMapper
+              )
+            } as SpreadElementPropBindingInstruction);
           }
           continue;
         }
@@ -213,54 +242,20 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.no_spread_template_controller, attrTarget);
         }
-        bindablesInfo = context._getBindables(attrDef);
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax.
-        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        isMultiBindings = attrDef.noMultiBindings === false
-          && bindingCommand === null
-          && hasInlineBindings(attrValue);
-        if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(target, attrValue, attrDef, context);
-        } else {
-          primaryBindable = bindablesInfo.primary;
-          // custom attribute + single value + WITHOUT binding command:
-          // my-attr=""
-          // my-attr="${}"
-          if (bindingCommand === null) {
-            expr = exprParser.parse(attrValue, etInterpolation);
-            attrBindableInstructions = [
-              expr === null
-                ? new SetPropertyInstruction(attrValue, primaryBindable.name)
-                : new InterpolationInstruction(expr, primaryBindable.name)
-            ];
-          } else {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
+        attrBindableInstructions = this._compileCustomAttributeBindables(
+          target, attrDef, attrSyntax, attrValue, bindingCommand, context,
+          /* treatEmptyAsNoBinding */ false
+        );
 
-            commandBuildInfo.node = target;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = primaryBindable;
-            commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
-          }
-        }
-
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
+        (attrInstructions ??= []).push({
+          type: itHydrateAttribute,
           // todo: def/ def.Type or def.name should be configurable
           //       example: AOT/runtime can use def.Type, but there are situation
           //       where instructions need to be serialized, def.name should be used
-          this.resolveResources ? attrDef : attrDef.name,
-          attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
-          attrBindableInstructions
-        ));
+          res: this.resolveResources ? attrDef : attrDef.name,
+          alias: attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
+          props: attrBindableInstructions
+        } as HydrateAttributeInstruction);
         continue;
       }
 
@@ -272,40 +267,39 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a plain attribute
 
         if (expr != null) {
-          instructions.push(new InterpolationInstruction(
-            expr,
+          instructions.push({
+            type: itInterpolation,
+            from: expr,
             // if not a bindable, then ensure plain attribute are mapped correctly:
             // e.g: colspan -> colSpan
             //      innerhtml -> innerHTML
             //      minlength -> minLength etc...
-            context._attrMapper.map(target, attrTarget) ?? camelCase(attrTarget)
-          ));
+            to: context._attrMapper.map(target, attrTarget) ?? camelCase(attrTarget)
+          } as InterpolationInstruction);
         } else {
           switch (attrTarget) {
             case 'class':
-              instructions.push(new SetClassAttributeInstruction(attrValue));
+              instructions.push({ type: itSetClassAttribute, value: attrValue } as SetClassAttributeInstruction);
               break;
             case 'style':
-              instructions.push(new SetStyleAttributeInstruction(attrValue));
+              instructions.push({ type: itSetStyleAttribute, value: attrValue } as SetStyleAttributeInstruction);
               break;
             default:
               // if not a custom attribute + no binding command + not a bindable + not an interpolation
               // then it's just a plain attribute
-              instructions.push(new SetAttributeInstruction(attrValue, attrTarget));
+              instructions.push({ type: itSetAttribute, value: attrValue, to: attrTarget } as SetAttributeInstruction);
           }
         }
       } else {
         // reaching here means:
         // + a plain attribute with binding command
-        commandBuildInfo.node = target;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        instructions.push(bindingCommand.build(
+          { node: target, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
       }
     }
-
-    resetCommandBuildInfo();
 
     if (attrInstructions != null) {
       return (attrInstructions as IInstruction[]).concat(instructions);
@@ -314,166 +308,45 @@ export class TemplateCompiler implements ITemplateCompiler {
     return instructions;
   }
 
-  /** @internal */
+  /**
+   * Compile attributes on a surrogate element (the root `<template>`).
+   *
+   * Surrogates are a restricted subset of element compilation:
+   * - No custom element features (bindables, capture, containerless)
+   * - No template controllers (would be ambiguous)
+   * - Certain attributes are disallowed (id, name, au-slot, as-element)
+   * - All attributes become instructions (to be applied to the actual host element)
+   *
+   * @internal
+   */
   private _compileSurrogate(el: Element, context: CompilationContext): IInstruction[] {
-    const instructions: IInstruction[] = [];
+    // 1. Validate: surrogates don't support certain attributes
     const attrs = el.attributes;
-    const exprParser = context._exprParser;
-    let ii = attrs.length;
-    let i = 0;
-    let attr: Attr;
-    let attrName: string;
-    let attrValue: string;
-    let attrSyntax: AttrSyntax;
-    let attrDef: IAttributeComponentDefinition | null = null;
-    let attrInstructions: HydrateAttributeInstruction[] | undefined;
-    let attrBindableInstructions: IInstruction[];
-    let bindableInfo: IElementBindablesInfo | IAttributeBindablesInfo;
-    let primaryBindable: IComponentBindablePropDefinition;
-    let bindingCommand: BindingCommandInstance | null = null;
-    let expr: AnyBindingExpression;
-    let isMultiBindings: boolean;
-    let realAttrTarget: string;
-    let realAttrValue: string;
-
-    for (; ii > i; ++i) {
-      attr = attrs[i];
-      attrName = attr.name;
-      attrValue = attr.value;
-      attrSyntax = context._attrParser.parse(attrName, attrValue);
-
-      realAttrTarget = attrSyntax.target;
-      realAttrValue = attrSyntax.rawValue;
-
-      if (invalidSurrogateAttribute[realAttrTarget]) {
-        throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrName);
-      }
-
-      bindingCommand = context._getCommand(attrSyntax);
-      if (bindingCommand !== null && bindingCommand.ignoreAttr) {
-        // when the binding command overrides everything
-        // just pass the target as is to the binding command, and treat it as a normal attribute:
-        // active.class="..."
-        // background.style="..."
-        // my-attr.attr="..."
-
-        commandBuildInfo.node = el;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
-
-        // to next attribute
-        continue;
-      }
-
-      attrDef = context._findAttr(realAttrTarget);
-      if (attrDef !== null) {
-        if (attrDef.isTemplateController) {
-          throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, realAttrTarget);
-        }
-        bindableInfo = context._getBindables(attrDef);
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax.
-        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        isMultiBindings = attrDef.noMultiBindings === false
-          && bindingCommand === null
-          && hasInlineBindings(realAttrValue);
-        if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(el, realAttrValue, attrDef, context);
-        } else {
-          primaryBindable = bindableInfo.primary;
-          // custom attribute + single value + WITHOUT binding command:
-          // my-attr=""
-          // my-attr="${}"
-          if (bindingCommand === null) {
-            expr = exprParser.parse(realAttrValue, etInterpolation);
-            attrBindableInstructions = expr === null
-              ? realAttrValue === ''
-                // when the attribute usage is <div attr>
-                // it's considered as no bindings
-                ? []
-                : [new SetPropertyInstruction(realAttrValue, primaryBindable.name)]
-              : [new InterpolationInstruction(expr, primaryBindable.name)];
-          } else {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
-
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = primaryBindable;
-            commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
-          }
-        }
-
-        el.removeAttribute(attrName);
-        --i;
-        --ii;
-        (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-          // todo: def/ def.Type or def.name should be configurable
-          //       example: AOT/runtime can use def.Type, but there are situation
-          //       where instructions need to be serialized, def.name should be used
-          this.resolveResources ? attrDef : attrDef.name,
-          attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
-          attrBindableInstructions
-        ));
-        continue;
-      }
-
-      if (bindingCommand === null) {
-        expr = exprParser.parse(realAttrValue, etInterpolation);
-        if (expr != null) {
-          el.removeAttribute(attrName);
-          --i;
-          --ii;
-
-          instructions.push(new InterpolationInstruction(
-            expr,
-            // if not a bindable, then ensure plain attribute are mapped correctly:
-            // e.g: colspan -> colSpan
-            //      innerhtml -> innerHTML
-            //      minlength -> minLength etc...
-            context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
-          ));
-        } else {
-          switch (attrName) {
-            case 'class':
-              instructions.push(new SetClassAttributeInstruction(realAttrValue));
-              break;
-            case 'style':
-              instructions.push(new SetStyleAttributeInstruction(realAttrValue));
-              break;
-            default:
-              // if not a custom attribute + no binding command + not a bindable + not an interpolation
-              // then it's just a plain attribute
-              instructions.push(new SetAttributeInstruction(realAttrValue, attrName));
-          }
-        }
-      } else {
-
-        commandBuildInfo.node = el;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        instructions.push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+    for (let i = 0, ii = attrs.length; i < ii; ++i) {
+      const attrSyntax = context._attrParser.parse(attrs[i].name, attrs[i].value);
+      if (invalidSurrogateAttribute[attrSyntax.target]) {
+        throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrs[i].name);
       }
     }
 
-    resetCommandBuildInfo();
+    // 2. Classify attributes using the core algorithm
+    //    - elDef=null: not a custom element (no bindables, no capture)
+    //    - generateStaticAttrInstructions=true: all attrs must become instructions
+    const { tcInstructions, attrInstructions, plainAttrInstructions } =
+      this._classifyAttributes(el, null, emptyArray, context, /* generateStaticAttrInstructions */ true);
 
+    // 3. Surrogates don't support template controllers
+    if (tcInstructions != null && tcInstructions.length > 0) {
+      const tcDef = tcInstructions[0].res;
+      const tcName = typeof tcDef === 'string' ? tcDef : tcDef.name;
+      throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, tcName);
+    }
+
+    // 4. Combine: custom attributes first, then plain attribute instructions
     if (attrInstructions != null) {
-      return (attrInstructions as IInstruction[]).concat(instructions);
+      return attrInstructions.concat(plainAttrInstructions ?? emptyArray);
     }
-
-    return instructions;
+    return plainAttrInstructions ?? emptyArray;
   }
 
   // overall flow:
@@ -545,10 +418,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null) {
         if (attrSyntax.command === 'bind') {
-          letInstructions.push(new LetBindingInstruction(
-            exprParser.parse(realAttrValue, etIsProperty),
-            camelCase(realAttrTarget)
-          ));
+          letInstructions.push({
+            type: itLetBinding,
+            from: exprParser.parse(realAttrValue, etIsProperty),
+            to: camelCase(realAttrTarget)
+          } as LetBindingInstruction);
         } else {
           throw createMappedError(ErrorNames.compiler_invalid_let_command, attrSyntax);
         }
@@ -566,12 +440,17 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      letInstructions.push(new LetBindingInstruction(
-        expr === null ? new PrimitiveLiteralExpression(realAttrValue) : expr,
-        camelCase(realAttrTarget)
-      ));
+      letInstructions.push({
+        type: itLetBinding,
+        from: expr === null ? createPrimitiveLiteralExpression(realAttrValue) : expr,
+        to: camelCase(realAttrTarget)
+      } as LetBindingInstruction);
     }
-    context.rows.push([new HydrateLetElementInstruction(letInstructions, toBindingContext)]);
+    context.rows.push([{
+      type: itHydrateLetElement,
+      instructions: letInstructions,
+      toBindingContext
+    } as HydrateLetElementInstruction]);
     // probably no need to replace
     // as the let itself can be used as is
     // though still need to mark el as target to ensure the instruction is matched with a target
@@ -579,62 +458,278 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /** @internal */
-  // eslint-disable-next-line
   private _compileElement(el: Element, context: CompilationContext): Node | null {
-    // overall, the template compiler does it job by compiling one node,
-    // and let that the process of compiling that node point to the next node to be compiled.
-    // ----------------------------------------
-    // a summary of this 650 line long function:
-    // 1. walk through all attributes to put them into their corresponding instruction groups
-    //    template controllers      -> list 1
-    //    custom attributes         -> list 2
-    //    plain attrs with bindings -> list 3
-    //    el bindables              -> list 4
-    // 2. ensure element instruction is present
-    // 3. sort instructions:
-    //    hydrate custom element instruction
-    //    hydrate custom attribute instructions
-    //    rest kept as is (except special cases & to-be-decided)
-    //    3.1
-    //      mark this element as a target for later hydration
-    // 4. Compiling child nodes of this element
-    //    4.1.
-    //      If 1 or more [Template controller]:
-    //      4.1.1.
-    //          Start processing the most inner (most right TC in list 1) similarly to step 4.2:
-    //          4.1.1.0.
-    //          let innerContext = context.createChild();
-    //          4.1.1.1.
-    //              walks through the child nodes, and perform a [au-slot] check
-    //              - if this is a custom element, then extract all [au-slot] annotated elements into corresponding templates by their target slot name
-    //              - else throw an error as [au-slot] is used on non-custom-element
-    //          4.1.1.2.
-    //              recursively compiles the child nodes into the innerContext
-    //      4.1.2.
-    //          Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
-    //          Explanation:
-    //              If there' are multiple template controllers on an element,
-    //              only the most inner template controller will have access to the template with the current element
-    //              other "outer" template controller will only need to see a marker pointing to a definition of the inner one
-    //    4.2.
-    //      NO [Template controller]
-    //      4.2.1.
-    //          walks through the child nodes, and perform a [au-slot] check
-    //          - if this is a custom element, then extract all [au-slot] annotated elements into corresponding templates by their target slot name
-    //          - else throw an error as [au-slot] is used on non-custom-element
-    //      4.2.2
-    //          recursively compiles the child nodes into the current context
-    // 5. Returning the next node for the compilation
+    // Compilation flow:
+    // 1. Classify all attributes into semantic categories
+    // 2. Create element instruction if custom element
+    // 3. Merge instructions in correct order
+    // 4. Compile children (handling template controllers specially)
+    // 5. Return next sibling for continued compilation
+
     const nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
 
     const isCustomElement = elDef !== null;
     const isShadowDom = isCustomElement && elDef.shadowOptions != null;
+    const captures: AttrSyntax[] = elDef?.capture ? [] : emptyArray;
+
+    // Validate slot usage
+    if (elName === 'slot') {
+      if (context.root.def.shadowOptions == null) {
+        throw createMappedError(ErrorNames.compiler_slot_without_shadowdom, context.root.def.name);
+      }
+      context.root.hasSlot = true;
+    }
+
+    // Allow custom element to process its own content
+    // todo: this is a bit ... powerful
+    // maybe do not allow it to process its own attributes
+    let processContentResult: boolean | undefined | void = true;
+    const elementMetadata: Record<PropertyKey, unknown> = {};
+    if (isCustomElement) {
+      processContentResult = elDef.processContent?.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
+    }
+
+    // 1. Classify all attributes
+    const {
+      tcInstructions,
+      attrInstructions,
+      elBindableInstructions,
+      plainAttrInstructions,
+      hasContainerless,
+    } = this._classifyAttributes(el, elDef, captures, context);
+
+    // Reorder instructions for order-sensitive elements (checkbox, radio, select)
+    if (this._shouldReorderAttrs(el, plainAttrInstructions) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
+      this._reorder(el, plainAttrInstructions);
+    }
+
+    // 2. Create element instruction if this is a custom element
+    let elementInstruction: HydrateElementInstruction | undefined;
+    if (isCustomElement) {
+      // todo: def/ def.Type or def.name should be configurable
+      //       example: AOT/runtime can use def.Type, but there are situations
+      //       where instructions need to be serialized, def.name should be used
+      elementInstruction = {
+        type: itHydrateElement,
+        res: this.resolveResources ? elDef : elDef.name,
+        props: (elBindableInstructions ?? emptyArray) as IInstruction[],
+        projections: null,
+        containerless: hasContainerless,
+        captures,
+        data: elementMetadata,
+      };
+    }
+
+    // 3. Merge instructions in correct order:
+    //    element instruction -> custom attributes -> plain attributes
+    let instructions: IInstruction[] | undefined;
+    let needsMarker = false;
+    if (plainAttrInstructions != null || elementInstruction != null || attrInstructions != null) {
+      instructions = emptyArray.concat(
+        elementInstruction ?? emptyArray,
+        attrInstructions ?? emptyArray,
+        plainAttrInstructions ?? emptyArray,
+      );
+      needsMarker = true;
+    }
+
+    // 4. Compile element content
+    //    Two paths diverge here based on whether template controllers (TCs) are present.
+    //    Both paths do the same core work: extract projections, mark target, compile children.
+    //    The difference is WHERE the compiled output goes:
+    //    - TC path: into nested TC templates (innermost TC wraps the element)
+    //    - Direct path: into the current context
+    if (tcInstructions != null) {
+      // ===== Template Controller Path =====
+      // TCs form a chain where each wraps the next: TC[0] → TC[1] → ... → TC[n] → element
+      // We build inside-out: first wrap the element, then wrap with each TC.
+
+      const tcCount = tcInstructions.length;
+      let tcIndex = tcCount - 1;
+      let tcInstruction = tcInstructions[tcIndex];
+
+      // Step 1: Create the innermost template containing the actual element
+      // Replace element with marker in parent DOM, wrap element in template
+      this._replaceByMarker(el, context);
+      let tcTemplate: HTMLTemplateElement;
+      if (el.nodeName === TEMPLATE_NODE_NAME) {
+        tcTemplate = el as HTMLTemplateElement;
+      } else {
+        tcTemplate = context.t();
+        appendToTemplate(tcTemplate, el);
+      }
+      const innermostTemplate = tcTemplate;
+
+      // Step 2: Create child context for the innermost TC
+      // The element's own instructions (CE hydration, attrs) go into this child context
+      const tcChildContext = context._createChild(instructions == null ? [] : [instructions]);
+
+      // Step 3: Extract [au-slot] projections from children
+      if (processContentResult !== false) {
+        const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
+        if (projections != null) {
+          (elementInstruction as { projections: typeof projections }).projections = projections;
+        }
+      }
+
+      // Step 4: Mark element as hydration target
+      // Use tcChildContext because the element is in the TC's template
+      // and its instructions are in tcChildContext.rows
+      if (needsMarker) {
+        if (isCustomElement && (hasContainerless || elDef.containerless)) {
+          this._replaceByMarker(el, tcChildContext);
+        } else {
+          this._markAsTarget(el, tcChildContext);
+        }
+      }
+
+      // Step 5: Compile children into the TC's child context
+      const shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      if (shouldCompileContent) {
+        if (el.nodeName === TEMPLATE_NODE_NAME) {
+          this._compileNode((el as HTMLTemplateElement).content, tcChildContext);
+        } else {
+          let child = el.firstChild;
+          while (child !== null) {
+            child = this._compileNode(child, tcChildContext) as ChildNode | null;
+          }
+        }
+      }
+
+      // Step 6: Attach the compiled definition to the innermost TC
+      (tcInstruction as { def: IElementComponentDefinition }).def = {
+        name: generateElementName(),
+        type: definitionTypeElement,
+        template: innermostTemplate,
+        instructions: tcChildContext.rows,
+        needsCompile: false,
+      };
+
+      // Step 7: Chain outer TCs from inside-out
+      // Each outer TC gets a template with just a marker; its instruction is the next-inner TC
+      while (tcIndex-- > 0) {
+        tcInstruction = tcInstructions[tcIndex];
+        tcTemplate = context.t();
+        // Each outer TC template has exactly 1 marker at index 0
+        appendManyToTemplate(tcTemplate, [
+          context._marker(),
+          context._comment(auLocationStart),
+          context._comment(auLocationEnd),
+        ]);
+
+        (tcInstruction as { def: IElementComponentDefinition }).def = {
+          name: generateElementName(),
+          type: definitionTypeElement,
+          template: tcTemplate,
+          needsCompile: false,
+          instructions: [[tcInstructions[tcIndex + 1]]],
+        };
+      }
+
+      // Step 8: Push outermost TC to parent context
+      context.rows.push([tcInstruction]);
+
+    } else {
+      // No template controllers - compile children directly
+      if (instructions != null) {
+        context.rows.push(instructions);
+      }
+
+      // Extract [au-slot] projections
+      if (processContentResult !== false) {
+        const projections = this._extractProjections(el, isCustomElement, isShadowDom, elName, context);
+        if (projections != null) {
+          (elementInstruction as { projections: typeof projections }).projections = projections;
+        }
+      }
+
+      // Mark element as hydration target
+      if (needsMarker) {
+        if (isCustomElement && (hasContainerless || elDef.containerless)) {
+          this._replaceByMarker(el, context);
+        } else {
+          this._markAsTarget(el, context);
+        }
+      }
+
+      // Compile child nodes
+      const shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
+      if (shouldCompileContent && el.childNodes.length > 0) {
+        let child = el.firstChild;
+        while (child !== null) {
+          child = this._compileNode(child, context) as ChildNode | null;
+        }
+      }
+    }
+
+    // 5. Return next sibling for continued compilation
+    return nextSibling;
+  }
+
+  /**
+   * Classify all attributes on an element into their semantic categories.
+   *
+   * This is the core "attribute semantic decision" algorithm. Each attribute is
+   * checked against these categories in priority order:
+   *
+   * 1. Special attributes (as-element, containerless) - removed, not compiled
+   * 2. Captured attributes - forwarded to custom element via captures array
+   * 3. Spread transferred bindings (...$attrs) - spreads parent's attributes
+   * 4. Binding commands with ignoreAttr (class/style/attr) - command handles everything
+   * 5. Spread bindables (...$bindables) - spreads bindings to all bindable props
+   * 6. Custom element bindable properties - binds to CE's declared bindables
+   * 7. Custom attributes and template controllers - hydrates CA/TC instances
+   * 8. Plain attributes - interpolation or binding command on DOM attribute
+   *
+   * @param el - The element whose attributes to classify
+   * @param elDef - The custom element definition, or null if not a CE
+   * @param captures - Array to collect captured attributes (for CE forwarding)
+   * @param context - The compilation context
+   * @param generateStaticAttrInstructions - If true, generate Set*AttributeInstruction for
+   * static attrs instead of leaving them in the DOM. Used for surrogates where
+   * attrs must be transferred to the actual host element.
+   * @returns Classification result with instructions grouped by category
+   * @internal
+   */
+  private _classifyAttributes(
+    el: Element,
+    elDef: IElementComponentDefinition | null,
+    captures: AttrSyntax[],
+    context: CompilationContext,
+    generateStaticAttrInstructions: boolean = false,
+  ): IAttrClassificationResult {
+    const isCustomElement = elDef !== null;
     const capture = elDef?.capture;
     const hasCaptureFilter = capture != null && typeof capture !== 'boolean';
-    const captures: AttrSyntax[] = capture ? [] : emptyArray;
     const exprParser = context._exprParser;
+
+    const attrs = el.attributes;
+    let ii = attrs.length;
+    let i = 0;
+    let attr: Attr;
+    let attrName: string;
+    let attrValue: string;
+    let attrSyntax: AttrSyntax;
+    let bindingCommand: BindingCommandInstance | null = null;
+    let realAttrTarget: string;
+    let realAttrValue: string;
+
+    let tcInstructions: HydrateTemplateController[] | undefined;
+    let attrInstructions: HydrateAttributeInstruction[] | undefined;
+    let elBindableInstructions: IInstruction[] | undefined;
+    let plainAttrInstructions: IInstruction[] | undefined;
+
+    let attrDef: IAttributeComponentDefinition | null = null;
+    let bindable: IComponentBindablePropDefinition;
+    let attrBindableInstructions: IInstruction[];
+    let bindablesInfo: IElementBindablesInfo | IAttributeBindablesInfo;
+    let expr: AnyBindingExpression;
+    let hasContainerless = false;
+    let canCapture = false;
+    let spreadIndex = 0;
+
     const removeAttr = this.debug
       ? noop
       : () => {
@@ -642,68 +737,14 @@ export class TemplateCompiler implements ITemplateCompiler {
         --i;
         --ii;
       };
-    let attrs = el.attributes;
-    let instructions: IInstruction[] | undefined;
-    let ii = attrs.length;
-    let i = 0;
-    let attr: Attr;
-    let attrName: string;
-    let attrValue: string;
-    let attrSyntax: AttrSyntax;
-    /**
-     * A list of plain attribute bindings/interpolation bindings
-     */
-    let plainAttrInstructions: IInstruction[] | undefined;
-    let elBindableInstructions: IInstruction[] | undefined;
-    let attrDef: IAttributeComponentDefinition | null = null;
-    let isMultiBindings = false;
-    let bindable: IComponentBindablePropDefinition;
-    let attrInstructions: HydrateAttributeInstruction[] | undefined;
-    let attrBindableInstructions: IInstruction[];
-    let tcInstructions: HydrateTemplateController[] | undefined;
-    let tcInstruction: HydrateTemplateController | undefined;
-    let expr: AnyBindingExpression;
-    let elementInstruction: HydrateElementInstruction | undefined;
-    let bindingCommand: BindingCommandInstance | null = null;
-    let bindablesInfo: IElementBindablesInfo | IAttributeBindablesInfo;
-    let primaryBindable: IComponentBindablePropDefinition;
-    let realAttrTarget: string;
-    let realAttrValue: string;
-    let processContentResult: boolean | undefined | void = true;
-    let hasContainerless = false;
-    let canCapture = false;
-    let needsMarker = false;
-    let elementMetadata: Record<PropertyKey, unknown>;
-    let spreadIndex = 0;
 
-    if (elName === 'slot') {
-      if (context.root.def.shadowOptions == null) {
-        throw createMappedError(ErrorNames.compiler_slot_without_shadowdom, context.root.def.name);
-      }
-      context.root.hasSlot = true;
-    }
-    if (isCustomElement) {
-      elementMetadata = {};
-      // todo: this is a bit ... powerful
-      // maybe do not allow it to process its own attributes
-      processContentResult = elDef.processContent?.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
-      // might have changed during the process
-      attrs = el.attributes;
-      ii = attrs.length;
-    }
-
-    // 1. walk and compile through all attributes
-    //    for each of them, put in appropriate group.
-    //    ex. plain attr with binding -> plain attr instruction list
-    //        template controller     -> tc instruction list
-    //        custom attribute        -> ca instruction list
-    //        el bindable attribute   -> el bindable instruction list
     for (; ii > i; ++i) {
       attr = attrs[i];
       attrName = attr.name;
       attrValue = attr.value;
+
+      // 1. Handle special attributes
       switch (attrName) {
-        // ignore these 2 attributes
         case 'as-element':
         case 'containerless':
           removeAttr();
@@ -713,10 +754,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       attrSyntax = context._attrParser.parse(attrName, attrValue);
       bindingCommand = context._getCommand(attrSyntax);
-
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
 
+      // 2. Handle captured attributes (for custom elements with capture enabled)
       if (capture && (!hasCaptureFilter || hasCaptureFilter && capture(realAttrTarget))) {
         if (bindingCommand != null && bindingCommand.ignoreAttr) {
           removeAttr();
@@ -727,18 +768,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         canCapture = realAttrTarget !== auslotAttr
           && realAttrTarget !== 'slot'
           && ((spreadIndex = realAttrTarget.indexOf('...')) === -1
-            // the following condition will allow syntaxes:
-            // ...$bindables
-            // ...some.expression
             || (spreadIndex === 0 && (realAttrTarget === '...$attrs'))
           );
         if (canCapture) {
           bindablesInfo = context._getBindables(elDef);
-          // if capture is on, capture everything except:
-          // - as-element
-          // - containerless
-          // - bindable properties
-          // - template controller
+          // Capture everything except bindable properties and template controllers
           if (bindablesInfo.attrs[realAttrTarget] == null && !context._findAttr(realAttrTarget)?.isTemplateController) {
             removeAttr();
             captures.push(attrSyntax);
@@ -747,35 +781,32 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
+      // 3. Handle spread transferred bindings (...$attrs)
       if (realAttrTarget === '...$attrs') {
-        (plainAttrInstructions ??= []).push(new SpreadTransferedBindingInstruction());
+        (plainAttrInstructions ??= []).push({ type: itSpreadTransferedBinding } as SpreadTransferedBindingInstruction);
         removeAttr();
         continue;
       }
 
+      // 4. Binding commands with ignoreAttr (e.g., class/style/attr) handle the attribute entirely
       if (bindingCommand?.ignoreAttr) {
-        // when the binding command overrides everything
-        // just pass the target as is to the binding command, and treat it as a normal attribute:
-        // active.class="..."
-        // background.style="..."
-        // my-attr.attr="..."
-
-        commandBuildInfo.node = el;
-        commandBuildInfo.attr = attrSyntax;
-        commandBuildInfo.bindable = null;
-        commandBuildInfo.def = null;
-        (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
+        (plainAttrInstructions ??= []).push(bindingCommand.build(
+          { node: el, attr: attrSyntax, bindable: null, def: null },
+          context._exprParser,
+          context._attrMapper
+        ));
         removeAttr();
-        // to next attribute
         continue;
       }
 
+      // 5. Spread bindables (...$bindables, ...propName) - spread to all bindable properties
       if (realAttrTarget.indexOf('...') === 0) {
         if (isCustomElement && (realAttrTarget = realAttrTarget.slice(3)) !== '$element') {
-          (elBindableInstructions ??= []).push(new SpreadValueBindingInstruction(
-            '$bindables',
-            realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
-          ));
+          (elBindableInstructions ??= []).push({
+            type: itSpreadValueBinding,
+            target: '$bindables',
+            from: realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
+          } as SpreadValueBindingInstruction);
           removeAttr();
           continue;
         }
@@ -790,12 +821,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
       }
 
-      // reaching here means:
-      // + there may or may not be a binding command, but it won't be an overriding command
-
+      // 6. Custom element bindable properties
       if (isCustomElement) {
-        // if the element is a custom element
-        // - prioritize bindables on a custom element before plain attributes
         bindablesInfo = context._getBindables(elDef);
         bindable = bindablesInfo.attrs[realAttrTarget];
         if (bindable !== void 0) {
@@ -803,16 +830,12 @@ export class TemplateCompiler implements ITemplateCompiler {
             expr = exprParser.parse(realAttrValue, etInterpolation);
             (elBindableInstructions ??= []).push(
               expr == null
-                ? new SetPropertyInstruction(realAttrValue, bindable.name)
-                : new InterpolationInstruction(expr, bindable.name)
+                ? { type: itSetProperty, value: realAttrValue, to: bindable.name } as SetPropertyInstruction
+                : { type: itInterpolation, from: expr, to: bindable.name } as InterpolationInstruction
             );
           } else {
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = bindable;
-            commandBuildInfo.def = elDef;
             (elBindableInstructions ??= []).push(bindingCommand.build(
-              commandBuildInfo,
+              { node: el, attr: attrSyntax, bindable, def: elDef },
               context._exprParser,
               context._attrMapper
             ));
@@ -832,33 +855,25 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
+        // Handle $bindables with binding command
         if (realAttrTarget === '$bindables') {
           if (bindingCommand != null) {
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = null;
-            commandBuildInfo.def = elDef;
+            // SpreadValueBindingCommand only needs attr.target and attr.rawValue, not def/bindable
+            const instruction = bindingCommand.build(
+              { node: el, attr: attrSyntax, bindable: null, def: null },
+              context._exprParser,
+              context._attrMapper
+            );
 
             if (__DEV__) {
-              const instruction = bindingCommand.build(
-                commandBuildInfo,
-                context._exprParser,
-                context._attrMapper
-              );
-              if (!(instruction instanceof SpreadValueBindingInstruction)) {
+              if (instruction.type !== itSpreadValueBinding) {
                 // eslint-disable-next-line no-console
                 console.warn(`[DEV:aurelia] Binding with "$bindables" on custom element "${elDef.name}" with command ${attrSyntax.command} ` +
                   ` did not result in a spread binding instruction. This likely won't work as expected.`
                 );
               }
-              (elBindableInstructions ??= []).push(instruction);
-            } else {
-              (elBindableInstructions ??= []).push(bindingCommand.build(
-                commandBuildInfo,
-                context._exprParser,
-                context._attrMapper
-              ));
             }
+            (elBindableInstructions ??= []).push(instruction);
           } else if (__DEV__) {
             // eslint-disable-next-line no-console
             console.warn(`[DEV:aurelia] Usage of "$bindables" on custom element "<${elDef.name}>" is ignored.`);
@@ -869,516 +884,86 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
+      // Disallow $bindables on non-custom elements
       if (realAttrTarget === '$bindables') {
         throw createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
       }
 
-      // reaching here means:
-      // + there may or may not be a binding command, but it won't be an overriding command
-      // + the attribute is not targeting a bindable property of a custom element
-      //
-      // + maybe it's a custom attribute
-      // + maybe it's a plain attribute
-
-      // check for custom attributes before plain attributes
+      // 7. Custom attributes and template controllers
       attrDef = context._findAttr(realAttrTarget);
       if (attrDef !== null) {
-        bindablesInfo = context._getBindables(attrDef);
-        // Custom attributes are always in multiple binding mode,
-        // except when they can't be
-        // When they cannot be:
-        //        * has explicit configuration noMultiBindings: false
-        //        * has binding command, ie: <div my-attr.bind="...">.
-        //          In this scenario, the value of the custom attributes is required to be a valid expression
-        //        * has no colon: ie: <div my-attr="abcd">
-        //          In this scenario, it's simply invalid syntax.
-        //          Consider style attribute rule-value pair: <div style="rule: ruleValue">
-        isMultiBindings = attrDef.noMultiBindings === false
-          && bindingCommand === null
-          && hasInlineBindings(realAttrValue);
-        if (isMultiBindings) {
-          attrBindableInstructions = this._compileMultiBindings(el, realAttrValue, attrDef, context);
-        } else {
-          primaryBindable = bindablesInfo.primary;
-          // custom attribute + single value + WITHOUT binding command:
-          // my-attr=""
-          // my-attr="${}"
-          if (bindingCommand === null) {
-            expr = exprParser.parse(realAttrValue, etInterpolation);
-            attrBindableInstructions = expr === null
-              ? realAttrValue === ''
-                // when the attribute usage is <div attr>
-                // it's considered as no bindings
-                ? []
-                : [new SetPropertyInstruction(realAttrValue, primaryBindable.name)]
-              : [new InterpolationInstruction(expr, primaryBindable.name)];
-          } else {
-            // custom attribute with binding command:
-            // my-attr.bind="..."
-            // my-attr.two-way="..."
-
-            commandBuildInfo.node = el;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = primaryBindable;
-            commandBuildInfo.def = attrDef;
-            attrBindableInstructions = [bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper)];
-          }
-        }
+        attrBindableInstructions = this._compileCustomAttributeBindables(
+          el, attrDef, attrSyntax, realAttrValue, bindingCommand, context,
+          /* treatEmptyAsNoBinding */ true
+        );
 
         removeAttr();
 
+        // todo: def/ def.Type or def.name should be configurable
+        //       example: AOT/runtime can use def.Type, but there are situations
+        //       where instructions need to be serialized, def.name should be used
         if (attrDef.isTemplateController) {
-          (tcInstructions ??= []).push(new HydrateTemplateController(
-            voidDefinition,
-            // todo: def/ def.Type or def.name should be configurable
-            //       example: AOT/runtime can use def.Type, but there are situation
-            //       where instructions need to be serialized, def.name should be used
-            this.resolveResources ? attrDef : attrDef.name,
-            void 0,
-            attrBindableInstructions,
-          ));
+          (tcInstructions ??= []).push({
+            type: itHydrateTemplateController,
+            def: voidDefinition,
+            res: this.resolveResources ? attrDef : attrDef.name,
+            alias: void 0,
+            props: attrBindableInstructions,
+          } satisfies HydrateTemplateController);
         } else {
-          (attrInstructions ??= []).push(new HydrateAttributeInstruction(
-            // todo: def/ def.Type or def.name should be configurable
-            //       example: AOT/runtime can use def.Type, but there are situation
-            //       where instructions need to be serialized, def.name should be used
-            this.resolveResources ? attrDef : attrDef.name,
-            attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
-            attrBindableInstructions
-          ));
+          (attrInstructions ??= []).push({
+            type: itHydrateAttribute,
+            res: this.resolveResources ? attrDef : attrDef.name,
+            alias: attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
+            props: attrBindableInstructions
+          } as HydrateAttributeInstruction);
         }
         continue;
       }
 
-      // reaching here means:
-      // + it's a plain attribute
-      // + there may or may not be a binding command, but it won't be an overriding command
-
+      // 8. Plain attributes - either interpolation or binding command on a DOM property/attribute
       if (bindingCommand === null) {
-        // reaching here means:
-        // + maybe a plain attribute with interpolation
-        // + maybe a plain attribute
         expr = exprParser.parse(realAttrValue, etInterpolation);
         if (expr != null) {
-          // if it's an interpolation, remove the attribute
           removeAttr();
-
-          (plainAttrInstructions ??= []).push(new InterpolationInstruction(
-            expr,
-            // if not a bindable, then ensure plain attribute are mapped correctly:
-            // e.g: colspan -> colSpan
-            //      innerhtml -> innerHTML
-            //      minlength -> minLength etc...
-            context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
-          ));
+          (plainAttrInstructions ??= []).push({
+            type: itInterpolation,
+            from: expr,
+            to: context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
+          } as InterpolationInstruction);
+        } else if (generateStaticAttrInstructions) {
+          // For surrogates: generate instruction to transfer static attr to host element
+          switch (attrName) {
+            case 'class':
+              (plainAttrInstructions ??= []).push({ type: itSetClassAttribute, value: realAttrValue } as SetClassAttributeInstruction);
+              break;
+            case 'style':
+              (plainAttrInstructions ??= []).push({ type: itSetStyleAttribute, value: realAttrValue } as SetStyleAttributeInstruction);
+              break;
+            default:
+              (plainAttrInstructions ??= []).push({ type: itSetAttribute, value: realAttrValue, to: attrName } as SetAttributeInstruction);
+          }
         }
+        // else: plain static attribute, left on the element (no instruction needed)
         continue;
       }
 
-      // reaching here means:
-      // + has binding command
-      // + not an overriding binding command
-      // + not a custom attribute
-      // + not a custom element bindable
-
-      commandBuildInfo.node = el;
-      commandBuildInfo.attr = attrSyntax;
-      commandBuildInfo.bindable = null;
-      commandBuildInfo.def = null;
+      // Plain attribute with binding command (e.g., value.bind="x")
       (plainAttrInstructions ??= []).push(bindingCommand.build(
-        commandBuildInfo,
+        { node: el, attr: attrSyntax, bindable: null, def: null },
         context._exprParser,
         context._attrMapper
       ));
       removeAttr();
     }
 
-    resetCommandBuildInfo();
-
-    if (this._shouldReorderAttrs(el, plainAttrInstructions) && plainAttrInstructions != null && plainAttrInstructions.length > 1) {
-      this._reorder(el, plainAttrInstructions);
-    }
-
-    // 2. ensure that element instruction is present if this element is a custom element
-    if (isCustomElement) {
-      elementInstruction = new HydrateElementInstruction(
-        // todo: def/ def.Type or def.name should be configurable
-        //       example: AOT/runtime can use def.Type, but there are situation
-        //       where instructions need to be serialized, def.name should be used
-        this.resolveResources ? elDef : elDef.name,
-        (elBindableInstructions ?? emptyArray) as IInstruction[],
-        null,
-        hasContainerless,
-        captures,
-        elementMetadata!,
-      );
-    }
-
-    // 3. merge and sort all instructions into a single list
-    //    as instruction list for this element
-    if (plainAttrInstructions != null
-      || elementInstruction != null
-      || attrInstructions != null
-    ) {
-      instructions = emptyArray.concat(
-        elementInstruction ?? emptyArray,
-        attrInstructions ?? emptyArray,
-        plainAttrInstructions ?? emptyArray,
-      );
-      // 3.1 mark as template for later hydration
-      // this._markAsTarget(el, context);
-      needsMarker = true;
-    }
-
-    // 4. compiling child nodes
-    let shouldCompileContent: boolean;
-    if (tcInstructions != null) {
-      // 4.1 if there is 1 or more [Template controller]
-      ii = tcInstructions.length - 1;
-      i = ii;
-      tcInstruction = tcInstructions[i];
-
-      let template: HTMLTemplateElement;
-      if (isMarker(el)) {
-        template = context.t();
-        appendManyToTemplate(template, [
-          // context.h(MARKER_NODE_NAME),
-          context._marker(),
-          context._comment(auLocationStart),
-          context._comment(auLocationEnd),
-        ]);
-      } else {
-        // assumption: el.parentNode is not null
-        // but not always the case: e.g compile/enhance an element without parent with TC on it
-        this._replaceByMarker(el, context);
-        if (el.nodeName === 'TEMPLATE') {
-          template = el as HTMLTemplateElement;
-        } else {
-          template = context.t();
-          appendToTemplate(template, el);
-        }
-
-      }
-      const mostInnerTemplate = template;
-      // 4.1.1.0. prepare child context for the inner template compilation
-      const childContext = context._createChild(instructions == null ? [] : [instructions]);
-
-      let childEl: Element;
-      let targetSlot: string | null;
-      let hasAuSlot = false;
-      let projections: Record<string, IElementComponentDefinition> | undefined;
-      let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
-      let slotTemplates: (Node | Element | DocumentFragment)[];
-      let slotTemplate: Node | Element | DocumentFragment;
-      let marker: Comment;
-      let projectionCompilationContext: CompilationContext;
-      let j = 0, jj = 0;
-      // 4.1.1.1.
-      //  walks through the child nodes, and perform [au-slot] check
-      //  note: this is a bit different with the summary above, possibly wrong since it will not throw
-      //        on [au-slot] used on a non-custom-element + with a template controller on it
-      // for each child element of a custom element
-      // scan for [au-slot], if there's one
-      // then extract the element into a projection definition
-      // this allows support for [au-slot] declared on the same element with anther template controller
-      // e.g:
-      //
-      // can do:
-      //  <my-el>
-      //    <div au-slot if.bind="..."></div>
-      //    <div if.bind="..." au-slot></div>
-      //  </my-el>
-      //
-      // instead of:
-      //  <my-el>
-      //    <template au-slot><div if.bind="..."></div>
-      //  </my-el>
-      let child: Node | null = el.firstChild;
-      let isEmptyTextNode = false;
-      if (processContentResult !== false) {
-        while (child !== null) {
-          targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
-          hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
-          childEl = child.nextSibling as Element;
-          if (hasAuSlot) {
-            if (!isCustomElement) {
-              throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
-            }
-            (child as Element).removeAttribute?.(auslotAttr);
-            // ignore all whitespace
-            isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
-            if (!isEmptyTextNode) {
-              ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
-            }
-            el.removeChild(child);
-          }
-          child = childEl;
-        }
-      }
-
-      if (slotTemplateRecord != null) {
-        projections = {};
-        // aggregate all content targeting the same slot
-        // into a single template
-        // with some special rule around <template> element
-        for (targetSlot in slotTemplateRecord) {
-          template = context.t();
-          slotTemplates = slotTemplateRecord[targetSlot];
-          for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-            slotTemplate = slotTemplates[j];
-            if (slotTemplate.nodeName === 'TEMPLATE') {
-              // this means user has some thing more than [au-slot] on a template
-              // consider this intentional, and use it as is
-              // e.g:
-              // case 1
-              // <my-element>
-              //   <template au-slot repeat.for="i of items">
-              // ----vs----
-              // case 2
-              // <my-element>
-              //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-              if ((slotTemplate as Element).attributes.length > 0) {
-                // case 1
-                appendToTemplate(template, slotTemplate);
-              } else {
-                // case 2
-                appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
-              }
-            } else {
-              appendToTemplate(template, slotTemplate);
-            }
-          }
-
-          // after aggregating all the [au-slot] templates into a single one
-          // compile it
-          // technically, the most inner template controller compilation context
-          // is the parent of this compilation context
-          // but for simplicity in compilation, maybe start with a flatter hierarchy
-          // also, it wouldn't have any real uses
-          projectionCompilationContext = context._createChild();
-          this._compileNode(template.content, projectionCompilationContext);
-          projections[targetSlot] = {
-            name: generateElementName(),
-            type: definitionTypeElement,
-            template,
-            instructions: projectionCompilationContext.rows,
-            needsCompile: false,
-          };
-        }
-        elementInstruction!.projections = projections;
-      }
-
-      if (needsMarker) {
-        if (isCustomElement && (hasContainerless || elDef.containerless)) {
-          this._replaceByMarker(el, context);
-        } else {
-          this._markAsTarget(el, context);
-        }
-      }
-
-      shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
-      if (shouldCompileContent) {
-        // 4.1.1.2:
-        //  recursively compiles the child nodes into the inner context
-        // important:
-        // ======================
-        // only goes inside a template, if there is a template controller on it
-        // otherwise, leave it alone
-        if (el.nodeName === TEMPLATE_NODE_NAME) {
-          this._compileNode((el as HTMLTemplateElement).content, childContext);
-        } else {
-          child = el.firstChild;
-          while (child !== null) {
-            child = this._compileNode(child, childContext);
-          }
-        }
-      }
-      tcInstruction.def = {
-        name: generateElementName(),
-        type: definitionTypeElement,
-        template: mostInnerTemplate,
-        instructions: childContext.rows,
-        needsCompile: false,
-      };
-
-      // 4.1.2.
-      //  Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
-      while (i-- > 0) {
-        // for each of the template controller from [right] to [left]
-        // do create:
-        // (1) a template
-        // (2) add a marker to the template
-        // (3) an instruction
-        // instruction will be corresponded to the marker
-        // =========================
-
-        tcInstruction = tcInstructions[i];
-        template = context.t();
-        // appending most inner template is inaccurate, as the most outer one
-        // is not really the parent of the most inner one
-        // but it's only for the purpose of creating a marker,
-        // so it's just an optimization hack
-        // marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
-        // marker = context.h(MARKER_NODE_NAME);
-        marker = context._marker();
-        appendManyToTemplate(template, [
-          marker,
-          context._comment(auLocationStart),
-          context._comment(auLocationEnd),
-        ]);
-
-        tcInstruction.def = {
-          name: generateElementName(),
-          type: definitionTypeElement,
-          template,
-          needsCompile: false,
-          instructions: [[tcInstructions[i + 1]]],
-        };
-      }
-      // the most outer template controller should be
-      // the only instruction for peek instruction of the current context
-      // e.g
-      // <div if.bind="yes" with.bind="scope" repeat.for="i of items" data-id="i.id">
-      // results in:
-      // -----------
-      //
-      //  TC(if-[value=yes])
-      //    | TC(with-[value=scope])
-      //        | TC(repeat-[...])
-      //            | div(data-id-[value=i.id])
-      context.rows.push([tcInstruction]);
-    } else {
-      // 4.2
-      //
-      // if there's no template controller
-      // then the instruction built is appropriate to be assigned as the peek row
-      // and before the children compilation
-      if (instructions != null) {
-        context.rows.push(instructions);
-      }
-
-      let child = el.firstChild as Node | null;
-      let childEl: Element;
-      let targetSlot: string | null;
-      let hasAuSlot: boolean = false;
-      let projections: Record<string, IElementComponentDefinition> | null = null;
-      let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
-      let slotTemplates: (Node | Element | DocumentFragment)[];
-      let slotTemplate: Node | Element | DocumentFragment;
-      let template: HTMLTemplateElement;
-      let projectionCompilationContext: CompilationContext;
-      let isEmptyTextNode = false;
-      let j = 0, jj = 0;
-      // 4.2.1.
-      //    walks through the child nodes and perform [au-slot] check
-      // --------------------
-      // for each child element of a custom element
-      // scan for [au-slot], if there's one
-      // then extract the element into a projection definition
-      // this allows support for [au-slot] declared on the same element with anther template controller
-      // e.g:
-      //
-      // can do:
-      //  <my-el>
-      //    <div au-slot if.bind="..."></div>
-      //    <div if.bind="..." au-slot></div>
-      //  </my-el>
-      //
-      // instead of:
-      //  <my-el>
-      //    <template au-slot><div if.bind="..."></div>
-      //  </my-el>
-      if (processContentResult !== false) {
-        while (child !== null) {
-          targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
-          hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
-          childEl = child.nextSibling as Element;
-          if (hasAuSlot) {
-            if (!isCustomElement) {
-              throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
-            }
-            (child as Element).removeAttribute?.(auslotAttr);
-            // ignore all whitespace
-            isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
-            if (!isEmptyTextNode) {
-              ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
-            }
-            el.removeChild(child);
-          }
-          child = childEl;
-        }
-      }
-
-      if (slotTemplateRecord != null) {
-        projections = {};
-        // aggregate all content targeting the same slot
-        // into a single template
-        // with some special rule around <template> element
-        for (targetSlot in slotTemplateRecord) {
-          template = context.t();
-          slotTemplates = slotTemplateRecord[targetSlot];
-          for (j = 0, jj = slotTemplates.length; jj > j; ++j) {
-            slotTemplate = slotTemplates[j];
-            if (slotTemplate.nodeName === TEMPLATE_NODE_NAME) {
-              // this means user has some thing more than [au-slot] on a template
-              // consider this intentional, and use it as is
-              // e.g:
-              // case 1
-              // <my-element>
-              //   <template au-slot repeat.for="i of items">
-              // ----vs----
-              // case 2
-              // <my-element>
-              //   <template au-slot>this is just some static stuff <b>And a b</b></template>
-
-              if ((slotTemplate as Element).attributes.length > 0) {
-                // case 1
-                appendToTemplate(template, slotTemplate);
-              } else {
-                // case 2
-                appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
-              }
-            } else {
-              appendToTemplate(template, slotTemplate);
-            }
-          }
-
-          // after aggregating all the [au-slot] templates into a single one
-          // compile it
-          projectionCompilationContext = context._createChild();
-          this._compileNode(template.content, projectionCompilationContext);
-          projections[targetSlot] = {
-            name: generateElementName(),
-            type: definitionTypeElement,
-            template,
-            instructions: projectionCompilationContext.rows,
-            needsCompile: false,
-          };
-        }
-        elementInstruction!.projections = projections;
-      }
-
-      if (needsMarker) {
-        if (isCustomElement && (hasContainerless || elDef.containerless)) {
-          this._replaceByMarker(el, context);
-        } else {
-          this._markAsTarget(el, context);
-        }
-      }
-
-      shouldCompileContent = !isCustomElement || !elDef.containerless && !hasContainerless && processContentResult !== false;
-      if (shouldCompileContent && el.childNodes.length > 0) {
-        // 4.2.2
-        //    recursively compiles the child nodes into current context
-        child = el.firstChild;
-        while (child !== null) {
-          child = this._compileNode(child, context);
-        }
-      }
-    }
-
-    // 5. returns the next node to be compiled
-    return nextSibling;
+    return {
+      tcInstructions,
+      attrInstructions,
+      elBindableInstructions,
+      plainAttrInstructions,
+      hasContainerless,
+    };
   }
 
   /** @internal */
@@ -1401,7 +986,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       for (i = 0, ii = expressions.length; ii > i; ++i) {
         // foreach expression part, turn into a marker
         insertManyBefore(parent, node, [
-          // context.h(MARKER_NODE_NAME),
           context._marker(),
           // empty text node will not be cloned when doing fragment.cloneNode()
           // so give it an empty space instead
@@ -1412,7 +996,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           insertBefore(parent, context._text(part), node);
         }
         // and the corresponding instruction
-        context.rows.push([new TextBindingInstruction(expressions[i])]);
+        context.rows.push([{ type: itTextBinding, from: expressions[i] } as TextBindingInstruction]);
       }
       parent.removeChild(node);
     }
@@ -1487,15 +1071,15 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (command === null) {
           expr = context._exprParser.parse(attrValue, etInterpolation);
           instructions.push(expr === null
-            ? new SetPropertyInstruction(attrValue, bindable.name)
-            : new InterpolationInstruction(expr, bindable.name)
+            ? { type: itSetProperty, value: attrValue, to: bindable.name } as SetPropertyInstruction
+            : { type: itInterpolation, from: expr, to: bindable.name } as InterpolationInstruction
           );
         } else {
-          commandBuildInfo.node = node;
-          commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.bindable = bindable;
-          commandBuildInfo.def = attrDef;
-          instructions.push(command.build(commandBuildInfo, context._exprParser, context._attrMapper));
+          instructions.push(command.build(
+            { node, attr: attrSyntax, bindable, def: attrDef },
+            context._exprParser,
+            context._attrMapper
+          ));
         }
 
         // Skip whitespace after semicolon
@@ -1508,12 +1092,13 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
     }
 
-    resetCommandBuildInfo();
-
     return instructions;
   }
 
-  /** @internal */
+  /**
+   * Extract the `<template as-custom-element="...">` local templates from the root template
+   * @internal
+   */
   private _compileLocalElement(template: Element | DocumentFragment, context: CompilationContext) {
     const elName = context.root.def.name;
     const root: Element | DocumentFragment = template;
@@ -1612,7 +1197,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return nodeName === 'INPUT' && orderSensitiveInputType[(el as HTMLInputElement).type] === 1
       || nodeName === 'SELECT' && (
         (el as HTMLSelectElement).hasAttribute('multiple')
-        || instructions?.some(i => i.type === propertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
+        || instructions?.some(i => i.type === itPropertyBinding && (i as PropertyBindingInstruction | InterpolationInstruction).to === 'multiple')
       );
   }
 
@@ -1676,19 +1261,19 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /**
-   * Mark an element as target with a special css class
-   * and return it
+   * Mark an element as a hydration target by inserting an <!--au--> marker before it.
    *
    * @internal
    */
   private _markAsTarget<T extends Element>(el: T, context: CompilationContext): T {
-    insertBefore(el.parentNode!, context._comment('au*'), el);
-    // el.classList.add('au');
+    insertBefore(el.parentNode!, context._marker(), el);
     return el;
   }
 
   /**
-   * Replace an element with a marker, and return the marker
+   * Replace an element with a marker, and return the marker.
+   * Used for containerless elements and template controllers.
+   * Creates `<!--au--><!--au-start--><!--au-end-->` structure.
    *
    * @internal
    */
@@ -1696,11 +1281,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (isMarker(node)) {
       return node;
     }
-    // todo: assumption made: parentNode won't be null
     const parent = node.parentNode!;
-    // const marker = this._markAsTarget(context.h(MARKER_NODE_NAME));
     const marker = context._marker();
-    // insertBefore(parent, marker, node);
     insertManyBefore(parent, node, [
       marker,
       context._comment(auLocationStart),
@@ -1709,14 +1291,171 @@ export class TemplateCompiler implements ITemplateCompiler {
     parent.removeChild(node);
     return marker;
   }
+
+  /**
+   * Build the bindable property instructions for a custom attribute.
+   *
+   * Handles three cases:
+   * 1. Multi-binding syntax: `my-attr="prop1: value1; prop2.bind: expr"`
+   * 2. Single value without command: `my-attr="value"` or `my-attr="${expr}"`
+   * 3. Single value with command: `my-attr.bind="expr"`
+   *
+   * @param node - The element the attribute is on
+   * @param attrDef - The custom attribute definition
+   * @param attrSyntax - The parsed attribute syntax
+   * @param attrValue - The raw attribute value
+   * @param bindingCommand - The binding command instance, or null
+   * @param context - The compilation context
+   * @param treatEmptyAsNoBinding - If true, empty string values produce no instructions (surrogate/element behavior)
+   * @returns Array of instructions for the attribute's bindable properties
+   * @internal
+   */
+  private _compileCustomAttributeBindables(
+    node: Element,
+    attrDef: IAttributeComponentDefinition,
+    attrSyntax: AttrSyntax,
+    attrValue: string,
+    bindingCommand: BindingCommandInstance | null,
+    context: CompilationContext,
+    treatEmptyAsNoBinding: boolean,
+  ): IInstruction[] {
+    const bindablesInfo = context._getBindables(attrDef);
+
+    // Check for multi-binding syntax: `my-attr="prop1: value1; prop2.bind: expr"`
+    // Multi-binding is only allowed when:
+    // - The attribute allows it (noMultiBindings !== true)
+    // - There's no binding command
+    // - The value contains a colon (but not just interpolation)
+    const isMultiBindings = attrDef.noMultiBindings === false
+      && bindingCommand === null
+      && hasInlineBindings(attrValue);
+
+    if (isMultiBindings) {
+      return this._compileMultiBindings(node, attrValue, attrDef, context);
+    }
+
+    const primaryBindable = bindablesInfo.primary;
+
+    // Single value WITHOUT binding command: `my-attr=""` or `my-attr="${expr}"`
+    if (bindingCommand === null) {
+      const expr = context._exprParser.parse(attrValue, etInterpolation);
+      if (expr === null) {
+        // No interpolation - treat as literal value
+        if (treatEmptyAsNoBinding && attrValue === '') {
+          // Empty attribute like `<div my-attr>` produces no bindings
+          return [];
+        }
+        return [{ type: itSetProperty, value: attrValue, to: primaryBindable.name } as SetPropertyInstruction];
+      }
+      // Has interpolation
+      return [{ type: itInterpolation, from: expr, to: primaryBindable.name } as InterpolationInstruction];
+    }
+
+    // Single value WITH binding command: `my-attr.bind="expr"`
+    return [bindingCommand.build(
+      { node, attr: attrSyntax, bindable: primaryBindable, def: attrDef },
+      context._exprParser,
+      context._attrMapper
+    )];
+  }
+
+  /**
+   * Extract au-slot projections from a custom element's children.
+   *
+   * Walks through child nodes looking for [au-slot] attributes. When found,
+   * removes them from the parent and groups them by slot name into compiled
+   * projection definitions.
+   *
+   * @returns A record of slot name -> compiled definition, or null if no projections found
+   * @internal
+   */
+  private _extractProjections(
+    el: Element,
+    isCustomElement: boolean,
+    isShadowDom: boolean,
+    elName: string,
+    context: CompilationContext,
+  ): Record<string, IElementComponentDefinition> | null {
+    let child: Node | null = el.firstChild;
+    let childEl: Element;
+    let targetSlot: string | null;
+    let hasAuSlot: boolean;
+    let slotTemplateRecord: Record<string, (Node | Element | DocumentFragment)[]> | undefined;
+    let isEmptyTextNode: boolean;
+
+    // Walk through child nodes, extracting those with [au-slot]
+    while (child !== null) {
+      targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
+      hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
+      childEl = child.nextSibling as Element;
+      if (hasAuSlot) {
+        if (!isCustomElement) {
+          throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
+        }
+        (child as Element).removeAttribute?.(auslotAttr);
+        // ignore all whitespace
+        isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
+        if (!isEmptyTextNode) {
+          ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
+        }
+        el.removeChild(child);
+      }
+      child = childEl;
+    }
+
+    if (slotTemplateRecord == null) {
+      return null;
+    }
+
+    // Compile each slot's content into a projection definition
+    const projections: Record<string, IElementComponentDefinition> = {};
+    let template: HTMLTemplateElement;
+    let slotTemplates: (Node | Element | DocumentFragment)[];
+    let slotTemplate: Node | Element | DocumentFragment;
+    let projectionCompilationContext: CompilationContext;
+
+    for (targetSlot in slotTemplateRecord) {
+      template = context.t();
+      slotTemplates = slotTemplateRecord[targetSlot];
+
+      // Aggregate all content targeting the same slot into a single template
+      for (let j = 0, jj = slotTemplates.length; jj > j; ++j) {
+        slotTemplate = slotTemplates[j];
+        if (slotTemplate.nodeName === TEMPLATE_NODE_NAME) {
+          // User has something more than [au-slot] on a template
+          // e.g. <template au-slot repeat.for="i of items"> vs <template au-slot>static content</template>
+          if ((slotTemplate as Element).attributes.length > 0) {
+            // Has other attributes - keep the template wrapper
+            appendToTemplate(template, slotTemplate);
+          } else {
+            // No other attributes - unwrap the content
+            appendToTemplate(template, (slotTemplate as HTMLTemplateElement).content);
+          }
+        } else {
+          appendToTemplate(template, slotTemplate);
+        }
+      }
+
+      // Compile the aggregated template
+      projectionCompilationContext = context._createChild();
+      this._compileNode(template.content, projectionCompilationContext);
+      projections[targetSlot] = {
+        name: generateElementName(),
+        type: definitionTypeElement,
+        template,
+        instructions: projectionCompilationContext.rows,
+        needsCompile: false,
+      };
+    }
+
+    return projections;
+  }
 }
 
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
+/** Check if a node is an <!--au--> marker comment */
 const isMarker = (el: Node): el is Comment =>
-  el.nodeValue === 'au*';
-    // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auStartComment
-    // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auEndComment;
-// const isComment = (el: Node | null): el is Comment => el?.nodeType === 8;
+  el.nodeType === 8 && (el as Comment).textContent === 'au';
 
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
@@ -1741,7 +1480,6 @@ class CompilationContext {
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
   public deps: Constructable[] | null = null;
-
   /** @internal */
   private readonly c: IContainer;
 
@@ -1786,8 +1524,13 @@ class CompilationContext {
     return this.p.document.createComment(text);
   }
 
+  /**
+   * Create an `<!--au-->` marker comment.
+   * The target node is always the marker's nextSibling.
+   * Implicit indexing via document order.
+   */
   public _marker() {
-    return this._comment('au*');
+    return this._comment('au');
   }
 
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
@@ -1866,20 +1609,7 @@ const hasInlineBindings = (rawValue: string): boolean => {
   return false;
 };
 
-const resetCommandBuildInfo = (): void => {
-  commandBuildInfo.node
-    = commandBuildInfo.attr
-    = commandBuildInfo.bindable
-    = commandBuildInfo.def = null!;
-};
-
 const voidDefinition: IElementComponentDefinition = { name: 'unnamed', type: definitionTypeElement };
-const commandBuildInfo: Writable<ICommandBuildInfo> = {
-  node: null!,
-  attr: null!,
-  bindable: null,
-  def: null,
-};
 const invalidSurrogateAttribute: Record<string, boolean> = {
   'id': true,
   'name': true,

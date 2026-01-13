@@ -1,4 +1,4 @@
-import { AccessGlobalExpression, ExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, createAccessGlobalExpression } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
@@ -106,7 +106,7 @@ describe('2-runtime/global-context.spec.ts', function () {
     for (const name of globalNames) {
       it(`verify ${name}`, function () {
         const parser = getParser();
-        assert.deepStrictEqual(parser.parse(name, 'None'), new AccessGlobalExpression(name), name);
+        assert.deepStrictEqual(parser.parse(name, 'None'), createAccessGlobalExpression(name), name);
       });
     }
   });

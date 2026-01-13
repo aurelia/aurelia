@@ -1,8 +1,8 @@
 ---
-description: Errors 0901 to 0908 are @aurelia/dialog package related errors.
+description: Errors 0901 to 0910 are @aurelia/dialog package related errors.
 ---
 
-# 0901 to 0908
+# 0901 to 0910
 
 Please see below a reference to each [@aurelia/dialog](https://github.com/aurelia/aurelia/tree/master/packages/dialog) package related error with explanations and resources for debugging and solving.
 
@@ -13,3 +13,5 @@ Please see below a reference to each [@aurelia/dialog](https://github.com/aureli
 * [AUR0906](aur0906.md)
 * [AUR0907](aur0907.md)
 * [AUR0908](aur0908.md)
+* [AUR0909](aur0909.md)
+* [AUR0910](aur0910.md)

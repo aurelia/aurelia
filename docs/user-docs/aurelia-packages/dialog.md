@@ -24,6 +24,8 @@ The modular design makes it easy to create custom renderers for specific UI fram
 * Advanced configuration and lifecycle management
 {% endhint %}
 
+Need practical walkthroughs? See the [dialog outcome recipes](./dialog-outcome-recipes.md) for confirmations, wizards, and guarded modals.
+
 ## Plugin Architecture
 
 The dialog plugin is built around a modular renderer system that bridges Aurelia with any UI framework:
@@ -196,17 +198,21 @@ Aurelia
     settings.options.modal = true; // Always open as modal by default
     settings.options.show = (dom) => {
       // Custom show animation for all dialogs
-      return dom.root.animate([
+      const animation = dom.root.animate([
         { transform: 'scale(0.8)', opacity: 0 },
         { transform: 'scale(1)', opacity: 1 }
-      ], { duration: 200 }).finished;
+      ], { duration: 200 });
+      // Return Promise<void> so the dialog waits for the animation to finish.
+      return animation.finished.then(() => undefined);
     };
     settings.options.hide = (dom) => {
       // Custom hide animation for all dialogs
-      return dom.root.animate([
+      const animation = dom.root.animate([
         { transform: 'scale(1)', opacity: 1 },
         { transform: 'scale(0.8)', opacity: 0 }
-      ], { duration: 200 }).finished;
+      ], { duration: 200 });
+      // Return Promise<void> so the dialog waits for the animation to finish.
+      return animation.finished.then(() => undefined);
     };
     settings.options.overlayStyle = 'background: rgba(0, 0, 0, 0.6)';
   }))
@@ -288,8 +294,8 @@ Normally, the global settings would be changed during the app startup/or before,
         Aurelia
           .reigster(DialogConfigurationStandard.customize((settings) => {
             settings.options.modal = true;
-            settings.options.show = (dom) => dom.root.animate(...);
-            settings.options.hide = (dom) => dom.root.animate(...);
+            settings.options.show = (dom) => dom.root.animate(...).finished.then(() => undefined);
+            settings.options.hide = (dom) => dom.root.animate(...).finished.then(() => undefined);
           }))
           .app(MyApp)
           .start();
@@ -321,8 +327,8 @@ Normally, the global settings would be changed during the app startup/or before,
           options: {
             // block the entire screen with this alert box
             modal: true,
-            show: dom => dom.root.animate(...),
-            hide: dom => dom.root.animate(...)
+            show: dom => dom.root.animate(...).finished.then(() => undefined),
+            hide: dom => dom.root.animate(...).finished.then(() => undefined)
           }
         })
         ```
@@ -744,10 +750,11 @@ import { resolve } from 'aurelia';
 import { IDialogController } from '@aurelia/dialog';
 
 class MyDialog {
-  constructor() {
-    // change some settings
-    resolve(IDialogController).settings.zIndex = 100;
-  }
+  private controller = resolve(IDialogController);
+
+  // Access dialog controller properties like settings.model, settings.host, etc.
+  // Note: z-index is controlled via startingZIndex in the renderer options
+  // when calling dialogService.open(), not via controller.settings
 }
 ```
 
@@ -790,17 +797,17 @@ By default, the dialog content host is centered horizontally and vertically. It 
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+import { IDialogDom } from '@aurelia/dialog';
 
 export class MyDialog {
-  constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
+  constructor(dialogDom: IDialogDom = resolve(IDialogDom)) {
     dialogDom.contentHost.style.margin = "0 auto"; // only center horizontally
   }
 }
 ```
 
 {% hint style="info" %}
-Note that the `contentHost` property on a `DefaultDialogDom` object is the same with the host element of a component. You can inject `IDialogDom` and retrieve the host element via `contentHost` property, or inject `INode`/`Element`/`HTMLElement` to retrieve it.
+Note that the `contentHost` property on `IDialogDom` is the same as the host element of a component. You can inject `IDialogDom` and retrieve the host element via `contentHost` property, or inject `INode`/`Element`/`HTMLElement` to retrieve it.
 {% endhint %}
 
 #### Styling the overlay
@@ -850,10 +857,10 @@ Note that the `contentHost` property on a `DefaultDialogDom` object is the same 
 
     ```typescript
     import { resolve } from 'aurelia';
-    import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+    import { IDialogDom } from '@aurelia/dialog';
 
     export class MyDialog {
-      constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
+      constructor(dialogDom: IDialogDom = resolve(IDialogDom)) {
         dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
       }
     }
@@ -1238,7 +1245,13 @@ the options settings, like the following examples:
 
 ```typescript
 Aurelia.register(DialogStandardConfiguration.customize(settings => {
-  settings.options.show = (dom) => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
+  settings.options.show = (dom) => {
+    const animation = dom.root.animate(
+      [{ transform: 'scale(0)' }, { transform: 'scale(1)' }],
+      { duration: 150 },
+    );
+    return animation.finished.then(() => undefined);
+  };
 }))
 ```
 
@@ -1248,8 +1261,14 @@ Aurelia.register(DialogStandardConfiguration.customize(settings => {
 dialogService.open({
   component: SuccessNotification,
   options: {
-    show: dom => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 }),
-    hide: dom => dom.root.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 }),
+    show: dom => dom.root.animate(
+      [{ transform: 'scale(0)' }, { transform: 'scale(1)' }],
+      { duration: 150 },
+    ).finished.then(() => undefined),
+    hide: dom => dom.root.animate(
+      [{ transform: 'scale(1)' }, { transform: 'scale(0)' }],
+      { duration: 150 },
+    ).finished.then(() => undefined),
   }
 })
 ```
@@ -1367,6 +1386,57 @@ sequenceDiagram
 - Dialog-specific: `canActivate`, `activate`, `canDeactivate`, `deactivate`
 - Aurelia core: `constructor`, `hydrating`, `hydrated`, `created`, `binding`, `bound`, `attaching`, `attached`, `detaching`, `unbinding`
 {% endhint %}
+
+## Creating child dialog
+
+When there are different groups of dialog functionalities that are often repeated across an application, rather than calling `open` with different sets
+of settings and trying to manage it correctly, you can also use the child dialog feature.
+
+To use the child dialog feature, you'll need to register the child dialog configuration and resolve the child dialog with some your specific keys,
+like the following example:
+
+```ts
+Aurelia.register(
+  DialogConfigurationStandard
+    .customize(...)
+    .withChild(
+      'alert',
+      settings => {
+        return {
+          // my base settings for the alert dialog service here
+        }
+      }
+    )
+    .withChild(
+      'confirm',
+      settings => {
+        // base settings for the confirm dialog service here
+      }
+    )
+);
+```
+and then later it can be used:
+```ts
+class MyComponent {
+  alertService = resolve(IDialogService.child('alert'));
+  confirmService = resolve(IDialogService.child('confirm'));
+
+  // or if you use the default DialogService implementation
+  alertService = resolve(DialogService.child('alert'));
+  confirmService = resolve(DialogService.child('confirm'));
+}
+```
+
+Beside the above usage, a child dialog service can also be created using the `createChild` method on the default implementation of `DialogService`, like the
+following example:
+
+```ts
+class MyComponent {
+  // every instance of MyComponent will result in a new instance of alert DialogService
+  alertService = resolve(IDialogService).createChild({ renderer: MyAlertRenderer, options: { modal: false } });
+}
+```
+
 
 ## Aurelia v1 to v2 Migration
 

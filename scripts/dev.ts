@@ -123,7 +123,6 @@ const validToolingPackages =  [
   'vite-plugin',
   'webpack-loader',
   'http-server',
-  'au',
 ];
 
 validToolingPackages
@@ -135,7 +134,8 @@ validToolingPackages
     try {
       execSync(buildCmd, { cwd: `packages-tooling/${pkgName}` });
     } catch (ex) {
-      process.stdout.write(ex.stdout);
+      if (ex.stdout) process.stdout.write(ex.stdout);
+      if (ex.stderr) process.stderr.write(ex.stderr);
       process.exit(1);
     }
     console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);

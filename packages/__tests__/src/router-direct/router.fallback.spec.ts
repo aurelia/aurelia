@@ -1,6 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router-direct';
-import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router-direct/router.fallback.spec.ts', function () {
@@ -133,10 +134,10 @@ describe('router-direct/router.fallback.spec.ts', function () {
       for (const test of tests) {
         it(`to load route with fallback action "${fallbackAction} (${config.fallbackAction})" ${test.path} => ${test.url}`, async function () {
           let locationPath: string;
-          const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+          const { host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
             locationPath = path;
           });
-          await $load(test.path, router, platform);
+          await $load(test.path, router);
           assert.strictEqual(host.textContent, test.result, `host.textContent`);
           assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
           await $teardown();
@@ -144,11 +145,11 @@ describe('router-direct/router.fallback.spec.ts', function () {
       }
       it(`to load above routes in sequence with fallback action "${fallbackAction} (${config.fallbackAction})"`, async function () {
         let locationPath: string;
-        const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+        const { host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
           locationPath = path;
         });
         for (const test of tests) {
-          await $load(test.path, router, platform);
+          await $load(test.path, router);
           assert.strictEqual(host.textContent, test.result, `host.textContent`);
           assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         }
@@ -161,10 +162,10 @@ describe('router-direct/router.fallback.spec.ts', function () {
         const url = test.url.replace(/@\w+/g, '');
         it(`to load route with fallback action "${fallbackAction} (${config.fallbackAction})" ${path} => ${url}`, async function () {
           let locationPath: string;
-          const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+          const { host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
             locationPath = path;
           });
-          await $load(path, router, platform);
+          await $load(path, router);
           assert.strictEqual(host.textContent, result, `host.textContent`);
           assert.strictEqual(locationPath, `#/${url}`, 'location.path');
           await $teardown();
@@ -173,14 +174,14 @@ describe('router-direct/router.fallback.spec.ts', function () {
 
       it(`to load above routes in sequence with fallback action "${fallbackAction} (${config.fallbackAction})"`, async function () {
         let locationPath: string;
-        const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+        const { host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
           locationPath = path;
         });
         for (const test of tests) {
           const path = test.path.replace(/@\w+/g, '');
           const result = test.result.replace(/@\w+/g, '');
           const url = test.url.replace(/@\w+/g, '');
-          await $load(path, router, platform);
+          await $load(path, router);
           assert.strictEqual(host.textContent, result, `host.textContent`);
           assert.strictEqual(locationPath, `#/${url}`, 'location.path');
         }
@@ -190,7 +191,7 @@ describe('router-direct/router.fallback.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter) => {
   await Promise.race([
     router.load(path),
     new Promise((resolve, reject) => {
@@ -199,5 +200,5 @@ const $load = async (path: string, router: IRouter, platform: IPlatform) => {
       }, 1000);
     })
   ]);
-  platform.domQueue.flush();
+  await tasksSettled();
 };

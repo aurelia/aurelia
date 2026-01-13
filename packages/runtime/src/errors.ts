@@ -8,8 +8,12 @@ export const createMappedError: CreateError = __DEV__
   ? (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = rtSafeString(code).padStart(4, '0');
     const message = getMessageByCode(code, ...details);
-    // Runtime errors span multiple ranges, use appropriate link
-    const linkPath = code >= 203 && code <= 227 ? '0203-to-0227' : '0151-to-0179';
+    // Runtime errors span multiple docs sections; use appropriate link per code range
+    const linkPath = code >= 101 && code <= 116
+      ? 'runtime-html'
+      : code >= 151 && code <= 179
+        ? '0151-to-0179'
+        : '0203-to-0227';
     const link = `https://docs.aurelia.io/developer-guides/error-messages/${linkPath}/aur${paddedCode}`;
     return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
   }
@@ -82,6 +86,7 @@ export const enum ErrorNames {
   parse_no_arrow_fn_body = 178,
   parse_unexpected_double_dot = 179,
   observing_null_undefined = 199,
+  observing_expression_no_parser = 200,
 }
 _END_CONST_ENUM();
 
@@ -133,6 +138,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.parse_unexpected_double_dot]: `Expression error: unexpected token '.' at position "{{1}}" in "{{0}}"`,
 
   [ErrorNames.observing_null_undefined]: `Trying to observe property {{0}} on null/undefined`,
+  [ErrorNames.observing_expression_no_parser]: `Trying to observe expression "{{0}}" but there is no expression parser available`,
   [ErrorNames.null_scope]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
   [ErrorNames.create_scope_with_null_context]: 'Trying to create a scope with null/undefined binding context',
 
@@ -151,7 +157,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.invalid_observable_decorator_usage]: `Invalid @observable decorator usage, cannot determine property name`,
   [ErrorNames.stopping_a_stopped_effect]: `Trying to stop an effect that has already been stopped`,
   [ErrorNames.effect_maximum_recursion_reached]: `Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`,
-  [ErrorNames.computed_mutating]: `Side-effect detected in computed getter 'get options': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`,
+  [ErrorNames.computed_mutating]: `Side-effect detected in computed getter '{{0}}': mutation during evaluation caused self-dirtying. This can lead to infinite recursion. Use non-mutating operations (e.g., spread syntax) or move side effects outside the getter.`,
   [ErrorNames.computed_not_getter]: `@computed decorator can only be used on a getter, "{{0}}" is not a getter.`,
 };
 

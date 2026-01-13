@@ -24,10 +24,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
   // custom elements
   describe('01. Aliases', function () {
 
-    @customAttribute({ name: 'foo5', aliases: ['foo53'] })
+    @customAttribute({ name: 'foo5', aliases: ['foo53'], defaultProperty: 'value' })
     @alias(...['foo51', 'foo52'])
     class Fooatt5 {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
@@ -36,10 +36,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     }
 
-    @customAttribute({ name: 'foo4', aliases: ['foo43'] })
+    @customAttribute({ name: 'foo4', aliases: ['foo43'], defaultProperty: 'value' })
     @alias('foo41', 'foo42')
     class Fooatt4 {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
@@ -48,11 +48,11 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     }
 
-    @customAttribute({ name: 'foo44', aliases: ['foo431'] })
+    @customAttribute({ name: 'foo44', aliases: ['foo431'], defaultProperty: 'value' })
     @alias('foo411', 'foo421')
     @alias('foo422', 'foo422')
     class FooMultipleAlias {
-      @bindable({ primary: true })
+      @bindable()
       public value: any;
       private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
@@ -165,10 +165,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         this.element.innerHTML = `a: ${this.aResult}, b: ${this.bResult}`;
       }
     }
-    @customAttribute('multi2')
+    @customAttribute({ name: 'multi2', defaultProperty: 'b' })
     class Multi2 {
       @bindable public a: boolean;
-      @bindable({ primary: true }) public b: string;
+      @bindable() public b: string;
       public aResult: boolean;
       public bResult: string;
       public constructor(private readonly element: INode<Element> = resolve(INode) as INode<Element>) {
@@ -215,6 +215,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       @customAttribute({
         name: 'multi3',
         noMultiBindings: true,
+        defaultProperty: 'b',
       })
       class Multi3 extends Multi2 {}
       it('works with multi binding syntax', async function () {
@@ -245,7 +246,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       propChanged(newValue: any): void;
     }
 
-    @customAttribute('foo')
+    @customAttribute({ name: 'foo', defaultProperty: 'prop' })
     class Foo implements IChangeHandlerTestViewModel {
       @bindable()
       public prop: any;
@@ -313,7 +314,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       propertyChanged?(...args: unknown[]): void;
     }
 
-    @customAttribute('foo1')
+    @customAttribute({ name: 'foo1', defaultProperty: 'prop' })
     class Foo1 implements IChangeHandlerTestViewModel {
       @bindable()
       public prop: any;
@@ -329,7 +330,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     }
 
-    @customAttribute('foo2')
+    @customAttribute({ name: 'foo2', defaultProperty: 'prop' })
     class Foo2 implements IChangeHandlerTestViewModel {
       @bindable()
       public prop: any;
@@ -341,7 +342,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     }
 
-    @customAttribute('foo3')
+    @customAttribute({ name: 'foo3', defaultProperty: 'prop' })
     class Foo3 implements IChangeHandlerTestViewModel {
       @bindable()
       public prop: any;
@@ -485,7 +486,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
      * Specs:
      * - with setter coercing to string for "prop" property
      */
-    @customAttribute('foo1')
+    @customAttribute({ name: 'foo1', defaultProperty: 'prop' })
     class Foo1 {
       @bindable({
         set: String
@@ -497,7 +498,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
      * Specs:
      * - plain bindable "prop"
      */
-    @customAttribute('foo2')
+    @customAttribute({ name: 'foo2', defaultProperty: 'prop' })
     class Foo2 {
       @bindable()
       public prop: any;
@@ -507,7 +508,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
      * Specs:
      * - with setter/getter coercing to string for "prop" property
      */
-    @customAttribute('foo3')
+    @customAttribute({ name: 'foo3', defaultProperty: 'prop' })
     class Foo3 {
       @bindable({
         set: String,
@@ -521,14 +522,13 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
      * - with setter coercing to number
      * - with change handler for "prop" property
      */
-    @customAttribute('foo4')
+    @customAttribute({ name: 'foo4', defaultProperty: 'prop' })
     class Foo4 {
 
       @bindable()
       public prop1: any;
 
       @bindable({
-        primary: true,
         set: (val) => Number(val) > 0 ? Number(val) : 0
       })
       public prop: any;
@@ -709,7 +709,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
          * Specs:
          * - With bindable with getter coerce to string, setter coerce to number for "prop" property
          */
-        @customAttribute('foo5')
+        @customAttribute({ name: 'foo5', defaultProperty: 'prop' })
         class Foo5 {
           @bindable({
             set: Number,
@@ -781,7 +781,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       const { assertText } = createFixture(
         `<div my-attr="hi">`,
         class App {},
-        [CustomAttribute.define({ name: 'my-attr', bindables: ['message'] }, class {
+        [CustomAttribute.define({ name: 'my-attr', defaultProperty: 'message', bindables: ['message'] }, class {
           _m = 'hey';
           host = resolve(INode) as Element;
           get message() {
@@ -806,7 +806,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           message = '';
         },
-        [CustomAttribute.define({ name: 'my-attr', bindables: ['_m', 'message'] }, class {
+        [CustomAttribute.define({ name: 'my-attr', defaultProperty: 'message', bindables: ['_m', 'message'] }, class {
           _m = '2';
           get message() {
             return this._m;
@@ -825,7 +825,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     it('works with coercer bindable', async function () {
       let setCount = 0;
       const values = [];
-      @customAttribute('my-attr')
+      @customAttribute({ name: 'my-attr', defaultProperty: 'message' })
       class MyAttr {
         _m: string = '';
         @bindable({ set: v => {
@@ -858,6 +858,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     it('works with array based computed bindable', async function () {
       const MyAttr = CustomAttribute.define({
         name: 'my-attr',
+        defaultProperty: 'message',
         bindables: ['message']
       }, class {
         _m = [{ v: 'hello' }, { v: 'world' }];
@@ -906,7 +907,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
     it('creates new container for factory when containerStrategy is "new"', async function () {
 
-      @customAttribute('my-attr')
+      @customAttribute({ name: 'my-attr', defaultProperty: 'message' })
       class MyAttr {
         v = resolve(IExample);
         host = resolve(INode) as HTMLElement;
@@ -1123,10 +1124,11 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.html.textContent(appHost, 'c1-p1 c1-p2 c2-p3 c2-p1 c2-p2');
     });
 
-    it('works for primary bindable on parent', async function () {
+    it('works for defaultProperty on parent when child also specifies it', async function () {
       @customAttribute({
         name: 'c-1',
-        bindables: { p2: { primary: true } }
+        defaultProperty: 'p2',
+        bindables: { p2: {} }
       })
       class CeOne implements ICustomAttributeViewModel {
         @bindable p1: string = 'dp1';
@@ -1137,8 +1139,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }
       }
 
+      // Child must explicitly specify defaultProperty - it's not inherited
       @customAttribute({
         name: 'c-2',
+        defaultProperty: 'p2',
       })
       class CeTwo extends CeOne {
         @bindable p3: string = 'dp3';
@@ -1173,7 +1177,8 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       @customAttribute({
         name: 'c-2',
-        bindables: { p2: { primary: true } }
+        defaultProperty: 'p2',
+        bindables: { p2: {} }
       })
       class CeTwo extends CeOne {
         @bindable p3: string = 'dp3';
@@ -1192,10 +1197,11 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.html.textContent(appHost, 'c1-p1 c1-p2 dp3 dp1 c2-p2');
     });
 
-    it('does not work for if child defines a second primary bindable', async function () {
+    it('child can override defaultProperty from parent', async function () {
       @customAttribute({
         name: 'c-1',
-        bindables: { p2: { primary: true } }
+        defaultProperty: 'p2',
+        bindables: { p2: {} }
       })
       class CeOne implements ICustomAttributeViewModel {
         @bindable p1: string = 'dp1';
@@ -1206,9 +1212,11 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }
       }
 
+      // Child can specify a different defaultProperty than parent
       @customAttribute({
         name: 'c-2',
-        bindables: { p3: { primary: true } }
+        defaultProperty: 'p3',
+        bindables: { p3: {} }
       })
       class CeTwo extends CeOne {
         p3: string;
@@ -1218,16 +1226,14 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }
       }
 
-      try {
-        createFixture(
-          `<span c-1="c1-p2"></span> <span c-2="c2-p3"></span>`,
-          { },
-          [CeOne, CeTwo]
-        );
-        assert.fail('Should have thrown due to conflicting primary bindables.');
-      } catch (e) {
-        assert.match(e.message, /714/, 'incorrect error code');
-      }
+      const { appHost } = createFixture(
+        `<span c-1="c1-p2"></span> <span c-2="c2-p3"></span>`,
+        { },
+        [CeOne, CeTwo]
+      );
+
+      // c-1 binds to p2, c-2 binds to p3
+      assert.html.textContent(appHost, 'dp1 c1-p2 c2-p3 dp1 undefined');
     });
   });
 
@@ -1239,7 +1245,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1263,7 +1269,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1288,7 +1294,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1316,7 +1322,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1344,7 +1350,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1373,7 +1379,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
           prop = 1;
           show = true;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1396,7 +1402,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @observable
           prop = 0;
 
@@ -1421,7 +1427,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1453,7 +1459,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         class App {
           prop = 1;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop = 0;
 
@@ -1490,7 +1496,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
           prop1 = 1;
           prop2 = 2;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop1 = 0;
 
@@ -1525,7 +1531,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
           prop1 = 1;
           prop2 = 2;
         },
-        [@customAttribute('foo') class {
+        [@customAttribute({ name: 'foo', defaultProperty: 'prop' }) class {
           @bindable
           prop1 = 0;
 

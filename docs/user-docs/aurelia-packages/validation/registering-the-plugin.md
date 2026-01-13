@@ -41,7 +41,7 @@ The following options are available for customization.
   * `ValidationControllerFactoryType`: Custom implementation of the factory for `IValidationController`; Defaults to `ValidationControllerFactory`.
   * `CustomMessages`: Custom validation messages.
 * From `@aurelia/validation-html`
-  * `HydratorType`: Custom implementation of `IValidationHydrator`. Defaults to `ModelValidationHydrator`.
+  * `HydratorType`: Custom implementation of `IValidationExpressionHydrator`. Defaults to `ModelValidationExpressionHydrator`.
   * `DefaultTrigger`: Default validation trigger. Defaults to `blur`.
   * `UseSubscriberCustomAttribute`: Use the `validation-errors` custom attribute. Defaults to `true`.
   * `SubscriberCustomElementTemplate`: Custom template for `validation-container` custom element. Defaults to the default template of the custom element.

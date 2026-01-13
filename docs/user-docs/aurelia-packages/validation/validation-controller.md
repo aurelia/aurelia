@@ -10,27 +10,23 @@ An instance of the validation controller can be injected using `resolve(newInsta
 
 ```typescript
 // parent-ce.ts
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationController } from '@aurelia/validation-html';
 
 @customElement({name:'parent-ce', template:`<child-ce></child-ce>`})
 export class ParentCe {
-  public constructor(
-    // new instance of validation controller; let us name it c1
-    private controller: IValidationController = resolve(newInstanceForScope(IValidationController))
-  ) { }
+  // new instance of validation controller; let us name it c1
+  private controller = resolve(newInstanceForScope(IValidationController));
 }
 
 // child-ce.ts
 import { resolve } from '@aurelia/kernel';
-import { IValidationController } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
 
-export class Parent {
-  public constructor(
-    // the c1 instance is injected here
-    private controller: IValidationController = resolve(IValidationController)
-  ) { }
+export class ChildCe {
+  // the c1 instance is injected here
+  private controller = resolve(IValidationController);
 }
 ```
 
@@ -57,7 +53,7 @@ await validationController.validate(new ValidateInstruction(person));
 await validationController.validate(new ValidateInstruction(person, 'name'));
 ```
 
-> This method is in essence similar to the `validate` method in validator. However, there are some differences. If the method is called with an instruction, the instruction is executed. Otherwise all the [registered objects](validation-controller.md#addObject-and-removeObject), as well as the [registered bindings](broken-reference) are validated. After the validation, all the [registered subscribers](broken-reference) are notified of the change. Refer the [visual representation of the workflow](broken-reference) to understand it better. To know more about `ValidateInstruction` refer [this](broken-reference).
+> This method is in essence similar to the `validate` method in validator. However, there are some differences. If the method is called with an instruction, the instruction is executed. Otherwise all the [registered objects](#addobject-and-removeobject), as well as the [registered bindings](validate-binding-behavior.md) are validated. After the validation, all the [registered subscribers](#addsubscriber-and-removesubscriber) are notified of the change. Refer to the workflow diagram in the [architecture overview](architecture.md) to understand it better. To know more about `ValidateInstruction` refer [the dedicated section](defining-rules.md#validateinstruction).
 
 The `reset` method on the other hand removes the errors from the validation controller. It also has an optional argument of type `ValidateInstruction` which when provided instructs the controller to remove errors for specific object, and/or properties. Note that other properties of the instruction object has no effect on resetting the errors.
 
@@ -137,7 +133,7 @@ class ValidationResultTarget {
   public targets: Element[];
 }
 
-class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
+class ValidationResult<TRule extends IValidationRule = IValidationRule> {
     public valid: boolean;
     public message: string | undefined;
     public propertyName: string | undefined;
@@ -152,3 +148,186 @@ class ValidationResult<TRule extends BaseValidationRule = BaseValidationRule> {
 What the subscribers do with the event data depends on the subscribers. An obvious use case is to present the errors to the end users. In fact, the out-of-the-box subscribers are used for that purpose only. Below is one example of how you can create a custom subscriber.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-validationcontroller-add-remove-subscriber" %}
+
+## Advanced Controller Methods
+
+The validation controller provides additional methods for fine-grained control over validation in advanced scenarios.
+
+### `validateBinding`
+
+Validates a specific binding that was registered using the `& validate` binding behavior. This method is useful when you want to trigger validation for a single input field programmatically.
+
+```typescript
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
+import { IValidationController } from '@aurelia/validation-html';
+
+export class AdvancedForm {
+  private validationController = resolve(newInstanceForScope(IValidationController));
+
+  public async validateSpecificField(binding: any): Promise<void> {
+    // Validate only this specific binding
+    await this.validationController.validateBinding(binding);
+  }
+}
+```
+
+**Parameters:**
+- `binding`: The binding instance (typically a PropertyBinding with the validate binding behavior)
+
+**Behavior:**
+- Validates only the specified binding, not all registered bindings
+- Uses any rules that were bound to the binding through the validate binding behavior
+- Notifies subscribers of validation results
+- Does nothing if the binding is not bound or not registered with the controller
+
+**Note:** This method is typically used internally by the validation system. Most applications won't need to call it directly, as the `& validate` binding behavior handles validation automatically based on the configured trigger.
+
+### `resetBinding`
+
+Resets validation results for a specific binding. This clears any validation errors associated with that binding.
+
+```typescript
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
+import { IValidationController } from '@aurelia/validation-html';
+
+export class AdvancedForm {
+  private validationController = resolve(newInstanceForScope(IValidationController));
+
+  public resetSpecificField(binding: any): void {
+    // Clear errors for this specific binding
+    this.validationController.resetBinding(binding);
+  }
+}
+```
+
+**Parameters:**
+- `binding`: The binding instance to reset
+
+**Behavior:**
+- Removes all validation results associated with the binding
+- Clears the binding's cached property information
+- Notifies subscribers that errors were removed
+- Does nothing if the binding is not registered with the controller
+
+**Use cases:**
+- Clearing validation errors when a user starts editing a field again
+- Resetting validation state when switching between form modes
+- Implementing custom validation triggers
+
+### Complete Example: Custom Validation Control
+
+Here's an example showing how to use these advanced methods to implement custom validation behavior:
+
+```typescript
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
+import { IValidationRules } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
+
+export class CustomValidationForm {
+  private validationController = resolve(newInstanceForScope(IValidationController));
+  private validationRules = resolve(IValidationRules);
+
+  public username: string = '';
+  public email: string = '';
+  public showValidation: boolean = false;
+
+  private usernameBinding: any;
+  private emailBinding: any;
+
+  public constructor() {
+    this.validationRules
+      .on(this)
+      .ensure('username')
+      .required()
+      .minLength(3)
+      .ensure('email')
+      .required()
+      .email();
+  }
+
+  // Store binding references when they're created
+  public registerBinding(propertyName: string, binding: any): void {
+    if (propertyName === 'username') {
+      this.usernameBinding = binding;
+    } else if (propertyName === 'email') {
+      this.emailBinding = binding;
+    }
+  }
+
+  // Validate individual fields on demand
+  public async validateUsername(): Promise<void> {
+    if (this.usernameBinding) {
+      await this.validationController.validateBinding(this.usernameBinding);
+    }
+  }
+
+  public async validateEmail(): Promise<void> {
+    if (this.emailBinding) {
+      await this.validationController.validateBinding(this.emailBinding);
+    }
+  }
+
+  // Reset individual fields
+  public resetUsername(): void {
+    if (this.usernameBinding) {
+      this.validationController.resetBinding(this.usernameBinding);
+    }
+  }
+
+  public resetEmail(): void {
+    if (this.emailBinding) {
+      this.validationController.resetBinding(this.emailBinding);
+    }
+  }
+
+  // Progressive validation: validate fields as user progresses
+  public async onUsernameBlur(): Promise<void> {
+    await this.validateUsername();
+  }
+
+  public async onEmailBlur(): Promise<void> {
+    await this.validateEmail();
+  }
+
+  // Clear validation when user focuses field again
+  public onUsernameFocus(): void {
+    this.resetUsername();
+  }
+
+  public onEmailFocus(): void {
+    this.resetEmail();
+  }
+
+  public async submit(): Promise<void> {
+    const result = await this.validationController.validate();
+
+    if (result.valid) {
+      // Process form
+      console.log('Form is valid!');
+    } else {
+      this.showValidation = true;
+    }
+  }
+}
+```
+
+### Important Considerations
+
+- **Internal Methods**: `validateBinding` and `resetBinding` are primarily used internally by the validation system. The validate binding behavior handles calling these methods automatically.
+
+- **Binding References**: To use these methods, you need a reference to the actual binding instance. This is not commonly available in typical application code.
+
+- **Validation Triggers**: For most scenarios, configuring the validation trigger (via `ValidationTrigger` enum) is a better approach than manually calling these methods.
+
+- **Controller State**: Both methods respect the controller's current state and subscriber notifications, ensuring the validation system remains consistent.
+
+### When to Use Advanced Methods
+
+Consider using `validateBinding` and `resetBinding` when:
+
+1. **Custom Validation UX**: Implementing validation behavior that doesn't fit standard triggers
+2. **Progressive Enhancement**: Validating fields in a specific sequence or order
+3. **Conditional Validation**: Showing/hiding validation based on complex application state
+4. **Integration**: Integrating Aurelia validation with third-party form libraries
+
+For most applications, the standard validation controller methods (`validate`, `reset`, `revalidateErrors`) combined with the `& validate` binding behavior will be sufficient.

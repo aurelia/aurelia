@@ -1,5 +1,9 @@
 # i18n Internationalization
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 ## Introduction
 
 This section explains how to get up and running with Aurelia-I18N to provide localization (l10n), and internationalization (i18n) features for your app.
@@ -119,6 +123,8 @@ The registered aliases can then be used in your view in place of `t`.
 {% hint style="info" %}
 You can mix and match any alias at the same time.
 {% endhint %}
+
+For real-world scenarios like locale switchers. number formatting, and validation integration, jump to the [i18n outcome recipes](./internationalization-outcome-recipes.md).
 
 ### Managing translation resources
 
@@ -397,8 +403,8 @@ The example sets the `[title]` attribute of the `span`. A useful example would b
 The same syntax of attribute translation also translates `@bindable` properties of custom elements.
 
 ```typescript
-import { bindable, customElement } from '@aurelia/runtime';
-import template from './custom-message.html';
+import { bindable, customElement } from '@aurelia/runtime-html';
+import template from './custom-message.html?raw';
 
 @customElement({ name: 'custom-message', template })
 export class CustomMessage {
@@ -552,7 +558,7 @@ import { I18N } from '@aurelia/i18n';
 export class MyDemoVm {
   private status: string = 'dispatched';
 
-  constructor(private readonly i18n: I18N = resolve(I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const statusText = this.i18n.tr('status', { context: this.status });
   }
 }

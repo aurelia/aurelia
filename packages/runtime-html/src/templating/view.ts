@@ -4,6 +4,8 @@ import { createInterface } from '../utilities-di';
 import { Controller } from './controller';
 
 import type { ICustomAttributeController, ICustomElementController, ISyntheticView } from './controller';
+import type { INodeSequence } from '../dom';
+import type { ISSRScope } from './ssr';
 
 export interface IViewFactory {
   name: string;
@@ -18,6 +20,22 @@ export interface IViewFactory {
   tryReturnToCache(controller: ISyntheticView): boolean;
 
   create(parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
+
+  /**
+   * Create a view that adopts existing DOM nodes for SSR hydration.
+   *
+   * Unlike `create()` which clones from a template, this wraps existing
+   * DOM nodes that were pre-rendered (e.g., by SSR).
+   *
+   * @param parentController - The parent controller
+   * @param adoptedNodes - Pre-existing DOM nodes to adopt
+   * @param ssrScope - SSR manifest scope for nested hydration
+   */
+  createAdopted(
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
+  ): ISyntheticView;
 }
 export const IViewFactory = /*@__PURE__*/createInterface<IViewFactory>('IViewFactory');
 
@@ -92,5 +110,14 @@ export class ViewFactory implements IViewFactory {
 
     controller = Controller.$view(this, parentController);
     return controller;
+  }
+
+  public createAdopted(
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
+  ): ISyntheticView {
+    // Don't use cache for adopted views - they're tied to specific DOM nodes
+    return Controller.$viewAdopted(this, parentController, adoptedNodes, ssrScope);
   }
 }

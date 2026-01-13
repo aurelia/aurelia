@@ -57,9 +57,10 @@ export class VirtualRepeat implements IVirtualRepeater {
     type: 'custom-attribute',
     name: 'virtual-repeat',
     isTemplateController: true,
+    defaultProperty: 'items',
     bindables: {
       local: true,
-      items: { primary: true }
+      items: true
     }
   };
 
@@ -489,7 +490,7 @@ export class VirtualRepeat implements IVirtualRepeater {
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = itemCount;
         enhanceOverrideContext(scope.overrideContext);
-        void view.activate(repeatController, repeatController, scope);
+        void view.activate(view, repeatController, scope);
       }
 
       // Measure item size for variable sizing

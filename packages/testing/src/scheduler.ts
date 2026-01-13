@@ -1,14 +1,10 @@
-import { ensureEmpty } from '@aurelia/platform';
-import { BrowserPlatform } from '@aurelia/platform-browser';
-import { IPlatform } from '@aurelia/runtime-html';
+import { getRecurringTasks, runTasks } from '@aurelia/runtime';
 
-export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
-  if (!platform) {
-    platform = BrowserPlatform.getOrCreate(globalThis);
+export function ensureTaskQueuesEmpty(): void {
+  try {
+    runTasks();
+  } catch {
+    // ignore
   }
-
-  // canceling pending heading to remove the sticky tasks
-  ensureEmpty(platform.taskQueue);
-  ensureEmpty(platform.domQueue);
-  ensureEmpty(platform.domReadQueue);
+  getRecurringTasks().forEach(t => t.cancel());
 }

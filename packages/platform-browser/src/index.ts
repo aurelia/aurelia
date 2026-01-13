@@ -1,4 +1,4 @@
-import { Platform, TaskQueue } from '@aurelia/platform';
+import { Platform } from '@aurelia/platform';
 
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
   /** @internal */
@@ -42,27 +42,6 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly clearTimeout!: TGlobal['window']['clearTimeout'];
   public readonly setInterval!: TGlobal['window']['setInterval'];
   public readonly setTimeout!: TGlobal['window']['setTimeout'];
-  public readonly domQueue: TaskQueue;
-
-  /**
-   * @deprecated Use `platform.domQueue` instead.
-   */
-  public get domWriteQueue() {
-    if (__DEV__) {
-      this.console.log('[DEV:aurelia] platform.domQueue is deprecated, please use platform.domQueue instead.');
-    }
-    return this.domQueue;
-  }
-
-  /**
-   * @deprecated Use `platform.domQueue` instead.
-   */
-  public get domReadQueue() {
-    if (__DEV__) {
-      this.console.log('[DEV:aurelia] platform.domReadQueue has been removed, please use platform.domQueue instead.');
-    }
-    return this.domQueue;
-  }
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
@@ -82,36 +61,5 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
       // eslint-disable-next-line
       (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop))
     );
-
-    this.domQueue = (() => {
-      let domRequested: boolean = false;
-      let domHandle: number = -1;
-
-      const requestDomFlush = (): void => {
-        domRequested = true;
-        if (domHandle === -1) {
-          domHandle = this.requestAnimationFrame(flushDomQueue);
-        }
-      };
-
-      const cancelDomFlush = (): void => {
-        domRequested = false;
-        if (domHandle > -1) {
-          this.cancelAnimationFrame(domHandle);
-          domHandle = -1;
-        }
-      };
-
-      const flushDomQueue = (): void => {
-        domHandle = -1;
-        if (domRequested === true) {
-          domRequested = false;
-          domQueue.flush();
-        }
-      };
-
-      const domQueue = new TaskQueue(this, requestDomFlush, cancelDomFlush);
-      return domQueue;
-    })();
   }
 }

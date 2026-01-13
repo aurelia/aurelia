@@ -2,6 +2,8 @@
 
 Aurelia's `@aurelia/fetch-client` is a powerful HTTP client built on the native Fetch API, designed specifically for modern web applications. It provides a clean, promise-based interface for making HTTP requests with enterprise-grade features like intelligent caching, automatic retries, and flexible interceptors.
 
+Need real-world patterns? Head over to the [fetch-client outcome recipes](./outcome-recipes.md) for guided setups covering auth, caching, and uploads.
+
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
 import { resolve } from '@aurelia/kernel';
@@ -206,7 +208,7 @@ const formData = new FormData();
 formData.append('file', fileInput.files[0]);
 formData.append('description', 'Profile photo');
 
-await http.post('/upload', { body: formData });
+await http.post('/upload', formData);
 ```
 
 ## Integration with Aurelia DI

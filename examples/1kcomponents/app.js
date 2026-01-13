@@ -1,4 +1,5 @@
 // @ts-check
+import { queueRecurringTask } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform, ValueConverter, SVGAnalyzer, StandardConfiguration } from '@aurelia/runtime-html';
 import 'perf-monitor/component';
 import { interpolateViridis } from 'd3-scale-chromatic';
@@ -199,13 +200,13 @@ const App = CustomElement.define(
     attaching() {
       this.count = 2700;
       // this.scheduler.enqueueRAF(Point.update, Point, Priority.preempt);
-      this.platform.domQueue.queueTask(
+      queueRecurringTask(
         () => {
           Point.update();
           this.points.forEach(point => point.flushRAF());
         },
         {
-        persistent: true,
+        interval: 16,
       });
     }
 

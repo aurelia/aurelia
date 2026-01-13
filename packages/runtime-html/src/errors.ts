@@ -65,8 +65,8 @@ export const enum ErrorNames {
   node_observer_strategy_not_found = 652,
   node_observer_mapping_existed = 653,
   select_observer_array_on_non_multi_select = 654,
+  watcher_infinite_loop = 655,
 
-  compiler_primary_already_existed = 714,
   compiler_attr_mapper_duplicate_mapping = 719,
   root_not_found = 767,
   aurelia_instance_existed_in_container = 768,
@@ -139,6 +139,10 @@ export const enum ErrorNames {
   children_decorator_invalid_usage = 9991,
   slotted_decorator_invalid_usage = 9990,
   children_invalid_query = 9989,
+
+  hydration_target_count_mismatch = 822,
+  hydration_node_count_mismatch = 823,
+  hydration_view_count_mismatch = 824,
 }
 _END_CONST_ENUM();
 
@@ -201,9 +205,9 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.node_observer_strategy_not_found]: `Aurelia is unable to observe property {{0}}. Register observation mapping with .useConfig().`,
   [ErrorNames.node_observer_mapping_existed]: `Mapping for property {{0}} of <{{1}} /> already exists`,
-  [ErrorNames.select_observer_array_on_non_multi_select]: `Array values can only be bound to a multi-select.`,
+  [ErrorNames.select_observer_array_on_non_multi_select]: `Array values can only be bound to a multi-select`,
+  [ErrorNames.watcher_infinite_loop]: `Possible infinitely recursive side-effect detected in a watcher`,
 
-  [ErrorNames.compiler_primary_already_existed]: `Template compilation error: primary already exists on element/attribute "{{0}}"`,
   [ErrorNames.compiler_attr_mapper_duplicate_mapping]: `Attribute {{0}} has been already registered for {{1:element}}`,
 
   [ErrorNames.root_not_found]: `Aurelia.root was accessed without a valid root.`,
@@ -219,10 +223,10 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.view_factory_provider_not_ready]: `Cannot resolve ViewFactory before the provider was prepared.`,
   [ErrorNames.view_factory_invalid_name]: `Cannot resolve ViewFactory without a (valid) name.`,
 
-  [ErrorNames.rendering_mismatch_length]: `AUR0757: The compiled template is not aligned with the render instructions. There are {{0}} targets and {{1}} instructions.`,
+  [ErrorNames.rendering_mismatch_length]: `The compiled template is not aligned with the render instructions. There are {{0}} targets and {{1}} instructions.`,
 
   [ErrorNames.watch_null_config]: `Invalid @watch decorator config. Expected an expression or a fn but received null/undefined.`,
-  [ErrorNames.watch_invalid_change_handler]: `Invalid @watch decorator change handler config.`
+  [ErrorNames.watch_invalid_change_handler]: `Invalid @watch decorator change handler config. `
     + `Method "{{0}}" not found in class {{1}}`,
   [ErrorNames.watch_non_method_decorator_usage]: `Invalid @watch decorator usage: decorated target {{0}} is not a class method.`,
 
@@ -267,7 +271,11 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.children_decorator_invalid_usage]: `Invalid @children usage. @children decorator can only be used on a field`,
   [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
-  [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`
+  [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`,
+
+  [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
+  [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
+  [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

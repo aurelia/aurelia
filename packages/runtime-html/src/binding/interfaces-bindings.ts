@@ -1,4 +1,3 @@
-import { TaskQueue } from '@aurelia/platform';
 import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { type Scope } from '@aurelia/runtime';
 import { BindingMode } from '@aurelia/template-compiler';
@@ -23,7 +22,6 @@ export interface IBinding {
 export interface IRateLimitOptions {
   type: 'throttle' | 'debounce';
   delay: number;
-  queue: TaskQueue;
   now: () => number;
   signals: string[];
 }

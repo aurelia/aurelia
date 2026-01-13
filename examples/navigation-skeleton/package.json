@@ -7,27 +7,25 @@
     "watch": "webpack-dev-server",
     "build": "rimraf --glob dist && webpack --config webpack.config.js",
     "serve": "node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
-    "build-serve": "rimraf --glob dist && webpack --config webpack.config.js && node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
     "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "stackblitz": {
     "startCommand": "npm run dev"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.0-beta.26",
-    "@aurelia/kernel": "2.0.0-beta.26",
-    "@aurelia/metadata": "2.0.0-beta.26",
-    "@aurelia/platform": "2.0.0-beta.26",
-    "@aurelia/platform-browser": "2.0.0-beta.26",
-    "@aurelia/route-recognizer": "2.0.0-beta.26",
-    "@aurelia/router": "2.0.0-beta.26",
-    "@aurelia/runtime": "2.0.0-beta.26",
-    "@aurelia/runtime-html": "2.0.0-beta.26",
+    "@aurelia/fetch-client": "2.0.0-rc",
+    "@aurelia/kernel": "2.0.0-rc",
+    "@aurelia/metadata": "2.0.0-rc",
+    "@aurelia/platform": "2.0.0-rc",
+    "@aurelia/platform-browser": "2.0.0-rc",
+    "@aurelia/route-recognizer": "2.0.0-rc",
+    "@aurelia/router": "2.0.0-rc",
+    "@aurelia/runtime": "2.0.0-rc",
+    "@aurelia/runtime-html": "2.0.0-rc",
     "bootstrap": "^5.3.3",
     "font-awesome": "^4.6.3"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-beta.26",
     "@types/node": "^20.16.10",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",

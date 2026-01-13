@@ -30,6 +30,15 @@ Provide some notes for reviewers to help them provide targeted feedback.
 Please provide a summary of the tests affected by this work and any unique strategies employed in testing the features/fixes.
 -->
 
+## 📦 Changeset
+
+<!---
+If this PR affects published packages (features, bug fixes, refactors), run `npx changeset` and commit the generated file.
+Skip for docs-only, test-only, or non-published code changes.
+-->
+
+- [ ] Added a changeset via `npx changeset` (or not needed for this PR)
+
 ## ⏭ Next Steps
 
 <!---

@@ -1,5 +1,9 @@
 # Getting started
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 Here is a basic example of routing in an Aurelia application using `router`.
 
@@ -46,7 +50,7 @@ Let us define these components first.
 {% tab title="home.ts" %}
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
-import template from './home.html';
+import template from './home.html?raw';
 
 @customElement({ name: 'ho-me', template })
 export class Home {
@@ -65,7 +69,7 @@ export class Home {
 {% tab title="about.ts" %}
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
-import template from './about.html';
+import template from './about.html?raw';
 
 @customElement({ name: 'ab-out', template })
 export class About {
@@ -90,7 +94,7 @@ To this end, we need to add the route configurations to our root component `MyAp
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 import { route } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Home } from './home';
 import { About } from './about';
 

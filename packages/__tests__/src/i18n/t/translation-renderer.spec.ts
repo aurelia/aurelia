@@ -7,8 +7,8 @@ import {
   TranslationBindingCommand,
   TranslationBindingInstruction,
   TranslationBindingRenderer,
-  TranslationBindInstructionType,
-  TranslationInstructionType,
+  itTranslationBind,
+  itTranslation,
 } from '@aurelia/i18n';
 import { Registration } from '@aurelia/kernel';
 import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
@@ -29,7 +29,7 @@ import {
   BindingCommand,
   IAttrMapper,
   PropertyBindingInstruction,
-  InstructionType,
+  itPropertyBinding,
 } from '@aurelia/template-compiler';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 
@@ -88,7 +88,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
 
     it('instantiated with instruction type', function () {
       const sut: IRenderer = new TranslationBindingRenderer();
-      assert.equal(sut.target, TranslationInstructionType);
+      assert.equal(sut.target, itTranslation);
     });
 
     it('#render instantiates TranslationBinding - simple string literal', function () {
@@ -98,7 +98,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
       const from = expressionParser.parse('simple.key', 'IsCustom');
-      const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
+      const callBindingInstruction: PropertyBindingInstruction = { type: itPropertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
         PLATFORM.document.createElement('span'),
@@ -120,7 +120,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
       const from = expressionParser.parse('simple.key', 'IsCustom');
-      const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
+      const callBindingInstruction: PropertyBindingInstruction = { type: itPropertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
         targetElement,
@@ -188,7 +188,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
 
     it('instantiated with instruction type', function () {
       const sut: IRenderer = new TranslationBindBindingRenderer();
-      assert.equal(sut.target, TranslationBindInstructionType);
+      assert.equal(sut.target, itTranslationBind);
     });
 
     it('#render instantiates TranslationBinding - simple string literal', function () {
@@ -198,7 +198,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
       const from = expressionParser.parse('simple.key', 'IsProperty');
-      const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
+      const callBindingInstruction: PropertyBindingInstruction = { type: itPropertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
         PLATFORM.document.createElement('span'),
@@ -218,7 +218,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
       const from = expressionParser.parse('simple.key', 'IsProperty');
-      const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
+      const callBindingInstruction: PropertyBindingInstruction = { type: itPropertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
         PLATFORM.document.createElement('span'),
@@ -240,7 +240,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
       const from = expressionParser.parse('simple.key', 'IsProperty');
-      const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
+      const callBindingInstruction: PropertyBindingInstruction = { type: itPropertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
         targetElement,

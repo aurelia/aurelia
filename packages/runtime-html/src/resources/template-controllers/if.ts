@@ -2,12 +2,14 @@
 import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
+import { IPlatform } from '../../platform';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
+import { isSSRTemplateController, adoptSSRView, type ISSRTemplateController } from '../../templating/ssr';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -39,8 +41,15 @@ export class If implements ICustomAttributeViewModel {
   /** @internal */ private _swapId: number = 0;
   /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _platform = resolve(IPlatform);
 
   public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+    // SSR hydration: adopt existing DOM instead of creating new views.
+    // _hydrateView clears ssrScope, so reactivation takes the normal path.
+    const ssrScope = this.$controller.ssrScope;
+    if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
+      return this._hydrateView(ssrScope);
+    }
     return this._swap(this.value);
   }
 
@@ -74,9 +83,10 @@ export class If implements ICustomAttributeViewModel {
      */
     const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
     let view: ISyntheticView | undefined;
+
     return onResolve(this.pending,
       () => this.pending = onResolve(
-        currView?.deactivate(currView, ctrl),
+        currView?.isActive ? currView.deactivate(currView, ctrl) : void 0,
         () => {
           if (!isCurrent()) {
             return;
@@ -85,13 +95,13 @@ export class If implements ICustomAttributeViewModel {
           if (value) {
             view = (this.view = this.ifView = this.cache && this.ifView != null
               ? this.ifView
-              : this._ifFactory.create()
+              : this._ifFactory.create(ctrl)
             );
           } else {
             // truthy -> falsy
             view = (this.view = this.elseView = this.cache && this.elseView != null
               ? this.elseView
-              : this.elseFactory?.create()
+              : this.elseFactory?.create(ctrl)
             );
           }
           // if the value is falsy
@@ -102,17 +112,60 @@ export class If implements ICustomAttributeViewModel {
           // todo: location should be based on either the [if]/[else] attribute
           //       instead of always of the [if]
           view.setLocation(this._location);
-          return onResolve(
-            view.activate(view, ctrl, ctrl.scope),
-            () => {
-              if (isCurrent()) {
-                this.pending = void 0;
+
+          const ret = view.activate(view, ctrl, ctrl.scope);
+          if (ret instanceof Promise) {
+            return ret.then(
+              () => {
+                if (isCurrent()) {
+                  this.pending = void 0;
+                }
+              },
+              () => {
+                // Activation failed. Deactivate the view to clean up its state
+                // so that subsequent swaps can work correctly.
+                // The error is intentionally swallowed to allow recovery.
+                if (isCurrent()) {
+                  this.pending = void 0;
+                }
+                void view!.deactivate(view!, ctrl);
               }
-            }
-          );
+            );
+          }
+          if (isCurrent()) {
+            this.pending = void 0;
+          }
         }
       )
     );
+  }
+
+  /** @internal SSR hydration: adopt existing DOM instead of creating new views. */
+  private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
+    const ctrl = this.$controller;
+    const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;
+    const factory = wasIfBranch ? this._ifFactory : this.elseFactory;
+
+    if (factory == null || ssrScope.views.length === 0) {
+      ctrl.ssrScope = void 0;
+      return;
+    }
+
+    const result = adoptSSRView(ssrScope, factory, ctrl, this._location, this._platform);
+    if (result == null) {
+      ctrl.ssrScope = void 0;
+      return;
+    }
+
+    const { view } = result;
+    if (wasIfBranch) {
+      this.view = this.ifView = view;
+    } else {
+      this.view = this.elseView = view;
+    }
+
+    ctrl.ssrScope = void 0;
+    return view.activate(view, ctrl, ctrl.scope);
   }
 
   public dispose(): void {

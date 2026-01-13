@@ -1,8 +1,14 @@
 import { Constructable, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
-import { defineMetadata, getMetadata } from '../utilities-metadata';
+import { clearMetadata, defineMetadata, getMetadata } from '../utilities-metadata';
 
 /** @internal */ export const dtElement = 'custom-element';
 /** @internal */ export const dtAttribute = 'custom-attribute';
+
+/**
+ * Default metadata key for cached resource definitions.
+ * @internal
+ */
+export const staticAuMetadataKey = '__au_static_resource__';
 
 export interface IResourceKind {
   readonly name: string;
@@ -14,7 +20,7 @@ export interface IResourceKind {
   Type: C | Function,
   typeName: string,
   createDef: (au: PartialResourceDefinition<Def>, Type: C) => Def,
-  metadataKey = '__au_static_resource__'
+  metadataKey = staticAuMetadataKey
 ): Def => {
   let def = getMetadata(metadataKey, Type) as Def;
   if (def == null) {
@@ -24,4 +30,13 @@ export interface IResourceKind {
     }
   }
   return def;
+};
+
+/**
+ * Clear cached static $au definition from a type.
+ * Used by SSR to reset definition cache before re-rendering.
+ * @internal
+ */
+export const clearStaticAuDefinition = (Type: Constructable): void => {
+  clearMetadata(Type, staticAuMetadataKey);
 };

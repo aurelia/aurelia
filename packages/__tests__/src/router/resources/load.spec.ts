@@ -1,8 +1,9 @@
 import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, customElement, ILocation } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 import { resolve } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/resources/load.spec.ts', function () {
 
@@ -36,9 +37,8 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Foo] });
+    await tasksSettled();
 
     const anchors = host.querySelectorAll('a');
     const a1 = { href: 'foo/1', active: false };
@@ -46,12 +46,12 @@ describe('router/resources/load.spec.ts', function () {
     assertAnchors(anchors, [a1, a2], 'round#1');
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
     a2.active = true;
     assertAnchors(anchors, [a1, a2], 'round#2');
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     a1.active = true;
     a2.active = false;
     assertAnchors(anchors, [a1, a2], 'round#3');
@@ -86,9 +86,8 @@ describe('router/resources/load.spec.ts', function () {
     class Root { }
 
     const activeClass = 'au-rl-active';
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo], activeClass });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Foo], activeClass });
+    await tasksSettled();
 
     const anchors = host.querySelectorAll('a');
     const a1 = { href: 'foo/1', active: false };
@@ -96,25 +95,25 @@ describe('router/resources/load.spec.ts', function () {
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#1');
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
     a2.active = true;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#2');
     assert.html.textContent(host, '1 2', 'round#2 - text');
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#3');
     assert.html.textContent(host, '1 2', 'round#3 - text');
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     a1.active = true;
     a2.active = false;
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#4');
     assert.html.textContent(host, '2 1', 'round#4 - text');
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assertAnchorsWithClass(anchors, [a1, a2], activeClass, 'round#5');
     assert.html.textContent(host, '2 1', 'round#5 - text');
 
@@ -150,9 +149,8 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Foo] });
+    await tasksSettled();
 
     const anchors = host.querySelectorAll('a');
     const a1 = { href: 'foo/1', active: false };
@@ -160,12 +158,12 @@ describe('router/resources/load.spec.ts', function () {
     assertAnchorsWithoutClass(anchors, [a1, a2], 'round#1');
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
     a2.active = true;
     assertAnchorsWithoutClass(anchors, [a1, a2], 'round#2');
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     a1.active = true;
     a2.active = false;
     assertAnchorsWithoutClass(anchors, [a1, a2], 'round#3');
@@ -198,9 +196,8 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Foo] });
+    await tasksSettled();
 
     const anchor = host.querySelector('a');
     assert.match(anchor.href, /foo\/3\?a=2/);
@@ -222,9 +219,8 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Foo] });
+    await tasksSettled();
 
     const anchors = Array.from(host.querySelectorAll('a'));
     const hrefs = anchors.map(a => a.href);
@@ -233,7 +229,7 @@ describe('router/resources/load.spec.ts', function () {
     assert.match(hrefs[2], /bar\/fizz/);
 
     anchors[2].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'foo');
 
     await au.stop(true);
@@ -261,9 +257,8 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
+    await tasksSettled();
 
     assert.html.textContent(host, 'products');
     const anchors = Array.from(host.querySelectorAll('a'));
@@ -272,22 +267,22 @@ describe('router/resources/load.spec.ts', function () {
     assert.match(hrefs[1], /product\/2$/);
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 1');
     // go back
     const back = host.querySelector<HTMLAnchorElement>('a');
     assert.match(back.href, /products$/);
     back.click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'products');
 
     // 2nd round
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 2');
     // go back
     host.querySelector<HTMLAnchorElement>('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'products');
 
     await au.stop(true);
@@ -315,9 +310,8 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
+    await tasksSettled();
 
     assert.html.textContent(host, 'products');
     const anchors = Array.from(host.querySelectorAll('a'));
@@ -326,22 +320,22 @@ describe('router/resources/load.spec.ts', function () {
     assert.match(hrefs[1], /product\/2$/);
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 1');
     // go back
     const back = host.querySelector<HTMLAnchorElement>('a');
     assert.match(back.href, /products$/);
     back.click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'products');
 
     // 2nd round
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 2');
     // go back
     host.querySelector<HTMLAnchorElement>('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'products');
 
     await au.stop(true);
@@ -377,9 +371,8 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
+    await tasksSettled();
 
     assert.html.textContent(host, 'products');
     const anchors = Array.from(host.querySelectorAll('a'));
@@ -388,22 +381,22 @@ describe('router/resources/load.spec.ts', function () {
     assert.match(hrefs[1], /product\/2$/);
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 1');
     // go back
     const back = host.querySelector<HTMLAnchorElement>('a');
     assert.match(back.href, /products$/);
     back.click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'products');
 
     // 2nd round
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 2');
     // go back
     host.querySelector<HTMLAnchorElement>('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'products');
 
     await au.stop(true);
@@ -440,17 +433,16 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l12 l22');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21');
 
     await au.stop(true);
@@ -488,17 +480,16 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l12 l22');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21');
 
     await au.stop(true);
@@ -547,17 +538,16 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l12 l22');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21');
 
     await au.stop(true);
@@ -624,29 +614,28 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21', 'init');
 
     // l21 -> l22
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l22', '#2 l21 -> l22');
 
     // l22 -> l12
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l12 l23', '#3 l22 -> l12');
 
     // l23 -> l24
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l12 l24', '#4 l23 -> l24');
 
     // l24 -> l11
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
 
     await au.stop(true);
@@ -682,23 +671,22 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo] });
+    await tasksSettled();
 
     const anchors = Array.from(host.querySelectorAll('a'));
     assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two']);
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce2');
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce1');
 
     anchors[2].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'ce2');
 
     await au.stop(true);
@@ -855,41 +843,40 @@ describe('router/resources/load.spec.ts', function () {
 
       const { au, host, container } = await start({ appRoot: Root });
       const location = container.get<MockBrowserHistoryLocation>(ILocation);
-      const queue = container.get(IPlatform).domQueue;
-      await queue.yield();
+      await tasksSettled();
 
       let anchors = host.querySelectorAll('a');
       assertAnchors(anchors, expectations1, 'round#1 - anchors', false);
       assert.match(location.path, /c1\/gc11$/, 'round#1 - location.path');
 
       anchors[3].click();
-      await queue.yield();
+      await tasksSettled();
       assertAnchors(anchors, expectations1, 'round#2 - anchors', false);
       assert.match(location.path, /c1\/gc12$/, 'round#2 - location.path');
 
       anchors[2].click();
-      await queue.yield();
+      await tasksSettled();
       assertAnchors(anchors, expectations1, 'round#3 - anchors', false);
       assert.match(location.path, /c1\/gc11$/, 'round#3 - location.path');
 
       anchors[1].click();
-      await queue.yield();
+      await tasksSettled();
       anchors = host.querySelectorAll('a');
       assertAnchors(anchors, expectations2, 'round#4', false);
       assert.match(location.path, /c2\/gc21$/, 'round#4 - location.path');
 
       anchors[3].click();
-      await queue.yield();
+      await tasksSettled();
       assertAnchors(anchors, expectations2, 'round#5 - anchors', false);
       assert.match(location.path, /c2\/gc22$/, 'round#5 - location.path');
 
       anchors[2].click();
-      await queue.yield();
+      await tasksSettled();
       assertAnchors(anchors, expectations2, 'round#6 - anchors', false);
       assert.match(location.path, /c2\/gc21$/, 'round#6 - location.path');
 
       anchors[4].click();
-      await queue.yield();
+      await tasksSettled();
       anchors = host.querySelectorAll('a');
       assertAnchors(anchors, expectations1, 'round#7', false);
       assert.match(location.path, /c1\/gc11$/, 'round#7 - location.path');
@@ -1055,45 +1042,44 @@ describe('router/resources/load.spec.ts', function () {
 
       const { au, host, container } = await start({ appRoot: Root });
       const location = container.get<MockBrowserHistoryLocation>(ILocation);
-      const queue = container.get(IPlatform).domQueue;
-      await queue.yield();
+      await tasksSettled();
 
       let anchors = host.querySelectorAll('a');
       assertAnchors(anchors, expectations1, 'round#1 - anchors', false);
       assert.match(location.path, /c1$/, 'round#1 - location.path');
 
       anchors[2].click();
-      await queue.yield();
+      await tasksSettled();
       assert.match(location.path, /c1\/gc11\+gc12$/, 'round#2 - location.path');
 
       anchors[3].click();
-      await queue.yield();
+      await tasksSettled();
       assert.match(location.path, /c1\/gc12\+gc13$/, 'round#3 - location.path');
 
       anchors[4].click();
-      await queue.yield();
+      await tasksSettled();
       assert.match(location.path, /c1\/gc13\+gc11$/, 'round#4 - location.path');
 
       anchors[1].click();
-      await queue.yield();
+      await tasksSettled();
       anchors = host.querySelectorAll('a');
       assertAnchors(anchors, expectations2, 'round#5 - anchors', false);
       assert.match(location.path, /c2$/, 'round#5 - location.path');
 
       anchors[2].click();
-      await queue.yield();
+      await tasksSettled();
       assert.match(location.path, /c2\/gc21\+gc22$/, 'round#6 - location.path');
 
       anchors[3].click();
-      await queue.yield();
+      await tasksSettled();
       assert.match(location.path, /c2\/gc22\+gc23$/, 'round#7 - location.path');
 
       anchors[4].click();
-      await queue.yield();
+      await tasksSettled();
       assert.match(location.path, /c2\/gc23\+gc21$/, 'round#8 - location.path');
 
       anchors[0].click();
-      await queue.yield();
+      await tasksSettled();
       anchors = host.querySelectorAll('a');
       assertAnchors(anchors, expectations1, 'round#9 - anchors', false);
       assert.match(location.path, /c1$/, 'round#9 - location.path');
@@ -1118,17 +1104,16 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<a load="c1(id1=1)"></a> <a load="c1(id1=2,id2=3)"></a> <au-viewport></au-viewport>' })
     class Root { }
 
-    const { au, container, host } = await start({ appRoot: Root });
-    const queue = container.get(IPlatform).domQueue;
+    const { au, host } = await start({ appRoot: Root });
 
     assert.html.textContent(host, '', 'init');
 
     host.querySelector('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'c1 1', 'round#1');
 
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'c1 2 3', 'round#2');
 
     await au.stop(true);
@@ -1164,9 +1149,8 @@ describe('router/resources/load.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport name="root"></au-viewport>' })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
+    await tasksSettled();
 
     assert.html.textContent(host, 'product init');
     const anchors = Array.from(host.querySelectorAll('a'));
@@ -1175,22 +1159,22 @@ describe('router/resources/load.spec.ts', function () {
     assert.match(hrefs[1], /product\/2$/);
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 1', 'round#1');
     // go back
     const back = host.querySelector<HTMLAnchorElement>('a');
     assert.match(back.href, /products$/, 'round#1 - back - href');
     back.click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product init', 'round#1 - back - text');
 
     // 2nd round
     host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 2', 'round#2');
     // go back
     host.querySelector<HTMLAnchorElement>('a').click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product init', 'round#2 - back - text');
 
     await au.stop(true);
@@ -1218,12 +1202,11 @@ describe('router/resources/load.spec.ts', function () {
         private readonly value = value;
       }
 
-      const { au, host, container } = await start({ appRoot: Root, registrations: [Product] });
-      const queue = container.get(IPlatform).domQueue;
-      await queue.yield();
+      const { au, host } = await start({ appRoot: Root, registrations: [Product] });
+      await tasksSettled();
 
       host.querySelector('a').click();
-      await queue.yield();
+      await tasksSettled();
 
       const product = CustomElement.for<Product>(host.querySelector('pro-duct')).viewModel;
       const query = product.query;
@@ -1261,27 +1244,26 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host, container } = await start({ appRoot: Root });
+    const { au, host } = await start({ appRoot: Root });
 
-    const queue = container.get(IPlatform).domQueue;
-    await queue.yield();
+    await tasksSettled();
 
     const anchors = Array.from(host.querySelectorAll('a'));
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 42');
 
     anchors[1].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'nf');
 
     anchors[0].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'product 42');
 
     anchors[2].click();
-    await queue.yield();
+    await tasksSettled();
     assert.html.textContent(host, 'nf');
 
     await au.stop(true);
@@ -1325,22 +1307,21 @@ describe('router/resources/load.spec.ts', function () {
             public route: string = `p1/${encodedRouteParam}`;
           }
 
-          const { au, host, container, rootVm } = await start({ appRoot: Root, registrations: [P1], useHash });
-          const queue = container.get(IPlatform).domQueue;
+          const { au, host, rootVm } = await start({ appRoot: Root, registrations: [P1], useHash });
 
           const anchor = host.querySelector('a');
 
           anchor.click();
-          await queue.yield();
+          await tasksSettled();
           assert.html.textContent(host, `p1 ${routeParam}`, 'round#1');
 
           // change route
           const { routeParam: nextRouteParam, encodedRouteParam: nextEncodedRouteParam } = testData[(i + 1) % numTestData];
           const nextRoute = rootVm.route = `p1/${nextEncodedRouteParam}`;
-          await queue.yield();
+          await tasksSettled();
           assert.strictEqual(anchor.getAttribute('href').endsWith(nextRoute), true, 'round#2 - href');
           anchor.click();
-          await queue.yield();
+          await tasksSettled();
           assert.html.textContent(host, `p1 ${nextRouteParam}`, 'round#2');
 
           await au.stop(true);

@@ -411,13 +411,24 @@ describe('3-runtime-html/effect.spec.ts', function () {
     describe('watch expression effect', function () {
       it('runs immediately', async function () {
         let v = 0;
-        observation.watchExpression<number>({ a: 1 }, 'a', vv => v = vv);
+        observation.watch<number>({ a: 1 }, 'a', vv => v = vv);
         assert.strictEqual(v, 1);
       });
 
-      it('does not run immediately', async function () {
+      it('runs immediately when initial value is undefined', async function () {
+        let v: number | undefined = undefined;
+        let count = 0;
+        observation.watch<number | undefined>({}, 'a', vv => {
+          v = vv;
+          count++;
+        });
+        assert.strictEqual(v, void 0);
+        assert.strictEqual(count, 1);
+      });
+
+      it('does not run immediately when immediate is false', async function () {
         let v = 0;
-        const { run } = observation.watchExpression<number>({ a: 1 }, 'a', vv => v = vv, { immediate: false });
+        const { run } = observation.watch<number>({ a: 1 }, 'a', vv => v = vv, { immediate: false });
         assert.strictEqual(v, 0);
         run();
         assert.strictEqual(v, 1);
@@ -426,7 +437,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
       it('runs again after stopped when called', async function () {
         let v = 0;
         const obj = { a: 1 };
-        const { run, stop } = observation.watchExpression<number>(obj, 'a', vv => v = vv);
+        const { run, stop } = observation.watch<number>(obj, 'a', vv => v = vv);
         stop();
         obj.a = 2;
         assert.strictEqual(v, 1);
@@ -439,7 +450,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
       it('runs independently with owning application', async function () {
         let v = 0;
         const obj = { a: 1 };
-        const { run } = observation.watchExpression<number>(obj, 'a', _ => v++);
+        const { run } = observation.watch<number>(obj, 'a', _ => v++);
         run();
         assert.strictEqual(v, 1);
 
@@ -452,7 +463,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         let v = 0;
         let cancelled = 0;
         const obj = { a: 1 };
-        observation.watchExpression<number>(obj, 'a', vv => {
+        observation.watch<number>(obj, 'a', vv => {
           v = vv;
           return () => cancelled++;
         });
@@ -467,7 +478,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         let v = 0;
         let cancelled = 0;
         const obj = { a: 1 };
-        const { stop } = observation.watchExpression<number>(obj, 'a', vv => {
+        const { stop } = observation.watch<number>(obj, 'a', vv => {
           v = vv;
           return () => cancelled++;
         });

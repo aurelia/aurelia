@@ -1,19 +1,19 @@
 import { DI, isArray, Writable } from '@aurelia/kernel';
-import type {
-  AccessKeyedExpression,
-  DestructuringAssignmentExpression,
-  DestructuringAssignmentRestExpression,
-  DestructuringAssignmentSingleExpression,
-  IsAssign,
-  IsBindingBehavior,
-  IsLeftHandSide,
-  PrimitiveLiteralExpression,
-} from '@aurelia/expression-parser';
 import {
-  AccessMemberExpression,
-  AccessScopeExpression,
+  type AccessKeyedExpression,
+  type DestructuringAssignmentExpression,
+  type DestructuringAssignmentRestExpression,
+  type DestructuringAssignmentSingleExpression,
+  type IsAssign,
+  type IsBindingBehavior,
+  type IsLeftHandSide,
+  type PrimitiveLiteralExpression,
+  type AccessMemberExpression,
+  type AccessScopeExpression,
   ExpressionParser,
   Unparser,
+  createAccessScopeExpression,
+  createAccessMemberExpression,
 } from '@aurelia/expression-parser';
 import {
   DotSeparatedAttributePattern,
@@ -159,7 +159,7 @@ class IdentifierScope {
 const identifierPrefix = '__Template_TypeCheck_Synthetic_';
 class TypeCheckingContext {
   private static readonly _o = 'o';
-  private static readonly rootAccessScope = new AccessScopeExpression(this._o, 0);
+  private static readonly rootAccessScope = createAccessScopeExpression(this._o, 0);
   private scope: IdentifierScope;
   public readonly toReplace: { loc: Location; modifiedContent: () => string }[] = [];
   public readonly classUnion: string;
@@ -312,7 +312,7 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
   }
 
   public createMemberAccessExpression(member: string): AccessMemberExpression {
-    return new AccessMemberExpression(TypeCheckingContext.rootAccessScope, member);
+    return createAccessMemberExpression(TypeCheckingContext.rootAccessScope, member);
   }
 
   public pushScope(type: ScopeType): void {
@@ -652,7 +652,7 @@ function mutateAccessScope(expr: IsBindingBehavior, ctx: TypeCheckingContext, me
   if ((expr.$kind === 'AccessScope' || expr.$kind === 'AccessMember') && contextualRepeatProperties.includes(expr.name)) {
     ctx.hasRepeatContextualProperties = true;
     if (needsPath) throw new Error('Not supported');
-    return [new AccessScopeExpression(expr.name, 0), null];
+    return [createAccessScopeExpression(expr.name, 0), null];
   }
   // traverse to the root vm property and rename if required
   expr = structuredClone(expr);

@@ -140,7 +140,7 @@ import { inject, IObservation } from 'aurelia';
 class PersonalInfo {
   constructor(observation) {
     this.person = { name: 'bob', address: { code: '1234' } };
-    const effect = observation.watchExpression(this.person, 'address.code', function nameChanged(newCode, oldCode) {
+    const effect = observation.watch(this.person, 'address.code', function nameChanged(newCode, oldCode) {
       // do something with code
     });
 

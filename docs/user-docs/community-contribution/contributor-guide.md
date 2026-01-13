@@ -63,6 +63,22 @@ Before you submit your pull request consider the following guidelines:
     ```
 
     > **Note**: The optional commit `-a` command line option will automatically "add" and "rm" edited files.
+
+*   **Add a changeset** if your PR affects published packages (features, bug fixes, refactors). Run:
+
+    ```bash
+    npx changeset
+    ```
+
+    The wizard will ask:
+    1. **Which packages?** Select `aurelia` (all packages release together in lockstep)
+    2. **Bump type?** Choose `patch` for fixes, `minor` for features, `major` for breaking changes
+    3. **Summary?** Write a brief description of your change
+
+    This creates a `.changeset/<random-name>.md` file. Commit it with your PR.
+
+    > **When to skip:** Documentation-only changes, test-only changes, and changes to non-published code (examples, e2e tests, benchmarks) don't need changesets.
+
 *   Build your changes locally and ensure all the tests in `__tests__` pass:
 
     ```bash

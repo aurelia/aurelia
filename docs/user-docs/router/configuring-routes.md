@@ -4,6 +4,10 @@ description: Learn about configuring routes in Router.
 
 # Configuring Routes
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 The router takes your routing instructions and matches the URL to one of the configured Routes to determine which components to render.
 To register routes you can either use the `@route` decorator or you can use the `static routes` property to register one or more routes in your application.
 This section describes the route configuration options in details.
@@ -173,7 +177,7 @@ When a given URL matches one such route, the parameter value is made available i
 ```typescript
 import { IRouteViewModel, Params } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
-import template from './product.html';
+import template from './product.html?raw';
 
 @customElement({ name: 'pro-duct', template })
 export class Product implements IRouteViewModel {
@@ -341,7 +345,7 @@ If you prefer using the static `routes` property, the title can be set using a s
 The following example has exactly the same effect as of the previous example.
 
 ```typescript
-import { IRouteViewModel, Routeable } from "aurelia";
+import type { IRouteViewModel, Routeable } from '@aurelia/router';
 export class MyApp implements IRouteViewModel {
   static title: string = 'Aurelia'; // <-- this is the base title
   static routes: Routeable[] = [
@@ -450,7 +454,7 @@ As the example shows, the `fallback` is configured as follows.
 
 ```typescript
 import { route } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Home } from './home';
 import { About } from './about';
 import { NotFound } from './not-found';
@@ -625,7 +629,7 @@ Instead of statically importing the components, those can be imported using `imp
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -664,7 +668,7 @@ Components can be configured using only the custom-element name of the component
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -724,7 +728,7 @@ Components can be configured using a function that returns a class.
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -771,7 +775,7 @@ Components can be configured using custom element definition.
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -824,7 +828,7 @@ Components can be configured using custom element instance.
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -869,7 +873,7 @@ When using HTML-only custom elements, facilitated via the convention, the custom
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 + import * as About from './about.html';
@@ -898,7 +902,7 @@ Using `import()` function directly is also supported.
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -934,7 +938,7 @@ When importing the HTML-only custom elements in the HTML file using `<require fr
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
 - import { About } from './about';
 - import { Home } from './home';
 
@@ -967,7 +971,7 @@ The following example shows how to use a navigation strategy.
 ```diff
   import { customElement } from '@aurelia/runtime-html';
   import { route } from '@aurelia/router';
-  import template from './my-app.html';
+  import template from './my-app.html?raw';
   import { About } from './about';
   import { Home } from './home';
 
@@ -1236,7 +1240,7 @@ import {
   route,
   RouteNode,
 } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Home } from './home';
 import { About } from './about';
 

@@ -68,4 +68,4 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
     this.controller!.removeSubscriber(this);
   }
 }
-CustomAttribute.define({ name: 'validation-errors', bindables: { controller: {}, errors: { primary: true, mode: BindingMode.twoWay } } }, ValidationErrorsCustomAttribute);
+CustomAttribute.define({ name: 'validation-errors', defaultProperty: 'errors', bindables: { controller: {}, errors: { mode: BindingMode.twoWay } } }, ValidationErrorsCustomAttribute);

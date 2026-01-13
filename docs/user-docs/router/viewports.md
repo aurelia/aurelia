@@ -4,6 +4,10 @@ description: Learn about viewports in Aurelia router and how to create complex l
 
 # Viewports
 
+{% hint style="info" %}
+**Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
+{% endhint %}
+
 Viewports are the foundation of Aurelia's routing system. The `<au-viewport>` element serves as the "outlet" where the router renders routed components. Understanding viewports is essential for creating complex application layouts with multiple content areas, nested routing, and dynamic UI structures.
 
 ## Viewport Concepts Overview
@@ -81,7 +85,7 @@ The list component itself houses anther viewport, or more accurately a child vie
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 import { route } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Products } from './products';
 
 @route({
@@ -117,9 +121,10 @@ This is shown below.
 ```typescript
 import { route } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 import { Product } from './product';
 import { IProductService, ProductDetail } from './product-service';
-import template from './products.html';
+import template from './products.html?raw';
 
 // child route configuration
 @route({
@@ -174,7 +179,7 @@ You can see this in action below.
 {% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport?ctl=1&embed=1&file=src/my-app.ts" %}
 
 If you open the example in a new tab, you can see how the URL paths are constructed.
-For example, when you click a product link, the URL is `/42/details` or `/products/42/details`.
+For example, when you click a product link, the URL is `/products/42/details`.
 This also means that when you try to navigate to that URL directly, the product details will be loaded from the start.
 It essentially creates shareable URLs.
 
@@ -215,7 +220,7 @@ To this end, let us start with the routing configuration on the root component.
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 import { route } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 import { Products } from './products';
 import { Product } from './product';
 
@@ -525,7 +530,7 @@ import {
   RouteNode,
   ViewportInstruction,
 } from '@aurelia/router';
-import template from './my-app.html';
+import template from './my-app.html?raw';
 
 @customElement({ name: 'ce-a', template: 'a' })
 class A {}
@@ -677,20 +682,23 @@ interface UserService {
         <a href="admin" if.bind="isAdmin">Admin</a>
       </nav>
 
-      <!-- Admin layout -->
-      <div if.bind="isAdmin" class="admin-layout">
-        <au-viewport name="admin" fallback="access-denied"></au-viewport>
-      </div>
+      <!-- Conditional layouts using switch -->
+      <template switch.bind="true">
+        <!-- Admin layout -->
+        <div case.bind="isAdmin" class="admin-layout">
+          <au-viewport name="admin" fallback="access-denied"></au-viewport>
+        </div>
 
-      <!-- User layout -->
-      <div else-if.bind="isLoggedIn" class="user-layout">
-        <au-viewport name="user" fallback="user-home"></au-viewport>
-      </div>
+        <!-- User layout -->
+        <div case.bind="isLoggedIn" class="user-layout">
+          <au-viewport name="user" fallback="user-home"></au-viewport>
+        </div>
 
-      <!-- Public layout -->
-      <div else class="public-layout">
-        <au-viewport name="main" default="public"></au-viewport>
-      </div>
+        <!-- Public layout -->
+        <div default-case class="public-layout">
+          <au-viewport name="main" default="public"></au-viewport>
+        </div>
+      </template>
     </div>
   `
 })

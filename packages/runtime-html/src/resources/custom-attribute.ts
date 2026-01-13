@@ -6,7 +6,6 @@ import { INode, refs } from '../dom.node';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
-import { defaultMode, toView, BindingMode } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
@@ -24,7 +23,6 @@ import { dtAttribute, getDefinitionFromStaticAu, type IResourceKind } from './re
 import { IAttributeComponentDefinition } from '@aurelia/template-compiler';
 
 export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IAttributeComponentDefinition, 'type'> & {
-  readonly defaultBindingMode?: string | number;
   readonly isTemplateController?: boolean;
   readonly bindables?: (Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>>) | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   /**
@@ -125,13 +123,13 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
-    public readonly defaultBindingMode: BindingMode,
     public readonly isTemplateController: boolean,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
     public readonly dependencies: Key[],
     public readonly containerStrategy: 'reuse' | 'new',
+    public readonly defaultProperty: string,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -148,8 +146,6 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       def = nameOrDef;
     }
 
-    const mode = firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView) as string | BindingMode;
-
     for(const bindable of Object.values(Bindable.from(def.bindables))) {
       Bindable._add(bindable, Type);
     }
@@ -158,13 +154,13 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(getAttributeAnnotation(Type, 'name'), name),
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
-      isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getDefinitions(Type), Type.watches),
       mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
       firstDefined(getAttributeAnnotation(Type, 'containerStrategy'), def.containerStrategy, Type.containerStrategy, 'reuse'),
+      firstDefined(getAttributeAnnotation(Type, 'defaultProperty'), def.defaultProperty, Type.defaultProperty, 'value'),
     );
   }
 

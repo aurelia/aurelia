@@ -30,9 +30,10 @@ import { resolve } from '@aurelia/kernel';
 
 export class UserService {
   private http = resolve(IHttpClient);
-  
+
   constructor() {
-    // Configure this instance
+    // Configure the singleton instance
+    // ⚠️ WARNING: This configuration applies GLOBALLY to all services that resolve IHttpClient
     this.http.configure(config => config
       .withBaseUrl('https://api.example.com/')
       .withDefaults({
@@ -42,6 +43,8 @@ export class UserService {
   }
 }
 ```
+
+> **Important**: By default, `IHttpClient` is registered as a singleton. This means all services that resolve `IHttpClient` will share the same instance and configuration. If you configure the client in one service (e.g., setting a base URL), that configuration will affect **all** services using `IHttpClient`. If you need service-specific configurations with different base URLs or settings, use `newInstanceOf(IHttpClient)` as shown in the "Multiple Configured Instances" section below.
 
 ### Creating New Instances
 
@@ -61,17 +64,61 @@ const users = await httpClient.get('users')
 
 ### Multiple Configured Instances
 
-For applications that need to communicate with different APIs:
+For applications that need to communicate with different APIs, each with its own base URL or configuration, use `newInstanceOf(IHttpClient)` to create separate instances:
 
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
 import { resolve, newInstanceOf } from '@aurelia/kernel';
 
+export class UserApi {
+  // Create a new instance specifically for user API
+  private http = resolve(newInstanceOf(IHttpClient));
+
+  constructor() {
+    this.http.configure(config => config
+      .withBaseUrl('https://api.example.com/users/')
+      .withDefaults({
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+  }
+
+  async getUser(id: string) {
+    const response = await this.http.get(id);
+    return response.json();
+  }
+}
+
+export class TodoApi {
+  // Create a separate new instance for todo API
+  private http = resolve(newInstanceOf(IHttpClient));
+
+  constructor() {
+    this.http.configure(config => config
+      .withBaseUrl('https://api.example.com/todos/')
+      .withDefaults({
+        headers: { 'X-Custom-Header': 'todo-value' }
+      })
+    );
+  }
+
+  async getTodos() {
+    const response = await this.http.get('');
+    return response.json();
+  }
+}
+```
+
+Each service above gets its own `HttpClient` instance with its own configuration. The `UserApi` will use base URL `https://api.example.com/users/` while `TodoApi` uses `https://api.example.com/todos/`, and their configurations won't interfere with each other.
+
+You can also combine multiple instances in a single service:
+
+```typescript
 export class MultiApiService {
   // Separate instances for different APIs
-  private mainApi = resolve(newInstanceOf(IHttpClient));  
+  private mainApi = resolve(newInstanceOf(IHttpClient));
   private authApi = resolve(newInstanceOf(IHttpClient));
-  
+
   constructor() {
     this.mainApi.configure(config => config
       .withBaseUrl('https://api.example.com/v1/')
@@ -79,7 +126,7 @@ export class MultiApiService {
         headers: { 'Content-Type': 'application/json' }
       })
     );
-    
+
     this.authApi.configure(config => config
       .withBaseUrl('https://auth.example.com/')
       .withDefaults({
@@ -90,7 +137,7 @@ export class MultiApiService {
 }
 ```
 
-> **Best Practice**: Avoid creating multiple instances unnecessarily. Instead, create service classes that encapsulate your HTTP logic with properly configured clients.
+> **Best Practice**: Use `newInstanceOf(IHttpClient)` when you need service-specific configurations (different base URLs, headers, or interceptors). For simple cases where all requests share the same configuration, the singleton `IHttpClient` is more efficient.
 
 ## Configuration Options
 
@@ -248,24 +295,18 @@ document.body.addEventListener('aurelia-fetch-client-requests-drained', (e) => {
 The fetch client provides convenient methods for all standard HTTP verbs:
 
 ```typescript
-// GET request  
+// GET request
 const users = await http.get('/api/users');
 const userData = await users.json();
 
-// POST with JSON body
-const newUser = await http.post('/api/users', {
-  body: json({ name: 'John', email: 'john@example.com' })
-});
+// POST with JSON body (body is second parameter)
+const newUser = await http.post('/api/users', json({ name: 'John', email: 'john@example.com' }));
 
 // PUT request
-await http.put(`/api/users/${userId}`, {
-  body: json(updatedUser)
-});
+await http.put(`/api/users/${userId}`, json(updatedUser));
 
 // PATCH request
-await http.patch(`/api/users/${userId}`, {
-  body: json({ status: 'active' })
-});
+await http.patch(`/api/users/${userId}`, json({ status: 'active' }));
 
 // DELETE request
 await http.delete(`/api/users/${userId}`);

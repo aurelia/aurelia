@@ -20,6 +20,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
 import { IBinding } from '../binding/interfaces-bindings';
+import { createMappedError, ErrorNames } from '../errors';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;
@@ -114,8 +115,7 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     const obj = this.obj;
     const oldValue = this._value;
     if (++this._computeDepth > 100) {
-      // todo: error code
-      throw new Error(`AURXXXX: Possible infinitely recursive side-effect detected in a watcher.`);
+      throw createMappedError(ErrorNames.watcher_infinite_loop);
     }
 
     const newValue = this.compute();

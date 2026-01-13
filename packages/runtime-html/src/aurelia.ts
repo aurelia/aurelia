@@ -79,10 +79,41 @@ export class Aurelia implements IDisposable {
     return onResolve(appRoot.activate(), () => appRoot);
   }
 
-  public async waitForIdle(): Promise<void> {
-    const platform = this.root.platform;
-    await platform.domQueue.yield();
-    await platform.taskQueue.yield();
+  /**
+   * Hydrate a pre-rendered DOM tree with an Aurelia component.
+   *
+   * Unlike `enhance()`, which compiles the host element as a template,
+   * `hydrate()` adopts existing DOM that was pre-rendered (e.g., by SSR)
+   * and connects it to a component that has an AOT-compiled definition.
+   *
+   * The component's definition (with instructions) should already be attached
+   * to the component class - either via decorator or static `$au` property.
+   * This is what AOT compilation produces.
+   *
+   * @param config - Hydration configuration including host, component, and ssrScope
+   * @returns The app root, or a promise that resolves to it
+   *
+   * @example
+   * ```typescript
+   * // Server renders HTML with markers and manifest
+   * // Client receives pre-rendered HTML in #app and manifest in window.__SSR_MANIFEST__
+   *
+   * await aurelia.hydrate({
+   *   host: document.getElementById('app'),
+   *   component: MyApp,  // Has AOT-compiled definition
+   *   ssrScope: window.__SSR_MANIFEST__,
+   * });
+   * ```
+   */
+  public hydrate<T extends object>(config: IHydrateConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
+    const container = config.container ?? this.container.createChild();
+    const appRoot: IAppRoot<T> = new AppRoot(
+      { host: config.host, component: config.component, ssrScope: config.ssrScope },
+      container,
+      this._rootProvider,
+      false, // not enhance mode
+    );
+    return onResolve(appRoot.activate(), () => appRoot);
   }
 
   /** @internal */
@@ -169,3 +200,31 @@ export type IEnhancementConfig<T extends object = object> = IAppRootConfig<T> & 
    */
   container?: IContainer;
 };
+
+// Import the type for use in IHydrateConfig
+import type { ISSRScope } from './templating/ssr';
+
+export interface IHydrateConfig<T extends object = object> {
+  /**
+   * The host element containing pre-rendered HTML with markers.
+   * The server-rendered content should match what the template would produce.
+   */
+  host: HTMLElement;
+
+  /**
+   * The root component class. For SSR hydration, this should have an
+   * AOT-compiled definition (needsCompile: false, instructions pre-generated).
+   */
+  component: Constructable<T>;
+
+  /**
+   * Tree-shaped SSR manifest scope for the root custom element.
+   * Built by recordManifest() after SSR render, mirrors the controller tree.
+   */
+  ssrScope?: ISSRScope;
+
+  /**
+   * Optional container for the hydrated app.
+   */
+  container?: IContainer;
+}

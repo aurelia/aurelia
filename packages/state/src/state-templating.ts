@@ -1,4 +1,4 @@
-import { camelCase, resolve } from '@aurelia/kernel';
+import { camelCase, registrableMetadataKey, resolve } from '@aurelia/kernel';
 import { IExpressionParser, ExpressionType, type IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
@@ -14,11 +14,33 @@ import {
   type BindingCommandInstance,
   type ICommandBuildInfo,
   type IInstruction,
-  type BindingCommandStaticAuDefinition
+  type BindingCommandStaticAuDefinition,
+  AttributePattern,
+  AttrSyntax
 } from '@aurelia/template-compiler';
-import { IStore } from './interfaces';
+import { IStore, IStoreRegistry } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchBinding } from './state-dispatch-binding';
+
+export class StateAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: /*@__PURE__*/AttributePattern.create(
+      [
+        { pattern: 'PART.state:PART', symbols: '.:' },
+        { pattern: 'PART.dispatch:PART', symbols: '.:' }
+      ],
+      StateAttributePattern
+    )
+  };
+
+  public 'PART.state:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'state', parts.slice(2));
+  }
+
+  public 'PART.dispatch:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'dispatch', parts.slice(2));
+  }
+}
 
 export class StateBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -41,7 +63,7 @@ export class StateBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new StateBindingInstruction(value, target);
+    return new StateBindingInstruction(value, target, info.attr.parts?.[0]);
   }
 }
 
@@ -54,30 +76,39 @@ export class DispatchBindingCommand implements BindingCommandInstance {
 
   public build(info: ICommandBuildInfo): IInstruction {
     const attr = info.attr;
-    return new DispatchBindingInstruction(attr.target, attr.rawValue);
+    return new DispatchBindingInstruction(attr.target, attr.rawValue, attr.parts?.[0]);
   }
 }
 
+/**
+ * State instruction types (range 120-139)
+ */
+export const itStateBinding = 120;
+export const itDispatchBinding = 121;
+
 export class StateBindingInstruction {
-  public readonly type = 'sb';
+  public readonly type = itStateBinding;
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
+    public storeName?: string,
   ) {}
 }
 
 export class DispatchBindingInstruction {
-  public readonly type = 'sd';
+  public readonly type = itDispatchBinding;
   public constructor(
     public from: string,
     public ast: string | IsBindingBehavior,
+    public storeName?: string,
   ) {}
 }
 
 export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindingInstructionRenderer implements IRenderer {
-  public readonly target = 'sb';
+  public readonly target = itStateBinding;
 
   /** @internal */ public readonly _stateContainer = resolve(IStore);
+  /** @internal */ public readonly _storeRegistry = resolve(IStoreRegistry);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -96,15 +127,17 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
       ast,
       target,
       instruction.to,
-      this._stateContainer,
+      instruction.storeName == null ? this._stateContainer : this._storeRegistry.getStore(instruction.storeName),
       renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
 
 export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer implements IRenderer {
-  public readonly target = 'sd';
+
+  public readonly target = itDispatchBinding;
   /** @internal */ public readonly _stateContainer = resolve(IStore);
+  /** @internal */ public readonly _storeRegistry = resolve(IStoreRegistry);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -119,7 +152,7 @@ export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class D
       expr,
       target,
       instruction.from,
-      this._stateContainer,
+      instruction.storeName == null ? this._stateContainer : this._storeRegistry.getStore(instruction.storeName),
       renderingCtrl.strict ?? false,
     ));
   }

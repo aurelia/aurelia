@@ -4,6 +4,10 @@ Aurelia 2 significantly simplifies the handling of Promises directly within your
 
 This is accomplished through the `promise.bind` template controller. It intelligently manages the different states of a Promise: `pending`, `resolved` (`then`), and `rejected` (`catch`). This approach reduces boilerplate code and makes asynchronous data handling in templates more declarative and intuitive.
 
+{% hint style="info" %}
+You may also see `promise.resolve="..."` in older examples. It’s an alias for `promise.bind="..."`.
+{% endhint %}
+
 ## Basic Usage
 
 The `promise.bind` attribute allows you to bind a Promise to a template, rendering different content based on the Promise's current state.

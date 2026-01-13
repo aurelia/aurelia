@@ -40,6 +40,14 @@ export class MyComponent {
 **Note**: You can use any valid CSS class name, including ones with special characters like `my-awesome-class.class="isAwesome"` or Unicode characters like `✓.class="isComplete"`.
 {% endhint %}
 
+{% hint style="warning" %}
+**TailwindCSS note**: Tailwind’s content scanner won’t pick up class names that only appear in attribute names. For Tailwind classes that include special characters (for example `width-[360px]`), prefer the object form with `class.bind` so the class token appears in an attribute value:
+
+```html
+<div class.bind="{ 'width-[360px]': condition }"></div>
+```
+{% endhint %}
+
 ### Multiple Classes: Comma-Separated Syntax
 
 When you need to toggle multiple related classes together, you can use comma-separated class names:
@@ -314,9 +322,8 @@ export class OpenComponent { }
 @useShadowDOM({ mode: 'closed' })
 export class ClosedComponent { }
 
-// Disable Shadow DOM for a specific component
-@useShadowDOM(false)
-export class NoShadowComponent { }
+// To use Light DOM (no Shadow DOM), simply don't use the decorator
+export class LightDomComponent { }
 ```
 
 ### Shadow DOM Special Selectors
@@ -369,27 +376,34 @@ Aurelia
 
 ### CSS Modules
 
-CSS Modules provide an alternative to Shadow DOM for scoped styling:
+CSS Modules provide scoped styling by transforming class names to unique identifiers at build time. Aurelia provides the `cssModules()` helper to integrate CSS Modules with your components:
 
-```css
-/* my-component.module.css */
-.title {
-  font-size: 24px;
-  color: #333;
-}
+```typescript
+import { customElement, cssModules } from 'aurelia';
 
-.button {
-  composes: title; /* Inherit styles from title */
-  background-color: #3498db;
-  padding: 8px 16px;
-}
+// Import the CSS module (bundler provides the class mapping)
+import styles from './my-component.module.css';
+// styles = { title: 'title_abc123', button: 'button_def456' }
+
+@customElement({
+  name: 'my-component',
+  template: `
+    <h1 class="title">My Title</h1>
+    <button class="button">Click Me</button>
+  `,
+  dependencies: [cssModules(styles)]
+})
+export class MyComponent {}
 ```
 
-```html
-<!-- Webpack transforms class names to unique identifiers -->
-<h1 class="title">My Title</h1>
-<button class="button">Click Me</button>
-```
+The `cssModules()` helper transforms class names in your template at compile time. In the example above, `class="title"` becomes `class="title_abc123"`.
+
+**Key features:**
+- Works with static classes, `class.bind`, and interpolation (`class="some ${myClass}"`)
+- Supports multi-class binding syntax (`class1,class2.class="condition"`)
+- Each component must register its own `cssModules()` - mappings do not inherit to child components
+
+For more details on using CSS Modules with Shadow DOM, see the [Shadow DOM documentation](shadow-dom.md#using-css-modules-with-shadow-dom).
 
 ## Real-World Examples and Patterns
 
@@ -644,7 +658,13 @@ export class GoodComponent {
 ### "Shadow DOM is blocking my global styles!"
 
 **Problem**: Global CSS frameworks aren't working inside Shadow DOM components.
-**Solution**: Configure shared styles in your app startup.
+**Why**: Shadow DOM isolates styles; open/closed mode does not change CSS encapsulation.
+**Solutions**:
+- Use Light DOM for components that should inherit global framework styles
+- Register framework CSS as shared styles with `StyleConfiguration.shadowDOM({ sharedStyles: [...] })`
+- Use CSS variables or `::part` to expose safe customization points
+
+**Learn more**: [Shadow DOM guide](shadow-dom.md)
 
 ## Migration and Compatibility
 
@@ -663,7 +683,6 @@ The syntax is mostly the same, with some improvements:
 ### Browser Support
 
 All binding features work in modern browsers. For older browsers:
-- CSS custom properties require a polyfill for IE11
 - Shadow DOM requires a polyfill for older browsers
 - CSS Modules work everywhere (they're processed at build time)
 

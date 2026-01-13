@@ -41,13 +41,13 @@ export class ErrorHandlingComponent {
 
 Template:
 ```html
-<template>
-  <div if.bind="loading">Loading...</div>
-  <div else-if.bind="error" class="error">
+<template switch.bind="true">
+  <div case.bind="loading">Loading...</div>
+  <div case.bind="error" class="error">
     <p>Error: ${error.message}</p>
     <button click.trigger="retryLoad()">Retry</button>
   </div>
-  <div else>
+  <div default-case>
     <div repeat.for="item of data">${item.name}</div>
   </div>
 </template>

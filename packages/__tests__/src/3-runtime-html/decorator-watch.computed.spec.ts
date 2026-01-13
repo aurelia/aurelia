@@ -304,7 +304,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       let appBoundCallCount = 0;
       let appUnbindingCallCount = 0;
 
-      @customAttribute({ name: 'child' })
+      @customAttribute({ name: 'child', defaultProperty: 'prop' })
       class Child {
         @bindable()
         public prop = 0;

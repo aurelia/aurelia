@@ -1,4 +1,4 @@
-import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
+import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, itTranslationParameters } from '@aurelia/i18n';
 import { DI, Registration } from '@aurelia/kernel';
 import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import {
@@ -19,7 +19,7 @@ import {
   IAttributePattern,
   IAttrMapper,
   PropertyBindingInstruction,
-  InstructionType,
+  itPropertyBinding,
 } from '@aurelia/template-compiler';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
@@ -90,7 +90,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
 
     it('instantiated with instruction type', function () {
       const sut: IRenderer = new TranslationParametersBindingRenderer();
-      assert.equal(sut.target, TranslationParametersInstructionType);
+      assert.equal(sut.target, itTranslationParameters);
     });
 
     it('#render instantiates TranslationBinding if there are none existing', function () {
@@ -99,7 +99,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
       const expressionParser = container.get(IExpressionParser);
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
       const callBindingInstruction: PropertyBindingInstruction = {
-        type: InstructionType.propertyBinding,
+        type: itPropertyBinding,
         from: expressionParser.parse('{foo: "bar"}', 'IsProperty'),
         to: 'value',
         mode: BindingMode.oneTime
@@ -126,7 +126,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
       const hydratable = ({ container, bindings: [binding] } as unknown as IHydratableController);
       const paramExpr = expressionParser.parse('{foo: "bar"}', 'IsProperty');
       const callBindingInstruction: PropertyBindingInstruction = {
-        type: InstructionType.propertyBinding,
+        type: itPropertyBinding,
         from: expressionParser.parse('{foo: "bar"}', 'IsProperty'),
         to: 'value',
         mode: BindingMode.oneTime

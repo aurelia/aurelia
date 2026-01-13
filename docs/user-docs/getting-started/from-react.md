@@ -34,7 +34,7 @@ export class UserList {
 <div>
   <user-card repeat.for="user of users.filter(u => u.isActive)" 
              user.bind="user" 
-             on-click.call="onUserClick(user)">
+             on-click.bind="() => onUserClick(user)">
   </user-card>
 </div>
 ```

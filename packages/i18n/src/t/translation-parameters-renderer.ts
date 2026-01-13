@@ -25,7 +25,7 @@ import type {
 
 import { bmToView, etIsProperty } from '../utils';
 
-export const TranslationParametersInstructionType = 'tpt';
+export const itTranslationParameters = 102;
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
 
@@ -42,7 +42,7 @@ export class TranslationParametersAttributePattern {
 }
 
 export class TranslationParametersBindingInstruction {
-  public readonly type: string = TranslationParametersInstructionType;
+  public readonly type: number = itTranslationParameters;
   public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
@@ -75,7 +75,7 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
 }
 
 export const TranslationParametersBindingRenderer = /*@__PURE__*/ renderer(class TranslationParametersBindingRenderer implements IRenderer {
-  public readonly target = TranslationParametersInstructionType;
+  public readonly target = itTranslationParameters;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,

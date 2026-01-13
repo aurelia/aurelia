@@ -1,4 +1,4 @@
-import { BindingBehaviorExpression, IsValueConverter, ValueConverterExpression } from '@aurelia/expression-parser';
+import { BindingBehaviorExpression, IsValueConverter, createValueConverterExpression } from '@aurelia/expression-parser';
 import { Writable } from '@aurelia/kernel';
 import { IBinding, BindingMode, State } from '@aurelia/runtime-html';
 
@@ -24,8 +24,8 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
 
   const expression = binding.ast.expression;
 
-  if (!(expression instanceof ValueConverterExpression)) {
-    const vcExpression = new ValueConverterExpression(expression as IsValueConverter, name, binding.ast.args);
+  if (expression.$kind !== 'ValueConverter') {
+    const vcExpression = createValueConverterExpression(expression as IsValueConverter, name, binding.ast.args);
     (binding.ast as Writable<BindingBehaviorExpression>).expression = vcExpression;
   }
 }

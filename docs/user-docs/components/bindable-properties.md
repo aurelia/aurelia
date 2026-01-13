@@ -54,11 +54,11 @@ The `@bindable` decorator signals to Aurelia that a property is bindable in our 
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia';
+import { bindable, BindingMode } from 'aurelia';
 
 export class NameComponent {
-    @bindable firstName = '';
-    @bindable lastName  = '';
+    @bindable({ mode: BindingMode.toView }) firstName = '';
+    @bindable({ mode: BindingMode.toView }) lastName  = '';
 }
 ```
 {% endtab %}
@@ -110,11 +110,12 @@ export class NameComponent {
 
     propertyChanged(key, newVal, oldVal) {
       if (key === 'firstName') {
-
+        // Handle firstName change
       } else if (key === 'lastName') {
-
+        // Handle lastName change
       }
     }
+}
 ```
 
 In the above example, even though `propertyChanged` can be used for multiple properties (like `firstName` and `lastName`), it's only called individually for each of those properties.
@@ -186,7 +187,7 @@ You can change the name of the callback that is fired when a change is made `@bi
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia';
+import { bindable, BindingMode } from 'aurelia';
 
 export class NameComponent {
     @bindable({ mode: BindingMode.twoWay}) firstName = '';
@@ -197,6 +198,55 @@ export class NameComponent {
 ```
 {% endtab %}
 {% endtabs %}
+
+### Change the attribute name using attribute
+
+By default, Aurelia converts camelCase property names to kebab-case attribute names (e.g., `firstName` becomes `first-name`). You can override this with the `attribute` option:
+
+```typescript
+import { bindable } from 'aurelia';
+
+export class UserCard {
+    @bindable({ attribute: 'user-id' }) id = '';
+}
+```
+
+This allows the component to be used with a custom attribute name:
+
+```html
+<user-card user-id="123"></user-card>
+```
+
+### Set the default property for custom attributes
+
+When creating custom attributes, you can specify which property receives the value when the attribute is used without explicitly naming a property. Use the `defaultProperty` option on the `@customAttribute` decorator:
+
+```typescript
+import { bindable, customAttribute } from 'aurelia';
+
+@customAttribute({ name: 'tooltip', defaultProperty: 'message' })
+export class TooltipCustomAttribute {
+    @bindable message = '';
+    @bindable position = 'top';
+}
+```
+
+This allows a simpler usage syntax:
+
+```html
+<!-- The value "Hello" goes to the default property (message) -->
+<div tooltip="Hello"></div>
+
+<!-- Equivalent explicit syntax -->
+<div tooltip="message: Hello"></div>
+
+<!-- Using multiple bindables -->
+<div tooltip="message: Hello; position: bottom"></div>
+```
+
+{% hint style="info" %}
+If `defaultProperty` is not specified, it defaults to `'value'`. This allows custom attributes without any bindables defined to automatically receive values through a `value` property.
+{% endhint %}
 
 Bindable properties support many different binding modes determining the direction the data is bound in and how it is bound.
 
@@ -212,7 +262,7 @@ Bindable properties without a `mode` explicitly set will be `toView` (one-way) b
 import { bindable, BindingMode } from 'aurelia';
 
 export class Loader {
-    @bindable({ mode: BindingMode.toView })
+    @bindable({ mode: BindingMode.toView }) loading = false;
 }
 ```
 
@@ -224,7 +274,31 @@ Unlike the default, the two-way binding mode allows data to flow in both directi
 import { bindable, BindingMode } from 'aurelia';
 
 export class Loader {
-    @bindable({ mode: BindingMode.twoWay})
+    @bindable({ mode: BindingMode.twoWay }) loading = false;
+}
+```
+
+### One-time binding
+
+The one-time binding mode binds a value once and never updates it again, even if the source value changes. This is useful for static values that won't change after initial binding.
+
+```typescript
+import { bindable, BindingMode } from 'aurelia';
+
+export class Loader {
+    @bindable({ mode: BindingMode.oneTime }) config = {};
+}
+```
+
+### From-view binding
+
+The from-view binding mode allows data to flow from the view (target) to the view model (source), but not the other way. This is the opposite of `toView`.
+
+```typescript
+import { bindable, BindingMode } from 'aurelia';
+
+export class Loader {
+    @bindable({ mode: BindingMode.fromView }) userInput = '';
 }
 ```
 
@@ -310,13 +384,15 @@ You can simply use any of the above four methods to enable/disable your feature.
 
 ## Bindable & getter/setter
 
-By default, you'll find yourself work with binable and field most of the time, like the examples given above. But there' cases where
-it makes sense to have bindable as a getter, or a pair of getter/setter to do more logic when get/set.
+By default you'll work with bindable fields most of the time, like the examples above. But there are cases where
+it makes sense to expose a bindable getter (or getter/setter pair) so you can compute the value on the fly.
 
 For example, a component card nav that allow parent component to query its active status.
 With bindable on field, it would be written like this:
 
 ```ts
+import { BindingMode, bindable, customElement, ICustomElementViewModel } from 'aurelia';
+
 @customElement({ name: 'card-nav', template })
 export class CardNav implements ICustomElementViewModel {
   @bindable routes: RouteLink[] = [];
@@ -341,6 +417,8 @@ Note that because `active` value needs to computed from other variables, we have
 
 For cases like this, we can turn `active` into a getter, and decorate it with bindable, like the following:
 ```ts
+import { BindingMode, bindable, customElement, ICustomElementViewModel } from 'aurelia';
+
 @customElement({ name: 'card-nav', template })
 export class CardNav implements ICustomElementViewModel {
   @bindable routes: RouteLink[] = [];
@@ -651,9 +729,9 @@ The `...$bindables="..."` syntax will only connect properties that are matching 
 <name-tag $bindables.spread="customer1">
 <name-tag $bindables.spread="customer.details">
 <name-tag $bindables.spread="customer[this_that]">
-<name-tag $bindables="customer1 | mapDetails">
-<name-tag $bindables="customer.details | simplify">
-<name-tag $bindables="customer[this_that] | addDetails">
+<name-tag $bindables.spread="customer1 | mapDetails">
+<name-tag $bindables.spread="customer.details | simplify">
+<name-tag $bindables.spread="customer[this_that] | addDetails">
 ```
 
 ### Shorthand syntax

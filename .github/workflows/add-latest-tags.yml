@@ -1,0 +1,95 @@
+name: Add @latest dist-tags (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to tag as latest (e.g., 2.0.0-beta.27)"
+        type: string
+        required: true
+      dry_run:
+        description: "Preview commands without executing"
+        type: boolean
+        default: false
+
+jobs:
+  add-latest-tags:
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Add @latest dist-tags
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          DRY_RUN="${{ inputs.dry_run }}"
+
+          # All 31 public packages in the fixed release group
+          PACKAGES=(
+            "aurelia"
+            "@aurelia/babel-jest"
+            "@aurelia/compat-v1"
+            "@aurelia/dialog"
+            "@aurelia/expression-parser"
+            "@aurelia/fetch-client"
+            "@aurelia/i18n"
+            "@aurelia/kernel"
+            "@aurelia/metadata"
+            "@aurelia/parcel-transformer"
+            "@aurelia/platform"
+            "@aurelia/platform-browser"
+            "@aurelia/plugin-conventions"
+            "@aurelia/plugin-gulp"
+            "@aurelia/route-recognizer"
+            "@aurelia/router"
+            "@aurelia/router-direct"
+            "@aurelia/runtime"
+            "@aurelia/runtime-html"
+            "@aurelia/state"
+            "@aurelia/store-v1"
+            "@aurelia/template-compiler"
+            "@aurelia/testing"
+            "@aurelia/ts-jest"
+            "@aurelia/ui-virtualization"
+            "@aurelia/validation"
+            "@aurelia/validation-html"
+            "@aurelia/validation-i18n"
+            "@aurelia/vite-plugin"
+            "@aurelia/web-components"
+            "@aurelia/webpack-loader"
+          )
+
+          echo "Tagging ${#PACKAGES[@]} packages as @latest for version $VERSION"
+          echo ""
+
+          FAILED=()
+          for pkg in "${PACKAGES[@]}"; do
+            CMD="npm dist-tag add ${pkg}@${VERSION} latest"
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "[dry-run] $CMD"
+            else
+              echo "Running: $CMD"
+              if ! $CMD; then
+                echo "::warning::Failed to tag $pkg"
+                FAILED+=("$pkg")
+              fi
+            fi
+          done
+
+          echo ""
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "::error::Failed to tag ${#FAILED[@]} packages: ${FAILED[*]}"
+            exit 1
+          else
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "Dry run complete. No changes made."
+            else
+              echo "Successfully tagged all ${#PACKAGES[@]} packages as @latest"
+            fi
+          fi

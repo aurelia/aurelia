@@ -2,9 +2,6 @@ import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventi
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 
 export default function au(options: {
   include?: FilterPattern;
@@ -33,32 +30,12 @@ export default function au(options: {
         return;
       }
 
-      [
-        'platform',
-        'platform-browser',
-        'aurelia',
-        'fetch-client',
-        'router',
-        'kernel',
-        'metadata',
-        'i18n',
-        'state',
-        'route-recognizer',
-        'compat-v1',
-        'dialog',
-        'expression-parser',
-        'runtime',
-        'template-compiler',
-        'runtime-html',
-        'router-direct',
-      ].reduce((aliases, pkg) => {
-        const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
-        try {
-          const packageLocation = require.resolve(name);
-          aliases[name] = resolve(packageLocation, `../../esm/index.dev.mjs`);
-        } catch {/* needs not to do anything */}
-        return aliases;
-      }, ((config.resolve ??= {}).alias ??= {}) as Record<string, string>);
+      // Add 'development' to resolve.conditions so Vite uses the dev exports
+      // defined in each @aurelia/* package.json "exports" field
+      (config.resolve ??= {}).conditions ??= [];
+      if (!config.resolve.conditions.includes('development')) {
+        config.resolve.conditions.unshift('development');
+      }
     },
   };
 
@@ -139,6 +116,7 @@ function getHmrCode(className: string, moduleNames: string = ''): string {
   const moduleText = 'import.meta';
   const code = `
 import { Metadata as $$M } from '@aurelia/metadata';
+import { onResolve as $$onResolve } from '@aurelia/kernel';
 import {
   Controller as $$C,
   CustomElement as $$CE,
@@ -235,20 +213,26 @@ if (${moduleText}.hot) {
         }
       });
       const h = controller.host;
-      delete controller._compiledDef;
-      controller.viewModel = controller.container.invoke(currentClassType);
-      controller.definition = newDefinition;
-      console.log('assigning', JSON.stringify(Object.entries(values)));
-      Object.assign(controller.viewModel, values);
-      controller.deactivate(controller, controller.parent ?? null, 0);
-      $$refs.clear(h);
-      if (controller._hydrateCustomElement) {
-        controller._hydrateCustomElement(hydrationInst, hydrationContext);
-      } else {
-        controller.hE(hydrationInst, hydrationContext);
-      }
-      h.parentNode.replaceChild(controller.host, h);
-      controller.activate(controller, controller.parent ?? null, 0);
+      const oldDef = controller._compiledDef;
+      $$onResolve(controller.deactivate(controller, controller.parent ?? null, 0), () => {
+        controller.container.deregister(oldDef.key);
+        controller.container.deregister(oldDef.Type);
+        delete controller._compiledDef;
+        $$refs.clear(h);
+        controller.viewModel = controller.container.invoke(currentClassType);
+        controller.definition = newDefinition;
+
+        console.log('transferring old component bindable props:', values);
+        Object.assign(controller.viewModel, values);
+
+        if (controller._hydrateCustomElement) {
+          controller._hydrateCustomElement(hydrationInst, hydrationContext);
+        } else {
+          controller.hE(hydrationInst, hydrationContext);
+        }
+        h.parentNode.replaceChild(controller.host, h);
+        controller.activate(controller, controller.parent ?? null, 0);
+      });
     });
   }
 }`;

@@ -79,7 +79,7 @@ Seriously, that's all this component is going to do. Now, we need a view for thi
 We will import the `customElement` decorator and then decorate our component class. We have to specify the name (the HTML tag) and the template takes a template string. Take note of the backslash `\` this is being used to escape our interpolation as we only want Aurelia interpreting this, not Javascript.
 
 ```typescript
-import { customElement } from 'aurelia';
+import { customElement } from '@aurelia/runtime-html';
 
 @customElement({
     name: 'date-component',
@@ -99,7 +99,7 @@ You will be introduced to the Promise controller in this component, showcasing h
 Create a new file called `dog-component` inside of `src/components` and add in the following code:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class DogComponent {
@@ -262,7 +262,7 @@ The missing piece is now adding the actual dynamic composition to our view. Open
 ```html
 <div class="container">
     <template repeat.for="component of components">
-        <au-compose containerless component.bind="component"></au-compose>
+        <au-compose component.bind="component"></au-compose>
     </template>
 </div>
 ```
@@ -270,8 +270,8 @@ The missing piece is now adding the actual dynamic composition to our view. Open
 * We add a div with a class of container which will hold our components
 * We loop over our components using `repeat.for` we do this on a `<template` element so we don't introduce any additional elements to the DOM (template elements don't get shown in the browser)
 * Our `repeat.for` is the equivalent of `for (let component of components)` in Javascript
-* We use the `<au-compose>` element and pass in the instance to `view-model` which will then render the component
-* On `<au-compose>` we also use the `containerless` attribute, which will remove any `<au-compose>` element in the DOM and only leave us with the custom element itself
+* We use the `<au-compose>` element and pass in the component class to `component` which will then render it
+* The `<au-compose>` element is containerless by default, meaning it won't appear in the rendered DOM—only the composed component itself will be visible
 
 If you were to run this app using `npm start` you would see something like this so far:
 
@@ -286,7 +286,7 @@ Some of this code will look familiar to you. We worked with the Aurelia Fetch Cl
 Create a new file called `geoip-component.ts` inside of the `src/components` directory in your application and populate it with the following:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class GeoipComponent {
@@ -447,7 +447,7 @@ Once more, we'll be interacting with an API. And the code like in our dog compon
 Create a new file called `exchange-component` in the `components` directory:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class ExchangeComponent {
@@ -531,7 +531,7 @@ Our dog, GeoIP and exchange components all make API requests, they all expect JS
 Create a new file called `api.ts` in our `services` directory. We will then inject the Aurelia Fetch Client and create a method that accepts two parameters.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
@@ -544,19 +544,17 @@ export class Api {
 }
 ```
 
-* We inject the Aurelia Fetch Client on the constructor as we did in our other components
-* Because we are using TypeScript, dependencies on the constructor get automatically injected
+* We use `resolve()` to inject the Aurelia Fetch Client, following Aurelia 2 best practices
 * We create a new class method called `fetchData` which accepts the URL to call and an optional error message if the request fails.
 
 Now, let's refactor our `dog-component.ts` we'll be injecting the API and that is it:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from '../services/api';
 
 export class DogComponent {
-    constructor(private api: Api) {
-
-    }
+    private api = resolve(Api);
 }
 ```
 
@@ -571,12 +569,11 @@ Because our API is injected into the view model, it becomes available to the vie
 We do the same for `exchange-component.ts` refactoring to:
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from '../services/api';
 
 export class ExchangeComponent {
-    constructor(private api: Api) {
-
-    }
+    private api = resolve(Api);
 }
 ```
 
@@ -589,12 +586,11 @@ promise.bind="api.fetchData('https://api.exchangerate-api.com/v4/latest/USD')"
 Last, but not least, we need to refactor `geoip-component.ts` as well (hey, you're really good at this):
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { Api } from '../services/api';
 
 export class GeoipComponent {
-    constructor(private api: Api) {
-
-    }
+    private api = resolve(Api);
 }
 ```
 

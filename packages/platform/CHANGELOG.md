@@ -1,5 +1,7 @@
 # Change Log
 
+## 2.0.0-beta.27
+
 ## 2.0.0-beta.26
 
 All notable changes to this project will be documented in this file.

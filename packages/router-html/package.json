@@ -7,9 +7,12 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
+      "development": {
+        "require": "./dist/cjs/index.dev.cjs",
+        "import": "./dist/esm/index.dev.mjs"
+      },
       "require": "./dist/cjs/index.cjs",
-      "import": "./dist/esm/index.mjs",
-      "development": "./dist/esm/index.dev.mjs"
+      "import": "./dist/esm/index.mjs"
     },
     "./development": {
       "types": "./dist/types/index.d.ts",
@@ -32,7 +35,7 @@
     "aurelia",
     "router"
   ],
-    "files": [
+  "files": [
     "dist",
     "src/**/*.ts",
     "README.md",
@@ -55,13 +58,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-alpha.28",
-    "@aurelia/metadata": "2.0.0-alpha.28",
-    "@aurelia/platform": "2.0.0-alpha.28",
-    "@aurelia/platform-browser": "2.0.0-alpha.28",
-    "@aurelia/route-recognizer": "2.0.0-alpha.28",
-    "@aurelia/runtime": "2.0.0-alpha.28",
-    "@aurelia/runtime-html": "2.0.0-alpha.28"
+    "@aurelia/kernel": "2.0.0-rc",
+    "@aurelia/metadata": "2.0.0-rc",
+    "@aurelia/platform": "2.0.0-rc",
+    "@aurelia/platform-browser": "2.0.0-rc",
+    "@aurelia/route-recognizer": "2.0.0-rc",
+    "@aurelia/runtime": "2.0.0-rc",
+    "@aurelia/runtime-html": "2.0.0-rc"
   },
   "devDependencies": {
     "typescript": "5.9.2"

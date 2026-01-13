@@ -71,7 +71,8 @@ module.exports =
     // and the preprocessor will no longer work, https://github.com/karma-runner/karma/issues/2264
     // this is a good enough work around
     // todo: probably will need something else to run the tests in the browser in the future
-    { type: 'script', watched: true,            included: true,  nocache: true,   pattern: `packages/__tests__/importmap.js` },
+    // Virtual file - the middleware intercepts this request and serves a dynamically generated import map
+    { type: 'script', watched: false,           included: true,  nocache: true,  served: true, pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false,           included: true,  nocache: false,  pattern: path.join(smsPath, 'browser-source-map-support.js') },
     { type: 'module', watched: true,            included: true,  nocache: true,   pattern: `${baseUrl}/setup-browser.js` }, // 1.1
     { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1
@@ -98,8 +99,8 @@ module.exports =
     { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/**/*.js` }, // 2.3
     { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/src/**/*.ts` }, // 2.4
     ...packageNames.flatMap(name => [
-      { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs` }, // 3.1
-      { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
+      { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.dev.mjs` }, // 3.1
+      { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.dev.mjs.map` }, // 3.2
       { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),
     // for i18n tests
@@ -350,10 +351,10 @@ function prepareIndexMap() {
 
   return {
     ...packageNames.reduce((map, pkg) => {
-      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.mjs`;
+      map[`@aurelia/${pkg}`] = `/base/packages/${pkg}/dist/esm/index.dev.mjs`;
       return map;
     }, {
-      'aurelia': `/base/packages/aurelia/dist/esm/index.mjs`,
+      'aurelia': `/base/packages/aurelia/dist/esm/index.dev.mjs`,
       'i18next': '/base/node_modules/i18next/dist/esm/i18next.js',
       'tslib': '/base/node_modules/tslib/tslib.es6.js',
     }),

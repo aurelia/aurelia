@@ -2,7 +2,6 @@ import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetada
 import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
-import { IPlatform } from '../../platform';
 import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
@@ -19,6 +18,10 @@ import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attri
 import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
+// NOTE: The "SSR pending -> client resolves" case is not currently handled.
+// If the SSR output rendered the pending branch (promise was unresolved during SSR),
+// and then the promise resolves on the client, the fulfilled/rejected views won't
+// have pre-rendered DOM to adopt.
 export class PromiseTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: attrTypeName,
@@ -43,7 +46,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly logger = resolve(ILogger).scopeTo('promise.resolve');
 
   public link(
@@ -193,7 +195,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);
@@ -247,7 +249,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
     this.value = resolvedValue;
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);
@@ -301,7 +303,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     this.value = error;
     let view = this.view;
     if (view === void 0) {
-      view = this.view = this._factory.create().setLocation(this._location);
+      view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, scope);

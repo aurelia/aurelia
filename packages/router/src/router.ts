@@ -12,6 +12,7 @@ import { Batch, mergeDistinct, UnwrapPromise } from './util';
 import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { Events, debug, error, getMessage, trace } from './events';
+import { queueAsyncTask } from '@aurelia/runtime';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -225,7 +226,7 @@ export class Router {
       // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
       // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
       // If the throttle limit is hit, then add a throttle config.
-      this._p.taskQueue.queueTask(() => {
+      void queueAsyncTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
 
@@ -818,7 +819,7 @@ export class Router {
   private _runNextTransition(): void {
     if (this._nextTr === null) return;
     if (__DEV__) trace(this._logger, Events.rtrNextTr, this._nextTr);
-    this._p.taskQueue.queueTask(
+    void queueAsyncTask(
       () => {
         // nextTransition is allowed to change up until the point when it's actually time to process it,
         // so we need to check it for null again when the scheduled task runs.

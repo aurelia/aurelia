@@ -8,6 +8,15 @@ description: >-
 
 Forms are the cornerstone of interactive web applications. Whether you're building simple contact forms, complex data-entry systems, or dynamic configuration interfaces, Aurelia provides a comprehensive and performant forms system. This guide covers everything from basic input binding to advanced patterns like collection-based form controls, dynamic form generation, and seamless validation integration.
 
+{% hint style="success" %}
+**Looking for focused guides?** This is a comprehensive reference covering all form concepts. For more digestible, task-focused guides, check out:
+- **[Form Basics](forms/README.md)** - Text inputs, textareas, number/date inputs
+- **[Collections](forms/collections.md)** - Checkboxes, radio buttons, select elements, Sets, Maps
+- **[Form Submission](forms/submission.md)** - Handling form submission, state management, auto-save
+- **[File Uploads](forms/file-uploads.md)** - File input handling, validation, progress tracking
+- **[Advanced Patterns](forms/advanced-patterns.md)** - Multi-step wizards, dynamic forms, conditional validation, form state management
+{% endhint %}
+
 {% hint style="info" %}
 This guide assumes familiarity with Aurelia's binding system and template syntax. For fundamentals, see [Template Syntax & Features](template-syntax/overview.md) first.
 {% endhint %}
@@ -130,29 +139,36 @@ export class FeedbackForm {
 
 ### Number and Date Inputs
 
-For specialized input types, Aurelia handles type coercion automatically:
+Browser form controls always provide string values unless you bind to their typed DOM properties. Use Aurelia's `value-as-*` bindings when you need numbers or dates in your view-model.
 
 ```html
 <div class="form-group">
   <label for="age">Age:</label>
-  <input id="age" 
-         type="number" 
-         value.bind="age" 
-         min="18" 
+  <input id="age"
+         type="number"
+         value-as-number.bind="age"
+         min="18"
          max="120" />
 </div>
 <div class="form-group">
   <label for="birthdate">Birth Date:</label>
-  <input id="birthdate" 
-         type="date" 
-         value.bind="birthDate" />
+  <input id="birthdate"
+         type="date"
+         value-as-date.bind="birthDate" />
+</div>
+<div class="form-group">
+  <label for="appointment">Appointment Time:</label>
+  <input id="appointment"
+         type="datetime-local"
+         value-as-date.bind="appointmentTime" />
 </div>
 ```
 
 ```typescript
 export class ProfileForm {
-  age: number = 25;
-  birthDate: Date = new Date('1998-01-01');
+  age = 25;
+  birthDate = new Date('1998-01-01');
+  appointmentTime = new Date();
   
   // Computed property demonstrating reactive updates
   get isAdult(): boolean {
@@ -160,6 +176,8 @@ export class ProfileForm {
   }
 }
 ```
+
+`value-as-number` binds to the input's `valueAsNumber`, so `age` is a `number` (or `NaN` when the field is empty/invalid). `value-as-date` binds to `valueAsDate`, giving you a `Date | null`. If you keep `value.bind`, the value remains a string—be sure to convert it before serializing to JSON for APIs.
 
 ---
 
@@ -334,13 +352,6 @@ export class TagSelectionForm {
 
   // Set-based selection for O(1) lookups
   selectedTags: Set<string> = new Set(['frontend', 'database']);
-  
-  // Custom matcher for Set operations
-  tagMatcher = (a: any, b: any) => {
-    if (typeof a === 'string' && typeof b === 'object') return a === b.id;
-    if (typeof b === 'string' && typeof a === 'object') return b === a.id;
-    return a === b;
-  };
 
   get selectedTagList() {
     return this.availableTags.filter(tag => this.selectedTags.has(tag.id));
@@ -365,8 +376,7 @@ export class TagSelectionForm {
            css.bind="{ '--tag-color': tag.color }">
       <input type="checkbox" 
              model.bind="tag.id" 
-             checked.bind="selectedTags"
-             matcher.bind="tagMatcher" />
+             checked.bind="selectedTags" />
       <span class="tag-text">${tag.name}</span>
     </label>
   </div>
@@ -385,9 +395,11 @@ export class TagSelectionForm {
 </form>
 ```
 
-### Map-Based Collections (Expert Level)
+### Resource-Keyed Collections (Expert Level)
 
-For complex key-value selections, Maps provide the most flexibility:
+### Per-Resource Permission Sets (Expert Level)
+
+For complex key-value selections (e.g., multiple actions per resource), keep a `Set` per resource so each checkbox can reuse Aurelia's built-in collection handling:
 
 ```typescript
 interface Permission {
@@ -398,52 +410,38 @@ interface Permission {
 
 export class PermissionForm {
   permissions: Permission[] = [
-    { 
-      resource: 'users', 
+    {
+      resource: 'users',
       actions: ['create', 'read', 'update', 'delete'],
-      description: 'User management operations' 
+      description: 'User management operations'
     },
-    { 
-      resource: 'posts', 
+    {
+      resource: 'posts',
       actions: ['create', 'read', 'update', 'delete', 'publish'],
-      description: 'Content management operations' 
+      description: 'Content management operations'
     },
-    { 
-      resource: 'settings', 
+    {
+      resource: 'settings',
       actions: ['read', 'update'],
-      description: 'System configuration' 
+      description: 'System configuration'
     }
   ];
 
-  // Map: resource -> Set<action>
-  selectedPermissions: Map<string, Set<string>> = new Map();
+  // Record: resource -> Set<action>
+  selectedPermissions: Record<string, Set<string>> = {};
 
   constructor() {
-    // Initialize with default permissions
-    this.selectedPermissions.set('users', new Set(['read']));
-    this.selectedPermissions.set('posts', new Set(['read', 'create']));
-  }
-
-  hasPermission(resource: string, action: string): boolean {
-    return this.selectedPermissions.get(resource)?.has(action) ?? false;
-  }
-
-  togglePermission(resource: string, action: string) {
-    if (!this.selectedPermissions.has(resource)) {
-      this.selectedPermissions.set(resource, new Set());
+    for (const permission of this.permissions) {
+      this.selectedPermissions[permission.resource] = new Set();
     }
-    
-    const resourcePerms = this.selectedPermissions.get(resource)!;
-    if (resourcePerms.has(action)) {
-      resourcePerms.delete(action);
-    } else {
-      resourcePerms.add(action);
-    }
+    this.selectedPermissions['users'].add('read');
+    this.selectedPermissions['posts'].add('read');
+    this.selectedPermissions['posts'].add('create');
   }
 
   get permissionSummary() {
     const summary: Array<{ resource: string; actions: string[] }> = [];
-    this.selectedPermissions.forEach((actions, resource) => {
+    Object.entries(this.selectedPermissions).forEach(([resource, actions]) => {
       if (actions.size > 0) {
         summary.push({ resource, actions: Array.from(actions) });
       }
@@ -463,8 +461,8 @@ export class PermissionForm {
       <div class="action-checkboxes">
         <label repeat.for="action of permission.actions" class="action-label">
           <input type="checkbox" 
-                 checked.bind="hasPermission(permission.resource, action)"
-                 change.trigger="togglePermission(permission.resource, action)" />
+                 model.bind="action"
+                 checked.bind="selectedPermissions[permission.resource]" />
           ${action | capitalize}
         </label>
       </div>
@@ -488,7 +486,7 @@ export class PermissionForm {
 
 - **Arrays**: General purpose, good for small to medium collections
 - **Sets**: High-performance for frequent additions/removals, O(1) lookups
-- **Maps**: Complex key-value relationships, nested selections
+- **Record/Map of Sets**: Model resource → actions (or similar hierarchies) cleanly
 - **Custom Matchers**: When object identity comparison isn't sufficient
 
 **Performance Tips:**
@@ -1913,14 +1911,14 @@ export class MultiStepFormSubmission {
 
   <!-- Dynamic Step Content -->
   <div class="step-content">
-    <compose 
-      view-model.bind="currentStep.component"
+    <au-compose 
+      component.bind="currentStep.component"
       model.bind="{ 
         data: currentStep.data,
         updateData: updateStepData,
         isValid: currentStep.isValid
       }">
-    </compose>
+    </au-compose>
   </div>
 
   <!-- Submission Progress -->

@@ -15,7 +15,7 @@ Creating injectable services is crucial for building maintainable applications i
 `DI.createInterface()` allows you to create an injection token that can be used with a default implementation:
 
 ```typescript
-import { DI } from 'aurelia';
+import { DI } from '@aurelia/kernel';
 
 export class LoggerService {
   log(message: string) {
@@ -29,6 +29,8 @@ export const ILoggerService = DI.createInterface<ILoggerService>('ILoggerService
 export type ILoggerService = LoggerService;
 ```
 
+> Note: tokens with default implementations still need to be registered with the container (for example `container.register(ILoggerService)`) before resolvers such as `optional(ILoggerService)` can see them. This matches the container behavior described in packages/kernel/src/di.ts.
+
 Here, `ILoggerService` is both an injection token and a type representing the `LoggerService` class. This simplifies the process as you won't need to manually define an interface with all the methods of the `LoggerService`.
 
 ### Creating an Interface Token Without a Default Implementation
@@ -36,7 +38,7 @@ Here, `ILoggerService` is both an injection token and a type representing the `L
 You can also create an interface token without a default implementation for more flexibility:
 
 ```typescript
-import { DI } from 'aurelia';
+import { DI } from '@aurelia/kernel';
 
 export class LoggerService {
   log(message: string) {
@@ -53,7 +55,7 @@ export const ILoggerService = DI.createInterface<ILoggerService>('ILoggerService
 In this scenario, you must register the implementation with the DI container:
 
 ```typescript
-import { Registration } from 'aurelia';
+import { Registration } from '@aurelia/kernel';
 
 container.register(
   Registration.singleton(ILoggerService, LoggerService)
@@ -78,7 +80,7 @@ export class AuthService {
 This service can be auto-registered or manually registered:
 
 ```typescript
-import { Registration } from 'aurelia';
+import { Registration } from '@aurelia/kernel';
 
 container.register(
   Registration.singleton(AuthService, AuthService)
@@ -90,7 +92,7 @@ container.register(
 Aurelia supports decorators for controlling service registration:
 
 ```typescript
-import { singleton } from 'aurelia';
+import { singleton } from '@aurelia/kernel';
 
 @singleton()
 export class AuthService {
@@ -121,7 +123,7 @@ export type IPaymentProcessor = PaymentProcessor;
 You can then use this type for injection and for defining the shape of your service without having to declare all methods explicitly. The important thing to remember is that a TypeScript `type` alias is removed during compilation. That means `IPaymentProcessor` exists only for tooling and static analysis—there is no runtime token by that name. When you ask the container for an instance, supply the class (or another runtime value) as the key:
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { PaymentProcessor } from './payment-processor';
 import type { IPaymentProcessor } from './payment-processor';
 
@@ -137,7 +139,7 @@ export class CheckoutWorkflow {
 If you'd rather rely on constructor injection, pair the runtime token with the `@inject` decorator while keeping the parameter typed as the alias:
 
 ```typescript
-import { inject } from 'aurelia';
+import { inject } from '@aurelia/kernel';
 import { PaymentProcessor } from './payment-processor';
 import type { IPaymentProcessor } from './payment-processor';
 

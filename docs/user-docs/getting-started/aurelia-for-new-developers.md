@@ -72,3 +72,13 @@ npm run build
 
 This will build your application for production and create a new folder called `dist`.
 
+## Keep Learning
+
+Once the CLI basics feel comfortable, continue with these focused guides:
+
+- **Build something interactive** – Follow the [Hello World tutorial](quick-start-guide/) for a guided, hands-on walkthrough.
+- **See the bigger picture** – Work through the [Complete getting started guide](complete-guide.md) to assemble a full-featured sample app.
+- **Understand components** – Dive into the [component essentials](../essentials/components.md) to learn how Aurelia pairs view-models with HTML.
+- **Master templates & binding** – Explore the [templates overview](../essentials/templates.md) plus the [template syntax deep dive](../templates/template-syntax/overview.md).
+- **Share data across components** – Learn how and when to use the DI container in the [dependency injection overview](../getting-to-know-aurelia/dependency-injection.md).
+- **Troubleshoot faster** – Bookmark [debugging and troubleshooting](../developer-guides/debugging-and-troubleshooting.md) for common fixes and CLI tips.

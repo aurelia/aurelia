@@ -43,6 +43,13 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /** @internal */ private readonly _canUnloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'canUnload'>[];
   /** @internal */ private readonly _unloadHooks: readonly ILifecycleHooks<IRouteViewModel, 'unloading'>[];
 
+  /**
+   * The component's controller.
+   */
+  public get controller(): ICustomElementController<T> {
+    return this._controller;
+  }
+
   public constructor(
     /** @internal */ private readonly _instance: T,
     /** @internal */ private readonly _controller: ICustomElementController<T>,
@@ -69,19 +76,8 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
-    const controller = this._controller;
-    const viewportController = this._ctx.vpa.hostController;
-    switch (controller.mountTarget) {
-      case MountTarget.host:
-      case MountTarget.shadowRoot:
-        viewportController.host.appendChild(controller.host);
-        break;
-      case MountTarget.location:
-        viewportController.host.append(controller.location!.$start!, controller.location!);
-        break;
-      case MountTarget.none:
-        throw new Error('Invalid mount target for routed component');
-    }
+    this._mountToViewport();
+
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caActivateSelf);
       return this._controller.activate(this._controller, parent);
@@ -90,6 +86,50 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     if (__DEV__) trace(this._logger, Events.caActivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
     void this._controller.activate(initiator, parent);
+  }
+
+  /**
+   * Mount the component's host element to the viewport.
+   * During SSR hydration, the element already exists in the DOM and mounting is skipped.
+   * @internal
+   */
+  private _mountToViewport(): void {
+    const controller = this._controller;
+    const viewportHost = this._ctx.vpa.hostController.host;
+
+    if (this._isMountedTo(viewportHost)) {
+      return;
+    }
+
+    switch (controller.mountTarget) {
+      case MountTarget.host:
+      case MountTarget.shadowRoot:
+        viewportHost.appendChild(controller.host);
+        break;
+      case MountTarget.location:
+        viewportHost.append(controller.location!.$start!, controller.location!);
+        break;
+      case MountTarget.none:
+        throw new Error('Invalid mount target for routed component');
+    }
+  }
+
+  /**
+   * Check if the component is already mounted to the given host.
+   * Returns true during SSR hydration when the element was server-rendered.
+   * @internal
+   */
+  private _isMountedTo(host: HTMLElement): boolean {
+    const controller = this._controller;
+    switch (controller.mountTarget) {
+      case MountTarget.host:
+      case MountTarget.shadowRoot:
+        return controller.host.parentNode === host;
+      case MountTarget.location:
+        return controller.location?.$start?.parentNode === host;
+      default:
+        return false;
+    }
   }
 
   /** @internal */

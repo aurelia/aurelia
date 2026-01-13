@@ -87,15 +87,13 @@ If your component has dependencies, such as services or other custom elements, y
 Assume `PersonDetail` depends on a `PersonFormatter` service:
 
 ```typescript
-import { inject } from 'aurelia';
+import { resolve } from 'aurelia';
 import { PersonFormatter } from './person-formatter';
 
-@inject(PersonFormatter)
 export class PersonDetail {
+    private personFormatter = resolve(PersonFormatter);
     @bindable name: string;
     @bindable age: number;
-
-    constructor(private personFormatter: PersonFormatter) {}
 
     get formattedDetails() {
         return this.personFormatter.format(this.name, this.age);
@@ -155,7 +153,7 @@ export class LifecycleComponent {
     this.setupEventListeners();
   }
 
-  detached(): void {
+  detaching(): void {
     this.cleanupEventListeners();
   }
 

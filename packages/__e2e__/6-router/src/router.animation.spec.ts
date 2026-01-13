@@ -105,6 +105,11 @@ for (const useUrlFragmentHash of [true, false]) {
       await forwardNavPromise;
       await expect(page.locator('#root-vp')).toContainText('Two page');
 
+      // Wait for the TWO navigation to fully complete (including history push).
+      // The URL should contain '/two' (path mode) or '#/two' (hash mode) when navigation is complete.
+      // This is necessary because with async attaching hooks, history is pushed at the END of navigation.
+      await page.waitForURL(url => url.href.includes('/two'), { timeout: 5000 });
+
       console.log(`Forward EXIT: samples=${JSON.stringify(forwardExit.samples)}, direction=${forwardExit.direction}`);
       console.log(`Forward ENTRY: samples=${JSON.stringify(forwardEntry.samples)}, direction=${forwardEntry.direction}`);
 

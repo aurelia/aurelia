@@ -39,14 +39,25 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
   aliases?: readonly string[];
-  defaultBindingMode?: StringBindingMode | number;
+  /**
+   * The name of the property that receives the value when the attribute is used without multi-binding syntax.
+   * Defaults to 'value' if not specified.
+   *
+   * @example
+   * ```typescript
+   * @customAttribute({ name: 'tooltip', defaultProperty: 'message' })
+   * class TooltipAttr {
+   *   message: string; // receives value from <div tooltip="Hello">
+   * }
+   * ```
+   */
+  defaultProperty?: string;
   bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true>;
 }
 
 export interface IComponentBindablePropDefinition {
   name: string;
   attribute?: string;
-  primary?: boolean;
   mode?: StringBindingMode | number;
   set?: (v: any) => any;
 }

@@ -118,7 +118,7 @@ export class UserSearch {
   <div if.bind="loading">Loading...</div>
   <user-card repeat.for="user of filteredUsers" 
              user.bind="user"
-             user-edit.call="userEdit(user)">
+             user-edit.bind="() => userEdit(user)">
   </user-card>
 </div>
 ```

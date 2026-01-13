@@ -9,21 +9,19 @@
   "version": "0.8.0",
   "scripts": {
     "watch": "webpack serve",
-    "build": "rimraf --glob dist && webpack",
-    "serve": "au-http-server au.conf.js"
+    "build": "rimraf --glob dist && webpack"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "dev",
-    "@aurelia/kernel": "dev",
-    "@aurelia/metadata": "dev",
-    "@aurelia/route-recognizer": "dev",
-    "@aurelia/router": "dev",
-    "@aurelia/runtime-html": "dev",
-    "@aurelia/runtime": "dev",
-    "aurelia": "dev"
+    "@aurelia/fetch-client": "2.0.0-rc",
+    "@aurelia/kernel": "2.0.0-rc",
+    "@aurelia/metadata": "2.0.0-rc",
+    "@aurelia/route-recognizer": "2.0.0-rc",
+    "@aurelia/router": "2.0.0-rc",
+    "@aurelia/runtime-html": "2.0.0-rc",
+    "@aurelia/runtime": "2.0.0-rc",
+    "aurelia": "2.0.0-rc"
   },
   "devDependencies": {
-    "@aurelia/http-server": "dev",
     "@types/node": "^20.16.10",
     "html-loader": "^1.3.2",
     "html-webpack-plugin": "^5.5.0",

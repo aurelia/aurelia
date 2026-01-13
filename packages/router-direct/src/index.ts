@@ -67,6 +67,10 @@ export {
   Step,
 } from './utilities/runner';
 
+export {
+  IDomQueue,
+} from './utilities/dom-queue';
+
 // export {
 //   QueueItem,
 //   IQueueOptions,

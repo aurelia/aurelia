@@ -92,7 +92,8 @@ The `throttle` binding behavior supports this via a "signal". You can specify a 
 ```
 
 ```typescript
-import { ISignaler, resolve } from 'aurelia';
+import { ISignaler } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   formValue = '';
@@ -150,7 +151,8 @@ Like `throttle`, `debounce` also supports flushing pending updates using signals
 ```
 
 ```typescript
-import { ISignaler, resolve } from 'aurelia';
+import { ISignaler } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   formValue = '';
@@ -218,7 +220,8 @@ To trigger a refresh of all bindings with the signal name `'time-update'`, you u
 **Dispatching a Signal to Refresh Bindings**
 
 ```typescript
-import { ISignaler, resolve } from 'aurelia';
+import { ISignaler } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 
 export class MyApp {
   lastUpdated = new Date();
@@ -237,7 +240,41 @@ Every 5 seconds, the `setInterval` function updates `lastUpdated` and then calls
 
 ## Binding Mode Behaviors
 
-Aurelia provides binding behaviors that explicitly specify binding modes. While binding commands (`.bind`, `.one-way`, `.two-way`) are more commonly used, these behaviors offer programmatic control over binding modes.
+Aurelia exposes four mode behaviors in `@aurelia/runtime-html` (`oneTime`, `toView`, `fromView`, `twoWay`). Each one derives from the shared `BindingModeBehavior` base class which simply assigns a different `binding.mode` during `bind` and restores it on `unbind`. They are especially handy when:
+
+- You are consuming a component whose bindable defaults to `two-way`, but a specific usage should stay strictly view-model → view.
+- You want to keep `.bind` syntax but override the direction inside `repeat.for`, `if/else`, or other inline templates without changing the child API.
+- You need to chain additional behaviors/value converters and prefer not to switch to the `.one-time` command mid-expression.
+
+```html
+<!-- Force read-only values on a child component that defaults to two-way -->
+<order-line line.bind="line & toView"></order-line>
+
+<!-- Keep track of pending edits but stop pushing DOM mutations back up -->
+<textarea value.bind="draft.summary & fromView"></textarea>
+
+<!-- Kick off an expensive computation once, never re-run -->
+<span class="snapshot">${report.total & oneTime}</span>
+```
+
+`StandardConfiguration` registers these behaviors for you. If you need something more custom—say, a behavior that forces `BindingMode.twoWay` only when the target implements a particular interface—you can extend `BindingModeBehavior` yourself:
+
+```typescript
+import { BindingMode, BindingModeBehavior } from '@aurelia/runtime-html';
+
+export class DirtyCheckedBindingBehavior extends BindingModeBehavior {
+  public static readonly $au = { type: 'binding-behavior', name: 'dirtyChecked' } as const;
+  public get mode() {
+    return BindingMode.twoWay;
+  }
+}
+
+Aurelia.register(DirtyCheckedBindingBehavior);
+```
+
+After registration you can apply `&dirtyChecked` in any binding expression.
+
+Aurelia provides binding behaviors that explicitly specify binding modes. While binding commands (`.bind`, `.to-view`, `.two-way`) are more commonly used, these behaviors offer programmatic control over binding modes.
 
 ### oneTime
 
@@ -268,7 +305,7 @@ Forces one-way data flow from view-model to view only.
 ```html
 <!-- Equivalent syntaxes -->
 <input value.bind="dataItem & toView">
-<input value.one-way="dataItem">
+<input value.to-view="dataItem">
 ```
 
 ### fromView
@@ -302,7 +339,7 @@ Forces bidirectional data synchronization between view and view-model.
 | Behavior | Direction | Use Case | Command Equivalent |
 |----------|-----------|----------|-------------------|
 | `oneTime` | None (static) | Static content, performance | N/A |
-| `toView` | VM → View | Display-only data | `.one-way` |
+| `toView` | VM → View | Display-only data | `.to-view` |
 | `fromView` | View → VM | Input-only scenarios | `.from-view` |
 | `twoWay` | VM ↔ View | Interactive forms | `.two-way` |
 
@@ -320,7 +357,7 @@ Consider a scenario with a panel component:
 
 ```html
 <panel>
-  <header mousedown.trigger='onMouseDown($event)' ref='headerElement'>
+  <header mousedown.trigger="onMouseDown($event)" ref="headerElement">
     <button>Settings</button>
     <button>Close</button>
   </header>
@@ -335,7 +372,7 @@ You could handle this in your event handler by checking the `event.target`:
 
 ```typescript
 export class PanelComponent {
-  headerElement: HTMLElement; // Injected via @ViewChild('headerElement')
+  headerElement?: HTMLElement; // Set via ref="headerElement"
 
   onMouseDown(event: MouseEvent) {
     if (event.target !== this.headerElement) {
@@ -441,9 +478,10 @@ Let's look at some practical examples of custom binding behaviors.
 This behavior logs the current binding context to the browser's console every time the binding updates its target (view). This is invaluable for debugging and understanding data flow in your Aurelia application.
 
 ```typescript
-import { bindingBehavior } from '@aurelia/runtime-html';
-import { type IBinding, type Scope } from '@aurelia/runtime';
+import { bindingBehavior, type IBinding } from '@aurelia/runtime-html';
+import type { Scope } from '@aurelia/runtime';
 
+@bindingBehavior('logBindingContext')
 export class LogBindingContextBehavior {
   private originalUpdateTarget = new WeakMap<IBinding, Function>();
 
@@ -469,8 +507,6 @@ export class LogBindingContextBehavior {
     }
   }
 }
-
-bindingBehavior('logBindingContext')(LogBindingContextBehavior);
 ```
 
 **Usage in Template:**
@@ -487,9 +523,10 @@ Now, whenever the `userName` binding updates the input element, you'll see the c
 This behavior adds a temporary tooltip to the element displaying the binding's current value whenever it updates. This offers a quick way to inspect binding values directly in the UI without resorting to console logs.
 
 ```typescript
-import { bindingBehavior } from '@aurelia/runtime-html';
-import { type IBinding, type Scope } from '@aurelia/runtime';
+import { bindingBehavior, type IBinding } from '@aurelia/runtime-html';
+import type { Scope } from '@aurelia/runtime';
 
+@bindingBehavior('inspect')
 export class InspectBindingBehavior {
   private originalMethods = new WeakMap<IBinding, Function>();
 
@@ -520,8 +557,6 @@ export class InspectBindingBehavior {
     }
   }
 }
-
-bindingBehavior('inspect')(InspectBindingBehavior);
 ```
 
 **Usage in Template:**
@@ -538,9 +573,10 @@ As the `itemName` binding updates, the input element will temporarily display a 
 This behavior visually highlights an element by briefly changing its background color whenever the binding updates the element's target property. This visual cue helps quickly identify which parts of the UI are reacting to data changes, particularly useful during development and debugging complex views.
 
 ```typescript
-import { bindingBehavior } from '@aurelia/runtime-html';
-import { type IBinding, type Scope } from '@aurelia/runtime';
+import { bindingBehavior, type IBinding } from '@aurelia/runtime-html';
+import type { Scope } from '@aurelia/runtime';
 
+@bindingBehavior('highlightUpdates')
 export class HighlightUpdatesBindingBehavior {
   private originalMethods = new WeakMap<IBinding, Function>();
   private timeouts = new WeakMap<IBinding, number>();
@@ -593,8 +629,6 @@ export class HighlightUpdatesBindingBehavior {
     }
   }
 }
-
-bindingBehavior('highlightUpdates')(HighlightUpdatesBindingBehavior);
 ```
 
 **Usage in Template:**

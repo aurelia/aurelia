@@ -43,7 +43,7 @@ Legend
 Executed when the instance is created. Inject services here and perform work that **does not** depend on bindable values.
 
 ```typescript
-import { resolve } from 'aurelia';
+import { resolve } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
 
 export class MyComponent {

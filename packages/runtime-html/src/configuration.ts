@@ -138,8 +138,8 @@ export const DefaultBindingLanguage = [
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`, `attr`, `self`, `updateTrigger`
  * - Custom Elements: `au-compose`, `au-slot`
- * - Custom Attributes: `blur`, `focus`, `portal`
- * - Template controllers: `if`/`else`, `repeat`, `with`
+ * - Custom Attributes: `focus`, `show`
+ * - Template controllers: `if`/`else`, `repeat`, `with`, `switch`/`case`/`default-case`, `promise`, `portal`
  * - Value Converters: `sanitize`
  */
 export const DefaultResources = [

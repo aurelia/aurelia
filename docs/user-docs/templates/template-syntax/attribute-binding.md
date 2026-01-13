@@ -12,7 +12,7 @@ The fundamental syntax for binding to attributes in Aurelia is simple and intuit
 
 - `attribute-name.bind="value"`: The binding declaration.
   - `attribute-name`: The target HTML attribute you want to bind to.
-  - `.bind`: The binding command indicating a two-way binding by default.
+  - `.bind`: The default binding command (uses Aurelia's default binding mode for that target).
   - `value`: The expression or property from the view model to bind.
 
 You can bind to virtually any attribute listed in the [HTML Attributes Reference](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes).
@@ -73,7 +73,7 @@ export class MyApp {
 Aurelia supports several binding keywords that define the direction and frequency of data flow between the view model and the view:
 
 - **`.one-time`**: Updates the view from the view model only once. Subsequent changes in the view model do not affect the view.
-- **`.to-view` / `.one-way`**: Continuously updates the view from the view model.
+- **`.to-view`**: Continuously updates the view from the view model.
 - **`.from-view`**: Updates the view model based on changes in the view.
 - **`.two-way`**: Establishes a two-way data flow, keeping both the view and view model in sync.
 - **`.bind`**: Automatically determines the appropriate binding mode. Defaults to `.two-way` for form elements (e.g., `input`, `textarea`) and `.to-view` for most other elements.
@@ -85,8 +85,8 @@ Aurelia supports several binding keywords that define the direction and frequenc
 <!-- Two-way binding: changes in input update 'firstName' and vice versa -->
 <input type="text" value.two-way="firstName" placeholder="First Name">
 
-<!-- One-way binding: changes in 'lastName' update the input, but not vice versa -->
-<input type="text" value.one-way="lastName" placeholder="Last Name">
+<!-- To-view binding: changes in 'lastName' update the input, but not vice versa -->
+<input type="text" value.to-view="lastName" placeholder="Last Name">
 
 <!-- One-time binding: input value is set once from 'middleName' -->
 <input type="text" value.one-time="middleName" placeholder="Middle Name">
@@ -116,6 +116,21 @@ export class MyApp {
 ```
 
 *Result:* The input fields and links will reflect the bound properties with varying degrees of reactivity based on the binding keyword used.
+
+### 3. Vue-style shorthand for `.bind`
+
+If you are used to Vue or other template syntaxes, Aurelia ships with an attribute pattern that treats a leading colon as an alias for `.bind`. This allows you to write more compact markup without giving up any functionality.
+
+```html
+<!-- These two lines are equivalent -->
+<input value.bind="firstName">
+<input :value="firstName">
+
+<!-- Works with any attribute -->
+<img :src="profile.avatarUrl" :alt="profile.fullName">
+```
+
+The shorthand always creates a property binding (the same as `attribute.bind`). If you need a different binding mode, fall back to the explicit syntax (`value.two-way`, `value.one-time`, etc.). Event shorthands that start with `@` are handled separately in the [event binding guide](./event-binding.md#shorthand-syntax-for-events).
 
 ### 3. Binding to Images
 
@@ -195,6 +210,23 @@ export class MyApp {
 ## Advanced Binding Techniques
 
 Explore more sophisticated binding scenarios to handle complex data interactions and ensure seamless attribute management.
+
+### 0. Treating existing markup as a custom element with `as-element`
+
+When outside systems dictate the tag name you must render (for example, a CMS that only allows `<div>` and `<section>`), you can still hydrate one of your custom elements by adding `as-element="component-name"` to any real DOM node. The compiler will instantiate `component-name` for that element while leaving the original tag in place.
+
+```html
+<!-- Render a section, but run it through the <page-card> custom element -->
+<section as-element="page-card" header.bind="title">
+  <p>Projected slot content still works as usual.</p>
+</section>
+```
+
+- Use `as-element` when you want the behavior of a custom element but must keep the original tag name for semantic or styling reasons.
+- Unlike `<template as-custom-element="...">`, this does not create a local element definition; it simply aliases an existing element instance.
+- The attribute can appear anywhere inside your markup except on the root `<template>` surrogate (putting it there triggers AUR0702).
+
+This makes `as-element` a handy compatibility feature when integrating Aurelia components into environments with strict HTML requirements.
 
 ### 1. How Attribute Binding Works
 
@@ -626,10 +658,19 @@ import { computed } from '@aurelia/runtime';
 export class MyApp {
   items = [];
 
-  @computed({ dependencies: ['items.length'] })
+  @computed({ deps: ['items'] })
   get itemCount() {
     return this.items.length;
   }
+}
+```
+
+You can also use the shorthand syntax for simple dependencies:
+
+```typescript
+@computed('items')
+get itemCount() {
+  return this.items.length;
 }
 ```
 

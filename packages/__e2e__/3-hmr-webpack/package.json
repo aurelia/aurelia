@@ -17,18 +17,18 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/compat-v1": "2.0.0-beta.27",
-    "@aurelia/fetch-client": "2.0.0-beta.27",
-    "@aurelia/kernel": "2.0.0-beta.27",
-    "@aurelia/metadata": "2.0.0-beta.27",
-    "@aurelia/route-recognizer": "2.0.0-beta.27",
-    "@aurelia/router": "2.0.0-beta.27",
-    "@aurelia/runtime-html": "2.0.0-beta.27",
-    "@aurelia/runtime": "2.0.0-beta.27",
-    "aurelia": "2.0.0-beta.27"
+    "@aurelia/compat-v1": "2.0.0-rc.28",
+    "@aurelia/fetch-client": "2.0.0-rc.28",
+    "@aurelia/kernel": "2.0.0-rc.28",
+    "@aurelia/metadata": "2.0.0-rc.28",
+    "@aurelia/route-recognizer": "2.0.0-rc.28",
+    "@aurelia/router": "2.0.0-rc.28",
+    "@aurelia/runtime-html": "2.0.0-rc.28",
+    "@aurelia/runtime": "2.0.0-rc.28",
+    "aurelia": "2.0.0-rc.28"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.0.0-beta.27",
+    "@aurelia/webpack-loader": "2.0.0-rc.28",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "array-flatten": "^3.0.0",

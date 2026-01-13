@@ -1,5 +1,12 @@
 # Change Log
 
+## 2.0.0-rc.28
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @aurelia/platform@2.0.0-rc.28
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

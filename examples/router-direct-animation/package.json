@@ -11,19 +11,19 @@
     "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.0",
-    "@aurelia/kernel": "2.0.0",
-    "@aurelia/metadata": "2.0.0",
-    "@aurelia/platform": "2.0.0",
-    "@aurelia/platform-browser": "2.0.0",
-    "@aurelia/route-recognizer": "2.0.0",
-    "@aurelia/router-direct": "2.0.0",
-    "@aurelia/runtime": "2.0.0",
-    "@aurelia/runtime-html": "2.0.0"
+    "@aurelia/fetch-client": "2.0.0-rc",
+    "@aurelia/kernel": "2.0.0-rc",
+    "@aurelia/metadata": "2.0.0-rc",
+    "@aurelia/platform": "2.0.0-rc",
+    "@aurelia/platform-browser": "2.0.0-rc",
+    "@aurelia/route-recognizer": "2.0.0-rc",
+    "@aurelia/router-direct": "2.0.0-rc",
+    "@aurelia/runtime": "2.0.0-rc",
+    "@aurelia/runtime-html": "2.0.0-rc"
   },
   "devDependencies": {
-    "@aurelia/ts-jest": "2.0.0",
-    "@aurelia/webpack-loader": "2.0.0",
+    "@aurelia/ts-jest": "2.0.0-rc",
+    "@aurelia/webpack-loader": "2.0.0-rc",
     "@types/node": "^20.16.10",
     "autoprefixer": "^10.4.5",
     "css-loader": "^6.7.1",

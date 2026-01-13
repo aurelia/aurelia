@@ -65,17 +65,82 @@ jobs:
       # -------------------------------
       # PLAN PHASE (no publish)
       # -------------------------------
-      # On dry_run, only create/update the Version Packages PR.
-      - name: Changesets – plan (no publish)
+      # On dry_run, create/update the Version PR with a clean summary.
+      - name: Check for pending changesets
         if: ${{ inputs.dry_run }}
-        uses: changesets/action@v1
-        with:
-          # No 'publish' input here → only opens/updates the Version PR
-          title: "release(${{ steps.decide.outputs.lane }}): version packages"
-          commit: "ci(release): version packages (${{ steps.decide.outputs.lane }})"
-          createGithubReleases: false
+        id: check-changesets
+        run: |
+          CHANGESET_COUNT=$(ls -1 .changeset/*.md 2>/dev/null | grep -v README.md | wc -l || echo 0)
+          echo "count=$CHANGESET_COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$CHANGESET_COUNT" -gt 0 ]; then
+            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate release summary (before versioning)
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
+        id: summary
+        run: |
+          # Generate the clean summary from pending changesets
+          SUMMARY=$(node .changeset/generate-release-summary.cjs)
+          # Write to file for PR body (handles multiline properly)
+          echo "$SUMMARY" > /tmp/pr-body.md
+
+      - name: Run changeset version
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
+        run: npx changeset version
+
+      - name: Get new version
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
+        id: version
+        run: |
+          VERSION=$(node -p "require('./packages/aurelia/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update Version PR
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="changeset-release/master"
+          TITLE="release(${{ steps.decide.outputs.lane }}): version packages (${{ steps.version.outputs.version }})"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if branch exists on remote
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            # Branch exists - update it
+            git checkout -B "$BRANCH"
+            git add -A
+            git commit -m "ci(release): version packages (${{ steps.decide.outputs.lane }})" || echo "No changes to commit"
+            git push origin "$BRANCH" --force
+            # Update existing PR
+            PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+            if [ -n "$PR_NUMBER" ]; then
+              gh pr edit "$PR_NUMBER" --title "$TITLE" --body-file /tmp/pr-body.md
+              echo "Updated PR #$PR_NUMBER"
+            fi
+          else
+            # Branch doesn't exist - create it and new PR
+            git checkout -b "$BRANCH"
+            git add -A
+            git commit -m "ci(release): version packages (${{ steps.decide.outputs.lane }})"
+            git push origin "$BRANCH"
+            gh pr create \
+              --base master \
+              --head "$BRANCH" \
+              --title "$TITLE" \
+              --body-file /tmp/pr-body.md
+          fi
+
+      - name: No changesets to version
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'false' }}
+        run: |
+          echo "No pending changesets found. Nothing to version."
+          echo "If you expected changesets, make sure they have been added and pushed."
 
       # -------------------------------
       # PUBLISH PHASE (actual publish)

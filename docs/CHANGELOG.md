@@ -3,6 +3,125 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.0-rc.0
+
+### Minor Changes
+
+- [#2311](https://github.com/aurelia/aurelia/pull/2311) [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4) Thanks [@fkleuver](https://github.com/fkleuver)! - Add SSR hydration support. The new Aurelia.hydrate() API adopts server-rendered HTML without re-rendering. Template controllers (repeat, if, switch, with) use a manifest-based system to locate and adopt existing DOM nodes. CustomElement.clearDefinition() enables cache invalidation between requests.
+- [#2344](https://github.com/aurelia/aurelia/pull/2344) [`c803ffe`](https://github.com/aurelia/aurelia/commit/c803ffe7fd03835cbb79925ecb6237b8fdd3156b) Thanks [@fkleuver](https://github.com/fkleuver)! - **BREAKING CHANGE:** Replace `primary` on bindable definitions with `defaultProperty` on custom attribute definitions.
+  
+  **Before (no longer supported):**
+  
+  ```typescript
+  @customAttribute('tooltip')
+  export class TooltipAttribute {
+    @bindable({ primary: true }) message: string;
+    @bindable position: string;
+  }
+  ```
+  
+  **After:**
+  
+  ```typescript
+  @customAttribute({ name: 'tooltip', defaultProperty: 'message' })
+  export class TooltipAttribute {
+    @bindable message: string;
+    @bindable position: string;
+  }
+  ```
+  
+  If `defaultProperty` is not specified, it defaults to `'value'`.
+  
+  ### Migration
+  
+  For custom attributes that used `@bindable({ primary: true })`:
+  
+  1. Remove `primary: true` from the `@bindable` decorator
+  2. Add `defaultProperty: 'propertyName'` to the `@customAttribute` decorator
+  
+  For attributes using `CustomAttribute.define()`:
+  
+  ```typescript
+  // Before
+  CustomAttribute.define({
+    name: 'my-attr',
+    bindables: { prop: { primary: true } }
+  }, MyAttr);
+  
+  // After
+  CustomAttribute.define({
+    name: 'my-attr',
+    defaultProperty: 'prop',
+    bindables: { prop: {} }
+  }, MyAttr);
+  ```
+- [#2341](https://github.com/aurelia/aurelia/pull/2341) [`bf5fb63`](https://github.com/aurelia/aurelia/commit/bf5fb6320c0f0dcdca3da6ab217d922ce538460b) Thanks [@fkleuver](https://github.com/fkleuver)! - **BREAKING CHANGE:** Remove `defaultBindingMode` from custom attribute definitions.
+  
+  This property was originally designed in Aurelia 1 to set the binding mode for the implicit `value` property of single-bindable custom attributes. In Aurelia 2, its behavior was unintentionally expanded to apply to all bindables on a custom attribute, which was never the intended design.
+  
+  To configure binding modes, use the `mode` option on individual `@bindable` decorators instead:
+  
+  ```typescript
+  // Before (no longer supported)
+  @customAttribute({
+    name: 'my-attr',
+    defaultBindingMode: BindingMode.twoWay,
+    bindables: ['value1', 'value2']
+  })
+  export class MyAttr { }
+  
+  // After
+  @customAttribute({ name: 'my-attr' })
+  export class MyAttr {
+    @bindable({ mode: BindingMode.twoWay }) value1: string;
+    @bindable({ mode: BindingMode.twoWay }) value2: string;
+  }
+  ```
+  
+  For custom attributes without explicit bindables (using the implicit `value` property), declare the `value` bindable explicitly if you need a non-default binding mode:
+  
+  ```typescript
+  // Before
+  @customAttribute({
+    name: 'my-attr',
+    defaultBindingMode: BindingMode.twoWay
+  })
+  export class MyAttr {
+    value: string; // implicit bindable with twoWay mode
+  }
+  
+  // After
+  @customAttribute({ name: 'my-attr' })
+  export class MyAttr {
+    @bindable({ mode: BindingMode.twoWay }) value: string;
+  }
+  ```
+- [#2311](https://github.com/aurelia/aurelia/pull/2311) [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4) Thanks [@fkleuver](https://github.com/fkleuver)! - Add SSR hydration support with manifest-based marker insertion for template controllers and hydration target elements.
+- [#2311](https://github.com/aurelia/aurelia/pull/2311) [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4) Thanks [@fkleuver](https://github.com/fkleuver)! - Add SSR support with ServerLocationManager for server-side routing and viewport adoption for hydrating router-rendered content.
+
+### Patch Changes
+
+- [#2337](https://github.com/aurelia/aurelia/pull/2337) [`5c309d6`](https://github.com/aurelia/aurelia/commit/5c309d61493f1bb921323edf17aa56a5bc249fa5) Thanks [@fkleuver](https://github.com/fkleuver)! - Make type utilities cross-realm safe (isObject, isArray, isSet, isMap, isPromise). Fixes observation failures in iframes and test runners (vitest, jest) using JSDOM, where `instanceof` checks fail due to cross-realm object creation.
+- [#2338](https://github.com/aurelia/aurelia/pull/2338) [`20993da`](https://github.com/aurelia/aurelia/commit/20993da00715958fedd0795f2d88e3b127947271) Thanks [@bigopon](https://github.com/bigopon)! - Fix factory resolution to go through the resolver pipeline, allowing Factory to be resolved from non-constructable keys. Closes #2336.
+- [#2311](https://github.com/aurelia/aurelia/pull/2311) [`ce985c1`](https://github.com/aurelia/aurelia/commit/ce985c1afeb3e04ef091c3d5feacc737124b86c4) Thanks [@fkleuver](https://github.com/fkleuver)! - Optimize repeat's indexMap computation from O(n²) to O(n) using scope identity map lookup instead of Array.includes/indexOf.
+- [#2349](https://github.com/aurelia/aurelia/pull/2349) [`c494497`](https://github.com/aurelia/aurelia/commit/c4944971fbdf4ac950c0d6903d395bdda080f827) Thanks [@bigopon](https://github.com/bigopon)! - Fix inconsistent initial callback behavior between watch and watchExpression APIs. The callback now runs on initialization even when the observed value is undefined. Closes #2175.
+- [#2352](https://github.com/aurelia/aurelia/pull/2352) [`192afbe`](https://github.com/aurelia/aurelia/commit/192afbe429fa47e4e6cff5aff64405005b210f07) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix virtual-repeat calling parent's attached() multiple times when items are assigned in attached hook. Closes #2350.
+- [#2351](https://github.com/aurelia/aurelia/pull/2351) [`7185ddb`](https://github.com/aurelia/aurelia/commit/7185ddb9252d1766f4b8a6feb08fd43b2e3105e2) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix SSR hydration issues: IAppRoot resolution in hydrate, instruction property naming consistency, and switch/case view adoption via tree-scoped manifest.
+
+### Affected Packages
+
+The following packages have direct changes:
+
+- `@aurelia/kernel`
+- `@aurelia/router`
+- `@aurelia/runtime`
+- `@aurelia/runtime-html`
+- `@aurelia/template-compiler`
+- `@aurelia/ui-virtualization`
+- `@aurelia/validation-html`
+
+All packages in the fixed release group will be versioned together.
+
 <a name="2.0.0-beta.25"></a>
 # 2.0.0-beta.25 (2025-07-10)
 

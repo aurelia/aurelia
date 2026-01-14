@@ -1,5 +1,63 @@
 # Change Log
 
+## 2.0.0-rc.0
+
+### Patch Changes
+
+- [#2344](https://github.com/aurelia/aurelia/pull/2344) [`c803ffe`](https://github.com/aurelia/aurelia/commit/c803ffe7fd03835cbb79925ecb6237b8fdd3156b) Thanks [@fkleuver](https://github.com/fkleuver)! - **BREAKING CHANGE:** Replace `primary` on bindable definitions with `defaultProperty` on custom attribute definitions.
+
+  **Before (no longer supported):**
+
+  ```typescript
+  @customAttribute("tooltip")
+  export class TooltipAttribute {
+    @bindable({ primary: true }) message: string;
+    @bindable position: string;
+  }
+  ```
+
+  **After:**
+
+  ```typescript
+  @customAttribute({ name: "tooltip", defaultProperty: "message" })
+  export class TooltipAttribute {
+    @bindable message: string;
+    @bindable position: string;
+  }
+  ```
+
+  If `defaultProperty` is not specified, it defaults to `'value'`.
+
+  ### Migration
+
+  For custom attributes that used `@bindable({ primary: true })`:
+
+  1. Remove `primary: true` from the `@bindable` decorator
+  2. Add `defaultProperty: 'propertyName'` to the `@customAttribute` decorator
+
+  For attributes using `CustomAttribute.define()`:
+
+  ```typescript
+  // Before
+  CustomAttribute.define(
+    {
+      name: "my-attr",
+      bindables: { prop: { primary: true } },
+    },
+    MyAttr
+  );
+
+  // After
+  CustomAttribute.define(
+    {
+      name: "my-attr",
+      defaultProperty: "prop",
+      bindables: { prop: {} },
+    },
+    MyAttr
+  );
+  ```
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

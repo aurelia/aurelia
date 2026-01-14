@@ -1,5 +1,7 @@
 # Change Log
 
+## 2.0.0-rc.0
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

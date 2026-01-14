@@ -124,11 +124,17 @@ jobs:
             git add -A
             git commit -m "ci(release): version packages (${{ steps.decide.outputs.lane }})" || echo "No changes to commit"
             git push origin "$BRANCH" --force
-            # Update existing PR
-            PR_NUMBER=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number')
+            # Update existing PR or create a new one if none is open
+            PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
             if [ -n "$PR_NUMBER" ]; then
               gh pr edit "$PR_NUMBER" --title "$TITLE" --body-file /tmp/pr-body.md
               echo "Updated PR #$PR_NUMBER"
+            else
+              gh pr create \
+                --base master \
+                --head "$BRANCH" \
+                --title "$TITLE" \
+                --body-file /tmp/pr-body.md
             fi
           else
             # Branch doesn't exist - create it and new PR

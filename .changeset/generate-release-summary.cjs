@@ -5,11 +5,15 @@
  * massive duplication in a fixed-version monorepo), this script:
  * 1. Groups changes by type (Minor Changes, Patch Changes)
  * 2. Shows each change exactly once
- * 3. Lists affected packages as a simple summary at the end
+ * 3. Uses the configured changelog generator so PR/commit/author metadata matches vanilla Changesets
+ * 4. Lists affected packages as a simple summary at the end
  */
 
 const fs = require('fs');
 const path = require('path');
+const resolveFrom = require('resolve-from');
+const { getCommitsThatAddFiles } = require('@changesets/git');
+const { getInfo, getInfoFromPullRequest } = require('@changesets/get-github-info');
 
 const changesetDir = path.join(__dirname);
 const configPath = path.join(changesetDir, 'config.json');
@@ -36,6 +40,7 @@ function getChangesetFiles() {
 function parseChangeset(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');
+  const id = path.basename(filePath, '.md');
 
   // Find frontmatter boundaries
   const firstDash = lines.findIndex(l => l.trim() === '---');
@@ -58,49 +63,169 @@ function parseChangeset(filePath) {
     }
   }
 
-  // Get description (everything after frontmatter)
-  const description = lines.slice(secondDash + 1).join('\n').trim();
+  // Get summary (everything after frontmatter)
+  const summary = lines.slice(secondDash + 1).join('\n').trim();
 
   return {
+    id,
     file: path.basename(filePath),
     bumps,
     maxBumpType,
-    description,
+    summary,
     packages: Object.keys(bumps)
   };
 }
 
-function formatChangesetEntry(description, packages) {
-  const trimmed = description.trim();
-  const descriptionLines = trimmed.length > 0 ? trimmed.split('\n') : ['(no description)'];
-  const lines = [];
+function readEnv() {
+  return {
+    GITHUB_SERVER_URL: process.env.GITHUB_SERVER_URL || 'https://github.com'
+  };
+}
 
-  lines.push(`- ${descriptionLines[0]}`);
-  for (let i = 1; i < descriptionLines.length; i++) {
-    const line = descriptionLines[i];
-    lines.push(line.length === 0 ? '  ' : `  ${line}`);
+function stripSummaryMetadata(summary) {
+  let prFromSummary;
+  let commitFromSummary;
+
+  const cleaned = summary
+    .replace(/^\s*(?:pr|pull|pull\s+request):\s*#?(\d+)/im, (_, pr) => {
+      const num = Number(pr);
+      if (!Number.isNaN(num)) prFromSummary = num;
+      return '';
+    })
+    .replace(/^\s*commit:\s*([^\s]+)/im, (_, commit) => {
+      commitFromSummary = commit;
+      return '';
+    })
+    // Always ignore any author/user metadata so we prefer the PR author.
+    .replace(/^\s*(?:author|user):\s*@?([^\s]+)/gim, () => '')
+    .trim();
+
+  return { cleaned, prFromSummary, commitFromSummary };
+}
+
+async function getReleaseLinePreferPrAuthor(changeset, _type, options) {
+  if (!options || !options.repo) {
+    throw new Error('Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]');
   }
 
-  if (packages.length > 0) {
+  const { cleaned, prFromSummary, commitFromSummary } = stripSummaryMetadata(changeset.summary);
+  const [firstLine, ...futureLines] = cleaned.split('\n').map(l => l.trimRight());
+  const { GITHUB_SERVER_URL } = readEnv();
+
+  let links = { commit: null, pull: null, user: null };
+
+  if (prFromSummary !== undefined) {
+    const info = await getInfoFromPullRequest({ repo: options.repo, pull: prFromSummary });
+    links = info.links;
+    if (commitFromSummary) {
+      const shortCommitId = commitFromSummary.slice(0, 7);
+      links = {
+        ...links,
+        commit: `[\`${shortCommitId}\`](${GITHUB_SERVER_URL}/${options.repo}/commit/${commitFromSummary})`
+      };
+    }
+  } else {
+    const commitToFetchFrom = commitFromSummary || changeset.commit;
+    if (commitToFetchFrom) {
+      const info = await getInfo({ repo: options.repo, commit: commitToFetchFrom });
+      links = info.links;
+    }
+  }
+
+  const prefix = [
+    links.pull === null ? '' : ` ${links.pull}`,
+    links.commit === null ? '' : ` ${links.commit}`,
+    links.user === null ? '' : ` Thanks ${links.user}!`
+  ].join('');
+
+  return `\n\n-${prefix ? `${prefix} -` : ''} ${firstLine}\n${futureLines.map(l => `  ${l}`).join('\n')}`;
+}
+
+function getChangelogFunctions(config) {
+  const changelogConfig = Array.isArray(config.changelog) ? config.changelog : [];
+  const changelogPath = changelogConfig[0];
+  const changelogOpts = changelogConfig[1] || {};
+
+  if (!changelogPath) {
+    return {
+      changelogFuncs: {
+        getReleaseLine: async () => '',
+        getDependencyReleaseLine: async () => ''
+      },
+      changelogOpts
+    };
+  }
+
+  let resolvedPath;
+  try {
+    resolvedPath = resolveFrom(changesetDir, changelogPath);
+  } catch (err) {
+    resolvedPath = resolveFrom(process.cwd(), changelogPath);
+  }
+
+  let changelogFuncs = require(resolvedPath);
+  if (changelogFuncs.default) {
+    changelogFuncs = changelogFuncs.default;
+  }
+
+  if (
+    typeof changelogFuncs.getReleaseLine !== 'function' ||
+    typeof changelogFuncs.getDependencyReleaseLine !== 'function'
+  ) {
+    throw new Error('Could not resolve changelog generation functions');
+  }
+
+  if (changelogPath === '@changesets/changelog-github') {
+    return {
+      changelogFuncs: {
+        ...changelogFuncs,
+        getReleaseLine: getReleaseLinePreferPrAuthor
+      },
+      changelogOpts
+    };
+  }
+
+  return { changelogFuncs, changelogOpts };
+}
+
+async function addChangesetCommits(changesets) {
+  const paths = changesets.map(cs => `.changeset/${cs.id}.md`);
+  const commits = await getCommitsThatAddFiles(paths, { cwd: process.cwd() });
+  return changesets.map((cs, i) => ({ ...cs, commit: commits[i] }));
+}
+
+async function formatChangesetEntry(changelogFuncs, changelogOpts, changeset) {
+  const summary = changeset.summary.trim().length > 0 ? changeset.summary : '(no description)';
+  const releaseLine = await changelogFuncs.getReleaseLine(
+    { summary, commit: changeset.commit },
+    changeset.maxBumpType,
+    changelogOpts
+  );
+  const trimmed = releaseLine.trim();
+  const lines = trimmed.length > 0 ? trimmed.split('\n') : [`- ${summary}`];
+
+  if (changeset.packages.length > 0) {
     lines.push('  ');
-    lines.push(`  Packages: ${packages.map(pkg => `\`${pkg}\``).join(', ')}`);
+    lines.push(`  Packages: ${changeset.packages.map(pkg => `\`${pkg}\``).join(', ')}`);
   }
 
   return lines;
 }
 
-function generateSummary() {
+async function generateSummary() {
   const config = getConfig();
   const preInfo = getPreInfo();
   const changesetFiles = getChangesetFiles();
+  const { changelogFuncs, changelogOpts } = getChangelogFunctions(config);
 
   if (changesetFiles.length === 0) {
     return '# No pending changesets\n\nNo version changes to release.';
   }
 
-  const changesets = changesetFiles
+  const parsedChangesets = changesetFiles
     .map(parseChangeset)
     .filter(Boolean);
+  const changesets = await addChangesetCommits(parsedChangesets);
 
   // Group by bump type
   const majorChanges = changesets.filter(c => c.maxBumpType === 'major');
@@ -134,7 +259,8 @@ function generateSummary() {
     lines.push(`## ${section.title} (${section.items.length})`);
     lines.push('');
     for (const cs of section.items) {
-      lines.push(...formatChangesetEntry(cs.description, cs.packages));
+      const entryLines = await formatChangesetEntry(changelogFuncs, changelogOpts, cs);
+      lines.push(...entryLines);
       lines.push('');
     }
   }
@@ -172,7 +298,12 @@ function generateSummary() {
 
 // Run if called directly
 if (require.main === module) {
-  console.log(generateSummary());
+  generateSummary()
+    .then(summary => console.log(summary))
+    .catch(err => {
+      console.error(err);
+      process.exit(1);
+    });
 }
 
 module.exports = { generateSummary, parseChangeset, getChangesetFiles };

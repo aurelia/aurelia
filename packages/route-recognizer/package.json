@@ -56,7 +56,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0"
+    "@aurelia/kernel": "2.0.0-rc.0"
   },
   "devDependencies": {
     "typescript": "5.9.2"

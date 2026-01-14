@@ -83,17 +83,6 @@ jobs:
             echo "has_changesets=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Generate release summary (before versioning)
-        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
-        id: summary
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Generate the clean summary from pending changesets
-          SUMMARY=$(node .changeset/generate-release-summary.cjs)
-          # Write to file for PR body (handles multiline properly)
-          echo "$SUMMARY" > /tmp/pr-body.md
-
       - name: Run changeset version
         if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
         env:
@@ -106,6 +95,10 @@ jobs:
         run: |
           VERSION=$(node -p "require('./packages/aurelia/package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes from changelog
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
+        run: node scripts/extract-release-notes.cjs > /tmp/pr-body.md
 
       - name: Create or update Version PR
         if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
@@ -163,6 +156,7 @@ jobs:
       # When NOT dry_run, publish according to the decided lane.
       - name: Changesets - prerelease publish
         if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'dev' }}
+        id: publish_dev
         uses: changesets/action@v1
         with:
           version: npm run changeset:version
@@ -176,6 +170,7 @@ jobs:
 
       - name: Changesets - stable publish (latest)
         if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'latest' }}
+        id: publish_latest
         uses: changesets/action@v1
         with:
           version: npm run changeset:version
@@ -186,3 +181,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create git tag (post-publish)
+        if: ${{ !inputs.dry_run && (steps.publish_dev.outputs.published == 'true' || steps.publish_latest.outputs.published == 'true') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./packages/aurelia/package.json').version")
+          TAG="v$VERSION"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "$TAG"

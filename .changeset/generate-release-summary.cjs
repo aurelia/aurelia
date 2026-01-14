@@ -3,10 +3,9 @@
  *
  * Instead of listing every change under every affected package (which creates
  * massive duplication in a fixed-version monorepo), this script:
- * 1. Groups changes by type (Minor Changes, Patch Changes)
+ * 1. Groups changes by type (Major/Minor/Patch)
  * 2. Shows each change exactly once
  * 3. Uses the configured changelog generator so PR/commit/author metadata matches vanilla Changesets
- * 4. Lists affected packages as a simple summary at the end
  */
 
 const fs = require('fs');
@@ -17,17 +16,23 @@ const { getCommitsThatAddFiles } = require('@changesets/git');
 const changesetDir = path.join(__dirname);
 const configPath = path.join(changesetDir, 'config.json');
 const prePath = path.join(changesetDir, 'pre.json');
+const defaultRepo = 'aurelia/aurelia';
 
 function getConfig() {
   return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
 function getPreInfo() {
-  if (fs.existsSync(prePath)) {
-    const pre = JSON.parse(fs.readFileSync(prePath, 'utf8'));
-    return { inPreMode: pre.mode === 'pre', tag: pre.tag };
+  if (!fs.existsSync(prePath)) return null;
+  return JSON.parse(fs.readFileSync(prePath, 'utf8'));
+}
+
+function filterConsumedChangesets(files, preInfo) {
+  if (!preInfo || preInfo.mode !== 'pre' || !Array.isArray(preInfo.changesets)) {
+    return files;
   }
-  return { inPreMode: false, tag: null };
+  const consumed = new Set(preInfo.changesets);
+  return files.filter(file => !consumed.has(path.basename(file, '.md')));
 }
 
 function getChangesetFiles() {
@@ -81,12 +86,16 @@ function getChangelogFunctions(config) {
   const changelogOpts = changelogConfig[1] || {};
 
   if (!changelogPath) {
+    const resolvedPath = path.join(changesetDir, 'changelog.cjs');
+    let changelogFuncs = require(resolvedPath);
+    if (changelogFuncs.default) {
+      changelogFuncs = changelogFuncs.default;
+    }
     return {
-      changelogFuncs: {
-        getReleaseLine: async () => '',
-        getDependencyReleaseLine: async () => ''
-      },
-      changelogOpts
+      changelogFuncs,
+      changelogOpts: {
+        repo: process.env.CHANGELOG_REPO || defaultRepo
+      }
     };
   }
 
@@ -128,18 +137,13 @@ async function formatChangesetEntry(changelogFuncs, changelogOpts, changeset) {
   const trimmed = releaseLine.trim();
   const lines = trimmed.length > 0 ? trimmed.split('\n') : [`- ${summary}`];
 
-  if (changeset.packages.length > 0) {
-    lines.push('  ');
-    lines.push(`  Packages: ${changeset.packages.map(pkg => `\`${pkg}\``).join(', ')}`);
-  }
-
   return lines;
 }
 
 async function generateSummary() {
   const config = getConfig();
   const preInfo = getPreInfo();
-  const changesetFiles = getChangesetFiles();
+  const changesetFiles = filterConsumedChangesets(getChangesetFiles(), preInfo);
   const { changelogFuncs, changelogOpts } = getChangelogFunctions(config);
 
   if (changesetFiles.length === 0) {
@@ -156,21 +160,15 @@ async function generateSummary() {
   const minorChanges = changesets.filter(c => c.maxBumpType === 'minor');
   const patchChanges = changesets.filter(c => c.maxBumpType === 'patch');
 
-  // Collect all affected packages
-  const allPackages = new Set();
-  changesets.forEach(c => c.packages.forEach(p => allPackages.add(p)));
-
   // Build output
   const lines = [];
 
-  // Header with pre-release warning if applicable
-  if (preInfo.inPreMode) {
-    lines.push('> Note: Pre-release mode (`' + preInfo.tag + '`) will publish pre-release versions.');
+  const versionArg = process.argv.find(arg => arg.startsWith('--version='));
+  const version = versionArg ? versionArg.split('=')[1] : null;
+  if (version) {
+    lines.push(`## ${version}`);
     lines.push('');
   }
-
-  lines.push('# Release Summary');
-  lines.push('');
 
   const sections = [
     { title: 'Major Changes', items: majorChanges },
@@ -180,42 +178,14 @@ async function generateSummary() {
 
   for (const section of sections) {
     if (section.items.length === 0) continue;
-    lines.push(`## ${section.title} (${section.items.length})`);
+    lines.push(`### ${section.title}`);
     lines.push('');
     for (const cs of section.items) {
       const entryLines = await formatChangesetEntry(changelogFuncs, changelogOpts, cs);
       lines.push(...entryLines);
-      lines.push('');
-    }
-  }
-
-  // Affected packages summary
-  const fixedPackages = config.fixed?.[0] || [];
-  const affectedFixed = [...allPackages].filter(p => fixedPackages.includes(p));
-
-  lines.push('---');
-  lines.push('');
-  lines.push('## Affected Packages');
-  lines.push('');
-
-  if (affectedFixed.length === fixedPackages.length) {
-    lines.push('All packages will be updated to the new version.');
-    lines.push('');
-  } else {
-    lines.push('The following packages have direct changes:');
-    lines.push('');
-    for (const pkg of [...allPackages].sort()) {
-      lines.push('- `' + pkg + '`');
     }
     lines.push('');
-    lines.push('All packages in the fixed group will be versioned together.');
-    lines.push('');
   }
-
-  // Footer
-  lines.push('---');
-  lines.push('');
-  lines.push('*Generated by `.changeset/generate-release-summary.cjs`*');
 
   return lines.join('\n');
 }

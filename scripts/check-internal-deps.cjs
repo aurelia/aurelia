@@ -76,7 +76,7 @@ if (hasErrors) {
   }
   console.error(`\nTotal: ${errors.length} mismatches`);
   console.error('\nThis can happen if you manually changed versions without using changesets.');
-  console.error('Run "npx changeset version" or fix the dependencies manually.');
+  console.error('Run "npm run changeset:version" or fix the dependencies manually.');
   process.exit(1);
 } else {
   console.log('✅ All internal dependencies are consistent');

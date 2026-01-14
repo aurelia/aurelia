@@ -78,7 +78,7 @@
     "build:release": "cross-env RELEASE_BUILD=true turbo rollup --continue --filter=aurelia --filter=@aurelia/* --filter=!@aurelia/benchmarks",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "changeset": "changeset",
-    "changeset:version": "changeset version",
+    "changeset:version": "node scripts/changeset-version.cjs",
     "postchangeset:version": "node scripts/sync-root-version.cjs",
     "changeset:publish": "changeset publish --no-git-tag",
     "changeset:pre:enter": "changeset pre enter dev",

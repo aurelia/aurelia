@@ -83,15 +83,6 @@ async function addChangesetCommits(changesets) {
   return changesets.map((cs, index) => ({ ...cs, commit: commits[index] }));
 }
 
-function getOverallReleaseType(changesets) {
-  let releaseType = 'patch';
-  for (const changeset of changesets) {
-    if (changeset.maxBumpType === 'major') return 'major';
-    if (changeset.maxBumpType === 'minor') releaseType = 'minor';
-  }
-  return releaseType;
-}
-
 function loadChangelogFunctions() {
   const changelogPath = path.join(changesetDir, 'changelog.cjs');
   let changelogFuncs = require(changelogPath);
@@ -175,6 +166,42 @@ function formatReleaseNotes(version, sections) {
   return lines;
 }
 
+function buildAffectedPackagesSection(changesets, fixedPackages) {
+  const allPackages = new Set();
+  for (const changeset of changesets) {
+    for (const pkg of changeset.packages) {
+      allPackages.add(pkg);
+    }
+  }
+
+  const listedPackages = [...allPackages].sort();
+  const fixedSet = new Set(fixedPackages);
+  const affectedFixed = listedPackages.filter(pkg => fixedSet.has(pkg));
+
+  const lines = ['### Affected Packages', ''];
+
+  if (fixedPackages.length > 0 && affectedFixed.length === fixedPackages.length) {
+    lines.push('All packages in the fixed release group will be updated.');
+    return lines;
+  }
+
+  if (listedPackages.length === 0) {
+    lines.push('No packages were listed in changesets.');
+    return lines;
+  }
+
+  lines.push('The following packages have direct changes:');
+  lines.push('');
+  lines.push(...listedPackages.map(pkg => `- \`${pkg}\``));
+
+  if (fixedPackages.length > 0) {
+    lines.push('');
+    lines.push('All packages in the fixed release group will be versioned together.');
+  }
+
+  return lines;
+}
+
 function isVersionHeader(line) {
   const trimmed = line.trim();
   if (trimmed.startsWith('## ')) return true;
@@ -238,51 +265,6 @@ function readRootVersion() {
   return rootPkg.version;
 }
 
-function getWorkspacePackageMap() {
-  const rootPkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
-  const workspacePaths = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : [];
-  const map = new Map();
-
-  for (const workspace of workspacePaths) {
-    const pkgPath = path.join(rootDir, workspace);
-    const pkgJsonPath = path.join(pkgPath, 'package.json');
-    if (!fs.existsSync(pkgJsonPath)) continue;
-    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
-    if (pkg.name) {
-      map.set(pkg.name, pkgPath);
-    }
-  }
-
-  return map;
-}
-
-function updatePackageChangelogs(version, releaseType, fixedPackages) {
-  if (fixedPackages.length === 0) return;
-
-  const pkgMap = getWorkspacePackageMap();
-  const titleMap = {
-    major: 'Major Changes',
-    minor: 'Minor Changes',
-    patch: 'Patch Changes'
-  };
-
-  const title = titleMap[releaseType] || titleMap.patch;
-  const entryLines = [
-    `## ${version}`,
-    '',
-    `### ${title}`,
-    '',
-    '- See [docs/CHANGELOG.md](../../docs/CHANGELOG.md) for full release notes.'
-  ];
-
-  for (const pkgName of fixedPackages) {
-    const pkgPath = pkgMap.get(pkgName);
-    if (!pkgPath) continue;
-    const changelogPath = path.join(pkgPath, 'CHANGELOG.md');
-    insertChangelogEntry(changelogPath, entryLines, version);
-  }
-}
-
 function runChangesetVersion() {
   const cliDir = path.dirname(require.resolve('@changesets/cli/package.json'));
   const cliPath = path.join(cliDir, 'bin.js');
@@ -305,7 +287,6 @@ async function main() {
     return;
   }
   const changesets = await addChangesetCommits(parsedChangesets);
-  const releaseType = getOverallReleaseType(changesets);
 
   const changelogFuncs = loadChangelogFunctions();
   if (
@@ -321,16 +302,19 @@ async function main() {
   runChangesetVersion();
 
   const version = readRootVersion();
-  const releaseNotesLines = formatReleaseNotes(version, sections);
-  insertChangelogEntry(docsChangelogPath, releaseNotesLines, version);
-
   const config = fs.existsSync(configPath)
     ? JSON.parse(fs.readFileSync(configPath, 'utf8'))
     : {};
   const fixedPackages = Array.isArray(config.fixed) && Array.isArray(config.fixed[0])
     ? config.fixed[0]
     : [];
-  updatePackageChangelogs(version, releaseType, fixedPackages);
+
+  const releaseNotesLines = formatReleaseNotes(version, sections);
+  const affectedLines = buildAffectedPackagesSection(changesets, fixedPackages);
+  if (affectedLines.length > 0) {
+    releaseNotesLines.push('', ...affectedLines);
+  }
+  insertChangelogEntry(docsChangelogPath, releaseNotesLines, version);
 }
 
 main().catch(err => {

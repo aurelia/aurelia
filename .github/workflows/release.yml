@@ -83,6 +83,14 @@ jobs:
             echo "has_changesets=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Generate release summary (before versioning)
+        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SUMMARY=$(node .changeset/generate-release-summary.cjs)
+          echo "$SUMMARY" > /tmp/pr-body.md
+
       - name: Run changeset version
         if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
         env:
@@ -95,10 +103,6 @@ jobs:
         run: |
           VERSION=$(node -p "require('./packages/aurelia/package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Generate release notes from changelog
-        if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
-        run: node scripts/extract-release-notes.cjs > /tmp/pr-body.md
 
       - name: Create or update Version PR
         if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}

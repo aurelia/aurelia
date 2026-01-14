@@ -6,6 +6,7 @@
  * 1. Groups changes by type (Major/Minor/Patch)
  * 2. Shows each change exactly once
  * 3. Uses the configured changelog generator so PR/commit/author metadata matches vanilla Changesets
+ * 4. Lists affected packages once at the end
  */
 
 const fs = require('fs');
@@ -140,6 +141,45 @@ async function formatChangesetEntry(changelogFuncs, changelogOpts, changeset) {
   return lines;
 }
 
+function buildAffectedPackagesSection(changesets, config) {
+  const allPackages = new Set();
+  for (const changeset of changesets) {
+    for (const pkg of changeset.packages) {
+      allPackages.add(pkg);
+    }
+  }
+
+  const listedPackages = [...allPackages].sort();
+  const fixedPackages = Array.isArray(config.fixed) && Array.isArray(config.fixed[0])
+    ? config.fixed[0]
+    : [];
+  const fixedSet = new Set(fixedPackages);
+  const affectedFixed = listedPackages.filter(pkg => fixedSet.has(pkg));
+
+  const lines = ['### Affected Packages', ''];
+
+  if (fixedPackages.length > 0 && affectedFixed.length === fixedPackages.length) {
+    lines.push('All packages in the fixed release group will be updated.');
+    return lines;
+  }
+
+  if (listedPackages.length === 0) {
+    lines.push('No packages were listed in changesets.');
+    return lines;
+  }
+
+  lines.push('The following packages have direct changes:');
+  lines.push('');
+  lines.push(...listedPackages.map(pkg => `- \`${pkg}\``));
+
+  if (fixedPackages.length > 0) {
+    lines.push('');
+    lines.push('All packages in the fixed release group will be versioned together.');
+  }
+
+  return lines;
+}
+
 async function generateSummary() {
   const config = getConfig();
   const preInfo = getPreInfo();
@@ -185,6 +225,16 @@ async function generateSummary() {
       lines.push(...entryLines);
     }
     lines.push('');
+  }
+
+  const affectedLines = buildAffectedPackagesSection(changesets, config);
+  if (affectedLines.length > 0) {
+    lines.push(...affectedLines);
+    lines.push('');
+  }
+
+  while (lines.length > 0 && lines[lines.length - 1] === '') {
+    lines.pop();
   }
 
   return lines.join('\n');

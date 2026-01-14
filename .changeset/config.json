@@ -1,6 +1,11 @@
 {
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
-  "changelog": false,
+  "changelog": [
+    "./changelog.cjs",
+    {
+      "repo": "aurelia/aurelia"
+    }
+  ],
   "commit": false,
   "access": "public",
   "baseBranch": "master",

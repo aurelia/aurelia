@@ -172,7 +172,6 @@ jobs:
             - packages-tooling/__tests__/node_modules
             - packages-tooling/au/node_modules
             - packages-tooling/babel-jest/node_modules
-            - packages-tooling/http-server/node_modules
             - packages-tooling/parcel-transformer/node_modules
             - packages-tooling/plugin-conventions/node_modules
             - packages-tooling/plugin-gulp/node_modules
@@ -248,7 +247,6 @@ jobs:
             - packages-tooling/__tests__/dist
             - packages-tooling/au/dist
             - packages-tooling/babel-jest/dist
-            - packages-tooling/http-server/dist
             - packages-tooling/parcel-transformer/dist
             - packages-tooling/plugin-conventions/dist
             - packages-tooling/plugin-gulp/dist

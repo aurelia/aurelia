@@ -41,6 +41,9 @@ for (const baseDir of packageDirs) {
 
     const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 
+    // Skip private packages - they're not published and don't need version consistency
+    if (pkg.private) continue;
+
     for (const depType of ['dependencies', 'devDependencies', 'peerDependencies']) {
       if (!pkg[depType]) continue;
 

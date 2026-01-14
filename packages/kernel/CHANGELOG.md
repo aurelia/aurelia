@@ -1,5 +1,17 @@
 # Change Log
 
+## 2.0.0-rc.0
+
+### Patch Changes
+
+- [#2337](https://github.com/aurelia/aurelia/pull/2337) [`5c309d6`](https://github.com/aurelia/aurelia/commit/5c309d61493f1bb921323edf17aa56a5bc249fa5) Thanks [@fkleuver](https://github.com/fkleuver)! - Make type utilities cross-realm safe (isObject, isArray, isSet, isMap, isPromise). Fixes observation failures in iframes and test runners (vitest, jest) using JSDOM, where `instanceof` checks fail due to cross-realm object creation.
+
+- [`2f95135`](https://github.com/aurelia/aurelia/commit/2f951351abea4eba9a1178e139905ef00c63642e) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix factory resolution to go through the resolver pipeline, allowing Factory to be resolved from non-constructable keys. Closes #2336.
+
+- Updated dependencies []:
+  - @aurelia/metadata@2.0.0-rc.0
+  - @aurelia/platform@2.0.0-rc.0
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

@@ -98,7 +98,7 @@ jobs:
         if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx changeset version
+        run: npm run changeset:version
 
       - name: Get new version
         if: ${{ inputs.dry_run && steps.check-changesets.outputs.has_changesets == 'true' }}
@@ -161,10 +161,11 @@ jobs:
       # PUBLISH PHASE (actual publish)
       # -------------------------------
       # When NOT dry_run, publish according to the decided lane.
-      - name: Changesets – prerelease publish
+      - name: Changesets - prerelease publish
         if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'dev' }}
         uses: changesets/action@v1
         with:
+          version: npm run changeset:version
           publish: npm run changeset:publish
           title: "release(prerelease): version packages"
           commit: "ci(release): version packages (prerelease)"
@@ -173,10 +174,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Changesets – stable publish (latest)
+      - name: Changesets - stable publish (latest)
         if: ${{ !inputs.dry_run && steps.decide.outputs.lane == 'latest' }}
         uses: changesets/action@v1
         with:
+          version: npm run changeset:version
           publish: npm run changeset:publish
           title: "release: version packages"
           commit: "ci(release): version packages (latest)"

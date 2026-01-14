@@ -79,7 +79,7 @@
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "changeset": "changeset",
     "changeset:version": "changeset version",
-    "postchangeset:version": "npm pkg set version=$(node -p \"require('./packages/aurelia/package.json').version\") && git tag -a v$(node -p \"require('./packages/aurelia/package.json').version\") -m \"v$(node -p \"require('./packages/aurelia/package.json').version\")\"",
+    "postchangeset:version": "node scripts/sync-root-version.cjs",
     "changeset:publish": "changeset publish --no-git-tag",
     "changeset:pre:enter": "changeset pre enter dev",
     "changeset:pre:exit": "changeset pre exit",
@@ -109,6 +109,8 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
+    "@changesets/get-github-info": "^0.7.0",
+    "@changesets/git": "^3.0.4",
     "@commitlint/cli": "19.6.1",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-node-resolve": "16.0.0",

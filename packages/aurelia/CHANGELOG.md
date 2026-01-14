@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.0
+
+### Minor Changes
+
+- See [docs/CHANGELOG.md](../../docs/CHANGELOG.md) for full release notes.
+
 ## 2.0.0-beta.27
 
 ### Minor Changes

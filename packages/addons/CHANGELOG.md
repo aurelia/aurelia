@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.0-rc.0
+
+### Minor Changes
+
+- See [docs/CHANGELOG.md](../../docs/CHANGELOG.md) for full release notes.
+
 <a name="2.0.0-beta.25"></a>
 # 2.0.0-beta.25 (2025-07-10)
 
@@ -422,4 +428,3 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 * **metadata:** make the polyfill application more foolproof and dedupe helper fns ([9c94ae1](https://github.com/aurelia/aurelia/commit/9c94ae1))
 * **kernel:** move metadata to separate package ([471b77d](https://github.com/aurelia/aurelia/commit/471b77d))
-

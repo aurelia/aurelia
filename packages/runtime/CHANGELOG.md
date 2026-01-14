@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.0
+
+### Patch Changes
+
+- [#2349](https://github.com/aurelia/aurelia/pull/2349) [`c494497`](https://github.com/aurelia/aurelia/commit/c4944971fbdf4ac950c0d6903d395bdda080f827) Thanks [@bigopon](https://github.com/bigopon)! - Fix inconsistent initial callback behavior between watch and watchExpression APIs. The callback now runs on initialization even when the observed value is undefined. Closes #2175.
+
 ## 2.0.0-beta.27
 
 ### Patch Changes

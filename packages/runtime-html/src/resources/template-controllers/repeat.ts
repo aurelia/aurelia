@@ -92,6 +92,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _hasAdoptedViews: boolean = false;
+  /** @internal */
+  private _adoptedViewsActivated: boolean = false;
 
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
@@ -193,6 +195,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     // Adopted views can't be cached - their nodes are tied to specific DOM
     const skipCache = this._hasAdoptedViews;
     this._hasAdoptedViews = false;
+    this._adoptedViewsActivated = false;
     const result = this._deactivateAllViews(initiator, skipCache);
     if (skipCache) {
       this.views = [];
@@ -215,7 +218,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._refreshCollectionObserver();
     this._normalizeToArray();
     this._createScopes(void 0);
-    this._applyIndexMap(void 0);
+    const adoptedIndexMap = this._getAdoptedIndexMap();
+    this._applyIndexMap(adoptedIndexMap);
   }
 
   public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
@@ -235,7 +239,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._normalizeToArray();
     this._createScopes(this.key === null ? indexMap : void 0);
-    this._applyIndexMap(indexMap);
+    const adoptedIndexMap = this._getAdoptedIndexMap();
+    this._applyIndexMap(adoptedIndexMap ?? indexMap);
   }
 
   /** @internal */
@@ -248,7 +253,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldScopes = this._oldScopes;
     const newScopes = this._scopes;
 
-    if (hasKey || indexMap === void 0) {
+    const useAdoptedIndexMap = indexMap !== void 0 && this._hasAdoptedViews && !this._adoptedViewsActivated;
+    if ((hasKey || indexMap === void 0) && !useAdoptedIndexMap) {
       const local = this.local;
       const dec = this.forOf.declaration;
       const binding = this._forOfBinding;
@@ -453,6 +459,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._hasAdoptedViews = true;
     this.views = adoptedViews;
+    this._adoptedViewsActivated = false;
 
     let promises: Promise<void>[] | undefined = void 0;
     for (let i = 0; i < newLen; ++i) {
@@ -470,6 +477,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     $controller.ssrScope = undefined;
+    if (newLen > 0) {
+      this._adoptedViewsActivated = true;
+    }
 
     if (promises !== void 0) {
       return promises.length === 1
@@ -586,6 +596,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let i = 0;
 
     const { $controller, _factory, _location, views, _scopes, _oldViews } = this;
+    const activateAdopted = this._hasAdoptedViews && !this._adoptedViewsActivated;
     const newLen = indexMap.length;
 
     for (; newLen > i; ++i) {
@@ -630,6 +641,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
+      } else if (activateAdopted) {
+        ret = view.activate(view, $controller, _scopes[i]);
+        if (isPromise(ret)) {
+          (promises ?? (promises = [])).push(ret);
+        }
       } else if (j < 0 || i !== seq[j]) {
         view.nodes.link(next?.nodes ?? _location);
         view.nodes.insertBefore(view.location!);
@@ -638,11 +654,46 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
+    if (activateAdopted) {
+      this._adoptedViewsActivated = true;
+    }
+
     if (promises !== void 0) {
       return promises.length === 1
         ? promises[0]
         : Promise.all(promises) as unknown as Promise<void>;
     }
+  }
+
+  /** @internal */
+  private _getAdoptedIndexMap(): IndexMap | undefined {
+    if (!this._hasAdoptedViews || this._adoptedViewsActivated) {
+      return void 0;
+    }
+    const oldLen = this.views.length;
+    const newLen = this._scopes.length;
+    if (oldLen === 0 || newLen === 0) {
+      return void 0;
+    }
+
+    const indexMap = createIndexMap(newLen);
+    const shared = Math.min(oldLen, newLen);
+
+    for (let i = 0; i < shared; ++i) {
+      indexMap[i] = i;
+    }
+
+    for (let i = shared; i < newLen; ++i) {
+      indexMap[i] = -2;
+    }
+
+    if (oldLen > newLen) {
+      for (let i = newLen; i < oldLen; ++i) {
+        indexMap.deletedIndices.push(i);
+      }
+    }
+
+    return indexMap;
   }
 
   public dispose(): void {

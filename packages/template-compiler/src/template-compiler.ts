@@ -152,6 +152,19 @@ export class TemplateCompiler implements ITemplateCompiler {
       needsCompile: false,
     } satisfies ICompiledElementComponentDefinition;
 
+    if (__DEV__) {
+      if (compiledDef.instructions.some(row => row.some(instr => {
+        if (instr.type === itHydrateElement) {
+          return (instr as HydrateElementInstruction).res === compiledDef.name
+            || ((instr as HydrateElementInstruction).res as ICompiledElementComponentDefinition)?.name === compiledDef.name;
+        }
+        return false;
+      }))) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] Detected ungarded self-referencing component name "${compiledDef.name}" in compiled instructions. This may lead to infinite recursion at runtime.`);
+      }
+    }
+
     return compiledDef;
   }
 

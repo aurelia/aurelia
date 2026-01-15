@@ -202,11 +202,11 @@ describe('router/current-route.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: ['', 'c-1'], component: C1, title: 'C1' },
+            { id: 'r1', path: [...getEmptyPath(), 'c-1'], component: C1, title: 'C1' },
             { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
           ]
         })
-        @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
+        @customElement({ name: 'app', template: `<au-viewport${useEagerLoading ? ' default="c-1"' : ''}></au-viewport>` })
         class App {
           public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
         }
@@ -215,8 +215,8 @@ describe('router/current-route.spec.ts', function () {
         const router = container.get(IRouter);
 
         assertCurrentRoute(rootVm.currentRoute, {
-          path: useEagerLoading ? 'c-11' : '',
-          url: useEagerLoading ? 'c-11' : '',
+          path: useEagerLoading ? 'c-1/c-11' : '',
+          url: useEagerLoading ? 'c-1/c-11' : '',
           title: 'C11 | C1',
           query: new URLSearchParams(),
           parameterInformation: [

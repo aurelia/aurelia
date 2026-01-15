@@ -96,13 +96,17 @@ export class RecognizedRoute<T> {
   }
 
   /** @internal */
+  private _firstNonEmptyPath: string | null = null;
+  /** @internal */
   public _getFirstNonEmptyPath(): string {
-    let path: string | null = this.path;
-    if (path.length !== 0) return path;
+    let path = this._firstNonEmptyPath;
+    if (path != null) return path;
+    path = this.path;
+    if (path.length !== 0) return this._firstNonEmptyPath = path;
 
     const handler = this.endpoint.route.handler;
     path = isIHandler(handler) ? handler.path.find(p => p.length > 0) ?? null : null;
-    if (path !== null) return path;
+    if (path !== null) return this._firstNonEmptyPath = path;
     throw new Error(`No non-empty path found`);
   }
 }
@@ -626,7 +630,7 @@ export class RouteRecognizer<T> {
     }
 
     // check for cached result first
-    const parentPath = relativeTo.reduce((acc, curr) => acc.length ? `${acc}/${curr._getFirstNonEmptyPath()}` : curr._getFirstNonEmptyPath(), '');
+    const parentPath = relativeTo.map(curr => curr._getFirstNonEmptyPath()).join('/');
     const combinedPath = combinePaths(parentPath, path);
 
     result = cache.get(combinedPath);
@@ -645,6 +649,7 @@ export class RouteRecognizer<T> {
 
     let routes = relativeResult[0];
     if (routes.length > 1 && routes[0].path === '') routes = routes.slice(1);
+    cache.set(combinedPath, result = [relativeTo.concat(routes), relativeResult[1]]);
 
     return routes;
 

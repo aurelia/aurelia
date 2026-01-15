@@ -161,7 +161,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return false;
       }))) {
         // eslint-disable-next-line no-console
-        console.warn(`[DEV:aurelia] Detected ungarded self-referencing component name "${compiledDef.name}" in compiled instructions. This may lead to infinite recursion at runtime.`);
+        console.warn(`[DEV:aurelia] Detected unguarded self-referencing component name "${compiledDef.name}" in compiled instructions. This may lead to infinite recursion at runtime.`);
       }
     }
 

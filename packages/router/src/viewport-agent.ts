@@ -307,13 +307,13 @@ export class ViewportAgent {
             () => onResolve(
               onResolve(
                 onResolveAll(
-                  ...next.residue.splice(0).map(vi => createAndAppendNodes(this._logger, next, vi, ctx.options))
+                  ...next.residue.splice(0).map(vi => createAndAppendNodes(this._logger, next, vi))
                 ),
                 () => onResolveAll(...ctx.getAvailableViewportAgents().reduce((acc, vpa) => {
                   const vp = vpa.viewport;
                   const component = vp.default;
                   if (component === null) return acc;
-                  acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, }), ctx.options));
+                  acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
                   return acc;
                 }, ([] as (void | Promise<void>)[]))),
               ),
@@ -691,7 +691,7 @@ export class ViewportAgent {
           onResolveAll(...next
             .residue
             .splice(0)
-            .map(vi => createAndAppendNodes(this._logger, next, vi, ctx.options))),
+            .map(vi => createAndAppendNodes(this._logger, next, vi))),
           () => onResolve(
             onResolveAll(...ctx
               .getAvailableViewportAgents()
@@ -699,7 +699,7 @@ export class ViewportAgent {
                 const vp = vpa.viewport;
                 const component = vp.default;
                 if (component === null) return acc;
-                acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, }), ctx.options));
+                acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
                 return acc;
               }, ([] as (void | Promise<void>)[]))
             ),

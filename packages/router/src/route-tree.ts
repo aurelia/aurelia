@@ -393,7 +393,6 @@ export function createAndAppendNodes(
   log: ILogger,
   node: RouteNode,
   vi: ViewportInstruction,
-  options: Readonly<IRouterOptions>,
 ): void | Promise<void> {
   log.trace(`createAndAppendNodes(node:%s,vi:%s`, node, vi);
 
@@ -407,7 +406,7 @@ export function createAndAppendNodes(
         // falls through
         case '.':
           return onResolveAll(...vi.children.map(childVI => {
-            return createAndAppendNodes(log, node, childVI, options);
+            return createAndAppendNodes(log, node, childVI);
           }));
         default: {
           log.trace(`createAndAppendNodes invoking createNode`);

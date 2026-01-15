@@ -242,7 +242,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     }
 
     assert.deepStrictEqual(warnedMessages, [
-      `[DEV:aurelia] Detected ungarded self-referencing component name "parent" in compiled instructions. This may lead to infinite recursion at runtime.`
+      `[DEV:aurelia] Detected unguarded self-referencing component name "parent" in compiled instructions. This may lead to infinite recursion at runtime.`
     ]);
   });
 });

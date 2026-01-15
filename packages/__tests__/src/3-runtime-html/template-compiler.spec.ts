@@ -1987,7 +1987,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       }, container);
 
       assert.deepStrictEqual(warnedMessages, [
-        `[DEV:aurelia] Detected ungarded self-referencing component name "app" in compiled instructions. This may lead to infinite recursion at runtime.`,
+        `[DEV:aurelia] Detected unguarded self-referencing component name "app" in compiled instructions. This may lead to infinite recursion at runtime.`,
       ]);
     });
   });

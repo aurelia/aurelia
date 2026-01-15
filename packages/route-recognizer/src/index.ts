@@ -649,7 +649,7 @@ export class RouteRecognizer<T> {
 
     let routes = relativeResult[0];
     if (routes.length > 1 && routes[0].path === '') routes = routes.slice(1);
-    cache.set(combinedPath, result = [relativeTo.concat(routes), relativeResult[1]]);
+    cache.set(combinedPath, [relativeTo.concat(routes), relativeResult[1]]);
 
     return routes;
 

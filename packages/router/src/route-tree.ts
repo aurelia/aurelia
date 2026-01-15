@@ -41,7 +41,6 @@ import {
   UnknownRouteError,
 } from './router';
 import {
-  IRouterOptions,
   type NavigationOptions,
 } from './options';
 import { mergeURLSearchParams } from './util';

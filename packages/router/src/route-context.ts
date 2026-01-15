@@ -82,8 +82,8 @@ interface RouteParametersBaseOptions {
 
 export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
   TStrategy extends 'child-first'
-  ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
-  : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
+    ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
+    : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
@@ -97,10 +97,10 @@ type RouteParameterAccumulator = Record<string, RouteParameterValue | undefined>
 
 export type RouteParametersResult<TStrategy extends RouteParameterMergeStrategy, TParams extends Record<string, unknown>> =
   TStrategy extends 'append'
-  ? Readonly<Record<string, readonly RouteParameterValue[]>>
-  : TStrategy extends 'by-route'
-  ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
-  : Readonly<TParams>;
+    ? Readonly<Record<string, readonly RouteParameterValue[]>>
+    : TStrategy extends 'by-route'
+      ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
+      : Readonly<TParams>;
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {

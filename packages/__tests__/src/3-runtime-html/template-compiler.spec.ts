@@ -3,6 +3,7 @@ import {
   Constructable,
   IContainer,
   kebabCase,
+  Registration,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -54,6 +55,7 @@ import {
   itSpreadValueBinding,
   itHydrateLetElement,
   itLetBinding,
+  IResourceResolver,
 } from '@aurelia/template-compiler';
 import {
   assert,
@@ -1934,6 +1936,59 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           ]}]
         );
       });
+    });
+  });
+
+  describe('TemplateCompiler - warnings', function () {
+    const originalWarn = console.warn;
+    let warnedMessages: string[] = [];
+    this.beforeEach(function () {
+      console.warn = function (...args: any[]) {
+        warnedMessages.push(args.join(' '));
+      };
+      warnedMessages = [];
+    });
+    this.afterEach(function () {
+      console.warn = originalWarn;
+    });
+
+    it('warns on self-referencing component names in compiled instructions', function () {
+
+      const ctx = TestContext.create();
+      const container = ctx.container;
+
+      container.deregister(IResourceResolver);
+      container.register(Registration.instance(IResourceResolver, {
+        el(_, name) {
+          console.log('bla', {name});
+          if (name === 'app') {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            return { type: 'custom-element', name: 'app', template: '<app>', instructions: [] } as IElementComponentDefinition;
+          }
+          return null;
+        },
+        attr() {
+          return null;
+        },
+        bindables() {
+          return {
+            attrs: {},
+            bindables: {},
+            primary: null,
+          };
+        }
+      }));
+
+      const sut = ctx.templateCompiler;
+      sut.compile({
+        name: 'app',
+        type: 'custom-element',
+        template: '<app>'
+      }, container);
+
+      assert.deepStrictEqual(warnedMessages, [
+        `[DEV:aurelia] Detected unguarded self-referencing component name "app" in compiled instructions. This may lead to infinite recursion at runtime.`,
+      ]);
     });
   });
 

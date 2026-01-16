@@ -214,4 +214,35 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
 
     assertHtml('<parent><child>1<child>0</child></child></parent>', { compact: true });
   });
+
+  it('warns on self-recursive element', async function () {
+    const warnedMessages: string[] = [];
+    const originalWarn = console.warn;
+    console.warn = (message: string) => {
+      warnedMessages.push(message);
+    };
+
+    let i = 0;
+    try {
+      createFixture('<parent></parent>', class {}, [
+        @customElement({
+          name: 'parent',
+          template: '<parent></parent>'
+        })
+        class Parent {
+          constructor() {
+            if (++i > 1) { throw new Error('infinite recursion'); }
+          }
+        }
+      ]);
+    } catch (ex) {
+      /*  */
+    } finally {
+      console.warn = originalWarn;
+    }
+
+    assert.deepStrictEqual(warnedMessages, [
+      `[DEV:aurelia] Detected unguarded self-referencing component name "parent" in compiled instructions. This may lead to infinite recursion at runtime.`
+    ]);
+  });
 });

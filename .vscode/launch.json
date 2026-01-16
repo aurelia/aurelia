@@ -405,7 +405,8 @@
       "configurations": [
         "Launch karma chrome debugger",
         "Attach Karma Chrome"
-      ]
+      ],
+      "preLaunchTask": "npm: build - tests"
     }
   ]
 }

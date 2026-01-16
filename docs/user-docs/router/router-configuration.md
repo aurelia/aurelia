@@ -626,7 +626,19 @@ For the above mentioned paths-constellation, under eager-loading the router will
 | `parent/:id/child`   | [ParentComponent with the (required) `:id` parameter, ChildComponent] |
 
 
-As all the routing paths contribute to create a single routing table, the usage of empty paths are discouraged under eager-loading. For example, if instead of `child`, the child route was configured with an empty path `''`, then the routing table would have contained two identical paths `parent` and `parent/:id`, which is not allowed.
+As all the routing paths contribute to create a single routing table, the usage of empty paths are discouraged under eager-loading. For example, if instead of `child`, the child route was configured with an empty path `''`, then the routing table would have contained two identical paths `parent` and `parent/:id`, which is not allowed. To this end, apply the following pattern, when using eager-loading.
+
+```diff
+  @route({
+    routes: [
+-     { path: ['', 'child'], component: ChildComponent },
++     { path: ['child'], component: ChildComponent },
+    ]
+  })
+- @customElement({ name: 'routed-component', template: `<au-viewport></au-viewport>` })
++ @customElement({ name: 'routed-component', template: `<au-viewport default="child"></au-viewport>` })
+  export class RoutedComponent {}
+```
 
 ## Advanced Configuration Scenarios
 

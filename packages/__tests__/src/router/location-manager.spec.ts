@@ -162,11 +162,11 @@ describe('router/location-manager.spec.ts', function () {
 
             @route({
               routes: [
-                { path: ['', 'c1'], component: C1 },
+                { path: [...getEmptyPath(), 'c1'], component: C1 },
                 { path: 'c2', component: C2 },
               ]
             })
-            @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+            @customElement({ name: 'ro-ot', template: `<au-viewport${defaultAttr('c1')}></au-viewport>` })
             class Root { }
 
             const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push', useEagerLoading });

@@ -57,6 +57,8 @@ export type Params = { [key: string]: string | undefined };
 
 export type IExtendedViewportInstruction = IViewportInstruction & { readonly open?: number; readonly close?: number };
 
+export type IRecognizedRouteInstruction = IExtendedViewportInstruction & { readonly recognizedRoute: $RecognizedRoute };
+
 export interface IViewportInstruction {
   /**
    * The component to load.
@@ -184,7 +186,7 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
   }
 
   public toUrlComponent(recursive: boolean = true): string {
-    const component = this.component.toUrlComponent();
+    const component = this.recognizedRoute?.route.path ?? this.component.toUrlComponent();
     const vp = this.viewport;
     const viewport = component.length === 0 || vp === null || vp.length === 0 || vp === defaultViewportName ? '' : `@${vp}`;
     const thisPart = `${'('.repeat(this.open)}${component}${stringifyParams(this.params)}${viewport}${')'.repeat(this.close)}`;
@@ -268,12 +270,14 @@ export class ViewportInstructionTree {
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
+    parentRoutePath: string | null,
   ): ViewportInstructionTree;
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
+    parentRoutePath: string | null,
     traverseChildren: true,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree>;
   public static create(
@@ -281,6 +285,7 @@ export class ViewportInstructionTree {
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
+    parentRoutePath: string | null,
     traverseChildren?: boolean,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     options = options instanceof NavigationOptions ? options : NavigationOptions.create(routerOptions, options ?? emptyObject);
@@ -300,7 +305,7 @@ export class ViewportInstructionTree {
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
         promises[i] = onResolve(
-          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, traverseChildren as true) : null,
+          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true) : null,
           eagerVi => {
             if (eagerVi !== null) {
               children[i] = eagerVi.vi;
@@ -325,6 +330,7 @@ export class ViewportInstructionTree {
           isPartialViewportInstruction(instructionOrInstructions)
             ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
             : { component: instructionOrInstructions, params: emptyObject },
+          parentRoutePath,
           traverseChildren as true
         )
         : null,

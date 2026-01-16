@@ -5,61 +5,65 @@ import { start } from './_shared/create-fixture.js';
 import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/router-containerless.spec.ts', function () {
-  it('does not render container when the routable component has @containerless', async function () {
+  for (const useEagerLoading of [true, false]) {
+    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
+      it('does not render container when the routable component has @containerless', async function () {
 
-    @containerless()
-    @customElement({
-      name: 'foo',
-      template: 'foo'
-    })
-    class Foo {}
+        @containerless()
+        @customElement({
+          name: 'foo',
+          template: 'foo'
+        })
+        class Foo { }
 
-    @route({
-      routes: [
-        { id: 'foo', path: '', component: Foo },
-      ]
-    })
-    @customElement({
-      name: 'root',
-      template: 'root <au-viewport>'
-    })
-    class App {}
+        @route({
+          routes: [
+            { id: 'foo', path: '', component: Foo },
+          ]
+        })
+        @customElement({
+          name: 'root',
+          template: 'root <au-viewport>'
+        })
+        class App { }
 
-    const { host } = await start({ appRoot: App });
+        const { host } = await start({ appRoot: App, useEagerLoading });
 
-    assert.strictEqual(null, host.querySelector('foo'));
-  });
+        assert.strictEqual(null, host.querySelector('foo'));
+      });
 
-  it('cleans up when rendering another component after a containerless component', async function () {
-    @containerless()
-    @customElement({ name: 'foo', template: 'foo' })
-    class Foo {}
+      it('cleans up when rendering another component after a containerless component', async function () {
+        @containerless()
+        @customElement({ name: 'foo', template: 'foo' })
+        class Foo { }
 
-    @customElement({ name: 'normal-foo', template: 'normal-foo' })
-    class NormalFoo {}
+        @customElement({ name: 'normal-foo', template: 'normal-foo' })
+        class NormalFoo { }
 
-    @route({
-      routes: [
-        { id: 'foo', path: '', component: Foo },
-        { id: 'normal-foo', path: 'normal-foo', component: NormalFoo },
-      ]
-    })
-    @customElement({
-      name: 'root',
-      template: 'root <a href="./normal-foo"></a><au-viewport>'
-    })
-    class App {}
+        @route({
+          routes: [
+            { id: 'foo', path: '', component: Foo },
+            { id: 'normal-foo', path: 'normal-foo', component: NormalFoo },
+          ]
+        })
+        @customElement({
+          name: 'root',
+          template: 'root <a href="./normal-foo"></a><au-viewport>'
+        })
+        class App { }
 
-    const { host } = await start({ appRoot: App });
+        const { host } = await start({ appRoot: App, useEagerLoading });
 
-    assert.strictEqual(null, host.querySelector('foo'));
-    assert.html.textContent(host.querySelector('au-viewport'), 'foo');
+        assert.strictEqual(null, host.querySelector('foo'));
+        assert.html.textContent(host.querySelector('au-viewport'), 'foo');
 
-    host.querySelector('a').click();
+        host.querySelector('a').click();
 
-    await tasksSettled();
-    assert.html.textContent(host.querySelector('au-viewport'), 'normal-foo');
-    assert.notIncludes(host.innerHTML, '<!--au-start-->');
-    assert.includes(host.innerHTML, '<normal-foo>normal-foo</normal-foo>');
-  });
+        await tasksSettled();
+        assert.html.textContent(host.querySelector('au-viewport'), 'normal-foo');
+        assert.notIncludes(host.innerHTML, '<!--au-start-->');
+        assert.includes(host.innerHTML, '<normal-foo>normal-foo</normal-foo>');
+      });
+    });
+  }
 });

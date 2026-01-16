@@ -223,7 +223,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return hook.canLoad(this._instance, params, next, this._routeNode, options);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx, null);
           }
           b._pop();
           res();
@@ -242,7 +242,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return this._instance.canLoad!(params, next, this._routeNode, options);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx, null);
           }
           b._pop();
         });

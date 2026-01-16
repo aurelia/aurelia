@@ -10,7 +10,14 @@
       "sourceMaps": true,
       "webRoot": "${workspaceRoot}",
       "sourceMapPathOverrides": {
-        "webpack:///*": "${webRoot}/*"
+        "webpack:///./*": "${webRoot}/*",
+        "webpack:///*": "${webRoot}/*",
+        "/base/*": "${workspaceRoot}/*"
+      },
+      "pathMapping": {
+        "/": "${workspaceRoot}",
+        "/base": "${workspaceRoot}",
+        "/absolute": "${workspaceRoot}"
       },
       "skipFiles": [
         "chai",
@@ -21,6 +28,19 @@
         "sinon",
         "sinon-chai"
       ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch karma chrome debugger",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "test-chrome:debugger"
+      ],
+      "cwd": "${workspaceRoot}/packages/__tests__",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     },
     {
       "type": "node",
@@ -377,6 +397,16 @@
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart",
       "preLaunchTask": "npm: build all"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Karma tests",
+      "configurations": [
+        "Launch karma chrome debugger",
+        "Attach Karma Chrome"
+      ],
+      "preLaunchTask": "npm: build - tests"
     }
   ]
 }

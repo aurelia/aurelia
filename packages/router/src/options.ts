@@ -65,6 +65,16 @@ export class RouterOptions {
      * @deprecated Will be removed in the next major version.
      */
     public readonly treatQueryAsParameters: boolean,
+    /**
+     * When set to `true`, the router will eagerly load all
+     * routing configurations, upfront when the application starts.
+     * This makes more information available to the route-recognizer,
+     * for better route matching, with the trade-off of sacrificing
+     * lazy-loading the route configurations.
+     *
+     * The default value is `false`.
+     */
+    public readonly useEagerLoading: boolean,
   ) {
     this._urlParser = useUrlFragmentHash ? fragmentUrlParser : pathUrlParser;
   }
@@ -79,6 +89,7 @@ export class RouterOptions {
       input.activeClass ?? null,
       input.restorePreviousRouteTreeOnError ?? true,
       input.treatQueryAsParameters ?? false,
+      input.useEagerLoading ?? false
     );
   }
 

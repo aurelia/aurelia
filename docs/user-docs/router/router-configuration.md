@@ -25,6 +25,7 @@ The router accepts the following configuration options through `RouterConfigurat
 | `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises how page titles are produced. Return `null` to skip title updates. |
 | `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
 | `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
+| `useEagerLoading` | boolean | `false` | When `true`, eagerly loads all route configurations upfront when the application starts. |
 
 > Pass a partial options object—the router merges your values with the defaults so you only specify what changes. Configure options before the router starts (for example, via `AppTask`) so navigations consistently use the same settings.
 
@@ -600,6 +601,44 @@ When the `treatQueryAsParameters` property in the router configuration is set to
 {% hint style="warning" %}
 `treatQueryAsParameters` is deprecated and will be removed in the next major version.
 {% endhint %}
+
+## Use eager loading for route configurations
+
+When the `useEagerLoading` property in the router configuration is set to `true`, the router will eagerly load all route configurations upfront when the application starts. The default value is `false`.
+
+Consider the following scenario. A parent route with paths `[ 'parent', 'parent/:id' ]` configures a child route with path `['child']`. Given this scenario, if when a user tries to navigate to the path `/parent/child`, the router might 'recognize' the `child` segment as a value for the `:id` parameter of the parent route, instead of recognizing it as the child route. This problem is the artifact of how the route-recognizer works under the lazy-loading scenario. The recognizer tries to match the path hungrily, without having any information about the child routes.
+
+To avoid this problem, you can set the `useEagerLoading` property to `true` in the router configuration. Under this configuration, the router will make all the route information available to the route-recognizer when the application starts, thereby avoiding the aforementioned problem.
+
+```typescript
+RouterConfiguration.customize({
+  useEagerLoading: true,
+})
+```
+
+For the above mentioned paths-constellation, under eager-loading the router will essentially create the following routing table.
+
+| Path                 | Components                                                            |
+|----------------------|-----------------------------------------------------------------------|
+| `parent`             | ParentComponent                                                       |
+| `parent/:id`         | ParentComponent with the (required) `:id` parameter                   |
+| `parent/child`       | [ParentComponent, ChildComponent]                                     |
+| `parent/:id/child`   | [ParentComponent with the (required) `:id` parameter, ChildComponent] |
+
+
+As all the routing paths contribute to create a single routing table, the usage of empty paths are discouraged under eager-loading. For example, if instead of `child`, the child route was configured with an empty path `''`, then the routing table would have contained two identical paths `parent` and `parent/:id`, which is not allowed. To this end, apply the following pattern, when using eager-loading.
+
+```diff
+  @route({
+    routes: [
+-     { path: ['', 'child'], component: ChildComponent },
++     { path: ['child'], component: ChildComponent },
+    ]
+  })
+- @customElement({ name: 'routed-component', template: `<au-viewport></au-viewport>` })
++ @customElement({ name: 'routed-component', template: `<au-viewport default="child"></au-viewport>` })
+  export class RoutedComponent {}
+```
 
 ## Advanced Configuration Scenarios
 

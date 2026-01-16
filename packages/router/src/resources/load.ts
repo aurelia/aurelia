@@ -91,7 +91,9 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
         typeof params === 'object' && params !== null
           ? { component, params }
           : component,
-        { context: ctx });
+        { context: ctx },
+        null
+      );
       this._href = instructions.toUrl(false, options._urlParser, true);
     } else {
       this._instructions = null;

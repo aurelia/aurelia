@@ -146,13 +146,56 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
   /** @internal */
   public _getTransitionPlan(cur: RouteNode, next: RouteNode, overridingTransitionPlan: TransitionPlan | null) {
-    if (hasSamePath(cur, next) && shallowEquals(cur.params, next.params)) return 'none';
+    let plan: TransitionPlan;
+    const samePath = hasSamePath(cur, next);
+    const sameParams = shallowEquals(cur.params, next.params);
+    const sameQuery = hasSameQuery(cur.queryParams, next.queryParams);
+    if (samePath && sameParams && sameQuery) {
+      plan = 'none';
+    } else if (samePath && sameParams) {
+      if (overridingTransitionPlan != null) {
+        plan = overridingTransitionPlan;
+      } else {
+        const configuredPlan = this.transitionPlan;
+        plan = configuredPlan != null
+          ? (typeof configuredPlan === 'function' ? configuredPlan(cur, next) : configuredPlan)
+          : 'none';
+      }
+    } else if (overridingTransitionPlan != null) {
+      plan = overridingTransitionPlan;
+    } else {
+      const configuredPlan = this.transitionPlan;
+      plan = configuredPlan != null
+        ? (typeof configuredPlan === 'function' ? configuredPlan(cur, next) : configuredPlan)
+        : 'replace';
+    }
 
-    if (overridingTransitionPlan != null) return overridingTransitionPlan;
+    return plan;
 
-    const plan = this.transitionPlan ?? 'replace';
-    return typeof plan === 'function' ? plan(cur, next) : plan;
-
+    function hasSameQuery(a: Readonly<URLSearchParams>, b: Readonly<URLSearchParams>): boolean {
+      if (a === b) return true;
+      const compare = (left: [string, string], right: [string, string]) => {
+        if (left[0] === right[0]) {
+          if (left[1] === right[1]) return 0;
+          return left[1] < right[1] ? -1 : 1;
+        }
+        return left[0] < right[0] ? -1 : 1;
+      };
+      const aEntries: [string, string][] = [];
+      a.forEach((value, key) => { aEntries.push([key, value]); });
+      aEntries.sort(compare);
+      const bEntries: [string, string][] = [];
+      b.forEach((value, key) => { bEntries.push([key, value]); });
+      bEntries.sort(compare);
+      const len = aEntries.length;
+      if (len !== bEntries.length) return false;
+      for (let i = 0; i < len; ++i) {
+        const [aKey, aValue] = aEntries[i];
+        const [bKey, bValue] = bEntries[i];
+        if (aKey !== bKey || aValue !== bValue) return false;
+      }
+      return true;
+    }
     function cleanPath(path: string): string { return path.replace(`/*${RESIDUE}`, ''); }
     function hasSamePath(nodeA: RouteNode, nodeB: RouteNode): boolean {
       const pathA = nodeA.finalPath;

@@ -17,343 +17,343 @@ describe('router/resources/href.spec.ts', function () {
     }
 
     @customElement({ name: 'pro-ducts', template: `<a href="../product/1"></a><a href="../product/2"></a> products` })
-        class Products { }
+    class Products { }
 
-        @route({
-          routes: [
-            { id: 'products', path: ['', 'products'], component: Products },
-            { id: 'product', path: 'product/:id', component: Product },
-          ]
-        })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
-        class Root { }
+    @route({
+      routes: [
+        { id: 'products', path: ['', 'products'], component: Products },
+        { id: 'product', path: 'product/:id', component: Product },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
 
-        const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
-        await tasksSettled();
+    const { au, host } = await start({ appRoot: Root, registrations: [Products, Product] });
+    await tasksSettled();
 
-        assert.html.textContent(host, 'products');
-        const anchors = Array.from(host.querySelectorAll('a'));
-        const hrefs = anchors.map(a => a.href);
-        assert.match(hrefs[0], /product\/1$/);
-        assert.match(hrefs[1], /product\/2$/);
+    assert.html.textContent(host, 'products');
+    const anchors = Array.from(host.querySelectorAll('a'));
+    const hrefs = anchors.map(a => a.href);
+    assert.match(hrefs[0], /product\/1$/);
+    assert.match(hrefs[1], /product\/2$/);
 
-        anchors[0].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'product 1');
-        // go back
-        const back = host.querySelector<HTMLAnchorElement>('a');
-        assert.match(back.href, /products$/);
-        back.click();
-        await tasksSettled();
-        assert.html.textContent(host, 'products');
+    anchors[0].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'product 1');
+    // go back
+    const back = host.querySelector<HTMLAnchorElement>('a');
+    assert.match(back.href, /products$/);
+    back.click();
+    await tasksSettled();
+    assert.html.textContent(host, 'products');
 
-        // 2nd round
-        host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'product 2');
-        // go back
-        host.querySelector<HTMLAnchorElement>('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'products');
+    // 2nd round
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'product 2');
+    // go back
+    host.querySelector<HTMLAnchorElement>('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'products');
 
-        await au.stop(true);
-      });
+    await au.stop(true);
+  });
 
-      it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
-        @customElement({ name: 'l-21', template: `l21 \${id} <a href="../../l12"></a>` })
-        class L21 { }
-        @customElement({ name: 'l-22', template: `l22 \${id} <a href="../../l11"></a>` })
-        class L22 { }
+  it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
+    @customElement({ name: 'l-21', template: `l21 \${id} <a href="../../l12"></a>` })
+    class L21 { }
+    @customElement({ name: 'l-22', template: `l22 \${id} <a href="../../l11"></a>` })
+    class L22 { }
 
-        @route({
-          routes: [
-            { id: 'l21', path: ['', 'l21'], component: L21 },
-          ]
-        })
-        @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
-        class L11 { }
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
 
-        @route({
-          routes: [
-            { id: 'l22', path: ['', 'l22'], component: L22 },
-          ]
-        })
-        @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
-        class L12 { }
+    @route({
+      routes: [
+        { id: 'l22', path: ['', 'l22'], component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
 
-        @route({
-          routes: [
-            { id: 'l11', path: ['', 'l11'], component: L11 },
-            { id: 'l12', path: 'l12', component: L12 },
-          ]
-        })
-        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
-        class Root { }
+    @route({
+      routes: [
+        { id: 'l11', path: ['', 'l11'], component: L11 },
+        { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+    class Root { }
 
-        const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-        await tasksSettled();
+    const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
+    await tasksSettled();
 
-        assert.html.textContent(host, 'l11 l21');
+    assert.html.textContent(host, 'l11 l21');
 
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'l12 l22');
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l12 l22');
 
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'l11 l21');
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l11 l21');
 
-        await au.stop(true);
-      });
+    await au.stop(true);
+  });
 
-      // slightly more complex use-case
-      it('cross children navigation with multiple hierarchical routing configuration', async function () {
-        @customElement({ name: 'l-21', template: `l21 <a href="../l22"></a>` })
-        class L21 {
-          private rtCtx: IRouteContext;
-          public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
-            this.rtCtx = next.context;
-            return true;
-          }
-        }
-        @customElement({ name: 'l-22', template: `l22 <a href="../../l12"></a>` })
-        class L22 {
-          private rtCtx: IRouteContext;
-          public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
-            this.rtCtx = next.context;
-            return true;
-          }
-        }
-        @customElement({ name: 'l-23', template: `l23 <a href="../l24"></a>` })
-        class L23 {
-          private rtCtx: IRouteContext;
-          public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
-            this.rtCtx = next.context;
-            return true;
-          }
-        }
-        @customElement({ name: 'l-24', template: `l24 <a href="../../l11"></a>` })
-        class L24 {
-          private rtCtx: IRouteContext;
-          public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
-            this.rtCtx = next.context;
-            return true;
-          }
-        }
+  // slightly more complex use-case
+  it('cross children navigation with multiple hierarchical routing configuration', async function () {
+    @customElement({ name: 'l-21', template: `l21 <a href="../l22"></a>` })
+    class L21 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-22', template: `l22 <a href="../../l12"></a>` })
+    class L22 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-23', template: `l23 <a href="../l24"></a>` })
+    class L23 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
+    @customElement({ name: 'l-24', template: `l24 <a href="../../l11"></a>` })
+    class L24 {
+      private rtCtx: IRouteContext;
+      public canLoad(params: Params, next: RouteNode, _current: RouteNode): boolean {
+        this.rtCtx = next.context;
+        return true;
+      }
+    }
 
-        @route({
-          routes: [
-            { id: 'l21', path: ['', 'l21'], component: L21 },
-            { id: 'l22', path: 'l22', component: L22 },
-          ]
-        })
-        @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
-        class L11 { }
+    @route({
+      routes: [
+        { id: 'l21', path: ['', 'l21'], component: L21 },
+        { id: 'l22', path: 'l22', component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: `l11 <au-viewport></au-viewport>` })
+    class L11 { }
 
-        @route({
-          routes: [
-            { id: 'l23', path: ['', 'l23'], component: L23 },
-            { id: 'l24', path: 'l24', component: L24 },
-          ]
-        })
-        @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
-        class L12 { }
+    @route({
+      routes: [
+        { id: 'l23', path: ['', 'l23'], component: L23 },
+        { id: 'l24', path: 'l24', component: L24 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: `l12 <au-viewport></au-viewport>` })
+    class L12 { }
 
-        @route({
-          routes: [
-            { id: 'l11', path: ['', 'l11'], component: L11 },
-            { id: 'l12', path: 'l12', component: L12 },
-          ]
-        })
-        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
-        class Root { }
+    @route({
+      routes: [
+        { id: 'l11', path: ['', 'l11'], component: L11 },
+        { id: 'l12', path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+    class Root { }
 
-        const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
-        await tasksSettled();
-        assert.html.textContent(host, 'l11 l21', 'init');
+    const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
+    await tasksSettled();
+    assert.html.textContent(host, 'l11 l21', 'init');
 
-        // l21 -> l22
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'l11 l22', '#2 l21 -> l22');
+    // l21 -> l22
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l11 l22', '#2 l21 -> l22');
 
-        // l22 -> l12
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'l12 l23', '#3 l22 -> l12');
+    // l22 -> l12
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l12 l23', '#3 l22 -> l12');
 
-        // l23 -> l24
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'l12 l24', '#4 l23 -> l24');
+    // l23 -> l24
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l12 l24', '#4 l23 -> l24');
 
-        // l24 -> l11
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
+    // l24 -> l11
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l11 l21', '#5 l24 -> l11');
 
-        await au.stop(true);
-      });
+    await au.stop(true);
+  });
 
-      it('adds hash correctly to the href when useUrlFragmentHash is set', async function () {
-        @customElement({ name: 'ce-one', template: `ce1` })
-        class CeOne { }
+  it('adds hash correctly to the href when useUrlFragmentHash is set', async function () {
+    @customElement({ name: 'ce-one', template: `ce1` })
+    class CeOne { }
 
-        @customElement({ name: 'ce-two', template: `ce2` })
-        class CeTwo { }
+    @customElement({ name: 'ce-two', template: `ce2` })
+    class CeTwo { }
 
-        @customElement({ name: 'ce-three-child', template: `ce3child` })
-        class CeThreeChild { }
+    @customElement({ name: 'ce-three-child', template: `ce3child` })
+    class CeThreeChild { }
 
-        @customElement({ name: 'ce-three', template: `ce3 <a id="ce3a1" href="../ce-one"></a> <a id="ce3a2" href="ce-three-child"></a> <au-viewport></au-viewport>` })
-        @route({
-          routes: [
-            {
-              path: 'ce-three-child',
-              component: CeThreeChild,
-            },
-          ]
-        })
-        class CeThree { }
+    @customElement({ name: 'ce-three', template: `ce3 <a id="ce3a1" href="../ce-one"></a> <a id="ce3a2" href="ce-three-child"></a> <au-viewport></au-viewport>` })
+    @route({
+      routes: [
+        {
+          path: 'ce-three-child',
+          component: CeThreeChild,
+        },
+      ]
+    })
+    class CeThree { }
 
-        @customElement({
-          name: 'ro-ot',
-          template: `
+    @customElement({
+      name: 'ro-ot',
+      template: `
       <a href="#ce-one"></a>
       <a href="#ce-two"></a>
       <a href="ce-two"></a>
       <a href="./ce-three"></a>
       <au-viewport></au-viewport>
       `
-        })
-        @route({
-          routes: [
-            {
-              path: 'ce-one',
-              component: CeOne,
-            },
-            {
-              path: 'ce-two',
-              component: CeTwo,
-            },
-            {
-              path: 'ce-three',
-              component: CeThree,
-            },
-          ]
-        })
-        class Root { }
+    })
+    @route({
+      routes: [
+        {
+          path: 'ce-one',
+          component: CeOne,
+        },
+        {
+          path: 'ce-two',
+          component: CeTwo,
+        },
+        {
+          path: 'ce-three',
+          component: CeThree,
+        },
+      ]
+    })
+    class Root { }
 
-        const { au, host } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo, CeThree] });
-        await tasksSettled();
+    const { au, host } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo, CeThree] });
+    await tasksSettled();
 
-        const anchors = Array.from(host.querySelectorAll('a'));
-        assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two', '/#/./ce-three']);
+    const anchors = Array.from(host.querySelectorAll('a'));
+    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two', '/#/./ce-three']);
 
-        anchors[1].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce2');
+    anchors[1].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce2');
 
-        anchors[0].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce1');
+    anchors[0].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce1');
 
-        anchors[2].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce2');
+    anchors[2].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce2');
 
-        anchors[3].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce3');
+    anchors[3].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce3');
 
-        let anchor = host.querySelector<HTMLAnchorElement>('a#ce3a1');
-        assert.strictEqual(anchor.getAttribute('href'), '/#/ce-one');
-        anchor.click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce1');
+    let anchor = host.querySelector<HTMLAnchorElement>('a#ce3a1');
+    assert.strictEqual(anchor.getAttribute('href'), '/#/ce-one');
+    anchor.click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce1');
 
-        anchors[3].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce3');
+    anchors[3].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce3');
 
-        anchor = host.querySelector<HTMLAnchorElement>('a#ce3a2');
-        assert.strictEqual(anchor.getAttribute('href'), '/#/ce-three/ce-three-child');
-        anchor.click();
-        await tasksSettled();
-        assert.html.textContent(host, 'ce3 ce3child');
+    anchor = host.querySelector<HTMLAnchorElement>('a#ce3a2');
+    assert.strictEqual(anchor.getAttribute('href'), '/#/ce-three/ce-three-child');
+    anchor.click();
+    await tasksSettled();
+    assert.html.textContent(host, 'ce3 ce3child');
 
-        await au.stop(true);
-      });
+    await au.stop(true);
+  });
 
-      it('supports routing instruction with parenthesized parameters', async function () {
-        @route('c1/:id1/:id2?')
-        @customElement({ name: 'c-1', template: 'c1 ${id1} ${id2}' })
-        class C1 implements IRouteViewModel {
-          private id1: string;
-          private id2: string;
-          public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
-            this.id1 = params.id1;
-            this.id2 = params.id2;
-          }
-        }
+  it('supports routing instruction with parenthesized parameters', async function () {
+    @route('c1/:id1/:id2?')
+    @customElement({ name: 'c-1', template: 'c1 ${id1} ${id2}' })
+    class C1 implements IRouteViewModel {
+      private id1: string;
+      private id2: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id1 = params.id1;
+        this.id2 = params.id2;
+      }
+    }
 
-        @route({ routes: [{ id: 'c1', component: C1 }] })
-        @customElement({ name: 'ro-ot', template: '<a href="c1(id1=1)"></a> <a href="c1(id1=2,id2=3)"></a> <au-viewport></au-viewport>' })
-        class Root { }
+    @route({ routes: [{ id: 'c1', component: C1 }] })
+    @customElement({ name: 'ro-ot', template: '<a href="c1(id1=1)"></a> <a href="c1(id1=2,id2=3)"></a> <au-viewport></au-viewport>' })
+    class Root { }
 
-        const { au, host } = await start({ appRoot: Root });
-        assert.html.textContent(host, '', 'init');
+    const { au, host } = await start({ appRoot: Root });
+    assert.html.textContent(host, '', 'init');
 
-        host.querySelector('a').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'c1 1', 'round#1');
+    host.querySelector('a').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'c1 1', 'round#1');
 
-        host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
-        await tasksSettled();
-        assert.html.textContent(host, 'c1 2 3', 'round#2');
+    host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+    await tasksSettled();
+    assert.html.textContent(host, 'c1 2 3', 'round#2');
 
-        await au.stop(true);
-      });
+    await au.stop(true);
+  });
 
-      it('respects constrained routes', async function () {
-        @route('nf')
-        @customElement({ name: 'not-found', template: `nf` })
-        class NotFound { }
+  it('respects constrained routes', async function () {
+    @route('nf')
+    @customElement({ name: 'not-found', template: `nf` })
+    class NotFound { }
 
-        @route({ id: 'product', path: 'product/:id{{^\\d+$}}' })
-        @customElement({ name: 'pro-duct', template: `product \${id}` })
-        class Product {
-          public id: unknown;
-          public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
-            this.id = params.id;
-            return true;
-          }
-        }
+    @route({ id: 'product', path: 'product/:id{{^\\d+$}}' })
+    @customElement({ name: 'pro-duct', template: `product \${id}` })
+    class Product {
+      public id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
 
-        @route({ routes: [Product, NotFound], fallback: 'nf' })
-        @customElement({
-          name: 'ro-ot',
-          template: `
+    @route({ routes: [Product, NotFound], fallback: 'nf' })
+    @customElement({
+      name: 'ro-ot',
+      template: `
         <a href="product/42"></a>
         <a href="product/bar"></a>
         <au-viewport></au-viewport>
       `
-        })
-        class Root { }
+    })
+    class Root { }
 
-        const { au, host } = await start({ appRoot: Root });
-        await tasksSettled();
+    const { au, host } = await start({ appRoot: Root });
+    await tasksSettled();
 
-        const anchors = Array.from(host.querySelectorAll('a'));
+    const anchors = Array.from(host.querySelectorAll('a'));
 
-        anchors[0].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'product 42', 'round#1');
+    anchors[0].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'product 42', 'round#1');
 
-        anchors[1].click();
-        await tasksSettled();
-        assert.html.textContent(host, 'nf', 'round#2');
+    anchors[1].click();
+    await tasksSettled();
+    assert.html.textContent(host, 'nf', 'round#2');
 
-        await au.stop(true);
-      });
+    await au.stop(true);
+  });
 });

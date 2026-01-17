@@ -37,517 +37,517 @@ describe('router/location-manager.spec.ts', function () {
         class Root { }
 
         const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
-            const router = container.get(IRouter);
-            const eventLog: ['popstate' | 'hashchange', string][] = [];
-            const subscriber = container.get(IRouterEvents)
-              .subscribe('au:router:location-change', (ev) => {
-                eventLog.push([ev.trigger, ev.url]);
-              });
-
-            assert.html.textContent(host, 'c1', 'init');
-            assert.deepStrictEqual(eventLog, [], 'init event log');
-
-            // first make some navigation
-            isBackLog.length = 0;
-            await router.load('c2');
-            assert.html.textContent(host, 'c2', 'nav1');
-            assert.deepStrictEqual(eventLog, [], 'nav1 event log');
-            assert.deepStrictEqual(isBackLog, [false], 'nav1 isBackLog');
-
-            await router.load('c1');
-            assert.html.textContent(host, 'c1', 'nav2');
-            assert.deepStrictEqual(eventLog, [], 'nav2 event log');
-            assert.deepStrictEqual(isBackLog, [false, false], 'nav2 isBackLog');
-
-            // navigate through history states - round#1
-            isBackLog.length = 0;
-            const history = container.get(IHistory);
-            history.back();
-            await Promise.resolve();
-
-            assert.html.textContent(host, 'c2', 'back');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c2$/, 'back event log path');
-            assert.deepStrictEqual(isBackLog, [true], 'round#1 back isBackLog');
-
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
-
-            assert.html.textContent(host, 'c1', 'forward');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
-            assert.deepStrictEqual(isBackLog, [true, false], 'round#1 forward isBackLog');
-
-            // navigate through history states - round#2
-            isBackLog.length = 0;
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
-
-            assert.html.textContent(host, 'c2', 'back');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c2$/, 'back event log path');
-            assert.deepStrictEqual(isBackLog, [true], 'round#2 back isBackLog');
-
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
-
-            assert.html.textContent(host, 'c1', 'forward');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
-            assert.deepStrictEqual(isBackLog, [true, false], 'round#2 forward isBackLog');
-
-            // navigate through history states - round#3
-            isBackLog.length = 0;
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
-
-            assert.html.textContent(host, 'c2', 'back');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c2$/, 'back event log path');
-            assert.deepStrictEqual(isBackLog, [true], 'round#3 back isBackLog');
-
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
-
-            assert.html.textContent(host, 'c1', 'forward');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
-            assert.deepStrictEqual(isBackLog, [true, false], 'round#3 forward isBackLog');
-
-            // lastly dispatch a hashchange event
-            eventLog.length = 0;
-            const unsubscribedEvent = useHash ? 'popstate' : 'hashchange';
-            container.get(IWindow).dispatchEvent(new HashChangeEvent(unsubscribedEvent));
-            await Promise.resolve();
-            assert.deepStrictEqual(eventLog, [], `${unsubscribedEvent} event log`);
-
-            subscriber.dispose();
-            await au.stop(true);
+        const router = container.get(IRouter);
+        const eventLog: ['popstate' | 'hashchange', string][] = [];
+        const subscriber = container.get(IRouterEvents)
+          .subscribe('au:router:location-change', (ev) => {
+            eventLog.push([ev.trigger, ev.url]);
           });
 
-          it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - parent-child`, async function () {
-            @customElement({ name: 'gc-1', template: 'gc1' })
-            class GC1 { }
-            @customElement({ name: 'gc-2', template: 'gc2' })
-            class GC2 { }
+        assert.html.textContent(host, 'c1', 'init');
+        assert.deepStrictEqual(eventLog, [], 'init event log');
 
-            @route({
-              routes: [
-                { path: ['', 'gc-1'], component: GC1 },
-                { path: 'gc-2', component: GC2 },
-              ]
-            })
-            @customElement({ name: 'c-1', template: `<a load="gc-2"></a> c1 <au-viewport></au-viewport>` })
-            class C1 { }
-            @customElement({ name: 'c-2', template: 'c2' })
-            class C2 { }
+        // first make some navigation
+        isBackLog.length = 0;
+        await router.load('c2');
+        assert.html.textContent(host, 'c2', 'nav1');
+        assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+        assert.deepStrictEqual(isBackLog, [false], 'nav1 isBackLog');
 
-            @route({
-              routes: [
-                { path: ['', 'c1'], component: C1 },
-                { path: 'c2', component: C2 },
-              ]
-            })
-            @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
-            class Root { }
+        await router.load('c1');
+        assert.html.textContent(host, 'c1', 'nav2');
+        assert.deepStrictEqual(eventLog, [], 'nav2 event log');
+        assert.deepStrictEqual(isBackLog, [false, false], 'nav2 isBackLog');
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
-            const router = container.get(IRouter);
-            const eventLog: ['popstate' | 'hashchange', string][] = [];
-            const subscriber = container.get(IRouterEvents)
-              .subscribe('au:router:location-change', (ev) => {
-                eventLog.push([ev.trigger, ev.url]);
-              });
+        // navigate through history states - round#1
+        isBackLog.length = 0;
+        const history = container.get(IHistory);
+        history.back();
+        await Promise.resolve();
 
-            assert.html.textContent(host, 'c1 gc1', 'init');
-            assert.deepStrictEqual(eventLog, [], 'init event log');
+        assert.html.textContent(host, 'c2', 'back');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c2$/, 'back event log path');
+        assert.deepStrictEqual(isBackLog, [true], 'round#1 back isBackLog');
 
-            // first make some navigation
-            await router.load('c2');
-            assert.html.textContent(host, 'c2', 'nav1');
-            assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            await router.load('c1');
-            assert.html.textContent(host, 'c1 gc1', 'nav2');
-            assert.deepStrictEqual(eventLog, [], 'nav2 event log');
+        assert.html.textContent(host, 'c1', 'forward');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
+        assert.deepStrictEqual(isBackLog, [true, false], 'round#1 forward isBackLog');
 
-            const anchor = host.querySelector('a');
-            anchor.click();
-            await Promise.resolve();
-            assert.html.textContent(host, 'c1 gc2', 'nav3');
-            assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+        // navigate through history states - round#2
+        isBackLog.length = 0;
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#1
-            const history = container.get(IHistory);
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c2', 'back');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c2$/, 'back event log path');
+        assert.deepStrictEqual(isBackLog, [true], 'round#2 back isBackLog');
 
-            assert.html.textContent(host, 'c1 gc1', 'back1');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1', 'forward');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
+        assert.deepStrictEqual(isBackLog, [true, false], 'round#2 forward isBackLog');
 
-            assert.html.textContent(host, 'c1 gc2', 'forward1');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
+        // navigate through history states - round#3
+        isBackLog.length = 0;
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#2
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c2', 'back');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c2$/, 'back event log path');
+        assert.deepStrictEqual(isBackLog, [true], 'round#3 back isBackLog');
 
-            assert.html.textContent(host, 'c1 gc1', 'back2');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1', 'forward');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
+        assert.deepStrictEqual(isBackLog, [true, false], 'round#3 forward isBackLog');
 
-            assert.html.textContent(host, 'c1 gc2', 'forward2');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
+        // lastly dispatch a hashchange event
+        eventLog.length = 0;
+        const unsubscribedEvent = useHash ? 'popstate' : 'hashchange';
+        container.get(IWindow).dispatchEvent(new HashChangeEvent(unsubscribedEvent));
+        await Promise.resolve();
+        assert.deepStrictEqual(eventLog, [], `${unsubscribedEvent} event log`);
 
-            // navigate through history states - round#3
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
+        subscriber.dispose();
+        await au.stop(true);
+      });
 
-            assert.html.textContent(host, 'c1 gc1', 'back3');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
+      it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - parent-child`, async function () {
+        @customElement({ name: 'gc-1', template: 'gc1' })
+        class GC1 { }
+        @customElement({ name: 'gc-2', template: 'gc2' })
+        class GC2 { }
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        @route({
+          routes: [
+            { path: ['', 'gc-1'], component: GC1 },
+            { path: 'gc-2', component: GC2 },
+          ]
+        })
+        @customElement({ name: 'c-1', template: `<a load="gc-2"></a> c1 <au-viewport></au-viewport>` })
+        class C1 { }
+        @customElement({ name: 'c-2', template: 'c2' })
+        class C2 { }
 
-            assert.html.textContent(host, 'c1 gc2', 'forward3');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
+        @route({
+          routes: [
+            { path: ['', 'c1'], component: C1 },
+            { path: 'c2', component: C2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+        class Root { }
 
-            subscriber.dispose();
-            await au.stop(true);
+        const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
+        const router = container.get(IRouter);
+        const eventLog: ['popstate' | 'hashchange', string][] = [];
+        const subscriber = container.get(IRouterEvents)
+          .subscribe('au:router:location-change', (ev) => {
+            eventLog.push([ev.trigger, ev.url]);
           });
 
-          it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - sibling`, async function () {
-            @customElement({ name: 'c-1', template: 'c1' })
-            class C1 { }
-            @customElement({ name: 'c-2', template: 'c2' })
-            class C2 { }
+        assert.html.textContent(host, 'c1 gc1', 'init');
+        assert.deepStrictEqual(eventLog, [], 'init event log');
 
-            @route({
-              routes: [
-                { path: 'c1', component: C1 },
-                { path: 'c2', component: C2 },
-              ]
-            })
-            @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport> <au-viewport></au-viewport>' })
-            class Root { }
+        // first make some navigation
+        await router.load('c2');
+        assert.html.textContent(host, 'c2', 'nav1');
+        assert.deepStrictEqual(eventLog, [], 'nav1 event log');
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
-            const router = container.get(IRouter);
-            const eventLog: ['popstate' | 'hashchange', string][] = [];
-            const subscriber = container.get(IRouterEvents)
-              .subscribe('au:router:location-change', (ev) => {
-                eventLog.push([ev.trigger, ev.url]);
-              });
+        await router.load('c1');
+        assert.html.textContent(host, 'c1 gc1', 'nav2');
+        assert.deepStrictEqual(eventLog, [], 'nav2 event log');
 
-            // first make some navigation
-            await router.load('c1+c2');
-            assert.html.textContent(host, 'c1 c2', 'nav1');
-            assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+        const anchor = host.querySelector('a');
+        anchor.click();
+        await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc2', 'nav3');
+        assert.deepStrictEqual(eventLog, [], 'nav1 event log');
 
-            await router.load('c2+c1');
-            assert.html.textContent(host, 'c2 c1', 'nav2');
-            assert.deepStrictEqual(eventLog, [], 'nav2 event log');
+        // navigate through history states - round#1
+        const history = container.get(IHistory);
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#1
-            const history = container.get(IHistory);
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc1', 'back1');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
-            assert.html.textContent(host, 'c1 c2', 'back1');
-            assert.strictEqual(eventLog.length, 1, 'back1 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back1 event log trigger');
-            assert.match(eventLog[0][1], /c1\+c2$/, 'back1 event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc2', 'forward1');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
 
-            assert.html.textContent(host, 'c2 c1', 'forward1');
-            assert.strictEqual(eventLog.length, 1, 'forward1 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward1 event log trigger');
-            assert.match(eventLog[0][1], /c2\+c1$/, 'forward1 event log path');
+        // navigate through history states - round#2
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#2
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc1', 'back2');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
-            assert.html.textContent(host, 'c1 c2', 'back2');
-            assert.strictEqual(eventLog.length, 1, 'back2 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
-            assert.match(eventLog[0][1], /c1\+c2$/, 'back2 event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc2', 'forward2');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
 
-            assert.html.textContent(host, 'c2 c1', 'forward2');
-            assert.strictEqual(eventLog.length, 1, 'forward2 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward2 event log trigger');
-            assert.match(eventLog[0][1], /c2\+c1$/, 'forward2 event log path');
+        // navigate through history states - round#3
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#3
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc1', 'back3');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
-            assert.html.textContent(host, 'c1 c2', 'back3');
-            assert.strictEqual(eventLog.length, 1, 'back3 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back3 event log trigger');
-            assert.match(eventLog[0][1], /c1\+c2$/, 'back3 event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc2', 'forward3');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1\/gc-2$/, 'back event log path');
 
-            assert.html.textContent(host, 'c2 c1', 'forward3');
-            assert.strictEqual(eventLog.length, 1, 'forward3 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward3 event log trigger');
-            assert.match(eventLog[0][1], /c2\+c1$/, 'forward3 event log path');
+        subscriber.dispose();
+        await au.stop(true);
+      });
 
-            subscriber.dispose();
-            await au.stop(true);
+      it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - sibling`, async function () {
+        @customElement({ name: 'c-1', template: 'c1' })
+        class C1 { }
+        @customElement({ name: 'c-2', template: 'c2' })
+        class C2 { }
+
+        @route({
+          routes: [
+            { path: 'c1', component: C1 },
+            { path: 'c2', component: C2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport> <au-viewport></au-viewport>' })
+        class Root { }
+
+        const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
+        const router = container.get(IRouter);
+        const eventLog: ['popstate' | 'hashchange', string][] = [];
+        const subscriber = container.get(IRouterEvents)
+          .subscribe('au:router:location-change', (ev) => {
+            eventLog.push([ev.trigger, ev.url]);
           });
 
-          it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - sibling/child`, async function () {
-            @customElement({ name: 'gc-11', template: 'gc11' })
-            class GC11 { }
-            @customElement({ name: 'gc-12', template: 'gc12' })
-            class GC12 { }
-            @customElement({ name: 'gc-21', template: 'gc21' })
-            class GC21 { }
-            @customElement({ name: 'gc-22', template: 'gc22' })
-            class GC22 { }
+        // first make some navigation
+        await router.load('c1+c2');
+        assert.html.textContent(host, 'c1 c2', 'nav1');
+        assert.deepStrictEqual(eventLog, [], 'nav1 event log');
 
-            @route({
-              routes: [
-                { path: ['', 'gc-11'], component: GC11 },
-                { path: 'gc-12', component: GC12 },
-              ]
-            })
-            @customElement({ name: 'c-1', template: `c1 <au-viewport></au-viewport>` })
-            class C1 { }
+        await router.load('c2+c1');
+        assert.html.textContent(host, 'c2 c1', 'nav2');
+        assert.deepStrictEqual(eventLog, [], 'nav2 event log');
 
-            @route({
-              routes: [
-                { path: ['', 'gc-21'], component: GC21 },
-                { path: 'gc-22', component: GC22 },
-              ]
-            })
-            @customElement({ name: 'c-2', template: `c2 <au-viewport></au-viewport>` })
-            class C2 { }
+        // navigate through history states - round#1
+        const history = container.get(IHistory);
+        history.back();
+        await Promise.resolve();
 
-            @route({
-              routes: [
-                { path: 'c1', component: C1 },
-                { path: 'c2', component: C2 },
-              ]
-            })
-            @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport> <au-viewport></au-viewport>' })
-            class Root { }
+        assert.html.textContent(host, 'c1 c2', 'back1');
+        assert.strictEqual(eventLog.length, 1, 'back1 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back1 event log trigger');
+        assert.match(eventLog[0][1], /c1\+c2$/, 'back1 event log path');
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
-            const router = container.get(IRouter);
-            const eventLog: ['popstate' | 'hashchange', string][] = [];
-            const subscriber = container.get(IRouterEvents)
-              .subscribe('au:router:location-change', (ev) => {
-                eventLog.push([ev.trigger, ev.url]);
-              });
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            // first make some navigation
-            await router.load('c1+c2');
-            assert.html.textContent(host, 'c1 gc11 c2 gc21', 'nav1');
-            assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+        assert.html.textContent(host, 'c2 c1', 'forward1');
+        assert.strictEqual(eventLog.length, 1, 'forward1 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward1 event log trigger');
+        assert.match(eventLog[0][1], /c2\+c1$/, 'forward1 event log path');
 
-            await router.load('c2/gc-22+c1/gc-12');
-            assert.html.textContent(host, 'c2 gc22 c1 gc12', 'nav2');
-            assert.deepStrictEqual(eventLog, [], 'nav2 event log');
+        // navigate through history states - round#2
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#1
-            const history = container.get(IHistory);
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 c2', 'back2');
+        assert.strictEqual(eventLog.length, 1, 'back2 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
+        assert.match(eventLog[0][1], /c1\+c2$/, 'back2 event log path');
 
-            assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back1');
-            assert.strictEqual(eventLog.length, 1, 'back1 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back1 event log trigger');
-            assert.match(eventLog[0][1], /c1\+c2$/, 'back1 event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c2 c1', 'forward2');
+        assert.strictEqual(eventLog.length, 1, 'forward2 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward2 event log trigger');
+        assert.match(eventLog[0][1], /c2\+c1$/, 'forward2 event log path');
 
-            assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward1');
-            assert.strictEqual(eventLog.length, 1, 'forward1 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward1 event log trigger');
-            assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward1 event log path');
+        // navigate through history states - round#3
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // navigate through history states - round#2
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c1 c2', 'back3');
+        assert.strictEqual(eventLog.length, 1, 'back3 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back3 event log trigger');
+        assert.match(eventLog[0][1], /c1\+c2$/, 'back3 event log path');
 
-            assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back2');
-            assert.strictEqual(eventLog.length, 1, 'back2 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
-            assert.match(eventLog[0][1], /c1\+c2$/, 'back2 event log path');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        assert.html.textContent(host, 'c2 c1', 'forward3');
+        assert.strictEqual(eventLog.length, 1, 'forward3 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward3 event log trigger');
+        assert.match(eventLog[0][1], /c2\+c1$/, 'forward3 event log path');
 
-            assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward2');
-            assert.strictEqual(eventLog.length, 1, 'forward2 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward2 event log trigger');
-            assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward2 event log path');
+        subscriber.dispose();
+        await au.stop(true);
+      });
 
-            // navigate through history states - round#3
-            eventLog.length = 0;
-            history.back();
-            await Promise.resolve();
+      it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash} - sibling/child`, async function () {
+        @customElement({ name: 'gc-11', template: 'gc11' })
+        class GC11 { }
+        @customElement({ name: 'gc-12', template: 'gc12' })
+        class GC12 { }
+        @customElement({ name: 'gc-21', template: 'gc21' })
+        class GC21 { }
+        @customElement({ name: 'gc-22', template: 'gc22' })
+        class GC22 { }
 
-            assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back3');
-            assert.strictEqual(eventLog.length, 1, 'back3 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back3 event log trigger');
-            assert.match(eventLog[0][1], /c1\+c2$/, 'back3 event log path');
+        @route({
+          routes: [
+            { path: ['', 'gc-11'], component: GC11 },
+            { path: 'gc-12', component: GC12 },
+          ]
+        })
+        @customElement({ name: 'c-1', template: `c1 <au-viewport></au-viewport>` })
+        class C1 { }
 
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        @route({
+          routes: [
+            { path: ['', 'gc-21'], component: GC21 },
+            { path: 'gc-22', component: GC22 },
+          ]
+        })
+        @customElement({ name: 'c-2', template: `c2 <au-viewport></au-viewport>` })
+        class C2 { }
 
-            assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward3');
-            assert.strictEqual(eventLog.length, 1, 'forward3 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward3 event log trigger');
-            assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward3 event log path');
+        @route({
+          routes: [
+            { path: 'c1', component: C1 },
+            { path: 'c2', component: C2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport> <au-viewport></au-viewport>' })
+        class Root { }
 
-            subscriber.dispose();
-            await au.stop(true);
+        const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
+        const router = container.get(IRouter);
+        const eventLog: ['popstate' | 'hashchange', string][] = [];
+        const subscriber = container.get(IRouterEvents)
+          .subscribe('au:router:location-change', (ev) => {
+            eventLog.push([ev.trigger, ev.url]);
           });
 
-          it(`parent-child - replicates GH issue 1658 - useUrlFragmentHash: ${useHash}, event: ${event}`, async function () {
-            @customElement({ name: 'gc-1', template: 'gc1 <a href="../gc-2"></a>' })
-            class GC1 { }
-            @customElement({ name: 'gc-2', template: 'gc2 <button click.trigger="goBack()"></button>' })
-            class GC2 {
-              private readonly history: IHistory = resolve(IHistory);
-              private goBack() { history.back(); }
-            }
+        // first make some navigation
+        await router.load('c1+c2');
+        assert.html.textContent(host, 'c1 gc11 c2 gc21', 'nav1');
+        assert.deepStrictEqual(eventLog, [], 'nav1 event log');
 
-            @route({
-              routes: [
-                { path: ['', 'gc-1'], component: GC1 },
-                { path: 'gc-2', component: GC2 },
-              ]
-            })
-            @customElement({ name: 'c-1', template: `c1 <au-viewport></au-viewport>` })
-            class C1 { }
-            @customElement({ name: 'c-2', template: 'c2' })
-            class C2 { }
+        await router.load('c2/gc-22+c1/gc-12');
+        assert.html.textContent(host, 'c2 gc22 c1 gc12', 'nav2');
+        assert.deepStrictEqual(eventLog, [], 'nav2 event log');
 
-            @route({
-              routes: [
-                { path: 'c1', component: C1 },
-                { path: 'c2', component: C2 },
-              ]
-            })
-            @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
-            class Root { }
+        // navigate through history states - round#1
+        const history = container.get(IHistory);
+        history.back();
+        await Promise.resolve();
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
-            const router = container.get(IRouter);
-            const history = container.get(IHistory);
-            const eventLog: ['popstate' | 'hashchange', string][] = [];
-            const subscriber = container.get(IRouterEvents)
-              .subscribe('au:router:location-change', (ev) => {
-                eventLog.push([ev.trigger, ev.url]);
-              });
+        assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back1');
+        assert.strictEqual(eventLog.length, 1, 'back1 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back1 event log trigger');
+        assert.match(eventLog[0][1], /c1\+c2$/, 'back1 event log path');
 
-            assert.html.textContent(host, '', 'init');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            // load c1/gc-1
-            await router.load('c1');
-            assert.html.textContent(host, 'c1 gc1', 'nav1');
-            assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+        assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward1');
+        assert.strictEqual(eventLog.length, 1, 'forward1 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward1 event log trigger');
+        assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward1 event log path');
 
-            // round#1
-            // go to c1/gc-2 by clicking the link
-            host.querySelector('a').click();
-            await Promise.resolve();
-            assert.html.textContent(host, 'c1 gc2', 'nav2');
-            assert.deepStrictEqual(eventLog, [], 'nav2 event log');
+        // navigate through history states - round#2
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            // go back to c1/gc-1 by clicking the button
-            host.querySelector('button').click();
-            await Promise.resolve();
-            assert.html.textContent(host, 'c1 gc1', 'back1');
-            assert.strictEqual(eventLog.length, 1, 'back event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back event log path');
+        assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back2');
+        assert.strictEqual(eventLog.length, 1, 'back2 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
+        assert.match(eventLog[0][1], /c1\+c2$/, 'back2 event log path');
 
-            // round#2
-            // go to c1/gc-2 by clicking the link
-            eventLog.length = 0;
-            host.querySelector('a').click();
-            await Promise.resolve();
-            assert.html.textContent(host, 'c1 gc2', 'nav3');
-            assert.deepStrictEqual(eventLog, [], 'nav3 event log');
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
 
-            // go back to c1/gc-1 by clicking the button
-            eventLog.length = 0;
-            host.querySelector('button').click();
-            await Promise.resolve();
-            assert.html.textContent(host, 'c1 gc1', 'back2');
-            assert.strictEqual(eventLog.length, 1, 'back2 event log length');
-            assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
-            assert.match(eventLog[0][1], /c1$/, 'back2 event log path');
+        assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward2');
+        assert.strictEqual(eventLog.length, 1, 'forward2 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward2 event log trigger');
+        assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward2 event log path');
 
-            // go forward using history state
-            eventLog.length = 0;
-            history.forward();
-            await Promise.resolve();
+        // navigate through history states - round#3
+        eventLog.length = 0;
+        history.back();
+        await Promise.resolve();
 
-            assert.html.textContent(host, 'c1 gc2', 'forward');
-            assert.strictEqual(eventLog.length, 1, 'forward event log length');
-            assert.strictEqual(eventLog[0][0], event, 'forward event log trigger');
-            assert.match(eventLog[0][1], /c1\/gc-2$/, 'forward event log path');
+        assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back3');
+        assert.strictEqual(eventLog.length, 1, 'back3 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back3 event log trigger');
+        assert.match(eventLog[0][1], /c1\+c2$/, 'back3 event log path');
 
-            subscriber.dispose();
-            await au.stop(true);
-          });
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
+
+        assert.html.textContent(host, 'c2 gc22 c1 gc12', 'forward3');
+        assert.strictEqual(eventLog.length, 1, 'forward3 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward3 event log trigger');
+        assert.match(eventLog[0][1], /c2\/gc-22\+c1\/gc-12$/, 'forward3 event log path');
+
+        subscriber.dispose();
+        await au.stop(true);
+      });
+
+      it(`parent-child - replicates GH issue 1658 - useUrlFragmentHash: ${useHash}, event: ${event}`, async function () {
+        @customElement({ name: 'gc-1', template: 'gc1 <a href="../gc-2"></a>' })
+        class GC1 { }
+        @customElement({ name: 'gc-2', template: 'gc2 <button click.trigger="goBack()"></button>' })
+        class GC2 {
+          private readonly history: IHistory = resolve(IHistory);
+          private goBack() { history.back(); }
         }
+
+        @route({
+          routes: [
+            { path: ['', 'gc-1'], component: GC1 },
+            { path: 'gc-2', component: GC2 },
+          ]
+        })
+        @customElement({ name: 'c-1', template: `c1 <au-viewport></au-viewport>` })
+        class C1 { }
+        @customElement({ name: 'c-2', template: 'c2' })
+        class C2 { }
+
+        @route({
+          routes: [
+            { path: 'c1', component: C1 },
+            { path: 'c2', component: C2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root { }
+
+        const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
+        const router = container.get(IRouter);
+        const history = container.get(IHistory);
+        const eventLog: ['popstate' | 'hashchange', string][] = [];
+        const subscriber = container.get(IRouterEvents)
+          .subscribe('au:router:location-change', (ev) => {
+            eventLog.push([ev.trigger, ev.url]);
+          });
+
+        assert.html.textContent(host, '', 'init');
+
+        // load c1/gc-1
+        await router.load('c1');
+        assert.html.textContent(host, 'c1 gc1', 'nav1');
+        assert.deepStrictEqual(eventLog, [], 'nav1 event log');
+
+        // round#1
+        // go to c1/gc-2 by clicking the link
+        host.querySelector('a').click();
+        await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc2', 'nav2');
+        assert.deepStrictEqual(eventLog, [], 'nav2 event log');
+
+        // go back to c1/gc-1 by clicking the button
+        host.querySelector('button').click();
+        await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc1', 'back1');
+        assert.strictEqual(eventLog.length, 1, 'back event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back event log path');
+
+        // round#2
+        // go to c1/gc-2 by clicking the link
+        eventLog.length = 0;
+        host.querySelector('a').click();
+        await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc2', 'nav3');
+        assert.deepStrictEqual(eventLog, [], 'nav3 event log');
+
+        // go back to c1/gc-1 by clicking the button
+        eventLog.length = 0;
+        host.querySelector('button').click();
+        await Promise.resolve();
+        assert.html.textContent(host, 'c1 gc1', 'back2');
+        assert.strictEqual(eventLog.length, 1, 'back2 event log length');
+        assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
+        assert.match(eventLog[0][1], /c1$/, 'back2 event log path');
+
+        // go forward using history state
+        eventLog.length = 0;
+        history.forward();
+        await Promise.resolve();
+
+        assert.html.textContent(host, 'c1 gc2', 'forward');
+        assert.strictEqual(eventLog.length, 1, 'forward event log length');
+        assert.strictEqual(eventLog[0][0], event, 'forward event log trigger');
+        assert.match(eventLog[0][1], /c1\/gc-2$/, 'forward event log path');
+
+        subscriber.dispose();
+        await au.stop(true);
+      });
+    }
   }
 
   // =============================================================================

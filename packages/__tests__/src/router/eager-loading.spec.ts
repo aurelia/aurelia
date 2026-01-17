@@ -2,6 +2,7 @@ import { IRouter, IRouteViewModel, Params, route, RouteNode } from '@aurelia/rou
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 /**
  * These tests assert the specific utilities satisfied by the eager loading in the router.
@@ -260,6 +261,147 @@ describe('router/eager-loading.spec.ts', function () {
 
     await router.load('parent/(child-two/(grandchild-one/777+grandchild-two)+child-one/delta/(grandchild-two+grandchild-one/888))');
     assert.html.textContent(host, 'parent child-two grandchild-one 777 grandchild-two child-one delta grandchild-two grandchild-one 888', 'round#3 mixed optional params');
+
+    await au.stop(true);
+  });
+
+  describe('default viewport content', function () {
+    it('renders default component immediately when using default attribute on viewport', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1' })
+      class CeOne { }
+
+      @customElement({ name: 'ce-two', template: 'ce2' })
+      class CeTwo { }
+
+      @route({
+        routes: [
+          { path: 'ce-one', component: CeOne },
+          { path: 'ce-two', component: CeTwo },
+        ]
+      })
+      @customElement({
+        name: 'ro-ot',
+        template: '<au-viewport default="ce-one"></au-viewport>'
+      })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root, useEagerLoading });
+      const router = container.get(IRouter);
+
+      await tasksSettled();
+      assert.html.textContent(host, 'ce1', 'initial - default component loaded');
+
+      await router.load('ce-two');
+      await tasksSettled();
+      assert.html.textContent(host, 'ce2', 'after navigation to ce-two');
+
+      await router.load('ce-one');
+      await tasksSettled();
+      assert.html.textContent(host, 'ce1', 'after navigation back to ce-one');
+
+      await au.stop(true);
+    });
+
+    it('renders nested default components in hierarchical routing', async function () {
+      @customElement({ name: 'gc-1', template: 'gc1' })
+      class GC1 { }
+
+      @route({
+        routes: [
+          { path: 'gc-1', component: GC1 },
+        ]
+      })
+      @customElement({ name: 'c-1', template: 'c1 <au-viewport default="gc-1"></au-viewport>' })
+      class C1 { }
+
+      @route({
+        routes: [
+          { path: 'c1', component: C1 },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport default="c1"></au-viewport>' })
+      class Root { }
+
+      const { au, host } = await start({ appRoot: Root, useEagerLoading });
+
+      await tasksSettled();
+      assert.html.textContent(host, 'c1 gc1', 'initial - nested defaults loaded');
+
+      await au.stop(true);
+    });
+
+    it('renders default components in sibling viewports', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1' })
+      class CeOne { }
+
+      @customElement({ name: 'ce-two', template: 'ce2' })
+      class CeTwo { }
+
+      @route({
+        routes: [
+          { path: 'ce-one', component: CeOne },
+          { path: 'ce-two', component: CeTwo },
+        ]
+      })
+      @customElement({
+        name: 'ro-ot',
+        template: '<au-viewport name="vp1" default="ce-one"></au-viewport> <au-viewport name="vp2" default="ce-two"></au-viewport>'
+      })
+      class Root { }
+
+      const { au, host } = await start({ appRoot: Root, useEagerLoading });
+
+      await tasksSettled();
+      assert.html.textContent(host, 'ce1 ce2', 'initial - both defaults loaded');
+
+      await au.stop(true);
+    });
+  });
+
+  it('href navigation works with ancestor paths using ../ prefix', async function () {
+    @customElement({ name: 'l-21', template: 'l21 <a href="../../l12"></a>' })
+    class L21 { }
+
+    @customElement({ name: 'l-22', template: 'l22 <a href="../../l11"></a>' })
+    class L22 { }
+
+    @route({
+      routes: [
+        { path: 'l21', component: L21 },
+      ]
+    })
+    @customElement({ name: 'l-11', template: 'l11 <au-viewport default="l21"></au-viewport>' })
+    class L11 { }
+
+    @route({
+      routes: [
+        { path: 'l22', component: L22 },
+      ]
+    })
+    @customElement({ name: 'l-12', template: 'l12 <au-viewport default="l22"></au-viewport>' })
+    class L12 { }
+
+    @route({
+      routes: [
+        { path: 'l11', component: L11 },
+        { path: 'l12', component: L12 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport default="l11"></au-viewport>' })
+    class Root { }
+
+    const { au, host } = await start({ appRoot: Root, useEagerLoading });
+    await tasksSettled();
+
+    assert.html.textContent(host, 'l11 l21', 'initial - eager loaded with defaults');
+
+    host.querySelector('a')!.click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l12 l22', 'after clicking link to l12');
+
+    host.querySelector('a')!.click();
+    await tasksSettled();
+    assert.html.textContent(host, 'l11 l21', 'after clicking link back to l11');
 
     await au.stop(true);
   });

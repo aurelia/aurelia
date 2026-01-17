@@ -7,43 +7,36 @@ import { getLocationChangeHandlerRegistration } from './_shared/configuration.js
 import { start } from './_shared/create-fixture.js';
 
 describe('router/location-manager.spec.ts', function () {
+  // Tests run with lazy loading (default) mode only.
+  // Eager loading specific tests are in eager-loading.spec.ts
+
   if (!isNode()) {
-    for (const useEagerLoading of [true, false]) {
-      describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
-        function getEmptyPath(): string[] {
-          return useEagerLoading ? [] : [''];
+    for (const [useHash, event] of [[true, 'hashchange'], [false, 'popstate']] as const) {
+      it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash}`, async function () {
+        const isBackLog: boolean[] = [];
+        @customElement({ name: 'c-1', template: 'c1' })
+        class C1 {
+          public loading(_params: Params, _next: RouteNode, _current: RouteNode, options: INavigationOptions): void | Promise<void> {
+            isBackLog.push(options.isBack);
+          }
+        }
+        @customElement({ name: 'c-2', template: 'c2' })
+        class C2 {
+          public loading(_params: Params, _next: RouteNode, _current: RouteNode, options: INavigationOptions): void | Promise<void> {
+            isBackLog.push(options.isBack);
+          }
         }
 
-        function defaultAttr(value: string): string {
-          return useEagerLoading ? ` default="${value}"` : '';
-        }
+        @route({
+          routes: [
+            { path: ['', 'c1'], component: C1 },
+            { path: 'c2', component: C2 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+        class Root { }
 
-        for (const [useHash, event] of [[true, 'hashchange'], [false, 'popstate']] as const) {
-          it(`listens to ${event} event and facilitates navigation when useUrlFragmentHash is set to ${useHash}`, async function () {
-            const isBackLog: boolean[] = [];
-            @customElement({ name: 'c-1', template: 'c1' })
-            class C1 {
-              public loading(_params: Params, _next: RouteNode, _current: RouteNode, options: INavigationOptions): void | Promise<void> {
-                isBackLog.push(options.isBack);
-              }
-            }
-            @customElement({ name: 'c-2', template: 'c2' })
-            class C2 {
-              public loading(_params: Params, _next: RouteNode, _current: RouteNode, options: INavigationOptions): void | Promise<void> {
-                isBackLog.push(options.isBack);
-              }
-            }
-
-            @route({
-              routes: [
-                { path: [...getEmptyPath(), 'c1'], component: C1 },
-                { path: 'c2', component: C2 },
-              ]
-            })
-            @customElement({ name: 'ro-ot', template: `<au-viewport${defaultAttr('c1')}></au-viewport>` })
-            class Root { }
-
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push', useEagerLoading });
+        const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
             const router = container.get(IRouter);
             const eventLog: ['popstate' | 'hashchange', string][] = [];
             const subscriber = container.get(IRouterEvents)
@@ -151,25 +144,25 @@ describe('router/location-manager.spec.ts', function () {
 
             @route({
               routes: [
-                { path: [...getEmptyPath(), 'gc-1'], component: GC1 },
+                { path: ['', 'gc-1'], component: GC1 },
                 { path: 'gc-2', component: GC2 },
               ]
             })
-            @customElement({ name: 'c-1', template: `<a load="gc-2"></a> c1 <au-viewport${defaultAttr('gc-1')}></au-viewport>` })
+            @customElement({ name: 'c-1', template: `<a load="gc-2"></a> c1 <au-viewport></au-viewport>` })
             class C1 { }
             @customElement({ name: 'c-2', template: 'c2' })
             class C2 { }
 
             @route({
               routes: [
-                { path: [...getEmptyPath(), 'c1'], component: C1 },
+                { path: ['', 'c1'], component: C1 },
                 { path: 'c2', component: C2 },
               ]
             })
-            @customElement({ name: 'ro-ot', template: `<au-viewport${defaultAttr('c1')}></au-viewport>` })
+            @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
             class Root { }
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push', useEagerLoading });
+            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
             const router = container.get(IRouter);
             const eventLog: ['popstate' | 'hashchange', string][] = [];
             const subscriber = container.get(IRouterEvents)
@@ -203,7 +196,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc1', 'back1');
             assert.strictEqual(eventLog.length, 1, 'back event log length');
             assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-1$/ : /c1$/, 'back event log path');
+            assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
             eventLog.length = 0;
             history.forward();
@@ -222,7 +215,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc1', 'back2');
             assert.strictEqual(eventLog.length, 1, 'back event log length');
             assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-1$/ : /c1$/, 'back event log path');
+            assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
             eventLog.length = 0;
             history.forward();
@@ -241,7 +234,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc1', 'back3');
             assert.strictEqual(eventLog.length, 1, 'back event log length');
             assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-1$/ : /c1$/, 'back event log path');
+            assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
             eventLog.length = 0;
             history.forward();
@@ -271,7 +264,7 @@ describe('router/location-manager.spec.ts', function () {
             @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport> <au-viewport></au-viewport>' })
             class Root { }
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push', useEagerLoading });
+            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
             const router = container.get(IRouter);
             const eventLog: ['popstate' | 'hashchange', string][] = [];
             const subscriber = container.get(IRouterEvents)
@@ -361,20 +354,20 @@ describe('router/location-manager.spec.ts', function () {
 
             @route({
               routes: [
-                { path: [...getEmptyPath(), 'gc-11'], component: GC11 },
+                { path: ['', 'gc-11'], component: GC11 },
                 { path: 'gc-12', component: GC12 },
               ]
             })
-            @customElement({ name: 'c-1', template: `c1 <au-viewport${defaultAttr('gc-11')}></au-viewport>` })
+            @customElement({ name: 'c-1', template: `c1 <au-viewport></au-viewport>` })
             class C1 { }
 
             @route({
               routes: [
-                { path: [...getEmptyPath(), 'gc-21'], component: GC21 },
+                { path: ['', 'gc-21'], component: GC21 },
                 { path: 'gc-22', component: GC22 },
               ]
             })
-            @customElement({ name: 'c-2', template: `c2 <au-viewport${defaultAttr('gc-21')}></au-viewport>` })
+            @customElement({ name: 'c-2', template: `c2 <au-viewport></au-viewport>` })
             class C2 { }
 
             @route({
@@ -386,7 +379,7 @@ describe('router/location-manager.spec.ts', function () {
             @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport> <au-viewport></au-viewport>' })
             class Root { }
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push', useEagerLoading });
+            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
             const router = container.get(IRouter);
             const eventLog: ['popstate' | 'hashchange', string][] = [];
             const subscriber = container.get(IRouterEvents)
@@ -411,7 +404,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back1');
             assert.strictEqual(eventLog.length, 1, 'back1 event log length');
             assert.strictEqual(eventLog[0][0], event, 'back1 event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-11\+c2\/gc-21$/ : /c1\+c2$/, 'back1 event log path');
+            assert.match(eventLog[0][1], /c1\+c2$/, 'back1 event log path');
 
             eventLog.length = 0;
             history.forward();
@@ -430,7 +423,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back2');
             assert.strictEqual(eventLog.length, 1, 'back2 event log length');
             assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-11\+c2\/gc-21$/ : /c1\+c2$/, 'back2 event log path');
+            assert.match(eventLog[0][1], /c1\+c2$/, 'back2 event log path');
 
             eventLog.length = 0;
             history.forward();
@@ -449,7 +442,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc11 c2 gc21', 'back3');
             assert.strictEqual(eventLog.length, 1, 'back3 event log length');
             assert.strictEqual(eventLog[0][0], event, 'back3 event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-11\+c2\/gc-21$/ : /c1\+c2$/, 'back3 event log path');
+            assert.match(eventLog[0][1], /c1\+c2$/, 'back3 event log path');
 
             eventLog.length = 0;
             history.forward();
@@ -475,11 +468,11 @@ describe('router/location-manager.spec.ts', function () {
 
             @route({
               routes: [
-                { path: [...getEmptyPath(), 'gc-1'], component: GC1 },
+                { path: ['', 'gc-1'], component: GC1 },
                 { path: 'gc-2', component: GC2 },
               ]
             })
-            @customElement({ name: 'c-1', template: `c1 <au-viewport${defaultAttr('gc-1')}></au-viewport>` })
+            @customElement({ name: 'c-1', template: `c1 <au-viewport></au-viewport>` })
             class C1 { }
             @customElement({ name: 'c-2', template: 'c2' })
             class C2 { }
@@ -493,7 +486,7 @@ describe('router/location-manager.spec.ts', function () {
             @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
             class Root { }
 
-            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push', useEagerLoading });
+            const { au, container, host } = await start({ appRoot: Root, useHash, registrations: [getLocationChangeHandlerRegistration()], historyStrategy: 'push' });
             const router = container.get(IRouter);
             const history = container.get(IHistory);
             const eventLog: ['popstate' | 'hashchange', string][] = [];
@@ -522,7 +515,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc1', 'back1');
             assert.strictEqual(eventLog.length, 1, 'back event log length');
             assert.strictEqual(eventLog[0][0], event, 'back event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-1$/ : /c1$/, 'back event log path');
+            assert.match(eventLog[0][1], /c1$/, 'back event log path');
 
             // round#2
             // go to c1/gc-2 by clicking the link
@@ -539,7 +532,7 @@ describe('router/location-manager.spec.ts', function () {
             assert.html.textContent(host, 'c1 gc1', 'back2');
             assert.strictEqual(eventLog.length, 1, 'back2 event log length');
             assert.strictEqual(eventLog[0][0], event, 'back2 event log trigger');
-            assert.match(eventLog[0][1], useEagerLoading ? /c1\/gc-1$/ : /c1$/, 'back2 event log path');
+            assert.match(eventLog[0][1], /c1$/, 'back2 event log path');
 
             // go forward using history state
             eventLog.length = 0;
@@ -555,8 +548,6 @@ describe('router/location-manager.spec.ts', function () {
             await au.stop(true);
           });
         }
-      });
-    }
   }
 
   // =============================================================================

@@ -5,46 +5,44 @@ import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
 describe('router/generate-path.spec.ts', function () {
-  for (const useEagerLoading of [true, false]) {
-    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
-      for (const useHash of [false, true]) {
-        describe(`router - useHash: ${useHash}`, function () {
-          abstract class AbstractVm implements IRouteViewModel {
-            public readonly routeContext: IRouteContext = resolve(IRouteContext);
-            private readonly _router: IRouter = resolve(IRouter);
-            public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContext): string | Promise<string> {
-              return this._router.generatePath(instructionOrInstructions, context ?? this);
-            }
+  for (const useHash of [false, true]) {
+    describe(`router - useHash: ${useHash}`, function () {
+      abstract class AbstractVm implements IRouteViewModel {
+        public readonly routeContext: IRouteContext = resolve(IRouteContext);
+        private readonly _router: IRouter = resolve(IRouter);
+        public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContext): string | Promise<string> {
+          return this._router.generatePath(instructionOrInstructions, context ?? this);
+        }
 
-            protected params: Params;
-            protected query: string;
-            public loading(params: Params, next: RouteNode, _current: RouteNode | null): void | Promise<void> {
-              this.params = structuredClone(params);
-              this.query = next.queryParams.toString();
-            }
-          }
+        protected params: Params;
+        protected query: string;
+        public loading(params: Params, next: RouteNode, _current: RouteNode | null): void | Promise<void> {
+          this.params = structuredClone(params);
+          this.query = next.queryParams.toString();
+        }
+      }
 
-          it('flat hierarchy', async function () {
-            @customElement({ name: 'c-1', template: 'c1' })
-            class C1 extends AbstractVm { }
+      it('flat hierarchy', async function () {
+        @customElement({ name: 'c-1', template: 'c1' })
+        class C1 extends AbstractVm { }
 
-            @customElement({ name: 'c-2', template: 'c2' })
-            class C2 extends AbstractVm { }
+        @customElement({ name: 'c-2', template: 'c2' })
+        class C2 extends AbstractVm { }
 
-            @customElement({ name: 'c-3', template: 'c3 ${params.id} ${query}' })
-            class C3 extends AbstractVm { }
+        @customElement({ name: 'c-3', template: 'c3 ${params.id} ${query}' })
+        class C3 extends AbstractVm { }
 
-            @route({
-              routes: [
-                { path: ['', 'c1'], component: C1 },
-                C2,
-                { id: 'bar', path: 'foo/:id', component: C3 },
-              ]
-            })
-            @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
-            class Root { }
+        @route({
+          routes: [
+            { path: ['', 'c1'], component: C1 },
+            C2,
+            { id: 'bar', path: 'foo/:id', component: C3 },
+          ]
+        })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root { }
 
-            const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3], useHash });
+        const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3], useHash });
 
             assert.html.textContent(host, 'c1', 'init');
 
@@ -1170,8 +1168,6 @@ describe('router/generate-path.spec.ts', function () {
             await au.stop(true);
           });
 
-        });
-      }
-    });
+      });
   }
 });

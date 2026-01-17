@@ -81,10 +81,7 @@ export abstract class SimpleActivityTrackingVMBase {
 }
 
 describe('router/config-tests.spec.ts', function () {
-
-  for (const useEagerLoading of [true, false]) {
-    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
-      describe('monomorphic timings', function () {
+  describe('monomorphic timings', function () {
         const componentSpecs: IComponentSpec[] = [
           {
             kind: 'all-sync',
@@ -187,7 +184,7 @@ describe('router/config-tests.spec.ts', function () {
                 const { t1: [t1, t1c], t2: [t2, t2c], t3: [t3, t3c], t4: [t4, t4c] } = spec;
                 spec.configure();
                 it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
-                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, () => ({ useEagerLoading }));
+                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig);
 
                   const phase1 = `('' -> '${t1}')#1`;
                   const phase2 = `('${t1}' -> '${t2}')#2`;
@@ -287,7 +284,7 @@ describe('router/config-tests.spec.ts', function () {
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
             class Root extends SimpleActivityTrackingVMBase { }
 
-            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading }));
+            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
             await router.load('a');
 
@@ -303,7 +300,7 @@ describe('router/config-tests.spec.ts', function () {
             @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
             class Root extends SimpleActivityTrackingVMBase { }
 
-            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading }));
+            const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
             await router.load('a');
 
@@ -320,7 +317,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('a01');
 
@@ -335,7 +332,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('a/x');
 
@@ -350,7 +347,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('a/1');
 
@@ -369,7 +366,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('a/x/b');
 
@@ -388,7 +385,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('a/x/b/x');
 
@@ -407,7 +404,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('a/b/x');
 
@@ -422,7 +419,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('');
 
@@ -437,7 +434,7 @@ describe('router/config-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends SimpleActivityTrackingVMBase { }
 
-        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+        const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
         await router.load('x');
 
@@ -454,7 +451,7 @@ describe('router/config-tests.spec.ts', function () {
           @customElement({ name: 'root', template: vp(1) })
           class Root extends SimpleActivityTrackingVMBase { }
 
-          const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ useEagerLoading, }));
+          const { router } = await createFixture(Root, [], getDefaultHIAConfig);
 
           let e: Error | null = null;
           try {
@@ -514,7 +511,7 @@ describe('router/config-tests.spec.ts', function () {
 
         container.register(
           TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration.customize({ useEagerLoading, }),
+          RouterConfiguration,
           C1,
           C2,
           P,
@@ -539,8 +536,6 @@ describe('router/config-tests.spec.ts', function () {
 
         await au.stop(true);
       });
-    });
-  }
 });
 
 function getAllAsyncSpecs(count: number): HookSpecs {

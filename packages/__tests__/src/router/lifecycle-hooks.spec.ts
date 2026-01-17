@@ -29,9 +29,9 @@ import { TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
 
 describe('router/lifecycle-hooks.spec.ts', function () {
-  for (const useEagerLoading of [true, false]) {
-    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
-      const IKnownScopes = DI.createInterface<string[]>();
+  // Tests run with lazy loading (default) mode only.
+  // Eager loading specific tests are in eager-loading.spec.ts
+  const IKnownScopes = DI.createInterface<string[]>();
       class EventLog implements ISink {
         public readonly log: string[] = [];
         private readonly scopes: string[] = resolve(IKnownScopes);
@@ -83,7 +83,7 @@ describe('router/lifecycle-hooks.spec.ts', function () {
               // uncomment the following line to see the logs in console - debug
               /* , ConsoleSink */
             ]),
-          RouterConfiguration.customize({ useEagerLoading }),
+          RouterConfiguration,
           ...registrations
         );
 
@@ -6136,11 +6136,11 @@ describe('router/lifecycle-hooks.spec.ts', function () {
 
         @route({
           routes: [
-            { path: useEagerLoading ? 'l-121' : '', component: L121 },
+            { path: '', component: L121 },
             { path: 'l122/:id', component: L122 },
           ]
         })
-        @customElement({ name: 'l-1', template: `<au-viewport${useEagerLoading ? ' default="l-121"' : ''}></au-viewport>` })
+        @customElement({ name: 'l-1', template: `<au-viewport></au-viewport>` })
         class L1 extends AsyncBaseViewModelWithAllHooks {
           public constructor() {
             super(ticks);
@@ -6510,6 +6510,4 @@ describe('router/lifecycle-hooks.spec.ts', function () {
 
         await au.stop(true);
       });
-    });
-  }
 });

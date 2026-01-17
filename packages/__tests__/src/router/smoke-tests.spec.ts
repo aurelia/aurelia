@@ -38,22 +38,17 @@ function assertIsActive(
 
 describe('router/smoke-tests.spec.ts', function () {
 
-  for (const useEagerLoading of [true, false]) {
-    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
+  async function createFixture<T extends Constructable>(
+    Component: T,
+    deps: Constructable[],
+    level: LogLevel = LogLevel.fatal,
+  ) {
+    const ctx = TestContext.create();
+    const { container, platform } = ctx;
 
-      function getEmptyPath(): string[] { return useEagerLoading ? [] : ['']; }
-
-      async function createFixture<T extends Constructable>(
-        Component: T,
-        deps: Constructable[],
-        level: LogLevel = LogLevel.fatal,
-      ) {
-        const ctx = TestContext.create();
-        const { container, platform } = ctx;
-
-        container.register(TestRouterConfiguration.for(level));
-        container.register(RouterConfiguration.customize({ useEagerLoading }));
-        container.register(...deps);
+    container.register(TestRouterConfiguration.for(level));
+    container.register(RouterConfiguration);
+    container.register(...deps);
 
         const au = new Aurelia(container);
         const host = ctx.createElement('div');
@@ -89,7 +84,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       async function start<TAppRoot>(options: RouterTestStartOptions<TAppRoot>) {
-        return $start({ ...options, useEagerLoading });
+        return $start(options);
       }
 
       @customElement({ name: 'a01', template: `a01${vp(0)}` })
@@ -1108,18 +1103,18 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
         class P2 { }
 
         @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1215,20 +1210,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
         class P1 {
           private readonly fallback = fallback;
         }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
         class P2 {
           private readonly fallback = fallback;
         }
@@ -1308,18 +1303,18 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
         class P2 { }
 
         @customElement({ name: 'n-f', template: 'nf' })
@@ -1404,18 +1399,18 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
         class P2 { }
 
         @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1496,18 +1491,18 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
         class P2 { }
 
         @customElement({ name: 'n-f', template: 'nf' })
@@ -1592,18 +1587,18 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
         class P2 { }
 
         @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1685,20 +1680,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
         class P1 {
           private readonly fallback = NF1;
         }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
         class P2 {
           private readonly fallback = NF2;
         }
@@ -1792,20 +1787,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
         class P1 {
           fallback = fallback;
         }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
         class P2 {
           fallback = fallback;
         }
@@ -1886,20 +1881,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
         class P1 {
           private readonly fallback = Promise.resolve(NF1);
         }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
         class P2 {
           private readonly fallback = Promise.resolve(NF2);
         }
@@ -1993,20 +1988,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C1 },
+            { id: 'r1', path: ['', 'c'], component: C1 },
           ]
         })
-        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
         class P1 {
           fallback = fallback;
         }
 
         @route({
           routes: [
-            { id: 'r1', path: [...getEmptyPath(), 'c'], component: C2 },
+            { id: 'r1', path: ['', 'c'], component: C2 },
           ]
         })
-        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind${useEagerLoading ? ' default="c"' : ''}></au-viewport>` })
+        @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
         class P2 {
           fallback = fallback;
         }
@@ -2056,7 +2051,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              { id: 'gc11', path: [...getEmptyPath(), 'gc11'], component: GrandChildOneOne },
+              { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
               { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
             ],
           })
@@ -2082,7 +2077,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              { id: 'gc21', path: [...getEmptyPath(), 'gc21'], component: GrandChildTwoOne },
+              { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
               { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
             ],
           })
@@ -2381,11 +2376,11 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc11', path: [...getEmptyPath(), 'gc11'], component: GrandChildOneOne },
+            { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
             { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
           ],
         })
-        @customElement({ name: 'c-one', template: `c1 <au-viewport${useEagerLoading ? ' default="gc11"' : ''}></au-viewport>`, })
+        @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
         class ChildOne { }
 
         @customElement({ name: 'gc-21', template: 'gc21' })
@@ -2396,13 +2391,13 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc21', path: [...getEmptyPath(), 'gc21'], component: GrandChildTwoOne },
+            { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
             { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
           ],
         })
         @customElement({
           name: 'c-two',
-          template: `c2 \${id} <au-viewport${useEagerLoading ? ' default="gc21"' : ''}></au-viewport>`,
+          template: `c2 \${id} <au-viewport></au-viewport>`,
         })
         class ChildTwo {
           private id: string;
@@ -2414,7 +2409,7 @@ describe('router/smoke-tests.spec.ts', function () {
         @route({
           routes: [
             {
-              path: [...getEmptyPath(), 'c1'],
+              path: ['', 'c1'],
               component: ChildOne,
             },
             {
@@ -2423,7 +2418,7 @@ describe('router/smoke-tests.spec.ts', function () {
             },
           ],
         })
-        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c1"' : ''}></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
+        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
         class MyApp { }
 
         const { au, container, host } = await start({ appRoot: MyApp });
@@ -2475,11 +2470,11 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc11', path: [...getEmptyPath(), 'gc-11'], component: GrandChildOneOne },
+            { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
             { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
           ],
         })
-        @customElement({ name: 'c-one', template: `c1 <au-viewport${useEagerLoading ? ' default="gc-11"' : ''}></au-viewport>`, })
+        @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
         class ChildOne { }
 
         @customElement({ name: 'gc-21', template: 'gc21' })
@@ -2495,13 +2490,13 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc21', path: [...getEmptyPath(), 'gc-21'], component: GrandChildTwoOne },
+            { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
             { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
           ],
         })
         @customElement({
           name: 'c-two',
-          template: `c2 \${id} <au-viewport${useEagerLoading ? ' default="gc-21"' : ''}></au-viewport>`,
+          template: `c2 \${id} <au-viewport></au-viewport>`,
         })
         class ChildTwo {
           private id: string;
@@ -2514,7 +2509,7 @@ describe('router/smoke-tests.spec.ts', function () {
           routes: [
             {
               id: 'c1',
-              path: [...getEmptyPath(), 'c-1'],
+              path: ['', 'c-1'],
               component: ChildOne,
             },
             {
@@ -2524,7 +2519,7 @@ describe('router/smoke-tests.spec.ts', function () {
             },
           ],
         })
-        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c1"' : ''}></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
+        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
         class MyApp { }
 
         const { au, container, host } = await start({ appRoot: MyApp });
@@ -2606,11 +2601,11 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc11', path: [...getEmptyPath(), 'gc-11'], component: GrandChildOneOne },
+            { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
             { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
           ],
         })
-        @customElement({ name: 'c-one', template: `c1 <au-viewport${useEagerLoading ? ' default="gc-11"' : ''}></au-viewport>`, })
+        @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
         class ChildOne { }
 
         @customElement({ name: 'gc-21', template: 'gc21' })
@@ -2626,13 +2621,13 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc21', path: [...getEmptyPath(), 'gc-21'], component: GrandChildTwoOne },
+            { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
             { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
           ],
         })
         @customElement({
           name: 'c-two',
-          template: `c2 \${id} <au-viewport${useEagerLoading ? ' default="gc-21"' : ''}></au-viewport>`,
+          template: `c2 \${id} <au-viewport></au-viewport>`,
         })
         class ChildTwo {
           private id: string;
@@ -2645,7 +2640,7 @@ describe('router/smoke-tests.spec.ts', function () {
           routes: [
             {
               id: 'c1',
-              path: [...getEmptyPath(), 'c-1'],
+              path: ['', 'c-1'],
               component: ChildOne,
             },
             {
@@ -2655,7 +2650,7 @@ describe('router/smoke-tests.spec.ts', function () {
             },
           ],
         })
-        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c1"' : ''}></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
+        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
         class MyApp { }
 
         const { au, container, host } = await start({ appRoot: MyApp });
@@ -2743,11 +2738,11 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc11', path: [...getEmptyPath(), 'gc-11'], component: GrandChildOneOne },
+            { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
             { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
           ],
         })
-        @customElement({ name: 'c-one', template: `c1 <au-viewport${useEagerLoading ? ' default="gc-11"' : ''}></au-viewport>`, })
+        @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
         class ChildOne { }
 
         @customElement({ name: 'gc-21', template: 'gc21' })
@@ -2763,13 +2758,13 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc21', path: [...getEmptyPath(), 'gc-21'], component: GrandChildTwoOne },
+            { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
             { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
           ],
         })
         @customElement({
           name: 'c-two',
-          template: `c2 \${id} <au-viewport${useEagerLoading ? ' default="gc-21"' : ''}></au-viewport>`,
+          template: `c2 \${id} <au-viewport></au-viewport>`,
         })
         class ChildTwo {
           private id: string;
@@ -2782,7 +2777,7 @@ describe('router/smoke-tests.spec.ts', function () {
           routes: [
             {
               id: 'c1',
-              path: [...getEmptyPath(), 'c-1'],
+              path: ['', 'c-1'],
               component: ChildOne,
             },
             {
@@ -2792,7 +2787,7 @@ describe('router/smoke-tests.spec.ts', function () {
             },
           ],
         })
-        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c-1"' : ''}></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
+        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
         class MyApp { }
 
         const { au, container, host } = await start({ appRoot: MyApp });
@@ -2893,11 +2888,11 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc11', path: [...getEmptyPath(), 'gc-11'], component: GrandChildOneOne },
+            { id: 'gc11', path: ['', 'gc-11'], component: GrandChildOneOne },
             { id: 'gc12', path: 'gc-12', component: GrandChildOneTwo },
           ],
         })
-        @customElement({ name: 'c-one', template: `c1 <au-viewport${useEagerLoading ? ' default="gc-11"' : ''}></au-viewport>`, })
+        @customElement({ name: 'c-one', template: `c1 <au-viewport></au-viewport>`, })
         class ChildOne { }
 
         @customElement({ name: 'gc-21', template: 'gc21' })
@@ -2913,13 +2908,13 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { id: 'gc21', path: [...getEmptyPath(), 'gc-21'], component: GrandChildTwoOne },
+            { id: 'gc21', path: ['', 'gc-21'], component: GrandChildTwoOne },
             { id: 'gc22', path: 'gc-22/:id?', component: GrandChildTwoTwo },
           ],
         })
         @customElement({
           name: 'c-two',
-          template: `c2 \${id} <au-viewport${useEagerLoading ? ' default="gc-21"' : ''}></au-viewport>`,
+          template: `c2 \${id} <au-viewport></au-viewport>`,
         })
         class ChildTwo {
           private id: string;
@@ -2932,7 +2927,7 @@ describe('router/smoke-tests.spec.ts', function () {
           routes: [
             {
               id: 'c1',
-              path: [...getEmptyPath(), 'c-1'],
+              path: ['', 'c-1'],
               component: ChildOne,
             },
             {
@@ -2942,7 +2937,7 @@ describe('router/smoke-tests.spec.ts', function () {
             },
           ],
         })
-        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"${useEagerLoading ? ' default="c-1"' : ''}></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
+        @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
         class MyApp { }
 
         const { au, container, host } = await start({ appRoot: MyApp });
@@ -3079,7 +3074,7 @@ describe('router/smoke-tests.spec.ts', function () {
         const { container } = ctx;
 
         container.register(TestRouterConfiguration.for(LogLevel.warn));
-        container.register(RouterConfiguration.customize({ useEagerLoading }));
+        container.register(RouterConfiguration);
 
         const component = container.get(CustomElement.define(
           { name: 'app', template: '<a href.bind="href">' },
@@ -3184,7 +3179,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
           container.register(
             TestRouterConfiguration.for(LogLevel.warn),
-            RouterConfiguration.customize({ buildTitle, useEagerLoading }),
+            RouterConfiguration.customize({ buildTitle }),
           );
 
           const au = new Aurelia(container);
@@ -3567,34 +3562,34 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { path: useEagerLoading ? 'ggc1' : '', component: GGC1 },
+            { path: '', component: GGC1 },
           ],
         })
-        @customElement({ name: 'gc-1', template: `<au-viewport${useEagerLoading ? ' default="ggc1"' : ''}></au-viewport>`, })
+        @customElement({ name: 'gc-1', template: `<au-viewport></au-viewport>`, })
         class GC1 { }
 
         @route({
           routes: [
-            ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'gc1' }]),
+            { path: '', redirectTo: 'gc1' },
             { id: 'gc1', path: 'gc1', component: GC1 },
           ],
         })
-        @customElement({ name: 'c-1', template: `<au-viewport${useEagerLoading ? ' default="gc1"' : ''}></au-viewport>`, })
+        @customElement({ name: 'c-1', template: `<au-viewport></au-viewport>`, })
         class C1 { }
 
         @route({
           routes: [
-            ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c1' }]),
+            { path: '', redirectTo: 'c1' },
             { path: 'c1', component: C1, },
           ],
         })
-        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`, })
+        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>`, })
         class Root { }
 
         const { au, container, host } = await start({ appRoot: Root });
 
         assert.html.textContent(host, 'gcc1');
-        assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, useEagerLoading ? /c1\/gc1\/ggc1$/ : /c1\/gc1$/);
+        assert.match((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, /c1\/gc1$/);
 
         await au.stop(true);
       });
@@ -3665,20 +3660,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              { path: [...getEmptyPath(), 'c11'], component: C11, title: 'C11' },
+              { path: ['', 'c11'], component: C11, title: 'C11' },
               { path: 'c12', component: C12, title: 'C12' },
             ]
           })
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
             routes: [
               { path: 'c21', component: C21, title: 'C21' },
-              { path: [...getEmptyPath(), 'c22'], component: C22, title: 'C22' },
+              { path: ['', 'c22'], component: C22, title: 'C22' },
             ]
           })
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 { }
           @customElement({ name: 'ce-p3', template: 'p3' })
           class P3 { }
@@ -3759,20 +3754,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              { path: [...getEmptyPath(), 'c11'], component: C11, title: 'C11' },
+              { path: ['', 'c11'], component: C11, title: 'C11' },
               { path: 'c12', component: C12, title: 'C12' },
             ]
           })
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
             routes: [
               { path: 'c21', component: C21, title: 'C21' },
-              { path: [...getEmptyPath(), 'c22'], component: C22, title: 'C22' },
+              { path: ['', 'c22'], component: C22, title: 'C22' },
             ]
           })
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 { }
           @customElement({ name: 'ce-p3', template: 'p3' })
           class P3 { }
@@ -3856,25 +3851,25 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ce-c22', template: 'c22' })
           class C22 { }
 
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 implements IRouteViewModel {
             public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
               return {
                 routes: [
-                  { path: [...getEmptyPath(), 'c11'], component: C11, title: 'C11' },
+                  { path: ['', 'c11'], component: C11, title: 'C11' },
                   { path: 'c12', component: C12, title: 'C12' },
                 ]
               };
             }
           }
 
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 implements IRouteViewModel {
             public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
               return {
                 routes: [
                   { path: 'c21', component: C21, title: 'C21' },
-                  { path: [...getEmptyPath(), 'c22'], component: C22, title: 'C22' },
+                  { path: ['', 'c22'], component: C22, title: 'C22' },
                 ]
               };
             }
@@ -3960,25 +3955,25 @@ describe('router/smoke-tests.spec.ts', function () {
           @customElement({ name: 'ce-c22', template: 'c22' })
           class C22 { }
 
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 implements IRouteViewModel {
             public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
               return {
                 routes: [
-                  { path: [...getEmptyPath(), 'c11'], component: Promise.resolve({ C11 }), title: 'C11' },
+                  { path: ['', 'c11'], component: Promise.resolve({ C11 }), title: 'C11' },
                   { path: 'c12', component: C12, title: 'C12' },
                 ]
               };
             }
           }
 
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 implements IRouteViewModel {
             public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
               return {
                 routes: [
                   { path: 'c21', component: Promise.resolve({ 'default': C21 }), title: 'C21' },
-                  { path: [...getEmptyPath(), 'c22'], component: C22, title: 'C22' },
+                  { path: ['', 'c22'], component: C22, title: 'C22' },
                 ]
               };
             }
@@ -4066,20 +4061,20 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              { path: [...getEmptyPath(), 'c11'], component: C11, title: 'C11' },
+              { path: ['', 'c11'], component: C11, title: 'C11' },
               { path: ['c12/:id', 'c12'], component: C12, title: 'C12' },
             ]
           })
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
             routes: [
               { path: ['c21', 'c21/:id'], component: C21, title: 'C21' },
-              { path: [...getEmptyPath(), 'c22'], component: C22, title: 'C22' },
+              { path: ['', 'c22'], component: C22, title: 'C22' },
             ]
           })
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 implements IRouteViewModel { }
 
           @route({
@@ -4156,22 +4151,22 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c11' }]),
+              { path: '', redirectTo: 'c11' },
               { path: 'c11', component: C11, title: 'C11' },
               { path: 'c12', component: C12, title: 'C12' },
             ]
           })
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
             routes: [
-              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c22' }]),
+              { path: '', redirectTo: 'c22' },
               { path: 'c21', component: C21, title: 'C21' },
               { path: 'c22', component: C22, title: 'C22' },
             ]
           })
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 { }
           @customElement({ name: 'ce-p3', template: 'p3' })
           class P3 { }
@@ -4241,22 +4236,22 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c11' }]),
+              { path: '', redirectTo: 'c11' },
               { path: 'c11', component: C11, title: 'C11' },
               { path: 'c12', component: C12, title: 'C12' },
             ]
           })
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
             routes: [
-              ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c22' }]),
+              { path: '', redirectTo: 'c22' },
               { path: 'c21', component: C21, title: 'C21' },
               { path: 'c22', component: C22, title: 'C22' },
             ]
           })
-          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport${useEagerLoading ? ' default="c22"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
           class P2 { }
           @customElement({ name: 'ce-p3', template: 'p3' })
           class P3 { }
@@ -4361,10 +4356,10 @@ describe('router/smoke-tests.spec.ts', function () {
 
           @route({
             routes: [
-              { path: [...getEmptyPath(), 'c11'], component: C11, title: 'C11' },
+              { path: ['', 'c11'], component: C11, title: 'C11' },
             ]
           })
-          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport${useEagerLoading ? ' default="c11"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
@@ -4414,7 +4409,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
             container.register(
               TestRouterConfiguration.for(LogLevel.warn),
-              RouterConfiguration.customize({ useEagerLoading }),
+              RouterConfiguration,
             );
 
             const au = new Aurelia(container);
@@ -4503,7 +4498,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
         container.register(
           TestRouterConfiguration.for(LogLevel.warn),
-          RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/', useEagerLoading }),
+          RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/' }),
           P1,
           P2,
         );
@@ -5413,12 +5408,12 @@ describe('router/smoke-tests.spec.ts', function () {
             routes: [
               {
                 id: 'ce2',
-                path: [...getEmptyPath(), 'ce2'],
+                path: ['', 'ce2'],
                 component: CeTwo,
               },
             ]
           })
-          @customElement({ name: 'ce-one', template: `ce1 \${id1} \${id2} <au-viewport${useEagerLoading ? ' default="ce2"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-one', template: `ce1 \${id1} \${id2} <au-viewport></au-viewport>` })
           class CeOne implements IRouteViewModel {
             private static id1: number = 0;
             private static id2: number = 0;
@@ -5479,12 +5474,12 @@ describe('router/smoke-tests.spec.ts', function () {
             routes: [
               {
                 id: 'ce2',
-                path: [...getEmptyPath(), 'ce2'],
+                path: ['', 'ce2'],
                 component: CeTwo,
               },
             ]
           })
-          @customElement({ name: 'ce-one', template: `ce1 \${id1} \${id2} <au-viewport${useEagerLoading ? ' default="ce2"' : ''}></au-viewport>` })
+          @customElement({ name: 'ce-one', template: `ce1 \${id1} \${id2} <au-viewport></au-viewport>` })
           class CeOne implements IRouteViewModel {
             private static id1: number = 0;
             private static id2: number = 0;
@@ -5997,21 +5992,21 @@ describe('router/smoke-tests.spec.ts', function () {
 
         @route({
           routes: [
-            { path: useEagerLoading ? 'c1' : '', component: C1 },
+            { path: '', component: C1 },
             { path: 'c2', component: C2 },
           ]
         })
-        @customElement({ name: 'p-1', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>` })
+        @customElement({ name: 'p-1', template: `<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
           routes: [
-            ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'p' }]),
+            { path: '', redirectTo: 'p' },
             { path: 'p', component: P1 },
 
           ]
         })
-        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="p"' : ''}></au-viewport>` })
+        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
         class Root { }
 
         const { au, host } = await start({ appRoot: Root });
@@ -6100,27 +6095,27 @@ describe('router/smoke-tests.spec.ts', function () {
           }
           @route({
             routes: [
-              { path: useEagerLoading ? 'c1' : '', component: C1, title: 'p1c1', data: { foo: 'bar' } }
+              { path: '', component: C1, title: 'p1c1', data: { foo: 'bar' } }
             ]
           })
-          @customElement({ name: 'p-1', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>` })
+          @customElement({ name: 'p-1', template: `<au-viewport></au-viewport>` })
           class P1 { }
 
           @route({
             routes: [
-              { path: useEagerLoading ? 'c1' : '', component: C1, title: 'p2c1', data: { awesome: 'possum' } }
+              { path: '', component: C1, title: 'p2c1', data: { awesome: 'possum' } }
             ]
           })
-          @customElement({ name: 'p-2', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>` })
+          @customElement({ name: 'p-2', template: `<au-viewport></au-viewport>` })
           class P2 { }
 
           @route({
             routes: [
-              { path: [...getEmptyPath(), 'p1'], component: P1 },
+              { path: ['', 'p1'], component: P1 },
               { path: 'p2', component: P2 },
             ]
           })
-          @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="p1"' : ''}></au-viewport>` })
+          @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
           class Root { }
 
           const { au, host, container } = await start({ appRoot: Root });
@@ -6156,29 +6151,29 @@ describe('router/smoke-tests.spec.ts', function () {
             }
             @route({
               routes: [
-                ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c1' }]),
+                { path: '', redirectTo: 'c1' },
                 C1,
               ]
             })
-            @customElement({ name: 'p-1', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>` })
+            @customElement({ name: 'p-1', template: `<au-viewport></au-viewport>` })
             class P1 { }
 
             @route({
               routes: [
-                ...(useEagerLoading ? [] : [{ path: '', redirectTo: 'c1' }]),
+                { path: '', redirectTo: 'c1' },
                 C1,
               ]
             })
-            @customElement({ name: 'p-2', template: `<au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>` })
+            @customElement({ name: 'p-2', template: `<au-viewport></au-viewport>` })
             class P2 { }
 
             @route({
               routes: [
-                { path: [...getEmptyPath(), 'p1'], component: P1 },
+                { path: ['', 'p1'], component: P1 },
                 { path: 'p2', component: P2 },
               ]
             })
-            @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="p1"' : ''}></au-viewport>` })
+            @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
             class Root { }
 
             const { au, host, container } = await start({ appRoot: Root });
@@ -6646,14 +6641,14 @@ describe('router/smoke-tests.spec.ts', function () {
       });
 
       it('self-referencing routing configuration', async function () {
-        @route(useEagerLoading ? 'c1' : '')
+        @route('')
         @customElement({ name: 'c-1', template: 'c1' })
         class C1 { }
         @route('c2')
         @customElement({ name: 'c-2', template: 'c2' })
         class C2 { }
 
-        @customElement({ name: 'p-1', template: `p1 <au-viewport${useEagerLoading ? ' default="c1"' : ''}></au-viewport>`, aliases: ['p1'] })
+        @customElement({ name: 'p-1', template: `p1 <au-viewport></au-viewport>`, aliases: ['p1'] })
         class P1 implements IRouteViewModel {
           public getRouteConfig(_parentConfig: IRouteConfig, _routeNode: RouteNode): IRouteConfig {
             return {
@@ -6666,11 +6661,9 @@ describe('router/smoke-tests.spec.ts', function () {
           }
         }
 
-        @route({ routes: [{ path: [...getEmptyPath(), 'p1'], component: P1 }] })
-        @customElement({ name: 'ro-ot', template: `<au-viewport${useEagerLoading ? ' default="p1"' : ''}></au-viewport>` })
+        @route({ routes: [{ path: ['', 'p1'], component: P1 }] })
+        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
         class Root { }
-
-        console.log('testing self-referencing routing configuration - eager loading:', useEagerLoading);
 
         const { au, container, host } = await start({ appRoot: Root });
         const router = container.get(IRouter);
@@ -7480,6 +7473,4 @@ describe('router/smoke-tests.spec.ts', function () {
           await au.stop(true);
         });
       }
-    });
-  }
 });

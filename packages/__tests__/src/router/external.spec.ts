@@ -6,49 +6,47 @@ import { IHIAConfig } from './_shared/hook-invocation-tracker.js';
 
 describe('router/external.spec.ts', function () {
 
-  for (const useEagerLoading of [true, false]) {
-    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
-      for (const useUrlFragmentHash of [true, false]) {
-        for (const attr of ['external', 'data-external']) {
-          it(`recognizes "${attr}" attribute - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
-            @customElement({ name: 'a11', template: `a11${vp(1)}` })
-            class A11 { }
-            @customElement({ name: 'a12', template: `a12${vp(1)}` })
-            class A12 { }
-            @route({
-              routes: [
-                {
-                  path: 'a11',
-                  component: A11,
-                },
-                {
-                  path: 'a12',
-                  component: A12,
-                },
-              ]
-            })
-            @customElement({
-              name: 'root1',
-              template: `<a href.bind="compLink"></a><a href.bind="httpLink" external></a><span href="a12"></span>${vp(1)}`
-            })
-            class Root1 {
-              public httpLink = 'https://google.com';
-              public compLink = 'a11';
-            }
+  for (const useUrlFragmentHash of [true, false]) {
+    for (const attr of ['external', 'data-external']) {
+      it(`recognizes "${attr}" attribute - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
+        @customElement({ name: 'a11', template: `a11${vp(1)}` })
+        class A11 { }
+        @customElement({ name: 'a12', template: `a12${vp(1)}` })
+        class A12 { }
+        @route({
+          routes: [
+            {
+              path: 'a11',
+              component: A11,
+            },
+            {
+              path: 'a12',
+              component: A12,
+            },
+          ]
+        })
+        @customElement({
+          name: 'root1',
+          template: `<a href.bind="compLink"></a><a href.bind="httpLink" external></a><span href="a12"></span>${vp(1)}`
+        })
+        class Root1 {
+          public httpLink = 'https://google.com';
+          public compLink = 'a11';
+        }
 
-            const { router, host, tearDown } = await createFixture(Root1, [A11, A12], getDefaultHIAConfig, () => ({ useUrlFragmentHash, useEagerLoading }));
+        const { router, host, tearDown } = await createFixture(Root1, [A11, A12], getDefaultHIAConfig, () => ({ useUrlFragmentHash }));
 
-            const anchors = Array.from(host.querySelectorAll('a'));
+        const anchors = Array.from(host.querySelectorAll('a'));
 
-            const loadArgs: unknown[][] = [];
-            router.load = (fn => function (...args: unknown[]) {
-              loadArgs.push(args);
-              return fn.apply(router, args);
-            })(router.load);
+        const loadArgs: unknown[][] = [];
+        router.load = (fn => function (...args: unknown[]) {
+          loadArgs.push(args);
+          return fn.apply(router, args);
+        })(router.load);
 
-            const [internalLink, externalLink] = anchors;
-            if (useUrlFragmentHash) {
-              assert.match(internalLink.href, /#/);
+        const [internalLink, externalLink] = anchors;
+        if (useUrlFragmentHash) {
+          assert.match(internalLink.href, /#/);
             } else {
               assert.notMatch(internalLink.href, /#/);
             }
@@ -118,7 +116,7 @@ describe('router/external.spec.ts', function () {
             public protocolRelativeLink = '//cdn.example.com/app.js';
           }
 
-          const { router, host, tearDown } = await createFixture(Root2, [A21, A22], getDefaultHIAConfig, () => ({ useUrlFragmentHash, useEagerLoading }));
+          const { router, host, tearDown } = await createFixture(Root2, [A21, A22], getDefaultHIAConfig, () => ({ useUrlFragmentHash}));
 
           const anchors = Array.from(host.querySelectorAll('a'));
           assert.strictEqual(anchors.length, 4);
@@ -180,7 +178,7 @@ describe('router/external.spec.ts', function () {
             public httpLink = 'https://example.com/keep-defaults';
           }
 
-          const { router, host, tearDown } = await createFixture(Root3, [A31], getDefaultHIAConfig, () => ({ useUrlFragmentHash, useEagerLoading }));
+          const { router, host, tearDown } = await createFixture(Root3, [A31], getDefaultHIAConfig, () => ({ useUrlFragmentHash}));
 
           const [internalLink, deepLink, httpLink] = host.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
 
@@ -208,9 +206,7 @@ describe('router/external.spec.ts', function () {
 
           await tearDown();
         });
-      }
-    });
-  }
+    }
 });
 
 function vp(count: number): string {

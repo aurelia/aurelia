@@ -6,38 +6,36 @@ import { IRouteContext, IRouter, route } from '@aurelia/router';
 import { start } from './_shared/create-fixture.js';
 
 describe('router/route-parameters.spec.ts', function () {
-  for (const useEagerLoading of [true, false]) {
-    describe(`${useEagerLoading ? 'eager' : 'lazy'} loading`, function () {
-      describe('RouteContext.getRouteParameters', function () {
-        it('aggregates parameters from ancestor contexts', async function () {
-          @customElement({ name: 'details-view', template: `<div>company:\${params.companyId};project:\${params.projectId};user:\${params.userId};detail:\${params.detailId}</div>` })
-          class DetailsView {
-            public readonly params = resolve(IRouteContext)
-              .getRouteParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>();
-          }
+  describe('RouteContext.getRouteParameters', function () {
+    it('aggregates parameters from ancestor contexts', async function () {
+      @customElement({ name: 'details-view', template: `<div>company:\${params.companyId};project:\${params.projectId};user:\${params.userId};detail:\${params.detailId}</div>` })
+      class DetailsView {
+        public readonly params = resolve(IRouteContext)
+          .getRouteParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>();
+      }
 
-          @route({ routes: [{ path: 'details/:detailId', component: DetailsView }] })
-          @customElement({ name: 'user-view', template: `<au-viewport></au-viewport>` })
-          class UserView { }
+      @route({ routes: [{ path: 'details/:detailId', component: DetailsView }] })
+      @customElement({ name: 'user-view', template: `<au-viewport></au-viewport>` })
+      class UserView { }
 
-          @route({ routes: [{ path: 'user/:userId', component: UserView }] })
-          @customElement({ name: 'project-view', template: `<au-viewport></au-viewport>` })
-          class ProjectView { }
+      @route({ routes: [{ path: 'user/:userId', component: UserView }] })
+      @customElement({ name: 'project-view', template: `<au-viewport></au-viewport>` })
+      class ProjectView { }
 
-          @route({ routes: [{ path: 'project/:projectId', component: ProjectView }] })
-          @customElement({ name: 'company-view', template: `<au-viewport></au-viewport>` })
-          class CompanyView { }
+      @route({ routes: [{ path: 'project/:projectId', component: ProjectView }] })
+      @customElement({ name: 'company-view', template: `<au-viewport></au-viewport>` })
+      class CompanyView { }
 
-          @route({
-            routes: [
-              { path: '', redirectTo: 'company/placeholder/project/placeholder/user/placeholder/details/placeholder' },
-              { path: 'company/:companyId', component: CompanyView },
-            ],
-          })
-          @customElement({ name: 'app-root', template: `<au-viewport></au-viewport>` })
-          class AppRoot { }
+      @route({
+        routes: [
+          { path: '', redirectTo: 'company/placeholder/project/placeholder/user/placeholder/details/placeholder' },
+          { path: 'company/:companyId', component: CompanyView },
+        ],
+      })
+      @customElement({ name: 'app-root', template: `<au-viewport></au-viewport>` })
+      class AppRoot { }
 
-          const { host, au, container } = await start({ appRoot: AppRoot, useEagerLoading });
+      const { host, au, container } = await start({ appRoot: AppRoot });
           const router = container.get(IRouter);
 
           await router.load('company/10/project/20/user/30/details/40');
@@ -75,7 +73,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'app-root-overlap', template: `<au-viewport></au-viewport>` })
           class AppRootOverlap { }
 
-          const { host, au, container } = await start({ appRoot: AppRootOverlap, useEagerLoading });
+          const { host, au, container } = await start({ appRoot: AppRootOverlap });
           const router = container.get(IRouter);
 
           await router.load('company/root/project/middle/user/account/leaf/final');
@@ -119,7 +117,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'strategy-root', template: `<au-viewport></au-viewport>` })
           class StrategyRoot { }
 
-          const { au, container } = await start({ appRoot: StrategyRoot, useEagerLoading });
+          const { au, container } = await start({ appRoot: StrategyRoot });
           const router = container.get(IRouter);
 
           await router.load('company/root/project/middle/user/account/leaf/final');
@@ -165,7 +163,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'append-root', template: `<au-viewport></au-viewport>` })
           class AppendRoot { }
 
-          const { au, container } = await start({ appRoot: AppendRoot, useEagerLoading });
+          const { au, container } = await start({ appRoot: AppendRoot });
           const router = container.get(IRouter);
 
           await router.load('company/root/project/middle/user/account/leaf/final');
@@ -212,7 +210,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'append-map-root', template: `<au-viewport></au-viewport>` })
           class AppendMapRoot { }
 
-          const { au, container } = await start({ appRoot: AppendMapRoot, useEagerLoading });
+          const { au, container } = await start({ appRoot: AppendMapRoot });
           const router = container.get(IRouter);
 
           await router.load('company/root/project/middle/user/account/leaf/final');
@@ -271,7 +269,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'query-root', template: `<au-viewport></au-viewport>` })
           class QueryRoot { }
 
-          const { au, container } = await start({ appRoot: QueryRoot, useEagerLoading });
+          const { au, container } = await start({ appRoot: QueryRoot });
           const router = container.get(IRouter);
 
           await router.load('company/10/project/20/user/30/details/40?filter=on&filter=off&mode=full');
@@ -308,7 +306,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'query-default-parent', template: `<au-viewport></au-viewport>` })
           class QueryDefaultParent { }
 
-          const { au, container } = await start({ appRoot: QueryDefaultParent, treatQueryAsParameters: true, useEagerLoading });
+          const { au, container } = await start({ appRoot: QueryDefaultParent, treatQueryAsParameters: true });
           const router = container.get(IRouter);
 
           await router.load('acme?filter=active');
@@ -335,7 +333,7 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'frozen-parent', template: `<au-viewport></au-viewport>` })
           class FrozenParent { }
 
-          const { au, container } = await start({ appRoot: FrozenParent, useEagerLoading });
+          const { au, container } = await start({ appRoot: FrozenParent });
           const router = container.get(IRouter);
 
           await router.load('99');
@@ -365,12 +363,10 @@ describe('router/route-parameters.spec.ts', function () {
           @customElement({ name: 'no-param-parent', template: `<au-viewport></au-viewport>` })
           class NoParamParent { }
 
-          const { au } = await start({ appRoot: NoParamParent, useEagerLoading });
+          const { au } = await start({ appRoot: NoParamParent });
           assert.strictEqual(NoParamChild.instance?.params, NoParamChild.instance?.repeat);
           await au.stop(true);
           NoParamChild.instance = null;
         });
-      });
     });
-  }
 });

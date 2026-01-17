@@ -498,21 +498,12 @@ export interface IComponentSpec {
   hookSpec: HookSpecs;
 }
 
-type TestSetup<T extends Constructable> = {
-  Component: T;
-  deps?: Constructable[];
-  level?: LogLevel;
-  restorePreviousRouteTreeOnError?: boolean;
-  useEagerLoading?: boolean;
-};
-
-async function createFixture<T extends Constructable>({
-  Component,
-  deps = [],
-  level = LogLevel.fatal,
-  restorePreviousRouteTreeOnError = true,
-  useEagerLoading = false
-}: TestSetup<T>) {
+async function createFixture<T extends Constructable>(
+  Component: T,
+  deps: Constructable[] = [],
+  level: LogLevel = LogLevel.fatal,
+  restorePreviousRouteTreeOnError: boolean = true,
+) {
   const ctx = TestContext.create();
   const cfg = new NotifierConfig([], 100);
   const { container, platform } = ctx;
@@ -584,7 +575,7 @@ describe('router/hook-tests.spec.ts', function () {
       const deps: Constructable[] = [LoadedRoot, LoadedOne, LoadedTwo];
 
       it(`invokes component loaded hook after attach (ticks: ${ticks})`, async function () {
-        const { router, mgr, tearDown } = await createFixture({ Component: LoadedRoot, deps });
+        const { router, mgr, tearDown } = await createFixture(LoadedRoot, deps);
 
         const phase1 = `('' -> 'one')#1`;
         const phase2 = `('one' -> 'two')#2`;
@@ -631,7 +622,7 @@ describe('router/hook-tests.spec.ts', function () {
       it(`invokes global loaded lifecycle hook (ticks: ${ticks})`, async function () {
         GlobalLoaded.reset();
         const depsWithGlobal: Constructable[] = [LoadedRoot, LoadedOne, LoadedTwo, GlobalLoaded as unknown as Constructable];
-        const { router, mgr, tearDown } = await createFixture({ Component: LoadedRoot, deps: depsWithGlobal });
+        const { router, mgr, tearDown } = await createFixture(LoadedRoot, depsWithGlobal);
 
         const phase1 = `('' -> 'one')#1`;
         const phase2 = `('one' -> 'two')#2`;
@@ -719,7 +710,7 @@ describe('router/hook-tests.spec.ts', function () {
           ] as ISpec[]) {
             const { t1, t2, t3, t4 } = spec;
             it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
-              const { router, mgr, tearDown } = await createFixture({ Component: Root2, deps: A });
+              const { router, mgr, tearDown } = await createFixture(Root2, A);
 
               const phase1 = `('' -> '${t1}')#1`;
               const phase2 = `('${t1}' -> '${t2}')#2`;
@@ -904,7 +895,7 @@ describe('router/hook-tests.spec.ts', function () {
             const instr1 = join('/', t1.p, t1.c);
             const instr2 = join('/', t2.p, t2.c);
             it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
-              const { router, mgr, tearDown } = await createFixture({ Component: PcRoot, deps });
+              const { router, mgr, tearDown } = await createFixture(PcRoot, deps);
 
               const phase1 = `('' -> '${instr1}')#1`;
               const phase2 = `('${instr1}' -> '${instr2}')#2`;
@@ -1069,7 +1060,7 @@ describe('router/hook-tests.spec.ts', function () {
         @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [A, B, C, D] });
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B, C, D]);
 
         const phase1 = `('' -> 'a/b/c/d')`;
         mgr.setPrefix(phase1);
@@ -1242,7 +1233,7 @@ describe('router/hook-tests.spec.ts', function () {
         @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [A, B] });
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B]);
 
         const phase1 = `('' -> 'a$0+b$1')`;
 
@@ -1331,7 +1322,7 @@ describe('router/hook-tests.spec.ts', function () {
         class Root extends TestVM {
           public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); }
         }
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [A1, A2] });
+        const { router, mgr, tearDown } = await createFixture(Root, [A1, A2]);
 
         const phase1 = `('' -> 'a1/a2')`;
 
@@ -1520,7 +1511,7 @@ describe('router/hook-tests.spec.ts', function () {
           public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); }
         }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [A1, A2, B1, B2] });
+        const { router, mgr, tearDown } = await createFixture(Root, [A1, A2, B1, B2]);
 
         const phase1 = `('' -> 'a1@$0/a2+b1@$1/b2')`;
 
@@ -1605,7 +1596,7 @@ describe('router/hook-tests.spec.ts', function () {
           @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
           class Root { }
 
-          const { router, tearDown } = await createFixture({ Component: Root, deps: components, level: undefined, restorePreviousRouteTreeOnError: false });
+          const { router, tearDown } = await createFixture(Root, components, undefined, false);
 
           let err: Error | undefined = void 0;
           try {
@@ -1824,7 +1815,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [A, B] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B] /* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -1931,7 +1922,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [A, B, C] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown } = await createFixture(Root, [A, B, C] /* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -2064,7 +2055,7 @@ describe('router/hook-tests.spec.ts', function () {
       @customElement({ name: 'root', template: vp(2) })
       class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [S1, S2] /* , LogLevel.trace */ });
+      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2] /* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2127,7 +2118,7 @@ describe('router/hook-tests.spec.ts', function () {
       @customElement({ name: 'root', template: vp(1) })
       class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [C1, C2, P] /* , LogLevel.trace */ });
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P] /* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2252,7 +2243,7 @@ describe('router/hook-tests.spec.ts', function () {
       @customElement({ name: 'root', template: vp(1) })
       class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [GC11, GC12, GC21, GC22, C1, C2, P] /* , LogLevel.trace */ });
+      const { router, mgr, tearDown } = await createFixture(Root, [GC11, GC12, GC21, GC22, C1, C2, P] /* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2363,7 +2354,7 @@ describe('router/hook-tests.spec.ts', function () {
       @customElement({ name: 'root', template: vp(2) })
       class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [S1, S2, S3] /* , LogLevel.trace */ });
+      const { router, mgr, tearDown } = await createFixture(Root, [S1, S2, S3] /* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2467,7 +2458,7 @@ describe('router/hook-tests.spec.ts', function () {
       @customElement({ name: 'root', template: vp(2) })
       class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-      const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [C1, C2, GC11, GC12, GC21, GC22] /* , LogLevel.trace */ });
+      const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, GC11, GC12, GC21, GC22] /* , LogLevel.trace */);
 
       let phase = 'start';
       verifyInvocationsEqual(
@@ -2572,7 +2563,7 @@ describe('router/hook-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [C1, C2, P, NF] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P, NF] /* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -2650,7 +2641,7 @@ describe('router/hook-tests.spec.ts', function () {
         @customElement({ name: 'root', template: vp(1) })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown } = await createFixture({ Component: Root, deps: [GC1, GC21, GC22, C1, C2, P, NF] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown } = await createFixture(Root, [GC1, GC21, GC22, C1, C2, P, NF] /* , LogLevel.trace */);
 
         let phase = 'start';
         verifyInvocationsEqual(
@@ -2727,7 +2718,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown, host } = await createFixture({ Component: Root, deps: [A, B] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown, host } = await createFixture(Root, [A, B] /* , LogLevel.trace */);
 
         const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
         assert.html.textContent(host, 'a', 'load');
@@ -2857,7 +2848,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown, host } = await createFixture({ Component: Root, deps: [P1, Gc11] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown, host } = await createFixture(Root, [P1, Gc11] /* , LogLevel.trace */);
 
         // load p1/gc-11
         let phase = 'round#1';
@@ -3012,7 +3003,7 @@ describe('router/hook-tests.spec.ts', function () {
         @customElement({ name: 'root', template: 'root <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, host, tearDown } = await createFixture({ Component: Root, deps: [S1, S2, S3] /* , LogLevel.trace */ });
+        const { router, mgr, host, tearDown } = await createFixture(Root, [S1, S2, S3] /* , LogLevel.trace */);
 
         // load s1@$1+s2@$2
         let phase = 'round#1';
@@ -3162,7 +3153,7 @@ describe('router/hook-tests.spec.ts', function () {
         })
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-        const { router, mgr, tearDown, host } = await createFixture({ Component: Root, deps: [P1, Gc11] /* , LogLevel.trace */ });
+        const { router, mgr, tearDown, host } = await createFixture(Root, [P1, Gc11] /* , LogLevel.trace */);
 
         // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
         let phase = 'round#1';
@@ -3478,7 +3469,7 @@ describe('router/hook-tests.spec.ts', function () {
 
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host } = await createFixture({ Component: createCes(hook) });
+            const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
             const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
             assert.html.textContent(host, 'a', 'load');
@@ -3563,7 +3554,7 @@ describe('router/hook-tests.spec.ts', function () {
           @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
           class Root { }
 
-          const { router, tearDown, host } = await createFixture({ Component: Root, deps: [Ce1, Ce2], level: LogLevel.error });
+          const { router, tearDown, host } = await createFixture(Root, [Ce1, Ce2], LogLevel.error);
 
           const viewport = host.querySelector('au-viewport');
 
@@ -3853,7 +3844,7 @@ describe('router/hook-tests.spec.ts', function () {
             })
             class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-            const { router, mgr, tearDown, host } = await createFixture({ Component: Root });
+            const { router, mgr, tearDown, host } = await createFixture(Root);
             const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
@@ -3992,7 +3983,7 @@ describe('router/hook-tests.spec.ts', function () {
             })
             class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-            const { router, mgr, tearDown, host } = await createFixture({ Component: Root });
+            const { router, mgr, tearDown, host } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
@@ -4142,7 +4133,7 @@ describe('router/hook-tests.spec.ts', function () {
             })
             class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-            const { router, mgr, tearDown, host } = await createFixture({ Component: Root });
+            const { router, mgr, tearDown, host } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
             assert.html.textContent(host, 'p1 gc-11', `start - text`);
 
@@ -4431,7 +4422,7 @@ describe('router/hook-tests.spec.ts', function () {
 
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
-            const { router, mgr, tearDown, host } = await createFixture({ Component: createCes(hook) });
+            const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
             const [ab, ac, ba, cb] = Array.from(host.querySelectorAll('a'));
 
@@ -4960,7 +4951,7 @@ describe('router/hook-tests.spec.ts', function () {
         for (const [hook, getExpectedErrorLog] of getTestData()) {
           it(`error thrown from ${hook}`, async function () {
 
-            const { router, mgr, tearDown, host } = await createFixture({ Component: createCes(hook) });
+            const { router, mgr, tearDown, host } = await createFixture(createCes(hook));
 
             // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
             let phase = 'round#1';
@@ -5037,7 +5028,7 @@ describe('router/hook-tests.spec.ts', function () {
     it('restores previous route when recovery is enabled', async function () {
       const hookSpec = HookSpecs.create(ticks);
       const { Root, A, B } = createComponents(hookSpec);
-      const { router, mgr, tearDown, host } = await createFixture({ Component: Root, deps: [A, B] });
+      const { router, mgr, tearDown, host } = await createFixture(Root, [A, B]);
 
       let phase = 'round#1';
       mgr.fullNotifyHistory.length = 0;
@@ -5090,7 +5081,7 @@ describe('router/hook-tests.spec.ts', function () {
     })
     class Root { }
 
-    const { router, tearDown, host } = await createFixture({ Component: Root, deps: [A, B] /* , LogLevel.trace */ });
+    const { router, tearDown, host } = await createFixture(Root, [A, B] /* , LogLevel.trace */);
 
     assert.html.textContent(host, 'a', 'round#0');
 
@@ -5126,7 +5117,7 @@ describe('router/hook-tests.spec.ts', function () {
     })
     class Root { }
 
-    const { router, tearDown, host } = await createFixture({ Component: Root, deps: [A, B] /* , LogLevel.trace */ });
+    const { router, tearDown, host } = await createFixture(Root, [A, B] /* , LogLevel.trace */);
 
     assert.html.textContent(host, 'a', 'round#0');
 
@@ -5164,7 +5155,7 @@ describe('router/hook-tests.spec.ts', function () {
     })
     class Root { }
 
-    const { router, tearDown, host } = await createFixture({ Component: Root, deps: [A, B, C] /* , LogLevel.trace */ });
+    const { router, tearDown, host } = await createFixture(Root, [A, B, C] /* , LogLevel.trace */);
 
     assert.html.textContent(host, 'a', 'round#0');
 

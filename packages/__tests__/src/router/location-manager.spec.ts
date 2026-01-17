@@ -7,8 +7,6 @@ import { getLocationChangeHandlerRegistration } from './_shared/configuration.js
 import { start } from './_shared/create-fixture.js';
 
 describe('router/location-manager.spec.ts', function () {
-  // Tests run with lazy loading (default) mode only.
-  // Eager loading specific tests are in eager-loading.spec.ts
 
   if (!isNode()) {
     for (const [useHash, event] of [[true, 'hashchange'], [false, 'popstate']] as const) {

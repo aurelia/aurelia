@@ -1,8 +1,8 @@
 import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
-import { tasksSettled } from '@aurelia/runtime';
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/resources/href.spec.ts', function () {
 
@@ -87,12 +87,11 @@ describe('router/resources/href.spec.ts', function () {
         { id: 'l12', path: 'l12', component: L12 },
       ]
     })
-    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
     const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
     await tasksSettled();
-
     assert.html.textContent(host, 'l11 l21');
 
     host.querySelector('a').click();
@@ -165,7 +164,7 @@ describe('router/resources/href.spec.ts', function () {
         { id: 'l12', path: 'l12', component: L12 },
       ]
     })
-    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
     const { au, host } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
@@ -302,6 +301,8 @@ describe('router/resources/href.spec.ts', function () {
     class Root { }
 
     const { au, host } = await start({ appRoot: Root });
+    await tasksSettled();
+
     assert.html.textContent(host, '', 'init');
 
     host.querySelector('a').click();
@@ -342,6 +343,7 @@ describe('router/resources/href.spec.ts', function () {
     class Root { }
 
     const { au, host } = await start({ appRoot: Root });
+
     await tasksSettled();
 
     const anchors = Array.from(host.querySelectorAll('a'));

@@ -1,8 +1,8 @@
 import { IRouter, IRouteViewModel, Params, route, Router, ViewportCustomElement } from '@aurelia/router';
-import { tasksSettled } from '@aurelia/runtime';
 import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/resources/viewport.spec.ts', function () {
 

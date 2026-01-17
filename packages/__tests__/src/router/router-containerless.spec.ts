@@ -12,7 +12,7 @@ describe('router/router-containerless.spec.ts', function () {
       name: 'foo',
       template: 'foo'
     })
-    class Foo { }
+    class Foo {}
 
     @route({
       routes: [
@@ -23,7 +23,7 @@ describe('router/router-containerless.spec.ts', function () {
       name: 'root',
       template: 'root <au-viewport>'
     })
-    class App { }
+    class App {}
 
     const { host } = await start({ appRoot: App });
 
@@ -33,10 +33,10 @@ describe('router/router-containerless.spec.ts', function () {
   it('cleans up when rendering another component after a containerless component', async function () {
     @containerless()
     @customElement({ name: 'foo', template: 'foo' })
-    class Foo { }
+    class Foo {}
 
     @customElement({ name: 'normal-foo', template: 'normal-foo' })
-    class NormalFoo { }
+    class NormalFoo {}
 
     @route({
       routes: [
@@ -48,7 +48,7 @@ describe('router/router-containerless.spec.ts', function () {
       name: 'root',
       template: 'root <a href="./normal-foo"></a><au-viewport>'
     })
-    class App { }
+    class App {}
 
     const { host } = await start({ appRoot: App });
 

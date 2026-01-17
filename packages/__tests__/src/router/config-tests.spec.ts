@@ -278,11 +278,11 @@ describe('router/config-tests.spec.ts', function () {
     describe(`inDependencies: ${inDependencies}`, function () {
       it(`can load a configured child route with direct path and explicit component`, async function () {
         @customElement({ name: 'a01', template: null })
-        class A01 extends SimpleActivityTrackingVMBase { }
+        class A01 extends SimpleActivityTrackingVMBase {}
 
         @route({ routes: [{ path: 'a', component: A01 }] })
         @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
-        class Root extends SimpleActivityTrackingVMBase { }
+        class Root extends SimpleActivityTrackingVMBase {}
 
         const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
@@ -294,11 +294,11 @@ describe('router/config-tests.spec.ts', function () {
       it(`can load a configured child route with indirect path and explicit component`, async function () {
         @route({ path: 'a' })
         @customElement({ name: 'a01', template: null })
-        class A01 extends SimpleActivityTrackingVMBase { }
+        class A01 extends SimpleActivityTrackingVMBase {}
 
         @route({ routes: [A01] })
         @customElement({ name: 'root', template: vp(1), dependencies: inDependencies ? [A01] : [] })
-        class Root extends SimpleActivityTrackingVMBase { }
+        class Root extends SimpleActivityTrackingVMBase {}
 
         const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
@@ -311,11 +311,11 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`can load a configured child route by name`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase { }
+    class A01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [A01] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
     const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
 
@@ -326,13 +326,13 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single multi segment static path`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase { }
+    class A01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'a/x', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x');
 
@@ -341,13 +341,13 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single multi segment dynamic path`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase { }
+    class A01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'a/:x', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/1');
 
@@ -356,17 +356,17 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single multi segment static path with single child`, async function () {
     @customElement({ name: 'b01', template: null })
-    class B01 extends SimpleActivityTrackingVMBase { }
+    class B01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'b', component: B01 }] })
     @customElement({ name: 'a11', template: vp(1) })
-    class A11 extends SimpleActivityTrackingVMBase { }
+    class A11 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'a/x', component: A11 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x/b');
 
@@ -375,17 +375,17 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single multi segment static path with single multi segment static child`, async function () {
     @customElement({ name: 'b01', template: null })
-    class B01 extends SimpleActivityTrackingVMBase { }
+    class B01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'b/x', component: B01 }] })
     @customElement({ name: 'a11', template: vp(1) })
-    class A11 extends SimpleActivityTrackingVMBase { }
+    class A11 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'a/x', component: A11 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/x/b/x');
 
@@ -394,17 +394,17 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single static path with single multi segment static child`, async function () {
     @customElement({ name: 'b01', template: null })
-    class B01 extends SimpleActivityTrackingVMBase { }
+    class B01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'b/x', component: B01 }] })
     @customElement({ name: 'a11', template: vp(1) })
-    class A11 extends SimpleActivityTrackingVMBase { }
+    class A11 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'a', component: A11 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/b/x');
 
@@ -413,13 +413,13 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single empty static path redirect`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase { }
+    class A01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: '', redirectTo: 'a' }, { path: 'a', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('');
 
@@ -428,13 +428,13 @@ describe('router/config-tests.spec.ts', function () {
 
   it(`works with single static path redirect`, async function () {
     @customElement({ name: 'a01', template: null })
-    class A01 extends SimpleActivityTrackingVMBase { }
+    class A01 extends SimpleActivityTrackingVMBase {}
 
     @route({ routes: [{ path: 'x', redirectTo: 'a' }, { path: 'a', component: A01 }] })
     @customElement({ name: 'root', template: vp(1) })
-    class Root extends SimpleActivityTrackingVMBase { }
+    class Root extends SimpleActivityTrackingVMBase {}
 
-    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig);
+    const { router, activityTracker } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('x');
 
@@ -445,11 +445,11 @@ describe('router/config-tests.spec.ts', function () {
     it(`load a configured child route with indirect path by name`, async function () {
       @route({ path: 'a' })
       @customElement({ name: 'a01', template: null })
-      class A01 extends SimpleActivityTrackingVMBase { }
+      class A01 extends SimpleActivityTrackingVMBase {}
 
       @route({ routes: [A01] })
       @customElement({ name: 'root', template: vp(1) })
-      class Root extends SimpleActivityTrackingVMBase { }
+      class Root extends SimpleActivityTrackingVMBase {}
 
       const { router } = await createFixture(Root, [], getDefaultHIAConfig);
 
@@ -467,9 +467,9 @@ describe('router/config-tests.spec.ts', function () {
 
   it('routes can be configured using the getRouteConfig hook', async function () {
 
-    @customElement({ name: 'ce-c1', template: 'c1' })
+    @customElement({name: 'ce-c1', template: 'c1'})
     class C1 { }
-    @customElement({ name: 'ce-c2', template: 'c2' })
+    @customElement({name: 'ce-c2', template: 'c2'})
     class C2 { }
     @customElement({ name: 'ce-p', template: 'p <au-viewport></au-viewport>' })
     class P implements IRouteViewModel {
@@ -482,9 +482,9 @@ describe('router/config-tests.spec.ts', function () {
         this.getRouteConfigCalled++;
         await new Promise((resolve) => setTimeout(resolve, 10));
         return {
-          routes: [
-            { path: 'c1', component: C1 },
-            { path: 'c2', component: C2 },
+          routes:[
+            { path:'c1', component: C1 },
+            { path:'c2', component: C2 },
           ]
         };
       }
@@ -500,8 +500,8 @@ describe('router/config-tests.spec.ts', function () {
         assert.strictEqual(this.getRouteConfigCalled, 0);
         this.getRouteConfigCalled++;
         return {
-          routes: [
-            { path: 'p', component: P }
+          routes:[
+            { path:'p', component: P }
           ]
         };
       }

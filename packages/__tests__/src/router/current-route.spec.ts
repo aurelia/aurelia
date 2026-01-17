@@ -6,6 +6,7 @@ import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
 describe('router/current-route.spec.ts', function () {
+
   const emptyParams = Object.create(null) as Params;
   function assertCurrentRoute(actual: ICurrentRoute, expected: Partial<ICurrentRoute>, messagePrefix: string = '') {
     assert.strictEqual(actual.path, expected.path, `${messagePrefix} - path`);
@@ -46,7 +47,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r2', path: ['c-2', 'c-2/:id2'], component: C2, title: 'C2' },
       ]
     })
-    @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
+    @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
     class App {
       public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
     }
@@ -184,7 +185,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
       ]
     })
-    @customElement({ name: 'c-1', template: `c-1 <au-viewport></au-viewport>` })
+    @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
     class C1 implements IRouteViewModel { }
 
     @route({
@@ -193,7 +194,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
       ]
     })
-    @customElement({ name: 'c-2', template: `c-2 <au-viewport></au-viewport>` })
+    @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
     class C2 { }
 
     @route({
@@ -202,7 +203,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
       ]
     })
-    @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
+    @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
     class App {
       public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
     }
@@ -223,8 +224,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r11' } as RouteConfig,
-              viewport: 'default',
-              params: emptyParams,
+          viewport: 'default',
+          params: emptyParams,
               children: [],
             }
           ],
@@ -246,8 +247,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r11' } as RouteConfig,
-              viewport: 'default',
-              params: emptyParams,
+          viewport: 'default',
+          params: emptyParams,
               children: [],
             }
           ],
@@ -269,8 +270,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r21' } as RouteConfig,
-              viewport: 'default',
-              params: emptyParams,
+          viewport: 'default',
+          params: emptyParams,
               children: [],
             }
           ],
@@ -292,8 +293,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r12' } as RouteConfig,
-              viewport: 'default',
-              params: { id2: '1' },
+          viewport: 'default',
+          params: { id2: '1' },
               children: [],
             }
           ],
@@ -315,8 +316,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r12' } as RouteConfig,
-              viewport: 'default',
-              params: { id2: '2' },
+          viewport: 'default',
+          params: { id2: '2' },
               children: [],
             }
           ],
@@ -338,8 +339,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r11' } as RouteConfig,
-              viewport: 'default',
-              params: { id1: '3' },
+          viewport: 'default',
+          params: { id1: '3' },
               children: [],
             }
           ],
@@ -361,8 +362,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r21' } as RouteConfig,
-              viewport: 'default',
-              params: { id1: '4' },
+          viewport: 'default',
+          params: { id1: '4' },
               children: [],
             }
           ],
@@ -384,8 +385,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r22' } as RouteConfig,
-              viewport: 'default',
-              params: { id2: '5' },
+          viewport: 'default',
+          params: { id2: '5' },
               children: [],
             }
           ],
@@ -407,8 +408,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r12' } as RouteConfig,
-              viewport: 'default',
-              params: { id2: '6' },
+          viewport: 'default',
+          params: { id2: '6' },
               children: [],
             }
           ],
@@ -430,8 +431,8 @@ describe('router/current-route.spec.ts', function () {
           children: [
             {
               config: { id: 'r21' } as RouteConfig,
-              viewport: 'default',
-              params: { id1: '7' },
+          viewport: 'default',
+          params: { id1: '7' },
               children: [],
             }
           ],
@@ -458,7 +459,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r12', path: ['c-12/:id2?'], component: C12, title: 'C12' },
       ]
     })
-    @customElement({ name: 'c-1', template: `c-1 <au-viewport></au-viewport>` })
+    @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
     class C1 implements IRouteViewModel { }
 
     @route({
@@ -467,7 +468,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r22', path: ['c-22/:id2?'], component: C22, title: 'C22' },
       ]
     })
-    @customElement({ name: 'c-2', template: `c-2 <au-viewport></au-viewport>` })
+    @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
     class C2 { }
 
     @route({
@@ -476,7 +477,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r2', path: ['c-2/:id{{^\\d+$}}?'], component: C2, title: 'C2' },
       ]
     })
-    @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
+    @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
     class App {
       public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
     }
@@ -493,12 +494,12 @@ describe('router/current-route.spec.ts', function () {
         {
           config: { id: 'r1' } as RouteConfig,
           viewport: 'default',
-          params: {},
+          params: emptyParams,
           children: [
             {
               config: { id: 'r11' } as RouteConfig,
               viewport: 'default',
-              params: {},
+              params: emptyParams,
               children: [],
             }
           ],
@@ -521,7 +522,7 @@ describe('router/current-route.spec.ts', function () {
             {
               config: { id: 'r22' } as RouteConfig,
               viewport: 'default',
-              params: { id2: undefined },
+              params: { id2: undefined},
               children: [],
             }
           ],
@@ -562,7 +563,7 @@ describe('router/current-route.spec.ts', function () {
         {
           config: { id: 'r1' } as RouteConfig,
           viewport: 'default',
-          params: { id: undefined },
+          params: { id: undefined},
           children: [
             {
               config: { id: 'r12' } as RouteConfig,
@@ -591,7 +592,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r2', path: ['c-2', 'c-2/:id2'], component: C2, title: 'C2' },
       ]
     })
-    @customElement({ name: 'app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2"${''}></au-viewport>` })
+    @customElement({ name: 'app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2"></au-viewport>' })
     class App {
       public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
     }
@@ -771,7 +772,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
       ]
     })
-    @customElement({ name: 'c-1', template: `c-1 <au-viewport></au-viewport>` })
+    @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
     class C1 implements IRouteViewModel { }
 
     @route({
@@ -780,7 +781,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
       ]
     })
-    @customElement({ name: 'c-2', template: `c-2 <au-viewport></au-viewport>` })
+    @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
     class C2 { }
 
     @route({
@@ -789,7 +790,7 @@ describe('router/current-route.spec.ts', function () {
         { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
       ]
     })
-    @customElement({ name: 'app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2"${''}></au-viewport>` })
+    @customElement({ name: 'app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2"></au-viewport>' })
     class App {
       public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
     }

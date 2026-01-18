@@ -121,8 +121,7 @@ const validToolingPackages =  [
   'babel-jest',
   'parcel-transformer',
   'vite-plugin',
-  'webpack-loader',
-  'http-server',
+  'webpack-loader'
 ];
 
 validToolingPackages

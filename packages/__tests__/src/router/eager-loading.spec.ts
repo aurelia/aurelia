@@ -112,8 +112,13 @@ describe('router/eager-loading.spec.ts', function () {
       id: 'parent', path: 'parent/:id?',
       routes: [Child1, Child2],
     })
-    @customElement({ name: 'par-ent', template: 'parent <au-viewport name="vp1"></au-viewport> <au-viewport name="vp2"></au-viewport>' })
-    class Parent { }
+    @customElement({ name: 'par-ent', template: 'parent ${id} <au-viewport name="vp1"></au-viewport> <au-viewport name="vp2"></au-viewport>' })
+    class Parent implements IRouteViewModel {
+      public id: string | undefined;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
 
     @route({ routes: [Parent] })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
@@ -128,7 +133,7 @@ describe('router/eager-loading.spec.ts', function () {
     assert.html.textContent(host, 'parent child1 123 child2 456', 'round#1');
 
     await router.load('parent/789/(child1/321@vp2+child2/654@vp1)');
-    assert.html.textContent(host, 'parent child2 654 child1 321', 'round#2');
+    assert.html.textContent(host, 'parent 789 child2 654 child1 321', 'round#2');
 
     await au.stop(true);
   });

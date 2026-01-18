@@ -1,4 +1,4 @@
-import type { Writable } from '@aurelia/kernel';
+import { isArray } from '@aurelia/kernel';
 
 interface IHandler {
   path: string[];
@@ -7,7 +7,7 @@ interface IHandler {
 function isIHandler(value: unknown): value is IHandler {
   return value != null
     && typeof value === 'object'
-    && Array.isArray((value as IHandler).path)
+    && isArray((value as IHandler).path)
     ;
 }
 
@@ -81,18 +81,6 @@ export class RecognizedRoute<T> {
     path = path.startsWith('/') ? path.slice(1) : path;
     path = path.endsWith('/') ? path.slice(0, -1) : path;
     this.path = path;
-  }
-
-  /** @internal */
-  public _importFrom(route: RecognizedRoute<T>): void {
-    const params: Record<string, string | undefined> = Object.create(null);
-    for (const key in this.params) {
-      params[key] = this.params[key];
-    }
-    for (const key in route.params) {
-      params[key] = route.params[key];
-    }
-    (this as Writable<RecognizedRoute<T>>).params = Object.freeze(params);
   }
 
   /** @internal */

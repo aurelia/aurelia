@@ -1,4 +1,4 @@
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction, IModuleLoader } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
@@ -102,7 +102,6 @@ export class Transition {
   }
 }
 
-type RouteConfigLookup = WeakMap<RouteConfig, RouteConfigContext>;
 type RouteConfigContextLookup = WeakMap<RouteConfigContext, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigContextLookup>;
 
@@ -192,7 +191,6 @@ export class Router {
   /** @internal */ private readonly _logger: ILogger =  /*@__PURE__*/ resolve(ILogger).root.scopeTo('Router');
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
-  /** @internal */ private readonly _moduleLoader: IModuleLoader = resolve(IModuleLoader);
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
@@ -354,7 +352,6 @@ export class Router {
     return this.routeTree.contains(instructions, false);
   }
 
-  private readonly _routeConfigLookup: RouteConfigLookup = new WeakMap();
   private readonly _vpaLookup: ViewportAgentLookup = new Map();
   /**
    * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.

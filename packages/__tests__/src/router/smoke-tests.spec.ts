@@ -1,11 +1,11 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve, isArray } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, IModule, inject, resolve, isArray } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
-import { start } from './_shared/create-fixture.js';
+import { start as $start, RouterTestStartOptions } from './_shared/create-fixture.js';
 import { isNode } from '../util.js';
 
 function vp(count: number): string {
@@ -36,52 +36,57 @@ function assertIsActive(
   assert.strictEqual(isActive, expected, `expected isActive to return ${expected} (assertId ${assertId})`);
 }
 
-async function createFixture<T extends Constructable>(
-  Component: T,
-  deps: Constructable[],
-  level: LogLevel = LogLevel.fatal,
-) {
-  const ctx = TestContext.create();
-  const { container, platform } = ctx;
-
-  container.register(TestRouterConfiguration.for(level));
-  container.register(RouterConfiguration);
-  container.register(...deps);
-
-  const au = new Aurelia(container);
-  const host = ctx.createElement('div');
-
-  au.app({ component: Component, host });
-
-  await au.start();
-
-  assertComponentsVisible(host, [Component]);
-
-  const logConfig = container.get(ILogConfig);
-
-  return {
-    ctx,
-    au,
-    host,
-    component: au.root.controller.viewModel as InstanceType<T>,
-    platform,
-    container,
-    router: container.get(IRouter),
-    startTracing() {
-      logConfig.level = LogLevel.trace;
-    },
-    stopTracing() {
-      logConfig.level = level;
-    },
-    async tearDown() {
-      assert.areTaskQueuesEmpty();
-
-      await au.stop(true);
-    }
-  };
-}
-
 describe('router/smoke-tests.spec.ts', function () {
+
+  async function createFixture<T extends Constructable>(
+    Component: T,
+    deps: Constructable[],
+    level: LogLevel = LogLevel.fatal,
+  ) {
+    const ctx = TestContext.create();
+    const { container, platform } = ctx;
+
+    container.register(TestRouterConfiguration.for(level));
+    container.register(RouterConfiguration);
+    container.register(...deps);
+
+    const au = new Aurelia(container);
+    const host = ctx.createElement('div');
+
+    au.app({ component: Component, host });
+
+    await au.start();
+
+    assertComponentsVisible(host, [Component]);
+
+    const logConfig = container.get(ILogConfig);
+
+    return {
+      ctx,
+      au,
+      host,
+      component: au.root.controller.viewModel as InstanceType<T>,
+      platform,
+      container,
+      router: container.get(IRouter),
+      startTracing() {
+        logConfig.level = LogLevel.trace;
+      },
+      stopTracing() {
+        logConfig.level = level;
+      },
+      async tearDown() {
+        assert.areTaskQueuesEmpty();
+
+        await au.stop(true);
+      }
+    };
+  }
+
+  async function start<TAppRoot>(options: RouterTestStartOptions<TAppRoot>) {
+    return $start(options);
+  }
+
   @customElement({ name: 'a01', template: `a01${vp(0)}` })
   class A01 { }
   @customElement({ name: 'a02', template: `a02${vp(0)}` })
@@ -664,21 +669,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [A]]);
 
@@ -712,21 +704,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [A]], '1');
 
@@ -787,21 +766,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [A, [B]]], '1');
 
@@ -848,24 +814,8 @@ describe('router/smoke-tests.spec.ts', function () {
       })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        A,
-      );
-
-      const component = container.get(Root);
+      const { au, host, container } = await start({ appRoot: Root, registrations: [A] });
       const router = container.get(IRouter);
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      au.app({ component, host });
-
-      await au.start();
 
       assertComponentsVisible(host, [Root]);
 
@@ -892,24 +842,8 @@ describe('router/smoke-tests.spec.ts', function () {
       })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        A,
-      );
-
-      const component = container.get(Root);
+      const { au, host, container } = await start({ appRoot: Root, registrations: [A] });
       const router = container.get(IRouter);
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      au.app({ component, host });
-
-      await au.start();
 
       assertComponentsVisible(host, [Root]);
 
@@ -936,24 +870,8 @@ describe('router/smoke-tests.spec.ts', function () {
       })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        A,
-      );
-
-      const component = container.get(Root);
+      const { au, host, container } = await start({ appRoot: Root, registrations: [A] });
       const router = container.get(IRouter);
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      au.app({ component, host });
-
-      await au.start();
 
       assertComponentsVisible(host, [Root]);
 
@@ -984,24 +902,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      NF,
-    );
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [NF] });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [A]]);
 
@@ -1042,21 +944,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root]);
 
@@ -1112,21 +1001,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root]);
 
@@ -1165,21 +1041,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root]);
 
@@ -1214,24 +1077,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      NF1,
-    );
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [NF1] });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [A]]);
 
@@ -1259,7 +1106,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
     class P1 { }
 
     @route({
@@ -1267,7 +1114,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
     class P2 { }
 
     @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1281,7 +1128,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
+      fallback(_vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): string {
         return rn.component.Type === P1 ? 'n-f-1' : 'n-f-2';
       },
     })
@@ -1291,35 +1138,18 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      NF1,
-      NF2,
-    );
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [NF1, NF2] });
     const router = container.get(IRouter);
 
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
-
-    assertComponentsVisible(host, [Root, [P1, [C1]]]);
+    assertComponentsVisible(host, [Root, [P1, [C1]]], 'round #1');
 
     await router.load('p2/foo');
 
-    assertComponentsVisible(host, [Root, [P2, [NF2]]]);
+    assertComponentsVisible(host, [Root, [P2, [NF2]]], 'round #2');
 
     await router.load('p1/foo');
 
-    assertComponentsVisible(host, [Root, [P1, [NF1]]]);
+    assertComponentsVisible(host, [Root, [P1, [NF1]]], 'round #3');
 
     await au.stop(true);
     assert.areTaskQueuesEmpty();
@@ -1349,24 +1179,8 @@ describe('router/smoke-tests.spec.ts', function () {
       }
     }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      NF1,
-    );
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [NF1] });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [A]]);
 
@@ -1399,7 +1213,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
     class P1 {
       private readonly fallback = fallback;
     }
@@ -1409,7 +1223,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
     class P2 {
       private readonly fallback = fallback;
     }
@@ -1432,25 +1246,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      NF1,
-      NF2,
-    );
-
-    const component = container.get(Root);
+    const { au, host, container } = await start({ appRoot: Root, registrations: [NF1, NF2] });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
 
     assertComponentsVisible(host, [Root, [P1, [C1]]]);
 
@@ -1509,7 +1306,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
     class P1 { }
 
     @route({
@@ -1517,7 +1314,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
     class P2 { }
 
     @customElement({ name: 'n-f', template: 'nf' })
@@ -1605,7 +1402,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
     class P1 { }
 
     @route({
@@ -1613,7 +1410,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
     class P2 { }
 
     @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1627,7 +1424,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(_vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
         return rn.component.Type === P1 ? NF1 : NF2;
       },
     })
@@ -1697,7 +1494,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
     class P1 { }
 
     @route({
@@ -1705,7 +1502,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
     class P2 { }
 
     @customElement({ name: 'n-f', template: 'nf' })
@@ -1793,7 +1590,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport></au-viewport>` })
     class P1 { }
 
     @route({
@@ -1801,7 +1598,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport></au-viewport>` })
     class P2 { }
 
     @customElement({ name: 'n-f-1', template: 'nf1' })
@@ -1815,7 +1612,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r3', path: ['nf1'], component: NF1 },
         { id: 'r4', path: ['nf2'], component: NF2 },
       ],
-      fallback(vi: IViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
+      fallback(_vi: ViewportInstruction, rn: RouteNode, _ctx: IRouteContext): Routeable {
         return Promise.resolve(rn.component.Type === P1 ? NF1 : NF2);
       },
     })
@@ -1886,7 +1683,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
     class P1 {
       private readonly fallback = NF1;
     }
@@ -1896,7 +1693,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
     class P2 {
       private readonly fallback = NF2;
     }
@@ -1993,7 +1790,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
     class P1 {
       fallback = fallback;
     }
@@ -2003,7 +1800,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
     class P2 {
       fallback = fallback;
     }
@@ -2087,7 +1884,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
     class P1 {
       private readonly fallback = Promise.resolve(NF1);
     }
@@ -2097,7 +1894,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
     class P2 {
       private readonly fallback = Promise.resolve(NF2);
     }
@@ -2194,7 +1991,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C1 },
       ]
     })
-    @customElement({ name: 'ce-p1', template: 'p1<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p1', template: `p1<au-viewport fallback.bind></au-viewport>` })
     class P1 {
       fallback = fallback;
     }
@@ -2204,7 +2001,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { id: 'r1', path: ['', 'c'], component: C2 },
       ]
     })
-    @customElement({ name: 'ce-p2', template: 'p2<au-viewport fallback.bind></au-viewport>' })
+    @customElement({ name: 'ce-p2', template: `p2<au-viewport fallback.bind></au-viewport>` })
     class P2 {
       fallback = fallback;
     }
@@ -2268,7 +2065,7 @@ describe('router/smoke-tests.spec.ts', function () {
     <a ${attr}="../c2">../c2 (works)</a>
   </nav>
   <br>
-  <au-viewport></au-viewport>`,
+  <au-viewport default="gc11"></au-viewport>`,
       })
       class ChildOne { }
 
@@ -2294,7 +2091,7 @@ describe('router/smoke-tests.spec.ts', function () {
     <a ${attr}="../c1">../c1 (works)</a>
   </nav>
   <br>
-  <au-viewport></au-viewport>`,
+  <au-viewport default="gc21"></au-viewport>`,
       })
       class ChildTwo { }
 
@@ -2441,21 +2238,8 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
     await router.load('a1/a/b1/b+a2/c/b2/d');
     await router.load('a1/1/b1/2+a2/3/b2/4');
 
@@ -2530,47 +2314,21 @@ describe('router/smoke-tests.spec.ts', function () {
     })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    const pushedUrls: string[] = [];
-    container.register(Registration.instance(
-      IHistory,
-      {
-        pushState(_: {} | null, __: string, url: string) {
-          pushedUrls.push(url);
-        },
-        replaceState: noop,
-      }
-    ));
-    container.register(TestRouterConfiguration.for(LogLevel.warn));
-    container.register(RouterConfiguration);
-
-    const component = container.get(Root);
+    const { au, container } = await start({ appRoot: Root });
     const router = container.get(IRouter);
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    au.app({ component, host });
-
-    await au.start();
+    const history = container.get<MockBrowserHistoryLocation>(IHistory);
 
     await router.load({ component: 'a1', params: { a: '12' } });
-    let url = pushedUrls.pop();
-    assert.match(url, /a1\/12$/, 'url1');
+    assert.match(history.path, /a1\/12$/, 'url1');
 
     await router.load({ component: 'a2', params: { c: '45' } });
-    url = pushedUrls.pop();
-    assert.match(url, /a2\/45$/, 'url1');
+    assert.match(history.path, /a2\/45$/, 'url1');
 
     await router.load({ component: 'a1', params: { a: '21', b: '34' } });
-    url = pushedUrls.pop();
-    assert.match(url, /a1\/21\?b=34$/, 'url1');
+    assert.match(history.path, /a1\/21\?b=34$/, 'url1');
 
     await router.load({ component: 'a2', params: { a: '67', c: '54' } });
-    url = pushedUrls.pop();
-    assert.match(url, /a2\/54\?a=67$/, 'url1');
+    assert.match(history.path, /a2\/54\?a=67$/, 'url1');
 
     assert.deepStrictEqual(
       [
@@ -2660,7 +2418,7 @@ describe('router/smoke-tests.spec.ts', function () {
         },
       ],
     })
-    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
     class MyApp { }
 
     const { au, container, host } = await start({ appRoot: MyApp });
@@ -2761,7 +2519,7 @@ describe('router/smoke-tests.spec.ts', function () {
         },
       ],
     })
-    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
     class MyApp { }
 
     const { au, container, host } = await start({ appRoot: MyApp });
@@ -2892,7 +2650,7 @@ describe('router/smoke-tests.spec.ts', function () {
         },
       ],
     })
-    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
     class MyApp { }
 
     const { au, container, host } = await start({ appRoot: MyApp });
@@ -3029,7 +2787,7 @@ describe('router/smoke-tests.spec.ts', function () {
         },
       ],
     })
-    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
     class MyApp { }
 
     const { au, container, host } = await start({ appRoot: MyApp });
@@ -3179,7 +2937,7 @@ describe('router/smoke-tests.spec.ts', function () {
         },
       ],
     })
-    @customElement({ name: 'my-app', template: '<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>' })
+    @customElement({ name: 'my-app', template: `<au-viewport name="vp1"></au-viewport><au-viewport name="vp2" default.bind="null"></au-viewport>` })
     class MyApp { }
 
     const { au, container, host } = await start({ appRoot: MyApp });
@@ -3296,6 +3054,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
+
     assert.html.textContent(host, 'p2');
 
     await router.load({
@@ -3905,7 +3664,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'c12', component: C12, title: 'C12' },
         ]
       })
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -3914,7 +3673,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: ['', 'c22'], component: C22, title: 'C22' },
         ]
       })
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 { }
       @customElement({ name: 'ce-p3', template: 'p3' })
       class P3 { }
@@ -3929,28 +3688,20 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe();
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        C11,
-        C12,
-        C21,
-        C22,
-        P1,
-        P2,
-        P3,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [
+          C11,
+          C12,
+          C21,
+          C22,
+          P1,
+          P2,
+          P3,
+          navBarCe,
+        ],
+      });
       const router = container.get(IRouter);
 
       // Start
@@ -3991,7 +3742,7 @@ describe('router/smoke-tests.spec.ts', function () {
       await au.stop(true);
     });
 
-    it('route deco- async components', async function () {
+    it('route deco - async components', async function () {
       @customElement({ name: 'ce-c11', template: 'c11' })
       class C11 { }
       @customElement({ name: 'ce-c12', template: 'c12' })
@@ -4007,7 +3758,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'c12', component: C12, title: 'C12' },
         ]
       })
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -4016,7 +3767,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: ['', 'c22'], component: C22, title: 'C22' },
         ]
       })
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 { }
       @customElement({ name: 'ce-p3', template: 'p3' })
       class P3 { }
@@ -4031,33 +3782,26 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe(true);
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        C11,
-        C12,
-        C21,
-        C22,
-        P1,
-        P2,
-        P3,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [
+          C11,
+          C12,
+          C21,
+          C22,
+          P1,
+          P2,
+          P3,
+          navBarCe,
+        ],
+      });
       const router = container.get(IRouter);
 
       // Start
       await tasksSettled();
       type NavBar = InstanceType<typeof navBarCe>;
+      assert.html.textContent(host, 'P1P2 root C11C12 p1 c11', 'start content');
       const rootNavbar = CustomElement.for<NavBar>(host.querySelector('nav-bar')).viewModel;
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'start root');
       let childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
@@ -4066,6 +3810,7 @@ describe('router/smoke-tests.spec.ts', function () {
       // Round#1
       await router.load('p2');
       await tasksSettled();
+      assert.html.textContent(host, 'P1P2 root C21C22 p2 c22', 'round#1 content');
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#1 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: false }, { href: 'c22', text: 'C22', active: true }], 'round#1 child navbar');
@@ -4073,6 +3818,7 @@ describe('router/smoke-tests.spec.ts', function () {
       // Round#2
       await router.load('p1/c12');
       await tasksSettled();
+      assert.html.textContent(host, 'P1P2 root C11C12 p1 c12', 'round#2 content');
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: true }, { href: 'p2', text: 'P2', active: false }], 'round#2 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p1>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c11', text: 'C11', active: false }, { href: 'c12', text: 'C12', active: true }], 'round#2 navbar');
@@ -4080,6 +3826,7 @@ describe('router/smoke-tests.spec.ts', function () {
       // Round#3
       await router.load('p2/c21');
       await tasksSettled();
+      assert.html.textContent(host, 'P1P2 root C21C22 p2 c21', 'round#3 content');
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: true }], 'round#3 root');
       childNavBar = CustomElement.for<NavBar>(host.querySelector('ce-p2>nav-bar')).viewModel;
       childNavBar.assert([{ href: 'c21', text: 'C21', active: true }, { href: 'c22', text: 'C22', active: false }], 'round#3 navbar');
@@ -4087,6 +3834,7 @@ describe('router/smoke-tests.spec.ts', function () {
       // Round#4 - nav:false, but routeable
       await router.load('p3');
       await tasksSettled();
+      assert.html.textContent(host, 'P1P2 root p3', 'round#4 content');
       rootNavbar.assert([{ href: 'p1', text: 'P1', active: false }, { href: 'p2', text: 'P2', active: false }], 'round#4 root');
       assert.notEqual(host.querySelector('ce-p3'), null);
 
@@ -4103,7 +3851,7 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ce-c22', template: 'c22' })
       class C22 { }
 
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 implements IRouteViewModel {
         public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
@@ -4115,7 +3863,7 @@ describe('router/smoke-tests.spec.ts', function () {
         }
       }
 
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 implements IRouteViewModel {
         public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
@@ -4143,28 +3891,20 @@ describe('router/smoke-tests.spec.ts', function () {
         }
       }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe();
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        C11,
-        C12,
-        C21,
-        C22,
-        P1,
-        P2,
-        P3,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [
+          C11,
+          C12,
+          C21,
+          C22,
+          P1,
+          P2,
+          P3,
+          navBarCe,
+        ],
+      });
       const router = container.get(IRouter);
 
       // Start
@@ -4215,7 +3955,7 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ce-c22', template: 'c22' })
       class C22 { }
 
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 implements IRouteViewModel {
         public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
@@ -4227,7 +3967,7 @@ describe('router/smoke-tests.spec.ts', function () {
         }
       }
 
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 implements IRouteViewModel {
         public getRouteConfig(_parentDefinition: RouteConfig, _routeNode: RouteNode): IRouteConfig {
           return {
@@ -4255,28 +3995,20 @@ describe('router/smoke-tests.spec.ts', function () {
         }
       }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe(true);
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        C11,
-        C12,
-        C21,
-        C22,
-        P1,
-        P2,
-        P3,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [
+          C11,
+          C12,
+          C21,
+          C22,
+          P1,
+          P2,
+          P3,
+          navBarCe,
+        ],
+      });
       const router = container.get(IRouter);
 
       // Start
@@ -4333,7 +4065,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: ['c12/:id', 'c12'], component: C12, title: 'C12' },
         ]
       })
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -4342,7 +4074,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: ['', 'c22'], component: C22, title: 'C22' },
         ]
       })
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 implements IRouteViewModel { }
 
       @route({
@@ -4354,21 +4086,11 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe();
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        navBarCe,
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [navBarCe],
+      });
       const router = container.get(IRouter);
 
       // Start
@@ -4434,7 +4156,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'c12', component: C12, title: 'C12' },
         ]
       })
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -4444,7 +4166,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'c22', component: C22, title: 'C22' },
         ]
       })
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 { }
       @customElement({ name: 'ce-p3', template: 'p3' })
       class P3 { }
@@ -4460,21 +4182,8 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe();
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({ appRoot: Root, registrations: [navBarCe] });
       const router = container.get(IRouter);
 
       // Start
@@ -4532,7 +4241,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'c12', component: C12, title: 'C12' },
         ]
       })
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -4542,7 +4251,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'c22', component: C22, title: 'C22' },
         ]
       })
-      @customElement({ name: 'ce-p2', template: '<nav-bar></nav-bar> p2 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p2', template: `<nav-bar></nav-bar> p2 <au-viewport></au-viewport>` })
       class P2 { }
       @customElement({ name: 'ce-p3', template: 'p3' })
       class P3 { }
@@ -4558,21 +4267,8 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe(false);
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({ appRoot: Root, registrations: [navBarCe] });
       const router = container.get(IRouter);
 
       // Start
@@ -4631,21 +4327,8 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe();
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, host, container } = await start({ appRoot: Root, registrations: [navBarCe] });
       const router = container.get(IRouter);
 
       // Start
@@ -4676,7 +4359,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: ['', 'c11'], component: C11, title: 'C11' },
         ]
       })
-      @customElement({ name: 'ce-p1', template: '<nav-bar></nav-bar> p1 <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-p1', template: `<nav-bar></nav-bar> p1 <au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -4687,20 +4370,8 @@ describe('router/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
       const navBarCe = getNavBarCe();
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration.customize({ useNavigationModel: false }),
-        navBarCe
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
+      const { au, host } = await start({ appRoot: Root, registrations: [navBarCe], useNavigationModel: false });
 
       await tasksSettled();
       assert.html.textContent(host, 'no nav model root no nav model p1 c11');
@@ -4758,11 +4429,18 @@ describe('router/smoke-tests.spec.ts', function () {
 
   it('isNavigating indicates router\'s navigation status', async function () {
 
+    abstract class BaseViewModel implements IRouteViewModel {
+      public loading(_params: Params, _next: RouteNode, _current: RouteNode | null, _options: INavigationOptions): void | Promise<void> {
+        return new Promise<void>(resolve => { setTimeout(resolve, 1); });
+      }
+    }
+
     @customElement({ name: 'ce-p1', template: 'p1' })
-    class P1 { }
+    class P1 extends BaseViewModel { }
 
     @customElement({ name: 'ce-p2', template: 'p2' })
-    class P2 { }
+    class P2 extends BaseViewModel { }
+
     @route({
       routes: [
         { path: ['', 'p1'], component: P1, title: 'P1' },
@@ -4780,27 +4458,14 @@ describe('router/smoke-tests.spec.ts', function () {
       }
     }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      P1,
-      P2,
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
-
-    await au.app({ component: Root, host }).start();
+    const { au, container } = await start({ appRoot: Root, registrations: [P1, P2] });
 
     const log = (au.root.controller.viewModel as Root).isNavigatingLog;
-    assert.deepStrictEqual(log, []);
+    assert.deepStrictEqual(log, [true, false], 'initial navigation');
 
     log.length = 0;
     await container.get(IRouter).load('p2');
-    assert.deepStrictEqual(log, []);
+    assert.deepStrictEqual(log, [true, false], 'navigation to p2');
 
     await au.stop(true);
   });
@@ -4891,20 +4556,8 @@ describe('router/smoke-tests.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      P1,
-      P2,
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
+    const { au, host, container } = await start({ appRoot: Root, registrations: [P1, P2] });
     const router = container.get(IRouter);
-
-    await au.app({ component: Root, host }).start();
 
     assert.html.textContent(host, 'p2');
     const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
@@ -4945,20 +4598,8 @@ describe('router/smoke-tests.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport default.bind="null"></au-viewport>' })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      P1,
-      P2,
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
+    const { au, host, container } = await start({ appRoot: Root, registrations: [P1, P2] });
     const router = container.get(IRouter);
-
-    await au.app({ component: Root, host }).start();
 
     assert.html.textContent(host, 'p2');
     const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
@@ -5008,20 +4649,8 @@ describe('router/smoke-tests.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport default.bind="null"></au-viewport>' })
     class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration,
-      P1,
-      P2,
-    );
-
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
+    const { au, host, container } = await start({ appRoot: Root, registrations: [P2] });
     const router = container.get(IRouter);
-
-    await au.app({ component: Root, host }).start();
     const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
 
     await router.load('fizz/1/2');
@@ -5063,20 +4692,7 @@ describe('router/smoke-tests.spec.ts', function () {
       })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        Foo,
-        Bar,
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
+      const { au, container } = await start({ appRoot: Root, registrations: [Foo, Bar] });
 
       const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
       const router = container.get(IRouter);
@@ -5176,21 +4792,7 @@ describe('router/smoke-tests.spec.ts', function () {
       })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        Foo,
-        Bar,
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
+      const { au, container } = await start({ appRoot: Root, registrations: [Foo, Bar] });
       const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
       const router = container.get(IRouter);
 
@@ -5305,26 +4907,8 @@ describe('router/smoke-tests.spec.ts', function () {
       })
       class Root { }
 
-      const ctx = TestContext.create();
-      const { container } = ctx;
-
-      container.register(
-        TestRouterConfiguration.for(LogLevel.warn),
-        RouterConfiguration,
-        CeL11,
-        CeL21,
-        CeL22,
-        CeL12,
-        CeL23,
-        CeL24,
-      );
-
-      const au = new Aurelia(container);
-      const host = ctx.createElement('div');
-
-      await au.app({ component: Root, host }).start();
-
-      const location = container.get(ILocation) as unknown as MockBrowserHistoryLocation;
+      const { au, host, container } = await start({ appRoot: Root, registrations: [CeL11, CeL21, CeL22, CeL12, CeL23, CeL24] });
+      const location = container.get<MockBrowserHistoryLocation>(ILocation);
       const router = container.get(IRouter);
 
       // using route-id
@@ -5714,7 +5298,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       @route({
-        transitionPlan(current: RouteNode, next: RouteNode) {
+        transitionPlan(next: RouteNode) {
           return next.component.Type === Root ? 'replace' : 'invoke-lifecycles';
         },
         routes: [
@@ -5771,7 +5355,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       @route({
-        transitionPlan(current: RouteNode, next: RouteNode) {
+        transitionPlan(next: RouteNode) {
           return next.component.Type === CeTwo ? 'invoke-lifecycles' : 'replace';
         },
         routes: [
@@ -5829,7 +5413,7 @@ describe('router/smoke-tests.spec.ts', function () {
           },
         ]
       })
-      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2} <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-one', template: `ce1 \${id1} \${id2} <au-viewport></au-viewport>` })
       class CeOne implements IRouteViewModel {
         private static id1: number = 0;
         private static id2: number = 0;
@@ -5842,7 +5426,7 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       @route({
-        transitionPlan(current: RouteNode, next: RouteNode) {
+        transitionPlan(next: RouteNode) {
           return next.component.Type === CeTwo ? 'invoke-lifecycles' : 'replace';
         },
         routes: [
@@ -5895,7 +5479,7 @@ describe('router/smoke-tests.spec.ts', function () {
           },
         ]
       })
-      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2} <au-viewport></au-viewport>' })
+      @customElement({ name: 'ce-one', template: `ce1 \${id1} \${id2} <au-viewport></au-viewport>` })
       class CeOne implements IRouteViewModel {
         private static id1: number = 0;
         private static id2: number = 0;
@@ -5908,7 +5492,8 @@ describe('router/smoke-tests.spec.ts', function () {
       }
 
       @route({
-        transitionPlan(current: RouteNode, next: RouteNode) {
+        transitionPlan(next: RouteNode) {
+          console.log('transitionPlan', next.component.Type.name, next.component.Type === CeOne ? 'invoke-lifecycles' : 'replace');
           return next.component.Type === CeOne ? 'invoke-lifecycles' : 'replace';
         },
         routes: [
@@ -5967,7 +5552,6 @@ describe('router/smoke-tests.spec.ts', function () {
           return true;
         }
       }
-
       @route({
         transitionPlan: 'replace',
         routes: [
@@ -6210,8 +5794,7 @@ describe('router/smoke-tests.spec.ts', function () {
       // going back should load the ce1
       const history = container.get(IHistory);
       history.back();
-      await new Promise(r => setTimeout(r, 0));
-
+      await tasksSettled();
       assert.html.textContent(vp, 'ce1', 'back - component');
       await tasksSettled();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":1}', 'back - history');
@@ -6219,8 +5802,8 @@ describe('router/smoke-tests.spec.ts', function () {
       // going forward should load ce3
       history.forward();
       await tasksSettled();
-
       assert.html.textContent(vp, 'ce3', 'forward - component');
+      await tasksSettled();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
@@ -6297,14 +5880,14 @@ describe('router/smoke-tests.spec.ts', function () {
       history.back();
       await tasksSettled();
       assert.html.textContent(vp, 'ce2', 'back - component');
-      await Promise.resolve();
+      await tasksSettled();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":2}', 'back - history');
 
       // going forward should load ce3
       history.forward();
       await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'forward - component');
-      await Promise.resolve();
+      await tasksSettled();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       // strategy: none
@@ -6378,16 +5961,17 @@ describe('router/smoke-tests.spec.ts', function () {
 
       // going back should load the ce1
       const history = container.get(IHistory);
-
       history.back();
       await tasksSettled();
       assert.html.textContent(vp, 'ce1', 'back - component');
+      await tasksSettled();
       assert.html.textContent(historyEl, '#4 - len: 2 - state: {"au-nav-id":4}', 'back - history');
 
       // going forward should load ce3
       history.forward();
       await tasksSettled();
       assert.html.textContent(vp, 'ce3', 'forward - component');
+      await tasksSettled();
       assert.html.textContent(historyEl, '#5 - len: 2 - state: {"au-nav-id":3}', 'forward - history');
 
       await router.load('ce2', { historyStrategy: 'replace' });
@@ -6412,7 +5996,7 @@ describe('router/smoke-tests.spec.ts', function () {
         { path: 'c2', component: C2 },
       ]
     })
-    @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+    @customElement({ name: 'p-1', template: `<au-viewport></au-viewport>` })
     class P1 { }
 
     @route({
@@ -6422,7 +6006,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
       ]
     })
-    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
     class Root { }
 
     const { au, host } = await start({ appRoot: Root });
@@ -6514,7 +6098,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: '', component: C1, title: 'p1c1', data: { foo: 'bar' } }
         ]
       })
-      @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+      @customElement({ name: 'p-1', template: `<au-viewport></au-viewport>` })
       class P1 { }
 
       @route({
@@ -6522,7 +6106,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: '', component: C1, title: 'p2c1', data: { awesome: 'possum' } }
         ]
       })
-      @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+      @customElement({ name: 'p-2', template: `<au-viewport></au-viewport>` })
       class P2 { }
 
       @route({
@@ -6531,7 +6115,7 @@ describe('router/smoke-tests.spec.ts', function () {
           { path: 'p2', component: P2 },
         ]
       })
-      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
       class Root { }
 
       const { au, host, container } = await start({ appRoot: Root });
@@ -6571,7 +6155,7 @@ describe('router/smoke-tests.spec.ts', function () {
             C1,
           ]
         })
-        @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'p-1', template: `<au-viewport></au-viewport>` })
         class P1 { }
 
         @route({
@@ -6580,7 +6164,7 @@ describe('router/smoke-tests.spec.ts', function () {
             C1,
           ]
         })
-        @customElement({ name: 'p-2', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'p-2', template: `<au-viewport></au-viewport>` })
         class P2 { }
 
         @route({
@@ -6589,7 +6173,7 @@ describe('router/smoke-tests.spec.ts', function () {
             { path: 'p2', component: P2 },
           ]
         })
-        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
         class Root { }
 
         const { au, host, container } = await start({ appRoot: Root });
@@ -7064,7 +6648,7 @@ describe('router/smoke-tests.spec.ts', function () {
     @customElement({ name: 'c-2', template: 'c2' })
     class C2 { }
 
-    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>', aliases: ['p1'] })
+    @customElement({ name: 'p-1', template: `p1 <au-viewport></au-viewport>`, aliases: ['p1'] })
     class P1 implements IRouteViewModel {
       public getRouteConfig(_parentConfig: IRouteConfig, _routeNode: RouteNode): IRouteConfig {
         return {
@@ -7078,7 +6662,7 @@ describe('router/smoke-tests.spec.ts', function () {
     }
 
     @route({ routes: [{ path: ['', 'p1'], component: P1 }] })
-    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    @customElement({ name: 'ro-ot', template: `<au-viewport></au-viewport>` })
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root });

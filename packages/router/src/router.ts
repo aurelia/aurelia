@@ -4,7 +4,7 @@ import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runt
 import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
-import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
+import { RouteConfig, RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
@@ -102,7 +102,6 @@ export class Transition {
   }
 }
 
-type RouteConfigLookup = WeakMap<RouteConfig, RouteConfigContext>;
 type RouteConfigContextLookup = WeakMap<RouteConfigContext, IRouteContext>;
 type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigContextLookup>;
 
@@ -195,7 +194,7 @@ export class Router {
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
-    this._instructions = ViewportInstructionTree.create('', this.options, null, null);
+    this._instructions = ViewportInstructionTree.create('', this.options, null, null, null);
     this._container.registerResolver(Router, Registration.instance(Router, this));
   }
 
@@ -242,7 +241,7 @@ export class Router {
         const isBack = auNavId <= this._lastLocationChangeStateId || this._lastLocationChangeStateId === 0;
         this._lastLocationChangeStateId = auNavId;
         const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace', isBack });
-        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
+        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx, null);
         // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
         // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
         // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
@@ -334,7 +333,7 @@ export class Router {
   public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean>;
   public load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean> {
     return onResolve(
-      this.createViewportInstructions(instructionOrInstructions, options ?? null),
+      this.createViewportInstructions(instructionOrInstructions, options ?? null, null),
       instructions => {
         if (__DEV__) trace(this._logger, Events.rtrLoading, instructions);
 
@@ -347,14 +346,12 @@ export class Router {
     const ctx = this._resolveContext(context);
     const instructions = instructionOrInstructions instanceof ViewportInstructionTree
       ? instructionOrInstructions
-      : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy });
-
+      : this.createViewportInstructions(instructionOrInstructions, { context: ctx, historyStrategy: this.options.historyStrategy }, null);
     if (__DEV__) trace(this._logger, Events.rtrIsActive, instructions, ctx);
 
     return this.routeTree.contains(instructions, false);
   }
 
-  private readonly _routeConfigLookup: RouteConfigLookup = new WeakMap();
   private readonly _vpaLookup: ViewportAgentLookup = new Map();
   /**
    * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
@@ -378,7 +375,7 @@ export class Router {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
     return onResolve(
-      this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, container, parentRouteConfig, parentContext?.routeConfigContext ?? null),
+      RouteConfigContext.getOrCreate($rdConfig, componentDefinition, componentInstance, parentRouteConfig, parentContext?.routeConfigContext ?? null, container.root, this.options),
       rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {
@@ -410,45 +407,6 @@ export class Router {
     );
   }
 
-  public getRouteConfigContext(
-    $rdConfig: RouteConfig | null,
-    componentDefinition: CustomElementDefinition,
-    componentInstance: IRouteViewModel | null,
-    container: IContainer,
-    parentRouteConfig: RouteConfig | null,
-    parentRouteConfigContext: RouteConfigContext | null,
-  ): RouteConfigContext | Promise<RouteConfigContext> {
-    return onResolve(
-      // In case of navigation strategy, get the route config for the resolved component directly.
-      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
-      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
-      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
-        ? $rdConfig
-        : resolveRouteConfiguration(
-          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-          false,
-          parentRouteConfig,
-          null,
-          parentRouteConfigContext,
-        ),
-      rdConfig => {
-        let routeConfigContext = this._routeConfigLookup.get(rdConfig);
-        if (routeConfigContext != null) return routeConfigContext;
-
-        routeConfigContext = new RouteConfigContext(
-          parentRouteConfigContext,
-          componentDefinition,
-          rdConfig,
-          container,
-          this,
-        );
-        this._routeConfigLookup.set(rdConfig, routeConfigContext);
-        return routeConfigContext;
-      }
-    );
-  }
-
   /**
    * Generate a path from the provided instructions.
    *
@@ -457,19 +415,19 @@ export class Router {
    */
   public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
     return onResolve(
-      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true),
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, null, true),
       vit => vit.toUrl(true, this.options._urlParser, (vit.options.context as IRouteContext).isRoot),
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
     if (context !== null) context = (options as Writable<INavigationOptions>).context = this._resolveContext(context);
-    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, traverseChildren as true);
+    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, parentRoutePath, traverseChildren as true);
   }
 
   /**

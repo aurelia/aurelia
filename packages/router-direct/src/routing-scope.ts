@@ -574,7 +574,7 @@ export class RoutingScope {
       const recognizer = new RouteRecognizer();
 
       recognizer.add(cRoutes);
-      result = recognizer.recognize(path);
+      result = recognizer.recognize(path)?.[0];
     }
     if (result != null) {
       found.match = result.endpoint.route.handler;

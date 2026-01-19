@@ -75,6 +75,8 @@ export const enum Events {
   rcNoPathLazyImport = 3173,
   rcNoAvailableVpa = 3174,
   rcInvalidLazyImport = 3175,
+  rcUnexpectedEmptyPathForEagerLoading = 3176,
+  rcParamterizedPathHasChildren = 3177,
   // #endregion
   // #region router events
   rePublishingEvent = 3200,
@@ -254,6 +256,8 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rcNoPathLazyImport]: 'Invalid route config. When the component property is a lazy import, the path must be specified.',
   [Events.rcNoAvailableVpa]: 'Failed to resolve %s at:\n%s',
   [Events.rcInvalidLazyImport]: '%s does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.',
+  [Events.rcUnexpectedEmptyPathForEagerLoading]: 'Empty path encountered (%s) while the router is configured for eager loading. This may result in unexpected behavior. Consider using non-empty paths and/or "default" attribute for au-viewports.',
+  [Events.rcParamterizedPathHasChildren]: 'The parameterized path %s has child routes while the router is configured without eager loading. This may result in unexpected behavior.',
   // #endregion
 
   // #region router events

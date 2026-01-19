@@ -227,55 +227,53 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p1 c1', 'init');
 
         // #region round#1
-        let expected = useHash ? '/#/p2' : 'p2';
+        let expected = useHash ? /\/#\/p2$/ : /p2$/;
         let path = await router.generatePath(P2);
-        assert.strictEqual(path, expected, 'round#1 - generatePath(P2)');
+        assert.match(path, expected, 'round#1 - generatePath(P2)');
 
         path = await router.generatePath(P2, rootVm);
-        assert.strictEqual(path, expected, 'round#1 - generatePath(P2, rootVm)');
+        assert.match(path, expected, 'round#1 - generatePath(P2, rootVm)');
 
         path = await router.generatePath('p2');
-        assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\')');
+        assert.match(path, expected, 'round#1 - generatePath(\'p2\')');
 
         path = await router.generatePath('p2', rootVm);
-        assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', rootVm)');
+        assert.match(path, expected, 'round#1 - generatePath(\'p2\', rootVm)');
 
         const p1 = CustomElement.for<P1>(host.querySelector('p-1')!).viewModel;
         path = await p1.generateRelativePath('../p2');
-        assert.strictEqual(path, expected, 'round#1 - generatePath(\'../p2\', P1)');
+        assert.match(path, expected, 'round#1 - generatePath(\'../p2\', P1)');
 
         path = await p1.generateRelativePath('p2', p1.routeContext.parent);
-        assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', P1)');
+        assert.match(path, expected, 'round#1 - generatePath(\'p2\', P1)');
 
         let c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
         path = await c1.generateRelativePath('../../p2');
-        assert.strictEqual(path, expected, 'round#1 - generatePath(\'../../p2\', C1)');
+        assert.match(path, expected, 'round#1 - generatePath(\'../../p2\', C1)');
 
         path = await c1.generateRelativePath('p2', c1.routeContext.parent.parent);
-        assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', C1)');
+        assert.match(path, expected, 'round#1 - generatePath(\'p2\', C1)');
 
         await router.load(path);
         assert.html.textContent(host, 'p2 c2', 'round#1 - load(path)');
         // #endregion
 
         // #region round#2
-        expected = useHash ? '/#/p1/foo/1' : 'p1/foo/1';
+        expected = useHash ? /\/#\/p1\/foo\/1/ : /p1\/foo\/1/;
         // route id
         path = await router.generatePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] });
-        assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] })');
+        assert.match(path, expected, 'round#2 - generatePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] })');
 
         // custom element
         path = await router.generatePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] });
-        assert.strictEqual(path, expected, 'round#2 - generatePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] })');
-
+        assert.match(path, expected, 'round#2 - generatePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] })');
         // custom element definition
         path = await router.generatePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] });
-        assert.strictEqual(path, expected, 'round#2 - generatePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] })');
+        assert.match(path, expected, 'round#2 - generatePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] })');
 
         // function
         path = await router.generatePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] });
-        assert.strictEqual(path, expected, 'round#2 - generatePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] })');
-
+        assert.match(path, expected, 'round#2 - generatePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] })');
         await router.load(path);
         assert.html.textContent(host, 'p1 c3 1', 'round#2 - load(path)');
         // #endregion
@@ -290,22 +288,20 @@ describe('router/generate-path.spec.ts', function () {
         let context = c2.context = c2.routeContext.parent.parent;
         // route id
         path = await c2.generateRelativePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] }, context);
-        assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] }, context)');
+        assert.match(path, expected, 'round#3 - c2.generateRelativePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] }, context)');
 
         // custom element
         path = await c2.generateRelativePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] }, context);
-        assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] }, context)');
-
+        assert.match(path, expected, 'round#3 - c2.generateRelativePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] }, context)');
         // custom element definition
         path = await c2.generateRelativePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] }, context);
-        assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] }, context)');
+        assert.match(path, expected, 'round#3 - c2.generateRelativePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] }, context)');
 
         // function
         path = await c2.generateRelativePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] }, context);
-        assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] }, context)');
-
+        assert.match(path, expected, 'round#3 - c2.generateRelativePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] }, context)');
         // click on link
-        c2.route = expected;
+        c2.route = useHash ? '/#/p1/foo/1' : 'p1/foo/1';
         await $yield();
         c2El.querySelector('a').click();
         await $yield();
@@ -317,29 +313,28 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p1 c1', 'round#3 - reset - load(\'p1/c1\')');
 
         // #region round#4 - resolve relative path at child using parent context
-        expected = 'foo/1';
+        expected = /foo\/1$/;
         let c1El = host.querySelector('c-1')!;
         c1 = CustomElement.for<C1>(c1El).viewModel;
         context = c1.context = c1.routeContext.parent;
 
         // route id
         path = await c1.generateRelativePath({ component: 'c3', params: { id: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: \'c3\', params: { id: 1 } }, context)');
+        assert.match(path, expected, 'round#4 - c1.generateRelativePath({ component: \'c3\', params: { id: 1 } }, context)');
 
         // custom element
         path = await c1.generateRelativePath({ component: C3, params: { id: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: C3, params: { id: 1 } }, context)');
+        assert.match(path, expected, 'round#4 - c1.generateRelativePath({ component: C3, params: { id: 1 } }, context)');
 
         // custom element definition
         path = await c1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } }, context)');
-
+        assert.match(path, expected, 'round#4 - c1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } }, context)');
         // function
         path = await c1.generateRelativePath({ component: () => C3, params: { id: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: () => C3, params: { id: 1 } }, context)');
+        assert.match(path, expected, 'round#4 - c1.generateRelativePath({ component: () => C3, params: { id: 1 } }, context)');
 
         // click on link
-        c1.route = expected;
+        c1.route = 'foo/1';
         await $yield();
         c1El.querySelector('a').click();
         await $yield();
@@ -356,22 +351,22 @@ describe('router/generate-path.spec.ts', function () {
 
         // route id
         path = await p1Vm.generateRelativePath({ component: 'c3', params: { id: 1 } });
-        assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: \'c3\', params: { id: 1 } })');
+        assert.match(path, expected, 'round#5 - p1.generateRelativePath({ component: \'c3\', params: { id: 1 } })');
 
         // custom element
         path = await p1Vm.generateRelativePath({ component: C3, params: { id: 1 } });
-        assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: C3, params: { id: 1 } })');
+        assert.match(path, expected, 'round#5 - p1.generateRelativePath({ component: C3, params: { id: 1 } })');
 
         // custom element definition
         path = await p1Vm.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } });
-        assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } })');
+        assert.match(path, expected, 'round#5 - p1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } })');
 
         // function
         path = await p1Vm.generateRelativePath({ component: () => C3, params: { id: 1 } });
-        assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: () => C3, params: { id: 1 } })');
+        assert.match(path, expected, 'round#5 - p1.generateRelativePath({ component: () => C3, params: { id: 1 } })');
 
         // click on link
-        p1Vm.route = expected;
+        p1Vm.route = 'foo/1';
         await $yield();
         p1El.querySelector('a').click();
         await $yield();
@@ -383,29 +378,29 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p1 c1', 'round#5 - reset - load(\'p1/c1\')');
 
         // #region round#6 - resolve relative path to a child (required parameters) under the parent's sibling
-        expected = useHash ? '/#/p2/bar/1/2' : 'p2/bar/1/2';
+        expected = useHash ? /\/#\/p2\/bar\/1\/2/ : /p2\/bar\/1\/2/;
         c1El = host.querySelector('c-1')!;
         c1 = CustomElement.for<C1>(c1El).viewModel;
         context = c1.context = c1.routeContext.parent.parent;
 
         // route id
         path = await c1.generateRelativePath({ component: 'p2', children: [{ component: 'c4', params: { id1: 1, id2: 2 } }] }, context);
-        assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: \'p2\', children: [{ component: \'c4\', params: { id1: 1, id2: 2 } }] }, context)');
+        assert.match(path, expected, 'round#6 - c1.generateRelativePath({ component: \'p2\', children: [{ component: \'c4\', params: { id1: 1, id2: 2 } }] }, context)');
 
         // custom element
         path = await c1.generateRelativePath({ component: P2, children: [{ component: C4, params: { id1: 1, id2: 2 } }] }, context);
-        assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: P2, children: [{ component: C4, params: { id1: 1, id2: 2 } }] }, context)');
+        assert.match(path, expected, 'round#6 - c1.generateRelativePath({ component: P2, children: [{ component: C4, params: { id1: 1, id2: 2 } }] }, context)');
 
         // custom element definition
         path = await c1.generateRelativePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id1: 1, id2: 2 } }] }, context);
-        assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id1: 1, id2: 2 } }] }, context)');
+        assert.match(path, expected, 'round#6 - c1.generateRelativePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id1: 1, id2: 2 } }] }, context)');
 
         // function
         path = await c1.generateRelativePath({ component: () => P2, children: [{ component: () => C4, params: { id1: 1, id2: 2 } }] }, context);
-        assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: () => P2, children: [{ component: () => C4, params: { id1: 1, id2: 2 } }] }, context)');
+        assert.match(path, expected, 'round#6 - c1.generateRelativePath({ component: () => P2, children: [{ component: () => C4, params: { id1: 1, id2: 2 } }] }, context)');
 
         // click on link
-        c1.route = useHash ? expected.substring(3) : expected;
+        c1.route = 'p2/bar/1/2';
         await $yield();
         c1El.querySelector('a').click();
         await $yield();
@@ -417,29 +412,29 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p2 c2', 'round#6 - reset - load(\'p2/c2\')');
 
         // #region round#7 - resolve relative path to a different child (optional parameters - value for all) under parent
-        expected = 'fizz/1/2';
+        expected = /fizz\/1\/2$/;
         c2El = host.querySelector('c-2')!;
         c2 = CustomElement.for<C2>(c2El).viewModel;
         context = c2.context = c2.routeContext.parent;
 
         // route id
         path = await c2.generateRelativePath({ component: 'c4', params: { id3: 1, id4: 2 } }, context);
-        assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: \'c4\', params: { id3: 1, id4: 2 } }, context)');
+        assert.match(path, expected, 'round#7 - c2.generateRelativePath({ component: \'c4\', params: { id3: 1, id4: 2 } }, context)');
 
         // custom element
         path = await c2.generateRelativePath({ component: C4, params: { id3: 1, id4: 2 } }, context);
-        assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: C4, params: { id3: 1, id4: 2 } }, context)');
+        assert.match(path, expected, 'round#7 - c2.generateRelativePath({ component: C4, params: { id3: 1, id4: 2 } }, context)');
 
         // custom element definition
         path = await c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1, id4: 2 } }, context);
-        assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1, id4: 2 } }, context)');
+        assert.match(path, expected, 'round#7 - c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1, id4: 2 } }, context)');
 
         // function
         path = await c2.generateRelativePath({ component: () => C4, params: { id3: 1, id4: 2 } }, context);
-        assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: () => C4, params: { id3: 1, id4: 2 } }, context)');
+        assert.match(path, expected, 'round#7 - c2.generateRelativePath({ component: () => C4, params: { id3: 1, id4: 2 } }, context)');
 
         // click on link
-        c2.route = expected;
+        c2.route = 'fizz/1/2';
         await $yield();
         c2El.querySelector('a').click();
         await $yield();
@@ -451,29 +446,29 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p2 c2', 'round#7 - reset - load(\'p2/c2\')');
 
         // #region round#8 - resolve relative path to a different child (optional parameters - no value) under parent
-        expected = 'fizz/1/';
+        expected = /fizz\/1\/?$/;
         c2El = host.querySelector('c-2')!;
         c2 = CustomElement.for<C2>(c2El).viewModel;
         context = c2.context = c2.routeContext.parent;
 
         // route id
         path = await c2.generateRelativePath({ component: 'c4', params: { id3: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: \'c4\', params: { id3: 1 } }, context)');
+        assert.match(path, expected, 'round#8 - c2.generateRelativePath({ component: \'c4\', params: { id3: 1 } }, context)');
 
         // custom element
         path = await c2.generateRelativePath({ component: C4, params: { id3: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: C4, params: { id3: 1 } }, context)');
+        assert.match(path, expected, 'round#8 - c2.generateRelativePath({ component: C4, params: { id3: 1 } }, context)');
 
         // custom element definition
         path = await c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1 } }, context)');
+        assert.match(path, expected, 'round#8 - c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1 } }, context)');
 
         // function
         path = await c2.generateRelativePath({ component: () => C4, params: { id3: 1 } }, context);
-        assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: () => C4, params: { id3: 1 } }, context)');
+        assert.match(path, expected, 'round#8 - c2.generateRelativePath({ component: () => C4, params: { id3: 1 } }, context)');
 
         // click on link
-        c2.route = expected;
+        c2.route = 'fizz/1/';
         await $yield();
         c2El.querySelector('a').click();
         await $yield();
@@ -485,28 +480,28 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p2 c2', 'round#8 - reset - load(\'p2/c2\')');
 
         // #region round#9 - resolve relative path to a child (wildcard parameter)
-        expected = 'buzz/1/2%2F3%2F4';
+        expected = /buzz\/1\/2%2F3%2F4/;
         const p2El = host.querySelector('p-2')!;
         const p2 = CustomElement.for<P2>(p2El).viewModel;
 
         // route id
         path = await p2.generateRelativePath({ component: 'c4', params: { id5: 1, rest: '2/3/4' } });
-        assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: \'c4\', params: { id5: 1, rest: \'2/3/4\' } })');
+        assert.match(path, expected, 'round#9 - p2.generateRelativePath({ component: \'c4\', params: { id5: 1, rest: \'2/3/4\' } })');
 
         // custom element
         path = await p2.generateRelativePath({ component: C4, params: { id5: 1, rest: '2/3/4' } });
-        assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: C4, params: { id5: 1, rest: \'2/3/4\' } })');
+        assert.match(path, expected, 'round#9 - p2.generateRelativePath({ component: C4, params: { id5: 1, rest: \'2/3/4\' } })');
 
         // custom element definition
         path = await p2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id5: 1, rest: '2/3/4' } });
-        assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id5: 1, rest: \'2/3/4\' } })');
+        assert.match(path, expected, 'round#9 - p2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id5: 1, rest: \'2/3/4\' } })');
 
         // function
         path = await p2.generateRelativePath({ component: () => C4, params: { id5: 1, rest: '2/3/4' } });
-        assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: () => C4, params: { id5: 1, rest: \'2/3/4\' } })');
+        assert.match(path, expected, 'round#9 - p2.generateRelativePath({ component: () => C4, params: { id5: 1, rest: \'2/3/4\' } })');
 
         // click on link
-        p2.route = expected;
+        p2.route = 'buzz/1/2%2F3%2F4';
         await $yield();
         p2El.querySelector('a').click();
         await $yield();
@@ -518,54 +513,54 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p2 c2', 'round#9 - reset - load(\'p2/c2\')');
 
         // #region round #10 - resolve to a grandchild without parameter
-        expected = useHash ? '/#/p2/fizz/2/3/gc1' : 'p2/fizz/2/3/gc1';
+        expected = useHash ? /\/#\/p2\/fizz\/2\/3\/gc1/ : /p2\/fizz\/2\/3\/gc1/;
         // custom element
         path = await router.generatePath({ component: P2, children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [GC1] }] });
-        assert.strictEqual(path, expected, 'round#10 - generatePath({ component: P2, children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [GC1] }] })');
+        assert.match(path, expected, 'round#10 - generatePath({ component: P2, children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [GC1] }] })');
 
         // route id
         path = await router.generatePath({ component: 'p2', children: [{ component: 'c4', params: { id3: 2, id4: 3 }, children: ['gc1'] }] });
-        assert.strictEqual(path, expected, 'round#10 - generatePath({ component: \'p2\', children: [{ component: \'c4\', params: { id3: 2, id4: 3 }, children: [\'gc-1\'] }] })');
+        assert.match(path, expected, 'round#10 - generatePath({ component: \'p2\', children: [{ component: \'c4\', params: { id3: 2, id4: 3 }, children: [\'gc-1\'] }] })');
 
         // custom element definition
         path = await router.generatePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id3: 2, id4: 3 }, children: [CustomElement.getDefinition(GC1)] }] });
-        assert.strictEqual(path, expected, 'round#10 - generatePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id3: 2, id4: 3 }, children: [CustomElement.getDefinition(GC1)] }] })');
+        assert.match(path, expected, 'round#10 - generatePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id3: 2, id4: 3 }, children: [CustomElement.getDefinition(GC1)] }] })');
 
         // function
         path = await router.generatePath({ component: () => P2, children: [{ component: () => C4, params: { id3: 2, id4: 3 }, children: [() => GC1] }] });
-        assert.strictEqual(path, expected, 'round#10 - generatePath({ component: () => P2, children: [{ component: () => C4, params: { id3: 2, id4: 3 }, children: [() => GC1] }] })');
+        assert.match(path, expected, 'round#10 - generatePath({ component: () => P2, children: [{ component: () => C4, params: { id3: 2, id4: 3 }, children: [() => GC1] }] })');
 
         await router.load(path);
         assert.html.textContent(host, 'p2 c4 2 3 gc1', 'round#10 - load(path)');
         // #endregion
 
         // #region round #11 - resolve to a grandchild with parameter
-        expected = useHash ? '/#/p2/fizz/2/3/gc2/4' : 'p2/fizz/2/3/gc2/4';
+        expected = useHash ? /\/#\/p2\/fizz\/2\/3\/gc2\/4/ : /p2\/fizz\/2\/3\/gc2\/4/;
 
         // custom element
         path = await router.generatePath({ component: P2, children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] }] });
-        assert.strictEqual(path, expected, 'round#11 - generatePath({ component: P2, children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] }] })');
+        assert.match(path, expected, 'round#11 - generatePath({ component: P2, children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] }] })');
 
         // route id
         path = await router.generatePath({ component: 'p2', children: [{ component: 'c4', params: { id3: 2, id4: 3 }, children: [{ component: 'gc2', params: { id: 4 } }] }] });
-        assert.strictEqual(path, expected, 'round#11 - generatePath({ component: \'p2\', children: [{ component: \'c4\', params: { id3: 2, id4: 3 }, children: [{ component: \'gc-2\', params: { id: 4 } }] }] })');
+        assert.match(path, expected, 'round#11 - generatePath({ component: \'p2\', children: [{ component: \'c4\', params: { id3: 2, id4: 3 }, children: [{ component: \'gc-2\', params: { id: 4 } }] }] })');
 
         // custom element definition
         path = await router.generatePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id3: 2, id4: 3 }, children: [{ component: CustomElement.getDefinition(GC2), params: { id: 4 } }] }] });
-        assert.strictEqual(path, expected, 'round#11 - generatePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id3: 2, id4: 3 }, children: [CustomElement.getDefinition(GC2, { params: { id: 4 } })] }] })');
+        assert.match(path, expected, 'round#11 - generatePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id3: 2, id4: 3 }, children: [CustomElement.getDefinition(GC2, { params: { id: 4 } })] }] })');
 
         // function
         path = await router.generatePath({ component: () => P2, children: [{ component: () => C4, params: { id3: 2, id4: 3 }, children: [{ component: () => GC2, params: { id: 4 } }] }] });
-        assert.strictEqual(path, expected, 'round#11 - generatePath({ component: () => P2, children: [{ component: () => C4, params: { id3: 2, id4: 3 }, children: [() => GC2] }] })');
+        assert.match(path, expected, 'round#11 - generatePath({ component: () => P2, children: [{ component: () => C4, params: { id3: 2, id4: 3 }, children: [() => GC2] }] })');
 
         await router.load(path);
         assert.html.textContent(host, 'p2 c4 2 3 gc2 4', 'round#11 - load(path)');
         // #endregion
 
         // #region round 12 - query string - single valued
-        expected = useHash ? '/#/p2/bar/2/3/gc2/4?id4=4&bar=baz' : 'p2/bar/2/3/gc2/4?id4=4&bar=baz';
+        expected = useHash ? /\/#\/p2\/bar\/2\/3\/gc2\/4\?id4=4&bar=baz/ : /p2\/bar\/2\/3\/gc2\/4\?id4=4&bar=baz/;
         path = await router.generatePath({ component: P2, children: [{ component: C4, params: { id1: 2, id2: 3, id4: 4 }, children: [{ component: GC2, params: { id: 4, bar: 'baz' } }] }] });
-        assert.strictEqual(path, expected, 'round#12 - generatePath({ component: P2, children: [{ component: C4, params: { id1: 2, id2: 3, id4: 4 }, children: [{ component: GC2, params: { id: 4, bar: \'baz\' } }] }] })');
+        assert.match(path, expected, 'round#12 - generatePath({ component: P2, children: [{ component: C4, params: { id1: 2, id2: 3, id4: 4 }, children: [{ component: GC2, params: { id: 4, bar: \'baz\' } }] }] })');
 
         await router.load(path);
         assert.html.textContent(host, 'p2 c4 2 3 gc2 4 id4=4&bar=baz', 'round#12 - load(path)');
@@ -576,9 +571,9 @@ describe('router/generate-path.spec.ts', function () {
         assert.html.textContent(host, 'p2 c2', 'round#12 - reset - load(\'p2/c2\')');
 
         // #region round 13 - query string - multi valued
-        expected = useHash ? '/#/p2/bar/2/3/gc2/4?id4=4&bar=baz&bar=qux' : 'p2/bar/2/3/gc2/4?id4=4&bar=baz&bar=qux';
+        expected = useHash ? /\/#\/p2\/bar\/2\/3\/gc2\/4\?id4=4&bar=baz&bar=qux/ : /p2\/bar\/2\/3\/gc2\/4\?id4=4&bar=baz&bar=qux/;
         path = await router.generatePath({ component: P2, children: [{ component: C4, params: { id1: 2, id2: 3, id4: 4, bar: 'baz' }, children: [{ component: GC2, params: { id: 4, bar: 'qux' } }] }] });
-        assert.strictEqual(path, expected, 'round#13 - generatePath({ component: P2, children: [{ component: C4, params: { id1: 2, id2: 3, id4: 4, bar: \'baz\' }, children: [{ component: GC2, params: { id: 4, bar: \'qux\' } }] }] })');
+        assert.match(path, expected, 'round#13 - generatePath({ component: P2, children: [{ component: C4, params: { id1: 2, id2: 3, id4: 4, bar: \'baz\' }, children: [{ component: GC2, params: { id: 4, bar: \'qux\' } }] }] })');
 
         await router.load(path);
         assert.html.textContent(host, 'p2 c4 2 3 gc2 4 id4=4&bar=baz&bar=qux', 'round#13 - load(path)');

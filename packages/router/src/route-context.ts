@@ -65,6 +65,7 @@ import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialV
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace, warn } from './events';
 import { ILocationManager } from './location-manager';
+import { ContextRouter, IContextRouter } from './context-router';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -195,6 +196,7 @@ export class RouteContext {
 
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
+  /** @internal */ private readonly _contextRouterProvider: InstanceProvider<IContextRouter>;
 
   public get options(): Readonly<IRouterOptions> {
     return this._router.options;
@@ -225,6 +227,11 @@ export class RouteContext {
     container.registerResolver(
       IController,
       this._hostControllerProvider = new InstanceProvider(),
+      true,
+    );
+    container.registerResolver(
+      IContextRouter,
+      this._contextRouterProvider = new InstanceProvider(),
       true,
     );
 
@@ -402,7 +409,7 @@ export class RouteContext {
 
     const router = container.get(IRouter);
     return onResolve(
-      router.getRouteContext(
+      router._getRouteContext(
         null,
         controller.definition,
         controller.viewModel,
@@ -499,6 +506,8 @@ export class RouteContext {
     if (__DEV__) trace(this._logger, Events.rcCreateCa, routeNode);
 
     this._hostControllerProvider.prepare(hostController);
+    this._contextRouterProvider.prepare(new ContextRouter(this._router, this));
+
     const container = this.container.createChild({ inheritParentResources: true });
 
     const elDefn = routeNode.component;
@@ -517,6 +526,7 @@ export class RouteContext {
       const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn,  null, ssrScope);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
+      this._contextRouterProvider.dispose();
       this._hostControllerProvider.dispose();
 
       return componentAgent;

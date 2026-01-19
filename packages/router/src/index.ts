@@ -127,3 +127,7 @@ export {
   ICurrentRoute,
   type ParameterInformation,
 } from './current-route';
+
+export {
+  IContextRouter,
+} from './context-router';

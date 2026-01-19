@@ -83,8 +83,8 @@ interface RouteParametersBaseOptions {
 
 export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
   TStrategy extends 'child-first'
-    ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
-    : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
+  ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
+  : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
 
 type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
@@ -98,10 +98,10 @@ type RouteParameterAccumulator = Record<string, RouteParameterValue | undefined>
 
 export type RouteParametersResult<TStrategy extends RouteParameterMergeStrategy, TParams extends Record<string, unknown>> =
   TStrategy extends 'append'
-    ? Readonly<Record<string, readonly RouteParameterValue[]>>
-    : TStrategy extends 'by-route'
-      ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
-      : Readonly<TParams>;
+  ? Readonly<Record<string, readonly RouteParameterValue[]>>
+  : TStrategy extends 'by-route'
+  ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
+  : Readonly<TParams>;
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
@@ -196,7 +196,6 @@ export class RouteContext {
 
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
-  /** @internal */ private readonly _contextRouterProvider: InstanceProvider<IContextRouter>;
 
   public get options(): Readonly<IRouterOptions> {
     return this._router.options;
@@ -229,15 +228,19 @@ export class RouteContext {
       this._hostControllerProvider = new InstanceProvider(),
       true,
     );
-    container.registerResolver(
-      IContextRouter,
-      this._contextRouterProvider = new InstanceProvider(),
-      true,
-    );
 
     const ctxProvider = new InstanceProvider<IRouteContext>('IRouteContext', this);
     container.registerResolver(IRouteContext, ctxProvider);
     container.registerResolver(RouteContext, ctxProvider);
+
+    const contextRouterProvider = new InstanceProvider<IContextRouter>('IContextRouter', new ContextRouter(_router, this));
+    container.registerResolver(IContextRouter, contextRouterProvider);
+    container.registerResolver(ContextRouter, contextRouterProvider);
+    if (this.isRoot) {
+      // do an extra registration for lazy resolution to the app root
+      container.root.registerResolver(IContextRouter, contextRouterProvider);
+      container.root.registerResolver(ContextRouter, contextRouterProvider);
+    }
 
     if (_router.options.useNavigationModel) {
       // Note that routing-contexts have the same lifetime as the app itself; therefore, an attempt to dispose the subscription is kind of useless.
@@ -506,7 +509,6 @@ export class RouteContext {
     if (__DEV__) trace(this._logger, Events.rcCreateCa, routeNode);
 
     this._hostControllerProvider.prepare(hostController);
-    this._contextRouterProvider.prepare(new ContextRouter(this._router, this));
 
     const container = this.container.createChild({ inheritParentResources: true });
 
@@ -526,7 +528,6 @@ export class RouteContext {
       const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn,  null, ssrScope);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
-      this._contextRouterProvider.dispose();
       this._hostControllerProvider.dispose();
 
       return componentAgent;

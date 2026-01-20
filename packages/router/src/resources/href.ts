@@ -14,6 +14,7 @@ import { IRouteContext } from '../route-context';
 import { resolve } from '@aurelia/kernel';
 import { bmToView } from '../util';
 import { ViewportInstructionTree } from '../instructions';
+import { ILocationManager } from '../location-manager';
 
 /*
  * Note: Intentionally, there is no bindable `context` here.
@@ -41,6 +42,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
   /** @internal */private readonly _router: IRouter = resolve(IRouter);
   /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
+  /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
 
   public value: unknown;
 
@@ -97,7 +99,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       if (!treatAsExternal) {
         const router = this._router;
         const instructions = this._instructions = router.createViewportInstructions(newValue, { context: this._ctx }, null);
-        newValue = instructions.toUrl(false, router.options._urlParser, true);
+        newValue = this._locationMgr.addBaseHref(instructions.toUrl(false, router.options._urlParser, true));
       } else {
         this._instructions = null;
       }

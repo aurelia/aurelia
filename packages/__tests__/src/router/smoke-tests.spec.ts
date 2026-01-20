@@ -3086,7 +3086,7 @@ describe('router/smoke-tests.spec.ts', function () {
 
     await au.app({ component, host }).start();
 
-    assert.strictEqual(host.querySelector('a').getAttribute('href'), 'abc');
+    assert.match(host.querySelector('a').getAttribute('href'), /abc$/);
 
     component.href = null;
     await tasksSettled();
@@ -4470,75 +4470,77 @@ describe('router/smoke-tests.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('custom base path can be configured', async function () {
-    @customElement({ name: 'ce-p1', template: 'p1' })
-    class P1 { }
+  for (const attr of ['load', 'href']) {
+    it(`custom base path can be configured - ${attr}`, async function () {
+      @customElement({ name: 'ce-p1', template: 'p1' })
+      class P1 { }
 
-    @customElement({ name: 'ce-p2', template: 'p2' })
-    class P2 { }
-    @route({
-      routes: [
-        { path: 'p1', component: P1, title: 'P1' },
-        { path: 'p2', component: P2, title: 'P2' },
-      ]
-    })
-    @customElement({ name: 'ro-ot', template: '<a load="p1"></a><a load="p2"></a><au-viewport></au-viewport>' })
-    class Root { }
+      @customElement({ name: 'ce-p2', template: 'p2' })
+      class P2 { }
+      @route({
+        routes: [
+          { path: 'p1', component: P1, title: 'P1' },
+          { path: 'p2', component: P2, title: 'P2' },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: `<a ${attr}="p1"></a><a ${attr}="p2"></a><au-viewport></au-viewport>` })
+      class Root { }
 
-    const ctx = TestContext.create();
-    const { container } = ctx;
-    // mocked window
-    container.register(Registration.instance(IWindow, {
-      document: {
-        baseURI: 'https://portal.example.com/',
-      },
-      removeEventListener() { /** noop */ },
-      addEventListener() { /** noop */ },
-    }));
+      const ctx = TestContext.create();
+      const { container } = ctx;
+      // mocked window
+      container.register(Registration.instance(IWindow, {
+        document: {
+          baseURI: 'https://portal.example.com/',
+        },
+        removeEventListener() { /** noop */ },
+        addEventListener() { /** noop */ },
+      }));
 
-    container.register(
-      TestRouterConfiguration.for(LogLevel.warn),
-      RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/' }),
-      P1,
-      P2,
-    );
+      container.register(
+        TestRouterConfiguration.for(LogLevel.warn),
+        RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/' }),
+        P1,
+        P2,
+      );
 
-    const au = new Aurelia(container);
-    const host = ctx.createElement('div');
+      const au = new Aurelia(container);
+      const host = ctx.createElement('div');
 
-    await au.app({ component: Root, host }).start();
+      await au.app({ component: Root, host }).start();
 
-    const anchors = Array.from(host.querySelectorAll('a'));
-    assert.deepStrictEqual(anchors.map(a => a.href), ['https://portal.example.com/mega-dodo/guide1/p1', 'https://portal.example.com/mega-dodo/guide1/p2']);
+      const anchors = Array.from(host.querySelectorAll('a'));
+      assert.deepStrictEqual(anchors.map(a => a.href), ['https://portal.example.com/mega-dodo/guide1/p1', 'https://portal.example.com/mega-dodo/guide1/p2']);
 
-    assert.strictEqual(host.querySelector('ce-p1'), null);
-    assert.strictEqual(host.querySelector('ce-p2'), null);
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
 
-    anchors[0].click();
-    await tasksSettled();
+      anchors[0].click();
+      await tasksSettled();
 
-    assert.notEqual(host.querySelector('ce-p1'), null);
-    assert.strictEqual(host.querySelector('ce-p2'), null);
+      assert.notEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
 
-    anchors[1].click();
-    await tasksSettled();
+      anchors[1].click();
+      await tasksSettled();
 
-    assert.strictEqual(host.querySelector('ce-p1'), null);
-    assert.notEqual(host.querySelector('ce-p2'), null);
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.notEqual(host.querySelector('ce-p2'), null);
 
-    const router = container.get(IRouter);
-    await router.load('/mega-dodo/guide1/p1');
+      const router = container.get(IRouter);
+      await router.load('/mega-dodo/guide1/p1');
 
-    assert.notEqual(host.querySelector('ce-p1'), null);
-    assert.strictEqual(host.querySelector('ce-p2'), null);
+      assert.notEqual(host.querySelector('ce-p1'), null);
+      assert.strictEqual(host.querySelector('ce-p2'), null);
 
-    await router.load('/mega-dodo/guide1/p2');
+      await router.load('/mega-dodo/guide1/p2');
 
-    assert.strictEqual(host.querySelector('ce-p1'), null);
-    assert.notEqual(host.querySelector('ce-p2'), null);
+      assert.strictEqual(host.querySelector('ce-p1'), null);
+      assert.notEqual(host.querySelector('ce-p2'), null);
 
-    await au.stop(true);
-  });
+      await au.stop(true);
+    });
+  }
 
   it('multiple paths can redirect to same path', async function () {
     @customElement({ name: 'ce-p1', template: 'p1' })

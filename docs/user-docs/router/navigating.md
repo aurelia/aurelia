@@ -758,13 +758,12 @@ export class MyCustomElement {
   // Or use `lazy` when injecting to AppRoot.
   private readonly getContextRouter = resolve(lazy(IContextRouter));
 
+  async loadChild(id: string) {
+    await this.contextRouter.load(`details/${id}`);
+  }
 
   async activateSibling() {
     await this.getContextRouter().load('../summary');
-  }
-
-  async loadChild(id: string) {
-    await this.contextRouter.load(`details/${id}`);
   }
 }
 ```

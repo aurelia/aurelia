@@ -752,11 +752,12 @@ import { lazy, resolve } from '@aurelia/kernel';
 import { IContextRouter } from '@aurelia/router';
 
 export class MyCustomElement {
-  // Use `lazy` when injecting to AppRoot.
+  // Inject IContextRouter when not in AppRoot.
+  private readonly contextRouter = resolve(IContextRouter);
+
+  // Or use `lazy` when injecting to AppRoot.
   private readonly getContextRouter = resolve(lazy(IContextRouter));
 
-  // Or directly inject IContextRouter when not in AppRoot.
-  private readonly contextRouter = resolve(IContextRouter);
 
   async activateSibling() {
     await this.getContextRouter().load('../summary');

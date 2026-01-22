@@ -17,6 +17,7 @@ The router offers three primary navigation approaches:
 2. **Programmatic Navigation**:
    - `IRouter.load()` method - Full programmatic control
    - Navigation with options (query params, fragments, context, etc.)
+   - Use `IContextRouter.load()` for context-aware navigation
 
 3. **Path Generation**:
    - Generate URLs for routes without navigating
@@ -30,6 +31,7 @@ Choose the method that best fits your use case:
 | Links with parameters | `load` with params | `<a load="route: user; params.bind: {id: userId}">User</a>` |
 | Conditional navigation | `IRouter.load()` | `if (canAccess) router.load('admin')` |
 | Navigation with query params | `IRouter.load()` with options | `router.load('search', { queryParams: { q: 'term' }})` |
+| Context-aware navigation | `IContextRouter.load()` | `contextRouter.load('details/42')` |
 | Dynamic link generation | `router.generatePath()` | `const url = await router.generatePath({ component: 'user', params: { id: userId } })` |
 
 ## Using the `href` custom attribute
@@ -740,6 +742,31 @@ async exitWizard() {
 ```
 
 Passing `context: this` is also supported because the router can derive the owning context from the view-model instance, but resolving `IRouteContext` keeps the code portable when the component is reused in different hierarchies or instantiated outside of routing.
+
+#### Use `IContextRouter` for context-aware navigation
+
+If you frequently call `router.load()` with the `context` option, inject `IContextRouter` instead. The context router wraps the root `IRouter` together with the component's current `IRouteContext`, so every overload of `load()` automatically behaves like `router.load(..., { context: currentContext })` and relative instructions such as `../details` or `gc2` always resolve correctly.
+
+```ts
+import { lazy, resolve } from '@aurelia/kernel';
+import { IContextRouter } from '@aurelia/router';
+
+export class MyCustomElement {
+  // Inject IContextRouter when not in AppRoot.
+  private readonly contextRouter = resolve(IContextRouter);
+
+  // Or use `lazy` when injecting to AppRoot.
+  private readonly getContextRouter = resolve(lazy(IContextRouter));
+
+  async loadChild(id: string) {
+    await this.contextRouter.load(`details/${id}`);
+  }
+
+  async activateSibling() {
+    await this.getContextRouter().load('../summary');
+  }
+}
+```
 
 An array of paths (string) can be used to load components into sibling viewports.
 The paths can be parameterized or not non-parameterized.

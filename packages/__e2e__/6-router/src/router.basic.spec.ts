@@ -169,7 +169,7 @@ test.describe('router.basic', () => {
         await page.goto(`${baseURL}/?useUrlFragmentHash=true`);
       }
 
-      const href1 = `${useUrlFragmentHash ? '/#/' : ''}sub/1`;
+      const href1 = `${baseURL}${useUrlFragmentHash ? '/#' : ''}/sub/1`;
       const href2 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/2`;
       const href3 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/3`;
 

@@ -673,7 +673,7 @@ function createConfiguredNode(
           }
           const router = ctx.container.get(IRouter);
           return onResolve(
-            router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.routeConfigContext.config, ctx, $handler),
+            router._getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.routeConfigContext.config, ctx, $handler),
             childCtx => {
 
               log.trace('createConfiguredNode setting the context node');

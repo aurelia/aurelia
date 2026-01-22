@@ -362,8 +362,9 @@ export class Router {
    * @param componentDefinition - The custom element definition.
    * @param container - The `controller.container` of the component hosting the viewport that the route will be loaded into.
    *
+   * @internal
    */
-  public getRouteContext(
+  public _getRouteContext(
     viewportAgent: ViewportAgent | null,
     componentDefinition: CustomElementDefinition,
     componentInstance: IRouteViewModel | null,

@@ -6,6 +6,17 @@ description: Learn to navigate from one view to another using the Aurelia router
 
 Aurelia's router provides multiple ways to navigate between routes in your application. This section covers all navigation methods from simple links to complex programmatic navigation patterns.
 
+## Path syntax
+
+Before diving into the navigation methods, here is a overview of the path syntax supported by the router.
+The syntax is consistent similar to file-system navigation.
+
+- `/path`: This represents an absolute path from the root of the application.
+- `path`, `./path`: These represent a relative paths from the current routing context.
+- `../path`, or `../../path`: These represent relative paths from the ancestor routing context; every `../` moves one level up in the routing context hierarchy.
+- `path1+path2`: This represents loading multiple sibling viewports simultaneously; `path1` is loaded in the first available viewport and `path2` in the next available viewport.
+- `path@viewportName`: This represents loading a route in a named viewport; `path` is loaded in the viewport identified by `viewportName`. The viewport name can also be used with the sibling viewport syntax like `path1@vp1+path2@vp2`.
+
 ## Navigation Methods Overview
 
 The router offers three primary navigation approaches:

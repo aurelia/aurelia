@@ -5589,6 +5589,10 @@ describe('router/smoke-tests.spec.ts', function () {
       await tasksSettled();
       assert.html.textContent(host, 'ce1 2 3 44', 'round#3');
 
+      await router.load('ce1/44', { transitionPlan: 'replace', queryParams: { a: '5' } });
+      await tasksSettled();
+      assert.html.textContent(host, 'ce1 3 4 44', 'round#3');
+
       await router.load('ce2/42');
       await tasksSettled();
       assert.html.textContent(host, 'ce2 1 1 42', 'round#4');

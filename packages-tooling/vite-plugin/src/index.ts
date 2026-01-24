@@ -2,7 +2,6 @@ import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventi
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
-import type { OutputAsset, OutputChunk } from 'rollup';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -119,8 +118,12 @@ export function cssInjectPlugin(): import('vite').Plugin {
     apply: 'build',
     enforce: 'post',
     generateBundle(_options, bundle) {
-      const cssAssets = Object.entries(bundle)
-        .filter(isCssAsset);
+      const cssAssets: Array<[string, { source: string | Uint8Array }]> = [];
+      for (const [name, asset] of Object.entries(bundle)) {
+        if (asset.type === 'asset' && name.endsWith('.css')) {
+          cssAssets.push([name, asset as { source: string | Uint8Array }]);
+        }
+      }
 
       if (cssAssets.length === 0) return;
 
@@ -139,7 +142,7 @@ export function cssInjectPlugin(): import('vite').Plugin {
       ].join('\n');
 
       for (const chunk of Object.values(bundle)) {
-        if (isEntryChunk(chunk)) {
+        if (chunk.type === 'chunk' && chunk.isEntry) {
           chunk.code = `${chunk.code}\n${injection}`;
         }
       }
@@ -149,15 +152,6 @@ export function cssInjectPlugin(): import('vite').Plugin {
       }
     }
   };
-}
-
-function isCssAsset(entry: [string, OutputAsset | OutputChunk]): entry is [string, OutputAsset] {
-  const [name, asset] = entry;
-  return asset.type === 'asset' && name.endsWith('.css');
-}
-
-function isEntryChunk(chunk: OutputAsset | OutputChunk): chunk is OutputChunk {
-  return chunk.type === 'chunk' && chunk.isEntry;
 }
 
 function getHmrCode(className: string, moduleNames: string = ''): string {

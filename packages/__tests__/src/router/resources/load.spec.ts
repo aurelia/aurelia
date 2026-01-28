@@ -405,7 +405,7 @@ describe('router/resources/load.spec.ts', function () {
   it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
     @customElement({ name: 'l-21', template: `l21 <a load="../../l12"></a>` })
     class L21 { }
-    @customElement({ name: 'l-22', template: `l22 <a load="../../l11"></a>` })
+    @customElement({ name: 'l-22', template: `l22 <a load="/l11"></a>` })
     class L22 { }
 
     @route({

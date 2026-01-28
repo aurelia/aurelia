@@ -1,15 +1,20 @@
 import { DI } from '@aurelia/kernel';
 import { IRouteViewModel } from './component-agent';
-import { IViewportInstruction, NavigationInstruction } from './instructions';
+import { IViewportInstruction, NavigationInstruction, ViewportInstructionTree } from './instructions';
 import { INavigationOptions } from './options';
 import { RouteType } from './route';
 import { IRouteContext } from './route-context';
 import { IRouter } from './router';
 
 export const IContextRouter = /*@__PURE__*/ DI.createInterface<IContextRouter>('IContextRouter');
-export interface IContextRouter extends ContextRouter {}
+export interface IContextRouter extends ContextRouter { }
 
 export class ContextRouter {
+  /** @internal */
+  public get _options() { return this._router.options; }
+  /** @internal */
+  public get _allResolved() { return this._context.routeConfigContext.allResolved; }
+
   public constructor(
     /** @internal */ private readonly _router: IRouter,
     /** @internal */ private readonly _context: IRouteContext,
@@ -97,5 +102,30 @@ export class ContextRouter {
    */
   public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return this._router.generatePath(instructionOrInstructions, this._context);
+  }
+
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+    return this._router.createViewportInstructions(instructionOrInstructions, { context: this._context, ...options }, parentRoutePath, traverseChildren as true);
+  }
+
+  public isActive(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): boolean {
+    return this._router.isActive(instructionOrInstructions, this._context);
+  }
+
+  /** @internal */
+  public _copyWith(context: IRouteContext): IContextRouter {
+    return new ContextRouter(this._router, context);
+  }
+
+  /** @internal */
+  public _copyWithRoot(): IContextRouter {
+    return this._copyWith(this._context.root);
+  }
+
+  /** @internal */
+  public _isOfContext(context: IRouteContext): boolean {
+    return this._context === context;
   }
 }

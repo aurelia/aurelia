@@ -6,18 +6,17 @@ import {
   CustomAttribute,
 } from '@aurelia/runtime-html';
 
-import { IRouter } from '../router';
 import { IRouteContext } from '../route-context';
 import { NavigationInstruction, Params, ViewportInstructionTree } from '../instructions';
 import { IRouterEvents } from '../router-events';
 import { ILocationManager } from '../location-manager';
 import { bmFromView, bmToView } from '../util';
+import { IContextRouter } from '../context-router';
 
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
-  /** @internal */ private readonly _router: IRouter = resolve(IRouter);
-  /** @internal */ private readonly _ctx: IRouteContext = resolve(IRouteContext);
+  /** @internal */ private _ctxRouter: IContextRouter = resolve(IContextRouter);
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
 
@@ -41,7 +40,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     const el = this._el;
     // Ensure the element is not explicitly marked as external.
     this._isEnabled = !el.hasAttribute('external') && !el.hasAttribute('data-external');
-    this._activeClass = this._router.options.activeClass;
+    this._activeClass = this._ctxRouter._options.activeClass;
   }
 
   public binding(): void {
@@ -50,7 +49,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
     this.valueChanged();
     this._navigationEndListener = this._events.subscribe('au:router:navigation-end', _e => {
-      const active = this.active = this._instructions !== null && this._router.isActive(this._instructions, this.context!);
+      const active = this.active = this._instructions !== null && this._ctxRouter.isActive(this._instructions);
       const activeClass = this._activeClass;
       if (activeClass === null) return;
       this._el.classList.toggle(activeClass, active);
@@ -58,8 +57,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public attaching(): void | Promise<void> {
-    const ctx = this.context;
-    const promise = ctx!.routeConfigContext.allResolved;
+    const promise = this._ctxRouter._allResolved;
     if (promise !== null) {
       return promise.then(() => {
         this.valueChanged();
@@ -75,23 +73,22 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   }
 
   public valueChanged(): void {
-    const router = this._router;
-    const options = router.options;
+    const options = this._ctxRouter._options;
     const component = this.route as NavigationInstruction;
     // this allows binding context to null for navigation from root; unbound vs explicit null binding
-    let ctx = this.context;
-    if (ctx === void 0) {
-      ctx = this.context = this._ctx;
-    } else if (ctx === null) {
-      ctx = this.context = this._ctx.root;
+    const ctx = this.context;
+    if (ctx === null) {
+      this._ctxRouter = this._ctxRouter._copyWithRoot();
+    } else if (ctx !== void 0 && !this._ctxRouter._isOfContext(ctx)) {
+      this._ctxRouter = this._ctxRouter._copyWith(ctx);
     }
-    if (component != null && ctx.routeConfigContext.allResolved === null) {
+    if (component != null && this._ctxRouter._allResolved === null) {
       const params = this.params;
-      const instructions = this._instructions = router.createViewportInstructions(
+      const instructions = this._instructions = this._ctxRouter.createViewportInstructions(
         typeof params === 'object' && params !== null
           ? { component, params }
           : component,
-        { context: ctx },
+        null,
         null
       );
       this._href = instructions.toUrl(false, options._urlParser, true);
@@ -125,7 +122,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
     e.preventDefault();
     // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-    void this._router.load(this._instructions, { context: this.context });
+    void this._ctxRouter.load(this._instructions);
   };
 }
 CustomAttribute.define({

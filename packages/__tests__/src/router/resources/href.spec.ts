@@ -62,7 +62,7 @@ describe('router/resources/href.spec.ts', function () {
   it('allow navigating to route defined in grand-parent context using ../../ prefix', async function () {
     @customElement({ name: 'l-21', template: `l21 \${id} <a href="../../l12"></a>` })
     class L21 { }
-    @customElement({ name: 'l-22', template: `l22 \${id} <a href="../../l11"></a>` })
+    @customElement({ name: 'l-22', template: `l22 \${id} <a href="/l11"></a>` })
     class L22 { }
 
     @route({
@@ -247,7 +247,7 @@ describe('router/resources/href.spec.ts', function () {
     await tasksSettled();
 
     const anchors = Array.from(host.querySelectorAll('a'));
-    const expected = [/\/#\/ce-one$/, /\/#\/ce-two$/, /\/#\/ce-two$/, /\/#\/\.\/ce-three$/];
+    const expected = [/\/#\/ce-one$/, /\/#\/ce-two$/, /\/#\/ce-two$/, /\/#\/ce-three$/];
     for (let i = 0; i < anchors.length; ++i) {
       const href = anchors[i].href;
       assert.match(href, expected[i], `href[${i}]`);

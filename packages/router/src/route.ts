@@ -146,9 +146,9 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
   /** @internal */
   public _getTransitionPlan(cur: RouteNode, next: RouteNode, overridingTransitionPlan: TransitionPlan | null) {
-    if (hasSamePath(cur, next) && shallowEquals(cur.params, next.params)) return 'none';
-
     if (overridingTransitionPlan != null) return overridingTransitionPlan;
+
+    if (hasSamePath(cur, next) && shallowEquals(cur.params, next.params)) return 'none';
 
     const plan = this.transitionPlan ?? 'replace';
     return typeof plan === 'function' ? plan(cur, next) : plan;

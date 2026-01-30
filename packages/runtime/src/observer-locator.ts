@@ -130,7 +130,7 @@ export class ObserverLocator {
 
   public getComputedObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor): IObserver {
     const info = computedPropInfo.get(obj, key);
-    if (info?.deps == null || info.deps.length === 0) {
+    if (info?.deps == null) {
       const observer = new ComputedObserver(
         obj,
         pd.get!,

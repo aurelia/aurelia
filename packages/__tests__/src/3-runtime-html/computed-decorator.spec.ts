@@ -426,31 +426,33 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
       assert.strictEqual(computedCallCount2, 1);
     });
 
-    // it.only('shouldnt observe anything when deps is intentionally empty', async function () {
-    //   let computedCallCount = 0;
-    //   const { component, assertText } = createFixture(`\${text}`, class App {
-    //     prop = 'prop';
-    //     prop1 = ' prop1';
-    //     @computed({ deps: [] })
-    //     get text() {
-    //       computedCallCount++;
-    //       return this.prop + this.prop1;
-    //     }
-    //   });
-    //   assert.strictEqual(component.text, 'prop prop1');
-    //   assert.strictEqual(computedCallCount, 1);
+    it('shouldnt observe anything when deps is intentionally empty', async function () {
+      let computedCallCount = 0;
+      const { component, assertText } = createFixture(`\${text}`, class App {
+        prop = 'prop';
+        prop1 = ' prop1';
 
-    //   component.prop = 'new prop';
-    //   await Promise.resolve();
-    //   assertText('prop prop1');
-    //   assert.strictEqual(component.text, 'prop prop1');
-    //   assert.strictEqual(computedCallCount, 1);
+        @computed({ deps: [] })
+        get text() {
+          computedCallCount++;
+          return this.prop + this.prop1;
+        }
+      });
 
-    //   component.prop1 = ' new value';
-    //   await Promise.resolve();
-    //   assert.strictEqual(component.text, 'prop prop1');
-    //   assert.strictEqual(computedCallCount, 1);
-    // });
+      assertText('prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+
+      component.prop = 'new prop';
+      await Promise.resolve();
+      assertText('prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(component.text, 'prop prop1');
+
+      component.prop1 = ' new value';
+      await Promise.resolve();
+      assert.strictEqual(component.text, 'prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+    });
   });
 
   describe('sync', function () {

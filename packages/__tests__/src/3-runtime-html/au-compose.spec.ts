@@ -1165,6 +1165,69 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
   }
 
+  describe('flushMode async', function () {
+    it('works with flushMode async', async function () {
+      const models = [];
+      const { component } = createFixture(
+        `<au-compose component.bind="component" model.bind="model" flush-mode="async" />`,
+        class App {
+          index = 0;
+
+          components = [
+            { cmp: { activate: (model) => models.push(model) }, data: [] },
+            { cmp: { activate: (model) => models.push(model) }, data: {} }
+          ];
+
+          get component() {
+            return this.components[this.index].cmp;
+          }
+
+          get model() {
+            return this.components[this.index].data;
+          }
+        },
+      );
+
+      assert.deepEqual(models, [[]]);
+
+      component.index = 1;
+      await Promise.resolve();
+      assert.deepEqual(models, [[], {}]);
+    });
+
+    it('does not compose when the <au-compose> is deactivated while composing', async function () {
+      const models = [];
+      const { component } = createFixture(
+        `<au-compose if.bind="show" component.bind="component" model.bind="model" flush-mode="async" />`,
+        class App {
+          index = 0;
+          show = true;
+
+          components = [
+            { cmp: { activate: (model) => models.push(model) }, data: [] },
+            { cmp: { activate: (model) => models.push(model) }, data: {} }
+          ];
+
+          get component() {
+            return this.components[this.index].cmp;
+          }
+
+          get model() {
+            return this.components[this.index].data;
+          }
+        },
+      );
+
+      assert.deepEqual(models, [[]]);
+
+      component.index = 1;
+      component.show = false;
+      await Promise.resolve();
+      assert.deepEqual(models, [[]]);
+
+    });
+  });
+
   describe('containerless', function () {
     it('composes containerless', async function () {
       const { appHost, component } = createFixture(

@@ -1,6 +1,6 @@
 import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { IObserverLocator, Scope } from '@aurelia/runtime';
+import { IObserverLocator, queueTask, Scope } from '@aurelia/runtime';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
 import { IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { INode } from '../../dom.node';
@@ -24,7 +24,7 @@ export interface IDynamicComponentActivate<T> {
   activate?(model?: T): unknown;
 }
 
-type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'>;
+type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag' | 'flushMode'>;
 
 // Desired usage:
 // <au-component template.bind="Promise<string>" component.bind="" model.bind="" />
@@ -33,7 +33,7 @@ export class AuCompose {
   /** @internal */
   public static readonly $au: CustomElementStaticAuDefinition<keyof Pick<
     AuCompose,
-    'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'
+    'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag' | 'flushMode'
   >> = {
     type: elementTypeName,
     name: 'au-compose',
@@ -51,7 +51,8 @@ export class AuCompose {
       }},
       { name: 'composing', mode: fromView},
       { name: 'composition', mode: fromView },
-      'tag'
+      'tag',
+      'flushMode'
     ]
   };
 
@@ -102,6 +103,11 @@ export class AuCompose {
    */
   public tag: string | null | undefined = null;
 
+  /**
+   * Control whether the composition is performed synchronously or asynchronously.
+   */
+  public flushMode: 'sync' | 'async' = 'sync';
+
   /** @internal */ public readonly $controller!: ICustomElementController<AuCompose>;
   /** @internal */ private readonly _container = resolve(IContainer);
   /** @internal */ private readonly parent = resolve(IController) as ISyntheticView | ICustomElementController;
@@ -115,6 +121,8 @@ export class AuCompose {
   /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
   /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
   /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
+  /** @internal */ private _changeInfo: ChangeInfo | null = null;
+  /** @internal */ private _queued = false;
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     return this._composing = onResolve(
@@ -130,6 +138,8 @@ export class AuCompose {
   public detaching(initiator: IHydratedController): void | Promise<void> {
     const cmpstn = this._composition;
     const pending = this._composing;
+    this._changeInfo = null;
+    this._queued = false;
     this._contextFactory.invalidate();
     this._composition = this._composing = void 0;
     return onResolve(pending, () => cmpstn?.deactivate(initiator));
@@ -137,7 +147,18 @@ export class AuCompose {
 
   /** @internal */
   public propertyChanged(name: ChangeSource): void {
-    if (name === 'composing' || name === 'composition') return;
+    if (name === 'composing' || name === 'composition') {
+      return;
+    }
+    if (this.flushMode === 'sync') {
+      this._handleChangeSync(name);
+    } else {
+      this._handleChangeAsync(name);
+    }
+  }
+
+  /** @internal */
+  private _handleChangeSync(name: ChangeSource): void {
     if (name === 'model' && this._composition != null) {
       this._composition.update(this.model);
       return;
@@ -153,6 +174,47 @@ export class AuCompose {
     this._composing = onResolve(this._composing, () =>
       onResolve(
         this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
+        (context) => {
+          if (this._contextFactory._isCurrent(context)) {
+            this._composing = void 0;
+          }
+        }
+      )
+    );
+  }
+
+  /** @internal */
+  private _handleChangeAsync(name: ChangeSource): void {
+    const info = this._changeInfo ??= new ChangeInfo(this.template, this.component, this.model, name);
+    info._template = this.template;
+    info._component = this.component;
+    info._model = this.model;
+    // it doesn't matter the src in async mode
+    // though potentially we can have some shorter-circuit logic
+    // so just keep model for now
+    if (info._src !== 'model') {
+      info._src = name;
+    }
+
+    if (this._queued) {
+      return;
+    }
+    this._queued = true;
+    queueTask(() => {
+      const info = this._changeInfo;
+      this._queued = false;
+      if (info != null) {
+        this._changeInfo = null;
+        this._handleChangeInfo(info);
+      }
+    });
+  }
+
+  /** @internal */
+  private _handleChangeInfo(info: ChangeInfo): void {
+    this._composing = onResolve(this._composing, () =>
+      onResolve(
+        this.queue(info, void 0),
         (context) => {
           if (this._contextFactory._isCurrent(context)) {
             this._composing = void 0;
@@ -455,10 +517,10 @@ class CompositionContextFactory {
 
 class ChangeInfo {
   public constructor(
-    public readonly _template: MaybePromise<string> | undefined,
-    public readonly _component: MaybePromise<string | Constructable | object> | undefined,
-    public readonly _model: unknown,
-    public readonly _src: ChangeSource | undefined,
+    public _template: MaybePromise<string> | undefined,
+    public _component: MaybePromise<string | Constructable | object> | undefined,
+    public _model: unknown,
+    public _src: ChangeSource | undefined,
   ) { }
 
   public load(): MaybePromise<LoadedChangeInfo> {

@@ -4,6 +4,7 @@ import { type IObserver } from './interfaces';
 import { type ComputedPropertyInfo, computedPropInfo } from './object-property-info';
 import { type IObserverLocator } from './observer-locator';
 import { rtObjectAssign } from './utilities';
+import { getRaw } from './proxy-observation';
 
 type ClassGetterFunction<T> = (target: () => unknown, context: ClassGetterDecoratorContext<T>) => void;
 
@@ -73,15 +74,15 @@ export function computed<
     // it'll likely behave incorrectly
     // in the worst case scenario, we can always override the property descriptor in the observer locator
     // and it'll still be fine
-    if (options.deps == null || options.deps.length === 0) {
+    if (options.deps == null) {
       return;
     }
 
     const cache = new WeakMap<object, IObserver>();
 
-    return rtObjectAssign(function (this: TThis) {
-      const observer = cache.get(this);
-      return observer == null ? target.call(this) : observer.getValue();
+    return rtObjectAssign(function computedGetter(this: TThis) {
+      const observer = cache.get(getRaw(this));
+      return observer == null ? target.call(getRaw(this)) : observer.getValue();
     }, {
       getObserver(obj: TThis, requestor: IObserverLocator): IObserver {
         let observer = cache.get(obj);

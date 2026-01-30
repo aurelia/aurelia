@@ -395,6 +395,62 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
       assertText('Hey$$!!!');
       assert.deepStrictEqual(changeLog, [['Hey$$!!!', 'Hello Aurelia 2!$$!!!']]);
     });
+
+    it('automatic getter does not observe dependencies declared in another getter', async function () {
+      let computedCallCount = 0;
+      let computedCallCount2 = 0;
+      const { component } = createFixture(`\${moreText}`, class App {
+        prop = 'prop';
+        prop1 = ' prop1';
+
+        @computed('prop')
+        get text() {
+          computedCallCount++;
+          return this.prop + this.prop1;
+        }
+
+        get moreText() {
+          computedCallCount2++;
+          return this.text;
+        }
+      });
+
+      assert.strictEqual(component.moreText, 'prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(computedCallCount2, 1);
+
+      component.prop1 = ' new value';
+      await Promise.resolve();
+      assert.strictEqual(component.moreText, 'prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(computedCallCount2, 1);
+    });
+
+    // it.only('shouldnt observe anything when deps is intentionally empty', async function () {
+    //   let computedCallCount = 0;
+    //   const { component, assertText } = createFixture(`\${text}`, class App {
+    //     prop = 'prop';
+    //     prop1 = ' prop1';
+    //     @computed({ deps: [] })
+    //     get text() {
+    //       computedCallCount++;
+    //       return this.prop + this.prop1;
+    //     }
+    //   });
+    //   assert.strictEqual(component.text, 'prop prop1');
+    //   assert.strictEqual(computedCallCount, 1);
+
+    //   component.prop = 'new prop';
+    //   await Promise.resolve();
+    //   assertText('prop prop1');
+    //   assert.strictEqual(component.text, 'prop prop1');
+    //   assert.strictEqual(computedCallCount, 1);
+
+    //   component.prop1 = ' new value';
+    //   await Promise.resolve();
+    //   assert.strictEqual(component.text, 'prop prop1');
+    //   assert.strictEqual(computedCallCount, 1);
+    // });
   });
 
   describe('sync', function () {

@@ -4,6 +4,7 @@ import { type IObserver } from './interfaces';
 import { type ComputedPropertyInfo, computedPropInfo } from './object-property-info';
 import { type IObserverLocator } from './observer-locator';
 import { rtObjectAssign } from './utilities';
+import { getRaw } from './proxy-observation';
 
 type ClassGetterFunction<T> = (target: () => unknown, context: ClassGetterDecoratorContext<T>) => void;
 
@@ -80,8 +81,8 @@ export function computed<
     const cache = new WeakMap<object, IObserver>();
 
     return rtObjectAssign(function (this: TThis) {
-      const observer = cache.get(this);
-      return observer == null ? target.call(this) : observer.getValue();
+      const observer = cache.get(getRaw(this));
+      return observer == null ? target.call(getRaw(this)) : observer.getValue();
     }, {
       getObserver(obj: TThis, requestor: IObserverLocator): IObserver {
         let observer = cache.get(obj);

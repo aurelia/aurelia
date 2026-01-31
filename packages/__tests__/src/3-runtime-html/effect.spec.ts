@@ -328,13 +328,13 @@ describe('3-runtime-html/effect.spec.ts', function () {
     });
 
     describe('getter', function () {
-      it('runs immediately', async function () {
+      it('runs immediately', function () {
         let v = 0;
         observation.watch({ a: 1 }, o => o.a, vv => v = vv);
         assert.strictEqual(v, 1);
       });
 
-      it('does not run immediately', async function () {
+      it('does not run immediately', function () {
         let v = 0;
         const obj = { a: 1 };
         const { run } = observation.watch(obj, o => o.a, vv => v = vv, { immediate: false });
@@ -345,7 +345,18 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 2);
       });
 
-      it('does not run after stopped', async function () {
+      it('observes but does not run when immediate is false', async function () {
+        let v = 0;
+        const obj = { a: 1 };
+        observation.watch(obj, o => o.a, vv => v = vv, { immediate: false });
+        assert.strictEqual(v, 0);
+        obj.a = 111;
+        assert.strictEqual(v, 0);
+        await Promise.resolve();
+        assert.strictEqual(v, 111);
+      });
+
+      it('does not run after stopped', function () {
         let v = 0;
         const obj = { a: 1 };
         const { stop } = observation.watch(obj, o => o.a, vv => v = vv);
@@ -354,7 +365,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
       });
 
-      it('run is idempotent', async function () {
+      it('run is idempotent', function () {
         let v = 0;
         const { run } = observation.watch({ a: 1 }, o => o.a, _ => ++v);
         assert.strictEqual(v, 1);
@@ -392,7 +403,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(cancelled, 1);
       });
 
-      it('calls cleanup function when stopped', async function () {
+      it('calls cleanup function when stopped', function () {
         let v = 0;
         let cancelled = 0;
         const obj = { a: 1 };
@@ -409,13 +420,13 @@ describe('3-runtime-html/effect.spec.ts', function () {
     });
 
     describe('watch expression effect', function () {
-      it('runs immediately', async function () {
+      it('runs immediately', function () {
         let v = 0;
         observation.watch<number>({ a: 1 }, 'a', vv => v = vv);
         assert.strictEqual(v, 1);
       });
 
-      it('runs immediately when initial value is undefined', async function () {
+      it('runs immediately when initial value is undefined', function () {
         let v: number | undefined = undefined;
         let count = 0;
         observation.watch<number | undefined>({}, 'a', vv => {
@@ -426,7 +437,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(count, 1);
       });
 
-      it('does not run immediately when immediate is false', async function () {
+      it('does not run immediately when immediate is false', function () {
         let v = 0;
         const { run } = observation.watch<number>({ a: 1 }, 'a', vv => v = vv, { immediate: false });
         assert.strictEqual(v, 0);
@@ -434,7 +445,16 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
       });
 
-      it('runs again after stopped when called', async function () {
+      it('observes but does not run when immediate is false', async function () {
+        let v = 0;
+        const obj = { a: 1 };
+        observation.watch<number>(obj, 'a', vv => v = vv, { immediate: false });
+        assert.strictEqual(v, 0);
+        obj.a = 111;
+        assert.strictEqual(v, 111);
+      });
+
+      it('runs again after stopped when called', function () {
         let v = 0;
         const obj = { a: 1 };
         const { run, stop } = observation.watch<number>(obj, 'a', vv => v = vv);
@@ -447,7 +467,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 3);
       });
 
-      it('runs independently with owning application', async function () {
+      it('runs independently with owning application', function () {
         let v = 0;
         const obj = { a: 1 };
         const { run } = observation.watch<number>(obj, 'a', _ => v++);
@@ -459,7 +479,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 2);
       });
 
-      it('calls cleanup function in next run', async function () {
+      it('calls cleanup function in next run', function () {
         let v = 0;
         let cancelled = 0;
         const obj = { a: 1 };
@@ -474,7 +494,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(cancelled, 1);
       });
 
-      it('calls cleanup function when stopped', async function () {
+      it('calls cleanup function when stopped', function () {
         let v = 0;
         let cancelled = 0;
         const obj = { a: 1 };

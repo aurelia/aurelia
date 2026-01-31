@@ -87,6 +87,7 @@ export class Observation implements IObservation {
     let $oldValue: R | undefined = undefined;
     let running = false;
     let cleanupTask: (() => void) | undefined;
+    let subscribed = false;
     const handleChange = (newValue: unknown, oldValue: unknown) => {
       cleanupTask?.();
       cleanupTask = void 0;
@@ -104,16 +105,23 @@ export class Observation implements IObservation {
     const run = () => {
       if (running) return;
       running = true;
-      observer.subscribe(handler);
+      if (!subscribed) {
+        observer.subscribe(handler);
+        subscribed = true;
+      }
       handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
       if (!running) return;
       running = false;
+      subscribed = false;
       observer.unsubscribe(handler);
       cleanupTask?.();
       cleanupTask = void 0;
     };
+
+    observer.subscribe(handler);
+    subscribed = true;
 
     if (options?.immediate !== false) {
       run();

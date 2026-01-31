@@ -24,7 +24,7 @@ export interface IDynamicComponentActivate<T> {
   activate?(model?: T): unknown;
 }
 
-type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'>;
+type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag' | 'flushMode'>;
 
 // Desired usage:
 // <au-component template.bind="Promise<string>" component.bind="" model.bind="" />
@@ -33,7 +33,7 @@ export class AuCompose {
   /** @internal */
   public static readonly $au: CustomElementStaticAuDefinition<keyof Pick<
     AuCompose,
-    'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'
+    'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag' | 'flushMode'
   >> = {
     type: elementTypeName,
     name: 'au-compose',
@@ -51,7 +51,13 @@ export class AuCompose {
       }},
       { name: 'composing', mode: fromView},
       { name: 'composition', mode: fromView },
-      'tag'
+      'tag',
+      { name: 'flushMode', set: v => {
+        if (v === 'sync' || v === 'async') {
+          return v;
+        }
+        throw createMappedError(ErrorNames.au_compose_invalid_flush_mode, v);
+      }},
     ]
   };
 
@@ -102,6 +108,11 @@ export class AuCompose {
    */
   public tag: string | null | undefined = null;
 
+  /**
+   * Control whether the composition is performed synchronously or asynchronously.
+   */
+  public flushMode: 'sync' | 'async' = 'sync';
+
   /** @internal */ public readonly $controller!: ICustomElementController<AuCompose>;
   /** @internal */ private readonly _container = resolve(IContainer);
   /** @internal */ private readonly parent = resolve(IController) as ISyntheticView | ICustomElementController;
@@ -137,22 +148,55 @@ export class AuCompose {
 
   /** @internal */
   public propertyChanged(name: ChangeSource): void {
-    if (name === 'composing' || name === 'composition') return;
-    if (name === 'model' && this._composition != null) {
-      this._composition.update(this.model);
+    if (name === 'composing' || name === 'composition') {
       return;
     }
-    // tag change does not affect existing custom element composition
-    if (name === 'tag' && this._composition?.controller.vmKind === vmkCe) {
-      if (__DEV__) {
-        console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
+    if (this.flushMode === 'sync') {
+      if (name === 'model' && this._composition != null) {
+        this._composition.update(this.model);
+        return;
       }
-      return;
-    }
+      // tag change does not affect existing custom element composition
+      if (name === 'tag' && this._composition?.controller.vmKind === vmkCe) {
+        if (__DEV__) {
+          console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
+        }
+        return;
+      }
 
+      this._handleChangeInfo(new ChangeInfo(this.template, this.component, this.model, name));
+    }
+  }
+
+  /** @internal */
+  public propertiesChanged(changes: { [key in ChangeSource]: { newValue: AuCompose[key]; oldValue: AuCompose[key] } }): void {
+    if (this.flushMode === 'async') {
+      if ('model' in changes && this._composition != null && Object.keys(changes).length === 1) {
+        this._composition.update(this.model);
+        return;
+      }
+      // tag change does not affect existing custom element composition
+      if ('tag' in changes && this._composition?.controller.vmKind === vmkCe) {
+        if (__DEV__) {
+          console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
+        }
+        return;
+      }
+
+      this._handleChangeInfo(new ChangeInfo(
+        this.template,
+        this.component,
+        this.model,
+        'model' in changes ? 'model' : undefined
+      ));
+    }
+  }
+
+  /** @internal */
+  private _handleChangeInfo(info: ChangeInfo): void {
     this._composing = onResolve(this._composing, () =>
       onResolve(
-        this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
+        this.queue(info, void 0),
         (context) => {
           if (this._contextFactory._isCurrent(context)) {
             this._composing = void 0;
@@ -455,10 +499,10 @@ class CompositionContextFactory {
 
 class ChangeInfo {
   public constructor(
-    public readonly _template: MaybePromise<string> | undefined,
-    public readonly _component: MaybePromise<string | Constructable | object> | undefined,
-    public readonly _model: unknown,
-    public readonly _src: ChangeSource | undefined,
+    public _template: MaybePromise<string> | undefined,
+    public _component: MaybePromise<string | Constructable | object> | undefined,
+    public _model: unknown,
+    public _src: ChangeSource | undefined,
   ) { }
 
   public load(): MaybePromise<LoadedChangeInfo> {

@@ -152,13 +152,37 @@ export class AuCompose {
       return;
     }
     if (this.flushMode === 'sync') {
-      this._handleChangeSync(name);
+      if (name === 'model' && this._composition != null) {
+        this._composition.update(this.model);
+        return;
+      }
+      // tag change does not affect existing custom element composition
+      if (name === 'tag' && this._composition?.controller.vmKind === vmkCe) {
+        if (__DEV__) {
+          console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
+        }
+        return;
+      }
+
+      this._handleChangeInfo(new ChangeInfo(this.template, this.component, this.model, name));
     }
   }
 
   /** @internal */
   public propertiesChanged(changes: { [key in ChangeSource]: { newValue: AuCompose[key]; oldValue: AuCompose[key] } }): void {
     if (this.flushMode === 'async') {
+      if ('model' in changes && this._composition != null && Object.keys(changes).length === 1) {
+        this._composition.update(this.model);
+        return;
+      }
+      // tag change does not affect existing custom element composition
+      if ('tag' in changes && this._composition?.controller.vmKind === vmkCe) {
+        if (__DEV__) {
+          console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
+        }
+        return;
+      }
+
       this._handleChangeInfo(new ChangeInfo(
         this.template,
         this.component,
@@ -166,32 +190,6 @@ export class AuCompose {
         'model' in changes ? 'model' : undefined
       ));
     }
-  }
-
-  /** @internal */
-  private _handleChangeSync(name: ChangeSource): void {
-    if (name === 'model' && this._composition != null) {
-      this._composition.update(this.model);
-      return;
-    }
-    // tag change does not affect existing custom element composition
-    if (name === 'tag' && this._composition?.controller.vmKind === vmkCe) {
-      if (__DEV__) {
-        console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
-      }
-      return;
-    }
-
-    this._composing = onResolve(this._composing, () =>
-      onResolve(
-        this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
-        (context) => {
-          if (this._contextFactory._isCurrent(context)) {
-            this._composing = void 0;
-          }
-        }
-      )
-    );
   }
 
   /** @internal */

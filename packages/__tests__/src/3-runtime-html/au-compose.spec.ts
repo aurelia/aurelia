@@ -582,34 +582,46 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     it('ignores tag binding change when composing custom element', async function () {
-      let compositionCount = 0;
-      @customElement({
-        name: 'el',
-        template: '<div>Hello world from El</div>'
-      })
-      class El {}
+      let warnMessage = '';
+      const originalWarn = console.warn;
+      console.warn = (message: string) => {
+        warnMessage = message;
+      };
 
-      const { component, assertHtml, assertText } = createFixture(
-        `<au-compose tag.bind="i ? 'h2' : 'h1'" component.bind="El" model.bind="{ index: 0 }" containerless composition.bind="composed">`,
-        class App {
-          i = 0;
-          El = El;
-          set composed(_value: ICompositionController) {
-            compositionCount++;
+      try {
+        let compositionCount = 0;
+        @customElement({
+          name: 'el',
+          template: '<div>Hello world from El</div>'
+        })
+        class El {}
+
+        const { component, assertHtml, assertText } = createFixture(
+          `<au-compose tag.bind="i ? 'h2' : 'h1'" component.bind="El" model.bind="{ index: 0 }" containerless composition.bind="composed">`,
+          class App {
+            i = 0;
+            El = El;
+            set composed(_value: ICompositionController) {
+              compositionCount++;
+            }
           }
-        }
-      );
+        );
 
-      assertText('Hello world from El');
-      assertHtml('<!--au-start--><el><div>Hello world from El</div></el><!--au-end-->');
-      // initial binding 1 + initial composition 1
-      assert.strictEqual(compositionCount, 1);
-      await tasksSettled();
-      assert.strictEqual(compositionCount, 2);
+        assertText('Hello world from El');
+        assertHtml('<!--au-start--><el><div>Hello world from El</div></el><!--au-end-->');
+        // initial binding 1 + initial composition 1
+        assert.strictEqual(compositionCount, 1);
+        await tasksSettled();
+        assert.strictEqual(compositionCount, 2);
 
-      component.i = 1;
-      await tasksSettled();
-      assert.strictEqual(compositionCount, 2);
+        component.i = 1;
+        await tasksSettled();
+        assert.strictEqual(compositionCount, 2);
+
+        assert.strictEqual(warnMessage, `[DEV:aurelia] Changing tag name of a custom element composition is ignored.`);
+      } finally {
+        console.warn = originalWarn;
+      }
     });
   });
 
@@ -1235,6 +1247,58 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
           },
         );
       });
+    });
+
+    it('does not recompose when flushMode is async and only model changes', async function () {
+      let constructorCount = 0;
+      let activateCount = 0;
+      const { component } = createFixture(
+        `<au-compose component.bind="component" model.bind="model" flush-mode="async" />`,
+        class App {
+          model = { val: 1 };
+          component = class Component {
+            constructor() {
+              constructorCount++;
+            }
+            activate(_model) {
+              activateCount++;
+            }
+          };
+        },
+      );
+
+      assert.strictEqual(constructorCount, 1);
+      assert.strictEqual(activateCount, 1);
+
+      component.model = { val: 2 };
+      await Promise.resolve();
+      assert.strictEqual(constructorCount, 1);
+      assert.strictEqual(activateCount, 2);
+    });
+
+    it('warns when updating tag when current composition is a custom element', async function () {
+      let warnMessage = '';
+      const originalWarn = console.warn;
+      console.warn = (message: string) => {
+        warnMessage = message;
+      };
+      try {
+        const { component } = createFixture(
+          `<au-compose tag.bind="tag" component.bind="component" />`,
+          class App {
+            tag = 'div';
+            component = CustomElement.define({ name: 'my-el', template: 'hello' }, class { });
+          },
+        );
+
+        assert.strictEqual(warnMessage, '');
+
+        component.tag = 'span';
+        await Promise.resolve();
+        assert.strictEqual(warnMessage, `[DEV:aurelia] Changing tag name of a custom element composition is ignored.`);
+      } finally {
+        console.warn = originalWarn;
+      }
     });
   });
 

@@ -1,6 +1,6 @@
 import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { IObserverLocator, queueTask, Scope } from '@aurelia/runtime';
+import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
 import { IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { INode } from '../../dom.node';
@@ -52,7 +52,12 @@ export class AuCompose {
       { name: 'composing', mode: fromView},
       { name: 'composition', mode: fromView },
       'tag',
-      'flushMode'
+      { name: 'flushMode', set: v => {
+        if (v === 'sync' || v === 'async') {
+          return v;
+        }
+        throw createMappedError(ErrorNames.au_compose_invalid_flush_mode, v);
+      }},
     ]
   };
 
@@ -121,8 +126,6 @@ export class AuCompose {
   /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
   /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
   /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
-  /** @internal */ private _changeInfo: ChangeInfo | null = null;
-  /** @internal */ private _queued = false;
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     return this._composing = onResolve(
@@ -138,8 +141,6 @@ export class AuCompose {
   public detaching(initiator: IHydratedController): void | Promise<void> {
     const cmpstn = this._composition;
     const pending = this._composing;
-    this._changeInfo = null;
-    this._queued = false;
     this._contextFactory.invalidate();
     this._composition = this._composing = void 0;
     return onResolve(pending, () => cmpstn?.deactivate(initiator));
@@ -152,8 +153,18 @@ export class AuCompose {
     }
     if (this.flushMode === 'sync') {
       this._handleChangeSync(name);
-    } else {
-      this._handleChangeAsync(name);
+    }
+  }
+
+  /** @internal */
+  public propertiesChanged(changes: { [key in ChangeSource]: { newValue: AuCompose[key]; oldValue: AuCompose[key] } }): void {
+    if (this.flushMode === 'async') {
+      this._handleChangeInfo(new ChangeInfo(
+        this.template,
+        this.component,
+        this.model,
+        'model' in changes ? 'model' : undefined
+      ));
     }
   }
 
@@ -181,33 +192,6 @@ export class AuCompose {
         }
       )
     );
-  }
-
-  /** @internal */
-  private _handleChangeAsync(name: ChangeSource): void {
-    const info = this._changeInfo ??= new ChangeInfo(this.template, this.component, this.model, name);
-    info._template = this.template;
-    info._component = this.component;
-    info._model = this.model;
-    // it doesn't matter the src in async mode
-    // though potentially we can have some shorter-circuit logic
-    // so just keep model for now
-    if (info._src !== 'model') {
-      info._src = name;
-    }
-
-    if (this._queued) {
-      return;
-    }
-    this._queued = true;
-    queueTask(() => {
-      const info = this._changeInfo;
-      this._queued = false;
-      if (info != null) {
-        this._changeInfo = null;
-        this._handleChangeInfo(info);
-      }
-    });
   }
 
   /** @internal */

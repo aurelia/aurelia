@@ -1226,6 +1226,16 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.deepEqual(models, [[]]);
 
     });
+
+    it('throws when flushMode is invalid', function () {
+      assert.throws(() => {
+        createFixture(
+          `<au-compose flush-mode="invalid" />`,
+          class App {
+          },
+        );
+      });
+    });
   });
 
   describe('containerless', function () {

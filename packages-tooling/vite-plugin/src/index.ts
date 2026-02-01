@@ -234,7 +234,7 @@ if (${moduleText}.hot) {
         controller.activate(controller, controller.parent ?? null, 0);
 
         // because we are in the previous controllers loop,
-        // we are sure that the controllers array is intialized to empty,
+        // we are sure that the controllers array is initialized to empty,
         // from the HMR initialize code at the top.
         // hence we push the controller back to the controllers array.
         controllers.push(controller);

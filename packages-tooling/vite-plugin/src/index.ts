@@ -169,7 +169,7 @@ if (${moduleText}.hot) {
   // @ts-ignore
   ${moduleText}.hot.dispose(function (data) {
     // @ts-ignore
-    data.controllers = controllers;
+    data.controllers = controllers.slice();
     data.aurelia = aurelia;
   });
 
@@ -213,10 +213,10 @@ if (${moduleText}.hot) {
         }
       });
       const h = controller.host;
-      const oldDef = controller._compiledDef;
+      const def = controller._compiledDef ?? newDefinition;
       $$onResolve(controller.deactivate(controller, controller.parent ?? null, 0), () => {
-        controller.container.deregister(oldDef.key);
-        controller.container.deregister(oldDef.Type);
+        controller.container.deregister(def.key);
+        controller.container.deregister(def.Type);
         delete controller._compiledDef;
         $$refs.clear(h);
         controller.viewModel = controller.container.invoke(currentClassType);
@@ -232,6 +232,12 @@ if (${moduleText}.hot) {
         }
         h.parentNode.replaceChild(controller.host, h);
         controller.activate(controller, controller.parent ?? null, 0);
+
+        // because we are in the previous controllers loop,
+        // we are sure that the controllers array is intialized to empty,
+        // from the HMR initialize code at the top.
+        // hence we push the controller back to the controllers array.
+        controllers.push(controller);
       });
     });
   }

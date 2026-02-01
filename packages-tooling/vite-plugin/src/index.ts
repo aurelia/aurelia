@@ -169,7 +169,7 @@ if (${moduleText}.hot) {
   // @ts-ignore
   ${moduleText}.hot.dispose(function (data) {
     // @ts-ignore
-    data.controllers = controllers.slice();
+    data.controllers = controllers;
     data.aurelia = aurelia;
   });
 

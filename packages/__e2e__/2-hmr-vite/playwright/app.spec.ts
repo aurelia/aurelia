@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -69,8 +69,6 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
     });
 
     test(`multiple rerenders without flushing <input> state`, async function ({ page }) {
-      test.setTimeout(25000);
-
       await expect(page.locator('app > div')).toHaveText('Hello World!');
       await page.fill('input', 'abc');
       await expect(page.locator('input')).toHaveValue('abc');
@@ -102,12 +100,14 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
     `;
 
       fs.writeFileSync(path.resolve(__dirname, appFilePath), firstEdit, { encoding: 'utf-8' });
-      await new Promise(r => setTimeout(r, 10000));
+      // unfortunately more sophsiticated promises based on console.log etc. seems not to work reliably here
+      await new Promise(r => setTimeout(r, 1000));
 
       fs.writeFileSync(path.resolve(__dirname, appFilePath), secondEdit, { encoding: 'utf-8' });
-      await new Promise(r => setTimeout(r, 10000));
+      // unfortunately more sophsiticated promises based on console.log etc. seems not to work reliably here
+      await new Promise(r => setTimeout(r, 1000));
 
-      expect(await page.evaluate('window.app?.id')).toEqual(10);
+      await page.waitForFunction(() => (window as any).app?.id === 10, { timeout: 5000 });
       await expect(page.locator('app > div')).toHaveText('Hello World!');
       await expect(page.locator('input')).toHaveValue('abc');
     });

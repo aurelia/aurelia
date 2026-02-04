@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  browser-tools: circleci/browser-tools@1.4.7
+  browser-tools: circleci/browser-tools@2.4.0
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -108,16 +108,16 @@ commands:
               - <<parameters.install_drivers>>
               - <<parameters.install_chrome>>
           steps:
-            - browser-tools/install-chrome
-            - browser-tools/install-chromedriver
+            - browser-tools/install_chrome
+            - browser-tools/install_chromedriver
       - when:
           condition:
             and:
               - <<parameters.install_drivers>>
               - <<parameters.install_firefox>>
           steps:
-            - browser-tools/install-firefox
-            - browser-tools/install-geckodriver
+            - browser-tools/install_firefox
+            - browser-tools/install_geckodriver
       - when:
           condition: <<parameters.install>>
           steps:
@@ -492,8 +492,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
+      - browser-tools/install_chrome
+      - browser-tools/install_chromedriver
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install

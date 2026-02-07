@@ -4,60 +4,66 @@ import { rtObjectFreeze } from './utilities';
 
 /**
  * Current subscription collector
+ * @internal
  */
-// eslint-disable-next-line import/no-mutable-exports
-export let _connectable: IConnectable | null = null;
+export let _currentConnectable: IConnectable | null = null; // eslint-disable-line
+
 const connectables: IConnectable[] = [];
-// eslint-disable-next-line
-export let connecting = false;
+/** @internal */
+export let connecting = false; // eslint-disable-line
 
 // todo: layer based collection pause/resume?
+/** @internal */
 export function pauseConnecting() {
   connecting = false;
 }
 
+/** @internal */
 export function resumeConnecting() {
   connecting = true;
 }
 
+/** @internal */
 export function currentConnectable(): IConnectable | null {
-  return _connectable;
+  return _currentConnectable;
 }
 
+/** @internal */
 export function enterConnectable(connectable: IConnectable): void {
   if (connectable == null) {
     throw createMappedError(ErrorNames.switch_on_null_connectable);
   }
-  if (_connectable == null) {
-    _connectable = connectable;
-    connectables[0] = _connectable;
+  if (_currentConnectable == null) {
+    _currentConnectable = connectable;
+    connectables[0] = _currentConnectable;
     connecting = true;
     return;
   }
-  if (_connectable === connectable) {
+  if (_currentConnectable === connectable) {
     throw createMappedError(ErrorNames.switch_active_connectable);
   }
   connectables.push(connectable);
-  _connectable = connectable;
+  _currentConnectable = connectable;
   connecting = true;
 }
 
+/** @internal */
 export function exitConnectable(connectable: IConnectable): void {
   if (connectable == null) {
     throw createMappedError(ErrorNames.switch_off_null_connectable);
   }
-  if (_connectable !== connectable) {
+  if (_currentConnectable !== connectable) {
     throw createMappedError(ErrorNames.switch_off_inactive_connectable);
   }
 
   connectables.pop();
-  _connectable = connectables.length > 0 ? connectables[connectables.length - 1] : null;
-  connecting = _connectable != null;
+  _currentConnectable = connectables.length > 0 ? connectables[connectables.length - 1] : null;
+  connecting = _currentConnectable != null;
 }
 
 export const ConnectableSwitcher = /*@__PURE__*/ rtObjectFreeze({
   get current() {
-    return _connectable;
+    return _currentConnectable;
   },
   get connecting() {
     return connecting;

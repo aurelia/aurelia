@@ -39,6 +39,7 @@ export const enum ErrorNames {
   ast_nullish_member_access = 114,
   ast_nullish_keyed_access = 115,
   ast_nullish_assignment = 116,
+  ast_tracked_decorator_not_a_method = 117,
 
   null_scope = 203,
   create_scope_with_null_context = 204,
@@ -108,6 +109,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.ast_nullish_member_access]: `Ast eval error: cannot access property "{{0}}" of {{1}}.`,
   [ErrorNames.ast_nullish_keyed_access]: `Ast eval error: cannot access key "{{0}}" of {{1}}.`,
   [ErrorNames.ast_nullish_assignment]: `Ast eval error: cannot assign value to property "{{0}}" of null/undefined.`,
+  [ErrorNames.ast_tracked_decorator_not_a_method]: `The @astTracked decorator can only be applied to methods, "{{0}}" is not a method.`,
 
   [ErrorNames.parse_invalid_start]: `Expression error: invalid start: "{{0}}"`,
   [ErrorNames.parse_no_spread]: `Expression error: spread operator is not supported: "{{0}}"`,

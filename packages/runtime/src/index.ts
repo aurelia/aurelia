@@ -1,4 +1,8 @@
 export {
+  astTracked,
+} from './ast-tracked-decorator';
+
+export {
   type IAstEvaluator,
   astAssign,
   astBind,

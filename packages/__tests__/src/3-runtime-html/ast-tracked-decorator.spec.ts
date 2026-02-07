@@ -1,7 +1,7 @@
 import { astTracked } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('ast-tracked-decorator.spec.ts', function () {
+describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
   it('should throw if applied to non-method', function () {
     assert.throws(() => class Test {
       // @ts-expect-error - just an assertion

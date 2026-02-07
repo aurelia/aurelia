@@ -134,4 +134,29 @@ describe('ast-tracked-decorator.spec.ts', function () {
     assertText('v1-v2-v3');
     assert.strictEqual(callCount, 4);
   });
+
+  it('tracks parameter property reads when use proxy', async function () {
+    let callCount = 0;
+    const { component, assertText } = createFixture('<div>${method(obj)}</div>', class {
+      prop1 = 'value1';
+
+      obj = {
+        prop1: 'obj1'
+      };
+
+      @astTracked({ useProxy: true })
+      public method(arg: { prop1: string }) {
+        callCount++;
+        return `${arg.prop1}-${this.prop1}`;
+      }
+    });
+
+    assertText('obj1-value1');
+    assert.strictEqual(callCount, 1);
+
+    component.obj.prop1 = 'obj2';
+    await Promise.resolve();
+    assertText('obj2-value1');
+    assert.strictEqual(callCount, 2);
+  });
 });

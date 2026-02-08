@@ -10,7 +10,7 @@ export default defineConfig({
     target: "es2022",
   },
   plugins: [
-    au({ useDev: true }),
+    au({ useDev: true, hmr: false }),
   ],
   esbuild: {
     target: "es2022"

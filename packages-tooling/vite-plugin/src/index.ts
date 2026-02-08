@@ -61,9 +61,7 @@ export default function au(options: {
         hmrModule: 'import.meta',
         getHmrCode,
         transformHtmlImportSpecifier: (s) => {
-          return $config.mode === 'production'
-            ? s.replace(/\.html$/, '.$au.ts')
-            : s;
+          return s.replace(/\.html$/, '.$au.ts');
         },
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
@@ -105,7 +103,10 @@ export default function au(options: {
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });
-      return result!.code;
+      return {
+        code: result!.code,
+        map: result!.map
+      };
     }
   };
 

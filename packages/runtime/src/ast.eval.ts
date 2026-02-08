@@ -268,17 +268,6 @@ export const {
       case ekCallFunction: {
         const func = astEvaluate(ast.func, s, e, c);
         if (isFunction(func)) {
-          if (c != null && (func as TrackableFunction)[astTrackableMethodMarker] != null) {
-            const options = (func as TrackableFunction)[astTrackableMethodMarker];
-            const useProxy = options?.useProxy ?? false;
-            try {
-              enterConnectable(c);
-              return func.apply(useProxy ? wrap(func) : func, ast.args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));
-            } finally {
-              exitConnectable(c);
-            }
-          }
-
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
         if (func == null) {

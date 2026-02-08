@@ -22,6 +22,12 @@ Aurelia offers several reactivity tools. Here's how to choose:
 - ✅ Deep observation needed for nested objects
 - ✅ Example: Complex filtering, heavy aggregations
 
+### Use `@astTracked` decorator when:
+- ✅ **The method** decorated should perform tracking when used in the template
+- ✅ You want to **simplify** change tracking for template
+- ✅ Deep observation needed for nested objects
+- ✅ Example: Complex filtering, heavy aggregations
+
 ### Use `@observable` when:
 - ✅ **You need to run code** when a property changes (side effects)
 - ✅ You want the `propertyChanged(newValue, oldValue)` callback
@@ -158,6 +164,41 @@ export class ShoppingCart {
 ```
 
 Basides the above basic usages, the `computed` decorator also supports a few more options, depending on the needs of an application.
+
+#### Decorator `astTracked`
+
+When you want to call a method from the template (not a getter) and still want to have Aurelia track the properties read inside that method, use `@astTracked`. It marks the method so the binding system records all property reads during the call and reevaluate the template expression to update the view when any of those dependencies change.
+
+Use `useProxy: true` when you want perform automatic track on read using Aurelia proxy observation. Both the `this` context and the arguments passed to the function call will be wrapped in proxies.
+
+```ts
+import { astTracked } from 'aurelia';
+
+export class ProductList {
+  filter = '';
+  products: Product[] = [];
+
+  @astTracked({ useProxy: true })
+  matches(product: Product) {
+    return product.name.includes(this.filter);
+  }
+}
+```
+
+```html
+<ul>
+  <li repeat.for="p of products" if.bind="matches(p)">
+    ${p.name}
+  </li>
+</ul>
+```
+
+What's tracked:
+- `name` of each product
+- `filter` on the `ProductList` component
+
+> [!NOTE]
+> Only observation through proxy is supported at the moment, more convinient APIs may be enabled in the futures.
 
 #### Flush timing with `flush`
 

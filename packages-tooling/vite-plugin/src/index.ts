@@ -39,14 +39,9 @@ export default function au(options: {
     },
   };
 
-  let $config!: import('vite').ResolvedConfig;
-
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
     enforce: pre ? 'pre' : 'post',
-    configResolved(config) {
-      $config = config;
-    },
     async transform(code, id) {
       if (!filter(id)) return;
       // .$au.ts = .html

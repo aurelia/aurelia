@@ -642,7 +642,7 @@ function findResource(
     }
 
     if (
-        isImplicitResource
+         isImplicitResource
       && (resourceType.originalDecorator === 'noView' || resourceType.originalDecorator === 'inlineView')
       && !filePair
     ) {

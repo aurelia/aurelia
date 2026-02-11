@@ -36,11 +36,6 @@ test.describe('router.prod-build', () => {
   });
 
   test('production build loads assets correctly', async ({ page }) => {
-    const response = await page.goto(BASE_URL);
-
-    // Verify the page loads successfully
-    expect(response?.status()).toBe(200);
-
     // Check that no console errors occurred during load
     const errors: string[] = [];
     page.on('console', msg => {
@@ -48,6 +43,10 @@ test.describe('router.prod-build', () => {
         errors.push(msg.text());
       }
     });
+
+    // Navigate and verify the page loads successfully
+    const response = await page.goto(BASE_URL);
+    expect(response?.status()).toBe(200);
 
     // Wait for the app to initialize
     await expect(page.locator('au-viewport')).toHaveText('Home page', { timeout: 10000 });

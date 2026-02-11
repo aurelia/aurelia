@@ -2,8 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = process.env.PROD_PORT || 9007;
-const DIST_DIR = path.join(__dirname, 'dist');
+const PORT = parseInt(process.env.PROD_PORT || '9007', 10);
+const DIST_DIR = path.resolve(__dirname, 'dist');
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -17,15 +17,25 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url);
+  // Parse URL and strip leading slashes to prevent path traversal
+  const url = new URL(req.url, `http://localhost:${PORT}`);
+  const relativePath = url.pathname.replace(/^\/+/, '') || 'index.html';
+
+  // Resolve against DIST_DIR and validate it stays within bounds
+  const filePath = path.resolve(DIST_DIR, relativePath);
+
+  // Security check: ensure resolved path is within DIST_DIR
+  if (!filePath.startsWith(DIST_DIR)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
 
   // Handle client-side routing - serve index.html for non-file paths
   const ext = path.extname(filePath);
-  if (!ext) {
-    filePath = path.join(DIST_DIR, 'index.html');
-  }
+  const targetPath = ext ? filePath : path.join(DIST_DIR, 'index.html');
 
-  fs.readFile(filePath, (err, data) => {
+  fs.readFile(targetPath, (err, data) => {
     if (err) {
       if (err.code === 'ENOENT') {
         // File not found - serve index.html for SPA routing
@@ -43,8 +53,7 @@ const server = http.createServer((req, res) => {
         res.end('Server error');
       }
     } else {
-      const ext = path.extname(filePath);
-      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+      const contentType = MIME_TYPES[path.extname(targetPath)] || 'application/octet-stream';
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(data);
     }

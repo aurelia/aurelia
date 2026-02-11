@@ -24,7 +24,7 @@ describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
   it('tracks property reads in call scope when used in template', async function () {
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       prop1 = 'value1';
-      @astTracked({ useProxy: true })
+      @astTracked
       public method() {
         return this.prop1;
       }
@@ -44,7 +44,7 @@ describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
       obj = new (class {
         constructor(private parent: App) {}
 
-        @astTracked({ useProxy: true })
+        @astTracked
         public method() {
           return this.parent.prop1;
         }
@@ -62,11 +62,11 @@ describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
     const { component, assertText } = createFixture('<div>${method1()}</div>', class {
       prop1 = 'value1';
 
-      @astTracked({ useProxy: true })
+      @astTracked
       public method1() {
         return this.method2();
       }
-      @astTracked({ useProxy: true })
+      @astTracked
       public method2() {
         return this.prop1;
       }
@@ -83,7 +83,7 @@ describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
     const { component, assertText } = createFixture('<div if.bind="show">${method()}</div>', class {
       show = true;
       prop1 = 'value1';
-      @astTracked({ useProxy: true })
+      @astTracked
       public method() {
         callCount++;
         return this.prop1;
@@ -109,7 +109,7 @@ describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
       prop2 = 'value2';
       prop3 = 'value3';
 
-      @astTracked({ useProxy: true })
+      @astTracked
       public method() {
         callCount++;
         return `${this.prop1}-${this.prop2}-${this.prop3}`;
@@ -144,7 +144,7 @@ describe('3-runtime-html/ast-tracked-decorator.spec.ts', function () {
         prop1: 'obj1'
       };
 
-      @astTracked({ useProxy: true })
+      @astTracked
       public method(arg: { prop1: string }) {
         callCount++;
         return `${arg.prop1}-${this.prop1}`;

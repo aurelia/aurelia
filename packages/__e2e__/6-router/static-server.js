@@ -56,16 +56,12 @@ server.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+const shutdown = () => {
   server.close(() => {
     console.log('Server closed');
     process.exit(0);
   });
-});
+};
 
-process.on('SIGINT', () => {
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

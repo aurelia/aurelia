@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import au from '@aurelia/vite-plugin';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: process.env.APP_PORT ?? 5173,
   },
@@ -10,9 +10,9 @@ export default defineConfig({
     target: "es2022",
   },
   plugins: [
-    au({ useDev: true, hmr: false }),
+    au({ useDev: mode === 'development', hmr: false }),
   ],
   esbuild: {
     target: "es2022"
   },
-});
+}));

@@ -63,7 +63,6 @@ describe('validation/rule-provider.spec.ts', function () {
         .maxLength(42)
         .matches(/foo/)
         .then()
-        .email()
         .when(() => 'foo' as any === 'bar')
         .equals('foo@bar.com')
         .rules;
@@ -93,12 +92,8 @@ describe('validation/rule-provider.spec.ts', function () {
       assert.instanceOf(matches, RegexRule);
       assert.equal(matches['pattern'].source, 'foo');
 
-      assert.equal(phase2Rules.length, 2);
-      const [emailRule, equalRule] = phase2Rules as [RegexRule, EqualsRule];
-
-      assert.instanceOf(emailRule, RegexRule);
-      assert.notEqual(emailRule['pattern'], void 0);
-      assert.equal(emailRule.canExecute(void 0), false);
+      assert.equal(phase2Rules.length, 1);
+      const [equalRule] = phase2Rules as [EqualsRule];
 
       assert.instanceOf(equalRule, EqualsRule);
       assert.equal(equalRule['expectedValue'], 'foo@bar.com');
@@ -639,10 +634,6 @@ describe('validation/rule-provider.spec.ts', function () {
         getRule: () => new RegexRule(/foo/),
       },
       {
-        title: 'RegexRule - email',
-        getRule: () => new RegexRule(/foo/, 'email'),
-      },
-      {
         title: 'LengthRule - minLength',
         getRule: () => new LengthRule(42, false),
       },
@@ -683,7 +674,6 @@ describe('validation/rule-provider.spec.ts', function () {
     const messages = [
       'FooBar is required.',
       'FooBar is not correctly formatted.',
-      'FooBar is not a valid email.',
       'FooBar must be at least 42 characters.',
       'FooBar cannot be longer than 42 characters.',
       'FooBar must contain at least 42 items.',
@@ -737,7 +727,6 @@ describe('validation/rule-provider.spec.ts', function () {
           rule: RegexRule,
           aliases: [
             { name: 'matches', defaultMessage: `\${$displayName} does not matches the pattern.` },
-            { name: 'email', defaultMessage: `\${$displayName} must be an email` },
           ],
         },
         {

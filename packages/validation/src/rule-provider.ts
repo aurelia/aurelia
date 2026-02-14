@@ -333,15 +333,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
 
   /**
-   * Applies an instance of `RegexRule` with email pattern.
-   */
-  public email(this: PropertyRule<TObject, string>) {
-    // eslint-disable-next-line no-useless-escape
-    const emailPattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    return this.addRule(new RegexRule(emailPattern, 'email'));
-  }
-
-  /**
    * Applies an instance of `LengthRule` with min `length` constraint.
    * Applicable for string value.
    */

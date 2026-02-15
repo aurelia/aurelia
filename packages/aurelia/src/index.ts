@@ -303,6 +303,8 @@ export {
   TaskAbortError,
   type TaskStatus,
 
+  IEffect,
+
 } from '@aurelia/runtime';
 
 export {

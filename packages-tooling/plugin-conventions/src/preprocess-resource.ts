@@ -328,6 +328,23 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     }
   }
 
+  // Transform template import specifiers
+  for (const templateImport of templateMetadata) {
+    if (!templateImport.modulePath) continue;
+
+    const transformedPath = transformHtmlImportSpecifier(templateImport.modulePath);
+    if (transformedPath === templateImport.modulePath) continue;
+
+    // Find and replace the module path in the import statement
+    const start = templateImport.start;
+    const end = templateImport.end;
+    if (start == null || end == null) continue;
+
+    const importStatement = unit.contents.slice(start, end);
+    const newImportStatement = importStatement.replace(templateImport.modulePath, transformedPath);
+    m.replace(start, end, newImportStatement);
+  }
+
   if (modifications.length) {
     for (const modification of modifications) {
       if (modification.remove) {

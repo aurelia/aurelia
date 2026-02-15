@@ -376,6 +376,13 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
       });
 
+      it('throws when run is called after stopped', function () {
+        const obj = { a: 1 };
+        const { run, stop } = observation.watch(obj, o => o.a, vv => vv);
+        stop();
+        assert.throws(() => run());
+      });
+
       it('runs independently with owning application', async function () {
         let v = 0;
         const obj = { a: 1 };
@@ -475,6 +482,13 @@ describe('3-runtime-html/effect.spec.ts', function () {
         stop();
         obj.a = 2;
         assert.strictEqual(v, 1);
+      });
+
+      it('throws when run is called after stopped', function () {
+        const obj = { a: 1 };
+        const { run, stop } = observation.watch<number>(obj, 'a', vv => vv);
+        stop();
+        assert.throws(() => run());
       });
 
       it('runs independently with owning application', function () {

@@ -112,7 +112,7 @@ export class Observation implements IObservation {
       handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
-      if (!running) return;
+      if (!running && !subscribed) return;
       running = false;
       subscribed = false;
       observer.unsubscribe(handler);
@@ -219,4 +219,3 @@ class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscribe
     this.obs.clearAll();
   };
 }
-

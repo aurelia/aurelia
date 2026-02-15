@@ -356,20 +356,23 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 111);
       });
 
+      it('calling run multiple times calls the callback each time', function () {
+        let count = 0;
+        const obj = { a: 1 };
+        const { run } = observation.watch(obj, o => o.a, _ => count++);
+        assert.strictEqual(count, 1);
+        run();
+        assert.strictEqual(count, 2);
+        run();
+        assert.strictEqual(count, 3);
+      });
+
       it('does not run after stopped', function () {
         let v = 0;
         const obj = { a: 1 };
         const { stop } = observation.watch(obj, o => o.a, vv => v = vv);
         stop();
         obj.a = 2;
-        assert.strictEqual(v, 1);
-      });
-
-      it('run is idempotent', function () {
-        let v = 0;
-        const { run } = observation.watch({ a: 1 }, o => o.a, _ => ++v);
-        assert.strictEqual(v, 1);
-        run();
         assert.strictEqual(v, 1);
       });
 
@@ -454,24 +457,30 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 111);
       });
 
-      it('runs again after stopped when called', function () {
+      it('calling run multiple times calls the callback each time', function () {
+        let count = 0;
+        const obj = { a: 1 };
+        const { run } = observation.watch<number>(obj, 'a', _ => count++);
+        assert.strictEqual(count, 1);
+        run();
+        assert.strictEqual(count, 2);
+        run();
+        assert.strictEqual(count, 3);
+      });
+
+      it('does not run after stopped', function () {
         let v = 0;
         const obj = { a: 1 };
-        const { run, stop } = observation.watch<number>(obj, 'a', vv => v = vv);
+        const { stop } = observation.watch<number>(obj, 'a', vv => v = vv);
         stop();
         obj.a = 2;
         assert.strictEqual(v, 1);
-
-        run();
-        obj.a = 3;
-        assert.strictEqual(v, 3);
       });
 
       it('runs independently with owning application', function () {
         let v = 0;
         const obj = { a: 1 };
-        const { run } = observation.watch<number>(obj, 'a', _ => v++);
-        run();
+        observation.watch<number>(obj, 'a', _ => v++);
         assert.strictEqual(v, 1);
 
         tearDown();

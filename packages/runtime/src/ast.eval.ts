@@ -91,12 +91,35 @@ export const {
   const getContext = Scope.getContext;
 
   type TrackableFunctionOptions = {
-    useProxy?: boolean;
+    deps?: (string | ((instance: unknown) => unknown))[] | ((instance: unknown) => unknown);
   };
 
   type TrackableFunction = AnyFunction & {
     [astTrackableMethodMarker]?: TrackableFunctionOptions;
   };
+
+  function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
+    if (instance == null) {
+      return;
+    }
+    const deps = options.deps;
+    if (deps == null) {
+      return;
+    }
+    const dependencies = isFunction(deps) ? [deps] : deps;
+    for (const dependency of dependencies) {
+      if (typeof dependency === 'string') {
+        connectable.observeExpression(instance as object, dependency);
+        continue;
+      }
+      try {
+        enterConnectable(connectable);
+        dependency(wrap(instance));
+      } finally {
+        exitConnectable(connectable);
+      }
+    }
+  }
 
   // eslint-disable-next-line max-lines-per-function
   function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
@@ -211,8 +234,9 @@ export const {
         const fn: unknown = context[ast.name];
         if (isFunction(fn)) {
           if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
-            const options = (fn as TrackableFunction)[astTrackableMethodMarker];
-            const useProxy = options?.useProxy ?? false;
+            const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
+            observeTrackableMethodDependencies(c, context, options);
+            const useProxy = options?.deps == null;
             try {
               enterConnectable(c);
               return fn.apply(useProxy ? wrap(context) : context, ast.args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));
@@ -249,8 +273,9 @@ export const {
           throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
         }
         if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
-          const options = (fn as TrackableFunction)[astTrackableMethodMarker];
-          const useProxy = options?.useProxy ?? false;
+          const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
+          observeTrackableMethodDependencies(c, instance, options);
+          const useProxy = options?.deps == null;
           try {
             enterConnectable(c);
             return fn.apply(useProxy ? wrap(instance) : instance, ast.args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));

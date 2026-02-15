@@ -1,6 +1,6 @@
 export {
-  astTracked,
-} from './ast-tracked-decorator';
+  astTrack,
+} from './ast-track-decorator';
 
 export {
   type IAstEvaluator,

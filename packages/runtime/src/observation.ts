@@ -85,9 +85,8 @@ export class Observation implements IObservation {
   ): IEffect {
     // eslint-disable-next-line no-undef-init
     let $oldValue: R | undefined = undefined;
-    let running = false;
+    let stopped = false;
     let cleanupTask: (() => void) | undefined;
-    let subscribed = false;
     const handleChange = (newValue: unknown, oldValue: unknown) => {
       cleanupTask?.();
       cleanupTask = void 0;
@@ -103,25 +102,19 @@ export class Observation implements IObservation {
       handleChange
     };
     const run = () => {
-      if (running) return;
-      running = true;
-      if (!subscribed) {
-        observer.subscribe(handler);
-        subscribed = true;
+      if (stopped) {
+        throw createMappedError(ErrorNames.stopping_a_stopped_effect);
       }
       handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
-      if (!running && !subscribed) return;
-      running = false;
-      subscribed = false;
+      stopped = true;
       observer.unsubscribe(handler);
       cleanupTask?.();
       cleanupTask = void 0;
     };
 
     observer.subscribe(handler);
-    subscribed = true;
 
     if (options?.immediate !== false) {
       run();

@@ -24,6 +24,7 @@ function isClassMethodDecoratorContext(value: unknown): value is ClassMethodDeco
  * ```
  * class MyClass {
  *   \@astTrack
+ *   \@astTrack()
  *   method() {
  *     // ...
  *   }

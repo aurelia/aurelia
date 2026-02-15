@@ -22,11 +22,11 @@ Aurelia offers several reactivity tools. Here's how to choose:
 - ✅ Deep observation needed for nested objects
 - ✅ Example: Complex filtering, heavy aggregations
 
-### Use `@astTracked` decorator when:
-- ✅ **The method** decorated should perform tracking when used in the template
-- ✅ You want to **simplify** change tracking for template
-- ✅ Deep observation needed for nested objects
-- ✅ Example: Complex filtering, heavy aggregations
+### Use `@astTrack` decorator when:
+- **A method call in template** needs dependency tracking
+- You want **explicit tracked dependencies** instead of proxy-based tracking
+- You want to **disable tracking** for a specific method call
+- Example: complex filtering or formatting methods used directly from templates
 
 ### Use `@observable` when:
 - ✅ **You need to run code** when a property changes (side effects)
@@ -165,40 +165,62 @@ export class ShoppingCart {
 
 Basides the above basic usages, the `computed` decorator also supports a few more options, depending on the needs of an application.
 
-#### Decorator `astTracked`
+#### Decorator `astTrack`
 
-When you want to call a method from the template (not a getter) and still want to have Aurelia track the properties read inside that method, use `@astTracked`. It marks the method so the binding system records all property reads during the call and reevaluate the template expression to update the view when any of those dependencies change.
-
-Use `useProxy: true` when you want perform automatic track on read using Aurelia proxy observation. Both the `this` context and the arguments passed to the function call will be wrapped in proxies.
+When you call a method from a template (not a getter), use `@astTrack` to control dependency tracking for that call.
 
 ```ts
-import { astTracked } from 'aurelia';
+import { astTrack } from 'aurelia';
 
 export class ProductList {
   filter = '';
   products: Product[] = [];
+  nested = { prop: '' };
+  prop = '';
+  prop2 = '';
 
-  @astTracked({ useProxy: true })
+  // proxy-based tracking (default)
+  @astTrack
   matches(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // equivalent to @astTrack
+  @astTrack()
+  matches2(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // explicit dependency paths
+  @astTrack('filter', 'nested.prop')
+  matches3(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // explicit dependency function
+  @astTrack((instance: ProductList) => instance.prop + instance.prop2)
+  matches4(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // options form
+  @astTrack({ deps: ['filter', 'nested.prop'] })
+  matches5(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  @astTrack({ deps: ['filter', (instance: ProductList) => instance.prop2] })
+  matches6(product: Product) {
     return product.name.includes(this.filter);
   }
 }
 ```
 
-```html
-<ul>
-  <li repeat.for="p of products" if.bind="matches(p)">
-    ${p.name}
-  </li>
-</ul>
-```
-
-What's tracked:
-- `name` of each product
-- `filter` on the `ProductList` component
-
-> [!NOTE]
-> Only observation through proxy is supported at the moment, more convinient APIs may be enabled in the futures.
+Behavior:
+- `deps` omitted (or `deps: null` / `deps: undefined`) uses proxy-based tracking.
+- `deps: []` explicitly disables tracking for the decorated method.
+- `deps` with strings and/or getter functions enables explicit dependency tracking.
+- Applying `@astTrack` again on the same method overrides prior tracking metadata.
 
 #### Flush timing with `flush`
 

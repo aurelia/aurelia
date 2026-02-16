@@ -91,7 +91,7 @@ export const {
   const getContext = Scope.getContext;
 
   type TrackableFunctionOptions = {
-    deps?: (string | ((instance: unknown) => unknown))[] | ((instance: unknown) => unknown);
+    deps?: string[] | ((instance: unknown) => unknown);
   };
 
   type TrackableFunction = AnyFunction & {

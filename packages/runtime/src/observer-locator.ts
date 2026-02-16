@@ -19,7 +19,7 @@ import type {
   CollectionObserver,
 } from './interfaces';
 import { ErrorNames, createMappedError } from './errors';
-import { computedPropInfo } from './object-property-info';
+import { type ComputedPropertyInfo } from './object-property-info';
 import { getObserverLookup } from './observation-utils';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { ExpressionObserver } from './expression-observer';
@@ -128,8 +128,7 @@ export class ObserverLocator {
     );
   }
 
-  public getComputedObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor): IObserver {
-    const info = computedPropInfo.get(obj, key);
+  public getComputedObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, info?: ComputedPropertyInfo): IObserver {
     if (info?.deps == null) {
       const observer = new ComputedObserver(
         obj,

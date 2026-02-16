@@ -1,30 +1,29 @@
-import { astTrack } from '@aurelia/runtime';
+import { computed } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
+describe('3-runtime-html/computed-method.spec.ts', function () {
   it('should throw if applied to non-method', function () {
     assert.throws(() => class Test {
-      // @ts-expect-error - just an assertion
-      @astTrack()
+      @computed()
       public property: string = 'test';
     });
   });
 
   it('should add tracking metadata to the method', function () {
     class Test {
-      @astTrack()
+      @computed()
       public method() {
         return 'test';
       }
     }
 
-    assert.strictEqual((Test.prototype.method as any)['__astt__']?.deps, void 0);
+    assert.strictEqual((Test.prototype.method as any)['__computed__']?.deps, void 0);
   });
 
   it('tracks property reads in call scope when used in template', async function () {
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       prop1 = 'value1';
-      @astTrack
+      @computed
       public method() {
         return this.prop1;
       }
@@ -37,10 +36,10 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     assertText('value2');
   });
 
-  it('tracks property reads in call scope when used with @astTrack()', async function () {
+  it('tracks property reads in call scope when used with @computed()', async function () {
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       prop1 = 'value1';
-      @astTrack()
+      @computed()
       public method() {
         return this.prop1;
       }
@@ -60,7 +59,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
       obj = new (class {
         constructor(private parent: App) {}
 
-        @astTrack
+        @computed
         public method() {
           return this.parent.prop1;
         }
@@ -78,11 +77,11 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     const { component, assertText } = createFixture('<div>${method1()}</div>', class {
       prop1 = 'value1';
 
-      @astTrack
+      @computed
       public method1() {
         return this.method2();
       }
-      @astTrack
+      @computed
       public method2() {
         return this.prop1;
       }
@@ -99,7 +98,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     const { component, assertText } = createFixture('<div if.bind="show">${method()}</div>', class {
       show = true;
       prop1 = 'value1';
-      @astTrack
+      @computed
       public method() {
         callCount++;
         return this.prop1;
@@ -125,7 +124,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
       prop2 = 'value2';
       prop3 = 'value3';
 
-      @astTrack
+      @computed
       public method() {
         callCount++;
         return `${this.prop1}-${this.prop2}-${this.prop3}`;
@@ -160,7 +159,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
         prop1: 'obj1'
       };
 
-      @astTrack
+      @computed
       public method(arg: { prop1: string }) {
         callCount++;
         return `${arg.prop1}-${this.prop1}`;
@@ -185,7 +184,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
         prop1: 'obj1'
       };
 
-      @astTrack({ deps: ['prop1'] })
+      @computed({ deps: ['prop1'] })
       public method(arg: { prop1: string }) {
         callCount++;
         return `${arg.prop1}-${this.prop1}`;
@@ -206,11 +205,11 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
-  it('tracks configured string dependency via @astTrack', async function () {
+  it('tracks configured string dependency via @computed', async function () {
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       nested = { prop: 'value1' };
 
-      @astTrack('nested.prop')
+      @computed('nested.prop')
       public method() {
         return 'ok';
       }
@@ -228,7 +227,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       prop = 'value1';
 
-      @astTrack({ deps: [] })
+      @computed({ deps: [] })
       public method() {
         callCount++;
         return this.prop;
@@ -250,7 +249,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
       nested = { prop: 'value1' };
       unrelated = 'u1';
 
-      @astTrack('nested.prop')
+      @computed('nested.prop')
       public method() {
         callCount++;
         return `${this.unrelated}-${this.nested.prop}`;
@@ -271,12 +270,12 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
-  it('tracks configured function dependency via @astTrack', async function () {
+  it('tracks configured function dependency via @computed', async function () {
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       prop = 'value1';
       prop2 = 'value2';
 
-      @astTrack((vm: { prop: string; prop2: string }) => vm.prop + vm.prop2)
+      @computed((vm: { prop: string; prop2: string }) => vm.prop + vm.prop2)
       public method() {
         return 'ok';
       }
@@ -296,7 +295,7 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
       prop2 = 'value2';
       unrelated = 'u1';
 
-      @astTrack((vm: { prop: string; prop2: string }) => vm.prop + vm.prop2)
+      @computed((vm: { prop: string; prop2: string }) => vm.prop + vm.prop2)
       public method() {
         callCount++;
         return `${this.unrelated}-${this.prop}-${this.prop2}`;
@@ -317,47 +316,14 @@ describe('3-runtime-html/ast-track-decorator.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
-  it('supports mixed deps in options object', async function () {
-    let callCount = 0;
-    const { component, assertText } = createFixture('<div>${method()}</div>', class App {
-      nested = { prop: 'value1' };
-      prop2 = 'v2';
-      unrelated = 'u1';
-
-      @astTrack({ deps: ['nested.prop', (instance: App) => instance.prop2] })
-      public method() {
-        callCount++;
-        return `${this.unrelated}-${this.nested.prop}-${this.prop2}`;
-      }
-    });
-
-    assertText('u1-value1-v2');
-    assert.strictEqual(callCount, 1);
-
-    component.unrelated = 'u2';
-    await Promise.resolve();
-    assertText('u1-value1-v2');
-    assert.strictEqual(callCount, 1);
-
-    component.nested.prop = 'value2';
-    await Promise.resolve();
-    assertText('u2-value2-v2');
-    assert.strictEqual(callCount, 2);
-
-    component.prop2 = 'v3';
-    await Promise.resolve();
-    assertText('u2-value2-v3');
-    assert.strictEqual(callCount, 3);
-  });
-
   it('stacked decorators override previous deps instead of merging', async function () {
     let callCount = 0;
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       a = 'a1';
       b = 'b1';
 
-      @astTrack('a')
-      @astTrack('b')
+      @computed('a')
+      @computed('b')
       public method() {
         callCount++;
         return `${this.a}-${this.b}`;

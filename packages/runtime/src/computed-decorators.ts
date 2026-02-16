@@ -24,31 +24,45 @@ function isClassMethodDecoratorContext(value: unknown): value is ClassMethodDeco
 }
 
 /**
- * Decorate a getter to configure various aspects of the computed property created by the getter.
- * Or decorate a method to add automatic dependency tracking when used in templates.
+ * Decorate a getter to configure computed property observation,
+ * or decorate a method to declare/track dependencies when called from an observation context
+ * (e.g. a template binding or another computed observation).
+ * A normal function call will not trigger any observation.
  *
- * Example usage for getters:
- *
+ * Getter usage:
  * ```ts
- * export class MyElement {
- *  \@computed('value')
- *   private value = 1;
- *   public get prop(): number {
- *     return this.value;
+ * class MyElement {
+ *   \@computed({ deps: ['firstName', 'lastName'] })
+ *   public get fullName(): string {
+ *     return `${this.firstName} ${this.lastName}`;
  *   }
  * }
  * ```
  *
- * Example usage for methods:
- *
+ * Method usage:
  * ```ts
- * export class MyElement {
+ * class MyElement {
  *   \@computed
- *   public method() {
- *     return this.value;
- *   }
+ *   public format() { return this.value; }
+ *
+ *   \@computed('nested.prop')
+ *   public lookup() { return this.nested.prop; }
+ *
+ *   \@computed((vm: MyElement) => vm.a + vm.b)
+ *   public calculate() { return this.a + this.b; }
+ *
+ *   \@computed({ deps: ['a', 'b'] })
+ *   public sum() { return this.a + this.b; }
  * }
  * ```
+ *
+ * Behavior:
+ * - Method observation only activates when called from an observation context
+ *   (template binding, computed observation). Normal calls are unaffected.
+ * - `deps` omitted (or `undefined`) falls back to proxy-based auto-tracking.
+ * - `deps: []` explicitly disables tracking.
+ * - `deps` with strings or a getter function enables explicit dependency tracking.
+ * - Stacking `\@computed` overrides prior metadata (last applied wins).
  */
 export function computed(target: Function, context: ClassMethodDecoratorContext): void;
 

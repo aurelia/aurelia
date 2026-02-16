@@ -2,19 +2,20 @@
 "@aurelia/runtime": minor
 ---
 
-Add `@astTrack` to declare/track dependencies of a function call from Aurelia templates
+Extend `@computed` decorator to support method decoration for declaring/tracking dependencies when called from an observation context (e.g. a template binding or another computed observation). A normal function call will not trigger any observation.
 
-Usages:
-- `@astTrack`
-- `@astTrack()`
-- `@astTrack('prop', 'nested.prop')`
-- `@astTrack(instance => instance.prop + instance.prop2)`
-- `@astTrack({ deps: ['prop', 'nested.prop'] })`
-- `@astTrack({ deps: ['prop', instance => instance.prop2] })`
+Usages on methods:
+- `@computed` — proxy-based auto-tracking
+- `@computed('prop', 'nested.prop')` — explicit string dependencies
+- `@computed(instance => instance.prop + instance.prop2)` — getter function dependency
+- `@computed({ deps: ['prop', 'nested.prop'] })` — config object with string deps
+- `@computed({ deps: vm => vm.prop })` — config object with getter function dep
 
-Behavior:
-- `deps` omitted (or `deps: null/undefined`) falls back to proxy-based tracking.
-- `deps: []` explicitly disables tracking for the decorated method.
-- `deps` with strings/getter functions enables explicit dependency tracking.
-- Applying `@astTrack` again on the same method overrides prior metadata.
+Usages on getters:
+- `@computed({ deps: ['prop1', 'prop2'] })` — explicit deps (uses ControlledComputedObserver)
+- `@computed({ flush: 'sync' })` — no deps, auto-tracking with sync flush
+- `@computed('prop1', 'prop2')` — shorthand for deps array
+
+Breaking: `deps` no longer allows mixing strings and functions in the same array.
+`getComputedObserver` now accepts an optional `ComputedPropertyInfo` parameter directly instead of reading from an internal WeakMap.
 

@@ -206,20 +206,24 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
   });
 
   it('tracks configured string dependency via @computed', async function () {
+    let callCount = 0;
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       nested = { prop: 'value1' };
 
       @computed('nested.prop')
       public method() {
+        callCount++;
         return 'ok';
       }
     });
 
     assertText('ok');
+    assert.strictEqual(callCount, 1);
 
     component.nested.prop = 'value2';
     await Promise.resolve();
     assertText('ok');
+    assert.strictEqual(callCount, 2);
   });
 
   it('disables tracking when deps is an empty array', async function () {
@@ -243,7 +247,7 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
     assert.strictEqual(callCount, 1);
   });
 
-  it('string dependency mode does not auto-track method reads', async function () {
+  it('does not track declared dependencies during method call', async function () {
     let callCount = 0;
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       nested = { prop: 'value1' };
@@ -271,21 +275,25 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
   });
 
   it('tracks configured function dependency via @computed', async function () {
+    let callCount = 0;
     const { component, assertText } = createFixture('<div>${method()}</div>', class {
       prop = 'value1';
       prop2 = 'value2';
 
       @computed((vm: { prop: string; prop2: string }) => vm.prop + vm.prop2)
       public method() {
+        callCount++;
         return 'ok';
       }
     });
 
     assertText('ok');
+    assert.strictEqual(callCount, 1);
 
     component.prop = 'next';
     await Promise.resolve();
     assertText('ok');
+    assert.strictEqual(callCount, 2);
   });
 
   it('getter dependency mode does not auto-track method reads', async function () {

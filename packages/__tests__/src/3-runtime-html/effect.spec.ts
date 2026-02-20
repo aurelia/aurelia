@@ -51,6 +51,32 @@ describe('3-runtime-html/effect.spec.ts', function () {
     assert.strictEqual(count, 1);
   });
 
+  it('throws when stopping a stopped effect', function () {
+    const { container } = createFixture('');
+    const effect = container.get(IObservation).run(() => { /* intentionally empty */ });
+    effect.stop();
+    assert.throws(() => effect.stop());
+  });
+
+  it('run is noop after effect has been stopped', function () {
+    const { container } = createFixture('', class App {
+      @observable
+      public a = 1;
+    });
+
+    let runCount = 0;
+    const effect = container.get(IObservation).run(() => {
+      runCount++;
+    });
+
+    assert.strictEqual(runCount, 1);
+
+    effect.stop();
+    effect.run();
+
+    assert.strictEqual(runCount, 1);
+  });
+
   it('runs effect with @observable', async function () {
     const { ctx, component, tearDown } = await createFixture('<div ref="div"></div>', class App {
       public div: HTMLDivElement;
@@ -378,9 +404,19 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
       it('throws when stop is called after stopped', function () {
         const obj = { a: 1 };
-        const { run, stop } = observation.watch(obj, o => o.a, vv => vv);
+        const { stop } = observation.watch(obj, o => o.a, vv => vv);
         stop();
         assert.throws(() => stop());
+      });
+
+      it('run is noop after stopped', function () {
+        let count = 0;
+        const obj = { a: 1 };
+        const { run, stop } = observation.watch(obj, o => o.a, _ => count++);
+        assert.strictEqual(count, 1);
+        stop();
+        run();
+        assert.strictEqual(count, 1);
       });
 
       it('runs independently with owning application', async function () {
@@ -486,7 +522,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
       it('throws when stop is called after stopped', function () {
         const obj = { a: 1 };
-        const { run, stop } = observation.watch<number>(obj, 'a', vv => vv);
+        const { stop } = observation.watch<number>(obj, 'a', vv => vv);
         stop();
         assert.throws(() => stop());
       });

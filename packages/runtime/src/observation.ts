@@ -103,11 +103,14 @@ export class Observation implements IObservation {
     };
     const run = () => {
       if (stopped) {
-        throw createMappedError(ErrorNames.stopping_a_stopped_effect);
+        return;
       }
       handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
+      if (stopped) {
+        throw createMappedError(ErrorNames.stopping_a_stopped_effect);
+      }
       stopped = true;
       observer.unsubscribe(handler);
       cleanupTask?.();
@@ -115,10 +118,10 @@ export class Observation implements IObservation {
     };
 
     observer.subscribe(handler);
-
     if (options?.immediate !== false) {
       run();
     }
+
     return { run, stop };
   }
 }
@@ -171,10 +174,7 @@ class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscribe
   }
 
   public run = () => {
-    if (this.stopped) {
-      throw createMappedError(ErrorNames.stopping_a_stopped_effect);
-    }
-    if (this.running) {
+    if (this.running || this.stopped) {
       return;
     }
     ++this.runCount;
@@ -206,9 +206,12 @@ class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscribe
   };
 
   public stop = () => {
-    this._cleanupTask?.call(void 0);
-    this._cleanupTask = void 0;
+    if (this.stopped) {
+      throw createMappedError(ErrorNames.stopping_a_stopped_effect);
+    }
     this.stopped = true;
     this.obs.clearAll();
+    this._cleanupTask?.call(void 0);
+    this._cleanupTask = void 0;
   };
 }

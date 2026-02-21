@@ -120,7 +120,6 @@ export function computed<TThis extends object>(
       return;
     }
 
-    // Handle getters (existing logic)
     const getterOptions: ComputedPropertyInfo = isObject(targetOrOptionsOrDependency)
       ? targetOrOptionsOrDependency as ComputedPropertyInfo
       : {};

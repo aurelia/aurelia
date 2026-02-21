@@ -171,6 +171,8 @@ Basides the above basic usages, the `computed` decorator also supports a few mor
 When you call a method from a template (not a getter), use `@computed` to control dependency tracking for that call.
 Observation only activates when the method is called from an observation context (e.g. a template binding or another computed observation). A normal function call will not trigger any observation.
 
+> Note: Using `@computed` on methods is currently experimental. The syntax and behavior may change before the final release.
+
 ```ts
 import { computed } from 'aurelia';
 

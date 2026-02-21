@@ -529,11 +529,11 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       rule = new PropertyRule<TObject>(this, this.messageProvider, new Property(expression, name));
       this.rules.push(rule);
     }
-    return rule as unknown as PropertyRule<TObject, TValue>;
+    return rule as PropertyRule<TObject, TValue>;
   }
 
-  public ensureGroup<TProp extends keyof TObject, TValue>(
-    properties: (TProp | PropertyAccessor<TObject, TValue>)[],
+  public ensureGroup<TProp extends keyof TObject, TValue2>(
+    properties: (TProp | PropertyAccessor<TObject, TValue2>)[],
     validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
   ): IValidationRules<TObject> {
     /**

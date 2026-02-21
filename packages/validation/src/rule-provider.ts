@@ -119,13 +119,12 @@ class ValidationMessageEvaluationContext {
 }
 
 export interface PropertyRule extends IAstEvaluator { }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
 
   public constructor(
-    public readonly validationRules: IValidationRules,
+    public readonly validationRules: IValidationRules<TObject>,
     public readonly messageProvider: IValidationMessageProvider,
     public property: Property,
     public $rules: IValidationRule[][] = [[]],
@@ -184,7 +183,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
           return new ValidationResult(valid, message, property.name, object, rule, this);
         };
 
-        let isValidOrPromise = rule.execute(value, object, scope!);
+        let isValidOrPromise = rule.execute(value, object, scope);
         if (isValidOrPromise instanceof Promise) {
           isValidOrPromise = await isValidOrPromise;
         }
@@ -304,8 +303,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
    *
    * @param {RuleCondition} condition - The function to validate the rule. Will be called with two arguments, the property value and the object.
    */
-  public satisfies(condition: RuleCondition) {
-    const rule = new (class extends BaseValidationRule { public execute: RuleCondition = condition; })();
+  public satisfies(condition: RuleCondition<TObject, TValue>) {
+    const rule = new (class extends BaseValidationRule { public execute: RuleCondition<TObject, TValue> = condition; })();
     return this.addRule(rule);
   }
 
@@ -473,7 +472,7 @@ export class ModelBasedRule {
 }
 
 export interface IValidationRules<TObject extends IValidateable = IValidateable> {
-  rules: PropertyRule[];
+  rules: PropertyRule<TObject>[];
   /**
    * Targets a object property for validation
    *
@@ -512,30 +511,31 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
 export const IValidationRules = /*@__PURE__*/DI.createInterface<IValidationRules>('IValidationRules');
 
 export class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
-  public rules: PropertyRule[] = [];
+  public rules: PropertyRule<TObject>[] = [];
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
   private readonly parser: IExpressionParser = resolve(IExpressionParser);
   private readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider);
   private readonly deserializer: IValidationExpressionHydrator = resolve(IValidationExpressionHydrator);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
+  public ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
+  public ensure<TValue>(property: string | PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
+  public ensure<TValue>(property: keyof TObject | string | PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [name, expression] = parsePropertyName(property as any, this.parser);
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this, this.messageProvider, new Property(expression, name));
+      rule = new PropertyRule<TObject>(this, this.messageProvider, new Property(expression, name));
       this.rules.push(rule);
     }
-    return rule;
+    return rule as unknown as PropertyRule<TObject, TValue>;
   }
 
-  public ensureGroup(
-    properties: (keyof TObject | string | PropertyAccessor)[],
+  public ensureGroup<TProp extends keyof TObject, TValue>(
+    properties: (TProp | PropertyAccessor<TObject, TValue>)[],
     validationFunction: (...values: unknown[]) => GroupValidationResult | Promise<GroupValidationResult>,
-  ) {
+  ): IValidationRules<TObject> {
     /**
      * - Parses the properties.
      * - Finds or creates a rule for each property.
@@ -546,16 +546,16 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     if (numProperties === 0) return this;
 
     const ruleProperties: IProperty[] = new Array(numProperties);
-    const rules: PropertyRule[] = new Array(numProperties);
+    const rules: PropertyRule<TObject>[] = new Array(numProperties);
 
     for (let i = 0; i < numProperties; ++i) {
-      const [name, expression] = parsePropertyName(properties[i] as any, this.parser);
+      const [name, expression] = parsePropertyName(properties[i] as string | PropertyAccessor, this.parser);
       // eslint-disable-next-line eqeqeq
       let rule = this.rules.find((r) => r.property.name == name);
       let ruleProperty: IProperty;
       if (rule == null) {
         ruleProperty = new Property(expression, name);
-        rule = new PropertyRule(this, this.messageProvider, ruleProperty);
+        rule = new PropertyRule<TObject>(this, this.messageProvider, ruleProperty);
         this.rules.push(rule);
       } else {
         ruleProperty = rule.property;
@@ -573,18 +573,19 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     return this;
   }
 
-  public ensureObject(): PropertyRule {
-    const rule = new PropertyRule(this, this.messageProvider, new Property());
+  public ensureObject(): PropertyRule<TObject> {
+    const rule = new PropertyRule<TObject>(this, this.messageProvider, new Property());
     this.rules.push(rule);
     return rule;
   }
 
-  public on(target: IValidateable, tag?: string) {
+  public on<TAnotherObject extends IValidateable = IValidateable>(target: Class<TAnotherObject> | TAnotherObject, tag?: string): IValidationRules<TAnotherObject>;
+  public on(target: IValidateable, tag?: string): IValidationRules<TObject> {
     const rules = validationRulesRegistrar.get(target, tag);
     if (Object.is(rules, this.rules)) {
       return this;
     }
-    this.rules = rules ?? [];
+    this.rules = (rules ?? []) as PropertyRule<TObject>[];
     validationRulesRegistrar.set(target, this.rules, tag);
     this.targets.add(target);
     return this;

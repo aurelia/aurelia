@@ -1,11 +1,20 @@
-import { IIndexable, isArray, isMap, isSet, isSymbol } from '@aurelia/kernel';
+import { IIndexable, isArray, isFunction, isMap, isObject, isSet, isSymbol } from '@aurelia/kernel';
 import { Collection, IConnectable } from './interfaces';
 import { rtObjectFreeze, rtSafeString } from './utilities';
 import { connecting, currentConnectable, _currentConnectable } from './connectable-switcher';
+import { astTrackableMethodMarker } from './ast.eval';
 
 const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;
 const proxyMap = new WeakMap<object, object>();
+
+type TrackableFunctionOptions = {
+  deps?: string[] | ((instance: unknown) => unknown);
+};
+
+type TrackableFunction = ((...args: unknown[]) => unknown) & {
+  [astTrackableMethodMarker]?: TrackableFunctionOptions;
+};
 /** @internal */
 export const nowrapClassKey = '__au_nw__';
 /** @internal */
@@ -91,6 +100,24 @@ function createProxy<T extends object>(obj: T): T {
   return proxiedObj as T;
 }
 
+function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
+  if (instance == null || typeof instance !== 'object') {
+    return;
+  }
+  const deps = options.deps;
+  if (deps == null) {
+    return;
+  }
+  const dependencies = isFunction(deps) ? [deps] : deps;
+  for (const dependency of dependencies) {
+    if (typeof dependency === 'string') {
+      connectable.observeExpression(instance, dependency);
+    } else {
+      dependency(wrap(instance));
+    }
+  }
+}
+
 const objectHandler: ProxyHandler<object> = {
   get(target: IIndexable, key: PropertyKey, receiver: object): unknown {
     // maybe use symbol?
@@ -107,7 +134,38 @@ const objectHandler: ProxyHandler<object> = {
     // todo: static
     connectable.observe(target, key);
 
-    return wrap(R$get(target, key, receiver));
+    const value = R$get(target, key, receiver);
+    if (!isFunction(value)) {
+      return wrap(value);
+    }
+
+    const options = (value as TrackableFunction)[astTrackableMethodMarker];
+    if (options == null) {
+      return wrap(value);
+    }
+
+    return function trackableMethod(this: unknown, ...args: unknown[]): unknown {
+      const current = _currentConnectable;
+      if (!connecting || current == null) {
+        return (value as (...args: unknown[]) => unknown).apply(this, args);
+      }
+
+      const thisArg = this ?? receiver;
+      const rawThisArg = isObject(thisArg)
+        ? getRaw(thisArg)
+        : thisArg;
+
+      observeTrackableMethodDependencies(current, rawThisArg, options);
+
+      const useProxy = options.deps == null;
+      const invokedThis = useProxy && isObject(rawThisArg)
+        ? wrap(rawThisArg)
+        : rawThisArg;
+      const invokedArgs = useProxy
+        ? args.map(arg => wrap(arg))
+        : args.map(arg => unwrap(arg));
+      return (value as (...callArgs: unknown[]) => unknown).apply(invokedThis, invokedArgs);
+    };
   },
   deleteProperty(target, p) {
     if (__DEV__) {

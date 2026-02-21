@@ -205,6 +205,121 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
+  it('tracks computed method reads when method is called inside getter used by template', async function () {
+    let callCount = 0;
+    const { component, assertText } = createFixture('<div>${value}</div>', class {
+      prop1 = 'value1';
+
+      @computed
+      public method() {
+        callCount++;
+        return this.prop1;
+      }
+
+      public get value() {
+        return this.method();
+      }
+    });
+
+    assertText('value1');
+    assert.strictEqual(callCount, 1);
+
+    component.prop1 = 'value2';
+    await Promise.resolve();
+    assertText('value2');
+    assert.strictEqual(callCount, 2);
+  });
+
+  it('tracks computed method parameter reads through getter proxy observation context', async function () {
+    let callCount = 0;
+    const { component, assertText } = createFixture('<div>${value}</div>', class {
+      obj = {
+        prop1: 'obj1'
+      };
+
+      @computed
+      public method(arg: { prop1: string }) {
+        callCount++;
+        return arg.prop1;
+      }
+
+      public get value() {
+        return this.method(this.obj);
+      }
+    });
+
+    assertText('obj1');
+    assert.strictEqual(callCount, 1);
+
+    component.obj.prop1 = 'obj2';
+    await Promise.resolve();
+    assertText('obj2');
+    assert.strictEqual(callCount, 2);
+  });
+
+  it('getter observation respects computed deps mode when calling method', async function () {
+    let callCount = 0;
+    const { component, assertText } = createFixture('<div>${value}</div>', class {
+      prop1 = 'value1';
+      unrelated = 'u1';
+
+      @computed({ deps: ['prop1'] })
+      public method() {
+        callCount++;
+        return `${this.prop1}-${this.unrelated}`;
+      }
+
+      public get value() {
+        return this.method();
+      }
+    });
+
+    assertText('value1-u1');
+    assert.strictEqual(callCount, 1);
+
+    component.unrelated = 'u2';
+    await Promise.resolve();
+    assertText('value1-u1');
+    assert.strictEqual(callCount, 1);
+
+    component.prop1 = 'value2';
+    await Promise.resolve();
+    assertText('value2-u2');
+    assert.strictEqual(callCount, 2);
+  });
+
+  it('getter observation respects computed function deps mode when calling method', async function () {
+    let callCount = 0;
+    const { component, assertText } = createFixture('<div>${value}</div>', class App {
+      prop1 = 's1';
+      prop2 = 's2';
+      v = 'd1';
+
+      @computed({ deps: (vm: App) => vm.prop2 })
+      public method() {
+        callCount++;
+        return `${this.prop1}-${this.v}`;
+      }
+
+      public get value() {
+        return this.method();
+      }
+    });
+
+    assertText('s1-d1');
+    assert.strictEqual(callCount, 1);
+
+    component.v = 'd2';
+    await Promise.resolve();
+    assertText('s1-d1');
+    assert.strictEqual(callCount, 1);
+
+    component.prop2 = 's3';
+    await Promise.resolve();
+    assertText('s1-d2');
+    assert.strictEqual(callCount, 2);
+  });
+
   it('tracks configured string dependency via @computed', async function () {
     let callCount = 0;
     const { component, assertText } = createFixture('<div>${method()}</div>', class {

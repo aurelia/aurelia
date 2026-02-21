@@ -85,7 +85,7 @@ export class Observation implements IObservation {
   ): IEffect {
     // eslint-disable-next-line no-undef-init
     let $oldValue: R | undefined = undefined;
-    let running = false;
+    let stopped = false;
     let cleanupTask: (() => void) | undefined;
     const handleChange = (newValue: unknown, oldValue: unknown) => {
       cleanupTask?.();
@@ -102,22 +102,26 @@ export class Observation implements IObservation {
       handleChange
     };
     const run = () => {
-      if (running) return;
-      running = true;
-      observer.subscribe(handler);
+      if (stopped) {
+        return;
+      }
       handleChange(observer.getValue(), $oldValue);
     };
     const stop = () => {
-      if (!running) return;
-      running = false;
+      if (stopped) {
+        throw createMappedError(ErrorNames.stopping_a_stopped_effect);
+      }
+      stopped = true;
       observer.unsubscribe(handler);
       cleanupTask?.();
       cleanupTask = void 0;
     };
 
+    observer.subscribe(handler);
     if (options?.immediate !== false) {
       run();
     }
+
     return { run, stop };
   }
 }
@@ -170,10 +174,7 @@ class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscribe
   }
 
   public run = () => {
-    if (this.stopped) {
-      throw createMappedError(ErrorNames.stopping_a_stopped_effect);
-    }
-    if (this.running) {
+    if (this.running || this.stopped) {
       return;
     }
     ++this.runCount;
@@ -205,10 +206,12 @@ class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscribe
   };
 
   public stop = () => {
-    this._cleanupTask?.call(void 0);
-    this._cleanupTask = void 0;
+    if (this.stopped) {
+      throw createMappedError(ErrorNames.stopping_a_stopped_effect);
+    }
     this.stopped = true;
     this.obs.clearAll();
+    this._cleanupTask?.call(void 0);
+    this._cleanupTask = void 0;
   };
 }
-

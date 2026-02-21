@@ -304,6 +304,7 @@ export {
   type TaskStatus,
 
   IEffect,
+  astTrack,
 
 } from '@aurelia/runtime';
 

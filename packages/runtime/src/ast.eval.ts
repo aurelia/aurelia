@@ -11,6 +11,8 @@ import { type IConnectable, type IObservable } from './interfaces';
 import { Scope, type IBindingContext, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
 import { rtSafeString as safeString } from './utilities';
+import { wrap } from './proxy-observation';
+import { enterConnectable, exitConnectable } from './connectable-switcher';
 
 // -----------------------------------
 // this interface causes issues to sourcemap mapping in devtool
@@ -44,6 +46,9 @@ export interface IAstEvaluator {
    */
   useConverter?(name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]): unknown;
 }
+
+/** @internal */
+export const astTrackableMethodMarker = '__astt__';
 
 export const {
   astAssign,
@@ -84,6 +89,37 @@ export const {
   const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf';
   const ekCustom = 'Custom';
   const getContext = Scope.getContext;
+
+  type TrackableFunctionOptions = {
+    deps?: string[] | ((instance: unknown) => unknown);
+  };
+
+  type TrackableFunction = AnyFunction & {
+    [astTrackableMethodMarker]?: TrackableFunctionOptions;
+  };
+
+  function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
+    if (instance == null) {
+      return;
+    }
+    const deps = options.deps;
+    if (deps == null) {
+      return;
+    }
+    const dependencies = isFunction(deps) ? [deps] : deps;
+    for (const dependency of dependencies) {
+      if (typeof dependency === 'string') {
+        connectable.observeExpression(instance as object, dependency);
+        continue;
+      }
+      try {
+        enterConnectable(connectable);
+        dependency(wrap(instance));
+      } finally {
+        exitConnectable(connectable);
+      }
+    }
+  }
 
   // eslint-disable-next-line max-lines-per-function
   function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
@@ -197,7 +233,19 @@ export const {
         }
         const fn: unknown = context[ast.name];
         if (isFunction(fn)) {
-          return fn.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
+          if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
+            const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
+            observeTrackableMethodDependencies(c, context, options);
+            const useProxy = options?.deps == null;
+            try {
+              enterConnectable(c);
+              return fn.apply(useProxy ? wrap(context) : context, ast.args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));
+            } finally {
+              exitConnectable(c);
+            }
+          } else {
+            return fn.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
+          }
         }
         if (fn == null) {
           if (e?.strict && !ast.optional) {
@@ -224,11 +272,23 @@ export const {
         if (!isFunction(fn)) {
           throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
         }
-        const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
-        if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
-          c?.observeCollection(instance);
+        if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
+          const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
+          observeTrackableMethodDependencies(c, instance, options);
+          const useProxy = options?.deps == null;
+          try {
+            enterConnectable(c);
+            return fn.apply(useProxy ? wrap(instance) : instance, ast.args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));
+          } finally {
+            exitConnectable(c);
+          }
+        } else {
+          const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
+          if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
+            c?.observeCollection(instance);
+          }
+          return ret;
         }
-        return ret;
       }
       case ekCallFunction: {
         const func = astEvaluate(ast.func, s, e, c);

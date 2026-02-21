@@ -4,6 +4,8 @@
 .rpt2_cache
 .eslintcache
 TESTS-*.xml
+.claude
+.codex
 
 packages/**/*.txt
 **/node_modules

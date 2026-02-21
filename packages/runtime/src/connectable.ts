@@ -93,6 +93,9 @@ const connectableDecorator = /*@__PURE__*/ (() => {
   function observe(this: IObserverLocatorBasedConnectable, obj: object, key: PropertyKey): void {
     this.obs.add(this.oL.getObserver(obj, key));
   }
+  function observeExpression(this: IObserverLocatorBasedConnectable, obj: object, expression: string): void {
+    this.obs.add(this.oL.getExpressionObserver(obj, expression));
+  }
   function observeCollection(this: IObserverLocatorBasedConnectable, collection: Collection): void {
     let observer: CollectionObserver;
     if (isArray(collection)) {
@@ -122,6 +125,7 @@ const connectableDecorator = /*@__PURE__*/ (() => {
   return function connectableDecorator<T extends Partial<IConnectable>, C extends Constructable<T>>(target: C, context: ClassDecoratorContext<C>): DecoratedConnectable<T> {
     const proto = target.prototype;
     ensureProto(proto, 'observe', observe);
+    ensureProto(proto, 'observeExpression', observeExpression);
     ensureProto(proto, 'observeCollection', observeCollection);
     ensureProto(proto, 'subscribeTo', subscribeTo);
     rtDef(proto, 'obs', { get: getObserverRecord });

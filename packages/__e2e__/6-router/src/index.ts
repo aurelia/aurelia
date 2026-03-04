@@ -2,6 +2,7 @@ import Aurelia from 'aurelia';
 import { RouterConfiguration } from '@aurelia/router';
 import { App } from './app';
 import { IRouterEventLoggerService } from './router-event-logger-service';
+import { FooBar } from './foo-bar';
 
 // set the useUrlFragmentHash based on the query string of the same parameter
 const params = new URLSearchParams(window.location.search);
@@ -11,6 +12,7 @@ Aurelia
   .register(
     RouterConfiguration.customize({ useUrlFragmentHash }),
     IRouterEventLoggerService,
+    FooBar,
   )
   .app({
     host: document.body,

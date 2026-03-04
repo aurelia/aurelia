@@ -99,7 +99,11 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
     const controller = CustomElement.for(this._el, { optional: true });
     if (controller !== null) {
-      (controller.viewModel as IIndexable)[this.attribute] = this._instructions;
+      (controller.viewModel as IIndexable)[this.attribute] = this._href !== null
+        ? options.useUrlFragmentHash
+          ? this._href
+          : this._locationMgr.addBaseHref(this._href)
+        : null;
     } else {
       if (this._href === null) {
         this._el.removeAttribute(this.attribute);

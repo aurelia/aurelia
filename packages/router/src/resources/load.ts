@@ -97,19 +97,16 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
       this._href = null;
     }
 
+    const hasHref = this._href !== null;
+    const url = hasHref ? (options.useUrlFragmentHash ? this._href : this._locationMgr.addBaseHref(this._href!)) : null;
     const controller = CustomElement.for(this._el, { optional: true });
     if (controller !== null) {
-      (controller.viewModel as IIndexable)[this.attribute] = this._href !== null
-        ? options.useUrlFragmentHash
-          ? this._href
-          : this._locationMgr.addBaseHref(this._href)
-        : null;
+      (controller.viewModel as IIndexable)[this.attribute] = url;
     } else {
-      if (this._href === null) {
+      if (!hasHref) {
         this._el.removeAttribute(this.attribute);
       } else {
-        const value = options.useUrlFragmentHash ? this._href : this._locationMgr.addBaseHref(this._href);
-        this._el.setAttribute(this.attribute, value);
+        this._el.setAttribute(this.attribute, url!);
       }
     }
   }

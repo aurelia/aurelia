@@ -172,6 +172,7 @@ test.describe('router.basic', () => {
       const href1 = `${baseURL}${useUrlFragmentHash ? '/#' : ''}/sub/1`;
       const href2 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/2`;
       const href3 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/3`;
+      const href4 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/4`;
 
       await test.step('navigates to sub route', async () => {
         await page.click('a:has-text("Sub")');
@@ -180,8 +181,9 @@ test.describe('router.basic', () => {
 
       await test.step('verifies href links', async () => {
         await expect(page.locator('ul#sub-links >> a:has-text("Sub/1")')).toHaveAttribute('href', href1);
-        await expect(page.locator('ul#sub-links >> a:has-text("Sub/2")')).toHaveAttribute('href', href2);
+        await expect(page.locator('ul#sub-links >> a:has-text("Foo Bar")')).toHaveAttribute('href', href2);
         await expect(page.locator('ul#sub-links >> a:has-text("Sub/3")')).toHaveAttribute('href', href3);
+        await expect(page.locator('ul#sub-links >> button:has-text("Sub/4")')).toHaveAttribute('href', href4);
       });
 
       await test.step('navigates using href links', async () => {
@@ -215,7 +217,7 @@ test.describe('router.basic', () => {
         await page.goto(url.toString()); // reloads the page
         await expect(page.locator('p#sub-message')).toHaveText('This is sub!');
         await expect(page.locator('ul#sub-links >> a:has-text("Sub/1")')).toHaveAttribute('href', href1);
-        await expect(page.locator('ul#sub-links >> a:has-text("Sub/2")')).toHaveAttribute('href', href2);
+        await expect(page.locator('ul#sub-links >> a:has-text("Foo Bar")')).toHaveAttribute('href', href2);
         await expect(page.locator('ul#sub-links >> a:has-text("Sub/3")')).toHaveAttribute('href', href3);
       });
     });

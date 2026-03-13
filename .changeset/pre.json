@@ -63,15 +63,27 @@
     "@aurelia/web-components": "2.0.0"
   },
   "changesets": [
+    "bright-ravens-wait",
     "cross-realm-safe-types",
+    "cyan-masks-cough",
     "factory-resolver-fix",
+    "fancy-nails-hide",
     "fast-pens-dance",
+    "fiery-rabbits-like",
     "fix-effect-watch-consistency",
+    "fix-router-href-load",
+    "fix-validation-satisfies-types",
     "fix-virtual-repeat-attached-calls",
     "humble-friends-roll",
+    "lazy-sides-leave",
+    "major-beers-greet",
     "move-primary-to-default-property",
+    "orange-groups-tell",
+    "perky-wings-watch",
+    "pretty-lights-cry",
     "remove-ca-default-binding-mode",
     "silver-clouds-swim",
+    "slow-parts-argue",
     "ssr-hydration-fixes",
     "strong-zoos-cover"
   ]

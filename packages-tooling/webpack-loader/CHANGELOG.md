@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [#2378](https://github.com/aurelia/aurelia/pull/2378) [`9d5366a`](https://github.com/aurelia/aurelia/commit/9d5366a03153b685b9ecab0ebcdfc839e63463a7) Thanks [@Sayan751](https://github.com/Sayan751)! - fix(hmr): state capture over edits
+
+  fixes [#2365](https://github.com/aurelia/aurelia/issues/2365)
+
+  PR #2378
+
 ## 2.0.0-rc.0
 
 ## 2.0.0-beta.27

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [#2361](https://github.com/aurelia/aurelia/pull/2361) [`ce52bb9`](https://github.com/aurelia/aurelia/commit/ce52bb99016bb593b398c1937dd27975bb8a4b7e) Thanks [@bigopon](https://github.com/bigopon)! - add a warning when an unguarded self-recursive component is detected
+
 ## 2.0.0-rc.0
 
 ### Minor Changes

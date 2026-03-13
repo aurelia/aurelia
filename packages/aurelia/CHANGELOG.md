@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [#2377](https://github.com/aurelia/aurelia/pull/2377) [`a128a0b`](https://github.com/aurelia/aurelia/commit/a128a0bc1419f8578c206c7836914797615e5ab1) Thanks [@bigopon](https://github.com/bigopon)! - correct watch behavior when immediate is false
+
 ## 2.0.0-rc.0
 
 ## 2.0.0-beta.27

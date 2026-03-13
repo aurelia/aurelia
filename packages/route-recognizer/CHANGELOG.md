@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [#2355](https://github.com/aurelia/aurelia/pull/2355) [`e4d3bbb`](https://github.com/aurelia/aurelia/commit/e4d3bbb5a88723beb54bc6c4238eeb281b62c149) Thanks [@Sayan751](https://github.com/Sayan751)! - feat(router): eager loading
+
 ## 2.0.0-rc.0
 
 ## 2.0.0-beta.27

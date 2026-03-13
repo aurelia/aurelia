@@ -3,6 +3,85 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.0-rc.1
+
+### Minor Changes
+
+- [#2382](https://github.com/aurelia/aurelia/pull/2382) [`6010f88`](https://github.com/aurelia/aurelia/commit/6010f880dde73d7b86be1ae501a85e1050894839) Thanks [@bigopon](https://github.com/bigopon)! - Extend `@computed` decorator to support method decoration for declaring/tracking dependencies when called from an observation context (e.g. a template binding or another computed observation). A normal function call will not trigger any observation.
+  
+  Note: method usage of `@computed` is experimental. Syntax and behavior may change before final release.
+  
+  Usages on methods:
+  - `@computed` - proxy-based auto-tracking
+  - `@computed('prop', 'nested.prop')` - explicit string dependencies
+  - `@computed(instance => instance.prop + instance.prop2)` - getter function dependency
+  - `@computed({ deps: ['prop', 'nested.prop'] })` - config object with string deps
+  - `@computed({ deps: vm => vm.prop })` - config object with getter function dep
+  
+  Usages on getters:
+  - `@computed({ deps: ['prop1', 'prop2'] })` - explicit deps (uses ControlledComputedObserver)
+  - `@computed({ flush: 'sync' })` - no deps, auto-tracking with sync flush
+  - `@computed('prop1', 'prop2')` - shorthand for deps array
+  
+  `getComputedObserver` now accepts an optional `ComputedPropertyInfo` parameter directly instead of reading from an internal WeakMap.
+
+### Patch Changes
+
+- [#2361](https://github.com/aurelia/aurelia/pull/2361) [`ce52bb9`](https://github.com/aurelia/aurelia/commit/ce52bb99016bb593b398c1937dd27975bb8a4b7e) Thanks [@bigopon](https://github.com/bigopon)! - add a warning when an unguarded self-recursive component is detected
+- [#2368](https://github.com/aurelia/aurelia/pull/2368) [`c356f8c`](https://github.com/aurelia/aurelia/commit/c356f8c26696cc146d71e38fbf8292ba86418edb) Thanks [@Sayan751](https://github.com/Sayan751)! - feat(router): IContextRouter to wrap IRouter and the current IRouteContext so that the calls to `IRouteContext.load()` alwysy resolves to correct routing context
+- [#2376](https://github.com/aurelia/aurelia/pull/2376) [`046ebed`](https://github.com/aurelia/aurelia/commit/046ebed3f519b43152c51682be869cbfe26f8169) Thanks [@bigopon](https://github.com/bigopon)! - add the ability to control flush timing for au-compose via flush-mode bindable
+- [#2391](https://github.com/aurelia/aurelia/pull/2391) [`ce52a0c`](https://github.com/aurelia/aurelia/commit/ce52a0ce2b3b3e35b7ed2cc2eb408de0e459fa71) Thanks [@Sayan751](https://github.com/Sayan751)! - fix(router): href handling via load and as-element
+- [#2389](https://github.com/aurelia/aurelia/pull/2389) [`fc2e89c`](https://github.com/aurelia/aurelia/commit/fc2e89cec152f30ad076c7b4ecb1a0fbe87e291f) Thanks [@bigopon](https://github.com/bigopon)! - fix: pass through types from validation rules for better satisfies rule types. Closes #2347
+- [#2386](https://github.com/aurelia/aurelia/pull/2386) [`eb54d9c`](https://github.com/aurelia/aurelia/commit/eb54d9c1130f7f1f00129baff6325780d035baa3) Thanks [@Sayan751](https://github.com/Sayan751)! - fix: vite bundling
+  
+  Fixes #2372
+- [#2378](https://github.com/aurelia/aurelia/pull/2378) [`9d5366a`](https://github.com/aurelia/aurelia/commit/9d5366a03153b685b9ecab0ebcdfc839e63463a7) Thanks [@Sayan751](https://github.com/Sayan751)! - fix(hmr): state capture over edits
+  
+  fixes [#2365](https://github.com/aurelia/aurelia/issues/2365)
+  
+  PR #2378
+- [#2377](https://github.com/aurelia/aurelia/pull/2377) [`a128a0b`](https://github.com/aurelia/aurelia/commit/a128a0bc1419f8578c206c7836914797615e5ab1) Thanks [@bigopon](https://github.com/bigopon)! - correct watch behavior when immediate is false
+- [#2355](https://github.com/aurelia/aurelia/pull/2355) [`e4d3bbb`](https://github.com/aurelia/aurelia/commit/e4d3bbb5a88723beb54bc6c4238eeb281b62c149) Thanks [@Sayan751](https://github.com/Sayan751)! - feat(router): eager loading
+- [#2374](https://github.com/aurelia/aurelia/pull/2374) [`cfff563`](https://github.com/aurelia/aurelia/commit/cfff563748e18e402c42863f20335217c720eda5) Thanks [@bigopon](https://github.com/bigopon)! - getter decorated with computed shouldn't allow other proxy based observers to eval, treat empty deps [] similar like one time binding
+- [#2369](https://github.com/aurelia/aurelia/pull/2369) [`98006c7`](https://github.com/aurelia/aurelia/commit/98006c711ddc30595f19bbbf7f82a92a5e21cef2) Thanks [@Sayan751](https://github.com/Sayan751)! - refactor(router): path syntax and transition plan
+  
+  It addresses the following issues.
+  
+  ### 1. Path syntax
+  
+  This PR implements the path syntax changes proposed by @bigopon here: https://github.com/aurelia/aurelia/issues/2256#issuecomment-3360075505. Below is a short recap:
+  
+  - `/path`: This represents an absolute path from the root of the application.
+  - `path`, `./path`: These represent a relative paths from the current routing context.
+  - `../path`, or `../../path`: These represent relative paths from the ancestor routing context; every `../` moves one level up in the routing context hierarchy.
+  
+  ### 2. Overriding `transitionPlan` from `Router#load`
+  
+  This is reported in [Discord](https://discord.com/channels/448698263508615178/1243519563283435520/1427940294506319904).
+  
+  This PR ensures that an explicit `transitionPlan` provided like following via `Router#load` is enforced.
+  
+  ```ts
+  this.router.load('test', { transitionPlan: 'replace', queryParams: { message: this.newMessage } });
+  ```
+
+### Affected Packages
+
+The following packages have direct changes:
+
+- `@aurelia/plugin-conventions`
+- `@aurelia/route-recognizer`
+- `@aurelia/router`
+- `@aurelia/runtime`
+- `@aurelia/runtime-html`
+- `@aurelia/template-compiler`
+- `@aurelia/validation`
+- `@aurelia/vite-plugin`
+- `@aurelia/webpack-loader`
+- `aurelia`
+
+All packages in the fixed release group will be versioned together.
+
 ## 2.0.0-rc.0
 
 ### Minor Changes

@@ -19,3 +19,5 @@ Usages on getters:
 - `@computed('prop1', 'prop2')` - shorthand for deps array
 
 `getComputedObserver` now accepts an optional `ComputedPropertyInfo` parameter directly instead of reading from an internal WeakMap.
+
+pr: #2382

@@ -4,3 +4,5 @@
 ---
 
 correct watch behavior when immediate is false
+
+pr: #2377

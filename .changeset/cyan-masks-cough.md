@@ -3,3 +3,5 @@
 ---
 
 add a warning when an unguarded self-recursive component is detected
+
+pr: #2361

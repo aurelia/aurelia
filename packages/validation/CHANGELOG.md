@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [#2389](https://github.com/aurelia/aurelia/pull/2389) [`fc2e89c`](https://github.com/aurelia/aurelia/commit/fc2e89cec152f30ad076c7b4ecb1a0fbe87e291f) Thanks [@bigopon](https://github.com/bigopon)! - Improve validation rule type inference so types are properly passed through for `satisfies` expressions. Closes #2347.
+
 ## 2.0.0-rc.0
 
 ## 2.0.0-beta.27

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Minor Changes
+
+- [#2376](https://github.com/aurelia/aurelia/pull/2376) [`046ebed`](https://github.com/aurelia/aurelia/commit/046ebed3f519b43152c51682be869cbfe26f8169) Thanks [@bigopon](https://github.com/bigopon)! - Add `flush-mode` bindable to `au-compose` for controlling flush timing of compositions. When set to `async`, binding updates to `component` and `model` are batched together, preventing duplicate `activate` calls. Closes #2373.
+
 ## 2.0.0-rc.0
 
 ### Minor Changes

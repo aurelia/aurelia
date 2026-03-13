@@ -3,8 +3,6 @@
 "@aurelia/vite-plugin": patch
 ---
 
-fix(hmr): state capture over edits
+Fix HMR state capture across consecutive edits. Fixes #2365.
 
-fixes [#2365](https://github.com/aurelia/aurelia/issues/2365)
-
-PR #2378
+pr: #2378

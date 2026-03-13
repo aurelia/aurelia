@@ -2,6 +2,6 @@
 "@aurelia/router": patch
 ---
 
-fix(router): href handling via load and as-element
+Fix `href` attribute handling when using the `load` attribute together with `as-element`.
 
 pr: #2391

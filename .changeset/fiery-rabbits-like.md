@@ -1,7 +1,7 @@
 ---
-"@aurelia/runtime-html": patch
+"@aurelia/runtime-html": minor
 ---
 
-add the ability to control flush timing for au-compose via flush-mode bindable
+Add `flush-mode` bindable to `au-compose` for controlling flush timing of compositions. When set to `async`, binding updates to `component` and `model` are batched together, preventing duplicate `activate` calls. Closes #2373.
 
 pr: #2376

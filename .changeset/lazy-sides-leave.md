@@ -2,8 +2,6 @@
 "@aurelia/plugin-conventions": patch
 ---
 
-fix: vite bundling
+Fix vite plugin bundling. Fixes #2372.
 
-Fixes #2372
-
-PR: #2386
+pr: #2386

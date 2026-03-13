@@ -1,7 +1,7 @@
 ---
-"@aurelia/router": patch
+"@aurelia/router": minor
 ---
 
-feat(router): IContextRouter to wrap IRouter and the current IRouteContext so that the calls to `IRouteContext.load()` alwysy resolves to correct routing context
+Add `IContextRouter` - a convenience wrapper that combines `IRouter` with the component's current `IRouteContext`, so that calls to `load()` always resolve relative to the correct routing context without needing to pass `context` explicitly.
 
-PR: #2368
+pr: #2368

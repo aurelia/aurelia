@@ -135,9 +135,10 @@ export class RequiredRule extends BaseValidationRule implements IRequiredRule {
 
 /**
  * Passes the validation if the non-`null`, non-`undefined`, and non-empty string value matches the given pattern described by a regular expression.
- * There are 1 alias: 'matches' (any random regex).
+ * There are 2 aliases: 'matches' (any random regex), and 'email' (with email regex).
  *
  * @see PropertyRule#matches
+ * @see PropertyRule#email
  */
 export class RegexRule extends BaseValidationRule<string> implements IRegexRule {
   public static readonly $TYPE: string = 'RegexRule';
@@ -412,6 +413,7 @@ ValidationRuleAliasMessage.define(LengthRule, {
 ValidationRuleAliasMessage.define(RegexRule, {
   aliases: [
     { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
+    { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
   ]
 }, false);
 

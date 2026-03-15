@@ -333,8 +333,18 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
   /**
    * Applies an instance of `RegexRule` with email pattern.
+   *
+   * @deprecated
+   * The email rule is not RFC 5322 and RFC 6532 compliant.
+   * Creating a RFC compliant email address parser is out of the scope of this framework.
+   * It is recommended to apply a RFC compliant email address parser in a custom rule via `.satisfiesRule()` or  `.satisfies()` instead.
+   * This rule is not maintained any longer.
    */
   public email(this: PropertyRule<TObject, string>) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('The email rule is not RFC 5322 and RFC 6532 compliant. Creating a RFC compliant email address parser is out of the scope of this framework. It is recommended to apply a RFC compliant email address parser in a custom rule via `.satisfiesRule()` or  `.satisfies()` instead. This rule is not maintained any longer.');
+    }
     // eslint-disable-next-line no-useless-escape
     const emailPattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     return this.addRule(new RegexRule(emailPattern, 'email'));

@@ -38,6 +38,7 @@ export class ParsedUrl {
       value = value.slice(0, queryStart);
       queryParams = Object.freeze(new URLSearchParams(queryString));
     }
+
     return new ParsedUrl(
       value,
       queryParams ?? emptyQuery,
@@ -94,6 +95,10 @@ export const fragmentUrlParser: IUrlParser = Object.freeze({
     if (start >= 0) {
       const rawFragment = value.slice(start + 1);
       value = decodeURIComponent(rawFragment);
+    }
+    // Normalize '/' to '' since they represent the same root path semantically in hash routing
+    if (value === '/') {
+      value = '';
     }
     return ParsedUrl._create(value);
   },

@@ -546,6 +546,46 @@ describe('router/location-manager.spec.ts', function () {
         await au.stop(true);
       });
     }
+
+    // Test for issue #2393: Error when navigating to root from subfolder deployment with hash routing
+    // https://github.com/aurelia/aurelia/issues/2393
+    it('handles navigation to root in subfolder deployment with hash routing (issue #2393)', async function () {
+      @customElement({ name: 'home', template: 'Home page' })
+      class Home { }
+
+      @customElement({ name: 'auth', template: 'Auth page' })
+      class Auth { }
+
+      @route({
+        routes: [
+          { path: '', component: Home },
+          { path: 'auth', component: Auth },
+        ]
+      })
+      @customElement({ name: 'app', template: `<au-viewport></au-viewport>` })
+      class App { }
+
+      const { au, container, host } = await start({ appRoot: App, useHash: true, registrations: [getLocationChangeHandlerRegistration()] });
+
+      const router = container.get(IRouter);
+
+      // Start at home
+      assert.html.textContent(host, 'Home page', 'initial load');
+
+      // Navigate to auth
+      await router.load('auth');
+      assert.html.textContent(host, 'Auth page', 'navigated to auth');
+
+      // Simulate browser back navigation to root
+      const history = container.get(IHistory);
+      history.back();
+      await Promise.resolve();
+
+      // Should navigate back to home without errors
+      assert.html.textContent(host, 'Home page', 'navigated back to home');
+
+      await au.stop(true);
+    });
   }
 
   // =============================================================================

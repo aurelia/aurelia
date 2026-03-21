@@ -547,7 +547,6 @@ describe('router/location-manager.spec.ts', function () {
       });
     }
 
-    // Test for issue #2393: Error when navigating to root from subfolder deployment with hash routing
     // https://github.com/aurelia/aurelia/issues/2393
     it('handles navigation to root in subfolder deployment with hash routing (issue #2393)', async function () {
       @customElement({ name: 'home', template: 'Home page' })

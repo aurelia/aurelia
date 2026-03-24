@@ -548,7 +548,7 @@ describe('router/location-manager.spec.ts', function () {
     }
 
     // https://github.com/aurelia/aurelia/issues/2393
-    it('handles navigation to root in subfolder deployment with hash routing (issue #2393)', async function () {
+    it('handles navigation to root via history navigation with hash routing (issue #2393)', async function () {
       @customElement({ name: 'home', template: 'Home page' })
       class Home { }
 

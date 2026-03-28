@@ -56,6 +56,32 @@ test.describe('router.prod-build', () => {
       !e.includes('DevTools') && // Ignore DevTools warnings
       !e.includes('Extension')   // Ignore extension warnings
     );
-    expect(criticalErrors.length).toBe(0);
+    expect(criticalErrors.length, criticalErrors.join('\n')).toBe(0);
+  });
+
+  test('production build should serve image assets imported in TS', async ({ page }) => {
+    const imageResponses: { url: string; status: number; contentType: string }[] = [];
+    page.on('response', response => {
+      const url = response.url();
+      if (!url.endsWith('.png')) return;
+      imageResponses.push({
+        url,
+        status: response.status(),
+        contentType: response.headers()['content-type'] ?? '',
+      });
+    });
+
+    await page.goto(BASE_URL);
+
+    const image = page.locator('#home-image-relative');
+    await expect(image).toBeVisible();
+
+    await expect.poll(async () => {
+      return image.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0);
+    }, { timeout: 10000 }).toBe(true);
+
+    expect(imageResponses.some(r => r.status === 200)).toBe(true);
+    expect(imageResponses.some(r => r.contentType.startsWith('image/'))).toBe(true);
+    expect(imageResponses.some(r => r.url.includes('/assets/'))).toBe(true);
   });
 });

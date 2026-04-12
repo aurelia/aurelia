@@ -70,7 +70,8 @@ export class RecognizedRoute<T> {
     const $params: Record<string, string | undefined> = Object.create(null);
     for (const key in params) {
       const value = params[key];
-      $params[key] = value != null ? decodeURIComponent(value) : value;
+      // as the residue value is handled specially to get the possible child routes, it is not decoded like the other param values, and is passed as-is to the router back.
+      $params[key] = value != null && key !== RESIDUE ? decodeURIComponent(value) : value;
     }
     this.params = Object.freeze($params);
 

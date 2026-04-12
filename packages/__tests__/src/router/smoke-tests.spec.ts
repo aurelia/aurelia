@@ -7480,45 +7480,58 @@ describe('router/smoke-tests.spec.ts', function () {
     });
   }
 
-  // TODO: add special characters
-  it.only(`handles parameter values with space correctly - GH issue #2398`, async function () {
+  for (const [name, char] of [
+    ['space', ' '],
+    ['degree', '°'],
+    ['caret', '^'],
+    ['dollar', '$'],
+    ['euro', '€'],
+    ['section', '§'],
+    ['percent', '%'],
+    ['ampersand', '&'],
+    ['non-ascii-char', 'ü'],
+    ['emoji', '🧑‍🚀'],
+  ]) {
+    it(`handles parameter values with ${name} correctly - GH issue #2398`, async function () {
 
-    @route('gc1/:id')
-    @customElement({ name: 'gc-1', template: 'gc1 ${id}' })
-    class Gc1 implements IRouteViewModel {
-      private id: string;
-      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
-        this.id = params.id;
+      @route('gc1/:id')
+      @customElement({ name: 'gc-1', template: 'gc1 ${id}' })
+      class Gc1 implements IRouteViewModel {
+        private id: string;
+        public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+          this.id = params.id;
+        }
       }
-    }
 
-    @route({ path: 'c1', routes: [Gc1] })
-    @customElement({ name: 'c-1', template: 'c1 <au-viewport></au-viewport>' })
-    class C1 implements IRouteViewModel { }
+      @route({ path: 'c1', routes: [Gc1] })
+      @customElement({ name: 'c-1', template: 'c1 <au-viewport></au-viewport>' })
+      class C1 implements IRouteViewModel { }
 
-    @route({ routes: [C1] })
-    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
-    class Root { }
+      @route({ routes: [C1] })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
 
-    let pushedUrl: string = '';
-    const { au, host } = await start({
-      appRoot: Root,
-      registrations: [
-        Registration.instance(ILocationManager, {
-          startListening: () => { },
-          stopListening: () => { },
-          getPath: () => 'c1/gc1/foo%20bar',
-          removeBaseHref: (p: string) => p,
-          pushState: (_state: {} | null, _title: string, _url: string) => { },
-          replaceState: (_state: {} | null, _title: string, url: string) => { console.log(`replaceState called with URL: ${pushedUrl = url}`); /* pushedUrl = url; */ },
-        })
-      ]
+      let pushedUrl: string = '';
+      const { au, host } = await start({
+        appRoot: Root,
+        registrations: [
+          Registration.instance(ILocationManager, {
+            startListening: () => { },
+            stopListening: () => { },
+            getPath: () => `c1/gc1/foo${encodeURIComponent(char)}bar`,
+            removeBaseHref: (p: string) => p,
+            pushState: (_state: {} | null, _title: string, _url: string) => { },
+            replaceState: (_state: {} | null, _title: string, url: string) => { pushedUrl = url; },
+          })
+        ]
+      });
+
+      assert.html.textContent(host, `c1 gc1 foo${char}bar`, 'round#1');
+
+      // eslint-disable-next-line no-useless-escape
+      assert.strictEqual(pushedUrl?.match(new RegExp(`gc1\/foo${encodeURIComponent(char)}bar`, 'g'))?.length, 1, 'URL should be pushed only once');
+
+      await au.stop(true);
     });
-
-    assert.html.textContent(host, 'c1 gc1 foo bar', 'round#1');
-
-    assert.strictEqual(pushedUrl?.match(/gc1\/foo%20bar/g)?.length, 1, 'URL should be pushed only once');
-
-    await au.stop(true);
-  });
+  }
 });

@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, IModule, inject, resolve, isArray } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions, ILocationManager } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -7475,6 +7475,61 @@ describe('router/smoke-tests.spec.ts', function () {
           ? `c1 {"foo":["bar","baz"],"id":"42"} baz`
           : `c1 {"id":"42"} baz`,
         'round#3');
+
+      await au.stop(true);
+    });
+  }
+
+  for (const [name, char] of [
+    ['space', ' '],
+    ['degree', '°'],
+    ['caret', '^'],
+    ['dollar', '$'],
+    ['euro', '€'],
+    ['section', '§'],
+    ['percent', '%'],
+    ['ampersand', '&'],
+    ['non-ascii-char', 'ü'],
+    ['emoji', '🧑‍🚀'],
+  ]) {
+    it(`handles parameter values with ${name} correctly - GH issue #2398`, async function () {
+
+      @route('gc1/:id')
+      @customElement({ name: 'gc-1', template: 'gc1 ${id}' })
+      class Gc1 implements IRouteViewModel {
+        private id: string;
+        public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+          this.id = params.id;
+        }
+      }
+
+      @route({ path: 'c1', routes: [Gc1] })
+      @customElement({ name: 'c-1', template: 'c1 <au-viewport></au-viewport>' })
+      class C1 implements IRouteViewModel { }
+
+      @route({ routes: [C1] })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      let pushedUrl: string = '';
+      const { au, host } = await start({
+        appRoot: Root,
+        registrations: [
+          Registration.instance(ILocationManager, {
+            startListening: () => { },
+            stopListening: () => { },
+            getPath: () => `c1/gc1/foo${encodeURIComponent(char)}bar`,
+            removeBaseHref: (p: string) => p,
+            pushState: (_state: {} | null, _title: string, _url: string) => { },
+            replaceState: (_state: {} | null, _title: string, url: string) => { pushedUrl = url; },
+          })
+        ]
+      });
+
+      assert.html.textContent(host, `c1 gc1 foo${char}bar`, 'round#1');
+
+      // eslint-disable-next-line no-useless-escape
+      assert.strictEqual(pushedUrl?.match(new RegExp(`gc1\/foo${encodeURIComponent(char)}bar`, 'g'))?.length, 1, 'URL should be pushed only once');
 
       await au.stop(true);
     });

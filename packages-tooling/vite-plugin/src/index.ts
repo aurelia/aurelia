@@ -112,6 +112,48 @@ export default function au(options: {
   return [devPlugin, auPlugin];
 }
 
+export function cssInjectPlugin(): import('vite').Plugin {
+  return {
+    name: 'aurelia:css-inject',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      const cssAssets: Array<[string, { source: string | Uint8Array }]> = [];
+      for (const [name, asset] of Object.entries(bundle)) {
+        if (asset.type === 'asset' && name.endsWith('.css')) {
+          cssAssets.push([name, asset as { source: string | Uint8Array }]);
+        }
+      }
+
+      if (cssAssets.length === 0) return;
+
+      const cssText = cssAssets
+        .map(([, asset]) => (typeof asset.source === 'string' ? asset.source : asset.source.toString()))
+        .join('\n');
+
+      const injection = [
+        'if (typeof document !== "undefined") {',
+        '  const style = document.createElement("style");',
+        '  style.setAttribute("type", "text/css");',
+        `  style.textContent = ${JSON.stringify(cssText)};`,
+        '  document.head.appendChild(style);',
+        '}',
+        ''
+      ].join('\n');
+
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === 'chunk' && chunk.isEntry) {
+          chunk.code = `${chunk.code}\n${injection}`;
+        }
+      }
+
+      for (const [name] of cssAssets) {
+        delete bundle[name];
+      }
+    }
+  };
+}
+
 function getHmrCode(className: string, moduleNames: string = ''): string {
   const moduleText = 'import.meta';
   const code = `

@@ -25,6 +25,11 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
     await page.waitForTimeout(16);
   };
 
+  const scrollVertically = async (page: Page, px: number) => {
+    await page.$eval('#repeat-container', (el, v) => (el as HTMLElement).scrollTop = v, px);
+    await page.waitForTimeout(16);
+  };
+
   test('test virtual-repeat, check rendered div counts when adding and removing items from array (incl empty array)', async ({ page }) => {
 
     // expectation of item/div count in virtual-repeat
@@ -208,5 +213,29 @@ test.describe.serial('examples/ui-virtualization-e2e/app.spec.ts', function () {
       expect(finalCounts.divs).toBeLessThanOrEqual(22);
     });
   });
-});
 
+  test('vertical gap route preserves spacing and scroll math', async ({ page }) => {
+    await test.step('load gap usage route and verify rendered view count', async () => {
+      await page.getByTestId('load-gap-usage').click();
+      expect(await getItemAndDivCount(page)).toStrictEqual({ items: 500, divs: 20 });
+    });
+
+    await test.step('verify rendered items keep a 12px gap', async () => {
+      const items = page.locator('#repeat-container .gap-item');
+      await expect(items).toHaveCount(18);
+
+      const firstBox = await items.nth(0).boundingBox();
+      const secondBox = await items.nth(1).boundingBox();
+      expect(firstBox).not.toBeNull();
+      expect(secondBox).not.toBeNull();
+      expect(Math.round(secondBox!.y - (firstBox!.y + firstBox!.height))).toBe(12);
+    });
+
+    await test.step('scroll and verify the first rendered item respects item height plus gap', async () => {
+      await scrollVertically(page, 434);
+
+      const firstRenderedText = await page.locator('#repeat-container .gap-item').first().textContent();
+      expect(firstRenderedText).toContain('item-0-7 @ index 7');
+    });
+  });
+});

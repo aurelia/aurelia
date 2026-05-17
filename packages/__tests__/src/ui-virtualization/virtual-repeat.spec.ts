@@ -100,6 +100,22 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     assert.strictEqual(firstView.nodes.firstChild.textContent, `item-8`);
   });
 
+  it('rerenders when scrolled with gap', function () {
+    const { scrollBy } = createFixture(
+      createScrollerTemplate('<div virtual-repeat.for="item of items; item-height: 50; gap: 10" style="height: 50px">${item.name}</div>'),
+      class App { items = createItems(); },
+      virtualRepeatDeps
+    );
+
+    scrollBy('#scroller', 420);
+    runTasks();
+
+    const virtualRepeat = virtualRepeats[0];
+    const firstView = virtualRepeat.getViews()[0];
+    assert.deepStrictEqual(virtualRepeat.getDistances(), [420, (100 * 50 + 99 * 10) - 420 - (20 * 50 + 19 * 10)]);
+    assert.strictEqual(firstView.nodes.firstChild.textContent, 'item-7');
+  });
+
   describe('scroller resizing', function () {
     it('works with dynamic height scroller', async function () {
       const {getAllBy } = createFixture(
@@ -255,6 +271,16 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (100 - 15) * 40]);
     });
 
+    it('accepts gap configuration', function () {
+      createFixture(
+        createScrollerTemplate('<div virtual-repeat.for="item of items; item-height: 50; gap: 10" style="height: 50px">${item}</div>'),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (100 - Math.ceil(600 / 60) * 2) * 60]);
+    });
+
     it('accepts horizontal layout with item-width configuration', function () {
       createFixture(
         createHorizontalScrollerTemplate('<div virtual-repeat.for="item of items; layout: horizontal; item-width: 100" style="width: 100px; height: 50px; display: inline-block">${item}</div>'),
@@ -293,6 +319,21 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       const firstView = virtualRepeat.getViews()[0];
       const expectedFirstIndex = Math.floor(400 / 80); // Should be index 5 (400/80 = 5)
       assert.strictEqual(firstView.nodes.firstChild.textContent, `item-${expectedFirstIndex}`);
+    });
+
+    it('accounts for gap when scrolled horizontally', function () {
+      const { scrollBy } = createFixture(
+        createHorizontalScrollerTemplate('<div virtual-repeat.for="item of items; layout: horizontal; item-width: 80; gap: 20" style="width: 80px; height: 50px; display: inline-block">${item.name}</div>'),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      scrollBy('#scroller', { left: 420 });
+      runTasks();
+
+      const virtualRepeat = virtualRepeats[0];
+      const firstView = virtualRepeat.getViews()[0];
+      assert.strictEqual(firstView.nodes.firstChild.textContent, 'item-4');
     });
   });
 

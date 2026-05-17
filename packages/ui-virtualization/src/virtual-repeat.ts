@@ -80,12 +80,14 @@ export class VirtualRepeat implements IVirtualRepeater {
 
   private itemHeight = 0;
   private itemWidth = 0;
+  private itemGap = 0;
   private minViewsRequired = 0;
   private collectionStrategy?: ICollectionStrategy;
   private dom: IVirtualRepeatDom = null!;
 
   /** @internal */ private readonly _configuredItemHeight?: number;
   /** @internal */ private readonly _configuredItemWidth?: number;
+  /** @internal */ private readonly _configuredGap: number = 0;
   /** @internal */ private readonly _configuredBufferSize?: number;
   /** @internal */ private readonly _configuredMinViews?: number;
   /** @internal */ private readonly _configuredLayout: 'vertical' | 'horizontal' = 'vertical';
@@ -137,6 +139,12 @@ export class VirtualRepeat implements IVirtualRepeater {
           case 'item-width': {
             if (!Number.isNaN(valNum) && valNum > 0) {
               this._configuredItemWidth = valNum;
+            }
+            break;
+          }
+          case 'gap': {
+            if (!Number.isNaN(valNum) && valNum >= 0) {
+              this._configuredGap = valNum;
             }
             break;
           }
@@ -273,13 +281,14 @@ export class VirtualRepeat implements IVirtualRepeater {
       const viewCount = this.views.length;
       // when updating the dom
       // we will trigger an event and then handle it the next frame
-      this.dom.update(0, (isHorizontal ? itemWidth : itemHeight) * (itemCount - viewCount));
+      this.dom.update(0, this._getTailSize(itemCount - viewCount));
     }
 
     this.itemHeight = itemHeight;
     this.itemWidth = itemWidth;
+    this.itemGap = this._configuredGap;
 
-    const minViews = this._configuredMinViews ?? viewportSize / (isHorizontal ? itemWidth : itemHeight);
+    const minViews = this._configuredMinViews ?? viewportSize / this._getItemSpan();
     this.minViewsRequired = Math.ceil(minViews);
 
     // For variable sizing, measure the first item to initialize the arrays
@@ -297,6 +306,7 @@ export class VirtualRepeat implements IVirtualRepeater {
     this.minViewsRequired = 0;
     this.itemHeight = 0;
     this.itemWidth = 0;
+    this.itemGap = 0;
     this.dom.update(0, 0);
 
     // Reset variable sizing data
@@ -330,7 +340,7 @@ export class VirtualRepeat implements IVirtualRepeater {
     let cumulativeHeight = 0;
     for (let i = 0; i < itemCount; i++) {
       const height = this._itemHeights[i] ?? this.itemHeight;
-      cumulativeHeight += height;
+      cumulativeHeight += height + (i === 0 ? 0 : this.itemGap);
       this._cumulativeHeights[i] = cumulativeHeight;
     }
 
@@ -339,7 +349,7 @@ export class VirtualRepeat implements IVirtualRepeater {
     let cumulativeWidth = 0;
     for (let i = 0; i < itemCount; i++) {
       const width = this._itemWidths[i] ?? this.itemWidth;
-      cumulativeWidth += width;
+      cumulativeWidth += width + (i === 0 ? 0 : this.itemGap);
       this._cumulativeWidths[i] = cumulativeWidth;
     }
   }
@@ -350,10 +360,10 @@ export class VirtualRepeat implements IVirtualRepeater {
   private _findIndexByPosition(position: number, isHorizontal: boolean): number {
     const cumulative = isHorizontal ? this._cumulativeWidths : this._cumulativeHeights;
 
-    if (cumulative.length === 0) {
-      // Fallback to fixed sizing
-      const itemSize = this._getItemSize();
-      return itemSize > 0 ? Math.floor(position / itemSize) : 0;
+      if (cumulative.length === 0) {
+        // Fallback to fixed sizing
+      const itemSpan = this._getItemSpan();
+      return itemSpan > 0 ? Math.floor((position + this.itemGap) / itemSpan) : 0;
     }
 
     // Binary search to find the index
@@ -389,8 +399,7 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     if (index >= cumulative.length) {
       // Fallback for out-of-bounds
-      const itemSize = this._getItemSize();
-      return index * itemSize;
+      return this._getTailSize(index);
     }
 
     return index > 0 ? cumulative[index - 1] : 0;
@@ -399,6 +408,28 @@ export class VirtualRepeat implements IVirtualRepeater {
   /** @internal */
   private _getItemSize() {
     return this._configuredLayout === 'horizontal' ? this.itemWidth : this.itemHeight;
+  }
+
+  /** @internal */
+  private _getItemSpan() {
+    return this._getItemSize() + this.itemGap;
+  }
+
+  /** @internal */
+  private _getTailSize(itemCount: number) {
+    return itemCount <= 0 ? 0 : (itemCount * this._getItemSize()) + (itemCount * this.itemGap);
+  }
+
+  /** @internal */
+  private _getTotalSize(itemCount: number, isHorizontal: boolean): number {
+    if (itemCount <= 0) {
+      return 0;
+    }
+    const cumulative = isHorizontal ? this._cumulativeWidths : this._cumulativeHeights;
+    if (cumulative.length >= itemCount) {
+      return cumulative[itemCount - 1];
+    }
+    return (itemCount * this._getItemSize()) + ((itemCount - 1) * this.itemGap);
   }
 
   /** @internal */
@@ -511,11 +542,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
       // Variable sizing: calculate actual cumulative sizes
       topBufferSize = this._getPositionForIndex(topCount, isHorizontal);
-      botBufferSize = this._getPositionForIndex(itemCount - firstIndex - realViewCount, isHorizontal);
+      const bottomBufferStartOffset = this._getPositionForIndex(itemCount - botCount, isHorizontal);
+      botBufferSize = this._getTotalSize(itemCount, isHorizontal) - bottomBufferStartOffset;
     } else {
       // Fixed sizing: use multiplication
-      topBufferSize = topCount * itemSize;
-      botBufferSize = botCount * itemSize;
+      topBufferSize = topCount * (itemSize + this.itemGap);
+      botBufferSize = botCount * (itemSize + this.itemGap);
     }
 
     this.dom.update(topBufferSize, botBufferSize);
@@ -579,7 +611,7 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     let first_index_after_scroll_adjustment = realScroll === 0
       ? 0
-      : Math.floor(realScroll / itemSize);
+      : Math.floor((realScroll + this.itemGap) / (itemSize + this.itemGap));
 
     // if first index after scroll adjustment doesn't fit with number of possible view
     // it means the scroller has been too far down to the bottom and nolonger suitable to start from this index
@@ -748,11 +780,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
       // Variable sizing: calculate actual cumulative sizes
       topBufferSize = this._getPositionForIndex(topCount1, isHorizontal);
-      botBufferSize = this._getPositionForIndex(botCount1, isHorizontal);
+      const bottomBufferStartOffset = this._getPositionForIndex(collectionSize - botCount1, isHorizontal);
+      botBufferSize = this._getTotalSize(collectionSize, isHorizontal) - bottomBufferStartOffset;
     } else {
       // Fixed sizing: use multiplication
-      topBufferSize = topCount1 * itemSize;
-      botBufferSize = botCount1 * itemSize;
+      topBufferSize = topCount1 * (itemSize + this.itemGap);
+      botBufferSize = botCount1 * (itemSize + this.itemGap);
     }
 
     repeatDom.update(topBufferSize, botBufferSize);

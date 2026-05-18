@@ -1,13 +1,11 @@
 import { resolve } from "@aurelia/kernel";
-import { type IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import { ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
 import {
   Collection,
-  getCollectionObserver,
   IndexMap,
   Scope,
   type IOverrideContext,
   BindingContext,
-  astEvaluate,
   queueAsyncTask,
   Task,
 } from '@aurelia/runtime';
@@ -24,11 +22,7 @@ import {
 import {
   IInstruction,
   HydrateTemplateController,
-  IteratorBindingInstruction,
 } from '@aurelia/template-compiler';
-import {
-  unwrapExpression,
-} from "./utilities-repeat";
 import { createMappedError, ErrorNames } from './errors';
 import {
   ICollectionStrategyLocator,
@@ -49,10 +43,11 @@ import {
   getDistanceToScroller,
   getHorizontalDistanceToScroller
 } from "./utilities-dom";
+import { IterateBindingInstruction, IIterateBindingTarget } from './iterate-binding';
 
 export interface VirtualRepeat extends ICustomAttributeViewModel { }
 
-export class VirtualRepeat implements IVirtualRepeater {
+export class VirtualRepeat implements IVirtualRepeater, IIterateBindingTarget {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
     name: 'virtual-repeat',
@@ -70,13 +65,10 @@ export class VirtualRepeat implements IVirtualRepeater {
   // bindable
   public items: Collection | null | undefined = void 0;
 
-  /** @internal */ private readonly iterable: IsBindingBehavior;
-  // /** @internal */ private readonly forOf: ForOfStatement;
-  /** @internal */ private readonly _hasWrapExpression: boolean;
-  /** @internal */ private readonly _obsMediator: CollectionObservationMediator;
-
   /** @internal */ private readonly views: ISyntheticView[] = [];
   /** @internal */ private task: Task | null = null;
+  /** @internal */ private _items: Collection | null | undefined = void 0;
+  /** @internal */ private _ignoreItemsChanged = false;
 
   private itemHeight = 0;
   private itemWidth = 0;
@@ -108,11 +100,8 @@ export class VirtualRepeat implements IVirtualRepeater {
   /** @internal */ private readonly _domRenderer = resolve(IDomRenderer);
 
   public constructor() {
-    const iteratorInstruction = this.instruction.props[0] as IteratorBindingInstruction;
+    const iteratorInstruction = this.instruction.props[0] as IterateBindingInstruction;
     const forOf = iteratorInstruction.forOf as ForOfStatement;
-    const iterable = this.iterable = unwrapExpression(forOf.iterable) ?? forOf.iterable;
-    const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
-    this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
 
     const extraProps = (iteratorInstruction.props ?? []);
@@ -204,8 +193,8 @@ export class VirtualRepeat implements IVirtualRepeater {
         && (parentTag === 'TBODY' || parentTag === 'THEAD' || parentTag === 'TFOOT' || parentTag === 'TABLE')) {
       throw createMappedError(ErrorNames.virtual_repeat_horizontal_in_table);
     }
-    this._obsMediator.start(this.items);
-    this.collectionStrategy = this._strategyLocator.getStrategy(this.items);
+    this._items = this.items;
+    this.collectionStrategy = this._strategyLocator.getStrategy(this._items);
     this._unsubscribeScroller = this._observeScroller();
     this._attached = true;
     this._onResize();
@@ -220,7 +209,6 @@ export class VirtualRepeat implements IVirtualRepeater {
     this.task?.cancel();
     this._resetCalculation();
     this.dom.dispose();
-    this._obsMediator.stop();
 
     this.dom
       = this.task
@@ -296,7 +284,7 @@ export class VirtualRepeat implements IVirtualRepeater {
       this._measureAndStoreItemSize(firstView, 0);
     }
 
-    this._handleItemsChanged(this.items, this.collectionStrategy!);
+    this._handleItemsChanged(this._items, this.collectionStrategy!);
   }
 
   /**
@@ -555,8 +543,33 @@ export class VirtualRepeat implements IVirtualRepeater {
 
   /** @internal */
   public itemsChanged(items?: Collection | null): void {
-    this._obsMediator.start(items);
+    if (this._ignoreItemsChanged) {
+      return;
+    }
+    this._items = items;
     this.collectionStrategy = this._strategyLocator.getStrategy(items);
+    this._queueHandleItemsChanged();
+  }
+
+  /** @internal */
+  public handleItemsChangeChange(items: Collection, indexMap?: IndexMap): void {
+    const isMutation = indexMap !== void 0;
+    const sameItems = this._items === items;
+
+    if (!isMutation || !sameItems) {
+      this._items = items;
+      if (!sameItems) {
+        this.collectionStrategy = this._strategyLocator.getStrategy(items);
+      }
+      this._ignoreItemsChanged = true;
+      this.items = items;
+      this._ignoreItemsChanged = false;
+    }
+
+    if (!this._attached) {
+      return;
+    }
+
     this._queueHandleItemsChanged();
   }
 
@@ -799,33 +812,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     return this.views.slice(0);
   }
 
-  /**
-   * todo: handle update based on collection, rather than always update
-   *
-   * @internal
-   */
-  public _handleCollectionChange(): void {
-    this._queueHandleItemsChanged();
-  }
-
-  /**
-   * @internal
-   */
-  public _handleInnerCollectionChange(): void {
-    const newItems = astEvaluate(this.iterable, this.parent.scope, { strict: true }, null) as Collection;
-    const oldItems = this.items;
-    this.items = newItems;
-    if (newItems === oldItems) {
-      this._queueHandleItemsChanged();
-    }
-  }
-
   /** @internal */
   private _queueHandleItemsChanged() {
     const task = this.task;
     this.task = queueAsyncTask(() => {
       this.task = null;
-      this._handleItemsChanged(this.items, this.collectionStrategy!);
+      this._handleItemsChanged(this._items, this.collectionStrategy!);
     });
     task?.cancel();
   }
@@ -865,29 +857,6 @@ export class VirtualRepeat implements IVirtualRepeater {
     const view = this._factory.create();
     views.push(view);
     return view;
-  }
-}
-
-class CollectionObservationMediator {
-  /** @internal */ private _collection!: Collection;
-
-  public constructor(
-    public repeat: VirtualRepeat,
-    public handleCollectionChange: (col: Collection, indexMap: IndexMap) => void,
-  ) { }
-
-  public start(c?: Collection | null): void {
-    if (this._collection === c) {
-      return;
-    }
-    this.stop();
-    if (c != null) {
-      getCollectionObserver(this._collection = c)?.subscribe(this);
-    }
-  }
-
-  public stop(): void {
-    getCollectionObserver(this._collection)?.unsubscribe(this);
   }
 }
 

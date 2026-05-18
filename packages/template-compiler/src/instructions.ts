@@ -63,6 +63,9 @@ export interface IInstruction {
 }
 export const IInstruction = /*@__PURE__*/tcCreateInterface<IInstruction>('Instruction');
 
+/**
+ * @internal
+ */
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: number }).type;
   return typeof type === 'number' && type >= 0 && type < 100;

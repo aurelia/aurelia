@@ -39,6 +39,7 @@
     "@aurelia/ts-jest": "2.0.0-rc.1",
     "@aurelia/webpack-loader": "2.0.0-rc.1",
     "@aurelia/parcel-transformer": "2.0.0-rc.1",
+    "@aurelia/vite-plugin": "2.0.0-rc.1",
     "@babel/core": "^7.18.2",
     "@jest/transform": "^29.7.0",
     "@jest/types": "^29.1.0",

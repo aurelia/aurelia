@@ -160,6 +160,32 @@ export function register(container) {
     assert.equal(result.code, expected);
   });
 
+  it('processes template with transformed html dependency specifier', function () {
+    const html = '<import from="./hello-world.html" /><template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import * as d0 from "./hello-world.html?au-view";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0 ];
+export const bindables = {};
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), contents: html },
+      preprocessOptions({ hmr: false, transformHtmlImportSpecifier: (s) => `${s}?au-view` }),
+      false,
+      () => false
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('processes template and fill up explicit .js/.ts extension', function () {
     const html = '<import from="./hello-world" /><template><import from="foo"></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';

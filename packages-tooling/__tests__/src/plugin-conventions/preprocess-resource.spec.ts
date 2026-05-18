@@ -47,6 +47,25 @@ export class FooBar {}
     assert.equal(result.code, expected);
   });
 
+  it('injects custom element definition with transformed html specifier', function () {
+    const code = `\nexport class FooBar {}\n`;
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html?au-view';
+
+@customElement(__au2ViewDef)
+export class FooBar {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false, transformHtmlImportSpecifier: (s) => `${s}?au-view` })
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects custom element definition for loosely equal class name', function () {
     const code = `export class UAFooBarCustomElement {}\n`;
     const expected = `import { customElement } from '@aurelia/runtime-html';

@@ -1,7 +1,6 @@
 import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
-import { promises } from 'fs';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -20,7 +19,9 @@ export default function au(options: {
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
-  const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
+  const isAuViewRequest = (id: string) => id.includes('?au-view');
+  const toAuViewSpecifier = (id: string) => id.replace(/\.html$/, '.html?au-view');
+  const normalizePath = (id: string) => id.replace(/\\/g, '/');
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
@@ -49,9 +50,8 @@ export default function au(options: {
     },
     async transform(code, id) {
       if (!filter(id)) return;
-      // .$au.ts = .html
-      // which already preprocessed by the load hook of this plugin
-      if (isVirtualTsFileFromHtml(id)) return;
+      // .html?au-view is already preprocessed by the load hook of this plugin
+      if (isAuViewRequest(id)) return;
 
       const result = preprocess({
         path: id,
@@ -60,11 +60,7 @@ export default function au(options: {
         // hmr: true,
         hmrModule: 'import.meta',
         getHmrCode,
-        transformHtmlImportSpecifier: (s) => {
-          return $config.mode === 'production'
-            ? s.replace(/\.html$/, '.$au.ts')
-            : s;
-        },
+        transformHtmlImportSpecifier: toAuViewSpecifier,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });
@@ -72,9 +68,12 @@ export default function au(options: {
     },
 
     resolveId(id, importer) {
-      if (!isVirtualTsFileFromHtml(id)) {
+      if (!isAuViewRequest(id)) {
         return null;
       }
+
+      const [pathPart, query = ''] = id.split('?', 2);
+      const querySuffix = `?${query}`;
 
       // Vite id is in POSIX format, either relative like ./foo.ts or absolute like /src/foo.ts
       // When absolute is in use:
@@ -84,28 +83,27 @@ export default function au(options: {
       //
       // For absolute path like /src/foo.ts, retain it on win32, and let vitest.config's test.root
       // to resolve it.
-      if (id.startsWith('/')) return id;
+      if (pathPart.startsWith('/')) return `${pathPart}${querySuffix}`;
 
-      id = resolve(dirname(importer ?? ''), this.meta.watchMode ? id.replace(/^\//, './') : id);
-      return id;
+      const resolvedPath = resolve(dirname(importer ?? ''), this.meta.watchMode ? pathPart.replace(/^\//, './') : pathPart);
+      return `${resolvedPath}${querySuffix}`;
     },
 
     async load(id) {
-      if (!isVirtualTsFileFromHtml(id)) {
+      if (!isAuViewRequest(id)) {
         return null;
       }
-      const htmlId = id.replace('.$au.ts', '.html');
-      const code = await promises.readFile(htmlId, { encoding: 'utf-8' });
-      const result = preprocess({
-        path: htmlId,
-        contents: code,
-      }, {
-        hmrModule: 'import.meta',
-        transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
-        stringModuleWrap: (id) => `${id}?inline`,
-        ...additionalOptions
-      });
-      return result!.code;
+      const htmlId = id.replace(/\?au-view\b.*$/, '');
+      const normalizedId = normalizePath(htmlId);
+      const normalizedRoot = normalizePath($config.root);
+      const url = normalizedId.startsWith(`${normalizedRoot}/`)
+        ? normalizedId.slice(normalizedRoot.length)
+        : normalizedId.startsWith('/')
+          ? normalizedId
+          : `/@fs/${normalizedId}`;
+      return `export * from ${JSON.stringify(url)};
+export { default } from ${JSON.stringify(url)};
+`;
     }
   };
 

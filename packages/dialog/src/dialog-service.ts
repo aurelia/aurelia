@@ -172,10 +172,22 @@ export class DialogService implements IDialogService {
   }
 }
 
-function whenClosed<TResult1 = unknown, TResult2 = unknown>(
+function whenClosed(
   this: Promise<DialogOpenResult>,
-  onfulfilled?: (r: DialogCloseResult) => TResult1 | Promise<TResult1>,
-  onrejected?: (err: unknown) => TResult2 | Promise<TResult2>
+): Promise<DialogCloseResult>;
+function whenClosed<TResult1>(
+  this: Promise<DialogOpenResult>,
+  onfulfilled?: ((r: DialogCloseResult) => TResult1 | PromiseLike<TResult1>) | null,
+): Promise<TResult1>;
+function whenClosed<TResult1, TResult2>(
+  this: Promise<DialogOpenResult>,
+  onfulfilled: ((r: DialogCloseResult) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+  onrejected: (err: unknown) => TResult2 | PromiseLike<TResult2>
+): Promise<TResult1 | TResult2>;
+function whenClosed<TResult1, TResult2 = never>(
+  this: Promise<DialogOpenResult>,
+  onfulfilled?: ((r: DialogCloseResult) => TResult1 | PromiseLike<TResult1>) | null,
+  onrejected?: ((err: unknown) => TResult2 | PromiseLike<TResult2>) | null
 ): Promise<TResult1 | TResult2> {
   return this.then(openResult => openResult.dialog.closed.then(onfulfilled, onrejected), onrejected);
 }
@@ -183,4 +195,17 @@ function whenClosed<TResult1 = unknown, TResult2 = unknown>(
 function asDialogOpenPromise(promise: Promise<unknown>): DialogOpenPromise {
   (promise as DialogOpenPromise).whenClosed = whenClosed;
   return promise as DialogOpenPromise;
+}
+
+/* eslint-disable */
+async function testApi(service: IDialogService) {
+  const a = await service.open({}).whenClosed();
+  if (a.status === 'ok' || a.status === 'cancel') {
+    // empty
+  }
+  if (a.value === null) {
+    // empty
+  }
+
+  const b = await service.open({}).whenClosed(x => x.status);
 }

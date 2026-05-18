@@ -95,7 +95,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
    */
   private _mountToViewport(): void {
     const controller = this._controller;
-    const viewportHost = this._ctx.vpa.hostController.host;
+    const viewportHost = this._getViewportMountParent();
 
     if (this._isMountedTo(viewportHost)) {
       return;
@@ -104,10 +104,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     switch (controller.mountTarget) {
       case MountTarget.host:
       case MountTarget.shadowRoot:
-        viewportHost.appendChild(controller.host);
+        this._insertToViewport(controller.host);
         break;
       case MountTarget.location:
-        viewportHost.append(controller.location!.$start!, controller.location!);
+        this._insertToViewport(controller.location!.$start!, controller.location!);
         break;
       case MountTarget.none:
         throw new Error('Invalid mount target for routed component');
@@ -119,7 +119,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
    * Returns true during SSR hydration when the element was server-rendered.
    * @internal
    */
-  private _isMountedTo(host: HTMLElement): boolean {
+  private _isMountedTo(host: Node): boolean {
     const controller = this._controller;
     switch (controller.mountTarget) {
       case MountTarget.host:
@@ -129,6 +129,50 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         return controller.location?.$start?.parentNode === host;
       default:
         return false;
+    }
+  }
+
+  /**
+   * Resolve the actual DOM parent that routed content should mount into.
+   * Containerless viewports are mounted at a render location, so their parent node
+   * is the insertion point rather than `hostController.host`.
+   */
+  private _getViewportMountParent(): Node {
+    const viewportController = this._ctx.vpa.hostController;
+    switch (viewportController.mountTarget) {
+      case MountTarget.host:
+        return viewportController.host;
+      case MountTarget.shadowRoot:
+        return viewportController.shadowRoot!;
+      case MountTarget.location:
+        return viewportController.location!.$start!.parentNode!;
+      default:
+        throw new Error('Invalid mount target for viewport');
+    }
+  }
+
+  /**
+   * Insert routed content into the correct place for the viewport.
+   * Containerless viewports use their render location as an anchor.
+   */
+  private _insertToViewport(...nodes: Node[]): void {
+    const viewportController = this._ctx.vpa.hostController;
+    switch (viewportController.mountTarget) {
+      case MountTarget.host:
+        viewportController.host.append(...nodes);
+        return;
+      case MountTarget.shadowRoot:
+        viewportController.shadowRoot!.append(...nodes);
+        return;
+      case MountTarget.location: {
+        const location = viewportController.location!;
+        for (const node of nodes) {
+          location.parentNode!.insertBefore(node, location);
+        }
+        return;
+      }
+      default:
+        throw new Error('Invalid mount target for viewport');
     }
   }
 

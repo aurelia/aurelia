@@ -62,4 +62,26 @@ describe('router/router-containerless.spec.ts', function () {
     assert.notIncludes(host.innerHTML, '<!--au-start-->');
     assert.includes(host.innerHTML, '<normal-foo>normal-foo</normal-foo>');
   });
+
+  it('renders routed content when the au-viewport is containerless', async function () {
+    @customElement({ name: 'foo', template: 'foo' })
+    class Foo {}
+
+    @route({
+      routes: [
+        { id: 'foo', path: '', component: Foo },
+      ]
+    })
+    @customElement({
+      name: 'root',
+      template: 'root <au-viewport containerless></au-viewport>'
+    })
+    class App {}
+
+    const { host } = await start({ appRoot: App });
+
+    assert.html.textContent(host, 'root foo');
+    assert.strictEqual(null, host.querySelector('au-viewport'));
+    assert.includes(host.innerHTML, '<foo>foo</foo>');
+  });
 });

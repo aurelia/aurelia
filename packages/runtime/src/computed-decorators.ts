@@ -7,9 +7,11 @@ import { rtObjectAssign } from './utilities';
 import { getRaw } from './proxy-observation';
 import { astTrackableMethodMarker } from './ast.eval';
 
-type ClassGetterFunction<T> = (target: () => unknown, context: ClassGetterDecoratorContext<T>) => void;
-// eslint-disable-next-line @typescript-eslint/ban-types
-type ClassMethodFunction = (target: Function, context: ClassMethodDecoratorContext) => void;
+type UniversalComputedDecorator<T extends object> = {
+  (target: () => unknown, context: ClassGetterDecoratorContext<T>): void;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  (target: Function, context: ClassMethodDecoratorContext<T>): void;
+};
 
 export type ComputedDependencyFn<T = unknown> = (instance: T) => unknown;
 export type ComputedDependency = string | symbol | ComputedDependencyFn;
@@ -68,18 +70,18 @@ export function computed(target: Function, context: ClassMethodDecoratorContext)
 
 // Universal overloads that work for both getters and methods
 // TypeScript can't distinguish at compile time, but runtime checks context.kind
-export function computed<T = unknown>(fn: ComputedDependencyFn<T>): any; // eslint-disable-line @typescript-eslint/no-explicit-any
-export function computed(...dependencies: (string | symbol)[]): any; // eslint-disable-line @typescript-eslint/no-explicit-any
-export function computed<T = unknown>(config: {
-  deps?: (string | symbol)[] | ComputedDependencyFn<T>;
+export function computed<TThis extends object>(fn: ComputedDependencyFn<TThis>): UniversalComputedDecorator<TThis>;
+export function computed<TThis extends object>(...dependencies: (string | symbol)[]): UniversalComputedDecorator<TThis>;
+export function computed<TThis extends object>(config: {
+  deps?: (string | symbol)[] | ComputedDependencyFn<TThis>;
   flush?: 'sync' | 'async';
   deep?: boolean;
-}): any; // eslint-disable-line @typescript-eslint/no-explicit-any
+}): UniversalComputedDecorator<TThis>;
 
 export function computed<TThis extends object>(
   targetOrOptionsOrDependency?: unknown,
   ...rest: unknown[]
-): void | ClassGetterFunction<TThis> | ClassMethodFunction {
+): void | UniversalComputedDecorator<TThis> {
   // Direct method decoration: @computed
   if (isFunction(targetOrOptionsOrDependency) && isClassMethodDecoratorContext(rest[0])) {
     const trackableTarget = targetOrOptionsOrDependency as AnyFunction & { [astTrackableMethodMarker]?: ComputedMethodOptions };
@@ -151,7 +153,7 @@ export function computed<TThis extends object>(
         return observer;
       }
     });
-  } as ClassGetterFunction<TThis> | ClassMethodFunction;
+  } as UniversalComputedDecorator<TThis>;
 }
 /* eslint-enable @typescript-eslint/ban-types */
 
@@ -167,6 +169,7 @@ function testComputed() {
     @computed({ deps: ['value'] })
     @computed({ flush: 'sync' })
     @computed({ deps: ['nested'], deep: true })
+    @computed(x => x.method())
     public get getter5(): number {
       return this.nested.prop.length;
     }
@@ -178,7 +181,7 @@ function testComputed() {
     @computed({ deps: ['value', 'v'] })
     @computed({ deps: ['nested.prop'] })
     @computed({ deps: [] })
-    @computed({ deps: (vm: MyClass) => vm.value })
+    @computed({ deps: (vm) => vm.value })
     public method() {
       return this.value;
     }

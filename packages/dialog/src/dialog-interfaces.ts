@@ -45,6 +45,13 @@ export interface IDialogService {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testTypes(d: IDialogService) {
+  void d.open({
+    component: class Abc {},
+  }).whenClosed().then(result => {
+    const { status, value } = result;
+    return { status, value };
+  });
+
   return [
     d.open({
       model: { b: 2 },
@@ -118,7 +125,15 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
   /**
    * Add a callback that will be invoked when a dialog has been closed
    */
+  whenClosed(): Promise<DialogCloseResult>;
+  whenClosed<TResult1>(
+    onfulfilled?: ((value: DialogCloseResult) => TResult1 | PromiseLike<TResult1>) | null,
+  ): Promise<TResult1>;
   whenClosed<TResult1, TResult2>(
+    onfulfilled: ((value: DialogCloseResult) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+    onrejected: (reason: unknown) => TResult2 | PromiseLike<TResult2>
+  ): Promise<TResult1 | TResult2>;
+  whenClosed<TResult1, TResult2 = never>(
     onfulfilled?: (value: DialogCloseResult) => TResult1 | Promise<TResult1>,
     onrejected?: (reason: unknown) => TResult2 | Promise<TResult2>
   ): Promise<TResult1 | TResult2>;

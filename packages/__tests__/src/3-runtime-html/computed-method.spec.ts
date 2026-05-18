@@ -4,6 +4,7 @@ import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/computed-method.spec.ts', function () {
   it('should throw if applied to non-method', function () {
     assert.throws(() => class Test {
+      // @ts-expect-error - should error because it's not a method
       @computed()
       public property: string = 'test';
     });

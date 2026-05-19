@@ -1270,10 +1270,10 @@ export function register(container) {
       assert.equal(result.code, expected);
     });
 
-    it('imports template from a separate module when templateModuleSpecifier is provided', function () {
+    it('imports template from the source html module when inlineTemplate is false', function () {
       const html = '<bindable name="message"><template><div>Hello</div></template>';
       const expected = `import { CustomElement } from '@aurelia/runtime-html';
-import * as __au2Template from "./foo-bar.html";
+import * as __au2Template from "./index.html";
 export const name = "foo-bar";
 export const template = __au2Template.default;
 export default template;
@@ -1289,7 +1289,7 @@ export function register(container) {
 `;
       const result = preprocessHtmlTemplate(
         { path: path.join('lo', 'foo-bar', 'index.html'), contents: html },
-        preprocessOptions({ hmr: false, templateModuleSpecifier: './foo-bar.html' }),
+        preprocessOptions({ hmr: false, inlineTemplate: false }),
         false,
         () => false
       );

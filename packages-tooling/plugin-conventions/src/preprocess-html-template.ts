@@ -38,7 +38,8 @@ export function preprocessHtmlTemplate(
   }
 
   const useCSSModule = shadowMode !== null ? false : options.useCSSModule;
-  const templateModuleSpecifier = options.templateModuleSpecifier;
+  const inlineTemplate = options.inlineTemplate ?? true;
+  const templateSourceModuleSpecifier = `./${path.basename(unit.path)}`;
 
   const viewDeps: string[] = [];
   const cssDeps: string[] = [];
@@ -138,11 +139,11 @@ export function preprocessHtmlTemplate(
     viewDeps.push(`cssModules(${cssModuleDeps.join(', ')})`);
   }
   statements.forEach(st => m.append(st));
-  if (templateModuleSpecifier != null) {
-    m.append(`import * as __au2Template from ${s(templateModuleSpecifier)};\n`);
+  if (!inlineTemplate) {
+    m.append(`import * as __au2Template from ${s(templateSourceModuleSpecifier)};\n`);
   }
   m.append(`export const name = ${s(name)};\n`);
-  if (templateModuleSpecifier != null) {
+  if (!inlineTemplate) {
     m.append(`export const template = __au2Template.default;\n`);
   } else {
     m.append(`export const template = ${s(options.transformHtml?.(html) ?? html)};\n`);

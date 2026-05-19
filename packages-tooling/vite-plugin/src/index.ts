@@ -1,6 +1,6 @@
 import { IOptionalPreprocessOptions, nodeFileSystem, preprocess, stripMetaData } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
-import { resolve, dirname, basename } from 'path';
+import { resolve, dirname } from 'path';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -56,7 +56,7 @@ export default function au(options: {
         }, {
           hmrModule: 'import.meta',
           getHmrCode,
-          templateModuleSpecifier: `./${basename(htmlId)}`,
+          inlineTemplate: false,
           transformHtmlImportSpecifier: toAuViewSpecifier,
           stringModuleWrap: (moduleId) => `${moduleId}?inline`,
           ...additionalOptions

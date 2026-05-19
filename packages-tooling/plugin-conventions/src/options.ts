@@ -59,9 +59,10 @@ export interface IOptionalPreprocessOptions {
    */
   transformHtml?: (html: string) => string;
   /**
-   * Used to import the template HTML from a separate module instead of inlining it.
+   * Controls whether the stripped template HTML is inlined into the generated module.
+   * Defaults to true for existing behavior.
    */
-  templateModuleSpecifier?: string;
+  inlineTemplate?: boolean;
   /**
    * This gets the generated HMR code for the specified class
    *
@@ -105,9 +106,10 @@ export interface IPreprocessOptions {
    */
   transformHtml?: (html: string) => string;
   /**
-   * Used to import the template HTML from a separate module instead of inlining it.
+   * Controls whether the stripped template HTML is inlined into the generated module.
+   * Defaults to true for existing behavior.
    */
-  templateModuleSpecifier?: string;
+  inlineTemplate?: boolean;
   /**
    * This gets the generated HMR code for the specified class
    *
@@ -132,6 +134,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions = [],
     templateExtensions = [],
     useCSSModule = false,
+    inlineTemplate = true,
     hmr = true,
     enableConventions = true,
     hmrModule = 'module',
@@ -144,6 +147,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions: Array.from(new Set([...defaultJsExtensions, ...jsExtensions])).sort(),
     templateExtensions: Array.from(new Set([...defaultTemplateExtensions, ...templateExtensions])).sort(),
     useCSSModule,
+    inlineTemplate,
     hmr,
     hmrModule,
     enableConventions,

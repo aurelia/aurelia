@@ -14,6 +14,28 @@ function preprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
 }
 
 describe('webpack-loader', function () {
+  it('forces inlineTemplate for backward compatibility', function (done) {
+    const context = {
+      async: () => function (err) {
+        if (err) {
+          done(err);
+          return;
+        }
+        done();
+      },
+      query: { inlineTemplate: false },
+      resourcePath: 'src/foo-bar.html'
+    };
+
+    loader.call(context, 'content', function (unit, options) {
+      assert.equal(options.inlineTemplate, true);
+      return {
+        code: unit.contents,
+        map: { version: 3 }
+      };
+    });
+  });
+
   it('transforms html file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
@@ -157,4 +179,3 @@ describe('webpack-loader', function () {
     loader.call(context, content, preprocess);
   });
 });
-

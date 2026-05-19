@@ -60,7 +60,7 @@ export interface IOptionalPreprocessOptions {
   transformHtml?: (html: string) => string;
   /**
    * Controls whether the stripped template HTML is inlined into the generated module.
-   * Defaults to true for existing behavior.
+   * Defaults to false.
    */
   inlineTemplate?: boolean;
   /**
@@ -107,7 +107,7 @@ export interface IPreprocessOptions {
   transformHtml?: (html: string) => string;
   /**
    * Controls whether the stripped template HTML is inlined into the generated module.
-   * Defaults to true for existing behavior.
+   * Defaults to false.
    */
   inlineTemplate?: boolean;
   /**
@@ -134,7 +134,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions = [],
     templateExtensions = [],
     useCSSModule = false,
-    inlineTemplate = true,
+    inlineTemplate = false,
     hmr = true,
     enableConventions = true,
     hmrModule = 'module',

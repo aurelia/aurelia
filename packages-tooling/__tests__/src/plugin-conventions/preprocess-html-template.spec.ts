@@ -1,6 +1,10 @@
 import * as path from 'path';
-import { preprocessHtmlTemplate, preprocessOptions } from '@aurelia/plugin-conventions';
+import { preprocessHtmlTemplate, preprocessOptions as basePreprocessOptions } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
+
+function preprocessOptions(options: Parameters<typeof basePreprocessOptions>[0] = {}) {
+  return basePreprocessOptions({ inlineTemplate: true, ...options });
+}
 
 describe('preprocessHtmlTemplate', function () {
   it('processes template with no dependencies', function () {

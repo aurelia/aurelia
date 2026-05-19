@@ -1,6 +1,6 @@
-import { IOptionalPreprocessOptions, nodeFileSystem, preprocess } from '@aurelia/plugin-conventions';
+import { IOptionalPreprocessOptions, nodeFileSystem, preprocess, stripMetaData } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
-import { resolve, dirname } from 'path';
+import { resolve, dirname, basename } from 'path';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -20,9 +20,10 @@ export default function au(options: {
   } = options;
   const filter = createFilter(include, exclude);
   const fileSystem = additionalOptions.fileSystem ?? nodeFileSystem;
-  const isAuViewRequest = (id: string) => id.includes('?au-view');
-  const toAuViewSpecifier = (id: string) => id.replace(/\.html$/, '.html?au-view');
-  const matches = (id: string) => filter(id.split('?', 1)[0]);
+  const isAuViewRequest = (id: string) => /\.html\.au\.[jt]s$/.test(id.split('?', 1)[0]);
+  const toAuViewSpecifier = (id: string) => id.replace(/\.html$/, '.html.au.ts');
+  const toSourceHtmlPath = (id: string) => id.split('?', 1)[0].replace(/\.au\.[jt]s$/, '');
+  const matches = (id: string) => filter(isAuViewRequest(id) ? toSourceHtmlPath(id) : id.split('?', 1)[0]);
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
@@ -45,7 +46,26 @@ export default function au(options: {
     sharedDuringBuild: true,
     enforce: pre ? 'pre' : 'post',
     async transform(code, id) {
-      if (!matches(id) || isAuViewRequest(id) || id.endsWith('.html')) return;
+      if (!matches(id)) return;
+
+      if (isAuViewRequest(id)) {
+        const htmlId = toSourceHtmlPath(id);
+        return preprocess({
+          path: htmlId,
+          contents: code,
+        }, {
+          hmrModule: 'import.meta',
+          getHmrCode,
+          templateModuleSpecifier: `./${basename(htmlId)}`,
+          transformHtmlImportSpecifier: toAuViewSpecifier,
+          stringModuleWrap: (moduleId) => `${moduleId}?inline`,
+          ...additionalOptions
+        });
+      }
+
+      if (id.endsWith('.html')) {
+        return stripMetaData(code).html;
+      }
 
       return preprocess({
         path: id,
@@ -64,12 +84,9 @@ export default function au(options: {
         return null;
       }
 
-      const [pathPart, query = ''] = id.split('?', 2);
-      const querySuffix = `?${query}`;
+      if (id.startsWith('/')) return id;
 
-      if (pathPart.startsWith('/')) return `${pathPart}${querySuffix}`;
-
-      return resolve(dirname(importer ?? ''), this.meta.watchMode ? pathPart.replace(/^\//, './') : pathPart) + querySuffix;
+      return resolve(dirname(importer ?? ''), this.meta.watchMode ? id.replace(/^\//, './') : id);
     },
 
     load(id) {
@@ -77,35 +94,24 @@ export default function au(options: {
         return null;
       }
 
-      const htmlId = id.replace(/\?au-view\b.*$/, '');
+      const htmlId = toSourceHtmlPath(id);
       return fileSystem.read({ path: htmlId, contents: '' }, htmlId);
     }
   };
 
-  const viewPlugin: import('vite').Plugin = {
-    name: 'au2:views',
+  const htmlModulePlugin: import('vite').Plugin = {
+    name: 'au2:html-module',
     sharedDuringBuild: true,
-    enforce: 'post',
     transform(code, id) {
-      if (!isAuViewRequest(id) || !matches(id)) {
+      if (isAuViewRequest(id) || !matches(id) || !id.endsWith('.html')) {
         return null;
       }
 
-      const htmlId = id.replace(/\?au-view\b.*$/, '');
-      return preprocess({
-        path: htmlId,
-        contents: code,
-      }, {
-        hmrModule: 'import.meta',
-        getHmrCode,
-        transformHtmlImportSpecifier: toAuViewSpecifier,
-        stringModuleWrap: (id) => `${id}?inline`,
-        ...additionalOptions
-      });
+      return `export default ${JSON.stringify(code)};\n`;
     }
   };
 
-  return [devPlugin, resourcePlugin, viewPlugin];
+  return [devPlugin, resourcePlugin, htmlModulePlugin];
 }
 
 function getHmrCode(className: string, moduleNames: string = ''): string {

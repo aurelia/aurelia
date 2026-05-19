@@ -1,12 +1,13 @@
 import { strict as assert } from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { minify } from 'html-minifier-terser';
 import au from '@aurelia/vite-plugin';
 import { createMemoryFileSystem } from '@aurelia/plugin-conventions';
 import type { Plugin } from 'vite';
 
 describe('vite-plugin build', function () {
-  it('compiles ?au-view from transformed html without mutating the bare html module', async function () {
+  it('builds html.au.ts from source html while the bare html keeps flowing through the html pipeline', async function () {
     this.timeout(20000);
 
     const tempBase = path.resolve('.tmp-vite-build');
@@ -18,14 +19,18 @@ describe('vite-plugin build', function () {
     const srcDir = path.join(root, 'src');
     fs.mkdirSync(srcDir, { recursive: true });
     const entryFile = path.join(srcDir, 'app.ts');
-    fs.writeFileSync(entryFile, 'export class App {}\n', 'utf8');
+    fs.writeFileSync(entryFile, 'import * as appTemplateModule from \'./app.html\';\nexport const appTemplate = appTemplateModule.default;\nexport class App {}\n', 'utf8');
     const htmlFile = path.join(srcDir, 'app.html');
     const files = {
-      'src/app.html': '<template><div>${message | identity}</div>\n<input />\n<my-input value.bind="message2"></my-input>\n</template>',
+      'src/app.html': '<template><import from="./my-input.html"></import><div>${message | identity}</div>\n<input />\n<my-input value.bind="message2"></my-input>\n</template>',
+      'src/my-input.html': '<template><div>input</div></template>',
     };
 
     const appHtmlId = normalize(htmlFile);
+    const appHtmlModuleId = `${appHtmlId}.au.ts`;
     let capturedCompiledViewCode = '';
+    let htmlProbeHits = 0;
+    let htmlMinifyHits = 0;
 
     const externalizeAurelia = (): Plugin => ({
       name: 'externalize-aurelia',
@@ -39,9 +44,16 @@ describe('vite-plugin build', function () {
 
     const memorySource = (): Plugin => ({
       name: 'memory-source',
-      resolveId(source) {
+      resolveId(source, importer) {
+        if (source === './app.html' && importer != null && normalize(importer) === appHtmlModuleId) {
+          return appHtmlId;
+        }
         if (source.endsWith('app.html')) {
           return appHtmlId;
+        }
+        const normalizedMyInputId = normalize(path.join(srcDir, 'my-input.html'));
+        if (source.endsWith('my-input.html')) {
+          return normalizedMyInputId;
         }
         return null;
       },
@@ -49,6 +61,9 @@ describe('vite-plugin build', function () {
         const normalizedId = normalize(id);
         if (normalizedId === appHtmlId) {
           return files['src/app.html'];
+        }
+        if (normalizedId === normalize(path.join(srcDir, 'my-input.html'))) {
+          return files['src/my-input.html'];
         }
         return null;
       }
@@ -58,10 +73,10 @@ describe('vite-plugin build', function () {
       name: 'html-probe',
       enforce: 'pre',
       transform(code, id) {
-        const [filePath] = id.split('?', 1);
-        if (normalize(filePath) !== appHtmlId) {
+        if (normalize(id) !== appHtmlId) {
           return null;
         }
+        htmlProbeHits++;
         return code.replace(
           `<div>\${message | identity}</div>`,
           `<div data-html-probe="yes"><span>Mesage is:</span>\${message | identity}</div>`,
@@ -69,11 +84,28 @@ describe('vite-plugin build', function () {
       }
     });
 
-    const captureCompiledView = (): Plugin => ({
-      name: 'capture-compiled-view',
+    const minifyHtml = (): Plugin => ({
+      name: 'html-minify',
+      async transform(code, id) {
+        if (!normalize(id).endsWith('.html')) {
+          return null;
+        }
+        if (normalize(id) === appHtmlId) {
+          htmlMinifyHits++;
+        }
+        return minify(code, {
+          collapseWhitespace: true,
+          removeComments: true,
+        });
+      }
+    });
+
+    const captureCompiledModules = (): Plugin => ({
+      name: 'capture-compiled-modules',
       enforce: 'post',
       transform(code, id) {
-        if (normalize(id) === `${appHtmlId}?au-view`) {
+        const normalizedId = normalize(id);
+        if (normalizedId === appHtmlModuleId) {
           capturedCompiledViewCode = code;
         }
         return null;
@@ -88,14 +120,12 @@ describe('vite-plugin build', function () {
           externalizeAurelia(),
           memorySource(),
           htmlProbe(),
+          minifyHtml(),
           au({
             include: /\.(ts|js|html)$/,
-            fileSystem: createMemoryFileSystem(
-              files,
-              root
-            )
+            fileSystem: createMemoryFileSystem(files, root)
           }),
-          captureCompiledView(),
+          captureCompiledModules(),
         ],
         build: {
           write: false,
@@ -114,9 +144,10 @@ describe('vite-plugin build', function () {
         .map(file => ('code' in file ? file.code : ''))
         .join('\n');
 
-      assert.match(capturedCompiledViewCode, /data-html-probe=\\"yes\\"/);
-      assert.doesNotMatch(capturedCompiledViewCode, /<div>\$\{message \| identity\}<\/div>/);
-      assert.match(generatedCode, /customElement/);
+      assert.match(capturedCompiledViewCode, /import \* as __au2Template from "\.\/app\.html";/);
+      assert.match(capturedCompiledViewCode, /import \* as d0 from "\.\/my-input\.html\.au\.ts";/);
+      assert.equal(htmlProbeHits, 1);
+      assert.equal(htmlMinifyHits, 1);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

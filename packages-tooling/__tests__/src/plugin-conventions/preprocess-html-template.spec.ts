@@ -1243,7 +1243,7 @@ export function register(container) {
       assert.equal(result.code, expected);
     });
 
-    it('preprocesses templates with transformHtml option', function () {
+  it('preprocesses templates with transformHtml option', function () {
       const html = [
         '<template></template>'
       ].join('');
@@ -1264,6 +1264,32 @@ export function register(container) {
       const result = preprocessHtmlTemplate(
         { path: path.join('lo', 'foo-bar', 'index.html'), contents: html },
         preprocessOptions({ hmr: false, transformHtml: (_html) => `${_html}<main class="blabla"></main>` }),
+        false,
+        () => false
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it('imports template from a separate module when templateModuleSpecifier is provided', function () {
+      const html = '<bindable name="message"><template><div>Hello</div></template>';
+      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import * as __au2Template from "./foo-bar.html";
+export const name = "foo-bar";
+export const template = __au2Template.default;
+export default template;
+export const dependencies = [  ];
+export const bindables = {"message":{"name":"message"}};
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+      const result = preprocessHtmlTemplate(
+        { path: path.join('lo', 'foo-bar', 'index.html'), contents: html },
+        preprocessOptions({ hmr: false, templateModuleSpecifier: './foo-bar.html' }),
         false,
         () => false
       );

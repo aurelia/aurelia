@@ -38,6 +38,7 @@ export function preprocessHtmlTemplate(
   }
 
   const useCSSModule = shadowMode !== null ? false : options.useCSSModule;
+  const templateModuleSpecifier = options.templateModuleSpecifier;
 
   const viewDeps: string[] = [];
   const cssDeps: string[] = [];
@@ -137,9 +138,16 @@ export function preprocessHtmlTemplate(
     viewDeps.push(`cssModules(${cssModuleDeps.join(', ')})`);
   }
   statements.forEach(st => m.append(st));
-  m.append(`export const name = ${s(name)};
-export const template = ${s(options.transformHtml?.(html) ?? html)};
-export default template;
+  if (templateModuleSpecifier != null) {
+    m.append(`import * as __au2Template from ${s(templateModuleSpecifier)};\n`);
+  }
+  m.append(`export const name = ${s(name)};\n`);
+  if (templateModuleSpecifier != null) {
+    m.append(`export const template = __au2Template.default;\n`);
+  } else {
+    m.append(`export const template = ${s(options.transformHtml?.(html) ?? html)};\n`);
+  }
+  m.append(`export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
 `);
 
@@ -203,4 +211,3 @@ export function register(container) {
 function s(input: unknown) {
   return JSON.stringify(input);
 }
-

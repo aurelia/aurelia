@@ -59,6 +59,10 @@ export interface IOptionalPreprocessOptions {
    */
   transformHtml?: (html: string) => string;
   /**
+   * Used to import the template HTML from a separate module instead of inlining it.
+   */
+  templateModuleSpecifier?: string;
+  /**
    * This gets the generated HMR code for the specified class
    *
    * @param viewModelClassName - The name of the class to generate HMR code for
@@ -100,6 +104,10 @@ export interface IPreprocessOptions {
    * Used to transform the HTML content of a template file during preprocessing.
    */
   transformHtml?: (html: string) => string;
+  /**
+   * Used to import the template HTML from a separate module instead of inlining it.
+   */
+  templateModuleSpecifier?: string;
   /**
    * This gets the generated HMR code for the specified class
    *

@@ -1,5 +1,24 @@
 import { defineConfig } from 'vite';
 import aurelia from '@aurelia/vite-plugin';
+import { minify } from 'html-minifier-terser';
+
+function minifyHtml() {
+  return {
+    name: 'html-minify',
+    // enforce: 'pre',
+    async transform(code, id) {
+      const [path] = id.split('?', 1);
+      if (!path.endsWith('.html')) {
+        return null;
+      }
+      return minify(code, {
+        collapseWhitespace: true,
+        keepClosingSlash: true,
+        removeComments: true,
+      });
+    },
+  };
+}
 
 function htmlProbe() {
   return {
@@ -11,8 +30,8 @@ function htmlProbe() {
         return null;
       }
       return Promise.resolve(code.replace(
-        '<div>${message | identity}</div>',
-        '<div data-html-probe="yes"><span>Mesage is:</span> ${message | identity}</div>',
+        `<div>\${message | identity}</div>`,
+        `<div data-html-probe="yes"><span>Mesage is:</span>\${message | identity}</div>`,
       ));
     },
   };
@@ -27,6 +46,7 @@ export default defineConfig({
     target: "es2022",
   },
   plugins: [
+    minifyHtml(),
     htmlProbe(),
     aurelia()
   ],

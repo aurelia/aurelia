@@ -18,7 +18,13 @@ export interface IFileUnit {
   readFile?(path: string): string;
 }
 
+export interface IFileSystem {
+  exists(unit: IFileUnit, path: string): boolean;
+  read(unit: IFileUnit, path: string): string;
+}
+
 export interface IOptionalPreprocessOptions {
+  fileSystem?: IFileSystem;
   defaultShadowOptions?: { mode: 'open' | 'closed' };
   // More details in ./preprocess-html-template.ts
   stringModuleWrap?: ((id: string) => string);
@@ -67,6 +73,7 @@ export interface IOptionalPreprocessOptions {
 }
 
 export interface IPreprocessOptions {
+  fileSystem?: IFileSystem;
   defaultShadowOptions?: { mode: 'open' | 'closed' };
   // More details in ./preprocess-html-template.ts
   stringModuleWrap?: ((id: string) => string);

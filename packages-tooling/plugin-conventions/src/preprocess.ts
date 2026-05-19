@@ -15,16 +15,20 @@ export function preprocess(
   const ext = path.extname(unit.path);
   const basename = path.basename(unit.path, ext);
   const allOptions = preprocessOptions(options);
+  const fileSystem = allOptions.fileSystem ?? {
+    exists: _fileExists,
+    read: _readFile,
+  };
   const templateExtensions = allOptions.templateExtensions;
   const useProcessedFilePairFilename = allOptions.useProcessedFilePairFilename;
-  unit.readFile = (path) => _readFile(unit, path);
+  unit.readFile = (path) => fileSystem.read(unit, path);
 
   if (allOptions.enableConventions && templateExtensions.includes(ext)) {
     for (const ce of allOptions.cssExtensions) {
       let filePair: string | null = `${basename}.module${ce}`;
-      if (!_fileExists(unit, `./${filePair}`)) {
+      if (!fileSystem.exists(unit, `./${filePair}`)) {
         filePair = `${basename}${ce}`;
-        if (!_fileExists(unit, `./${filePair}`)) continue;
+        if (!fileSystem.exists(unit, `./${filePair}`)) continue;
       }
 
       // Replace foo.scss with transpiled file name foo.css
@@ -35,14 +39,14 @@ export function preprocess(
     return preprocessHtmlTemplate(
       unit,
       allOptions,
-      allOptions.jsExtensions.some(e => _fileExists(unit, `./${basename}${e}`)),
-      _fileExists
+      allOptions.jsExtensions.some(e => fileSystem.exists(unit, `./${basename}${e}`)),
+      fileSystem.exists
     );
   }
   if (allOptions.jsExtensions.includes(ext)) {
     for (const te of templateExtensions) {
       const filePair = `${basename}${te}`;
-      if (!_fileExists(unit, `./${filePair}`)) continue;
+      if (!fileSystem.exists(unit, `./${filePair}`)) continue;
       unit.filePair = useProcessedFilePairFilename ? `${basename}.html` : filePair;
 
       // Try foo.js and foo-view.html convention.
@@ -50,7 +54,7 @@ export function preprocess(
       for (const te of templateExtensions) {
         // Note that this is technically not a nested for-loop, as it is bound to run only once when the file pair is found. Complexity: m+n instead of m*n.
         const viewPair = `${basename}-view${te}`;
-        if (!_fileExists(unit, `./${viewPair}`)) continue;
+        if (!fileSystem.exists(unit, `./${viewPair}`)) continue;
         unit.filePair = useProcessedFilePairFilename ? `${basename}-view.html` : viewPair;
         break;
       }

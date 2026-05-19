@@ -1,4 +1,4 @@
-import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+import { IOptionalPreprocessOptions, nodeFileSystem, preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 
@@ -19,20 +19,20 @@ export default function au(options: {
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
+  const fileSystem = additionalOptions.fileSystem ?? nodeFileSystem;
   const isAuViewRequest = (id: string) => id.includes('?au-view');
   const toAuViewSpecifier = (id: string) => id.replace(/\.html$/, '.html?au-view');
-  const normalizePath = (id: string) => id.replace(/\\/g, '/');
+  const matches = (id: string) => filter(id.split('?', 1)[0]);
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
+    sharedDuringBuild: true,
     config(config) {
       const isDev = useDev === true || (useDev == null && config.mode !== 'production');
       if (!isDev) {
         return;
       }
 
-      // Add 'development' to resolve.conditions so Vite uses the dev exports
-      // defined in each @aurelia/* package.json "exports" field
       (config.resolve ??= {}).conditions ??= [];
       if (!config.resolve.conditions.includes('development')) {
         config.resolve.conditions.unshift('development');
@@ -40,31 +40,23 @@ export default function au(options: {
     },
   };
 
-  let $config!: import('vite').ResolvedConfig;
-
-  const auPlugin: import('vite').Plugin = {
-    name: 'au2',
+  const resourcePlugin: import('vite').Plugin = {
+    name: 'au2:resources',
+    sharedDuringBuild: true,
     enforce: pre ? 'pre' : 'post',
-    configResolved(config) {
-      $config = config;
-    },
     async transform(code, id) {
-      if (!filter(id)) return;
-      // .html?au-view is already preprocessed by the load hook of this plugin
-      if (isAuViewRequest(id)) return;
+      if (!matches(id) || isAuViewRequest(id) || id.endsWith('.html')) return;
 
-      const result = preprocess({
+      return preprocess({
         path: id,
         contents: code,
       }, {
-        // hmr: true,
         hmrModule: 'import.meta',
         getHmrCode,
         transformHtmlImportSpecifier: toAuViewSpecifier,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });
-      return result;
     },
 
     resolveId(id, importer) {
@@ -75,39 +67,45 @@ export default function au(options: {
       const [pathPart, query = ''] = id.split('?', 2);
       const querySuffix = `?${query}`;
 
-      // Vite id is in POSIX format, either relative like ./foo.ts or absolute like /src/foo.ts
-      // When absolute is in use:
-      // 1. on POSIX system, resolve('/some/dir', '/src/foo.ts') => '/src/foo.ts'
-      // 2. on win32 system, resolve('C:\\some\\dir', '/src/foo.ts') => 'C:\\src\\foo.ts' that's
-      // not what vite want.
-      //
-      // For absolute path like /src/foo.ts, retain it on win32, and let vitest.config's test.root
-      // to resolve it.
       if (pathPart.startsWith('/')) return `${pathPart}${querySuffix}`;
 
-      const resolvedPath = resolve(dirname(importer ?? ''), this.meta.watchMode ? pathPart.replace(/^\//, './') : pathPart);
-      return `${resolvedPath}${querySuffix}`;
+      return resolve(dirname(importer ?? ''), this.meta.watchMode ? pathPart.replace(/^\//, './') : pathPart) + querySuffix;
     },
 
-    async load(id) {
-      if (!isAuViewRequest(id)) {
+    load(id) {
+      if (!isAuViewRequest(id) || !matches(id)) {
         return null;
       }
+
       const htmlId = id.replace(/\?au-view\b.*$/, '');
-      const normalizedId = normalizePath(htmlId);
-      const normalizedRoot = normalizePath($config.root);
-      const url = normalizedId.startsWith(`${normalizedRoot}/`)
-        ? normalizedId.slice(normalizedRoot.length)
-        : normalizedId.startsWith('/')
-          ? normalizedId
-          : `/@fs/${normalizedId}`;
-      return `export * from ${JSON.stringify(url)};
-export { default } from ${JSON.stringify(url)};
-`;
+      return fileSystem.read({ path: htmlId, contents: '' }, htmlId);
     }
   };
 
-  return [devPlugin, auPlugin];
+  const viewPlugin: import('vite').Plugin = {
+    name: 'au2:views',
+    sharedDuringBuild: true,
+    enforce: 'post',
+    transform(code, id) {
+      if (!isAuViewRequest(id) || !matches(id)) {
+        return null;
+      }
+
+      const htmlId = id.replace(/\?au-view\b.*$/, '');
+      return preprocess({
+        path: htmlId,
+        contents: code,
+      }, {
+        hmrModule: 'import.meta',
+        getHmrCode,
+        transformHtmlImportSpecifier: toAuViewSpecifier,
+        stringModuleWrap: (id) => `${id}?inline`,
+        ...additionalOptions
+      });
+    }
+  };
+
+  return [devPlugin, resourcePlugin, viewPlugin];
 }
 
 function getHmrCode(className: string, moduleNames: string = ''): string {
@@ -231,10 +229,6 @@ if (${moduleText}.hot) {
         h.parentNode.replaceChild(controller.host, h);
         controller.activate(controller, controller.parent ?? null, 0);
 
-        // because we are in the previous controllers loop,
-        // we are sure that the controllers array is initialized to empty,
-        // from the HMR initialize code at the top.
-        // hence we push the controller back to the controllers array.
         controllers.push(controller);
       });
     });

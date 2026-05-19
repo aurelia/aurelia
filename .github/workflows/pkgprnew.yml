@@ -33,6 +33,12 @@ jobs:
         run: >
           npx pkg-pr-new publish
           "./packages/*"
-          "./packages-toolings/*"
+          "./packages-tooling/babel-jest"
+          "./packages-tooling/parcel-transformer"
+          "./packages-tooling/plugin-conventions"
+          "./packages-tooling/plugin-gulp"
+          "./packages-tooling/ts-jest"
+          "./packages-tooling/vite-plugin"
+          "./packages-tooling/webpack-loader"
           --compact
           --template "./examples/stackblitz"

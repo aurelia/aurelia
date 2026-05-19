@@ -1,4 +1,4 @@
-import { IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+import { IFileSystem, IFileUnit, IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
 import type { TsJestTransformerOptions } from 'ts-jest';
 import tsJest from '@aurelia/ts-jest';
 const { _createTransformer } = tsJest;
@@ -6,9 +6,18 @@ import { assert } from '@aurelia/testing';
 import { TransformOptions, TransformedSource } from '@jest/transform';
 import { makeProjectConfig } from '../jest-test-utils/config';
 
-function makePreprocess(_fileExists: (unit: IFileUnit, p: string) => boolean) {
+function makePreprocess(fileSystem: IFileSystem) {
   return function (unit: IFileUnit, options: IOptionalPreprocessOptions) {
-    return preprocess(unit, options, _fileExists);
+    return preprocess(unit, { ...options, fileSystem });
+  };
+}
+
+function makeFileSystem(exists: (unit: IFileUnit, p: string) => boolean): IFileSystem {
+  return {
+    exists,
+    read() {
+      throw new Error('Unexpected read');
+    }
   };
 }
 
@@ -50,7 +59,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const t = _createTransformer({ hmr: false}, makePreprocess(() => false), tsProcess);
+    const t = _createTransformer({ hmr: false}, makePreprocess(makeFileSystem(() => false)), tsProcess);
     const result = t.process(html, 'src/foo-bar.html', options);
     assert.deepEqual(result, { code: expected });
   });
@@ -77,7 +86,7 @@ export function register(container) {
 `;
     const t = _createTransformer(
       { defaultShadowOptions: { mode: 'open' }, hmr: false },
-      makePreprocess((u, p) => p === './foo-bar.less'),
+      makePreprocess(makeFileSystem((u, p) => p === './foo-bar.less')),
       tsProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
@@ -105,7 +114,7 @@ export function register(container) {
 `;
     const t = _createTransformer(
       { useCSSModule: true, hmr: false },
-      makePreprocess((u, p) => p === './foo-bar.scss'),
+      makePreprocess(makeFileSystem((u, p) => p === './foo-bar.scss')),
       tsProcess
     );
     const result = t.process(html, 'src/foo-bar.html', options);
@@ -121,7 +130,7 @@ export class FooBar {}
 `;
     const t = _createTransformer(
       { hmr: false },
-      makePreprocess((u, p) => p === './foo-bar.html'),
+      makePreprocess(makeFileSystem((u, p) => p === './foo-bar.html')),
       tsProcess
     );
     const result = t.process(js, 'src/foo-bar.js', options);
@@ -132,7 +141,7 @@ export class FooBar {}
     const js = 'export class FooBar {}\n';
     const expected = `export class FooBar {}
 `;
-    const t = _createTransformer({ hmr: false }, makePreprocess(() => false), tsProcess);
+    const t = _createTransformer({ hmr: false }, makePreprocess(makeFileSystem(() => false)), tsProcess);
     const result = t.process(js, 'src/foo-bar.js', options);
     assert.deepEqual(result, { code: expected });
   });

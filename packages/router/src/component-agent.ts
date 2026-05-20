@@ -104,6 +104,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
       case MountTarget.location:
         this._insertToViewport(controller.location!.$start!, controller.location!);
         break;
+      /* istanbul ignore next */
       case MountTarget.none:
         throw new Error('Invalid mount target for routed component');
     }
@@ -129,6 +130,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         }
         return;
       }
+      /* istanbul ignore next */
       default:
         throw new Error('Invalid mount target for viewport');
     }

@@ -27,7 +27,6 @@ export function loader(
       { path: filePath, contents },
       preprocessOptions({
         ...options,
-        inlineTemplate: true,
         getHmrCode
       })
     );

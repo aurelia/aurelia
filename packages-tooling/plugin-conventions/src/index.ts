@@ -4,10 +4,8 @@ export { preprocessResource } from './preprocess-resource';
 export { preprocessHtmlTemplate } from './preprocess-html-template';
 export { stripMetaData } from './strip-meta-data';
 export { preprocess } from './preprocess';
-export { createMemoryFileSystem, nodeFileSystem } from './file-exists';
 export {
   type INameConvention,
-  type IFileSystem,
   type IFileUnit,
   type IOptionalPreprocessOptions,
   type IPreprocessOptions,

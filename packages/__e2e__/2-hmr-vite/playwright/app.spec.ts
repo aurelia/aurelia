@@ -14,7 +14,6 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
     test('import aliasing with [as] works', async function ({ page }) {
       await expect(page.locator('text=42')).toBeVisible();
-      await expect(page.locator('[data-html-probe="yes"]')).toHaveText('Mesage is:Hello World!');
     });
   });
 
@@ -44,7 +43,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
     test(`rerenders without flushing <input> state`, async function ({ page }) {
 
-      await expect(page.locator('app > div')).toHaveText('Mesage is:Hello World!');
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
       await page.fill('input', 'abc');
       await expect(page.locator('input')).toHaveValue('abc');
 
@@ -65,12 +64,12 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       await new Promise(r => setTimeout(r, 10000));
       expect(await page.evaluate('window.app?.id')).toEqual(1);
 
-      await expect(page.locator('app > div')).toHaveText('Mesage is:Hello World!');
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
       await expect(page.locator('input')).toHaveValue('abc');
     });
 
     test(`multiple rerenders without flushing <input> state`, async function ({ page }) {
-      await expect(page.locator('app > div')).toHaveText('Mesage is:Hello World!');
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
       await page.fill('input', 'abc');
       await expect(page.locator('input')).toHaveValue('abc');
 
@@ -109,7 +108,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       await new Promise(r => setTimeout(r, 1000));
 
       await page.waitForFunction(() => (window as any).app?.id === 10, { timeout: 5000 });
-      await expect(page.locator('app > div')).toHaveText('Mesage is:Hello World!');
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
       await expect(page.locator('input')).toHaveValue('abc');
     });
 

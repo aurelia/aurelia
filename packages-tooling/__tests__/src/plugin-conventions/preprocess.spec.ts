@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { createMemoryFileSystem, preprocess, IFileUnit } from '@aurelia/plugin-conventions';
+import { preprocess, IFileUnit } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
 
 describe('preprocess', function () {
@@ -218,31 +218,6 @@ export class FooBar {}
       },
       { hmr: false },
       (unit: IFileUnit, filePath: string) => filePath === './index.html'
-    )!;
-    assert.equal(result.code, expected);
-    assert.equal(result.map.version, 3);
-  });
-
-  it('uses the configured memory file system for conventional pair discovery', function () {
-    const js = `export class FooBar {}\n`;
-    const expected = `import { customElement } from '@aurelia/runtime-html';
-import * as __au2ViewDef from './foo-bar.html';
-@customElement(__au2ViewDef)
-export class FooBar {}
-`;
-    const base = path.resolve('virtual-base');
-    const result = preprocess(
-      {
-        path: path.join('src', 'foo-bar.ts'),
-        contents: js,
-        base
-      },
-      {
-        hmr: false,
-        fileSystem: createMemoryFileSystem({
-          'src/foo-bar.html': '<template>Hello</template>',
-        }, base)
-      }
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);

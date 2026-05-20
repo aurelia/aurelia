@@ -18,13 +18,7 @@ export interface IFileUnit {
   readFile?(path: string): string;
 }
 
-export interface IFileSystem {
-  exists(unit: IFileUnit, path: string): boolean;
-  read(unit: IFileUnit, path: string): string;
-}
-
 export interface IOptionalPreprocessOptions {
-  fileSystem?: IFileSystem;
   defaultShadowOptions?: { mode: 'open' | 'closed' };
   // More details in ./preprocess-html-template.ts
   stringModuleWrap?: ((id: string) => string);
@@ -59,11 +53,6 @@ export interface IOptionalPreprocessOptions {
    */
   transformHtml?: (html: string) => string;
   /**
-   * Controls whether the stripped template HTML is inlined into the generated module.
-   * Defaults to false.
-   */
-  inlineTemplate?: boolean;
-  /**
    * This gets the generated HMR code for the specified class
    *
    * @param viewModelClassName - The name of the class to generate HMR code for
@@ -78,7 +67,6 @@ export interface IOptionalPreprocessOptions {
 }
 
 export interface IPreprocessOptions {
-  fileSystem?: IFileSystem;
   defaultShadowOptions?: { mode: 'open' | 'closed' };
   // More details in ./preprocess-html-template.ts
   stringModuleWrap?: ((id: string) => string);
@@ -106,11 +94,6 @@ export interface IPreprocessOptions {
    */
   transformHtml?: (html: string) => string;
   /**
-   * Controls whether the stripped template HTML is inlined into the generated module.
-   * Defaults to false.
-   */
-  inlineTemplate?: boolean;
-  /**
    * This gets the generated HMR code for the specified class
    *
    * @param viewModelClassName - The name of the class to generate HMR code for
@@ -134,7 +117,6 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions = [],
     templateExtensions = [],
     useCSSModule = false,
-    inlineTemplate = false,
     hmr = true,
     enableConventions = true,
     hmrModule = 'module',
@@ -147,7 +129,6 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     jsExtensions: Array.from(new Set([...defaultJsExtensions, ...jsExtensions])).sort(),
     templateExtensions: Array.from(new Set([...defaultTemplateExtensions, ...templateExtensions])).sort(),
     useCSSModule,
-    inlineTemplate,
     hmr,
     hmrModule,
     enableConventions,

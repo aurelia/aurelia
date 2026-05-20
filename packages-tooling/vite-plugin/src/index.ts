@@ -1,6 +1,7 @@
-import { IOptionalPreprocessOptions, nodeFileSystem, preprocess, stripMetaData } from '@aurelia/plugin-conventions';
+import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
+import { promises } from 'fs';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -19,21 +20,18 @@ export default function au(options: {
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
-  const fileSystem = additionalOptions.fileSystem ?? nodeFileSystem;
-  const isAuViewRequest = (id: string) => /\.html\.au\.[jt]s$/.test(id.split('?', 1)[0]);
-  const toAuViewSpecifier = (id: string) => id.replace(/\.html$/, '.html.au.ts');
-  const toSourceHtmlPath = (id: string) => id.split('?', 1)[0].replace(/\.au\.[jt]s$/, '');
-  const matches = (id: string) => filter(isAuViewRequest(id) ? toSourceHtmlPath(id) : id.split('?', 1)[0]);
+  const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
-    sharedDuringBuild: true,
     config(config) {
       const isDev = useDev === true || (useDev == null && config.mode !== 'production');
       if (!isDev) {
         return;
       }
 
+      // Add 'development' to resolve.conditions so Vite uses the dev exports
+      // defined in each @aurelia/* package.json "exports" field
       (config.resolve ??= {}).conditions ??= [];
       if (!config.resolve.conditions.includes('development')) {
         config.resolve.conditions.unshift('development');
@@ -41,77 +39,77 @@ export default function au(options: {
     },
   };
 
-  const resourcePlugin: import('vite').Plugin = {
-    name: 'au2:resources',
-    sharedDuringBuild: true,
+  let $config!: import('vite').ResolvedConfig;
+
+  const auPlugin: import('vite').Plugin = {
+    name: 'au2',
     enforce: pre ? 'pre' : 'post',
+    configResolved(config) {
+      $config = config;
+    },
     async transform(code, id) {
-      if (!matches(id)) return;
+      if (!filter(id)) return;
+      // .$au.ts = .html
+      // which already preprocessed by the load hook of this plugin
+      if (isVirtualTsFileFromHtml(id)) return;
 
-      if (isAuViewRequest(id)) {
-        const htmlId = toSourceHtmlPath(id);
-        return preprocess({
-          path: htmlId,
-          contents: code,
-        }, {
-          hmrModule: 'import.meta',
-          getHmrCode,
-          inlineTemplate: false,
-          transformHtmlImportSpecifier: toAuViewSpecifier,
-          stringModuleWrap: (moduleId) => `${moduleId}?inline`,
-          ...additionalOptions
-        });
-      }
-
-      if (id.endsWith('.html')) {
-        return stripMetaData(code).html;
-      }
-
-      return preprocess({
+      const result = preprocess({
         path: id,
         contents: code,
       }, {
+        // hmr: true,
         hmrModule: 'import.meta',
         getHmrCode,
-        transformHtmlImportSpecifier: toAuViewSpecifier,
+        transformHtmlImportSpecifier: (s) => {
+          return $config.mode === 'production'
+            ? s.replace(/\.html$/, '.$au.ts')
+            : s;
+        },
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });
+      return result;
     },
 
     resolveId(id, importer) {
-      if (!isAuViewRequest(id)) {
+      if (!isVirtualTsFileFromHtml(id)) {
         return null;
       }
 
+      // Vite id is in POSIX format, either relative like ./foo.ts or absolute like /src/foo.ts
+      // When absolute is in use:
+      // 1. on POSIX system, resolve('/some/dir', '/src/foo.ts') => '/src/foo.ts'
+      // 2. on win32 system, resolve('C:\\some\\dir', '/src/foo.ts') => 'C:\\src\\foo.ts' that's
+      // not what vite want.
+      //
+      // For absolute path like /src/foo.ts, retain it on win32, and let vitest.config's test.root
+      // to resolve it.
       if (id.startsWith('/')) return id;
 
-      return resolve(dirname(importer ?? ''), this.meta.watchMode ? id.replace(/^\//, './') : id);
+      id = resolve(dirname(importer ?? ''), this.meta.watchMode ? id.replace(/^\//, './') : id);
+      return id;
     },
 
-    load(id) {
-      if (!isAuViewRequest(id) || !matches(id)) {
+    async load(id) {
+      if (!isVirtualTsFileFromHtml(id)) {
         return null;
       }
-
-      const htmlId = toSourceHtmlPath(id);
-      return fileSystem.read({ path: htmlId, contents: '' }, htmlId);
+      const htmlId = id.replace('.$au.ts', '.html');
+      const code = await promises.readFile(htmlId, { encoding: 'utf-8' });
+      const result = preprocess({
+        path: htmlId,
+        contents: code,
+      }, {
+        hmrModule: 'import.meta',
+        transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
+        stringModuleWrap: (id) => `${id}?inline`,
+        ...additionalOptions
+      });
+      return result!.code;
     }
   };
 
-  const htmlModulePlugin: import('vite').Plugin = {
-    name: 'au2:html-module',
-    sharedDuringBuild: true,
-    transform(code, id) {
-      if (isAuViewRequest(id) || !matches(id) || !id.endsWith('.html')) {
-        return null;
-      }
-
-      return `export default ${JSON.stringify(code)};\n`;
-    }
-  };
-
-  return [devPlugin, resourcePlugin, htmlModulePlugin];
+  return [devPlugin, auPlugin];
 }
 
 function getHmrCode(className: string, moduleNames: string = ''): string {
@@ -235,6 +233,10 @@ if (${moduleText}.hot) {
         h.parentNode.replaceChild(controller.host, h);
         controller.activate(controller, controller.parent ?? null, 0);
 
+        // because we are in the previous controllers loop,
+        // we are sure that the controllers array is initialized to empty,
+        // from the HMR initialize code at the top.
+        // hence we push the controller back to the controllers array.
         controllers.push(controller);
       });
     });

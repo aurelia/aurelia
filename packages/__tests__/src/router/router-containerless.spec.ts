@@ -106,7 +106,7 @@ describe('router/router-containerless.spec.ts', function () {
     assert.html.textContent(host, 'root foo');
     assert.strictEqual(null, host.querySelector('au-viewport'));
     assert.strictEqual(null, host.querySelector('foo'));
-    assert.includes(host.innerHTML, 'root <!--au-start-->foo<!--au-end-->');
+    assert.includes(host.innerHTML, 'root <!--au-start--><!--au-start-->foo<!--au-end--><!--au-end-->');
   });
 
   it('renders routed content through nested containerless au-viewports', async function () {
@@ -185,6 +185,6 @@ describe('router/router-containerless.spec.ts', function () {
     assert.html.textContent(host, 'root child-host grand-child-host great-grand-child');
     assert.strictEqual(null, host.querySelector('au-viewport'));
     assert.strictEqual(null, host.querySelector('great-grand-child'));
-    assert.includes(host.innerHTML, '<child-host>child-host <!--au-start--><grand-child-host>grand-child-host <!--au-start-->great-grand-child<!--au-end--></grand-child-host><!--au-end--></child-host>');
+    assert.includes(host.innerHTML, '<child-host>child-host <!--au-start--><grand-child-host>grand-child-host <!--au-start--><!--au-start-->great-grand-child<!--au-end--><!--au-end--></grand-child-host><!--au-end--></child-host>');
   });
 });

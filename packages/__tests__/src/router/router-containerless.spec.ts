@@ -84,4 +84,37 @@ describe('router/router-containerless.spec.ts', function () {
     assert.strictEqual(null, host.querySelector('au-viewport'));
     assert.includes(host.innerHTML, '<foo>foo</foo>');
   });
+
+  it('renders routed content through nested containerless au-viewports', async function () {
+    @customElement({ name: 'grand-child', template: 'grand-child' })
+    class GrandChild {}
+
+    @route({
+      routes: [
+        { id: 'grand-child', path: '', component: GrandChild },
+      ]
+    })
+    @customElement({
+      name: 'child-host',
+      template: 'child-host <au-viewport containerless></au-viewport>'
+    })
+    class ChildHost {}
+
+    @route({
+      routes: [
+        { id: 'child-host', path: '', component: ChildHost },
+      ]
+    })
+    @customElement({
+      name: 'root',
+      template: 'root <au-viewport containerless></au-viewport>'
+    })
+    class App {}
+
+    const { host } = await start({ appRoot: App });
+
+    assert.html.textContent(host, 'root child-host grand-child');
+    assert.strictEqual(null, host.querySelector('au-viewport'));
+    assert.includes(host.innerHTML, '<child-host>child-host <!--au-start--><grand-child>grand-child</grand-child><!--au-end--></child-host>');
+  });
 });

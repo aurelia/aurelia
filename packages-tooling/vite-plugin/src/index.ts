@@ -61,7 +61,7 @@ export default function au(options: {
         hmrModule: 'import.meta',
         getHmrCode,
         transformHtmlImportSpecifier: (s) => {
-          return $config.mode === 'production'
+          return $config.command === 'build'
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },

@@ -113,6 +113,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   /**
    * Insert routed content into the correct place for the viewport.
    * Containerless viewports use their render location as an anchor.
+   * @internal
    */
   private _insertToViewport(...nodes: Node[]): void {
     const viewportController = this._ctx.vpa.hostController;

@@ -95,40 +95,45 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
    */
   private _mountToViewport(): void {
     const controller = this._controller;
-    const viewportHost = this._ctx.vpa.hostController.host;
-
-    if (this._isMountedTo(viewportHost)) {
-      return;
-    }
 
     switch (controller.mountTarget) {
       case MountTarget.host:
       case MountTarget.shadowRoot:
-        viewportHost.appendChild(controller.host);
+        this._insertToViewport(controller.host);
         break;
       case MountTarget.location:
-        viewportHost.append(controller.location!.$start!, controller.location!);
+        this._insertToViewport(controller.location!.$start!, controller.location!);
         break;
+      /* istanbul ignore next */
       case MountTarget.none:
         throw new Error('Invalid mount target for routed component');
     }
   }
 
   /**
-   * Check if the component is already mounted to the given host.
-   * Returns true during SSR hydration when the element was server-rendered.
+   * Insert routed content into the correct place for the viewport.
+   * Containerless viewports use their render location as an anchor.
    * @internal
    */
-  private _isMountedTo(host: HTMLElement): boolean {
-    const controller = this._controller;
-    switch (controller.mountTarget) {
+  private _insertToViewport(...nodes: Node[]): void {
+    const viewportController = this._ctx.vpa.hostController;
+    switch (viewportController.mountTarget) {
       case MountTarget.host:
+        viewportController.host.append(...nodes);
+        return;
       case MountTarget.shadowRoot:
-        return controller.host.parentNode === host;
-      case MountTarget.location:
-        return controller.location?.$start?.parentNode === host;
+        viewportController.shadowRoot!.append(...nodes);
+        return;
+      case MountTarget.location: {
+        const location = viewportController.location!;
+        for (const node of nodes) {
+          location.parentNode!.insertBefore(node, location);
+        }
+        return;
+      }
+      /* istanbul ignore next */
       default:
-        return false;
+        throw new Error('Invalid mount target for viewport');
     }
   }
 

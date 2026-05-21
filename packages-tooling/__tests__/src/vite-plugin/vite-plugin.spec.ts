@@ -51,6 +51,51 @@ describe('vite-plugin', function () {
     } as unknown as import('vite').ResolvedConfig;
   }
 
+  function createConfig(mode: string) {
+    return {
+      mode,
+      resolve: { alias: [], dedupe: [], conditions: [] },
+    } as unknown as import('vite').UserConfig;
+  }
+
+  function createPluginContext() {
+    return {
+      meta: { watchMode: false },
+      async resolve(id: string) {
+        return { id: `/resolved/${id}` };
+      },
+    };
+  }
+
+  it('does not mutate global resolve conditions when useDev is enabled', function () {
+    const [devPlugin] = au({ useDev: true });
+    const config = createConfig('development');
+
+    getHook(devPlugin.config)?.call({}, config);
+
+    assert.deepEqual(config.resolve?.conditions, []);
+  });
+
+  it('rewrites root Aurelia package imports to the development subpath when useDev is enabled', async function () {
+    const [devPlugin, resourcePlugin] = au({ useDev: true });
+    getHook(devPlugin.config)?.call({}, createConfig('development'));
+
+    const resolved = await getHook(resourcePlugin.resolveId)?.call(createPluginContext(), '@aurelia/kernel', '/src/app.ts', {});
+    assert.equal(resolved, '/resolved/@aurelia/kernel/development');
+  });
+
+  it('does not rewrite non-Aurelia or subpath imports when useDev is enabled', async function () {
+    const [devPlugin, resourcePlugin] = au({ useDev: true });
+    getHook(devPlugin.config)?.call({}, createConfig('development'));
+
+    const pluginContext = createPluginContext();
+    const thirdParty = await getHook(resourcePlugin.resolveId)?.call(pluginContext, 'typesense', '/src/app.ts', {});
+    const subpath = await getHook(resourcePlugin.resolveId)?.call(pluginContext, '@aurelia/router/lite', '/src/app.ts', {});
+
+    assert.equal(thirdParty, null);
+    assert.equal(subpath, null);
+  });
+
   it('rewrites conventional html imports for literal production mode', async function () {
     const fixture = createFixture();
     const [, resourcePlugin] = au({ include: /\.(ts|js|html)$/ });

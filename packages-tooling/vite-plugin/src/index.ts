@@ -40,7 +40,7 @@ export default function au(options: {
       $config = config;
     },
     async transform(code, id) {
-      if (!filter(id)) return;
+      if (!filter(normalizeFilterId(id))) return;
       // .$au.ts = .html
       // which already preprocessed by the load hook of this plugin
       if (isVirtualTsFileFromHtml(id)) return;
@@ -240,4 +240,16 @@ if (${moduleText}.hot) {
 }`;
 
   return code;
+}
+
+// Vite can surface Windows absolute paths with a drive letter casing that differs
+// from process.cwd(), likely due to fs.realpathSync.native() during resolution.
+// Normalize the drive letter before createFilter() so include/exclude checks stay stable.
+function normalizeFilterId(id: string, cwd: string = process.cwd(), platform: NodeJS.Platform = process.platform): string {
+  if (platform !== 'win32' || !/^[a-zA-Z]:/.test(id) || cwd.length === 0) {
+    return id;
+  }
+
+  const cwdDrive = cwd[0];
+  return id[0] === cwdDrive ? id : `${cwdDrive}${id.slice(1)}`;
 }

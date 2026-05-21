@@ -131,4 +131,35 @@ describe('vite-plugin', function () {
       fs.rmSync(fixture.root, { recursive: true, force: true });
     }
   });
+
+  if (process.platform === 'win32') {
+    it('transforms files when Windows drive letter casing differs from cwd casing', async function () {
+      const fixture = createFixture();
+      const windowsId = fixture.tsFile[0].toLowerCase() + fixture.tsFile.slice(1);
+      const originalCwd = process.cwd;
+      let resourcePlugin!: ReturnType<typeof au>[1];
+
+      fs.mkdirSync(fixture.srcDir, { recursive: true });
+      fs.writeFileSync(fixture.htmlFile, '<template>Hello</template>', 'utf8');
+
+      try {
+        Object.defineProperty(process, 'cwd', {
+          configurable: true,
+          value: () => fixture.root,
+        });
+        [, resourcePlugin] = au({ include: 'src/**/*.{ts,js,html}' });
+        getHook(resourcePlugin.configResolved)?.call({}, createResolvedConfig('production'));
+        const result = await getHook(resourcePlugin.transform)?.call({}, 'export class FooBar {}\n', windowsId);
+        const code = typeof result === 'string' ? result : result?.code;
+
+        assert.match(String(code), /import \* as __au2ViewDef from '\.\/foo-bar\.\$au\.ts';/);
+      } finally {
+        Object.defineProperty(process, 'cwd', {
+          configurable: true,
+          value: originalCwd,
+        });
+        fs.rmSync(fixture.root, { recursive: true, force: true });
+      }
+    });
+  }
 });

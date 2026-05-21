@@ -7534,4 +7534,63 @@ describe('router/smoke-tests.spec.ts', function () {
       await au.stop(true);
     });
   }
+
+  /**
+   * Reproduction: App has a single empty-path route pointing to a ShellLayout component.
+   * ShellLayout owns the real navigation routes ('shops', 'billing-accounts').
+   * Hard-reloading at /shops (or /billing-accounts) used to throw AUR3401.
+   * Each row deep-links to `initialPath`, then navigates in-app to `navPath`.
+   */
+  for (const { initialPath, initialContent, navPath, navContent } of [
+    { initialPath: '/shops',            initialContent: 'shops',   navPath: 'billing-accounts', navContent: 'billing' },
+    { initialPath: '/billing-accounts', initialContent: 'billing', navPath: 'shops',            navContent: 'shops'   },
+  ]) {
+    it(`deep-link to '${initialPath}' then navigate to '${navPath}' - GH issue #2406`, async function () {
+      @customElement({ name: 'shops-page', template: 'shops' })
+      class ShopsPage { }
+
+      @customElement({ name: 'billing-page', template: 'billing' })
+      class BillingPage { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'shops' },
+          { path: 'shops', component: ShopsPage },
+          { path: 'billing-accounts', component: BillingPage },
+        ],
+      })
+      @customElement({ name: 'shell-layout', template: '<au-viewport></au-viewport>' })
+      class ShellLayout { }
+
+      @route({
+        routes: [
+          { path: '', component: ShellLayout },
+        ],
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [
+          Registration.instance(ILocationManager, {
+            startListening: () => { },
+            stopListening: () => { },
+            getPath: () => initialPath,
+            removeBaseHref: (p: string) => p,
+            pushState: () => { },
+            replaceState: () => { },
+          })
+        ],
+      });
+
+      assert.html.textContent(host, initialContent, `deep-link ${initialPath} should render '${initialContent}'`);
+
+      const router = container.get(IRouter);
+      await router.load(navPath);
+      assert.html.textContent(host, navContent, `in-app navigation to '${navPath}' should render '${navContent}'`);
+
+      await au.stop(true);
+    });
+  }
 });

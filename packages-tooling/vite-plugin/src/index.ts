@@ -21,21 +21,13 @@ export default function au(options: {
   } = options;
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
+  const isAureliaBareImport = (id: string) => id === 'aurelia' || /^@aurelia\/[^/]+$/.test(id);
+  let useDevImports = false;
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
     config(config) {
-      const isDev = useDev === true || (useDev == null && config.mode !== 'production');
-      if (!isDev) {
-        return;
-      }
-
-      // Add 'development' to resolve.conditions so Vite uses the dev exports
-      // defined in each @aurelia/* package.json "exports" field
-      (config.resolve ??= {}).conditions ??= [];
-      if (!config.resolve.conditions.includes('development')) {
-        config.resolve.conditions.unshift('development');
-      }
+      useDevImports = useDev === true || (useDev == null && config.mode !== 'production');
     },
   };
 
@@ -71,7 +63,11 @@ export default function au(options: {
       return result;
     },
 
-    resolveId(id, importer) {
+    async resolveId(id, importer, options) {
+      if (useDevImports && isAureliaBareImport(id) && !id.endsWith('/development')) {
+        return (await this.resolve(`${id}/development`, importer, { ...options, skipSelf: true }))?.id ?? `${id}/development`;
+      }
+
       if (!isVirtualTsFileFromHtml(id)) {
         return null;
       }

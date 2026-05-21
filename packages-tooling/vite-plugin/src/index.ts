@@ -3,15 +3,6 @@ import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
 
-export function normalizeFilterId(id: string, cwd: string = process.cwd(), platform: NodeJS.Platform = process.platform): string {
-  if (platform !== 'win32' || !/^[a-zA-Z]:/.test(id) || cwd.length === 0) {
-    return id;
-  }
-
-  const cwdDrive = cwd[0];
-  return id[0] === cwdDrive ? id : `${cwdDrive}${id.slice(1)}`;
-}
-
 export default function au(options: {
   include?: FilterPattern;
   exclude?: FilterPattern;
@@ -249,4 +240,16 @@ if (${moduleText}.hot) {
 }`;
 
   return code;
+}
+
+// Vite can surface Windows absolute paths with a drive letter casing that differs
+// from process.cwd(), likely due to fs.realpathSync.native() during resolution.
+// Normalize the drive letter before createFilter() so include/exclude checks stay stable.
+function normalizeFilterId(id: string, cwd: string = process.cwd(), platform: NodeJS.Platform = process.platform): string {
+  if (platform !== 'win32' || !/^[a-zA-Z]:/.test(id) || cwd.length === 0) {
+    return id;
+  }
+
+  const cwdDrive = cwd[0];
+  return id[0] === cwdDrive ? id : `${cwdDrive}${id.slice(1)}`;
 }

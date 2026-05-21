@@ -12,6 +12,10 @@ test.describe.serial('examples/html-only/app.spec.ts', function () {
     await expect(page.locator('ul')).toContainText(`I'm a two!`);
   });
 
+  test('useDev keeps third-party browser resolution intact', async ({ page }) => {
+    await expect(page.locator('#dep-value')).toHaveText('browser');
+  });
+
   test.describe.serial('subclass resource - https://github.com/aurelia/aurelia/issues/1991', function () {
     test('custom element', async ({ page }) => {
       await expect(page.locator('#gh1991 ce-super')).toHaveText('sup-p1 sup-p2 sup-p3');
@@ -25,4 +29,3 @@ test.describe.serial('examples/html-only/app.spec.ts', function () {
     });
   });
 });
-

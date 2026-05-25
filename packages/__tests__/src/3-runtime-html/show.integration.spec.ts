@@ -1,5 +1,5 @@
 import { Aurelia, customElement, ICustomElementViewModel, ICustomElementController } from '@aurelia/runtime-html';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
+import { configureTaskQueue, queueTask, runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 function createFixture() {
@@ -120,6 +120,58 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
       component.assert(`started after flushing dom writes`);
 
       await au.stop();
+    });
+
+    it('does not apply a queued show update after detaching during a yielded flush', async function () {
+      const { au, host } = createFixture();
+      let resolveDetaching: (() => void) | undefined;
+      let stopPromise: void | Promise<void> | undefined;
+      const previousOptions = configureTaskQueue({
+        flushBudget: 0,
+      });
+
+      @customElement({ name: 'app', template: '<div show.bind="show"></div>' })
+      class App implements ICustomElementViewModel {
+        public $controller!: ICustomElementController<this>;
+        public show: boolean = true;
+        public div!: HTMLDivElement;
+
+        public created() {
+          this.div = this.$controller.nodes.firstChild as HTMLDivElement;
+        }
+
+        public detaching() {
+          return new Promise<void>(resolve => {
+            resolveDetaching = resolve;
+          });
+        }
+      }
+
+      try {
+        const component = new App();
+        au.app({ host, component });
+
+        await au.start();
+        assert.strictEqual(component.div.style.getPropertyValue('display'), '', 'precondition');
+
+        queueTask(() => {
+          component.show = false;
+        });
+
+        await Promise.resolve();
+        stopPromise = au.stop();
+        await wait(20);
+
+        assert.strictEqual(component.div.style.getPropertyValue('display'), '', 'queued update should not write after detaching');
+
+        resolveDetaching?.();
+        await stopPromise;
+        await tasksSettled();
+      } finally {
+        resolveDetaching?.();
+        await stopPromise;
+        configureTaskQueue(previousOptions);
+      }
     });
   });
 
@@ -377,3 +429,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
 
   // });
 });
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

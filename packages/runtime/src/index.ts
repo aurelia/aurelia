@@ -25,14 +25,19 @@ export {
   queueTask,
   queueAsyncTask,
   queueRecurringTask,
+  configureTaskQueue,
   getRecurringTasks,
+  getTaskQueueOptions,
   runTasks,
   tasksSettled,
   isTaskQueueEmpty,
   Task,
   RecurringTask,
   TaskAbortError,
+  TaskQueueAggregateError,
   type TaskStatus,
+  type TaskQueueOptions,
+  type TaskQueueResolvedOptions,
 } from './queue';
 
 export {

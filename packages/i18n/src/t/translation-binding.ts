@@ -309,8 +309,17 @@ export class TranslationBinding implements IBinding {
 
     this._addContentToTemplate(template, content.prepend, marker);
 
-    // build content: prioritize [html], then textContent, and falls back to original content
-    if (!this._addContentToTemplate(template, content.innerHTML ?? content.textContent, marker)) {
+    // [html] body content parses markup; default/[text] body content stays text.
+    let hasContent = this._addContentToTemplate(template, content.innerHTML, marker);
+
+    if (!hasContent && content.textContent !== void 0 && content.textContent !== null) {
+      const textNode = this._platform.document.createTextNode(content.textContent);
+      Reflect.set(textNode, marker, true);
+      template.content.append(textNode);
+      hasContent = true;
+    }
+
+    if (!hasContent) {
       for (const fallbackContent of fallBackContents) {
         template.content.append(fallbackContent);
       }

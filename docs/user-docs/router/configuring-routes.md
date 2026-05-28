@@ -364,6 +364,16 @@ You can customize this default behavior by using a [custom `buildTitle` function
 
 Note that, instead of a string, a function can also be used for `title` to lazily set the title.
 
+There are a few supported title entry points, and they apply at different levels:
+
+- Route configuration titles (`@route`, static `title`, and child `routes[].title`) set title parts for matching route nodes.
+- A route title can be a function: `(node: RouteNode) => string | null`. The router evaluates it when composing the title.
+- Lifecycle hooks and router hooks that receive the next `RouteNode` can call `next.setTitle(...)` to replace that node's title part during the current navigation.
+- `router.load(instruction, { title })` sets the final title for that navigation when no custom `buildTitle` is configured.
+- `buildTitle` takes over final title generation globally. Use `router.updateTitle()` to recompute the current title when external state used by `buildTitle` changes, such as the active locale.
+
+Directly assigning `document.title` is outside the router pipeline. The router may overwrite it on the next navigation, and `ICurrentRoute.title` will not be updated from that direct assignment.
+
 ## Redirect to another path
 
 By specifying the `redirectTo` property on our route, we can create route aliases.

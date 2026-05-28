@@ -482,21 +482,26 @@ export class UserLayout {}
 
 ### How do I set/change the page title?
 ```typescript
-// In route configuration
+// Set a route node title part in route configuration
 {
   path: 'about',
   component: About,
   title: 'About Us'
 }
 
-// Programmatically
+// Set the final title for one navigation
 router.load('about', { title: 'Custom Title' });
+
+// Set a route node title part after loading data
+loading(params, next) {
+  next.setTitle(`About ${params.id}`);
+}
 
 // Custom title building
 RouterConfiguration.customize({
   buildTitle(transition) {
-    const titles = transition.routeTree.root.children.map(c => c.title);
-    return `${titles.join(' - ')} | My App`;
+    const title = transition.routeTree.root.getTitle(' - ');
+    return title ? `${title} | My App` : 'My App';
   }
 })
 ```

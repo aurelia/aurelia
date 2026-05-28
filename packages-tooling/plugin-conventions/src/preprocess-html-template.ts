@@ -137,8 +137,11 @@ export function preprocessHtmlTemplate(
     viewDeps.push(`cssModules(${cssModuleDeps.join(', ')})`);
   }
   statements.forEach(st => m.append(st));
+  const transformedHtml = options.transformHtml?.(html) ?? html;
+  const transformedTemplate = options.transformHtmlTemplate?.(transformedHtml, unit);
+  transformedTemplate?.imports?.forEach(st => m.append(st));
   m.append(`export const name = ${s(name)};
-export const template = ${s(options.transformHtml?.(html) ?? html)};
+export const template = ${transformedTemplate?.template ?? s(transformedHtml)};
 export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
 `);
@@ -203,4 +206,3 @@ export function register(container) {
 function s(input: unknown) {
   return JSON.stringify(input);
 }
-

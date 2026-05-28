@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import { resolve } from '@aurelia/kernel';
-import { ICurrentRoute, IRouteViewModel, IRouter, ParameterInformation, Params, RouteConfig, route } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime-html';
+import { ICurrentRoute, IRouteViewModel, IRouter, ParameterInformation, Params, RouteConfig, route, RouteNode } from '@aurelia/router';
+import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
@@ -165,6 +165,43 @@ describe('router/current-route.spec.ts', function () {
         }
       ]
     }, 'round#6');
+
+    await au.stop();
+  });
+
+  it('uses titles set from the loading hook', async function () {
+    @customElement({ name: 'home-page', template: '' })
+    class HomePage { }
+
+    @customElement({ name: 'shop-page', template: '' })
+    class ShopPage implements IRouteViewModel {
+      public loading(params: Params, next: RouteNode) {
+        next.setTitle(`Shop ${params.id}`);
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'home', path: '', component: HomePage, title: 'Home' },
+        { id: 'shop', path: 'shop/:id', component: ShopPage, title: 'Shop' },
+      ]
+    })
+    @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
+    class App {
+      public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
+    }
+
+    const { au, container, rootVm } = await start({ appRoot: App });
+    const router = container.get(IRouter);
+    const document = container.get(IPlatform).document;
+
+    assert.strictEqual(document.title, 'Home', 'initial document title');
+    assert.strictEqual(rootVm.currentRoute.title, 'Home', 'initial current route title');
+
+    await router.load('shop/42');
+
+    assert.strictEqual(document.title, 'Shop 42', 'updated document title');
+    assert.strictEqual(rootVm.currentRoute.title, 'Shop 42', 'updated current route title');
 
     await au.stop();
   });

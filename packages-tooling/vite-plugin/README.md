@@ -75,6 +75,29 @@ declare module '*.html' {
 }
 ```
 
+### Template assets
+
+During production builds, the plugin processes static relative asset URLs in conventional HTML templates so Vite can emit and rewrite them:
+
+```html
+<template>
+  <img src="logo.svg" alt="Logo">
+  <img src="./logo.svg" alt="Logo">
+  <img src="../shared/shared-logo.svg" alt="Shared logo">
+  <img srcset="./logo.png 1x, ./logo@2x.png 2x" alt="Logo">
+</template>
+```
+
+Relative URLs are resolved from the HTML template file, so same-directory paths, `./`, `../`, and nested relative paths are supported.
+
+Use binding for dynamic URLs as usual:
+
+```html
+<img src.bind="logoUrl" alt="Logo">
+```
+
+Root-relative public paths such as `/logo.svg`, external URLs, data URLs, hashes, and missing files are left unchanged.
+
 ### Development builds
 
 By default, the Aurelia Vite plugin aliases Aurelia packages to their development builds when Vite runs in development mode. Set `useDev` explicitly when you need to override Vite's automatic mode detection:

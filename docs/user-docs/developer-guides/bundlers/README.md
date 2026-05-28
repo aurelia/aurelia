@@ -339,6 +339,21 @@ export class MyComponent {
 }
 ```
 
+With `@aurelia/vite-plugin`, static relative asset URLs in conventional HTML templates are also included in production builds:
+
+```html
+<template>
+  <img src="logo.svg" alt="Logo">
+  <img src="./logo.svg" alt="Logo">
+  <img src="../shared/shared-logo.svg" alt="Shared logo">
+  <img srcset="./logo.png 1x, ./logo@2x.png 2x" alt="Logo">
+</template>
+```
+
+Relative URLs are resolved from the HTML template file, so same-directory paths, `./`, `../`, and nested relative paths are supported.
+
+Use binding for dynamic URLs. Root-relative public paths, external URLs, data URLs, hashes, and missing files are left unchanged.
+
 ## Performance Optimization
 
 ### Bundle Splitting

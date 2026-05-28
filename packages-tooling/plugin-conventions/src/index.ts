@@ -8,6 +8,7 @@ export {
   type INameConvention,
   type IFileUnit,
   type IFileUnitHost,
+  type IHtmlTemplateTransformResult,
   type IOptionalPreprocessOptions,
   type IPreprocessOptions,
   defaultCssExtensions,

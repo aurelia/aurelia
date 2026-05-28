@@ -1,9 +1,11 @@
-import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+import { preprocess } from '@aurelia/plugin-conventions';
+import type { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
 import { createStandardDecoratorPlugin, normalizeFilterId } from './standard-decorators';
+import { transformTemplateAssetUrls } from './template-assets';
 
 export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
   include?: FilterPattern;
@@ -45,6 +47,7 @@ export default function au(options: AureliaPluginOptions = {}) {
     transformStandardDecorators,
     standardDecoratorInclude,
     standardDecoratorExclude,
+    transformHtmlTemplate,
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
@@ -61,6 +64,10 @@ export default function au(options: AureliaPluginOptions = {}) {
   };
 
   let $config!: import('vite').ResolvedConfig;
+  const transformHtmlTemplateForVite = (html: string, unit: IFileUnit) => {
+    return transformHtmlTemplate?.(html, unit)
+      ?? ($config.command === 'build' ? transformTemplateAssetUrls(html, unit.path) : void 0);
+  };
 
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
@@ -86,6 +93,7 @@ export default function au(options: AureliaPluginOptions = {}) {
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
+        transformHtmlTemplate: transformHtmlTemplateForVite,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
@@ -128,6 +136,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       }, {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
+        transformHtmlTemplate: transformHtmlTemplateForVite,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',

@@ -23,6 +23,11 @@ export interface IFileUnitHost {
   readFile(unit: IFileUnit, path: string): string;
 }
 
+export interface IHtmlTemplateTransformResult {
+  imports?: readonly string[];
+  template: string;
+}
+
 export interface IOptionalPreprocessOptions {
   defaultShadowOptions?: { mode: 'open' | 'closed' };
   // More details in ./preprocess-html-template.ts
@@ -58,6 +63,10 @@ export interface IOptionalPreprocessOptions {
    * Used to transform the HTML content of a template file during preprocessing.
    */
   transformHtml?: (html: string) => string;
+  /**
+   * Used to transform the final HTML content into a JavaScript template expression.
+   */
+  transformHtmlTemplate?: (html: string, unit: IFileUnit) => IHtmlTemplateTransformResult | undefined;
   /**
    * This gets the generated HMR code for the specified class
    *
@@ -100,6 +109,10 @@ export interface IPreprocessOptions {
    * Used to transform the HTML content of a template file during preprocessing.
    */
   transformHtml?: (html: string) => string;
+  /**
+   * Used to transform the final HTML content into a JavaScript template expression.
+   */
+  transformHtmlTemplate?: (html: string, unit: IFileUnit) => IHtmlTemplateTransformResult | undefined;
   /**
    * This gets the generated HMR code for the specified class
    *

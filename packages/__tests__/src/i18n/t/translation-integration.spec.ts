@@ -519,12 +519,36 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   }
   {
     @customElement({
+      name: 'app', template: `<span id='a' t='html'></span>`
+    })
+    class App { }
+
+    $it('escapes markup for default textContent replacement - `t="key"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      const span = (host as Element).querySelector('span');
+      assert.equal(span.textContent, translation.html);
+      assert.equal(span.querySelector('i'), null);
+    }, { component: App });
+  }
+  {
+    @customElement({
       name: 'app', template: `<span id='a' t='[text]simple.text'></span>`
     })
     class App { }
 
     $it('works for textContent replacement with explicit [text] attribute - `t="[text]key"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span', translation.simple.text);
+    }, { component: App });
+  }
+  {
+    @customElement({
+      name: 'app', template: `<span id='a' t='[text]html'></span>`
+    })
+    class App { }
+
+    $it('escapes markup for textContent replacement with explicit [text] attribute - `t="[text]key"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      const span = (host as Element).querySelector('span');
+      assert.equal(span.textContent, translation.html);
+      assert.equal(span.querySelector('i'), null);
     }, { component: App });
   }
   {

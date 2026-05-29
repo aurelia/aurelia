@@ -53,6 +53,9 @@ export class Show implements ICustomAttributeViewModel {
   private $prio: string = '';
   private readonly update = (): void => {
     this._isQueued = false;
+    // A queued toggle can survive detaching; inactive attributes must not
+    // mutate style after teardown has started.
+    if (!this._isActive) return;
 
     // Only compare at the synchronous moment when we're about to update, because the value might have changed since the update was queued.
     if (Boolean(this.value) !== this._isToggled) {

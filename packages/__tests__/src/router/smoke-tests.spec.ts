@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, IModule, inject, resolve, isArray } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions, ILocationManager } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, ICurrentRoute, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions, ILocationManager } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -7593,4 +7593,69 @@ describe('router/smoke-tests.spec.ts', function () {
       await au.stop(true);
     });
   }
+
+  it('does not corrupt IRouteContext.node after a cancelled canUnload', async function () {
+    let canUnloadCount = 0;
+
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 implements IRouteViewModel {
+      public async canUnload(): Promise<boolean> {
+        // First call returns false (block navigation), subsequent calls return true
+        return ++canUnloadCount > 1;
+      }
+    }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { path: 'c1', component: C1 },
+        { path: 'c2', component: C2 },
+      ]
+    })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
+    class P1 {
+      public readonly ctx: IRouteContext = resolve(IRouteContext);
+      public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
+    }
+
+    @route({ routes: [P1] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    await router.load('p-1/c1');
+    assert.html.textContent(host, 'p1 c1', 'initial load');
+
+    const p1vm = CustomElement.for<P1>(host.querySelector('p-1')!).viewModel;
+    const ctx = p1vm.ctx;
+
+    assert.strictEqual(ctx.node.children.length, 1, 'before cancel: 1 child');
+    assert.strictEqual(ctx.node.children[0].component.name, 'c-1', 'before cancel: child is c-1');
+    assert.strictEqual(p1vm.currentRoute.path, 'p-1/c1', 'before cancel: current route path is p-1/c1');
+
+    // First navigation attempt - blocked by canUnload returning false
+    const result1 = await router.load('p-1/c2');
+    assert.strictEqual(result1, false, 'first navigation should be cancelled');
+    assert.html.textContent(host, 'p1 c1', 'after cancelled navigation: still showing c1');
+
+    // After failed navigation, IRouteContext.node must still reflect the active state (c1), not the cancelled state (c2)
+    assert.strictEqual(ctx.node.children.length, 1, 'after cancel: still 1 child');
+    assert.strictEqual(ctx.node.children[0].component.name, 'c-1', 'after cancel: child is still c-1');
+    assert.strictEqual(p1vm.currentRoute.path, 'p-1/c1', 'after cancel: current route path is still p-1/c1');
+
+    // Second navigation attempt - canUnload now returns true
+    const result2 = await router.load('p-1/c2');
+    assert.strictEqual(result2, true, 'second navigation should succeed');
+    assert.html.textContent(host, 'p1 c2', 'after successful navigation: showing c2');
+
+    assert.strictEqual(ctx.node.children.length, 1, 'after success: 1 child');
+    assert.strictEqual(ctx.node.children[0].component.name, 'c-2', 'after success: child is c-2');
+    assert.strictEqual(p1vm.currentRoute.path, 'p-1/c2', 'after success: current route path is p-1/c2');
+
+    await au.stop(true);
+  });
 });

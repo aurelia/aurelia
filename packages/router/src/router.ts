@@ -751,6 +751,13 @@ export class Router {
 
       this._instructions = tr.prevInstructions;
       this._routeTree = tr.previousRouteTree;
+
+      // Restore context.node for every node in the previous route tree.
+      // RouteNode._clone() and createConfiguredNode both update context.node at the
+      // start of each navigation; those updates must be reverted when navigation is
+      // cancelled so that IRouteContext.node stays consistent with the active tree.
+      restoreRouteTreeContextNodes(tr.previousRouteTree.root);
+
       this._isNavigating = false;
       const guardsResult = tr.guardsResult;
       this._events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${guardsResult}`));
@@ -772,6 +779,13 @@ export class Router {
         });
       }
     })._start();
+
+    function restoreRouteTreeContextNodes(node: RouteNode): void {
+      node.context.node = node;
+      for (const child of node.children) {
+        restoreRouteTreeContextNodes(child);
+      }
+    }
   }
 
   /** @internal */

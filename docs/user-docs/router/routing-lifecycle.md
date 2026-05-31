@@ -242,7 +242,7 @@ One of the examples is refactored using `loading` hook that is shown below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-loading?ctl=1&embed=1&file=src/child1.ts" %}
 
-Following is an additional example, that shows that you can use the `next.title` property to dynamically set the route title from the `loading` hook.
+Following is an additional example, that shows that you can assign `next.title` to dynamically set this route node's title part from the `loading` hook. The router still composes the document title from the route tree.
 
 ```typescript
 import { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
@@ -260,6 +260,8 @@ export class ChildOne implements IRouteViewModel {
   }
 }
 ```
+
+The same title assignment can be used from other lifecycle hooks that receive the next `RouteNode` before navigation commits, such as `canLoad` and `loaded`.
 
 {% embed url="https://stackblitz.com/edit/router-lite-loading-title?ctl=1&embed=1&file=src/main.ts" %}
 

@@ -926,14 +926,15 @@ This section describes other available options.
 
 **`title`**
 
-The `title` property allows you to modify the title as you navigate to your route.
+The `title` property lets you override the document title for a single navigation.
 This looks like as follows.
 
 ```typescript
 router.load(Home, { title: 'Some title' });
 ```
 
-Note that defining the `title` like this, overrides the title defined via the route configuration.
+When no custom `buildTitle` is configured, defining `title` like this overrides the title that would otherwise be composed from route configuration title parts.
+When a custom `buildTitle` is configured, the builder controls document title generation and can decide whether to use `transition.options.title`.
 This can also be seen in the action below where a random title is generated every time.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-title?ctl=1&embed=1&file=src/my-app.ts" %}
@@ -948,6 +949,8 @@ Using this option, you can customize the separator.
 ```typescript
 router.load(Home, { titleSeparator: '-' });
 ```
+
+`titleSeparator` only affects the default route-tree title composition. It is ignored when `title` provides the document title override for a navigation or when `buildTitle` takes over title generation.
 
 This can also be seen in the action below where a random title separator is selected every time.
 

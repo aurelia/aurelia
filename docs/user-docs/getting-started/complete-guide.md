@@ -26,40 +26,7 @@ You'll need:
 
 ## Quick Try (No Installation)
 
-Want to see Aurelia in action immediately? Copy this into an HTML file:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Aurelia 2 Demo</title>
-</head>
-<body>
-  <my-app></my-app>
-
-  <script type="module">
-    import Aurelia, { CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
-
-    const App = CustomElement.define({
-      name: 'my-app',
-      template: `
-        <h1>Hello, \${name}!</h1>
-        <input value.bind="name" placeholder="Enter your name">
-        <p>You typed: \${name}</p>
-      `
-    }, class {
-      name = 'World';
-    });
-
-    new Aurelia()
-      .app({ component: App, host: document.querySelector('my-app') })
-      .start();
-  </script>
-</body>
-</html>
-```
-
-Open it in your browser and start typing! This demonstrates Aurelia's automatic two-way data binding.
+Want to see Aurelia in action before creating a project? Use [Run Aurelia in the browser without a build step](browser-no-build.md). That page is the maintained no-install path for plain HTML files, CodePen demos, plugin imports, and reduced bug reproductions.
 
 ## Create Your First Project
 

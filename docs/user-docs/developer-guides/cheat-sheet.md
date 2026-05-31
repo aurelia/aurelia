@@ -35,73 +35,9 @@ await app.app({
 }).start();
 ```
 
-### Script tag (Vanilla JS)
+### Browser without a build step
 
-Note: you can copy-paste the markup below into an html file and open it directly in the browser. There is no need for any tooling for this example.
-
-**index.html**
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Aurelia 2 Script Example</title>
-  
-  <!-- Performance optimizations -->
-  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
-</head>
-<body>
-  <app-root></app-root>
-
-  <script type="module">
-    import { Aurelia, CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
-
-    const AppRoot = CustomElement.define({
-      name: 'app-root',
-      template: '${message}',
-    }, class {
-      message = 'Hello world!';
-    });
-
-    new Aurelia().app({ component: AppRoot, host: document.querySelector('app-root') }).start();
-  </script>
-</body>
-</html>
-```
-
-### Script tag (Vanilla JS - enhance)
-
-Note: you can copy-paste the markup below into an html file and open it directly in the browser. There is no need for any tooling for this example.
-
-**index.html**
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>${title}</title>
-  
-  <!-- Performance optimizations -->
-  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
-</head>
-<body>
-  ${message}
-  <script type="module">
-    import { Aurelia } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
-
-    const aurelia = new Aurelia();
-    await aurelia.enhance({ component: { message: 'Hello world!' }, host: document.body }).start();
-    await aurelia.enhance({ component: { title: 'Aurelia' }, host: document.head }).start();
-  </script>
-</body>
-</html>
-```
+For plain HTML files, CodePen demos, and script-module startup examples, use [Run Aurelia in the browser without a build step](../getting-started/browser-no-build.md). That page is the canonical place for CDN URLs, version pinning, plugin registration, `CustomElement.define(...)`, and `enhance(...)` examples.
 
 ### Multi-root
 

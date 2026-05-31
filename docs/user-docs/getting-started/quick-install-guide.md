@@ -9,51 +9,14 @@ Get Aurelia up and running in 5 minutes or less.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/en/) (latest version recommended)
 - A code editor of your choice
+- [Node.js](https://nodejs.org/en/) (latest version recommended) for the scaffolded app path
 
-## Option 1: Try Aurelia Instantly (No Setup Required)
+## Option 1: Try Aurelia in the browser
 
-Want to try Aurelia immediately? Copy this into an HTML file and open it in your browser:
+Want to try Aurelia immediately without installing anything? Use [Run Aurelia in the browser without a build step](browser-no-build.md). That page is the canonical no-build setup and covers module scripts, CDN imports, version pinning, CodePen usage, and package registration.
 
-```html
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Aurelia 2 Quick Try</title>
-    <base href="/" />
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/aurelia@latest/+esm" crossorigin fetchpriority="high">
-  </head>
-  <body>
-    <app-root></app-root>
-    <script type="module">
-      import { Aurelia, CustomElement } from 'https://cdn.jsdelivr.net/npm/aurelia@latest/+esm';
-
-      const App = CustomElement.define({
-        name: 'app-root',
-        template: `
-          <h1>Hello, \${name}!</h1>
-          <input value.bind="name" placeholder="Enter your name">
-          <p>You typed: \${name}</p>
-        `
-      }, class {
-        name = 'World';
-      });
-
-      new Aurelia()
-        .app({ component: App, host: document.querySelector('app-root') })
-        .start();
-    </script>
-  </body>
-</html>
-```
-
-{% hint style="info" %}
-**No installation required!** This uses Aurelia directly from a CDN. Perfect for experimentation or simple projects. For a more complete example, see the [realworld-vanilla example](https://github.com/aurelia/aurelia/tree/master/examples/realworld-vanilla) which demonstrates a full application with routing.
-{% endhint %}
+For a more complete no-build application, see the [realworld-vanilla example](https://github.com/aurelia/aurelia/tree/master/examples/realworld-vanilla), which demonstrates a full application with routing.
 
 ## Option 2: Create Your App
 
@@ -65,7 +28,7 @@ npx makes aurelia
 
 When prompted:
 - **Project name**: Enter your project name
-- **Setup**: Choose TypeScript (recommended) or ESNext  
+- **Setup**: Choose TypeScript (recommended) or ESNext
 - **Install dependencies**: Select "Yes"
 
 {% hint style="info" %}

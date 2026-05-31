@@ -219,7 +219,7 @@ interface IRouterOptions {
   /** History interaction strategy. Default: 'push' */
   historyStrategy?: HistoryStrategy | ((instructions: ViewportInstructionTree) => HistoryStrategy);
 
-  /** Custom final title builder function. Return null to skip document title updates */
+  /** Custom document title builder function. Return null to skip document title updates */
   buildTitle?: ((transition: Transition) => string | null) | null;
 
   /** Generate navigation model for menus. Default: true */
@@ -252,7 +252,7 @@ interface INavigationOptions {
   /** Override router's history strategy for this navigation */
   historyStrategy?: HistoryStrategy | ((instructions: ViewportInstructionTree) => HistoryStrategy);
 
-  /** Final title for this navigation when no custom buildTitle is configured */
+  /** Document title override for this navigation when no custom buildTitle is configured */
   title?: string | ((node: RouteNode) => string | null) | null;
 
   /** Separator between hierarchical titles. Default: ' | ' */
@@ -657,13 +657,10 @@ class RouteNode {
   readonly data: Readonly<Record<string, unknown>>;
 
   /** This route node's title part */
-  readonly title: string | ((node: RouteNode) => string | null) | null;
+  title: string | ((node: RouteNode) => string | null) | null;
 
   /** Compose this node and its children into a title string */
   getTitle(separator: string): string | null;
-
-  /** Set this route node's title part */
-  setTitle(title: string | ((node: RouteNode) => string | null) | null): void;
 
   /** Component definition */
   readonly component: CustomElementDefinition;

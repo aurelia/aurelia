@@ -176,7 +176,7 @@ describe('router/current-route.spec.ts', function () {
     @customElement({ name: 'shop-page', template: '' })
     class ShopPage implements IRouteViewModel {
       public loading(params: Params, next: RouteNode) {
-        next.setTitle(`Shop ${params.id}`);
+        next.title = `Shop ${params.id}`;
       }
     }
 

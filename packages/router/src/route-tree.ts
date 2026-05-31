@@ -122,8 +122,8 @@ export class RouteNode {
      * @internal
      */
     public readonly _viewport: string | null,
-    /** This route node's title part. Use `setTitle` to change it from lifecycle hooks. */
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    /** This route node's title part. */
+    public title: string | ((node: RouteNode) => string | null) | null,
     public readonly component: CustomElementDefinition,
     /**
      * Not-yet-resolved viewport instructions.
@@ -227,15 +227,6 @@ export class RouteNode {
       typeof this.title === 'function' ? this.title.call(void 0, this) : this.title,
     ].filter(x => x !== null);
     return titleParts.length === 0 ? null : titleParts.join(separator);
-  }
-
-  /**
-   * Sets this route node's title part.
-   *
-   * The router still composes the final document title from the route tree.
-   */
-  public setTitle(title: string | ((node: RouteNode) => string | null) | null): void {
-    (this as Writable<this>).title = title;
   }
 
   public computeAbsolutePath(): string {

@@ -247,7 +247,7 @@ Every call to `ViewportInstruction.toUrl`, `router.load`, or `router.generatePat
 ## Customizing title
 
 A `buildTitle` function can be used to customize the [default behavior of building the title](./configuring-routes.md#setting-the-title).
-When configured, `buildTitle` owns final title generation for every navigation. Route configuration titles, `RouteNode#setTitle(...)`, and navigation options are still available on the `Transition`, but the builder decides how to use them.
+When configured, `buildTitle` owns document title generation for every navigation. Route configuration titles, assigned route-node titles, and navigation options are still available on the `Transition`, but the builder decides how to use them.
 For this example, we assume that we have the configured the routes as follows:
 
 ```typescript

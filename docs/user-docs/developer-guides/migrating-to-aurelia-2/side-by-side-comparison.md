@@ -850,7 +850,7 @@ export class UserDetailPage implements IRouteViewModel {
     this.user = await this.userService.getUser(params.id);
 
     // Set this route node's title part based on loaded data
-    next.setTitle(`User: ${this.user.name}`);
+    next.title = `User: ${this.user.name}`;
   }
 
   canUnload(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean> {

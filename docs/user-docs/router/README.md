@@ -489,12 +489,12 @@ export class UserLayout {}
   title: 'About Us'
 }
 
-// Set the final title for one navigation
+// Set a document title override for one navigation
 router.load('about', { title: 'Custom Title' });
 
 // Set a route node title part after loading data
 loading(params, next) {
-  next.setTitle(`About ${params.id}`);
+  next.title = `About ${params.id}`;
 }
 
 // Custom title building

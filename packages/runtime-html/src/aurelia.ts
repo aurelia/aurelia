@@ -118,7 +118,7 @@ export class Aurelia implements IDisposable {
 
   /** @internal */
   private _startPromise: Promise<void> | void = void 0;
-  public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
+  public start(root: IAppRoot | undefined = this.next): Promise<void> {
     if (root == null) {
       throw createMappedError(ErrorNames.no_composition_root);
     }
@@ -127,7 +127,7 @@ export class Aurelia implements IDisposable {
       return this._startPromise;
     }
 
-    return this._startPromise = onResolve(this.stop(), () => {
+    const startPromise = onResolve(this._stop(), () => {
       if (!refs.hideProp) {
         Reflect.set(root.host, '$aurelia', this);
       }
@@ -141,11 +141,20 @@ export class Aurelia implements IDisposable {
         this._dispatchEvent(root, 'au-started', root.host);
       });
     });
+    return isPromise(startPromise)
+      ? this._startPromise = startPromise
+      : Promise.resolve();
   }
 
   /** @internal */
   private _stopPromise: Promise<void> | void = void 0;
-  public stop(dispose: boolean = false): void | Promise<void> {
+  public stop(dispose: boolean = false): Promise<void> {
+    const stopPromise = this._stop(dispose);
+    return isPromise(stopPromise) ? stopPromise : Promise.resolve();
+  }
+
+  /** @internal */
+  private _stop(dispose: boolean = false): void | Promise<void> {
     if (isPromise(this._stopPromise)) {
       return this._stopPromise;
     }

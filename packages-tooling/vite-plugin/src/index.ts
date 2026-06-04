@@ -7,6 +7,7 @@ export default function au(options: {
   include?: FilterPattern;
   exclude?: FilterPattern;
   pre?: boolean;
+  cssInject?: boolean | CssInjectPluginOptions;
   /**
    * Indiciates whether the plugin should alias aurelia packages to the dev bundle.
    */
@@ -16,6 +17,7 @@ export default function au(options: {
     include = 'src/**/*.{ts,js,html}',
     exclude,
     pre = true,
+    cssInject = false,
     useDev,
     ...additionalOptions
   } = options;
@@ -105,16 +107,42 @@ export default function au(options: {
     }
   };
 
-  return [devPlugin, auPlugin];
+  return cssInject === false
+    ? [devPlugin, auPlugin]
+    : [devPlugin, auPlugin, cssInjectPlugin(cssInject === true ? void 0 : cssInject)];
 }
 
-export function cssInjectPlugin(): import('vite').Plugin {
+export interface CssInjectPluginOptions {
+  injectSelector?: string;
+}
+
+const shadowRootSelectorSuffix = '#shadowRoot';
+
+export function cssInjectPlugin(options: CssInjectPluginOptions = {}): import('vite').Plugin {
+  const { injectSelector } = options;
+  const shadowRootHostSelector = injectSelector?.endsWith(shadowRootSelectorSuffix)
+    ? injectSelector.slice(0, -shadowRootSelectorSuffix.length)
+    : void 0;
+
+  if (injectSelector === '' || shadowRootHostSelector === '') {
+    throw new Error('cssInjectPlugin injectSelector cannot be empty.');
+  }
+
+  const targetInjection = injectSelector == null
+    ? ['  const target = document.head;']
+    : shadowRootHostSelector != null
+      ? [
+        `  const host = document.querySelector(${JSON.stringify(shadowRootHostSelector)});`,
+        '  const target = host == null ? null : host.shadowRoot;',
+      ]
+      : [`  const target = document.querySelector(${JSON.stringify(injectSelector)});`];
+
   return {
     name: 'aurelia:css-inject',
     apply: 'build',
     enforce: 'post',
     generateBundle(_options, bundle) {
-      const cssAssets: Array<[string, { source: string | Uint8Array }]> = [];
+      const cssAssets: [string, { source: string | Uint8Array }][] = [];
       for (const [name, asset] of Object.entries(bundle)) {
         if (asset.type === 'asset' && name.endsWith('.css')) {
           cssAssets.push([name, asset as { source: string | Uint8Array }]);
@@ -132,7 +160,10 @@ export function cssInjectPlugin(): import('vite').Plugin {
         '  const style = document.createElement("style");',
         '  style.setAttribute("type", "text/css");',
         `  style.textContent = ${JSON.stringify(cssText)};`,
-        '  document.head.appendChild(style);',
+        ...targetInjection,
+        '  if (target != null) {',
+        '    target.appendChild(style);',
+        '  }',
         '}',
         ''
       ].join('\n');
@@ -144,7 +175,7 @@ export function cssInjectPlugin(): import('vite').Plugin {
       }
 
       for (const [name] of cssAssets) {
-        delete bundle[name];
+        Reflect.deleteProperty(bundle, name);
       }
     }
   };

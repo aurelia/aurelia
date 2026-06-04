@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [#2386](https://github.com/aurelia/aurelia/pull/2386) [`eb54d9c`](https://github.com/aurelia/aurelia/commit/eb54d9c1130f7f1f00129baff6325780d035baa3) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix vite plugin bundling. Fixes #2372.
+
 ## 2.0.0-rc.0
 
 ## 2.0.0-beta.27

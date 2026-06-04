@@ -1,0 +1,12 @@
+{
+  "name": "conditional-browser-package",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "browser": "./browser.mjs",
+      "development": "./development.mjs",
+      "default": "./default.mjs"
+    }
+  }
+}

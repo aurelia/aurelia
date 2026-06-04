@@ -5,6 +5,7 @@ import * as path from 'path';
 test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
   test.beforeEach(async ({ page, baseURL }) => {
+    page.on('console', msg => console.log(msg.text()));
     test.setTimeout(15000);
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
   });
@@ -51,6 +52,48 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       }
       `;
       fs.writeFileSync(appFilePath, newContent, { encoding: 'utf-8' });
+      await new Promise(r => setTimeout(r, 10000));
+
+      await expect(page.locator('app > div')).toHaveText('New Hello World!');
+      await expect(page.locator('input')).toHaveValue('abc');
+    });
+
+    test(`multiple rerenders without flushing <input> state`, async function ({ page }) {
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
+      await page.fill('input', 'abc');
+      await expect(page.locator('input')).toHaveValue('abc');
+
+      const firstEdit = `import { IEventAggregator, resolve } from '@aurelia/kernel';
+
+        export class App {
+          public message = 'New Hello World!';
+          public id = 1;
+
+          private readonly ea: IEventAggregator = resolve(IEventAggregator);
+          public constructor(){
+            (window as any).app = this;
+          }
+        }
+        `;
+
+      const secondEdit = `import { IEventAggregator, resolve } from '@aurelia/kernel';
+
+        export class App {
+          public message = 'New Hello World!';
+          public id = 10; // ensure file write triggers hmr
+
+          private readonly ea: IEventAggregator = resolve(IEventAggregator);
+          public constructor(){
+            (window as any).app = this;
+          }
+        }
+        `;
+
+      fs.writeFileSync(path.resolve(__dirname, appFilePath), firstEdit, { encoding: 'utf-8' });
+      await page.waitForFunction(() => (window as any).app?.id === 1, { timeout: 5000 });
+
+      fs.writeFileSync(path.resolve(__dirname, appFilePath), secondEdit, { encoding: 'utf-8' });
+      await page.waitForFunction(() => (window as any).app?.id === 10, { timeout: 5000 });
 
       await expect(page.locator('app > div')).toHaveText('New Hello World!');
       await expect(page.locator('input')).toHaveValue('abc');

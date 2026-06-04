@@ -11,6 +11,13 @@ const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --
 const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
 
+// Extract --grep option
+let grep = undefined;
+const grepIndex = cliArgs.indexOf('--grep');
+if (grepIndex !== -1 && grepIndex + 1 < cliArgs.length) {
+  grep = cliArgs.splice(grepIndex, 2)[1]; // Remove --grep and its value from cliArgs
+}
+
 const junitCircleCi = require('./z-scripts/circleci-junit-reporter.cjs');
 
 module.exports =
@@ -171,6 +178,7 @@ module.exports =
         bail: config['bail'],
         ui: 'bdd',
         timeout: 5000,
+        ...(grep && { grep }),
       }
     },
     // enable this and the plugins down below if we want to setup environments in karma tests

@@ -1,5 +1,34 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Minor Changes
+
+- [#2368](https://github.com/aurelia/aurelia/pull/2368) [`c356f8c`](https://github.com/aurelia/aurelia/commit/c356f8c26696cc146d71e38fbf8292ba86418edb) Thanks [@Sayan751](https://github.com/Sayan751)! - Add `IContextRouter` - a convenience wrapper that combines `IRouter` with the component's current `IRouteContext`, so that calls to `load()` always resolve relative to the correct routing context without needing to pass `context` explicitly.
+
+- [#2355](https://github.com/aurelia/aurelia/pull/2355) [`e4d3bbb`](https://github.com/aurelia/aurelia/commit/e4d3bbb5a88723beb54bc6c4238eeb281b62c149) Thanks [@Sayan751](https://github.com/Sayan751)! - Add eager loading mode for router configuration via `RouterConfiguration.customize({ useEagerLoading: true })`. When enabled, the router builds the full routing table at startup, resolving issues with direct navigation to nested child routes. Closes #2273.
+
+- [#2369](https://github.com/aurelia/aurelia/pull/2369) [`98006c7`](https://github.com/aurelia/aurelia/commit/98006c711ddc30595f19bbbf7f82a92a5e21cef2) Thanks [@Sayan751](https://github.com/Sayan751)! - Refactor router path syntax and add `transitionPlan` override support via `Router#load`.
+
+  Path syntax changes:
+
+  - `/path`: absolute path from the root of the application
+  - `path`, `./path`: relative to the current routing context
+  - `../path`, `../../path`: relative to an ancestor routing context; each `../` moves one level up
+
+  `Router#load` now respects an explicit `transitionPlan` option when provided:
+
+  ```ts
+  this.router.load("test", {
+    transitionPlan: "replace",
+    queryParams: { message: this.newMessage },
+  });
+  ```
+
+### Patch Changes
+
+- [#2391](https://github.com/aurelia/aurelia/pull/2391) [`ce52a0c`](https://github.com/aurelia/aurelia/commit/ce52a0ce2b3b3e35b7ed2cc2eb408de0e459fa71) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix `href` attribute handling when using the `load` attribute together with `as-element`.
+
 ## 2.0.0-rc.0
 
 ### Minor Changes

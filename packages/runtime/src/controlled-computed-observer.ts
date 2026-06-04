@@ -10,8 +10,6 @@ export class ControlledComputedObserver implements IObserver, ISubscriberCollect
     subscriberCollection(ControlledComputedObserver, null!);
   }
   /** @internal */
-  public static mixed = false;
-  /** @internal */
   public subs!: ISubscriberRecord<ISubscriber>;
 
   public type: AccessorType = atObserver;

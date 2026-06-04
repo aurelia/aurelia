@@ -1,5 +1,35 @@
 # Change Log
 
+## 2.0.0-rc.1
+
+### Minor Changes
+
+- [#2382](https://github.com/aurelia/aurelia/pull/2382) [`6010f88`](https://github.com/aurelia/aurelia/commit/6010f880dde73d7b86be1ae501a85e1050894839) Thanks [@bigopon](https://github.com/bigopon)! - Extend `@computed` decorator to support method decoration for declaring/tracking dependencies when called from an observation context (e.g. a template binding or another computed observation). A normal function call will not trigger any observation.
+
+  Note: method usage of `@computed` is experimental. Syntax and behavior may change before final release.
+
+  Usages on methods:
+
+  - `@computed` - proxy-based auto-tracking
+  - `@computed('prop', 'nested.prop')` - explicit string dependencies
+  - `@computed(instance => instance.prop + instance.prop2)` - getter function dependency
+  - `@computed({ deps: ['prop', 'nested.prop'] })` - config object with string deps
+  - `@computed({ deps: vm => vm.prop })` - config object with getter function dep
+
+  Usages on getters:
+
+  - `@computed({ deps: ['prop1', 'prop2'] })` - explicit deps (uses ControlledComputedObserver)
+  - `@computed({ flush: 'sync' })` - no deps, auto-tracking with sync flush
+  - `@computed('prop1', 'prop2')` - shorthand for deps array
+
+  `getComputedObserver` now accepts an optional `ComputedPropertyInfo` parameter directly instead of reading from an internal WeakMap.
+
+### Patch Changes
+
+- [#2377](https://github.com/aurelia/aurelia/pull/2377) [`a128a0b`](https://github.com/aurelia/aurelia/commit/a128a0bc1419f8578c206c7836914797615e5ab1) Thanks [@bigopon](https://github.com/bigopon)! - Fix `IObservation.watch` behavior when `immediate` is `false` — it should only skip the initial callback invocation, not disable observation itself. Closes #2375.
+
+- [#2374](https://github.com/aurelia/aurelia/pull/2374) [`cfff563`](https://github.com/aurelia/aurelia/commit/cfff563748e18e402c42863f20335217c720eda5) Thanks [@bigopon](https://github.com/bigopon)! - Fix `@computed` observation: prevent proxy-based getters from accidentally observing internal property reads of other `@computed` getters, and treat `deps: []` as a one-time evaluation instead of falling back to standard computed observer. Closes #2363.
+
 ## 2.0.0-rc.0
 
 ### Patch Changes

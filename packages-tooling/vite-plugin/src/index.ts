@@ -21,21 +21,13 @@ export default function au(options: {
   } = options;
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
+  const isAureliaBareImport = (id: string) => id === 'aurelia' || /^@aurelia\/[^/]+$/.test(id);
+  let useDevImports = false;
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
     config(config) {
-      const isDev = useDev === true || (useDev == null && config.mode !== 'production');
-      if (!isDev) {
-        return;
-      }
-
-      // Add 'development' to resolve.conditions so Vite uses the dev exports
-      // defined in each @aurelia/* package.json "exports" field
-      (config.resolve ??= {}).conditions ??= [];
-      if (!config.resolve.conditions.includes('development')) {
-        config.resolve.conditions.unshift('development');
-      }
+      useDevImports = useDev === true || (useDev == null && config.mode !== 'production');
     },
   };
 
@@ -48,7 +40,7 @@ export default function au(options: {
       $config = config;
     },
     async transform(code, id) {
-      if (!filter(id)) return;
+      if (!filter(normalizeFilterId(id))) return;
       // .$au.ts = .html
       // which already preprocessed by the load hook of this plugin
       if (isVirtualTsFileFromHtml(id)) return;
@@ -61,7 +53,7 @@ export default function au(options: {
         hmrModule: 'import.meta',
         getHmrCode,
         transformHtmlImportSpecifier: (s) => {
-          return $config.mode === 'production'
+          return $config.command === 'build'
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
@@ -71,7 +63,11 @@ export default function au(options: {
       return result;
     },
 
-    resolveId(id, importer) {
+    async resolveId(id, importer, options) {
+      if (useDevImports && isAureliaBareImport(id) && !id.endsWith('/development')) {
+        return (await this.resolve(`${id}/development`, importer, { ...options, skipSelf: true }))?.id ?? `${id}/development`;
+      }
+
       if (!isVirtualTsFileFromHtml(id)) {
         return null;
       }
@@ -255,10 +251,10 @@ if (${moduleText}.hot) {
         }
       });
       const h = controller.host;
-      const oldDef = controller._compiledDef;
+      const def = controller._compiledDef ?? newDefinition;
       $$onResolve(controller.deactivate(controller, controller.parent ?? null, 0), () => {
-        controller.container.deregister(oldDef.key);
-        controller.container.deregister(oldDef.Type);
+        controller.container.deregister(def.key);
+        controller.container.deregister(def.Type);
         delete controller._compiledDef;
         $$refs.clear(h);
         controller.viewModel = controller.container.invoke(currentClassType);
@@ -274,10 +270,28 @@ if (${moduleText}.hot) {
         }
         h.parentNode.replaceChild(controller.host, h);
         controller.activate(controller, controller.parent ?? null, 0);
+
+        // because we are in the previous controllers loop,
+        // we are sure that the controllers array is initialized to empty,
+        // from the HMR initialize code at the top.
+        // hence we push the controller back to the controllers array.
+        controllers.push(controller);
       });
     });
   }
 }`;
 
   return code;
+}
+
+// Vite can surface Windows absolute paths with a drive letter casing that differs
+// from process.cwd(), likely due to fs.realpathSync.native() during resolution.
+// Normalize the drive letter before createFilter() so include/exclude checks stay stable.
+function normalizeFilterId(id: string, cwd: string = process.cwd(), platform: NodeJS.Platform = process.platform): string {
+  if (platform !== 'win32' || !/^[a-zA-Z]:/.test(id) || cwd.length === 0) {
+    return id;
+  }
+
+  const cwdDrive = cwd[0];
+  return id[0] === cwdDrive ? id : `${cwdDrive}${id.slice(1)}`;
 }

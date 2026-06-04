@@ -395,6 +395,104 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
       assertText('Hey$$!!!');
       assert.deepStrictEqual(changeLog, [['Hey$$!!!', 'Hello Aurelia 2!$$!!!']]);
     });
+
+    it('automatic getter does not observe dependencies declared in another getter', async function () {
+      let computedCallCount = 0;
+      let computedCallCount2 = 0;
+      const { component } = createFixture(`\${moreText}`, class App {
+        prop = 'prop';
+        prop1 = ' prop1';
+
+        @computed('prop')
+        get text() {
+          computedCallCount++;
+          return this.prop + this.prop1;
+        }
+
+        get moreText() {
+          computedCallCount2++;
+          return this.text;
+        }
+      });
+
+      assert.strictEqual(component.moreText, 'prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(computedCallCount2, 1);
+
+      component.prop1 = ' new value';
+      await Promise.resolve();
+      assert.strictEqual(component.moreText, 'prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(computedCallCount2, 1);
+    });
+
+    it('shouldnt observe anything when deps is intentionally empty', async function () {
+      let computedCallCount = 0;
+      const { component, assertText } = createFixture(`\${text}`, class App {
+        prop = 'prop';
+        prop1 = ' prop1';
+
+        @computed({ deps: [] })
+        get text() {
+          computedCallCount++;
+          return this.prop + this.prop1;
+        }
+      });
+
+      assertText('prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+
+      component.prop = 'new prop';
+      await Promise.resolve();
+      assertText('prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(component.text, 'prop prop1');
+
+      component.prop1 = ' new value';
+      await Promise.resolve();
+      assert.strictEqual(component.text, 'prop prop1');
+      assert.strictEqual(computedCallCount, 1);
+    });
+
+    it('should not observe a getter read inside a computed getter when not declared as a dependency', async function () {
+      let computedCallCount = 0;
+      let computedCallCount2 = 0;
+      let privateCount = 0;
+      const { component } = createFixture(`\${moreText}`, class App {
+        prop = 'prop';
+        prop1 = ' prop1';
+
+        privateProp = 'value';
+
+        get privateText() {
+          privateCount++;
+          return this.privateProp;
+        }
+
+        @computed('prop')
+        get text() {
+          computedCallCount++;
+          return `${this.prop + this.prop1} ${this.privateText}`;
+        }
+
+        get moreText() {
+          computedCallCount2++;
+          return this.text;
+        }
+      });
+
+      assert.strictEqual(component.moreText, 'prop prop1 value');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(computedCallCount2, 1);
+      assert.strictEqual(privateCount, 1);
+
+      component.privateProp = 'value1';
+      await Promise.resolve();
+      assert.strictEqual(component.moreText, 'prop prop1 value');
+      assert.strictEqual(computedCallCount, 1);
+      assert.strictEqual(computedCallCount2, 1);
+      assert.strictEqual(privateCount, 1);
+    });
   });
 
   describe('sync', function () {

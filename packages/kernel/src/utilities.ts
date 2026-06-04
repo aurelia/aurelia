@@ -94,7 +94,7 @@ export const isString = (v: unknown): v is string => typeof v === 'string';
  * Returns true if the value is a symbol
  * An utility to be shared among core packages for better size optimization
  */
-export const isSymbol = (v: unknown): v is string => typeof v === 'symbol';
+export const isSymbol = (v: unknown): v is symbol => typeof v === 'symbol';
 
 /**
  * Returns true if the value is a number

@@ -2,6 +2,7 @@ import {
   emptyObject,
   type ILogger,
   isArray,
+  isPromise,
   onResolve,
   onResolveAll,
   Writable,
@@ -121,7 +122,8 @@ export class RouteNode {
      * @internal
      */
     public readonly _viewport: string | null,
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    /** This route node's title part. */
+    public title: string | ((node: RouteNode) => string | null) | null,
     public readonly component: CustomElementDefinition,
     /**
      * Not-yet-resolved viewport instructions.
@@ -460,8 +462,8 @@ export function createAndAppendNodes(
           const residue = rr?.residue ?? null;
           log.trace('createNode residue:', residue);
           const noResidue = residue === null;
-          // If the residue matches the whole path it means that empty route is configured, but the path in itself is not configured.
-          // Therefore the path matches the configured empty route and puts the whole path into residue.
+          // If no route matched (rr == null), or the entire path ended up as residue (meaning the
+          // empty-path route matched via its residual endpoint): always try route-id lookup first.
           if (rr == null || residue === path) {
             // check if a route-id is used
             const eagerResult = ctx.routeConfigContext._generateViewportInstruction(
@@ -484,7 +486,15 @@ export function createAndAppendNodes(
                 eagerResult.vi.recognizedRoute!,
                 vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>));
             }
-            return createFallbackNode(vi, node, log);
+            // Route-id lookup failed.
+            // If no route was recognized at all, or the matched empty-path component has no child routes
+            // configured: use the fallback. Otherwise (matched component has child routes), fall through
+            // to the normal path so the child context can handle the residue.
+            const handler = rr?.route.endpoint.route.handler;
+            if (rr === null || (!isPromise(handler) && handler.routes.length === 0)) {
+              return createFallbackNode(vi, node, log);
+            }
+            // rr is not null and the component has child routes: fall through to the normal path.
           }
 
           // readjust the children wrt. the residue

@@ -82,6 +82,19 @@ Examples:
 
 *Names can be in camelCase (`itemHeight`, `itemWidth`, etc.) or kebab-case (`item-height`, `item-width`, etc.).*
 
+### Gap between items
+
+Use `gap` to tell the virtualization math about spacing between items without folding that spacing into `item-height` or `item-width`.
+
+```html
+<div virtual-repeat.for="item of items; item-height: 48; gap: 12"
+     style="height: 48px; margin-bottom: 12px;">
+  ${item.name}
+</div>
+```
+
+For example, if each row is `48px` tall and has `margin-bottom: 12px`, keep `item-height: 48` and set `gap: 12`.
+
 ## Horizontal Scrolling
 
 The virtual repeat supports horizontal scrolling layouts, allowing you to create efficiently virtualized horizontal lists, carousels, and galleries.

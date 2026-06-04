@@ -65,6 +65,10 @@ export class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
     this.trace('observe', obj, propertyName);
   }
 
+  public observeExpression(obj: IIndexable, expression: string): void {
+    this.trace('observeExpression', obj, expression);
+  }
+
   public observeCollection(col: Collection): void {
     this.trace('observeCollection', col);
   }

@@ -8,13 +8,12 @@ import {
   refs
 } from '@aurelia/runtime-html';
 
-import { IRouter } from '../router';
 import { LoadCustomAttribute } from '../configuration';
-import { IRouteContext } from '../route-context';
 import { resolve } from '@aurelia/kernel';
 import { bmToView } from '../util';
 import { ViewportInstructionTree } from '../instructions';
 import { ILocationManager } from '../location-manager';
+import { IContextRouter } from '../context-router';
 
 /*
  * Note: Intentionally, there is no bindable `context` here.
@@ -40,9 +39,8 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   };
 
   /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
-  /** @internal */private readonly _router: IRouter = resolve(IRouter);
-  /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
-  /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
+  /** @internal */private readonly _ctxRouter: IContextRouter = resolve(IContextRouter);
+  /** @internal */private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
 
   public value: unknown;
 
@@ -55,7 +53,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
 
   public constructor() {
     if (
-      this._router.options.useHref &&
+      this._ctxRouter._options.useHref &&
       // Ensure the element is an anchor
       this._el.nodeName === 'A'
     ) {
@@ -97,9 +95,8 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       this._el.removeAttribute('href');
     } else {
       if (!treatAsExternal) {
-        const router = this._router;
-        const instructions = this._instructions = router.createViewportInstructions(newValue, { context: this._ctx }, null);
-        newValue = this._locationMgr.addBaseHref(instructions.toUrl(false, router.options._urlParser, true));
+        const instructions = this._instructions = this._ctxRouter.createViewportInstructions(newValue, null, null);
+        newValue = this._locationMgr.addBaseHref(instructions.toUrl(false, this._ctxRouter._options._urlParser, true));
       } else {
         this._instructions = null;
       }
@@ -125,7 +122,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
 
     e.preventDefault();
     // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
-    void this._router.load(this._instructions, { context: this._ctx });
+    void this._ctxRouter.load(this._instructions);
   }
 
   /** @internal */

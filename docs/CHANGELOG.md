@@ -3,6 +3,70 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.0-rc.1
+
+### Minor Changes
+
+- [#2382](https://github.com/aurelia/aurelia/pull/2382) [`6010f88`](https://github.com/aurelia/aurelia/commit/6010f880dde73d7b86be1ae501a85e1050894839) Thanks [@bigopon](https://github.com/bigopon)! - Extend `@computed` decorator to support method decoration for declaring/tracking dependencies when called from an observation context (e.g. a template binding or another computed observation). A normal function call will not trigger any observation.
+  
+  Note: method usage of `@computed` is experimental. Syntax and behavior may change before final release.
+  
+  Usages on methods:
+  - `@computed` - proxy-based auto-tracking
+  - `@computed('prop', 'nested.prop')` - explicit string dependencies
+  - `@computed(instance => instance.prop + instance.prop2)` - getter function dependency
+  - `@computed({ deps: ['prop', 'nested.prop'] })` - config object with string deps
+  - `@computed({ deps: vm => vm.prop })` - config object with getter function dep
+  
+  Usages on getters:
+  - `@computed({ deps: ['prop1', 'prop2'] })` - explicit deps (uses ControlledComputedObserver)
+  - `@computed({ flush: 'sync' })` - no deps, auto-tracking with sync flush
+  - `@computed('prop1', 'prop2')` - shorthand for deps array
+  
+  `getComputedObserver` now accepts an optional `ComputedPropertyInfo` parameter directly instead of reading from an internal WeakMap.
+- [#2368](https://github.com/aurelia/aurelia/pull/2368) [`c356f8c`](https://github.com/aurelia/aurelia/commit/c356f8c26696cc146d71e38fbf8292ba86418edb) Thanks [@Sayan751](https://github.com/Sayan751)! - Add `IContextRouter` - a convenience wrapper that combines `IRouter` with the component's current `IRouteContext`, so that calls to `load()` always resolve relative to the correct routing context without needing to pass `context` explicitly.
+- [#2376](https://github.com/aurelia/aurelia/pull/2376) [`046ebed`](https://github.com/aurelia/aurelia/commit/046ebed3f519b43152c51682be869cbfe26f8169) Thanks [@bigopon](https://github.com/bigopon)! - Add `flush-mode` bindable to `au-compose` for controlling flush timing of compositions. When set to `async`, binding updates to `component` and `model` are batched together, preventing duplicate `activate` calls. Closes #2373.
+- [#2355](https://github.com/aurelia/aurelia/pull/2355) [`e4d3bbb`](https://github.com/aurelia/aurelia/commit/e4d3bbb5a88723beb54bc6c4238eeb281b62c149) Thanks [@Sayan751](https://github.com/Sayan751)! - Add eager loading mode for router configuration via `RouterConfiguration.customize({ useEagerLoading: true })`. When enabled, the router builds the full routing table at startup, resolving issues with direct navigation to nested child routes. Closes #2273.
+- [#2369](https://github.com/aurelia/aurelia/pull/2369) [`98006c7`](https://github.com/aurelia/aurelia/commit/98006c711ddc30595f19bbbf7f82a92a5e21cef2) Thanks [@Sayan751](https://github.com/Sayan751)! - Refactor router path syntax and add `transitionPlan` override support via `Router#load`.
+  
+  Path syntax changes:
+  - `/path`: absolute path from the root of the application
+  - `path`, `./path`: relative to the current routing context
+  - `../path`, `../../path`: relative to an ancestor routing context; each `../` moves one level up
+  
+  `Router#load` now respects an explicit `transitionPlan` option when provided:
+  
+  ```ts
+  this.router.load('test', { transitionPlan: 'replace', queryParams: { message: this.newMessage } });
+  ```
+
+### Patch Changes
+
+- [#2361](https://github.com/aurelia/aurelia/pull/2361) [`ce52bb9`](https://github.com/aurelia/aurelia/commit/ce52bb99016bb593b398c1937dd27975bb8a4b7e) Thanks [@bigopon](https://github.com/bigopon)! - Add a dev-only warning when an unguarded self-recursive component is detected, to help diagnose maximum call stack errors.
+- [#2391](https://github.com/aurelia/aurelia/pull/2391) [`ce52a0c`](https://github.com/aurelia/aurelia/commit/ce52a0ce2b3b3e35b7ed2cc2eb408de0e459fa71) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix `href` attribute handling when using the `load` attribute together with `as-element`.
+- [#2389](https://github.com/aurelia/aurelia/pull/2389) [`fc2e89c`](https://github.com/aurelia/aurelia/commit/fc2e89cec152f30ad076c7b4ecb1a0fbe87e291f) Thanks [@bigopon](https://github.com/bigopon)! - Improve validation rule type inference so types are properly passed through for `satisfies` expressions. Closes #2347.
+- [#2386](https://github.com/aurelia/aurelia/pull/2386) [`eb54d9c`](https://github.com/aurelia/aurelia/commit/eb54d9c1130f7f1f00129baff6325780d035baa3) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix vite plugin bundling. Fixes #2372.
+- [#2378](https://github.com/aurelia/aurelia/pull/2378) [`9d5366a`](https://github.com/aurelia/aurelia/commit/9d5366a03153b685b9ecab0ebcdfc839e63463a7) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix HMR state capture across consecutive edits. Fixes #2365.
+- [#2377](https://github.com/aurelia/aurelia/pull/2377) [`a128a0b`](https://github.com/aurelia/aurelia/commit/a128a0bc1419f8578c206c7836914797615e5ab1) Thanks [@bigopon](https://github.com/bigopon)! - Fix `IObservation.watch` behavior when `immediate` is `false` — it should only skip the initial callback invocation, not disable observation itself. Closes #2375.
+- [#2374](https://github.com/aurelia/aurelia/pull/2374) [`cfff563`](https://github.com/aurelia/aurelia/commit/cfff563748e18e402c42863f20335217c720eda5) Thanks [@bigopon](https://github.com/bigopon)! - Fix `@computed` observation: prevent proxy-based getters from accidentally observing internal property reads of other `@computed` getters, and treat `deps: []` as a one-time evaluation instead of falling back to standard computed observer. Closes #2363.
+
+### Affected Packages
+
+The following packages have direct changes:
+
+- `@aurelia/plugin-conventions`
+- `@aurelia/route-recognizer`
+- `@aurelia/router`
+- `@aurelia/runtime`
+- `@aurelia/runtime-html`
+- `@aurelia/template-compiler`
+- `@aurelia/validation`
+- `@aurelia/vite-plugin`
+- `@aurelia/webpack-loader`
+- `aurelia`
+
+All packages in the fixed release group will be versioned together.
+
 ## 2.0.0-rc.0
 
 ### Minor Changes

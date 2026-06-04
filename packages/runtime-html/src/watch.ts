@@ -21,9 +21,14 @@ export type IWatchOptions = {
   flush?: 'async' | 'sync';
 };
 
-type AnyMethod<R = unknown> = (...args: unknown[]) => R;
+type AnyMethod<R = unknown> = (...args: any[]) => R;
 type WatchClassDecorator<T extends object> = (target: Constructable<T>, context: ClassDecoratorContext<Constructable<T>>) => void;
-type WatchMethodDecorator<T, TV extends AnyMethod> = (target: TV, context: ClassMethodDecoratorContext<T, TV>) => void;
+type WatchableMethod<T extends object, D, R = unknown>
+  = (() => R)
+  | ((newValue: D) => R)
+  | ((newValue: D, oldValue: D) => R)
+  | ((newValue: D, oldValue: D, vm: T) => R);
+type WatchMethodDecorator<T extends object, D> = <TV extends WatchableMethod<T, D>>(target: TV, context: ClassMethodDecoratorContext<T, TV>) => void;
 type MethodsOf<Type> = {
   [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never
 }[keyof Type];
@@ -57,10 +62,10 @@ export function watch<T extends object, D = unknown>(
 //    @watch(a => ...)
 //    method() {...}
 // }
-export function watch<T extends object = object, D = unknown, TV extends AnyMethod = AnyMethod>(
+export function watch<T extends object = object, D = unknown>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>,
   options?: IWatchOptions,
-): WatchMethodDecorator<T, TV>;
+): WatchMethodDecorator<T, D>;
 
 export function watch<T extends object = object, TV extends AnyMethod = AnyMethod>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<object>,
@@ -182,6 +187,7 @@ function testWatchDeco() {
   @watch(vm => vm.prop, (_, __, vm) => vm.prop, { flush: 'asyn' })
   class MyClass {
     public prop = 1;
+    public ctrl = { confirmUrl: '' };
 
     @watch('some.property')
     @watch('some.property', { flush: 'sync' })
@@ -199,5 +205,11 @@ function testWatchDeco() {
     // @ts-expect-error - type
     @watch((vm) => vm.prop, { flush: 'asyn' })
     public myMethod3() {/*  */}
+
+    @watch((vm) => vm.ctrl.confirmUrl)
+    public onConfirmUrlChanged(url: string) {/*  */}
+
+    @watch((vm) => vm.ctrl.confirmUrl)
+    public onConfirmUrlChanged2() {/*  */}
   }
 }

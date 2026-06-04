@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  browser-tools: circleci/browser-tools@1.4.7
+  browser-tools: circleci/browser-tools@2.4.0
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -108,16 +108,16 @@ commands:
               - <<parameters.install_drivers>>
               - <<parameters.install_chrome>>
           steps:
-            - browser-tools/install-chrome
-            - browser-tools/install-chromedriver
+            - browser-tools/install_chrome
+            - browser-tools/install_chromedriver
       - when:
           condition:
             and:
               - <<parameters.install_drivers>>
               - <<parameters.install_firefox>>
           steps:
-            - browser-tools/install-firefox
-            - browser-tools/install-geckodriver
+            - browser-tools/install_firefox
+            - browser-tools/install_geckodriver
       - when:
           condition: <<parameters.install>>
           steps:
@@ -388,6 +388,9 @@ jobs:
       run_webpack:
         type: boolean
         default: false
+      run_prod:
+        type: boolean
+        default: false
     steps:
       - checkout_install:
           install_drivers: false
@@ -414,6 +417,21 @@ jobs:
                 command: |
                   npm run test:e2e:webpack
                 no_output_timeout: "1m"
+      - when:
+          condition: << parameters.run_prod >>
+          steps:
+            - run:
+                name: "Run e2e production build (webpack)"
+                working_directory: << parameters.path >>
+                command: |
+                  npm run test:e2e:prod:webpack
+                no_output_timeout: "2m"
+            - run:
+                name: "Run e2e production build (vite)"
+                working_directory: << parameters.path >>
+                command: |
+                  npm run test:e2e:prod:vite
+                no_output_timeout: "2m"
 
   # Standalone playwright test jobs
   e2e_verdaccio:
@@ -492,8 +510,8 @@ jobs:
         type: string
     steps:
       - checkout
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
+      - browser-tools/install_chrome
+      - browser-tools/install_chromedriver
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
@@ -644,6 +662,7 @@ workflows:
           name: pr_full_e2e_router
           path: "packages/__e2e__/6-router"
           run_webpack: true
+          run_prod: true
           requires:
             - pr_full_build_release
 
@@ -844,6 +863,7 @@ workflows:
           name: e2e_router
           path: "packages/__e2e__/6-router"
           run_webpack: true
+          run_prod: true
           requires:
             - build_release
       - e2e_test:

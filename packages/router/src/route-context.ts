@@ -525,7 +525,7 @@ export class RouteContext {
         config => this.routeConfigContext._processConfig(config)
       );
     return onResolve(task, () => {
-      const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn,  null, ssrScope);
+      const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn, null, ssrScope);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
       this._hostControllerProvider.dispose();
@@ -633,12 +633,26 @@ export class RouteContext {
 
       const isVpInstr = isPartialViewportInstruction(instr);
       let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
-      if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
-        while (($instruction as string).startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
-          $instruction = ($instruction as string).slice(3);
-          if (!contextChanged) context = context!.parent;
+      if (typeof $instruction === 'string') {
+        // '/path' -> root
+        // '../path' -> parent
+        // 'path', './path' -> current
+        if ($instruction.startsWith('/')) {
+          context = this.root;
+          contextChanged = true;
+          $instruction = $instruction.slice(1);
+        } else if ($instruction.startsWith('../') && context !== null) {
+          while (($instruction as string).startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
+            $instruction = ($instruction as string).slice(3);
+            if (!contextChanged) context = context!.parent;
+          }
+          contextChanged = true;
+        } else {
+          if (context == null) logAndThrow(new Error(getMessage(Events.rcNoContextStringComponent)), this._logger);
+          if ($instruction.startsWith('./')) {
+            $instruction = $instruction.slice(2);
+          }
         }
-        contextChanged = true;
       }
       if (isVpInstr) {
         (instr as Writable<IViewportInstruction>).component = $instruction;

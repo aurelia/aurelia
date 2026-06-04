@@ -6,6 +6,17 @@ description: Learn to navigate from one view to another using the Aurelia router
 
 Aurelia's router provides multiple ways to navigate between routes in your application. This section covers all navigation methods from simple links to complex programmatic navigation patterns.
 
+## Path syntax
+
+Before diving into the navigation methods, here is a overview of the path syntax supported by the router.
+The syntax is consistent similar to file-system navigation.
+
+- `/path`: This represents an absolute path from the root of the application.
+- `path`, `./path`: These represent a relative paths from the current routing context.
+- `../path`, or `../../path`: These represent relative paths from the ancestor routing context; every `../` moves one level up in the routing context hierarchy.
+- `path1+path2`: This represents loading multiple sibling viewports simultaneously; `path1` is loaded in the first available viewport and `path2` in the next available viewport.
+- `path@viewportName`: This represents loading a route in a named viewport; `path` is loaded in the viewport identified by `viewportName`. The viewport name can also be used with the sibling viewport syntax like `path1@vp1+path2@vp2`.
+
 ## Navigation Methods Overview
 
 The router offers three primary navigation approaches:
@@ -915,14 +926,15 @@ This section describes other available options.
 
 **`title`**
 
-The `title` property allows you to modify the title as you navigate to your route.
+The `title` property lets you override the document title for a single navigation.
 This looks like as follows.
 
 ```typescript
 router.load(Home, { title: 'Some title' });
 ```
 
-Note that defining the `title` like this, overrides the title defined via the route configuration.
+When no custom `buildTitle` is configured, defining `title` like this overrides the title that would otherwise be composed from route configuration title parts.
+When a custom `buildTitle` is configured, the builder controls document title generation and can decide whether to use `transition.options.title`.
 This can also be seen in the action below where a random title is generated every time.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-title?ctl=1&embed=1&file=src/my-app.ts" %}
@@ -937,6 +949,8 @@ Using this option, you can customize the separator.
 ```typescript
 router.load(Home, { titleSeparator: '-' });
 ```
+
+`titleSeparator` only affects the default route-tree title composition. It is ignored when `title` provides the document title override for a navigation or when `buildTitle` takes over title generation.
 
 This can also be seen in the action below where a random title separator is selected every time.
 

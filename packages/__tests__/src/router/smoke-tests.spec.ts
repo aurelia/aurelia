@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, IModule, inject, resolve, isArray } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { tasksSettled } from '@aurelia/runtime';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions } from '@aurelia/router';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext, ViewportInstruction, INavigationOptions, ILocationManager } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -5589,6 +5589,10 @@ describe('router/smoke-tests.spec.ts', function () {
       await tasksSettled();
       assert.html.textContent(host, 'ce1 2 3 44', 'round#3');
 
+      await router.load('ce1/44', { transitionPlan: 'replace', queryParams: { a: '5' } });
+      await tasksSettled();
+      assert.html.textContent(host, 'ce1 3 4 44', 'round#3');
+
       await router.load('ce2/42');
       await tasksSettled();
       assert.html.textContent(host, 'ce2 1 1 42', 'round#4');
@@ -7471,6 +7475,120 @@ describe('router/smoke-tests.spec.ts', function () {
           ? `c1 {"foo":["bar","baz"],"id":"42"} baz`
           : `c1 {"id":"42"} baz`,
         'round#3');
+
+      await au.stop(true);
+    });
+  }
+
+  for (const [name, char] of [
+    ['space', ' '],
+    ['degree', '°'],
+    ['caret', '^'],
+    ['dollar', '$'],
+    ['euro', '€'],
+    ['section', '§'],
+    ['percent', '%'],
+    ['ampersand', '&'],
+    ['non-ascii-char', 'ü'],
+    ['emoji', '🧑‍🚀'],
+  ]) {
+    it(`handles parameter values with ${name} correctly - GH issue #2398`, async function () {
+
+      @route('gc1/:id')
+      @customElement({ name: 'gc-1', template: 'gc1 ${id}' })
+      class Gc1 implements IRouteViewModel {
+        private id: string;
+        public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+          this.id = params.id;
+        }
+      }
+
+      @route({ path: 'c1', routes: [Gc1] })
+      @customElement({ name: 'c-1', template: 'c1 <au-viewport></au-viewport>' })
+      class C1 implements IRouteViewModel { }
+
+      @route({ routes: [C1] })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      let pushedUrl: string = '';
+      const { au, host } = await start({
+        appRoot: Root,
+        registrations: [
+          Registration.instance(ILocationManager, {
+            startListening: () => { },
+            stopListening: () => { },
+            getPath: () => `c1/gc1/foo${encodeURIComponent(char)}bar`,
+            removeBaseHref: (p: string) => p,
+            pushState: (_state: {} | null, _title: string, _url: string) => { },
+            replaceState: (_state: {} | null, _title: string, url: string) => { pushedUrl = url; },
+          })
+        ]
+      });
+
+      assert.html.textContent(host, `c1 gc1 foo${char}bar`, 'round#1');
+
+      // eslint-disable-next-line no-useless-escape
+      assert.strictEqual(pushedUrl?.match(new RegExp(`gc1\/foo${encodeURIComponent(char)}bar`, 'g'))?.length, 1, 'URL should be pushed only once');
+
+      await au.stop(true);
+    });
+  }
+
+  /**
+   * Reproduction: App has a single empty-path route pointing to a ShellLayout component.
+   * ShellLayout owns the real navigation routes ('shops', 'billing-accounts').
+   * Hard-reloading at /shops (or /billing-accounts) used to throw AUR3401.
+   * Each row deep-links to `initialPath`, then navigates in-app to `navPath`.
+   */
+  for (const { initialPath, initialContent, navPath, navContent } of [
+    { initialPath: '/shops',            initialContent: 'shops',   navPath: 'billing-accounts', navContent: 'billing' },
+    { initialPath: '/billing-accounts', initialContent: 'billing', navPath: 'shops',            navContent: 'shops'   },
+  ]) {
+    it(`deep-link to '${initialPath}' then navigate to '${navPath}' - GH issue #2406`, async function () {
+      @customElement({ name: 'shops-page', template: 'shops' })
+      class ShopsPage { }
+
+      @customElement({ name: 'billing-page', template: 'billing' })
+      class BillingPage { }
+
+      @route({
+        routes: [
+          { path: '', redirectTo: 'shops' },
+          { path: 'shops', component: ShopsPage },
+          { path: 'billing-accounts', component: BillingPage },
+        ],
+      })
+      @customElement({ name: 'shell-layout', template: '<au-viewport></au-viewport>' })
+      class ShellLayout { }
+
+      @route({
+        routes: [
+          { path: '', component: ShellLayout },
+        ],
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, host, container } = await start({
+        appRoot: Root,
+        registrations: [
+          Registration.instance(ILocationManager, {
+            startListening: () => { },
+            stopListening: () => { },
+            getPath: () => initialPath,
+            removeBaseHref: (p: string) => p,
+            pushState: () => { },
+            replaceState: () => { },
+          })
+        ],
+      });
+
+      assert.html.textContent(host, initialContent, `deep-link ${initialPath} should render '${initialContent}'`);
+
+      const router = container.get(IRouter);
+      await router.load(navPath);
+      assert.html.textContent(host, navContent, `in-app navigation to '${navPath}' should render '${navContent}'`);
 
       await au.stop(true);
     });

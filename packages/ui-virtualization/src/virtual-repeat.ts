@@ -1,13 +1,11 @@
 import { resolve } from "@aurelia/kernel";
-import { type IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import { ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
 import {
   Collection,
-  getCollectionObserver,
   IndexMap,
   Scope,
   type IOverrideContext,
   BindingContext,
-  astEvaluate,
   queueAsyncTask,
   Task,
 } from '@aurelia/runtime';
@@ -24,11 +22,7 @@ import {
 import {
   IInstruction,
   HydrateTemplateController,
-  IteratorBindingInstruction,
 } from '@aurelia/template-compiler';
-import {
-  unwrapExpression,
-} from "./utilities-repeat";
 import { createMappedError, ErrorNames } from './errors';
 import {
   ICollectionStrategyLocator,
@@ -49,10 +43,11 @@ import {
   getDistanceToScroller,
   getHorizontalDistanceToScroller
 } from "./utilities-dom";
+import { IterateBindingInstruction, IIterateBindingTarget } from './iterate-binding';
 
 export interface VirtualRepeat extends ICustomAttributeViewModel { }
 
-export class VirtualRepeat implements IVirtualRepeater {
+export class VirtualRepeat implements IVirtualRepeater, IIterateBindingTarget {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
     name: 'virtual-repeat',
@@ -70,22 +65,21 @@ export class VirtualRepeat implements IVirtualRepeater {
   // bindable
   public items: Collection | null | undefined = void 0;
 
-  /** @internal */ private readonly iterable: IsBindingBehavior;
-  // /** @internal */ private readonly forOf: ForOfStatement;
-  /** @internal */ private readonly _hasWrapExpression: boolean;
-  /** @internal */ private readonly _obsMediator: CollectionObservationMediator;
-
   /** @internal */ private readonly views: ISyntheticView[] = [];
   /** @internal */ private task: Task | null = null;
+  /** @internal */ private _items: Collection | null | undefined = void 0;
+  /** @internal */ private _ignoreItemsChanged = false;
 
   private itemHeight = 0;
   private itemWidth = 0;
+  private itemGap = 0;
   private minViewsRequired = 0;
   private collectionStrategy?: ICollectionStrategy;
   private dom: IVirtualRepeatDom = null!;
 
   /** @internal */ private readonly _configuredItemHeight?: number;
   /** @internal */ private readonly _configuredItemWidth?: number;
+  /** @internal */ private readonly _configuredGap: number = 0;
   /** @internal */ private readonly _configuredBufferSize?: number;
   /** @internal */ private readonly _configuredMinViews?: number;
   /** @internal */ private readonly _configuredLayout: 'vertical' | 'horizontal' = 'vertical';
@@ -106,11 +100,8 @@ export class VirtualRepeat implements IVirtualRepeater {
   /** @internal */ private readonly _domRenderer = resolve(IDomRenderer);
 
   public constructor() {
-    const iteratorInstruction = this.instruction.props[0] as IteratorBindingInstruction;
+    const iteratorInstruction = this.instruction.props[0] as IterateBindingInstruction;
     const forOf = iteratorInstruction.forOf as ForOfStatement;
-    const iterable = this.iterable = unwrapExpression(forOf.iterable) ?? forOf.iterable;
-    const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
-    this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
 
     const extraProps = (iteratorInstruction.props ?? []);
@@ -137,6 +128,12 @@ export class VirtualRepeat implements IVirtualRepeater {
           case 'item-width': {
             if (!Number.isNaN(valNum) && valNum > 0) {
               this._configuredItemWidth = valNum;
+            }
+            break;
+          }
+          case 'gap': {
+            if (!Number.isNaN(valNum) && valNum >= 0) {
+              this._configuredGap = valNum;
             }
             break;
           }
@@ -196,8 +193,8 @@ export class VirtualRepeat implements IVirtualRepeater {
         && (parentTag === 'TBODY' || parentTag === 'THEAD' || parentTag === 'TFOOT' || parentTag === 'TABLE')) {
       throw createMappedError(ErrorNames.virtual_repeat_horizontal_in_table);
     }
-    this._obsMediator.start(this.items);
-    this.collectionStrategy = this._strategyLocator.getStrategy(this.items);
+    this._items = this.items;
+    this.collectionStrategy = this._strategyLocator.getStrategy(this._items);
     this._unsubscribeScroller = this._observeScroller();
     this._attached = true;
     this._onResize();
@@ -212,7 +209,6 @@ export class VirtualRepeat implements IVirtualRepeater {
     this.task?.cancel();
     this._resetCalculation();
     this.dom.dispose();
-    this._obsMediator.stop();
 
     this.dom
       = this.task
@@ -273,13 +269,14 @@ export class VirtualRepeat implements IVirtualRepeater {
       const viewCount = this.views.length;
       // when updating the dom
       // we will trigger an event and then handle it the next frame
-      this.dom.update(0, (isHorizontal ? itemWidth : itemHeight) * (itemCount - viewCount));
+      this.dom.update(0, this._getTailSize(itemCount - viewCount));
     }
 
     this.itemHeight = itemHeight;
     this.itemWidth = itemWidth;
+    this.itemGap = this._configuredGap;
 
-    const minViews = this._configuredMinViews ?? viewportSize / (isHorizontal ? itemWidth : itemHeight);
+    const minViews = this._configuredMinViews ?? viewportSize / this._getItemSpan();
     this.minViewsRequired = Math.ceil(minViews);
 
     // For variable sizing, measure the first item to initialize the arrays
@@ -287,7 +284,7 @@ export class VirtualRepeat implements IVirtualRepeater {
       this._measureAndStoreItemSize(firstView, 0);
     }
 
-    this._handleItemsChanged(this.items, this.collectionStrategy!);
+    this._handleItemsChanged(this._items, this.collectionStrategy!);
   }
 
   /**
@@ -297,6 +294,7 @@ export class VirtualRepeat implements IVirtualRepeater {
     this.minViewsRequired = 0;
     this.itemHeight = 0;
     this.itemWidth = 0;
+    this.itemGap = 0;
     this.dom.update(0, 0);
 
     // Reset variable sizing data
@@ -330,7 +328,7 @@ export class VirtualRepeat implements IVirtualRepeater {
     let cumulativeHeight = 0;
     for (let i = 0; i < itemCount; i++) {
       const height = this._itemHeights[i] ?? this.itemHeight;
-      cumulativeHeight += height;
+      cumulativeHeight += height + (i === 0 ? 0 : this.itemGap);
       this._cumulativeHeights[i] = cumulativeHeight;
     }
 
@@ -339,7 +337,7 @@ export class VirtualRepeat implements IVirtualRepeater {
     let cumulativeWidth = 0;
     for (let i = 0; i < itemCount; i++) {
       const width = this._itemWidths[i] ?? this.itemWidth;
-      cumulativeWidth += width;
+      cumulativeWidth += width + (i === 0 ? 0 : this.itemGap);
       this._cumulativeWidths[i] = cumulativeWidth;
     }
   }
@@ -350,10 +348,10 @@ export class VirtualRepeat implements IVirtualRepeater {
   private _findIndexByPosition(position: number, isHorizontal: boolean): number {
     const cumulative = isHorizontal ? this._cumulativeWidths : this._cumulativeHeights;
 
-    if (cumulative.length === 0) {
-      // Fallback to fixed sizing
-      const itemSize = this._getItemSize();
-      return itemSize > 0 ? Math.floor(position / itemSize) : 0;
+      if (cumulative.length === 0) {
+        // Fallback to fixed sizing
+      const itemSpan = this._getItemSpan();
+      return itemSpan > 0 ? Math.floor((position + this.itemGap) / itemSpan) : 0;
     }
 
     // Binary search to find the index
@@ -389,8 +387,7 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     if (index >= cumulative.length) {
       // Fallback for out-of-bounds
-      const itemSize = this._getItemSize();
-      return index * itemSize;
+      return this._getTailSize(index);
     }
 
     return index > 0 ? cumulative[index - 1] : 0;
@@ -399,6 +396,28 @@ export class VirtualRepeat implements IVirtualRepeater {
   /** @internal */
   private _getItemSize() {
     return this._configuredLayout === 'horizontal' ? this.itemWidth : this.itemHeight;
+  }
+
+  /** @internal */
+  private _getItemSpan() {
+    return this._getItemSize() + this.itemGap;
+  }
+
+  /** @internal */
+  private _getTailSize(itemCount: number) {
+    return itemCount <= 0 ? 0 : (itemCount * this._getItemSize()) + (itemCount * this.itemGap);
+  }
+
+  /** @internal */
+  private _getTotalSize(itemCount: number, isHorizontal: boolean): number {
+    if (itemCount <= 0) {
+      return 0;
+    }
+    const cumulative = isHorizontal ? this._cumulativeWidths : this._cumulativeHeights;
+    if (cumulative.length >= itemCount) {
+      return cumulative[itemCount - 1];
+    }
+    return (itemCount * this._getItemSize()) + ((itemCount - 1) * this.itemGap);
   }
 
   /** @internal */
@@ -511,11 +530,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
       // Variable sizing: calculate actual cumulative sizes
       topBufferSize = this._getPositionForIndex(topCount, isHorizontal);
-      botBufferSize = this._getPositionForIndex(itemCount - firstIndex - realViewCount, isHorizontal);
+      const bottomBufferStartOffset = this._getPositionForIndex(itemCount - botCount, isHorizontal);
+      botBufferSize = this._getTotalSize(itemCount, isHorizontal) - bottomBufferStartOffset;
     } else {
       // Fixed sizing: use multiplication
-      topBufferSize = topCount * itemSize;
-      botBufferSize = botCount * itemSize;
+      topBufferSize = topCount * (itemSize + this.itemGap);
+      botBufferSize = botCount * (itemSize + this.itemGap);
     }
 
     this.dom.update(topBufferSize, botBufferSize);
@@ -523,8 +543,33 @@ export class VirtualRepeat implements IVirtualRepeater {
 
   /** @internal */
   public itemsChanged(items?: Collection | null): void {
-    this._obsMediator.start(items);
+    if (this._ignoreItemsChanged) {
+      return;
+    }
+    this._items = items;
     this.collectionStrategy = this._strategyLocator.getStrategy(items);
+    this._queueHandleItemsChanged();
+  }
+
+  /** @internal */
+  public handleItemsChangeChange(items: Collection, indexMap?: IndexMap): void {
+    const isMutation = indexMap !== void 0;
+    const sameItems = this._items === items;
+
+    if (!isMutation || !sameItems) {
+      this._items = items;
+      if (!sameItems) {
+        this.collectionStrategy = this._strategyLocator.getStrategy(items);
+      }
+      this._ignoreItemsChanged = true;
+      this.items = items;
+      this._ignoreItemsChanged = false;
+    }
+
+    if (!this._attached) {
+      return;
+    }
+
     this._queueHandleItemsChanged();
   }
 
@@ -579,7 +624,7 @@ export class VirtualRepeat implements IVirtualRepeater {
 
     let first_index_after_scroll_adjustment = realScroll === 0
       ? 0
-      : Math.floor(realScroll / itemSize);
+      : Math.floor((realScroll + this.itemGap) / (itemSize + this.itemGap));
 
     // if first index after scroll adjustment doesn't fit with number of possible view
     // it means the scroller has been too far down to the bottom and nolonger suitable to start from this index
@@ -748,11 +793,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
       // Variable sizing: calculate actual cumulative sizes
       topBufferSize = this._getPositionForIndex(topCount1, isHorizontal);
-      botBufferSize = this._getPositionForIndex(botCount1, isHorizontal);
+      const bottomBufferStartOffset = this._getPositionForIndex(collectionSize - botCount1, isHorizontal);
+      botBufferSize = this._getTotalSize(collectionSize, isHorizontal) - bottomBufferStartOffset;
     } else {
       // Fixed sizing: use multiplication
-      topBufferSize = topCount1 * itemSize;
-      botBufferSize = botCount1 * itemSize;
+      topBufferSize = topCount1 * (itemSize + this.itemGap);
+      botBufferSize = botCount1 * (itemSize + this.itemGap);
     }
 
     repeatDom.update(topBufferSize, botBufferSize);
@@ -766,33 +812,12 @@ export class VirtualRepeat implements IVirtualRepeater {
     return this.views.slice(0);
   }
 
-  /**
-   * todo: handle update based on collection, rather than always update
-   *
-   * @internal
-   */
-  public _handleCollectionChange(): void {
-    this._queueHandleItemsChanged();
-  }
-
-  /**
-   * @internal
-   */
-  public _handleInnerCollectionChange(): void {
-    const newItems = astEvaluate(this.iterable, this.parent.scope, { strict: true }, null) as Collection;
-    const oldItems = this.items;
-    this.items = newItems;
-    if (newItems === oldItems) {
-      this._queueHandleItemsChanged();
-    }
-  }
-
   /** @internal */
   private _queueHandleItemsChanged() {
     const task = this.task;
     this.task = queueAsyncTask(() => {
       this.task = null;
-      this._handleItemsChanged(this.items, this.collectionStrategy!);
+      this._handleItemsChanged(this._items, this.collectionStrategy!);
     });
     task?.cancel();
   }
@@ -832,29 +857,6 @@ export class VirtualRepeat implements IVirtualRepeater {
     const view = this._factory.create();
     views.push(view);
     return view;
-  }
-}
-
-class CollectionObservationMediator {
-  /** @internal */ private _collection!: Collection;
-
-  public constructor(
-    public repeat: VirtualRepeat,
-    public handleCollectionChange: (col: Collection, indexMap: IndexMap) => void,
-  ) { }
-
-  public start(c?: Collection | null): void {
-    if (this._collection === c) {
-      return;
-    }
-    this.stop();
-    if (c != null) {
-      getCollectionObserver(this._collection = c)?.subscribe(this);
-    }
-  }
-
-  public stop(): void {
-    getCollectionObserver(this._collection)?.unsubscribe(this);
   }
 }
 

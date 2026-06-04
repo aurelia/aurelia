@@ -22,6 +22,13 @@ Aurelia offers several reactivity tools. Here's how to choose:
 - ✅ Deep observation needed for nested objects
 - ✅ Example: Complex filtering, heavy aggregations
 
+### Use `@computed` on methods when:
+- **A method call in template** needs dependency tracking
+- You want **explicit tracked dependencies** instead of proxy-based tracking
+- You want to **disable tracking** for a specific method call
+- Observation only activates when the method is called from an observation context (template, computed). Normal calls are unaffected
+- Example: complex filtering or formatting methods used directly from templates
+
 ### Use `@observable` when:
 - ✅ **You need to run code** when a property changes (side effects)
 - ✅ You want the `propertyChanged(newValue, oldValue)` callback
@@ -111,7 +118,7 @@ export class ShoppingCart {
 
 ### Decorator `computed`
 
-For some reason, it's more preferrable to specify dependencies of a getter manually, rather than automatically tracked on read,
+For some reason, when it's more preferrable to specify dependencies of a getter manually, rather than automatically tracked on read,
 you can use the decorator `@computed` to declare the dependencies, like the following example:
 
 ```ts
@@ -158,6 +165,63 @@ export class ShoppingCart {
 ```
 
 Basides the above basic usages, the `computed` decorator also supports a few more options, depending on the needs of an application.
+
+#### Method tracking with `@computed`
+
+When you call a method from a template (not a getter), use `@computed` to control dependency tracking for that call.
+Observation only activates when the method is called from an observation context (e.g. a template binding or another computed observation). A normal function call will not trigger any observation.
+
+> Note: Using `@computed` on methods is currently experimental. The syntax and behavior may change before the final release.
+
+```ts
+import { computed } from 'aurelia';
+
+export class ProductList {
+  filter = '';
+  products: Product[] = [];
+  nested = { prop: '' };
+  prop = '';
+  prop2 = '';
+
+  // proxy-based tracking (default)
+  @computed
+  matches(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // explicit dependency paths
+  @computed('filter', 'nested.prop')
+  matches2(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // explicit dependency function
+  @computed((instance: ProductList) => instance.prop + instance.prop2)
+  matches3(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // options form with string deps
+  @computed({ deps: ['filter', 'nested.prop'] })
+  matches4(product: Product) {
+    return product.name.includes(this.filter);
+  }
+
+  // options form with getter function dep
+  @computed({ deps: (instance: ProductList) => instance.prop + instance.prop2 })
+  matches5(product: Product) {
+    return product.name.includes(this.filter);
+  }
+}
+```
+
+Behavior:
+- `deps` omitted (or `undefined`) uses proxy-based tracking.
+- `deps: []` explicitly disables tracking for the decorated method/getter.
+- `deps` with strings enables explicit string-based dependency tracking.
+- `deps` with a getter function enables function-based dependency tracking.
+- Strings and functions cannot be mixed in the same `deps` declaration.
+- Stacking `@computed` on the same method overrides prior tracking metadata (last applied wins).
 
 #### Flush timing with `flush`
 

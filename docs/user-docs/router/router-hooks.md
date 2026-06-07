@@ -829,7 +829,7 @@ export class QueryReadingHooks {
 }
 ```
 
-You can also do similar reading in `loading`, `canUnload`, etc. This approach can be combined with injecting `ICurrentRoute` if your logic is broader than a single hook.
+You can also do similar reading in `loading`, `canUnload`, etc. Hooks that receive the next `RouteNode` before navigation commits can assign `next.title` to set that node's title part. This approach can be combined with injecting `ICurrentRoute` if your logic is broader than a single hook.
 
 ## Best Practices
 

@@ -122,7 +122,8 @@ export class RouteNode {
      * @internal
      */
     public readonly _viewport: string | null,
-    public readonly title: string | ((node: RouteNode) => string | null) | null,
+    /** This route node's title part. */
+    public title: string | ((node: RouteNode) => string | null) | null,
     public readonly component: CustomElementDefinition,
     /**
      * Not-yet-resolved viewport instructions.

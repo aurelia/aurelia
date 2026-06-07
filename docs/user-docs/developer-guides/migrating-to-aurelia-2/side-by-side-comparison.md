@@ -849,8 +849,8 @@ export class UserDetailPage implements IRouteViewModel {
     // Load data - much cleaner async support
     this.user = await this.userService.getUser(params.id);
 
-    // Set dynamic title based on loaded data
-    next.setTitle(`User: ${this.user.name}`);
+    // Set this route node's title part based on loaded data
+    next.title = `User: ${this.user.name}`;
   }
 
   canUnload(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean> {
@@ -895,7 +895,7 @@ export class MyApp {
 - **Type safety**: Full TypeScript support throughout
 - **Lazy loading**: Built-in support for code splitting
 - **Enhanced parameters**: Better access to route context and navigation state
-- **Dynamic titles**: Easy to set page titles based on loaded data
+- **Dynamic titles**: Set route node title parts based on loaded data
 {% endtab %}
 {% endtabs %}
 

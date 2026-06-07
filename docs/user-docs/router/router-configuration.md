@@ -22,7 +22,7 @@ The router accepts the following configuration options through `RouterConfigurat
 | `basePath` | `string \| null` | `null` | Overrides the base segment used to resolve relative routes. Defaults to `document.baseURI`. |
 | `activeClass` | `string \| null` | `null` | CSS class applied by the `load` attribute when a link is active. |
 | `useNavigationModel` | boolean | `true` | Generates the navigation model so you can build menus from `IRouteContext.routeConfigContext.navigationModel`. |
-| `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises how page titles are produced. Return `null` to skip title updates. |
+| `buildTitle` | `(transition: Transition) => string \| null` | `null` | Customises final document title generation. Return `null` to skip document title updates. |
 | `restorePreviousRouteTreeOnError` | boolean | `true` | Restores the previous route tree if a navigation throws, preventing partial states. |
 | `treatQueryAsParameters` | boolean | `false` (deprecated) | Treats query parameters as route parameters. Avoid new usage; scheduled for removal in the next major release. |
 | `useEagerLoading` | boolean | `false` | When `true`, eagerly loads all route configurations upfront when the application starts. |
@@ -247,6 +247,7 @@ Every call to `ViewportInstruction.toUrl`, `router.load`, or `router.generatePat
 ## Customizing title
 
 A `buildTitle` function can be used to customize the [default behavior of building the title](./configuring-routes.md#setting-the-title).
+When configured, `buildTitle` owns document title generation for every navigation. Route configuration titles, assigned route-node titles, and navigation options are still available on the `Transition`, but the builder decides how to use them.
 For this example, we assume that we have the configured the routes as follows:
 
 ```typescript
@@ -265,7 +266,7 @@ export class MyApp implements IRouteViewModel {}
 ```
 
 With this route configuration in place, when we navigate to `/home`, the default-built title will be `Home | Aurelia`.
-We can use the following `buildTitle` function that will cause the title to be `Aurelia - Home` when users navigate to `/` or `/home` route.
+We can use the following `buildTitle` function to use ` - ` as the separator when users navigate to `/` or `/home` route.
 
 ```typescript
 // main.ts
@@ -275,10 +276,7 @@ const au = new Aurelia();
 au.register(
   RouterConfiguration.customize({
     buildTitle(tr: Transition) {
-      const root = tr.routeTree.root;
-      const baseTitle = root.context.routeConfigContext.config.title;
-      const titlePart = root.children.map(c => c.title).join(' - ');
-      return `${baseTitle} - ${titlePart}`;
+      return tr.routeTree.root.getTitle(' - ') ?? 'Aurelia';
     },
   }),
 );
@@ -656,10 +654,7 @@ RouterConfiguration.customize({
   restorePreviousRouteTreeOnError: true, // Graceful error recovery
   buildTitle: (transition) => {
     // Custom title building with SEO considerations
-    const routeTitle = transition.routeTree.root.children
-      .map(child => child.title)
-      .filter(title => title)
-      .join(' - ');
+    const routeTitle = transition.routeTree.root.getTitle(' - ');
     return routeTitle ? `${routeTitle} | My App` : 'My App';
   }
 })
@@ -680,7 +675,7 @@ RouterConfiguration.customize({
   restorePreviousRouteTreeOnError: !isDevelopment, // Let errors surface in dev, recover in prod
   buildTitle: isProduction
     ? (tr) => buildSEOTitle(tr)                 // SEO-optimised titles in production
-    : (tr) => `[DEV] ${tr.routeTree.root.title ?? 'Unknown route'}`,
+    : (tr) => `[DEV] ${tr.routeTree.root.getTitle(' / ') ?? 'Unknown route'}`,
 });
 ```
 
@@ -699,7 +694,7 @@ RouterConfiguration.customize({
   historyStrategy: 'push',
   buildTitle: (transition) => {
     const appName = microFrontendName.charAt(0).toUpperCase() + microFrontendName.slice(1);
-    const routeTitle = transition.routeTree.root.children[0]?.title;
+    const routeTitle = transition.routeTree.root.getTitle(' - ');
     return routeTitle ? `${routeTitle} - ${appName}` : appName;
   }
 })
@@ -740,7 +735,7 @@ RouterConfiguration.customize({
   buildTitle: (transition) => {
     // Detailed debugging information in title
     const route = transition.routeTree.root.children[0];
-    return `[${route?.component?.name || 'Unknown'}] ${route?.title || 'No Title'}`;
+    return `[${route?.component?.name || 'Unknown'}] ${route?.getTitle(' / ') || 'No Title'}`;
   }
 })
 ```

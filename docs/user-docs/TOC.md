@@ -15,6 +15,7 @@
 
 * [Complete Getting Started Guide](getting-started/complete-guide.md)
 * [Quick Install Guide](getting-started/quick-install-guide.md)
+* [Browser without a build step](getting-started/browser-no-build.md)
 * [Aurelia for New Developers](getting-started/aurelia-for-new-developers.md)
 * [Hello World Tutorial](getting-started/quick-start-guide/README.md)
 * [Intermediate Tutorial](getting-started/intermediate-tutorial.md)

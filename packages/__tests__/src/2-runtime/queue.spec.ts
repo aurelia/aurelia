@@ -1,4 +1,17 @@
-import { runTasks, queueAsyncTask, queueTask, TaskAbortError, tasksSettled, queueRecurringTask, getRecurringTasks } from '@aurelia/runtime';
+import {
+  configureTaskQueue,
+  getRecurringTasks,
+  getTaskQueueOptions,
+  isTaskQueueEmpty,
+  queueAsyncTask,
+  queueRecurringTask,
+  queueTask,
+  runTasks,
+  TaskAbortError,
+  TaskQueueAggregateError,
+  tasksSettled,
+  type Task,
+} from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/queue.spec.ts', function () {
@@ -62,6 +75,388 @@ describe('2-runtime/queue.spec.ts', function () {
         'Sync3',
       ], 'stack mismatch');
     });
+  });
+
+  describe('public queue contract', function () {
+    it('reports and clears unobserved queueTask errors after an automatic drain', async function () {
+      const taskError = new Error('UnobservedQueueTaskError');
+      const reportedErrors: unknown[][] = [];
+      const originalConsoleError = console.error;
+      console.error = (...args: unknown[]) => {
+        reportedErrors.push(args);
+      };
+
+      try {
+        queueTask(() => {
+          throw taskError;
+        });
+
+        await Promise.resolve();
+      } finally {
+        console.error = originalConsoleError;
+      }
+
+      assert.strictEqual(reportedErrors.length, 1, 'an unobserved queueTask error should be reported once');
+      assert.strictEqual(reportedErrors[0][0], taskError, 'the original queueTask error should be reported');
+
+      let didRun = false;
+      queueTask(() => {
+        didRun = true;
+      });
+
+      assert.strictEqual(await tasksSettled(), true, 'later settle cycles should not reject with an old unobserved error');
+      assert.strictEqual(didRun, true, 'later queued work should still run');
+    });
+
+    it('clears task errors after manual runTasks throws without an observed settle promise', async function () {
+      const taskError = new Error('ManualFlushError');
+      let flushError: unknown = null;
+
+      queueTask(() => {
+        throw taskError;
+      });
+
+      try {
+        runTasks();
+      } catch (err) {
+        flushError = err;
+      }
+
+      assert.strictEqual(flushError, taskError, 'manual runTasks should throw the task error directly');
+
+      let didRun = false;
+      queueTask(() => {
+        didRun = true;
+      });
+
+      assert.strictEqual(await tasksSettled(), true, 'manual flush errors should not leak into the next settle cycle');
+      assert.strictEqual(didRun, true, 'later queued work should still run');
+    });
+
+    it('manual runTasks throws AggregateError for multiple task errors and then clears them', async function () {
+      const error1 = new Error('ManualAggregateError1');
+      const error2 = new Error('ManualAggregateError2');
+      let flushError: unknown = null;
+
+      queueTask(() => {
+        throw error1;
+      });
+      queueTask(() => {
+        throw error2;
+      });
+
+      try {
+        runTasks();
+      } catch (err) {
+        flushError = err;
+      }
+
+      assert.instanceOf(flushError, AggregateError, 'manual runTasks should throw an AggregateError for multiple task errors');
+      assert.instanceOf(flushError, TaskQueueAggregateError, 'manual runTasks should throw a task-queue-specific AggregateError');
+      assert.deepStrictEqual((flushError as AggregateError).errors, [error1, error2], 'manual AggregateError should preserve task errors in order');
+      assert.strictEqual((flushError as TaskQueueAggregateError).cause, error1, 'manual AggregateError cause should point at the first original error');
+      assert.includes((flushError as Error).message, 'Aurelia task queue failed with 2 errors.', 'AggregateError message should name the failing subsystem and count');
+      assert.includes((flushError as Error).message, 'ManualAggregateError1', 'AggregateError message should preview the first error');
+      assert.includes((flushError as Error).message, 'ManualAggregateError2', 'AggregateError message should preview the second error');
+
+      queueTask(() => { /* verifies a fresh settle cycle */ });
+      assert.strictEqual(await tasksSettled(), true, 'AggregateError contents should not leak into the next settle cycle');
+    });
+
+    it('returns the same tasksSettled promise while async work is pending', async function () {
+      const task = queueAsyncTask(() => {
+        return new Promise<void>(resolve => {
+          setTimeout(resolve, 5);
+        });
+      });
+
+      const settled1 = tasksSettled();
+      const settled2 = tasksSettled();
+
+      assert.strictEqual(settled2, settled1, 'tasksSettled should return the same promise while work is pending');
+      assert.strictEqual(await settled1, true, 'the pending settle promise should resolve to true after work completes');
+      assert.strictEqual(await task, undefined, 'the async task should remain awaitable directly');
+
+      const settled3 = tasksSettled();
+      assert.notStrictEqual(settled3, settled1, 'a new tasksSettled call after settlement should start a fresh idle check');
+      assert.strictEqual(await settled3, false, 'the fresh idle check should resolve to false');
+    });
+
+    it('tracks queue emptiness across queued, pending async, and settled work', async function () {
+      assert.strictEqual(isTaskQueueEmpty(), true, 'the queue should start empty');
+
+      queueTask(() => { /* noop */ });
+      assert.strictEqual(isTaskQueueEmpty(), false, 'a queued sync task should make the queue non-empty');
+      assert.strictEqual(await tasksSettled(), true, 'the sync task should settle');
+      assert.strictEqual(isTaskQueueEmpty(), true, 'the queue should be empty after the sync task settles');
+
+      queueAsyncTask(() => {
+        return new Promise<void>(resolve => {
+          setTimeout(resolve, 5);
+        });
+      });
+
+      const settled = tasksSettled();
+      await Promise.resolve();
+
+      assert.strictEqual(isTaskQueueEmpty(), false, 'a running async task should keep the queue non-empty');
+      assert.strictEqual(await settled, true, 'the async task should settle');
+      assert.strictEqual(isTaskQueueEmpty(), true, 'the queue should be empty after async work settles');
+    });
+
+    it('can cancel a later queueAsyncTask while the queue head has advanced', async function () {
+      const stack: string[] = [];
+      let taskToCancel!: Task<void>;
+
+      queueTask(() => {
+        stack.push('cancel');
+        assert.strictEqual(taskToCancel.cancel(), true, 'a later pending task should be cancellable during a drain');
+      });
+
+      taskToCancel = queueAsyncTask(() => {
+        stack.push('should_not_run');
+      });
+
+      queueTask(() => {
+        stack.push('after');
+      });
+
+      assert.strictEqual(await tasksSettled(), true, 'the drain should settle after cancellation');
+      assert.deepStrictEqual(stack, ['cancel', 'after'], 'the canceled task should be removed without disturbing later tasks');
+      assert.strictEqual(taskToCancel.status, 'canceled', 'the task should be canceled');
+
+      try {
+        await taskToCancel;
+        assert.fail('Canceled task should have rejected');
+      } catch (err) {
+        assert.instanceOf(err, TaskAbortError, 'canceled task should reject with TaskAbortError');
+      }
+    });
+
+    it('manual runTasks starts async tasks but leaves their promises to tasksSettled', async function () {
+      const stack: string[] = [];
+
+      queueAsyncTask(() => {
+        stack.push('sync_start');
+        return new Promise<void>(resolve => {
+          setTimeout(() => {
+            stack.push('async_done');
+            resolve();
+          });
+        });
+      });
+
+      runTasks();
+
+      assert.deepStrictEqual(stack, ['sync_start'], 'manual runTasks should run the synchronous part');
+      assert.strictEqual(isTaskQueueEmpty(), false, 'the pending async promise should keep the queue non-empty');
+      assert.strictEqual(await tasksSettled(), true, 'tasksSettled should wait for the async continuation');
+      assert.deepStrictEqual(stack, ['sync_start', 'async_done'], 'the async continuation should complete');
+      assert.strictEqual(isTaskQueueEmpty(), true, 'the queue should be empty after tasksSettled resolves');
+    });
+
+    it('configures automatic flush slicing and restores previous options', async function () {
+      const originalOptions = getTaskQueueOptions();
+      const previousOptions = configureTaskQueue({
+        flushBudget: 0,
+      });
+      let runCount = 0;
+
+      try {
+        assert.deepStrictEqual(previousOptions, originalOptions, 'configureTaskQueue should return the previous options');
+        assert.strictEqual(getTaskQueueOptions().flushBudget, 0, 'flushBudget should be configurable');
+
+        queueTask(() => {
+          queueTask(() => {
+            ++runCount;
+          });
+          queueTask(() => {
+            ++runCount;
+          });
+        });
+
+        const settled = tasksSettled();
+        await Promise.resolve();
+
+        assert.strictEqual(runCount, 0, 'a zero budget should still process the producer task before yielding');
+        assert.strictEqual(isTaskQueueEmpty(), false, 'yielded tasks should keep the queue non-empty');
+        assert.strictEqual(await settled, true, 'configured yielded continuations should still settle');
+        assert.strictEqual(runCount, 2, 'all yielded tasks should run');
+      } finally {
+        configureTaskQueue(previousOptions);
+      }
+
+      assert.deepStrictEqual(getTaskQueueOptions(), originalOptions, 'restoring previous options should recover the original scheduler configuration');
+    });
+
+    it('continues automatic flush slices through host timers', async function () {
+      let runCount = 0;
+      const externalTimer = new Promise<number>(resolve => {
+        setTimeout(() => {
+          resolve(runCount);
+        }, 0);
+      });
+      const previousOptions = configureTaskQueue({
+        flushBudget: 0,
+      });
+
+      try {
+        queueTask(() => {
+          queueTask(() => {
+            ++runCount;
+          });
+          queueTask(() => {
+            ++runCount;
+          });
+        });
+
+        const settled = tasksSettled();
+        await Promise.resolve();
+        const runCountAtExternalTimer = await externalTimer;
+
+        assert.strictEqual(runCountAtExternalTimer, 0, 'an existing host timer should be able to run before the yielded continuation');
+        assert.strictEqual(await settled, true, 'the timer continuation should still settle');
+        assert.strictEqual(runCount, 2, 'all follow-up tasks should run after the timer continuation');
+      } finally {
+        configureTaskQueue(previousOptions);
+      }
+    });
+  });
+
+  describe('large finite queue workloads', function () {
+    this.timeout(20_000);
+
+    it('drains a large prequeued breadth workload', async function () {
+      const taskCount = 100_000;
+      let runCount = 0;
+      const callback = () => {
+        ++runCount;
+      };
+
+      for (let i = 0; i < taskCount; ++i) {
+        queueTask(callback);
+      }
+
+      assert.strictEqual(await tasksSettled(), true, 'pre-queued finite breadth should settle');
+      assert.strictEqual(runCount, taskCount, 'all pre-queued tasks should run');
+    });
+
+    it('drains a large finite fan-out workload queued from one task', async function () {
+      const taskCount = 100_000;
+      let runCount = 0;
+      const callback = () => {
+        ++runCount;
+      };
+
+      queueTask(() => {
+        for (let i = 0; i < taskCount; ++i) {
+          queueTask(callback);
+        }
+      });
+
+      assert.strictEqual(await tasksSettled(), true, 'finite fan-out queued during a drain should settle');
+      assert.strictEqual(runCount, taskCount, 'all nested fan-out tasks should run');
+    });
+
+    it('drains a very large finite requeue chain', async function () {
+      const taskCount = 2_000_000;
+      let runCount = 0;
+      const callback = () => {
+        if (++runCount < taskCount) {
+          queueTask(callback);
+        }
+      };
+
+      queueTask(callback);
+
+      assert.strictEqual(await tasksSettled(), true, 'a finite requeue chain should settle');
+      assert.strictEqual(runCount, taskCount, 'all chained tasks should run');
+    });
+  });
+
+  describe('manual final guard', function () {
+    it('still throws for a synchronous runaway task that never lets the queue settle', async function () {
+      const callback = () => {
+        queueTask(callback);
+      };
+
+      queueTask(callback);
+
+      assert.throws(
+        () => runTasks(),
+        /Potential deadlock detected/,
+        'an unbounded requeue loop should still trip the final guard',
+      );
+    });
+  });
+
+  it('automatic drains keep yielding until external state lets a requeue loop settle', async function () {
+    const previousOptions = configureTaskQueue({
+      flushBudget: 0,
+    });
+    let runCount = 0;
+    let timerCount = 0;
+    let shouldContinue = true;
+    const callback = () => {
+      ++runCount;
+      if (shouldContinue) {
+        queueTask(callback);
+      }
+    };
+
+    try {
+      queueTask(callback);
+      const settled = tasksSettled();
+
+      await new Promise<void>(resolve => {
+        const stopAfterAFewTimers = () => {
+          if (++timerCount === 5) {
+            shouldContinue = false;
+            resolve();
+          } else {
+            setTimeout(stopAfterAFewTimers);
+          }
+        };
+        setTimeout(stopAfterAFewTimers);
+      });
+
+      assert.strictEqual(await settled, true, 'automatic requeueing should settle once the producer stops');
+      assert.greaterThanOrEqualTo(runCount, timerCount, 'automatic draining should keep making progress across yielded slices');
+    } finally {
+      configureTaskQueue(previousOptions);
+    }
+  });
+
+  it('tasksSettled waits for automatic drains that yield through a timer continuation', async function () {
+    const taskCount = 1_200;
+    let runCount = 0;
+    let timerObservedPartialDrain = false;
+    let timerObservedNonEmptyQueue = false;
+
+    queueTask(() => {
+      for (let i = 0; i < taskCount; ++i) {
+        queueTask(() => {
+          const end = performance.now() + 0.02;
+          while (performance.now() < end) { /* burn a tiny slice of time */ }
+          ++runCount;
+        });
+      }
+    });
+
+    const settled = tasksSettled();
+    await new Promise<void>(resolve => {
+      setTimeout(() => {
+        timerObservedPartialDrain = runCount < taskCount;
+        timerObservedNonEmptyQueue = !isTaskQueueEmpty();
+        resolve();
+      });
+    });
+
+    assert.strictEqual(timerObservedPartialDrain, true, 'automatic draining should yield to a timer before finishing large queues');
+    assert.strictEqual(timerObservedNonEmptyQueue, true, 'a yielded automatic drain should keep the task queue non-empty');
+    assert.strictEqual(await settled, true, 'tasksSettled should resolve once every yielded continuation has drained');
+    assert.strictEqual(runCount, taskCount, 'all yielded tasks should run');
+    assert.strictEqual(isTaskQueueEmpty(), true, 'the queue should be empty after yielded continuations drain');
   });
 
   describe('queueAsyncTask', function () {
@@ -165,6 +560,7 @@ describe('2-runtime/queue.spec.ts', function () {
         }, 0);
       });
     });
+    const rejectingAsyncTaskError = rejectingAsyncTask.catch(e => e);
 
     queueTask(() => {
       stack.push('SyncTask_Alongside');
@@ -199,12 +595,7 @@ describe('2-runtime/queue.spec.ts', function () {
     ], 'stack mismatch');
 
     assert.strictEqual(rejectingAsyncTask.status, 'canceled', 'rejecting task status should be canceled');
-    try {
-      await rejectingAsyncTask;
-      assert.fail('Rejecting task result should have rejected');
-    } catch (e: any) {
-      assert.strictEqual(e.message, 'AsyncFailure', 'rejecting task result error message incorrect');
-    }
+    assert.strictEqual(((await rejectingAsyncTaskError) as Error).message, 'AsyncFailure', 'rejecting task result error message incorrect');
 
     assert.strictEqual(succeedingAsyncTask.status, 'completed', 'succeeding task status should be completed');
     assert.strictEqual(await succeedingAsyncTask, 'SuccessData', 'succeeding task result data incorrect');
@@ -245,6 +636,32 @@ describe('2-runtime/queue.spec.ts', function () {
     }
   });
 
+  it('awaiting a rejected queueAsyncTask yields the original callback error', async function () {
+    let taskErr: Error;
+    const task = queueAsyncTask(() => {
+      taskErr = new Error('Task error');
+      throw taskErr;
+    });
+    const taskAwait = (async () => {
+      try {
+        await task;
+        assert.fail('Task should have rejected');
+      } catch (e: unknown) {
+        return e;
+      }
+    })();
+
+    try {
+      await tasksSettled();
+      assert.fail('tasksSettled should have rejected');
+    } catch (e) {
+      assert.strictEqual(e, taskErr, 'tasksSettled should reject with the task callback error');
+    }
+
+    assert.strictEqual(await taskAwait, taskErr, 'Task should return the error that was thrown inside the task');
+    assert.strictEqual(task.status, 'canceled', 'Task should be canceled after the callback throws');
+  });
+
   it('emits an unhandledRejection when a task throws a non-abort error', async function () {
     const unhandled: unknown[] = [];
     let handler: (reason: unknown) => void;
@@ -276,13 +693,7 @@ describe('2-runtime/queue.spec.ts', function () {
       dispose();
     }
 
-    try {
-      // Awaiting task should also yield the same error
-      await task;
-      assert.fail('Task should have rejected');
-    } catch (e: unknown) {
-      assert.strictEqual(e, taskErr, 'Task should return the error that was thrown inside the task');
-    }
+    assert.strictEqual(task.status, 'canceled', 'Task should be canceled after the callback throws');
   });
 
   it('emits an unhandledRejection when a task throws a non-abort error and tasksSettled is used', async function () {
@@ -322,13 +733,7 @@ describe('2-runtime/queue.spec.ts', function () {
       dispose();
     }
 
-    try {
-      // Awaiting task should also yield the same error
-      await task;
-      assert.fail('Task should have rejected');
-    } catch (e: unknown) {
-      assert.strictEqual(e, taskErr, 'Task should return the error that was thrown inside the task');
-    }
+    assert.strictEqual(task.status, 'canceled', 'Task should be canceled after the callback throws');
   });
 
   it('does not emit an unhandledRejection when a task throws a non-abort error that is handled by awaiting task', async function () {
@@ -351,6 +756,7 @@ describe('2-runtime/queue.spec.ts', function () {
       taskErr = new Error('Task error');
       throw taskErr;
     });
+    const taskRejection = task.catch(e => e);
 
     try {
       try {
@@ -360,12 +766,7 @@ describe('2-runtime/queue.spec.ts', function () {
         assert.strictEqual(e, taskErr);
       }
 
-      try {
-        await task;
-        assert.fail('Task should have rejected');
-      } catch (e: unknown) {
-        assert.strictEqual(e, taskErr, 'Task should return the error that was thrown inside the task');
-      }
+      assert.strictEqual(await taskRejection, taskErr, 'Task should return the error that was thrown inside the task');
 
       // Wait a macrotask turn (without using tasksSettled) to mimic application code with a rejection handler.
       await new Promise<void>(resolve => setTimeout(resolve));
@@ -515,6 +916,7 @@ describe('2-runtime/queue.spec.ts', function () {
 
       throw new Error('ErrorIn_FaultyAsync_SyncPart');
     });
+    const faultyAsyncTaskError = faultyAsyncTask.catch(e => e);
 
     queueTask(() => {
       stack.push('SyncTask_AfterFaulty');
@@ -549,9 +951,7 @@ describe('2-runtime/queue.spec.ts', function () {
 
     assert.strictEqual(faultyAsyncTask.status, 'canceled');
 
-    await faultyAsyncTask.catch(e => {
-      assert.strictEqual(e.message, 'ErrorIn_FaultyAsync_SyncPart');
-    });
+    assert.strictEqual(((await faultyAsyncTaskError) as Error).message, 'ErrorIn_FaultyAsync_SyncPart');
 
     assert.strictEqual(healthyAsyncTask.status, 'completed');
     assert.strictEqual(await healthyAsyncTask, 'HealthySuccess');
@@ -584,9 +984,14 @@ describe('2-runtime/queue.spec.ts', function () {
     }
 
     assert.instanceOf(settledError, AggregateError, 'settledError should be an AggregateError');
+    assert.instanceOf(settledError, TaskQueueAggregateError, 'settledError should be a task-queue-specific AggregateError');
     assert.strictEqual(settledError.errors.length, 2, 'AggregateError should contain 2 errors');
     assert.strictEqual(settledError.errors[0], error1, 'error1');
     assert.strictEqual(settledError.errors[1], error2, 'error2');
+    assert.strictEqual(settledError.cause, error1, 'AggregateError cause should point at the first original error');
+    assert.includes(settledError.message, 'Aurelia task queue failed with 2 errors.', 'AggregateError message should name the failing subsystem and count');
+    assert.includes(settledError.message, 'SyncError1', 'AggregateError message should preview the first error');
+    assert.includes(settledError.message, 'SyncError2', 'AggregateError message should preview the second error');
 
     assert.deepStrictEqual(stack, [
       'Sync1_Throws',
@@ -615,6 +1020,7 @@ describe('2-runtime/queue.spec.ts', function () {
         }, 0);
       });
     });
+    const rejectingAsyncTaskError = rejectingAsyncTask.catch(e => e);
 
     queueTask(() => {
       stack.push('Sync3_Runs');
@@ -627,9 +1033,13 @@ describe('2-runtime/queue.spec.ts', function () {
     }
 
     assert.instanceOf(settledError, AggregateError, 'settledError should be an AggregateError');
+    assert.instanceOf(settledError, TaskQueueAggregateError, 'settledError should be a task-queue-specific AggregateError');
     assert.strictEqual(settledError.errors.length, 2, 'AggregateError should contain 2 errors');
     assert.strictEqual(settledError.errors[0], syncError, 'SyncError');
     assert.strictEqual(settledError.errors[1], asyncError, 'AsyncError');
+    assert.strictEqual(settledError.cause, syncError, 'AggregateError cause should point at the first original error');
+    assert.includes(settledError.message, 'Mixed_SyncError', 'AggregateError message should preview the sync error');
+    assert.includes(settledError.message, 'Mixed_AsyncRejection', 'AggregateError message should preview the async error');
 
     assert.deepStrictEqual(stack, [
       'Sync1_Throws',
@@ -639,9 +1049,7 @@ describe('2-runtime/queue.spec.ts', function () {
     ], 'stack mismatch');
 
     assert.strictEqual(rejectingAsyncTask.status, 'canceled', 'RejectingAsyncTask status');
-    await rejectingAsyncTask.catch(e => {
-      assert.strictEqual(e, asyncError, 'RejectingAsyncTask result');
-    });
+    assert.strictEqual(await rejectingAsyncTaskError, asyncError, 'RejectingAsyncTask result');
   });
 
   it('tasksSettled reflects errors even if a manual flush() also processes them', async function () {

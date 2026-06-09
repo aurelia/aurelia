@@ -99,7 +99,9 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 
       queueTask(() => {
         this._isQueued = false;
-        if (!this.isBound) return;
+        // Layout writes are delayed. The controller may start deactivating
+        // before this task runs, so repeat the synchronous activation guard.
+        if (!this.isBound || this._controller.state > activated) return;
 
         this._handleChange();
       });

@@ -1157,7 +1157,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
           assert.strictEqual(app.callCount, 0);
           if (ex instanceof AggregateError) {
-            assert.strictEqual(ex.message, 'One or more tasks failed.');
+            assert.match(ex.message, /Aurelia task queue failed with 2 errors\./);
+            assert.match(ex.message, /Inspect the AggregateError\.errors array/);
             assert.strictEqual(ex.errors.length, 2);
             assert.instanceOf(ex.errors[0], Error);
             assert.strictEqual(ex.errors[0].message, 'err');
@@ -1440,7 +1441,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
           assert.strictEqual(app.callCount, 0);
           if (ex instanceof AggregateError) {
-            assert.strictEqual(ex.message, 'One or more tasks failed.');
+            assert.match(ex.message, /Aurelia task queue failed with 2 errors\./);
+            assert.match(ex.message, /Inspect the AggregateError\.errors array/);
             assert.strictEqual(ex.errors.length, 2);
             assert.instanceOf(ex.errors[0], Error);
             assert.strictEqual(ex.errors[0].message, 'err');

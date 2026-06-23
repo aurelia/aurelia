@@ -1,6 +1,6 @@
 <p>
   <a href="https://aurelia.io/" target="_blank">
-    <img alt="Aurelia" src="https://aurelia.io/styles/images/aurelia.svg">
+    <img alt="Aurelia" src="https://aurelia.io/logo.svg">
   </a>
 </p>
 

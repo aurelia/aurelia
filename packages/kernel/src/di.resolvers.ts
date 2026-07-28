@@ -263,8 +263,8 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
       if (hasDefault) {
         // creating a new container as we do not want to pollute the resolver registry
         factory = (newInstanceContainer ??= createContainer()).getResolver(key, true)?.getFactory?.(handler);
+        newInstanceContainer.dispose();
       }
-      newInstanceContainer.dispose();
     } else {
       factory = resolver.getFactory?.(handler);
     }

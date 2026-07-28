@@ -2,20 +2,23 @@ import { DI, optional, resolve } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.exception.spec.ts', function () {
-  it('No registration for interface', function () {
+  it('reports AUR0012 for an unregistered interface without a default', function () {
     const container = DI.createContainer();
 
     interface Foo {}
 
     const Foo = DI.createInterface<Foo>('Foo');
+    const expectedError = /AUR0012.*Foo/;
 
     class Bar {
       public readonly foo: Foo = resolve(Foo);
     }
 
-    assert.throws(() => container.get(Foo), /.*Foo*/, 'throws once');
-    assert.throws(() => container.get(Foo), /.*Foo*/, 'throws twice'); // regression test
-    assert.throws(() => container.get(Bar), /.*Foo.*/, 'throws on inject into');
+    assert.throws(() => container.get(Foo), expectedError, 'throws once');
+    assert.throws(() => container.get(Foo), expectedError, 'throws twice'); // regression test
+    assert.throws(() => container.getResolver(Foo, true), expectedError, 'throws from auto-registering getResolver');
+    assert.strictEqual(container.getResolver(Foo, false), null, 'does not throw when auto-registration is disabled');
+    assert.throws(() => container.get(Bar), expectedError, 'throws on inject into');
   });
 
   it('cyclic dependency', function () {

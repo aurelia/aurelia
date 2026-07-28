@@ -3,3 +3,5 @@
 ---
 
 Make `RouteNode.title` writable so navigation lifecycle hooks can update a route node's title part.
+
+pr: #2427

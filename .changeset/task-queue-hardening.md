@@ -10,3 +10,5 @@ Automatic `queueTask` drains now process work in timed slices and continue throu
 The task queue error surface is also more explicit. Multiple failures now reject or throw a `TaskQueueAggregateError`, which extends `AggregateError`, preserves the original errors in order, sets `cause` to the first error, and includes a more useful message with the error count and a short preview. Unobserved automatic queue errors are reported and cleared so later `tasksSettled()` cycles start fresh instead of failing with stale errors.
 
 Because automatic drains may now continue after other host events have run, delayed runtime-html work now re-checks lifecycle state before mutating DOM state. Queued layout writes and `show` updates no-op when their binding, controller, or attribute has already been torn down.
+
+pr: #2421

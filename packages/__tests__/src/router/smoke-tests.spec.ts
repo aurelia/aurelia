@@ -4542,6 +4542,101 @@ describe('router/smoke-tests.spec.ts', function () {
     });
   }
 
+  const rootedNavigationCases = [
+    {
+      description: 'preserves application-root navigation from a nested context',
+      instruction: '/root-target',
+      basePath: '/',
+      serializedBase: '',
+    },
+    {
+      description: 'clamps excess parent traversal to the application root',
+      instruction: '../../../root-target',
+      basePath: '/app/',
+      serializedBase: 'app/',
+    },
+  ] as const;
+  for (const { description, instruction, basePath, serializedBase } of rootedNavigationCases) {
+    for (const attr of ['load', 'href']) {
+      for (const useHash of [false, true]) {
+        it(`${description} - ${attr} - useHash: ${useHash}`, async function () {
+          // The nested and root contexts deliberately expose the same route
+          // path, making context selection observable. Both instructions must
+          // select application root; the excess-parent case must also serialize
+          // without leaving `../` for the browser to reinterpret.
+          @customElement({ name: 'nested-shadow', template: 'nested shadow' })
+          class NestedShadow { }
+
+          @route({
+            routes: [
+              { path: 'root-target', component: NestedShadow },
+            ],
+          })
+          @customElement({ name: 'nested-child', template: `<a ${attr}="${instruction}">root target</a><au-viewport></au-viewport>` })
+          class NestedChild { }
+
+          @route({
+            path: 'parent',
+            routes: [
+              { path: 'child', component: NestedChild },
+            ],
+          })
+          @customElement({ name: 'nested-parent', template: 'parent <au-viewport></au-viewport>' })
+          class NestedParent { }
+
+          @customElement({ name: 'root-target', template: 'root target' })
+          class RootTarget { }
+
+          @route({
+            routes: [
+              NestedParent,
+              RootTarget,
+            ],
+          })
+          @customElement({ name: 'rooted-navigation-app', template: 'root <au-viewport></au-viewport>' })
+          class Root { }
+
+          const ctx = TestContext.create();
+          const { container } = ctx;
+          container.register(Registration.instance(IWindow, {
+            document: {
+              baseURI: 'https://portal.example.com/',
+            },
+            removeEventListener() { /** noop */ },
+            addEventListener() { /** noop */ },
+          }));
+          container.register(
+            TestRouterConfiguration.for(LogLevel.warn),
+            RouterConfiguration.customize({ basePath, useUrlFragmentHash: useHash }),
+            NestedChild,
+            NestedParent,
+            NestedShadow,
+            RootTarget,
+          );
+
+          const au = new Aurelia(container);
+          const host = ctx.createElement('div');
+          await au.app({ component: Root, host }).start();
+          await container.get(IRouter).load('parent/child');
+
+          assert.html.textContent(host, 'root parent root target', 'initial content includes the nested link text');
+          const anchor = host.querySelector<HTMLAnchorElement>('a')!;
+          assert.strictEqual(
+            anchor.href,
+            `https://portal.example.com/${serializedBase}${useHash ? '#/' : ''}root-target`,
+            'rooted browser URL',
+          );
+
+          anchor.click();
+          await tasksSettled();
+          assert.html.textContent(host, 'root root target', 'rooted target content');
+
+          await au.stop(true);
+        });
+      }
+    }
+  }
+
   it('multiple paths can redirect to same path', async function () {
     @customElement({ name: 'ce-p1', template: 'p1' })
     class P1 { }

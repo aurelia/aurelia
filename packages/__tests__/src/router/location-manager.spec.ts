@@ -1,5 +1,5 @@
-import { resolve } from '@aurelia/kernel';
-import { INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode, ServerLocationManager } from '@aurelia/router';
+import { Registration, resolve } from '@aurelia/kernel';
+import { ILocationManager, INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode, ServerLocationManager } from '@aurelia/router';
 import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { isNode } from '../util.js';
@@ -587,9 +587,31 @@ describe('router/location-manager.spec.ts', function () {
     });
   }
 
-  // =============================================================================
-  // ServerLocationManager - SSR Location Manager
-  // =============================================================================
+  describe('router/BrowserLocationManager', function () {
+    it('removes only a complete deployment-base path segment', async function () {
+      @customElement({ name: 'app-root', template: '' })
+      class Root { }
+
+      const { au, container } = await start({
+        appRoot: Root,
+        registrations: [
+          Registration.instance(IWindow, {
+            document: {
+              baseURI: 'https://portal.example.com/app/',
+            },
+            removeEventListener() { /** noop */ },
+            addEventListener() { /** noop */ },
+          }),
+        ],
+      });
+      const manager = container.get(ILocationManager);
+
+      assert.strictEqual(manager.removeBaseHref('/app/page'), '/page');
+      assert.strictEqual(manager.removeBaseHref('/apple/page'), '/apple/page');
+
+      await au.stop(true);
+    });
+  });
 
   describe('router/ServerLocationManager', function () {
     describe('getPath', function () {
@@ -658,6 +680,19 @@ describe('router/location-manager.spec.ts', function () {
       it('returns normalized path when base href not present', function () {
         const manager = new ServerLocationManager('/', '/app');
         assert.strictEqual(manager.removeBaseHref('/other/page'), '/other/page');
+      });
+
+      it('removes a base href at exact, query, and fragment boundaries', function () {
+        const manager = new ServerLocationManager('/', '/app/');
+        assert.strictEqual(manager.removeBaseHref('/app'), '');
+        assert.strictEqual(manager.removeBaseHref('/app/'), '');
+        assert.strictEqual(manager.removeBaseHref('/app?query=value'), '?query=value');
+        assert.strictEqual(manager.removeBaseHref('/app#fragment'), '#fragment');
+      });
+
+      it('does not remove a partial path-segment match', function () {
+        const manager = new ServerLocationManager('/', '/app');
+        assert.strictEqual(manager.removeBaseHref('/apple/page'), '/apple/page');
       });
 
       it('handles root base href', function () {

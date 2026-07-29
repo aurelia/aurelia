@@ -12,7 +12,6 @@ import {
   emptyArray,
   MaybePromise,
   isArray,
-  Writable,
   isPromise,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
@@ -601,26 +600,41 @@ export class RouteContext {
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  /**
+   * Normalize public instructions and select the context for one instruction tree.
+   *
+   * After removing any configured deployment base from a scalar instruction,
+   * this boundary interprets only leading route-context prefixes. It must not
+   * recognize target routes or introduce a second interpretation of the route
+   * grammar; recognition remains in the downstream route pipeline. An
+   * instruction array shares one selected context. Caller-owned arrays and
+   * viewport-instruction objects are treated as readonly here; construction of
+   * internal instruction snapshots remains downstream.
+   */
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
-    let contextChanged = false;
+    // Preserve the router's existing single-context behavior for an instruction
+    // array. At most one `../` prefix run traverses from that shared context;
+    // after the tree has been rebased, later `../` prefixes are consumed without
+    // further traversal. A `/` prefix always selects application root for the
+    // shared tree. Independently relative entries would require a separate
+    // multi-viewport semantics decision.
+    let hasRebasedContext = false;
 
-    if (!isArray(instructionOrInstructions)) {
-      instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
-    } else {
-      const len = instructionOrInstructions.length;
-      for (let i = 0; i < len; ++i) {
-        instructionOrInstructions[i] = processStringInstruction.call(this, instructionOrInstructions[i]);
-      }
-    }
+    // Instructions are public, caller-owned values. Context normalization may
+    // need to rewrite a component string, so return replacement values instead
+    // of assigning into the supplied array or viewport-instruction object.
+    const processedInstructions = !isArray(instructionOrInstructions)
+      ? normalizeInstruction.call(this, instructionOrInstructions)
+      : instructionOrInstructions.map(instruction => normalizeInstruction.call(this, instruction));
 
     const routerOptions = this._router.options;
     return ViewportInstructionTree.create(
-      instructionOrInstructions,
+      processedInstructions,
       routerOptions,
       NavigationOptions.create(routerOptions, { ...options, context }),
       this.root,
@@ -628,25 +642,39 @@ export class RouteContext {
       traverseChildren as true,
     );
 
-    function processStringInstruction(this: RouteContext, instr: NavigationInstruction): NavigationInstruction {
+    function normalizeInstruction(this: RouteContext, instr: NavigationInstruction): NavigationInstruction {
+      // Scalar strings may contain the configured deployment base. When that
+      // base is `/`, removing it also removes the slash that selects the
+      // application route context, so retain the semantic marker first.
+      const hadRootPrefixBeforeBaseRemoval = typeof instr === 'string' && instr.startsWith('/');
       if (typeof instr === 'string') instr = this._locationMgr.removeBaseHref(instr);
 
       const isVpInstr = isPartialViewportInstruction(instr);
       let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
       if (typeof $instruction === 'string') {
-        // '/path' -> root
-        // '../path' -> parent
-        // 'path', './path' -> current
-        if ($instruction.startsWith('/')) {
+        // These prefixes select route contexts; they are not a general URI
+        // dot-segment algorithm. `/` always selects the application root, a run
+        // of `../` selects parent contexts unless this shared tree has already
+        // been rebased, and `./` or no prefix keeps the current context. Route
+        // recognition remains in the authoritative route pipeline after this
+        // lexical context selection.
+        if (hadRootPrefixBeforeBaseRemoval || $instruction.startsWith('/')) {
           context = this.root;
-          contextChanged = true;
-          $instruction = $instruction.slice(1);
-        } else if ($instruction.startsWith('../') && context !== null) {
-          while (($instruction as string).startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
-            $instruction = ($instruction as string).slice(3);
-            if (!contextChanged) context = context!.parent;
+          hasRebasedContext = true;
+          if ($instruction.startsWith('/')) {
+            $instruction = $instruction.slice(1);
           }
-          contextChanged = true;
+        } else if ($instruction.startsWith('../') && context !== null) {
+          // Consume every leading parent prefix even after traversal reaches
+          // root. Leaking an excess `../` into the serialized URL would make
+          // native/reloaded navigation disagree with intercepted navigation.
+          while (($instruction as string).startsWith('../')) {
+            $instruction = ($instruction as string).slice(3);
+            if (!hasRebasedContext) {
+              context = context.parent ?? context;
+            }
+          }
+          hasRebasedContext = true;
         } else {
           if (context == null) logAndThrow(new Error(getMessage(Events.rcNoContextStringComponent)), this._logger);
           if ($instruction.startsWith('./')) {
@@ -655,11 +683,14 @@ export class RouteContext {
         }
       }
       if (isVpInstr) {
-        (instr as Writable<IViewportInstruction>).component = $instruction;
-      } else {
-        instr = $instruction;
+        const viewportInstruction = instr as IViewportInstruction;
+        // Preserve readonly public inputs: return the original object when its
+        // component is unchanged; otherwise clone it with the normalized value.
+        return $instruction === viewportInstruction.component
+          ? viewportInstruction
+          : { ...viewportInstruction, component: $instruction };
       }
-      return instr;
+      return $instruction;
     }
   }
 

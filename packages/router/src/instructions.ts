@@ -266,14 +266,14 @@ export class ViewportInstructionTree {
   }
 
   public static create(
-    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
     parentRoutePath: string | null,
   ): ViewportInstructionTree;
   public static create(
-    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,
@@ -281,7 +281,7 @@ export class ViewportInstructionTree {
     traverseChildren: true,
   ): ViewportInstructionTree | Promise<ViewportInstructionTree>;
   public static create(
-    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     routerOptions: RouterOptions,
     options: INavigationOptions | NavigationOptions | null,
     rootCtx: IRouteContext | null,

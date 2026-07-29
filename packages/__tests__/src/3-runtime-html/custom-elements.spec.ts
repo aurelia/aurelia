@@ -831,6 +831,44 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertText('1');
     });
 
+    it('does not skip rapid updates to an otherwise unobserved getter bindable', async function () {
+      const values: (string | undefined)[] = [];
+      @customElement({ name: 'my-el', template: '' })
+      class MyEl {
+        private _message: string | undefined = void 0;
+
+        @bindable
+        public get message(): string | undefined {
+          return this._message;
+        }
+        public set message(value: string | undefined) {
+          values.push(value);
+          this._message = value;
+        }
+      }
+      class App {
+        public value: string | undefined = 'a';
+        public el!: MyEl;
+      }
+
+      const { component } = createFixture(
+        `<my-el component.ref="el" message.bind="value">`,
+        App,
+        [MyEl],
+      );
+      assert.deepStrictEqual(values, ['a']);
+
+      // The empty child template leaves its getter observer without subscribers.
+      // All three writes can therefore land before its queued reconciliation.
+      component.value = 'b';
+      component.value = void 0;
+
+      assert.deepStrictEqual(values, ['a', 'b', void 0]);
+      assert.strictEqual(component.el.message, void 0);
+      await tasksSettled();
+      assert.deepStrictEqual(values, ['a', 'b', void 0]);
+    });
+
     it('works with readonly bindable', async function () {
       const { assertText, trigger } = createFixture(
         `<my-el component.ref=el message.from-view="message">`,

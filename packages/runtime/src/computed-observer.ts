@@ -127,8 +127,13 @@ export class ComputedObserver<T extends object> implements
       if (this._coercer !== void 0) {
         v = this._coercer.call(null, v, this._coercionConfig);
       }
-      if (!areEqual(v, this._value)) {
+      // Keep the cached fast path, but verify a would-be no-op against the
+      // current getter because dirty and detached caches can be stale.
+      if (!areEqual(v, this._value) || !areEqual(v, this.getValue())) {
         this.$set.call(this._obj, v);
+        // A setter may update state that is not observable. Invalidate the
+        // cached getter value before this assignment is reconciled.
+        this.handleDirty();
         this.run();
       }
     } else {
@@ -253,6 +258,11 @@ export class ComputedObserver<T extends object> implements
     } finally {
       this.obs.clear();
       exitConnectable(this);
+      // A queued run can outlive its final subscriber. Preserve its value and
+      // callback reconciliation, but leave the observer dormant afterwards.
+      if (this.subs.count === 0) {
+        this.obs.clearAll();
+      }
     }
   }
 }

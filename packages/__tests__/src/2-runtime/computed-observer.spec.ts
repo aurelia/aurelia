@@ -4,6 +4,7 @@ import {
   IObserverLocator,
   INodeObserverLocator,
   ComputedObserver,
+  ISubscriberCollection,
   runTasks,
 } from '@aurelia/runtime';
 import {
@@ -428,5 +429,253 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     assert.strictEqual(observer.getValue(), 2);
     // shouldn't compute again
     assert.strictEqual(obj.prop, 2);
+  });
+
+  describe('queued dependency graphs', function () {
+    const subscriber = { handleChange() {/* empty */} };
+
+    it('compares a setter value against the current dirty value', function () {
+      const { locator } = createFixture();
+      let setterCalls = 0;
+      class ViewModel {
+        public backing = 0;
+        public get value(): number {
+          return this.backing;
+        }
+        public set value(value: number) {
+          setterCalls++;
+          this.backing = value;
+        }
+      }
+
+      const vm = new ViewModel();
+      const observer = locator.getObserver(vm, 'value') as ComputedObserver<ViewModel>;
+      observer.subscribe(subscriber);
+
+      // The dependency changes synchronously, but the computed notification is
+      // still queued. Assigning the old cached value must compare against the
+      // live dirty getter rather than suppressing the setter.
+      vm.backing = 1;
+      observer.setValue(0);
+
+      assert.strictEqual(setterCalls, 1);
+      assert.strictEqual(vm.backing, 0);
+      runTasks();
+      assert.strictEqual(observer.getValue(), 0);
+    });
+
+    it('invalidates an attached cache after a setter updates unobservable state', function () {
+      const { locator } = createFixture();
+      let backing = 0;
+      const setterValues: number[] = [];
+      class ViewModel {
+        public get value(): number {
+          return backing;
+        }
+        public set value(value: number) {
+          setterValues.push(value);
+          backing = value;
+        }
+      }
+
+      const vm = new ViewModel();
+      const observer = locator.getObserver(vm, 'value') as ComputedObserver<ViewModel>;
+      observer.subscribe(subscriber);
+
+      // Neither accessor touches an observable property. The first accepted
+      // assignment must still invalidate the attached cache, otherwise the
+      // old cached value suppresses the second assignment before the queue drains.
+      observer.setValue(1);
+      observer.setValue(0);
+      assert.deepStrictEqual(setterValues, [1, 0]);
+      assert.strictEqual(backing, 0);
+
+      runTasks();
+      observer.setValue(2);
+      assert.strictEqual(observer.getValue(), 2, 'an accepted setter invalidates the cached getter value');
+      runTasks();
+    });
+
+    it('reconciles and detaches a queued branched getter after final unsubscribe', function () {
+      const { locator } = createFixture();
+      let evaluations = 0;
+      let setterCalls = 0;
+      class ViewModel {
+        public useLeft = true;
+        public left = 1;
+        public right = 5;
+        public get selected(): number {
+          evaluations++;
+          return this.useLeft ? this.left : this.right;
+        }
+        public set selected(value: number) {
+          setterCalls++;
+          if (this.useLeft) {
+            this.left = value;
+          } else {
+            this.right = value;
+          }
+        }
+      }
+
+      const vm = new ViewModel();
+      const observer = locator.getObserver(vm, 'selected') as ComputedObserver<ViewModel>;
+      observer.subscribe(subscriber);
+      assert.strictEqual(evaluations, 1);
+
+      vm.left = 2;
+      observer.unsubscribe(subscriber);
+      vm.useLeft = false;
+      runTasks();
+
+      // The queued run advances to the current branch, then releases every
+      // dependency because the observer is dormant.
+      assert.strictEqual(evaluations, 2);
+      for (const key of ['useLeft', 'left', 'right'] as const) {
+        const dependency = locator.getObserver(vm, key) as unknown as ISubscriberCollection;
+        assert.strictEqual(dependency.subs.count, 0, `${key} dependency is detached`);
+      }
+
+      // The previously cached value was 1, while the active branch currently
+      // contains 5. Returning to 1 must therefore reach the setter.
+      observer.setValue(1);
+      assert.strictEqual(setterCalls, 1);
+      assert.strictEqual(vm.right, 1);
+      runTasks();
+      assert.strictEqual(evaluations, 3);
+      assert.strictEqual(observer.obs.count, 0);
+    });
+
+    it('uses live values through a detached chain of computed getters', function () {
+      const { locator } = createFixture();
+      let setterCalls = 0;
+      class ViewModel {
+        public leaf: string | undefined = void 0;
+        public get inner(): string | undefined {
+          return this.leaf;
+        }
+        public get outer(): string | undefined {
+          return this.inner;
+        }
+        public set outer(value: string | undefined) {
+          setterCalls++;
+          this.leaf = value;
+        }
+      }
+
+      const vm = new ViewModel();
+      locator.getObserver(vm, 'inner');
+      const outer = locator.getObserver(vm, 'outer') as ComputedObserver<ViewModel>;
+      outer.subscribe(subscriber);
+      const leaf = locator.getObserver(vm, 'leaf') as unknown as ISubscriberCollection;
+      assert.strictEqual(leaf.subs.count, 1);
+
+      // The inner getter is queued, but detaching the outer getter prevents the
+      // inner notification from refreshing the outer cache.
+      vm.leaf = 'a';
+      outer.unsubscribe(subscriber);
+      runTasks();
+      assert.strictEqual(leaf.subs.count, 0);
+
+      // `undefined` equals the outer observer's stale cache, but not the value
+      // obtained through the live inner getter. The setter must not be skipped.
+      outer.setValue(void 0);
+      assert.strictEqual(setterCalls, 1);
+      assert.strictEqual(vm.leaf, void 0);
+      runTasks();
+      assert.strictEqual(leaf.subs.count, 0);
+
+      // Detached equality is still suppressed when the live value really is equal.
+      outer.setValue(void 0);
+      assert.strictEqual(setterCalls, 1);
+    });
+
+    it('preserves a chained getter across unsubscribe and resubscribe before drain', function () {
+      const { locator } = createFixture();
+      class ViewModel {
+        public leaf = 1;
+        public get inner(): number {
+          return this.leaf * 2;
+        }
+        public get outer(): number {
+          return this.inner + 1;
+        }
+      }
+
+      const vm = new ViewModel();
+      locator.getObserver(vm, 'inner');
+      const outer = locator.getObserver(vm, 'outer') as ComputedObserver<ViewModel>;
+      const changes: [number, number][] = [];
+      const changeSubscriber = {
+        handleChange(newValue: number, oldValue: number) {
+          changes.push([newValue, oldValue]);
+        }
+      };
+
+      outer.subscribe(changeSubscriber);
+      assert.strictEqual(outer.getValue(), 3);
+
+      vm.leaf = 2;
+      outer.unsubscribe(changeSubscriber);
+      outer.subscribe(changeSubscriber);
+      assert.strictEqual(outer.getValue(), 5);
+
+      // The old inner task is still queued. A second mutation must be folded
+      // into that task without losing the resubscribed outer dependency.
+      vm.leaf = 3;
+      runTasks();
+      assert.deepStrictEqual(changes, [[7, 5]]);
+
+      vm.leaf = 4;
+      runTasks();
+      assert.deepStrictEqual(changes, [[7, 5], [9, 7]]);
+    });
+
+    it('keeps a diamond-shaped getter graph current after an orphaned drain', function () {
+      const { locator } = createFixture();
+      class ViewModel {
+        public leaf = 1;
+        public get left(): number {
+          return this.leaf * 2;
+        }
+        public get right(): number {
+          return this.leaf * 3;
+        }
+        public get total(): number {
+          return this.left + this.right;
+        }
+      }
+
+      const vm = new ViewModel();
+      locator.getObserver(vm, 'left');
+      locator.getObserver(vm, 'right');
+      const total = locator.getObserver(vm, 'total') as ComputedObserver<ViewModel>;
+      const changes: [number, number][] = [];
+      const changeSubscriber = {
+        handleChange(newValue: number, oldValue: number) {
+          changes.push([newValue, oldValue]);
+        }
+      };
+
+      total.subscribe(changeSubscriber);
+      assert.strictEqual(total.getValue(), 5);
+
+      vm.leaf = 2;
+      total.unsubscribe(changeSubscriber);
+      runTasks();
+      const leaf = locator.getObserver(vm, 'leaf') as unknown as ISubscriberCollection;
+      assert.strictEqual(leaf.subs.count, 0, 'both orphaned branches detach');
+
+      total.subscribe(changeSubscriber);
+      assert.strictEqual(total.getValue(), 10);
+
+      // Both branches invalidate the same downstream getter. Each scheduler
+      // turn must publish one fully settled value, never an intermediate sum.
+      vm.leaf = 3;
+      runTasks();
+      vm.leaf = 4;
+      runTasks();
+      assert.deepStrictEqual(changes, [[15, 10], [20, 15]]);
+    });
   });
 });

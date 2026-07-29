@@ -168,17 +168,20 @@ export class ControlledComputedObserver implements IObserver, ISubscriberCollect
   }
 }
 function observeDeep(obj: unknown, requestor: IObserverLocator) {
-  function walk(obj: unknown, connectable: IConnectable) {
+  function walk(obj: unknown, connectable: IConnectable, seen: WeakSet<object>) {
     const raw = unwrap(obj);
 
-    if (!isObject(raw)) {
+    // Deep dependencies are object graphs, not necessarily trees. Keying the
+    // traversal by raw identity handles cycles as well as raw/proxy aliases.
+    if (!isObject(raw) || seen.has(raw)) {
       return;
     }
+    seen.add(raw);
 
     if (isArray(raw)) {
       connectable.observeCollection(raw);
       for (let i = 0; i < raw.length; i++) {
-        walk(raw[i], connectable);
+        walk(raw[i], connectable, seen);
       }
       return;
     }
@@ -186,8 +189,8 @@ function observeDeep(obj: unknown, requestor: IObserverLocator) {
     if (isMap(raw)) {
       connectable.observeCollection(raw);
       for (const [k, v] of raw) {
-        walk(k, connectable);
-        walk(v, connectable);
+        walk(k, connectable, seen);
+        walk(v, connectable, seen);
       }
       return;
     }
@@ -195,18 +198,20 @@ function observeDeep(obj: unknown, requestor: IObserverLocator) {
     if (isSet(raw)) {
       connectable.observeCollection(raw);
       for (const v of raw) {
-        walk(v, connectable);
+        walk(v, connectable, seen);
       }
       return;
     }
 
     for (const key of Object.keys(raw)) {
       connectable.observe(raw, key);
-      walk((raw as Record<string, unknown>)[key], connectable);
+      walk((raw as Record<string, unknown>)[key], connectable, seen);
     }
   }
 
   return requestor.getObserver(obj, ((obj, connectable) => {
-    walk(obj, connectable);
+    // ComputedObserver recollects after graph changes. A fresh set preserves
+    // that lifecycle while visiting each reachable identity once per pass.
+    walk(obj, connectable, new WeakSet());
   }));
 }

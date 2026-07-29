@@ -1,4 +1,4 @@
-import { computed, ICoercionConfiguration, runTasks } from '@aurelia/runtime';
+import { computed, ICoercionConfiguration, ISubscriberCollection, ProxyObservable, runTasks } from '@aurelia/runtime';
 import { AppTask, bindable } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -817,6 +817,268 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
       runTasks();
       assertText('Hey 2!!!');
       assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes + reuse when binding evaluates`);
+    });
+  });
+
+  describe('deep cyclic dependencies', function () {
+    type Leaf = { value: number };
+    type CyclicGraph = { root: object; leaf: Leaf };
+
+    function createDeepFixture<TRoot extends object>(
+      root: TRoot,
+      read: (root: TRoot) => number,
+      flush: 'async' | 'sync' = 'async',
+    ) {
+      let evaluations = 0;
+      const fixture = createFixture(
+        '${value}',
+        class App {
+          public graph = root;
+
+          @computed({ deps: ['graph'], deep: true, flush })
+          public get value(): number {
+            evaluations++;
+            return read(this.graph);
+          }
+        },
+      );
+      return { fixture, getEvaluationCount: () => evaluations };
+    }
+
+    const graphCases: readonly [name: string, create: () => CyclicGraph][] = [
+      ['a self-referential object', () => {
+        const leaf = { value: 0 };
+        const root: { leaf: Leaf; self?: object } = { leaf };
+        root.self = root;
+        return { root, leaf };
+      }],
+      ['two mutually-referential class instances', () => {
+        class Node {
+          public next!: Node;
+          public constructor(public leaf: Leaf) {}
+        }
+        const leaf = { value: 0 };
+        const root = new Node(leaf);
+        const child = new Node(leaf);
+        root.next = child;
+        child.next = root;
+        return { root, leaf };
+      }],
+      ['a self-containing array', () => {
+        const leaf = { value: 0 };
+        const root: unknown[] = [];
+        root.push(root, leaf);
+        return { root, leaf };
+      }],
+      ['a map containing itself as both a key and value', () => {
+        const leaf = { value: 0 };
+        const root = new Map<unknown, unknown>();
+        root.set(root, root);
+        root.set('leaf', leaf);
+        return { root, leaf };
+      }],
+      ['a self-containing set', () => {
+        const leaf = { value: 0 };
+        const root = new Set<unknown>();
+        root.add(root);
+        root.add(leaf);
+        return { root, leaf };
+      }],
+    ];
+
+    for (const [name, createGraph] of graphCases) {
+      it(`observes ${name}`, function () {
+        const { root, leaf } = createGraph();
+        const { fixture, getEvaluationCount } = createDeepFixture(root, () => leaf.value);
+
+        // A reachable mutation proves that traversal did not merely stop at the
+        // cycle: it retained the property subscriptions found elsewhere in the graph.
+        fixture.assertText('0');
+        assert.strictEqual(getEvaluationCount(), 1, 'initial evaluation');
+
+        leaf.value = 1;
+        assert.strictEqual(getEvaluationCount(), 1, 'async change remains queued');
+        runTasks();
+        fixture.assertText('1');
+        assert.strictEqual(getEvaluationCount(), 2, 'one evaluation for mutation');
+      });
+    }
+
+    it('observes a cyclic object with sync flushing', function () {
+      const { root, leaf } = graphCases[0][1]();
+      const { fixture, getEvaluationCount } = createDeepFixture(root, () => leaf.value, 'sync');
+
+      fixture.assertText('0');
+      leaf.value = 1;
+      assert.strictEqual(getEvaluationCount(), 2, 'sync change evaluates immediately');
+      runTasks();
+      fixture.assertText('1');
+      assert.strictEqual(getEvaluationCount(), 2, 'binding reuses the computed value');
+    });
+
+    type CyclicCollectionGraph = {
+      root: object;
+      leaves: Leaf[];
+      add(leaf: Leaf): void;
+    };
+
+    const collectionCases: readonly [name: string, create: () => CyclicCollectionGraph][] = [
+      ['array', () => {
+        const leaves = [{ value: 1 }];
+        const root: unknown[] = [];
+        root.push(root, leaves[0]);
+        return {
+          root,
+          leaves,
+          add(leaf) {
+            leaves.push(leaf);
+            root.push(leaf);
+          },
+        };
+      }],
+      ['map', () => {
+        const leaves = [{ value: 1 }];
+        const root = new Map<unknown, unknown>();
+        root.set(root, root);
+        root.set('leaf-0', leaves[0]);
+        return {
+          root,
+          leaves,
+          add(leaf) {
+            leaves.push(leaf);
+            root.set(`leaf-${leaves.length - 1}`, leaf);
+          },
+        };
+      }],
+      ['set', () => {
+        const leaves = [{ value: 1 }];
+        const root = new Set<unknown>([leaves[0]]);
+        root.add(root);
+        return {
+          root,
+          leaves,
+          add(leaf) {
+            leaves.push(leaf);
+            root.add(leaf);
+          },
+        };
+      }],
+    ];
+
+    for (const [name, createGraph] of collectionCases) {
+      it(`discovers new members of a cyclic ${name}`, function () {
+        const graph = createGraph();
+        const { fixture, getEvaluationCount } = createDeepFixture(
+          graph.root,
+          () => graph.leaves.reduce((total, leaf) => total + leaf.value, 0),
+        );
+
+        fixture.assertText('1');
+        const addedLeaf = { value: 2 };
+        graph.add(addedLeaf);
+        assert.strictEqual(getEvaluationCount(), 1, 'collection mutation remains queued');
+        runTasks();
+        fixture.assertText('3');
+        assert.strictEqual(getEvaluationCount(), 2, 'collection mutation triggers one evaluation');
+
+        // The collection change forces a fresh traversal. The newly reachable
+        // object's property must therefore participate in subsequent updates.
+        addedLeaf.value = 3;
+        runTasks();
+        fixture.assertText('4');
+        assert.strictEqual(getEvaluationCount(), 3, 'new member mutation triggers one evaluation');
+      });
+    }
+
+    it('normalizes raw and observation-proxy aliases to one reachable object', function () {
+      const leaf = { value: 0 };
+      let traversalCount = 0;
+      const target: { leaf: Leaf; parent?: object } = { leaf };
+      const raw = new Proxy(target, {
+        ownKeys(target) {
+          traversalCount++;
+          return Reflect.ownKeys(target);
+        },
+      });
+      const root: { raw: object; proxy: object; self?: object } = {
+        raw,
+        proxy: ProxyObservable.wrap(raw),
+      };
+      root.self = root;
+      target.parent = root;
+      const { fixture, getEvaluationCount } = createDeepFixture(root, () => leaf.value);
+      const { assertText, observerLocator } = fixture;
+      const leafObserver = observerLocator.getObserver(leaf, 'value') as unknown as ISubscriberCollection;
+
+      assert.strictEqual(traversalCount, 1, 'raw/proxy aliases are visited once in the initial pass');
+      assert.strictEqual(leafObserver.subs.count, 1, 'shared leaf has one deep observer');
+      traversalCount = 0;
+      leaf.value = 1;
+      runTasks();
+
+      assertText('1');
+      assert.strictEqual(getEvaluationCount(), 2, 'shared leaf triggers one evaluation');
+      assert.ok(traversalCount > 0, 'invalidation traverses with a fresh identity set');
+      assert.strictEqual(leafObserver.subs.count, 1, 'shared leaf remains singly observed after rebuilding');
+    });
+
+    it('does not reattach a queued deep observer after unbinding', function () {
+      const leaf = { value: 0 };
+      const root: { leaf: Leaf; self?: object } = { leaf };
+      root.self = root;
+      const { fixture, getEvaluationCount } = createDeepFixture(root, () => leaf.value);
+      const { observerLocator, stop } = fixture;
+      const leafObserver = observerLocator.getObserver(leaf, 'value') as unknown as ISubscriberCollection;
+
+      assert.strictEqual(leafObserver.subs.count, 1, 'deep observer is attached');
+      leaf.value = 1;
+      void stop();
+      assert.strictEqual(leafObserver.subs.count, 0, 'unbind detaches the queued deep observer');
+
+      // The already queued deep walker still completes, preserving the normal
+      // ComputedObserver ordering, but must release everything it recollects.
+      runTasks();
+      assert.strictEqual(getEvaluationCount(), 1, 'detached user getter does not evaluate');
+      assert.strictEqual(leafObserver.subs.count, 0, 'queued work does not reattach the deep observer');
+    });
+
+    it('does not reattach an obsolete deep observer after replacing its root', function () {
+      const createGraph = (value: number) => {
+        const leaf = { value };
+        const root: { leaf: Leaf; self?: object } = { leaf };
+        root.self = root;
+        return { root, leaf };
+      };
+      const oldGraph = createGraph(1);
+      const newGraph = createGraph(2);
+      const { fixture, getEvaluationCount } = createDeepFixture(
+        oldGraph.root,
+        graph => graph.leaf.value,
+      );
+      const { component, assertText, observerLocator } = fixture;
+      const oldLeafObserver = observerLocator.getObserver(oldGraph.leaf, 'value') as unknown as ISubscriberCollection;
+      const newLeafObserver = observerLocator.getObserver(newGraph.leaf, 'value') as unknown as ISubscriberCollection;
+
+      assertText('1');
+      component.graph = newGraph.root;
+      oldGraph.leaf.value = 10;
+
+      // Root replacement is queued first. The old graph's nested change is
+      // queued second and becomes obsolete when replacement detaches its walker.
+      runTasks();
+      assertText('2');
+      assert.strictEqual(getEvaluationCount(), 2, 'root replacement triggers one evaluation');
+      assert.strictEqual(oldLeafObserver.subs.count, 0, 'old graph remains detached');
+      assert.strictEqual(newLeafObserver.subs.count, 1, 'new graph is observed');
+
+      oldGraph.leaf.value = 11;
+      runTasks();
+      assert.strictEqual(getEvaluationCount(), 2, 'old graph no longer triggers evaluation');
+
+      newGraph.leaf.value = 3;
+      runTasks();
+      assertText('3');
+      assert.strictEqual(getEvaluationCount(), 3, 'new graph remains observable');
     });
   });
 });

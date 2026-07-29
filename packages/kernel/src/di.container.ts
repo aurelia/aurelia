@@ -583,7 +583,7 @@ export class Container implements IContainer {
   /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
     const $isRegistry = isRegistry(keyAsValue);
-    if (!isFunction(keyAsValue) && !$isRegistry) {
+    if (!isFunction(keyAsValue) && !$isRegistry && keyAsValue?.$isInterface !== true) {
       throw createMappedError(ErrorNames.unable_jit_non_constructor, keyAsValue);
     }
 
@@ -603,7 +603,6 @@ export class Container implements IContainer {
       return registrationResolver as IResolver;
     }
 
-    // TODO(sayan): remove potential dead code
     if (keyAsValue.$isInterface) {
       throw createMappedError(ErrorNames.no_jit_interface, keyAsValue.friendlyName);
     }

@@ -548,10 +548,31 @@ describe('1-kernel/di.get.spec.ts', function () {
   });
 
   describe('@newInstanceOf', function () {
-    it('throws when there is no registration for interface', function () {
+    it('throws AUR0017 for a no-default interface regardless of prior default activation', function () {
       const container = DI.createContainer();
-      const I = DI.createInterface('I');
-      assert.throws(() => container.get(newInstanceOf(I)), `No registration for interface: 'I'`);
+      const Missing = DI.createInterface('Missing');
+      const expectedError = /AUR0017.*InterfaceSymbol<Missing>/;
+      const assertMissingInterface = (phase: string) => {
+        assert.throws(
+          () => container.get(newInstanceOf(Missing)),
+          expectedError,
+          `newInstanceOf ${phase}`,
+        );
+        assert.throws(
+          () => container.get(newInstanceForScope(Missing)),
+          expectedError,
+          `newInstanceForScope ${phase}`,
+        );
+      };
+
+      // Exercise both missing-interface paths before the first default-interface activation in this spec.
+      assertMissingInterface('before default activation');
+
+      class Impl {}
+      const WithDefault = DI.createInterface('WithDefault', x => x.singleton(Impl));
+      assert.instanceOf(container.get(newInstanceOf(WithDefault)), Impl);
+
+      assertMissingInterface('after default activation');
     });
 
     it('instantiates when there is an constructable registration for an interface', function () {

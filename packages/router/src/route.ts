@@ -148,9 +148,6 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
       config.nav ?? this.nav,
     );
-    if (config.id == null && config.path == null && conventionIdConfigs.has(this)) {
-      conventionIdConfigs.add(childConfig);
-    }
     return finalizeRouteConfigId(childConfig);
   }
 

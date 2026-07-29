@@ -181,6 +181,31 @@ describe('router/config-tests.spec.ts', function () {
       await fixture.tearDown();
     });
 
+    it('preserves an explicit configuration hook ID through a child path override', async function () {
+      @customElement({ name: 'explicit-hook-route', template: null })
+      class ExplicitHookRoute implements IRouteViewModel {
+        public getRouteConfig(): IRouteConfig {
+          return { id: 'hook-id', path: 'hook-path' };
+        }
+      }
+
+      const hookFixture = await createFixture(ExplicitHookRoute, [], getDefaultHIAConfig);
+      const hookConfig = Route.getConfig(ExplicitHookRoute);
+      assert.strictEqual(hookConfig.id, 'hook-id');
+      assert.deepStrictEqual(hookConfig.path, ['hook-path']);
+      await hookFixture.tearDown();
+
+      @route({ routes: [{ path: 'child-path', component: ExplicitHookRoute }] })
+      @customElement({ name: 'hook-parent', template: vp(1), dependencies: [ExplicitHookRoute] })
+      class HookParent {}
+
+      const parentFixture = await createFixture(HookParent, [], getDefaultHIAConfig);
+      const childConfig = await parentFixture.router.routeTree.root.context.routeConfigContext.childRoutes[0];
+      assert.strictEqual(childConfig.id, 'hook-id');
+      assert.deepStrictEqual(childConfig.path, ['child-path']);
+      await parentFixture.tearDown();
+    });
+
     it('preserves configured and static route identity precedence', function () {
       @route({ id: 'configured-id', path: ['configured-path', 'configured-alias'] })
       @customElement({ name: 'configured-element', template: null })

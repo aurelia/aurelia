@@ -136,6 +136,6 @@ function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber):
 
 function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
   if (this.subs.remove(subscriber) && this.subs.count === 0) {
-    this.owner.subscribe(this);
+    this.owner.unsubscribe(this);
   }
 }

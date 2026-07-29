@@ -14,13 +14,12 @@ Lifecycle hooks apply to **custom elements** and **custom attributes**. Syntheti
 
 ```mermaid
 flowchart LR
-  ctor["Constructor"] --> define --> hydrating --> hydrated --> created --> binding --> bound --> attaching --> attached --> detaching --> unbinding --> dispose
+  ctor["Constructor"] --> hydrating --> hydrated --> created --> binding --> bound --> attaching --> attached --> detaching --> unbinding --> dispose
 ```
 
 | Phase | Hook | Runs | Child-parent order | Async? |
 | ----- | ---- | ---- | ------------------ | ------ |
 | Construction | `constructor` | once | – | – |
-|  | `define` | once | **top ➞ down** | no |
 |  | `hydrating` | once | **top ➞ down** | no |
 |  | `hydrated` | once | **top ➞ down** | no |
 |  | `created` | once | **bottom ➞ up** | no |
@@ -51,21 +50,7 @@ export class MyComponent {
 }
 ```
 
-### 2. Define
-
-```typescript
-define(
-  controller: IDryCustomElementController<this>,
-  hydrationContext: IHydrationContext | null,
-  definition: CustomElementDefinition
-): PartialCustomElementDefinition | void {}
-```
-
-* Opportunity to **modify the component definition** before hydration begins.
-* Can return a partial definition to override aspects of the component's behavior.
-* Runs **synchronously**, parent before children.
-
-### 3. Hydrating
+### 2. Hydrating
 
 ```typescript
 hydrating(controller: IContextualCustomElementController<this>): void {}
@@ -74,7 +59,7 @@ hydrating(controller: IContextualCustomElementController<this>): void {}
 * Opportunity to **register dependencies** in `controller.container` that are needed while **compiling** the view template.
 * Runs **synchronously**, parent before children.
 
-### 4. Hydrated
+### 3. Hydrated
 
 ```typescript
 hydrated(controller: ICompiledCustomElementController<this>): void {}
@@ -83,7 +68,7 @@ hydrated(controller: ICompiledCustomElementController<this>): void {}
 * View template has been compiled, child components are **not** yet created.
 * Last chance to influence how the soon-to-be-created child components resolve their dependencies.
 
-### 5. Created
+### 4. Created
 
 ```typescript
 created(controller: ICustomElementController<this> | ICustomAttributeController<this>): void {}
@@ -93,7 +78,7 @@ created(controller: ICustomElementController<this> | ICustomAttributeController<
 * Executes **once** per instance, **children before parent**.
 * Great for logic that must run after the whole subtree is constructed but **before binding**.
 
-### 6. Binding
+### 5. Binding
 
 ```typescript
 // Custom Elements
@@ -107,7 +92,7 @@ binding(initiator: IHydratedController, parent: IHydratedController): void | Pro
 * Runs **parent ➞ child**.
 * Return a `Promise` (or mark the method `async`) to **block** binding/attaching of children until resolved.
 
-### 7. Bound
+### 6. Bound
 
 ```typescript
 // Custom Elements
@@ -120,7 +105,7 @@ bound(initiator: IHydratedController, parent: IHydratedController): void | Promi
 * View-to-view-model bindings are active; `ref`, `let`, and `from-view` values are available.
 * Executes **child ➞ parent**.
 
-### 8. Attaching
+### 7. Attaching
 
 ```typescript
 // Custom Elements
@@ -134,7 +119,7 @@ attaching(initiator: IHydratedController, parent: IHydratedController): void | P
 * Queue animations or setup 3rd-party libraries here.
 * A returned `Promise` is awaited **before** `attached` is invoked on this component **but does not block children**.
 
-### 9. Attached
+### 8. Attached
 
 ```typescript
 attached(initiator: IHydratedController): void | Promise<void> {}
@@ -144,7 +129,7 @@ attached(initiator: IHydratedController): void | Promise<void> {}
 * Executes **child ➞ parent**.
 * Note: Only receives the `initiator` parameter, **not** the parent.
 
-### 10. Detaching
+### 9. Detaching
 
 ```typescript
 // Custom Elements
@@ -157,7 +142,7 @@ detaching(initiator: IHydratedController, parent: IHydratedController): void | P
 * Called when the framework removes the component's element from the DOM.
 * Executes **child ➞ parent**. Any returned `Promise` (e.g., an outgoing animation) is awaited **in parallel** with sibling promises.
 
-### 11. Unbinding
+### 10. Unbinding
 
 ```typescript
 // Custom Elements
@@ -170,7 +155,7 @@ unbinding(initiator: IHydratedController, parent: IHydratedController): void | P
 * Runs after `detaching` finishes and bindings have been disconnected.
 * Executes **child ➞ parent**.
 
-### 12. Dispose
+### 11. Dispose
 
 ```typescript
 dispose(): void {}

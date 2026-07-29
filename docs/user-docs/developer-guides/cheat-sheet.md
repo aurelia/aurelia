@@ -595,10 +595,6 @@ You can import and implement these in your components as a type-checking aid, bu
 
 ```typescript
 interface ICustomElementViewModel {
-  define(
-    controller: IDryCustomElementController,
-    parentContainer: IContainer,
-    definition: CustomElementDefinition): PartialCustomElementDefinition | void
   hydrating(controller: IContextualCustomElementController): void;
   hydrated(controller: ICompiledCustomElementController): void;
   created(controller: ICustomElementController): void;

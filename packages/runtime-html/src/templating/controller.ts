@@ -1481,8 +1481,6 @@ export function isCustomElementViewModel(value: unknown): value is ICustomElemen
 class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-  public readonly _define: boolean;
-
   public readonly _hydrating: boolean;
   public readonly _hydrated: boolean;
   public readonly _created: boolean;
@@ -1499,8 +1497,6 @@ class HooksDefinition {
   public readonly _accept: boolean;
 
   public constructor(target: object) {
-    this._define = 'define' in target;
-
     this._hydrating = 'hydrating' in target;
     this._hydrated = 'hydrated' in target;
     this._created = 'created' in target;
@@ -1771,7 +1767,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
 }
 
 /**
- * A representation of `IController` specific to a custom element whose `create` hook is about to be invoked (if present).
+ * A representation of `IController` specific to a custom element before it is hydrated.
  *
  * It is not yet hydrated (hence 'dry') with any render-specific information.
  */
@@ -1782,7 +1778,7 @@ export interface IDryCustomElementController<C extends IViewModel = IViewModel> 
   /**
    * The scope that belongs to this custom element. This property is set immediately after the controller is created and is always guaranteed to be available.
    *
-   * It may be overwritten by end user during the `create()` hook.
+   * It may be overwritten by end user during the `hydrating()` hook.
    *
    * By default, the scope's `bindingContext` will be the same instance as this controller's `viewModel` property.
    */
@@ -1905,16 +1901,6 @@ export interface IActivationHooks<TParent> {
 }
 
 export interface ICompileHooks {
-  define?(
-    controller: IDryCustomElementController<this>,
-    /**
-     * The context where this element is hydrated.
-     *
-     * This is created by the controller associated with the CE creating this this controller
-     */
-    hydrationContext: IHydrationContext | null,
-    definition: CustomElementDefinition,
-  ): PartialCustomElementDefinition | void;
   hydrating?(
     controller: IContextualCustomElementController<this>,
   ): void;
@@ -1969,10 +1955,9 @@ export interface IHydratedCustomAttributeViewModel extends ICustomAttributeViewM
 
 export interface IControllerElementHydrationInstruction {
   /**
-   * An internal mechanism to manually halt + resume hydration process
+   * An internal mechanism to defer controller hydration.
    *
-   * - 0: no hydration
-   * - 1: hydrate until define() lifecycle
+   * When `false`, the controller is created without being hydrated immediately.
    *
    * @internal
    */

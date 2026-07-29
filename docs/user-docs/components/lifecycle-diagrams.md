@@ -25,21 +25,20 @@ Timeline:
 Time  Parent              Child-1            Child-2
 ────  ──────              ───────            ───────
   0   constructor()
-  1   define()
-  2   hydrating()
-  3   hydrated()
+  1   hydrating()
+  2   hydrated()
       created() ←──────── created() ←─────── created()
                           │                  │
                           └─ children first ─┘
 
-  4   binding() ──────┐
+  3   binding() ──────┐
       ↓ (if async,    │
       blocks children)│
                       │
-  5   ← resolve ──────┘
+  4   ← resolve ──────┘
       bind() (connects bindings)
 
-  6   attaching() ────┐
+  5   attaching() ────┐
       _attach() DOM ──┤  binding() ────┐   binding() ────┐
                       │                │                  │
                       │  bind()        │   bind()         │
@@ -51,13 +50,13 @@ Time  Parent              Child-1            Child-2
                   │   (parent's attaching() and
                   │    children activation run in PARALLEL)
                   │
-  7               └─→ Wait for all to complete
+  6               └─→ Wait for all to complete
 
       attached() ←───── attached() ←──── attached()
       │                 │                 │
       └─ children first (bottom-up) ─────┘
 
-  8   ACTIVATED
+  7   ACTIVATED
 
 
 DETAILED ACTIVATION FLOW
@@ -70,10 +69,6 @@ DETAILED ACTIVATION FLOW
 │ Parent.constructor()                               │
 │   → Child1.constructor()                           │
 │   → Child2.constructor()                           │
-│                                                    │
-│ Parent.define()                                    │
-│   → Child1.define()                                │
-│   → Child2.define()                                │
 │                                                    │
 │ Parent.hydrating()                                 │
 │   → Child1.hydrating()                             │

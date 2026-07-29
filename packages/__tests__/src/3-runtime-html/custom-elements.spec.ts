@@ -552,15 +552,21 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
     });
 
-    it('works with keycode for upper key by default', async function () {
-      let entered = 0;
-      const { trigger } = createFixture(
-        '<button keydown.trigger:ctrl+107="enter()"></button>',
-        { enter: () => entered = 1 },
-      );
-      trigger('button', 'keydown', { key: 'k', ctrlKey: true });
-      assert.strictEqual(entered, 1);
-    });
+    for (const [modifier, key] of [
+      ['z', 'z'],
+      ['90', 'Z'],
+      ['122', 'z'],
+    ]) {
+      it(`works with default keyboard mapping ${modifier} -> ${key}`, async function () {
+        let entered = 0;
+        const { trigger } = createFixture(
+          `<button keydown.trigger:${modifier}="enter()"></button>`,
+          { enter: () => entered = 1 },
+        );
+        trigger('button', 'keydown', { key });
+        assert.strictEqual(entered, 1);
+      });
+    }
 
     it('works with custom keyboard mapping', async function () {
       let entered = 0;

@@ -155,7 +155,7 @@ export const IKeyMapping = /*@__PURE__*/createInterface<IKeyMapping>('IKeyMappin
     space: 'Space',
     tab: 'tab',
     // by default, maps the key a-z and A-Z to their respective keycodes
-    ...Array.from({ length: 25 }).reduce((acc: Record<string, string>, _, idx) => {
+    ...Array.from({ length: 26 }).reduce((acc: Record<string, string>, _, idx) => {
       // map keycode of upper case character from A-Z
       let char = String.fromCharCode(idx + 65);
       acc[idx + 65] = char;

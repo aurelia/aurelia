@@ -10,7 +10,6 @@ import {
   TaskAbortError,
   TaskQueueAggregateError,
   tasksSettled,
-  type Task,
 } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -190,7 +189,7 @@ describe('2-runtime/queue.spec.ts', function () {
       assert.strictEqual(await tasksSettled(), true, 'the sync task should settle');
       assert.strictEqual(isTaskQueueEmpty(), true, 'the queue should be empty after the sync task settles');
 
-      queueAsyncTask(() => {
+      void queueAsyncTask(() => {
         return new Promise<void>(resolve => {
           setTimeout(resolve, 5);
         });
@@ -206,14 +205,13 @@ describe('2-runtime/queue.spec.ts', function () {
 
     it('can cancel a later queueAsyncTask while the queue head has advanced', async function () {
       const stack: string[] = [];
-      let taskToCancel!: Task<void>;
 
       queueTask(() => {
         stack.push('cancel');
         assert.strictEqual(taskToCancel.cancel(), true, 'a later pending task should be cancellable during a drain');
       });
 
-      taskToCancel = queueAsyncTask(() => {
+      const taskToCancel = queueAsyncTask(() => {
         stack.push('should_not_run');
       });
 
@@ -236,7 +234,7 @@ describe('2-runtime/queue.spec.ts', function () {
     it('manual runTasks starts async tasks but leaves their promises to tasksSettled', async function () {
       const stack: string[] = [];
 
-      queueAsyncTask(() => {
+      void queueAsyncTask(() => {
         stack.push('sync_start');
         return new Promise<void>(resolve => {
           setTimeout(() => {

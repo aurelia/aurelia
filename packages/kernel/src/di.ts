@@ -185,6 +185,19 @@ export interface IContainerConfiguration {
 }
 
 const diParamTypesKeys = getAnnotationKeyFor('di:paramtypes');
+const diDependenciesKey = getAnnotationKeyFor('di:dependencies');
+const hasOwn = Object.prototype.hasOwnProperty;
+
+// TS metadata can inherit at both the constructor and metadata-object levels.
+const getOwnMetadata = <T>(key: string, Type: Constructable | Injectable): T | undefined => {
+  const metadata = hasOwn.call(Type, Symbol.metadata)
+    ? Type[Symbol.metadata]
+    : void 0;
+  return metadata != null && hasOwn.call(metadata, key)
+    ? metadata[key] as T
+    : void 0;
+};
+
 const getAnnotationParamtypes = (Type: Constructable | Injectable): readonly Key[] | undefined => {
   return getMetadata(diParamTypesKeys, Type);
 };
@@ -192,8 +205,11 @@ const getAnnotationParamtypes = (Type: Constructable | Injectable): readonly Key
 const getDesignParamtypes = (Type: Constructable | Injectable): readonly Key[] | undefined =>
   getMetadata('design:paramtypes', Type);
 
-const getOrCreateAnnotationParamTypes = (context: DecoratorContext): Key[] => {
-  return (context.metadata[diParamTypesKeys] ??= []) as Key[];
+const getOrCreateAnnotationParamTypes = ({ metadata }: DecoratorContext): Key[] => {
+  if (!hasOwn.call(metadata, diParamTypesKeys) || metadata[diParamTypesKeys] == null) {
+    metadata[diParamTypesKeys] = [];
+  }
+  return metadata[diParamTypesKeys] as Key[];
 };
 
 /** @internal */
@@ -202,8 +218,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
   // so be careful with making changes here as it can have a huge impact on complex end user apps.
   // Preferably, only make changes to the dependency resolution process via a RFC.
 
-  const key = getAnnotationKeyFor('di:dependencies');
-  let dependencies = getMetadata<Key[] | undefined>(key, Type);
+  let dependencies = getOwnMetadata<Key[]>(diDependenciesKey, Type);
   if (dependencies === void 0) {
     // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
     // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
@@ -263,7 +278,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
       dependencies = cloneArrayWithPossibleProps(inject);
     }
 
-    defineMetadata(dependencies, Type, key);
+    defineMetadata(dependencies, Type, diDependenciesKey);
   }
 
   return dependencies;

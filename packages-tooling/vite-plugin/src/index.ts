@@ -1,7 +1,9 @@
-import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+import { preprocess } from '@aurelia/plugin-conventions';
+import type { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
+import { transformTemplateAssetUrls } from './template-assets';
 
 export default function au(options: {
   include?: FilterPattern;
@@ -17,6 +19,7 @@ export default function au(options: {
     exclude,
     pre = true,
     useDev,
+    transformHtmlTemplate,
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
@@ -32,6 +35,10 @@ export default function au(options: {
   };
 
   let $config!: import('vite').ResolvedConfig;
+  const transformHtmlTemplateForVite = (html: string, unit: IFileUnit) => {
+    return transformHtmlTemplate?.(html, unit)
+      ?? ($config.command === 'build' ? transformTemplateAssetUrls(html, unit.path) : void 0);
+  };
 
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
@@ -57,6 +64,7 @@ export default function au(options: {
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
+        transformHtmlTemplate: transformHtmlTemplateForVite,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });
@@ -98,6 +106,7 @@ export default function au(options: {
       }, {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
+        transformHtmlTemplate: transformHtmlTemplateForVite,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });

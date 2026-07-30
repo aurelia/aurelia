@@ -1243,5 +1243,39 @@ export function register(container) {
       );
       assert.equal(result.code, expected);
     });
+
+    it('preprocesses templates with transformHtmlTemplate option', function () {
+      const html = [
+        '<template><img src="./logo.png"></template>'
+      ].join('');
+      const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import assetUrl from "./logo.png";
+export const name = "foo-bar";
+export const template = "<template><img src=\\"" + assetUrl + "\\"></template>";
+export default template;
+export const dependencies = [  ];
+export const bindables = {};
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+      const result = preprocessHtmlTemplate(
+        { path: path.join('lo', 'foo-bar', 'index.html'), contents: html },
+        preprocessOptions({
+          hmr: false,
+          transformHtmlTemplate: () => ({
+            imports: ['import assetUrl from "./logo.png";\n'],
+            template: '"<template><img src=\\"" + assetUrl + "\\"></template>"',
+          }),
+        }),
+        false,
+        () => false
+      );
+      assert.equal(result.code, expected);
+    });
   });
 });

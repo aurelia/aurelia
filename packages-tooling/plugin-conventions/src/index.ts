@@ -7,6 +7,7 @@ export { preprocess } from './preprocess';
 export {
   type INameConvention,
   type IFileUnit,
+  type IHtmlTemplateTransformResult,
   type IOptionalPreprocessOptions,
   type IPreprocessOptions,
   defaultCssExtensions,

@@ -1,6 +1,7 @@
 import {
   DI,
   inject,
+  type Key,
   Registration,
   resolve,
   singleton,
@@ -396,6 +397,27 @@ describe('1-kernel/di.spec.ts', function () {
         });
       }
 
+      for (const baseFirst of [true, false]) {
+        it(`keeps dependency caches local when querying the ${baseFirst ? 'base' : 'derived'} class first`, function () {
+          const baseDependency = Symbol('base');
+          const derivedDependency = Symbol('derived');
+
+          class Base { public static inject = [baseDependency]; }
+          class Derived extends Base { public static inject = [derivedDependency]; }
+
+          if (baseFirst) {
+            DI.getDependencies(Base);
+            DI.getDependencies(Derived);
+          } else {
+            DI.getDependencies(Derived);
+            DI.getDependencies(Base);
+          }
+
+          assert.deepStrictEqual(DI.getDependencies(Base), [baseDependency], 'base dependencies');
+          assert.deepStrictEqual(DI.getDependencies(Derived), [derivedDependency], 'derived dependencies');
+        });
+      }
+
     });
 
     describe(`createInterface()`, function () {
@@ -421,6 +443,7 @@ describe('1-kernel/di.spec.ts', function () {
     class Dep1 {}
     class Dep2 {}
     class Dep3 {}
+    const annotationParamtypesKey = 'au:annotation:di:paramtypes';
 
     it(`can decorate classes with explicit dependencies`, function () {
       @inject(Dep1, Dep2, Dep3)
@@ -428,6 +451,70 @@ describe('1-kernel/di.spec.ts', function () {
 
       assert.deepStrictEqual(DI.getDependencies(Foo), [Dep1, Dep2, Dep3], `Foo['inject']`);
     });
+
+    for (const baseFirst of [true, false]) {
+      it(`keeps class decorator metadata local when querying the ${baseFirst ? 'base' : 'derived'} class first`, function () {
+        @inject(Dep1)
+        class Base {}
+
+        if (baseFirst) {
+          DI.getDependencies(Base);
+        }
+
+        @inject(Dep2)
+        class Derived extends Base {}
+
+        const baseAnnotation = Base[Symbol.metadata][annotationParamtypesKey] as Key[] & Record<string, Key | undefined>;
+        const derivedAnnotation = Derived[Symbol.metadata][annotationParamtypesKey] as Key[] & Record<string, Key | undefined>;
+        assert.notStrictEqual(derivedAnnotation, baseAnnotation, 'derived annotation metadata');
+        assert.deepStrictEqual(baseAnnotation, [Dep1], 'base annotation dependencies');
+        assert.deepStrictEqual(derivedAnnotation, [Dep2], 'derived annotation dependencies');
+
+        if (!baseFirst) {
+          DI.getDependencies(Derived);
+          DI.getDependencies(Base);
+        }
+
+        assert.deepStrictEqual(DI.getDependencies(Base), [Dep1], 'base dependencies');
+        assert.deepStrictEqual(DI.getDependencies(Derived), [Dep2], 'derived dependencies');
+      });
+
+      it(`keeps field decorator metadata local when querying the ${baseFirst ? 'base' : 'derived'} class first`, function () {
+        class Base {
+          @inject(Dep1)
+          public dep1;
+        }
+
+        if (baseFirst) {
+          DI.getDependencies(Base);
+        }
+
+        class Derived extends Base {
+          @inject(Dep2)
+          public dep2;
+        }
+
+        const baseAnnotation = Base[Symbol.metadata][annotationParamtypesKey] as Key[] & Record<string, Key | undefined>;
+        const derivedAnnotation = Derived[Symbol.metadata][annotationParamtypesKey] as Key[] & Record<string, Key | undefined>;
+        assert.notStrictEqual(derivedAnnotation, baseAnnotation, 'derived annotation metadata');
+        assert.strictEqual(baseAnnotation.dep1, Dep1, 'base annotation dep1');
+        assert.strictEqual(baseAnnotation.dep2, undefined, 'base annotation dep2');
+        assert.strictEqual(derivedAnnotation.dep1, undefined, 'derived annotation dep1');
+        assert.strictEqual(derivedAnnotation.dep2, Dep2, 'derived annotation dep2');
+
+        if (!baseFirst) {
+          DI.getDependencies(Derived);
+          DI.getDependencies(Base);
+        }
+
+        const baseDependencies = DI.getDependencies(Base) as Key[] & Record<string, Key | undefined>;
+        const derivedDependencies = DI.getDependencies(Derived) as Key[] & Record<string, Key | undefined>;
+        assert.strictEqual(baseDependencies.dep1, Dep1, 'base dependency dep1');
+        assert.strictEqual(baseDependencies.dep2, undefined, 'base dependency dep2');
+        assert.strictEqual(derivedDependencies.dep1, undefined, 'derived dependency dep1');
+        assert.strictEqual(derivedDependencies.dep2, Dep2, 'derived dependency dep2');
+      });
+    }
 
     // it(`can decorate classes with implicit dependencies`, function () {
     //   @inject()
@@ -464,7 +551,7 @@ describe('1-kernel/di.spec.ts', function () {
       // @ts-ignore
       class Foo { @inject(Dep1)public dep1; @inject(Dep2)public dep2; @inject(Dep3)public dep3; }
 
-      const metadata = Foo[Symbol.metadata]['au:annotation:di:paramtypes'];
+      const metadata = Foo[Symbol.metadata][annotationParamtypesKey];
       assert.strictEqual(metadata['dep1'], Dep1, `Foo['inject'].dep1`);
       assert.strictEqual(metadata['dep2'], Dep2, `Foo['inject'].dep2`);
       assert.strictEqual(metadata['dep3'], Dep3, `Foo['inject'].dep3`);

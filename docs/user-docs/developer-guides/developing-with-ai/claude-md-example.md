@@ -7,7 +7,7 @@ Guidance for Claude Code when working with this Aurelia 2 app.
 - Aurelia 2.x TypeScript application
 - DI via `aurelia` and `@aurelia/kernel`, hierarchical containers
 - MVVM separation of concerns
-- Lifecycle order: constructor → define → hydrating → hydrated → created → binding → bound → attaching → attached → detaching → unbinding → dispose
+- Lifecycle order: constructor → hydrating → hydrated → created → binding → bound → attaching → attached → detaching → unbinding → dispose
 
 ## Project Structure
 

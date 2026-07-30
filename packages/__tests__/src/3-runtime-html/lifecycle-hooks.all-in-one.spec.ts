@@ -6,7 +6,60 @@ import {
 import { IActivationHooks, ICompileHooks, IHydratedController } from '@aurelia/runtime-html/dist/types/templating/controller';
 import { assert, createFixture } from '@aurelia/testing';
 
+type ViewModelHook = keyof ICompileHooks | keyof IActivationHooks<IHydratedController>;
+
+const expectedViewModelHooks: Record<ViewModelHook, true> = {
+  hydrating: true,
+  hydrated: true,
+  created: true,
+  binding: true,
+  bound: true,
+  attaching: true,
+  attached: true,
+  detaching: true,
+  unbinding: true,
+  dispose: true,
+  accept: true,
+};
+
 describe('3-runtime-html/lifecycle-hooks.all-in-one.spec.ts', function () {
+  it('keeps view-model hook detection aligned with the lifecycle interfaces', async function () {
+    const invokedHooks = new Set<ViewModelHook>();
+    class App {
+      hydrating() { invokedHooks.add('hydrating'); }
+      hydrated() { invokedHooks.add('hydrated'); }
+      created() { invokedHooks.add('created'); }
+      binding() { invokedHooks.add('binding'); }
+      bound() { invokedHooks.add('bound'); }
+      attaching() { invokedHooks.add('attaching'); }
+      attached() { invokedHooks.add('attached'); }
+      detaching() { invokedHooks.add('detaching'); }
+      unbinding() { invokedHooks.add('unbinding'); }
+      dispose() { invokedHooks.add('dispose'); }
+      accept() { invokedHooks.add('accept'); }
+    }
+
+    const fixture = await createFixture
+      .component(App)
+      .html``
+      .build().started;
+    const controller = fixture.component.$controller!;
+    const detectedHooks = Object.fromEntries(
+      Object.entries((controller as unknown as { _vmHooks: Record<string, boolean> })._vmHooks)
+        .map(([name, isPresent]) => [name.slice(1), isPresent])
+    );
+
+    assert.deepStrictEqual(detectedHooks, expectedViewModelHooks);
+
+    controller.accept(() => {});
+    await fixture.tearDown();
+
+    assert.deepStrictEqual(
+      Array.from(invokedHooks).sort(),
+      Object.keys(expectedViewModelHooks).sort()
+    );
+  });
+
   describe('[synchronous]', function () {
     let tracker: LifeycyleTracker | null = null;
 
@@ -51,10 +104,6 @@ describe('3-runtime-html/lifecycle-hooks.all-in-one.spec.ts', function () {
 
       unbinding() {
         tracker.unbinding++;
-      }
-
-      define() {
-        throw new Error('ni');
       }
 
       dispose() {

@@ -425,12 +425,6 @@ export class UserProfile {
     // Basic initialization - same as v1
   }
 
-  // NEW: Modify component definition before hydration
-  define(controller: ICustomElementController, definition: CustomElementDefinition) {
-    // Rare use case - modify component behavior dynamically
-    return { ...definition, shadowOptions: { mode: 'open' } };
-  }
-
   // NEW: Add contextual DI registrations
   hydrating(controller: ICustomElementController) {
     // Register services that child components might need
@@ -490,7 +484,7 @@ export class UserProfile {
 ```
 
 **V2 Lifecycle Order:**
-constructor → define → hydrating → hydrated → created → binding → bound → attaching → attached → detaching → unbinding → dispose
+constructor → hydrating → hydrated → created → binding → bound → attaching → attached → detaching → unbinding → dispose
 
 **Key improvements:**
 - **More granular control**: Additional hooks for different stages

@@ -434,7 +434,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           letInstructions.push({
             type: itLetBinding,
             from: exprParser.parse(realAttrValue, etIsProperty),
-            to: camelCase(realAttrTarget)
+            to: normalizeLetBindingTarget(realAttrTarget)
           } as LetBindingInstruction);
         } else {
           throw createMappedError(ErrorNames.compiler_invalid_let_command, attrSyntax);
@@ -456,7 +456,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       letInstructions.push({
         type: itLetBinding,
         from: expr === null ? createPrimitiveLiteralExpression(realAttrValue) : expr,
-        to: camelCase(realAttrTarget)
+        to: normalizeLetBindingTarget(realAttrTarget)
       } as LetBindingInstruction);
     }
     context.rows.push([{
@@ -1463,6 +1463,12 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     return projections;
   }
+}
+
+function normalizeLetBindingTarget(target: string): string {
+  return target.includes('_')
+    ? target.replace(/-+([A-Za-z0-9])/g, (_, ch: string) => ch.toUpperCase())
+    : camelCase(target);
 }
 
 const TEMPLATE_NODE_NAME = 'TEMPLATE';

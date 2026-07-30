@@ -1470,6 +1470,23 @@ function createWatchers(
   }
 }
 
+/**
+ * Adds a binding that must run before bindings already rendered for a controller.
+ *
+ * This is intentionally separate from `addBinding`: declaration-style bindings are
+ * uncommon, and the normal append path should not pay for an ordering option.
+ *
+ * @internal
+ */
+export function prependBinding(controller: IController, binding: IBinding): void {
+  const bindings = controller.bindings;
+  if (bindings === null) {
+    controller.addBinding(binding);
+  } else {
+    (bindings as IBinding[]).unshift(binding);
+  }
+}
+
 export function isCustomElementController<C extends ICustomElementViewModel = ICustomElementViewModel>(value: unknown): value is ICustomElementController<C> {
   return value instanceof Controller && value.vmKind === vmkCe;
 }

@@ -1,14 +1,22 @@
 import {
   Class,
+  Registration,
 } from '@aurelia/kernel';
-import { tasksSettled } from '@aurelia/runtime';
+import {
+  batch,
+  type ISubscriberCollection,
+  tasksSettled,
+} from '@aurelia/runtime';
 import {
   Aurelia,
   CustomElement,
   IPlatform,
+  ISSRContext,
+  type ISSRScope,
 } from '@aurelia/runtime-html';
 import {
   assert,
+  createFixture,
   TestContext
 } from '@aurelia/testing';
 import {
@@ -127,4 +135,290 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
       );
     }, { app: App, template: `<div repeat.for="[k,ps] of map">\${k}:<template repeat.for="p of ps"> \${p.name.slice(0,3)}-\${p.age}</div>` });
   }
+
+  describe('object binding patterns', function () {
+    it('projects shorthand and aliased locals before the repeated body binds', function () {
+      const { assertText, getAllBy } = createFixture(
+        `<div repeat.for="{ id: orderId, name } of orders"><span data-id.one-time="orderId">\${id}/\${orderId}/\${name}</span></div>`,
+        class App {
+          public id = 'parent';
+          public orders = [
+            { id: 1, name: 'Coffee' },
+            { id: 2, name: 'Tea' },
+          ];
+        },
+      );
+
+      // `id` remains a lookup into the parent scope because the source property
+      // was explicitly aliased to `orderId`.
+      assertText('parent/1/Coffeeparent/2/Tea');
+      assert.deepStrictEqual(
+        getAllBy('span').map(element => element.dataset.id),
+        ['1', '2'],
+        '.one-time bindings see the projected locals during their initial bind',
+      );
+    });
+
+    it('allows reserved source property names when they are given safe aliases', function () {
+      const { assertText } = createFixture(
+        `<div repeat.for="{ $index: itemIndex, constructor: ctor } of items">\${itemIndex}/\${ctor}</div>`,
+        class App {
+          public items = [
+            { $index: 'source-index', constructor: 'source-constructor' },
+          ];
+        },
+      );
+
+      assertText('source-index/source-constructor');
+    });
+
+    it('hydrates SSR-adopted rows with reactive object-pattern locals', async function () {
+      let currentOrders = [{ id: 1, name: 'Server' }];
+      class App {
+        public orderId = 'parent';
+        public name = 'parent';
+        public orders = currentOrders;
+      }
+      const AppElement = CustomElement.define({
+        name: 'app',
+        // Keep this as one interpolation so this regression remains isolated
+        // from hydration's handling of literal separators between markers.
+        template: `<div class="order" repeat.for="{ id: orderId, name } of orders"><span data-id.one-time="orderId">\${orderId + ':' + name}</span></div>`,
+      }, App);
+
+      const serverCtx = TestContext.create();
+      serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+      const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('app'));
+      const serverAu = new Aurelia(serverCtx.container).app({ host: serverHost, component: AppElement });
+      let ssrMarkup: string;
+      try {
+        await serverAu.start();
+        ssrMarkup = serverHost.innerHTML;
+      } finally {
+        await serverAu.stop(true);
+        serverAu.dispose();
+        serverHost.remove();
+      }
+
+      currentOrders = [{ id: 2, name: 'Client' }];
+      const clientCtx = TestContext.create();
+      const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement('app'));
+      clientHost.innerHTML = ssrMarkup;
+      const ssrRow = clientHost.querySelector('.order');
+      assert.notStrictEqual(ssrRow, null);
+      assert.strictEqual(ssrRow!.textContent, '1:Server');
+
+      const ssrScope: ISSRScope = {
+        name: 'app',
+        children: [{ type: 'repeat', views: [{ nodeCount: 1, children: [] }] }],
+      };
+      const clientAu = new Aurelia(clientCtx.container);
+      try {
+        const root = await clientAu.hydrate({ host: clientHost, component: AppElement, ssrScope });
+        try {
+          const hydratedRow = clientHost.querySelector('.order');
+          assert.strictEqual(hydratedRow, ssrRow, 'the SSR row is adopted, not cloned');
+          assert.strictEqual(clientHost.textContent, '2:Client');
+          assert.strictEqual(hydratedRow!.querySelector('span')!.dataset.id, '2', '.one-time binds after locals are projected');
+
+          currentOrders[0].id = 3;
+          currentOrders[0].name = 'Updated';
+          await tasksSettled();
+          assert.strictEqual(clientHost.textContent, '3:Updated');
+          assert.strictEqual(hydratedRow!.querySelector('span')!.dataset.id, '2', '.one-time remains frozen');
+        } finally {
+          await root.deactivate();
+          root.dispose();
+        }
+      } finally {
+        clientAu.dispose();
+        clientHost.remove();
+      }
+    });
+
+    it('reacts to selected properties and dependencies of selected getters', async function () {
+      let labelReads = 0;
+      class Order {
+        public constructor(
+          public firstName: string,
+          public lastName: string,
+        ) {}
+
+        public get label(): string {
+          ++labelReads;
+          return `${this.firstName} ${this.lastName}`;
+        }
+      }
+
+      const order = Object.assign(new Order('Ada', 'Lovelace'), { status: 'pending' });
+      const { assertText, component } = createFixture(
+        `<div repeat.for="{ label, status } of orders">\${label} — \${status}</div>`,
+        class App {
+          public orders = [order];
+        },
+      );
+
+      assertText('Ada Lovelace — pending');
+      assert.strictEqual(labelReads, 1, 'the selected getter is evaluated once during row activation');
+
+      order.firstName = 'Grace';
+      await tasksSettled();
+      assertText('Grace Lovelace — pending');
+      assert.strictEqual(labelReads, 2, 'a dependency change reevaluates the selected getter once');
+
+      order.status = 'complete';
+      await tasksSettled();
+      assertText('Grace Lovelace — complete');
+      assert.strictEqual(labelReads, 2, 'another selected property reuses the computed value');
+
+      // A newly inserted row must receive the same declaration binding as the
+      // views created during the repeat's initial activation.
+      component.orders.push(Object.assign(new Order('Katherine', 'Johnson'), { status: 'ready' }));
+      await tasksSettled();
+      assertText('Grace Lovelace — completeKatherine Johnson — ready');
+    });
+
+    it('reuses keyed views while reconnecting their locals to replacement objects', async function () {
+      const oldOrders = [
+        { id: 1, name: 'Coffee' },
+        { id: 2, name: 'Tea' },
+      ];
+      const { assertText, component, getAllBy, observerLocator } = createFixture(
+        `<div class="order" repeat.for="{ id: orderId, name } of orders; key.bind: orderId">\${orderId}:\${name}</div>`,
+        class App {
+          public orders = oldOrders;
+        },
+      );
+      const oldNameObserver = observerLocator.getObserver(oldOrders[0], 'name') as unknown as ISubscriberCollection;
+      const originalElements = getAllBy('.order');
+
+      assertText('1:Coffee2:Tea');
+      assert.strictEqual(oldNameObserver.subs.count, 1, 'the selected source property is observed once');
+
+      const replacementOrders = [
+        { id: 2, name: 'Green tea' },
+        { id: 1, name: 'Espresso' },
+      ];
+      component.orders = replacementOrders;
+      await tasksSettled();
+
+      const reorderedElements = getAllBy('.order');
+      assertText('2:Green tea1:Espresso');
+      assert.strictEqual(reorderedElements[0], originalElements[1], 'the row keyed by 2 is moved, not recreated');
+      assert.strictEqual(reorderedElements[1], originalElements[0], 'the row keyed by 1 is moved, not recreated');
+      assert.strictEqual(oldNameObserver.subs.count, 0, 'the replaced source is disconnected');
+      assert.strictEqual(
+        (observerLocator.getObserver(replacementOrders[1], 'name') as unknown as ISubscriberCollection).subs.count,
+        1,
+        'the replacement source is observed once',
+      );
+
+      oldOrders[0].name = 'stale';
+      replacementOrders[1].name = 'Ristretto';
+      await tasksSettled();
+      assertText('2:Green tea1:Ristretto');
+    });
+
+    it('keeps destructured locals one-way when a body binding assigns them', async function () {
+      const order = { name: 'Coffee' };
+      const { assertValue, component, type } = createFixture(
+        `<input repeat.for="{ name } of orders" value.two-way="name">`,
+        class App {
+          public orders = [order];
+        },
+      );
+
+      assertValue('input', 'Coffee');
+      type('input', 'Draft');
+      assert.strictEqual(order.name, 'Coffee', 'assigning the local does not write through to the source');
+      assertValue('input', 'Draft');
+
+      component.orders[0].name = 'Published';
+      await tasksSettled();
+      assertValue('input', 'Published');
+    });
+
+    it('publishes all locals from a batched source change as a consistent snapshot', async function () {
+      const order = { first: 'Ada', last: 'Lovelace' };
+      const { assertText, component } = createFixture(
+        // A <let> binding reevaluates synchronously, so it exposes a torn
+        // first/last projection that a queued DOM interpolation would hide.
+        `<div repeat.for="{ first, last } of orders"><let snapshot.bind="capture(first, last)"></let>\${snapshot}</div>`,
+        class App {
+          public orders = [order];
+          public snapshots: string[] = [];
+
+          public capture(first: string, last: string): string {
+            const snapshot = `${first}/${last}`;
+            this.snapshots.push(snapshot);
+            return snapshot;
+          }
+        },
+      );
+
+      assertText('Ada/Lovelace');
+      component.snapshots.length = 0;
+
+      batch(() => {
+        order.first = 'Grace';
+        order.last = 'Hopper';
+      });
+      await tasksSettled();
+
+      assertText('Grace/Hopper');
+      assert.ok(component.snapshots.length > 0, 'the body binding reevaluates');
+      assert.ok(
+        component.snapshots.every(snapshot => snapshot === 'Grace/Hopper'),
+        `body bindings must not observe a partially projected pattern: ${component.snapshots.join(', ')}`,
+      );
+    });
+
+    it('disconnects removed and stopped rows and reconnects them exactly once', async function () {
+      const first = { name: 'Coffee' };
+      const { assertText, au, component, observerLocator, stop } = createFixture(
+        `<div repeat.for="{ name } of orders">\${name}</div>`,
+        class App {
+          public orders = [first];
+        },
+      );
+      const firstObserver = observerLocator.getObserver(first, 'name') as unknown as ISubscriberCollection;
+
+      assertText('Coffee');
+      assert.strictEqual(firstObserver.subs.count, 1, 'the active row is connected once');
+
+      component.orders.pop();
+      await tasksSettled();
+      assert.strictEqual(firstObserver.subs.count, 0, 'a removed row releases its source observer');
+
+      const second = { name: 'Tea' };
+      component.orders.push(second);
+      await tasksSettled();
+      const secondObserver = observerLocator.getObserver(second, 'name') as unknown as ISubscriberCollection;
+      assertText('Tea');
+      assert.strictEqual(secondObserver.subs.count, 1, 'the inserted row connects once');
+
+      await stop();
+      assert.strictEqual(secondObserver.subs.count, 0, 'application stop disconnects the row');
+
+      second.name = 'Green tea';
+      await au.start();
+      assertText('Green tea');
+      assert.strictEqual(secondObserver.subs.count, 1, 'the row after restart connects once');
+
+      await stop(true);
+      assert.strictEqual(secondObserver.subs.count, 0, 'disposal leaves no source subscription');
+    });
+
+    it('throws when a repeated item cannot be object-destructured', function () {
+      assert.throws(
+        () => createFixture(
+          `<div repeat.for="{ name } of orders">\${name}</div>`,
+          class App {
+            public orders = [null];
+          },
+        ),
+        /AUR0112/,
+      );
+    });
+  });
 });

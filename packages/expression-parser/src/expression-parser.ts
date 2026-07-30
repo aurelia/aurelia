@@ -1364,7 +1364,36 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
 }
 
 const allowedForExprKinds: ExpressionKind[] = [ekArrayBindingPattern, ekObjectBindingPattern, ekBindingIdentifier, ekArrayDestructuring, ekObjectDestructuring];
+// Repeat scope lookup gives override-context and Object.prototype properties
+// precedence over binding-context locals. Keep those names out of newly
+// projected object-pattern locals instead of changing scope lookup globally.
+const reservedObjectBindingPatternLocalNames = new Set([
+  ...Object.getOwnPropertyNames(Object.prototype),
+  '$index',
+  '$length',
+  '$odd',
+  '$even',
+  '$first',
+  '$middle',
+  '$last',
+  '$previous',
+  '__items__',
+]);
 function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement {
+  if (result.$kind === ekObjectBindingPattern) {
+    const localNames = new Set<string>();
+    for (const value of result.values) {
+      if (
+        value.$kind !== ekAccessScope
+        || value.ancestor !== 0
+        || localNames.has(value.name)
+        || reservedObjectBindingPatternLocalNames.has(value.name)
+      ) {
+        throw unsupportedObjectBindingPattern();
+      }
+      localNames.add(value.name);
+    }
+  }
   if (!allowedForExprKinds.includes(result.$kind)) {
     throw invalidLHSBindingIdentifierInForOf(result.$kind);
   }
@@ -1750,6 +1779,8 @@ const defaultParamsInArrowFn = () => createMappedError(ErrorNames.parse_no_arrow
 const destructuringParamsInArrowFn = () => createMappedError(ErrorNames.parse_no_arrow_param_destructuring, $input);
 
 const restParamsMustBeLastParam = () => createMappedError(ErrorNames.parse_rest_must_be_last, $input);
+
+const unsupportedObjectBindingPattern = () => createMappedError(ErrorNames.parse_unsupported_object_binding_pattern, $input);
 
 const functionBodyInArrowFn = () => createMappedError(ErrorNames.parse_no_arrow_fn_body, $input);
 

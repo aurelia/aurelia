@@ -1,10 +1,16 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { DefinePlugin } = require('webpack');
 
-const tsPackageJsonPath = path.resolve(__dirname, 'node_modules/typescript/package.json');
-const tsVersion = require(tsPackageJsonPath).version;
+// Passing the fixture-local compiler prevents workspace hoisting from silently selecting the repository's version.
+const tsCompilerPath = require.resolve('typescript', { paths: [__dirname] });
+const tsVersion = require(tsCompilerPath).version;
 
-console.log(`[15-ts6-webpack-smoke] using TypeScript ${tsVersion} from ${tsPackageJsonPath}`);
+if (!tsVersion.startsWith('6.')) {
+  throw new Error(`Expected the TypeScript 6 compiler, but resolved ${tsVersion} from ${tsCompilerPath}`);
+}
+
+console.log(`[15-ts6-webpack-smoke] ts-loader compiler: TypeScript ${tsVersion} from ${tsCompilerPath}`);
 
 /**
  * @return {import('webpack').Configuration}
@@ -19,9 +25,6 @@ module.exports = function (env, { mode }) {
       extensions: ['.ts', '.js'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module', 'main'],
-      alias: {
-        'typescript/package.json$': tsPackageJsonPath,
-      },
     },
     devServer: {
       hot: false,
@@ -38,6 +41,7 @@ module.exports = function (env, { mode }) {
             {
               loader: 'ts-loader',
               options: {
+                compiler: tsCompilerPath,
                 transpileOnly: false,
               },
             },
@@ -48,6 +52,11 @@ module.exports = function (env, { mode }) {
         { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ },
       ],
     },
-    plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })],
+    plugins: [
+      new HtmlWebpackPlugin({ template: 'index.ejs' }),
+      new DefinePlugin({
+        __TS_VERSION__: JSON.stringify(tsVersion),
+      }),
+    ],
   };
 };

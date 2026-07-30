@@ -1,0 +1,13 @@
+{
+  "name": "@__e2e__verdaccio/typescript-7-conventions",
+  "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test": "node test.cjs && node test.mjs"
+  },
+  "dependencies": {
+    "@aurelia/plugin-conventions": "dev",
+    "typescript": "~7.0.2"
+  }
+}

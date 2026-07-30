@@ -1,10 +1,22 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { DefinePlugin } = require('webpack');
 
-const tsPackageJsonPath = path.resolve(__dirname, 'node_modules/typescript/package.json');
-const tsVersion = require(tsPackageJsonPath).version;
+// TypeScript 7 has no compiler API, so webpack uses its official TypeScript 6 compatibility package.
+const tsCompilerPath = require.resolve('typescript', { paths: [__dirname] });
+const tsApiVersion = require(tsCompilerPath).version;
+const tsCliPackageJsonPath = require.resolve('@typescript/native/package.json', { paths: [__dirname] });
+const tsCliVersion = require(tsCliPackageJsonPath).version;
 
-console.log(`[16-ts7-webpack-smoke] using TypeScript ${tsVersion} from ${tsPackageJsonPath}`);
+if (!tsApiVersion.startsWith('6.')) {
+  throw new Error(`Expected the TypeScript 6 compatibility API, but resolved ${tsApiVersion} from ${tsCompilerPath}`);
+}
+if (!tsCliVersion.startsWith('7.0.')) {
+  throw new Error(`Expected the TypeScript 7.0 CLI, but resolved ${tsCliVersion} from ${tsCliPackageJsonPath}`);
+}
+
+console.log(`[16-ts7-webpack-smoke] ts-loader compiler API: TypeScript ${tsApiVersion} from ${tsCompilerPath}`);
+console.log(`[16-ts7-webpack-smoke] application CLI: TypeScript ${tsCliVersion} from ${tsCliPackageJsonPath}`);
 
 /**
  * @return {import('webpack').Configuration}
@@ -19,9 +31,6 @@ module.exports = function (env, { mode }) {
       extensions: ['.ts', '.js'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module', 'main'],
-      alias: {
-        'typescript/package.json$': tsPackageJsonPath,
-      },
     },
     devServer: {
       hot: false,
@@ -38,6 +47,7 @@ module.exports = function (env, { mode }) {
             {
               loader: 'ts-loader',
               options: {
+                compiler: tsCompilerPath,
                 transpileOnly: false,
               },
             },
@@ -48,6 +58,12 @@ module.exports = function (env, { mode }) {
         { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ },
       ],
     },
-    plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })],
+    plugins: [
+      new HtmlWebpackPlugin({ template: 'index.ejs' }),
+      new DefinePlugin({
+        __TS_API_VERSION__: JSON.stringify(tsApiVersion),
+        __TS_CLI_VERSION__: JSON.stringify(tsCliVersion),
+      }),
+    ],
   };
 };

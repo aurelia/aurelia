@@ -11,8 +11,8 @@ import type {
   TransformerFactory,
   MethodDeclaration,
   GetAccessorDeclaration,
-} from 'typescript';
-import pkg from 'typescript';
+} from '@typescript/typescript6';
+import pkg from '@typescript/typescript6';
 import { modifyCode } from './modify-code';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';

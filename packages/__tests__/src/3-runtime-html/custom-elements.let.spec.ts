@@ -20,6 +20,12 @@ describe('3-runtime-html/custom-elements.let.spec.ts', function () {
 
       assertText('1');
     });
+
+    it(`keeps underscores in the target with binding command [${command}]`, function () {
+      const { assertText } = createFixture(`<let my_prop.${command}="1"></let>\${my_prop}`);
+
+      assertText('1');
+    });
   }
 
   it('removes <let> element', function () {
@@ -29,6 +35,12 @@ describe('3-runtime-html/custom-elements.let.spec.ts', function () {
 
   it('camel-cases the target with interpolation', function () {
     const { assertText } = createFixture(`<let my-prop="\${1}"></let>\${myProp}`);
+
+    assertText('1');
+  });
+
+  it('keeps underscores in the target with interpolation', function () {
+    const { assertText } = createFixture(`<let my_prop="\${1}"></let>\${my_prop}`);
 
     assertText('1');
   });
@@ -52,6 +64,25 @@ describe('3-runtime-html/custom-elements.let.spec.ts', function () {
     assertText('1');
   });
 
+  it('works with underscore targets, and warns when encountering literal', function () {
+    const { ctx, assertText, start } = createFixture(
+      `<let my_prop="1"></let>\${my_prop}`,
+      class { my_prop = 0; },
+      [],
+      false
+    );
+
+    const logger = ctx.container.get(ILogger);
+    const callArgs = [];
+    logger.warn = (fn => (...args: unknown[]) => {
+      callArgs.push(args);
+      return fn.apply(logger, args);
+    })(logger.warn);
+
+    void start();
+    assertText('1');
+  });
+
   // //<let [to-binding-context] />
   it('assigns to vm with <let to-binding-context>', function () {
     const { component } = createFixture(
@@ -60,5 +91,14 @@ describe('3-runtime-html/custom-elements.let.spec.ts', function () {
       { firstName: 'a', lastName: 'b', fullName: '' }
     );
     assert.strictEqual(component.fullName, 'a b');
+  });
+
+  it('assigns underscore targets to vm with <let to-binding-context>', function () {
+    const { component } = createFixture(
+      `<let to-binding-context full_name.bind="firstName + \` \` + lastName"></let>
+      <div>\${full_name}</div></template>`,
+      { firstName: 'a', lastName: 'b', full_name: '' }
+    );
+    assert.strictEqual(component.full_name, 'a b');
   });
 });

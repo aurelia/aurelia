@@ -500,6 +500,20 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             ]);
           });
 
+          it('keeps underscores in let target names', function () {
+            const { instructions } = compileWith(`<let my_prop.bind="b" my_other="\${d}"></let>`);
+            verifyInstructions((instructions[0][0] as HydrateLetElementInstruction).instructions, [
+              {
+                toVerify: ['type', 'to', 'srcOrExp'],
+                type: itLetBinding, to: 'my_prop', from: 'b'
+              },
+              {
+                toVerify: ['type', 'to'],
+                type: itLetBinding, to: 'my_other'
+              }
+            ]);
+          });
+
           describe('[to-binding-context]', function () {
             it('understands [to-binding-context]', function () {
               const { instructions } = compileWith(`<template><let to-binding-context></let></template>`);

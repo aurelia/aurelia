@@ -9,5 +9,3 @@ declare module '*.html' {
   export const bindables: (string | PartialBindableDefinition & { name: string })[];
   export const shadowOptions: { mode: 'open' | 'closed' } | undefined;
 }
-
-declare const __TS_VERSION__: string;

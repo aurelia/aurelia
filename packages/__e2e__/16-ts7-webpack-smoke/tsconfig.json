@@ -6,8 +6,10 @@
     "strict": true,
     "target": "es2021",
     "module": "esnext",
+    "moduleResolution": "bundler",
     "outDir": "dist",
     "lib": ["esnext", "dom"],
+    "resolveJsonModule": true,
     "types": ["node"]
   },
   "include": ["src", "../playwright-coverage.ts"]

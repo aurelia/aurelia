@@ -1,8 +1,10 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { DefinePlugin } = require('webpack');
 
-const tsVersion = require('typescript/package.json').version;
+const tsPackageJsonPath = path.resolve(__dirname, 'node_modules/typescript/package.json');
+const tsVersion = require(tsPackageJsonPath).version;
+
+console.log(`[16-ts7-webpack-smoke] using TypeScript ${tsVersion} from ${tsPackageJsonPath}`);
 
 /**
  * @return {import('webpack').Configuration}
@@ -17,6 +19,9 @@ module.exports = function (env, { mode }) {
       extensions: ['.ts', '.js'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module', 'main'],
+      alias: {
+        'typescript/package.json$': tsPackageJsonPath,
+      },
     },
     devServer: {
       hot: false,
@@ -43,11 +48,6 @@ module.exports = function (env, { mode }) {
         { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ },
       ],
     },
-    plugins: [
-      new HtmlWebpackPlugin({ template: 'index.ejs' }),
-      new DefinePlugin({
-        __TS_VERSION__: JSON.stringify(tsVersion),
-      }),
-    ],
+    plugins: [new HtmlWebpackPlugin({ template: 'index.ejs' })],
   };
 };

@@ -65,4 +65,37 @@ export default defineConfig({
   plugins: [aurelia({ useDev: true })], // always use dev bundles
 });
 ```
+
+### CSS injection
+
+When Vite emits plugin CSS as separate build assets, enable `cssInject` to inline those CSS assets into entry chunks. The emitted CSS assets are removed from the bundle.
+
+```ts
+import { defineConfig } from 'vite';
+import aurelia from '@aurelia/vite-plugin';
+
+export default defineConfig({
+  ...,
+  plugins: [aurelia({ cssInject: true })],
+});
 ```
+
+By default, the generated style element is appended to `document.head`. To append it to another target, pass an `injectSelector`.
+
+```ts
+export default defineConfig({
+  ...,
+  plugins: [aurelia({ cssInject: { injectSelector: 'my-app' } })],
+});
+```
+
+For an open shadow root, append `#shadowRoot` to the host selector.
+
+```ts
+export default defineConfig({
+  ...,
+  plugins: [aurelia({ cssInject: { injectSelector: 'my-app#shadowRoot' } })],
+});
+```
+
+The shadow root must be open and available when the entry chunk runs. Closed shadow roots and automatic per-component shadow-root discovery are not supported by this option.

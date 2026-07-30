@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import au from '@aurelia/vite-plugin';
+import au, { cssInjectPlugin } from '@aurelia/vite-plugin';
 
 describe('vite-plugin', function () {
   function getHook<T extends Function>(hook: T | { handler: T } | undefined): T | undefined {
@@ -67,6 +67,37 @@ describe('vite-plugin', function () {
     };
   }
 
+  function runCssInject(plugin = cssInjectPlugin()) {
+    const bundle = {
+      'assets/app.css': {
+        type: 'asset',
+        source: '.app { color: red; }',
+      },
+      'assets/ignored.txt': {
+        type: 'asset',
+        source: 'ignored',
+      },
+      'main.js': {
+        type: 'chunk',
+        isEntry: true,
+        code: 'console.log("main");',
+      },
+      'lazy.js': {
+        type: 'chunk',
+        isEntry: false,
+        code: 'console.log("lazy");',
+      },
+    } as Record<string, any>;
+
+    getHook(plugin.generateBundle as any)?.call({}, {}, bundle, false);
+
+    return {
+      bundle,
+      entryCode: bundle['main.js'].code as string,
+      lazyCode: bundle['lazy.js'].code as string,
+    };
+  }
+
   it('does not mutate global resolve conditions when useDev is enabled', function () {
     const [devPlugin] = au({ useDev: true });
     const config = createConfig('development');
@@ -94,6 +125,38 @@ describe('vite-plugin', function () {
 
     assert.equal(thirdParty, null);
     assert.equal(subpath, null);
+  });
+
+  it('adds the css injection plugin when configured', function () {
+    const plugins = au({ cssInject: true });
+
+    assert.equal(plugins.length, 3);
+    assert.equal(plugins[2].name, 'aurelia:css-inject');
+  });
+
+  it('injects css assets into entry chunks and removes the emitted css assets', function () {
+    const { bundle, entryCode, lazyCode } = runCssInject();
+
+    assert.equal(bundle['assets/app.css'], void 0);
+    assert.notEqual(bundle['assets/ignored.txt'], void 0);
+    assert.match(entryCode, /style\.textContent = "\.app \{ color: red; \}";/);
+    assert.match(entryCode, /const target = document\.head;/);
+    assert.match(entryCode, /target\.appendChild\(style\);/);
+    assert.equal(lazyCode, 'console.log("lazy");');
+  });
+
+  it('can inject css into a configured document selector', function () {
+    const { entryCode } = runCssInject(cssInjectPlugin({ injectSelector: 'my-app' }));
+
+    assert.match(entryCode, /const target = document\.querySelector\("my-app"\);/);
+    assert.doesNotMatch(entryCode, /document\.head/);
+  });
+
+  it('can inject css into an open shadow root through a configured selector', function () {
+    const { entryCode } = runCssInject(cssInjectPlugin({ injectSelector: 'my-app#shadowRoot' }));
+
+    assert.match(entryCode, /const host = document\.querySelector\("my-app"\);/);
+    assert.match(entryCode, /const target = host == null \? null : host\.shadowRoot;/);
   });
 
   it('rewrites conventional html imports for literal production mode', async function () {

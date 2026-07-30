@@ -5,6 +5,6 @@ test.describe.serial('examples/ts6-webpack-smoke/app.spec.ts', function () {
     test.setTimeout(15000);
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('text=Hello TS smoke')).toBeVisible();
-    await expect(page.locator('text=/^6\\./')).toBeVisible();
+    await expect(page.getByTestId('ts-version')).toHaveText(/^6\./);
   });
 });

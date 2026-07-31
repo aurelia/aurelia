@@ -15,8 +15,8 @@ export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
   /**
    * Transform TC39 standard decorators before Vite compiles application modules.
    *
-   * Defaults to true on Vite 8 and false on Vite 7. Set this to false only
-   * when a custom compiler or AOT pipeline guarantees decorator-free output.
+   * Defaults to true on Vite 8 and false on Vite 7. Set this to false when a
+   * custom compiler or AOT pipeline guarantees decorator-free output.
    */
   transformStandardDecorators?: boolean;
   /**

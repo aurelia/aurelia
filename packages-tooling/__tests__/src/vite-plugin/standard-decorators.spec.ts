@@ -107,7 +107,7 @@ describe('vite-plugin standard decorators', function () {
       {},
       { command: 'build', mode: 'production' },
     ) as import('vite').UserConfig;
-    const createWorkerPlugins = config.worker?.plugins;
+    const createWorkerPlugins = config?.worker?.plugins;
     assert.ok(createWorkerPlugins);
 
     const first = createWorkerPlugins()[0] as import('vite').Plugin;

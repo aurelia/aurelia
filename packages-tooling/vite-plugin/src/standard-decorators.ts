@@ -194,7 +194,7 @@ export function createStandardDecoratorPlugin(
             target: 'esnext' as SwcTarget,
             // Rolldown parses .cjs/.cts as CommonJS and rejects the ESM import
             // used by external SWC helpers. Keep helpers inline for those
-            // formats; every ESM format can share the pinned helper.
+            // formats; ESM formats can otherwise share the pinned helper.
             externalHelpers: useExternalHelpers && !/\.(?:cjs|cts)$/i.test(moduleId),
             transform: transformConfig,
           },

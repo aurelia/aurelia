@@ -446,6 +446,60 @@ export class FooBarBindingCommand {}
     assert.equal(result.code, expected);
   });
 
+  it('pairs the template when a class string contains $au text', function () {
+    const code = `
+export class FooBar {
+  query() {
+    return 'query ($authId: String) { user(id: $authId) { id } }';
+  }
+}
+`;
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
+
+@customElement(__au2ViewDef)
+export class FooBar {
+  query() {
+    return 'query ($authId: String) { user(id: $authId) { id } }';
+  }
+}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('pairs the template when $au is an instance property', function () {
+    const code = `
+export class FooBar {
+  $au = 'instance state';
+}
+`;
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
+
+@customElement(__au2ViewDef)
+export class FooBar {
+  $au = 'instance state';
+}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('merges $au - custom element', function () {
     const code = `
 export class FooBar {

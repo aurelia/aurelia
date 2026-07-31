@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig-build.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "target": "es2021",
+    "module": "esnext",
+    "outDir": "dist",
+    "lib": ["esnext", "dom"],
+    "jsx": "react",
+    "jsxFactory": "createElement",
+    "types": ["node", "vite/client"],
+    "useDefineForClassFields": false
+  },
+  "include": ["src", "playwright", "../playwright-coverage.ts"]
+}

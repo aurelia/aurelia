@@ -1,0 +1,28 @@
+{
+  "name": "@__e2e__/14-vite8-decorators",
+  "license": "MIT",
+  "private": true,
+  "version": "2.0.0-rc.1",
+  "port": 9014,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "build:ssr": "vite build --ssr src/decorated-ssr.ts --outDir dist/ssr --emptyOutDir",
+    "test:e2e": "cross-env APP_PORT=9014 concurrently \"npm run dev\" \"playwright test playwright/development.spec.ts\" --kill-others --success first",
+    "test:e2e:prod:vite": "npm run build && cross-env APP_PORT=9014 concurrently \"vite preview --host 127.0.0.1 --port 9014 --strictPort\" \"playwright test playwright/production.spec.ts\" --kill-others --success first",
+    "test:ssr": "npm run build:ssr && node scripts/verify-ssr.mjs",
+    "test": "npm run test:e2e && npm run test:e2e:prod:vite && npm run test:ssr"
+  },
+  "dependencies": {
+    "aurelia": "2.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@aurelia/vite-plugin": "2.0.0-rc.1",
+    "@playwright/test": "1.39.0",
+    "@types/node": "^20.16.10",
+    "vite": "^8.0.0"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}

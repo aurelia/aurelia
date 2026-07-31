@@ -415,9 +415,28 @@ export class OrderHistory {
   Order #${id}: ${items.length} items
 </div>
 
+<!-- Rename a property while destructuring -->
+<div repeat.for="{ id: orderId, items } of orders">
+  Order #${orderId}: ${items.length} items
+</div>
+
 <!-- Destructure arrays -->
 <div repeat.for="[index, value] of arrayOfPairs">
   ${index}: ${value}
+</div>
+```
+
+Object repeat declarations support shallow property names and aliases. Each
+local is a reactive, one-way projection: changing the selected property on an
+order updates the local, but assigning the local does not write back to the
+order.
+
+Nested patterns, default values, rest properties, and expression targets are
+not supported. For more complex access, repeat the object itself:
+
+```html
+<div repeat.for="order of orders">
+  Order #${order.id}: ${order.customer.name}
 </div>
 ```
 

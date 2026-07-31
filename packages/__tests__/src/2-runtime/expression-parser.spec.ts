@@ -36,6 +36,7 @@ import {
   createDestructuringAssignmentExpression,
   createDestructuringAssignmentSingleExpression,
   createBindingIdentifier,
+  createObjectBindingPattern,
   createArrowFunction,
   createAccessBoundaryExpression,
   createNewExpression,
@@ -1487,6 +1488,25 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ];
 
     for (const [input, expected] of [
+      [
+        '{id, items} of orders',
+        createForOfStatement(
+          createObjectBindingPattern(
+            ['id', 'items'],
+            [createAccessScopeExpression('id'), createAccessScopeExpression('items')],
+          ),
+          createAccessScopeExpression('orders'),
+          -1,
+        ),
+      ],
+      [
+        '{id: orderId} of orders',
+        createForOfStatement(
+          createObjectBindingPattern(['id'], [createAccessScopeExpression('orderId')]),
+          createAccessScopeExpression('orders'),
+          -1,
+        ),
+      ],
       ['a of a;key:id',   createForOfStatement(bi_a, $a, 6)],
       ['a of a;key: id',  createForOfStatement(bi_a, $a, 6)],
       ['a of a; key:id',  createForOfStatement(bi_a, $a, 6)],
@@ -1504,6 +1524,26 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ] as [string, any][]) {
       it(input, function () {
         assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
+      });
+    }
+
+    for (const input of [
+      '{id, id} of items',
+      '{id: value, name: value} of items',
+      '{id: $index} of items',
+      '{id: $item} of items',
+      '{id: constructor} of items',
+      '{id: __proto__} of items',
+      '{id: target.member} of items',
+      '{id: target[0]} of items',
+      '{id: compute()} of items',
+      '{id: target = fallback} of items',
+      '{user: {name}} of items',
+      '{pair: [key, value]} of items',
+      '{pair: [key, value]}of items',
+    ]) {
+      it(`rejects unsupported object binding pattern "${input}"`, function () {
+        verifyResultOrError(input, null, 'AUR0177', 'IsIterator');
       });
     }
 

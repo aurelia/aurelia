@@ -1196,6 +1196,21 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
+  /**
+   * Adds a binding that must run before bindings already rendered for this
+   * controller.
+   *
+   * @internal
+   */
+  public prependBinding(binding: IBinding): void {
+    const bindings = this.bindings;
+    if (bindings === null) {
+      this.addBinding(binding);
+    } else {
+      bindings.unshift(binding);
+    }
+  }
+
   public addChild(controller: Controller): void {
     if (this.children === null) {
       this.children = [controller];
@@ -1580,6 +1595,7 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly bindings: readonly IBinding[] | null;
 
   addBinding(binding: IBinding): void;
+  /** @internal */ prependBinding(binding: IBinding): void;
 
   /** @internal */head: IHydratedController | null;
   /** @internal */tail: IHydratedController | null;

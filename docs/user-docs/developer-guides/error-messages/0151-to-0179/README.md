@@ -34,5 +34,6 @@ These errors occur during expression parsing in templates and binding expression
 * [AUR0174](aur0174.md) - Arrow function default parameters not supported
 * [AUR0175](aur0175.md) - Arrow function destructuring not supported
 * [AUR0176](aur0176.md) - Rest parameter must be last
+* [AUR0177](aur0177.md) - Unsupported object binding pattern
 * [AUR0178](aur0178.md) - Arrow function body not supported
 * [AUR0179](aur0179.md) - Unexpected double dot

@@ -267,7 +267,15 @@ Combine with `+`: `keydown.trigger:ctrl+shift+enter="handler()"`
 <div repeat.for="{ id, name, email } of users">
   ${name} (${email})
 </div>
+
+<!-- Shallow aliases are supported -->
+<div repeat.for="{ id: userId, name } of users">
+  ${userId}: ${name}
+</div>
 ```
+
+Object destructuring creates reactive one-way locals. Use `user of users` for
+nested patterns, defaults, rest properties, or other complex access.
 
 ## Value Converters
 

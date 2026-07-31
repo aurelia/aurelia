@@ -15,6 +15,7 @@ import {
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
+  type DestructuringAssignmentExpression,
   ForOfStatement,
   type IsBindingBehavior,
   ValueConverterExpression,
@@ -45,8 +46,14 @@ import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';
 import { createInterface, singletonRegistration } from '../../utilities-di';
+import { RepeatObjectBindingPattern } from './repeat-object-binding-pattern';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
+
+type RepeatDeclaration =
+  | { readonly kind: 'local'; readonly local: string }
+  | { readonly kind: 'destructuring'; readonly value: DestructuringAssignmentExpression }
+  | { readonly kind: 'object-binding'; readonly value: RepeatObjectBindingPattern };
 
 function dispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -87,7 +94,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _reevaluating: boolean = false;
   /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
-  /** @internal */ private _hasDestructuredLocal: boolean = false;
+  /** @internal */ private _declaration!: RepeatDeclaration;
+  /** @internal */ private _objectBindingPattern?: RepeatObjectBindingPattern = void 0;
   /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
   /** @internal */
@@ -165,8 +173,27 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._refreshCollectionObserver();
     const dec = forOf.declaration;
-    if(!(this._hasDestructuredLocal = dec.$kind === 'ArrayDestructuring' || dec.$kind === 'ObjectDestructuring')) {
-      this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
+    switch (dec.$kind) {
+      case 'ArrayDestructuring':
+      case 'ObjectDestructuring':
+        // These pre-lowered assignment ASTs retain their existing one-shot
+        // astAssign path. Current object repeat syntax produces the binding
+        // pattern handled by the live projection below.
+        this._declaration = { kind: 'destructuring', value: dec };
+        break;
+      case 'ObjectBindingPattern':
+        this._declaration = {
+          kind: 'object-binding',
+          value: this._objectBindingPattern ??= new RepeatObjectBindingPattern(
+            dec,
+            binding.oL,
+          ),
+        };
+        break;
+      default: {
+        const local = this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
+        this._declaration = { kind: 'local', local };
+      }
     }
 
     // Evaluate contextual.bind expression if present (one-time evaluation at bind)
@@ -249,10 +276,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const newScopes = this._scopes;
 
     if (hasKey || indexMap === void 0) {
-      const local = this.local;
-      const dec = this.forOf.declaration;
       const binding = this._forOfBinding;
-      const hasDestructuredLocal = this._hasDestructuredLocal;
+      const declaration = this._declaration;
       const newLen = newScopes.length;
       indexMap = createIndexMap(newLen);
 
@@ -265,7 +290,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         // Only remove old views
         for (let i = 0; i < oldLen; ++i) {
           indexMap.deletedIndices.push(i);
-          indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+          indexMap.deletedItems.push(getItem(declaration, oldScopes[i], binding));
         }
       } else {
         // O(n) matching via scope identity.
@@ -291,7 +316,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         for (let i = 0; i < oldLen; ++i) {
           if (!usedOldIndices.has(i)) {
             indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+            indexMap.deletedItems.push(getItem(declaration, oldScopes[i], binding));
           }
         }
       }
@@ -355,9 +380,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const newScopeMap = new Map<unknown, Scope | Scope[]>();
     const parentScope = this.$controller.scope;
     const binding = this._forOfBinding;
-    const forOf = this.forOf;
-    const local = this.local;
-    const hasDestructuredLocal = this._hasDestructuredLocal;
+    const declaration = this._declaration;
 
     if (indexMap === void 0) {
       const key = this.key;
@@ -375,17 +398,20 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             // When performance matters, it is advised to use normal string-based keys instead of expressions:
             // `repeat.for="i of items; key.bind: i.key" - inefficient
             // `repeat.for="i of items; key: key" - efficient
-            const scope = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
-            setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, items[i]);
+            const scope = createScope(items[i], declaration, parentScope, binding);
+            setItem(declaration, scope, binding, items[i]);
+            if (declaration.kind === 'object-binding') {
+              declaration.value.projectForKey(scope);
+            }
             keys[i] = astEvaluate(key, scope, binding, null);
           }
         }
         for (let i = 0; i < len; ++i) {
-          scopes[i] = getScope(oldScopeMap, newScopeMap, keys[i], items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+          scopes[i] = getScope(oldScopeMap, newScopeMap, keys[i], items[i], declaration, parentScope, binding);
         }
       } else {
         for (let i = 0; i < len; ++i) {
-          scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+          scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], items[i], declaration, parentScope, binding);
         }
       }
     } else {
@@ -396,9 +422,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         if (src >= 0 && src < oldLen) {
           scopes[i] = oldScopes[src];
         } else {
-          scopes[i] = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+          scopes[i] = createScope(items[i], declaration, parentScope, binding);
         }
-        setItem(hasDestructuredLocal, forOf.declaration, scopes[i], binding, local, items[i]);
+        setItem(declaration, scopes[i], binding, items[i]);
       }
     }
 
@@ -458,6 +484,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (let i = 0; i < newLen; ++i) {
       const view = adoptedViews[i];
       const scope = _scopes[i];
+      if (this._declaration.kind === 'object-binding') {
+        this._declaration.value.ensureViewBinding(view);
+      }
 
       if (this.contextual) {
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
@@ -490,6 +519,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let promises: Promise<void>[] | undefined = void 0;
     for (let i = 0; i < newLen; ++i) {
       const view = views[i] = _factory.create($controller).setLocation(_location);
+      if (this._declaration.kind === 'object-binding') {
+        this._declaration.value.ensureViewBinding(view);
+      }
       view.nodes.unlink();
       const scope = _scopes[i];
 
@@ -591,6 +623,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; newLen > i; ++i) {
       if (indexMap[i] === -2) {
         view = _factory.create($controller);
+        if (this._declaration.kind === 'object-binding') {
+          this._declaration.value.ensureViewBinding(view);
+        }
         views.splice(i, 0, view);
       }
     }
@@ -735,6 +770,8 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Int32Array {
   return result;
 }
 
+// Keep expression-parser's reservedObjectBindingPatternLocalNames in sync when
+// adding contextual properties: these names take precedence over row locals.
 interface IRepeatOverrideContext extends IOverrideContext {
   $index: number;
   $odd: boolean;
@@ -931,28 +968,37 @@ const _unknownHandler: IRepeatableHandler = {
 type Repeatable = Collection | ArrayLike<unknown> | number | null | undefined;
 
 const setItem = (
-  hasDestructuredLocal: boolean,
-  dec: ForOfStatement['declaration'],
+  declaration: RepeatDeclaration,
   scope: Scope,
   binding: PropertyBinding,
-  local: string,
   item: unknown,
 ) => {
-  if (hasDestructuredLocal) {
-    astAssign(dec, scope, binding, null, item);
-  } else {
-    scope.bindingContext[local] = item;
+  switch (declaration.kind) {
+    case 'local':
+      scope.bindingContext[declaration.local] = item;
+      break;
+    case 'destructuring':
+      astAssign(declaration.value, scope, binding, null, item);
+      break;
+    case 'object-binding':
+      declaration.value.setSource(scope, item);
+      break;
   }
 };
 
 const getItem = (
-  hasDestructuredLocal: boolean,
-  dec: ForOfStatement['declaration'],
+  declaration: RepeatDeclaration,
   scope: Scope,
   binding: PropertyBinding,
-  local: string,
 ): unknown => {
-  return hasDestructuredLocal ? astEvaluate(dec, scope, binding, null) : scope.bindingContext[local];
+  switch (declaration.kind) {
+    case 'local':
+      return scope.bindingContext[declaration.local];
+    case 'destructuring':
+      return astEvaluate(declaration.value, scope, binding, null);
+    case 'object-binding':
+      return declaration.value.getSource(scope);
+  }
 };
 
 const getScope = (
@@ -960,15 +1006,13 @@ const getScope = (
   newScopeMap: Map<unknown, Scope | Scope[]>,
   key: unknown,
   item: unknown,
-  forOf: ForOfStatement,
+  declaration: RepeatDeclaration,
   parentScope: Scope,
   binding: PropertyBinding,
-  local: string,
-  hasDestructuredLocal: boolean,
 ) => {
   let scope = oldScopeMap.get(key);
   if (scope === void 0) {
-    scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
+    scope = createScope(item, declaration, parentScope, binding);
   } else if (scope instanceof Scope) {
     oldScopeMap.delete(key);
   } else if (scope.length === 1) {
@@ -988,24 +1032,31 @@ const getScope = (
   } else {
     newScopeMap.set(key, scope);
   }
-  setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item);
+  setItem(declaration, scope, binding, item);
   return scope;
 };
 
 const createScope = (
   item: unknown,
-  forOf: ForOfStatement,
+  declaration: RepeatDeclaration,
   parentScope: Scope,
   binding: PropertyBinding,
-  local: string,
-  hasDestructuredLocal: boolean,
 ) => {
-  if (hasDestructuredLocal) {
-    const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
-    astAssign(forOf.declaration, scope, binding, null, item);
-    return scope;
+  if (declaration.kind === 'local') {
+    return Scope.fromParent(
+      parentScope,
+      new BindingContext(declaration.local, item),
+      new RepeatOverrideContext(),
+    );
   }
-  return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext());
+
+  const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
+  if (declaration.kind === 'destructuring') {
+    astAssign(declaration.value, scope, binding, null, item);
+  } else {
+    declaration.value.initialize(scope, item);
+  }
+  return scope;
 };
 
 const compareNumber = (a: number, b: number): number => a - b;

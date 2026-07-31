@@ -55,6 +55,7 @@ export const enum ErrorNames {
   parse_no_arrow_param_default_value = 174,
   parse_no_arrow_param_destructuring = 175,
   parse_rest_must_be_last = 176,
+  parse_unsupported_object_binding_pattern = 177,
   parse_no_arrow_fn_body = 178,
   parse_unexpected_double_dot = 179,
 }
@@ -100,6 +101,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.parse_no_arrow_param_default_value]: `Expression error: arrow function with default parameters is not supported: "{{0}}"`,
   [ErrorNames.parse_no_arrow_param_destructuring]: `Expression error: arrow function with destructuring parameters is not supported: "{{0}}"`,
   [ErrorNames.parse_rest_must_be_last]: `Expression error: rest parameter must be last formal parameter in arrow function: "{{0}}"`,
+  [ErrorNames.parse_unsupported_object_binding_pattern]: `Expression error: object binding patterns only support identifiers and aliases with unique, non-reserved local names: "{{0}}"`,
   [ErrorNames.parse_no_arrow_fn_body]: `Expression error: arrow function with function body is not supported: "{{0}}"`,
   [ErrorNames.parse_unexpected_double_dot]: `Expression error: unexpected token '.' at position "{{1}}" in "{{0}}"`,
 

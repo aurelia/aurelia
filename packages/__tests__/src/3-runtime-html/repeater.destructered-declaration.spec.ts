@@ -4,14 +4,19 @@ import {
 } from '@aurelia/kernel';
 import {
   batch,
+  BindingContext,
   type ISubscriberCollection,
+  Scope,
   tasksSettled,
 } from '@aurelia/runtime';
 import {
   Aurelia,
   CustomElement,
+  type IBinding,
   IPlatform,
   ISSRContext,
+  Repeat,
+  type ISyntheticView,
   type ISSRScope,
 } from '@aurelia/runtime-html';
 import {
@@ -317,6 +322,13 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
       replacementOrders[1].name = 'Ristretto';
       await tasksSettled();
       assertText('2:Green tea1:Ristretto');
+
+      const removedNameObserver = observerLocator.getObserver(replacementOrders[0], 'name') as unknown as ISubscriberCollection;
+      component.orders.shift();
+      await tasksSettled();
+
+      assertText('1:Ristretto');
+      assert.strictEqual(removedNameObserver.subs.count, 0, 'a deleted keyed row releases its replacement source');
     });
 
     it('keeps destructured locals one-way when a body binding assigns them', async function () {
@@ -384,6 +396,74 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
 
       const nameObserver = observerLocator.getObserver(order, 'name') as unknown as ISubscriberCollection;
       assert.strictEqual(nameObserver.subs.count, 1, 'the declaration binding is installed and connected');
+    });
+
+    it('handles duplicate installation, rebinding, and late lifecycle calls safely', function () {
+      const order = { name: 'Coffee' };
+      const { au, observerLocator, platform } = createFixture(
+        `<div repeat.for="{ name } of orders">\${name}</div>`,
+        class App {
+          public orders = [order];
+        },
+      );
+
+      // Normal controller sequencing avoids duplicate calls. Exercise the row
+      // binding directly so its defensive IBinding contract remains explicit.
+      let repeat: Repeat | undefined;
+      au.root.controller.accept(controller => {
+        if (controller.viewModel instanceof Repeat) {
+          repeat = controller.viewModel;
+          return true;
+        }
+      });
+      assert.notStrictEqual(repeat, void 0, 'the repeat controller is present');
+
+      const view = repeat!.views[0];
+      const scope = view.scope!;
+      const binding = view.bindings![0] as IBinding & {
+        handleChange(): void;
+        handleCollectionChange(): void;
+      };
+      const pattern = (repeat as unknown as {
+        _objectBindingPattern: {
+          ensureViewBinding(view: ISyntheticView): void;
+          initialize(scope: Scope, source: unknown): void;
+        };
+      })._objectBindingPattern;
+      const orderObserver = observerLocator.getObserver(order, 'name') as unknown as ISubscriberCollection;
+
+      const bindingCount = view.bindings!.length;
+      pattern.ensureViewBinding(view);
+      assert.strictEqual(view.bindings!.length, bindingCount, 'the same view receives one declaration binding');
+
+      binding.bind(scope);
+      assert.strictEqual(orderObserver.subs.count, 1, 'rebinding the same scope does not reconnect');
+      assert.strictEqual(binding.get(IPlatform), platform, 'the binding resolves services through its row controller');
+
+      const replacement = { name: 'Tea' };
+      const replacementScope = Scope.create(new BindingContext());
+      const replacementObserver = observerLocator.getObserver(replacement, 'name') as unknown as ISubscriberCollection;
+      pattern.initialize(replacementScope, replacement);
+      binding.bind(replacementScope);
+
+      assert.strictEqual(orderObserver.subs.count, 0, 'rebinding disconnects the previous scope');
+      assert.strictEqual(replacementObserver.subs.count, 1, 'rebinding connects the replacement scope');
+      assert.strictEqual(replacementScope.bindingContext.name, 'Tea');
+
+      replacementScope.bindingContext.name = 'stale';
+      binding.handleCollectionChange();
+      assert.strictEqual(replacementScope.bindingContext.name, 'Tea', 'a collection notification refreshes the local');
+
+      binding.unbind();
+      replacement.name = 'Green tea';
+      binding.handleChange();
+      binding.unbind();
+
+      assert.strictEqual(replacementObserver.subs.count, 0, 'repeated unbinds leave no source subscription');
+      assert.strictEqual(replacementScope.bindingContext.name, 'Tea', 'a late source notification is ignored');
+
+      binding.bind(scope);
+      assert.strictEqual(orderObserver.subs.count, 1, 'the fixture binding is restored for normal teardown');
     });
 
     it('disconnects removed and stopped rows and reconnects them exactly once', async function () {

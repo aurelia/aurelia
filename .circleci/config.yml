@@ -659,6 +659,13 @@ workflows:
 
       - e2e_test:
           <<: *filter_only_topic
+          name: pr_full_e2e_vite8_decorators
+          path: "packages/__e2e__/14-vite8-decorators"
+          requires:
+            - pr_full_build_release
+
+      - e2e_test:
+          <<: *filter_only_topic
           name: pr_full_e2e_router
           path: "packages/__e2e__/6-router"
           run_webpack: true
@@ -844,6 +851,12 @@ workflows:
           <<: *filter_only_master
           name: e2e_hmr_vite
           path: "packages/__e2e__/2-hmr-vite"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_only_master
+          name: e2e_vite8_decorators
+          path: "packages/__e2e__/14-vite8-decorators"
           requires:
             - build_release
       - e2e_test:

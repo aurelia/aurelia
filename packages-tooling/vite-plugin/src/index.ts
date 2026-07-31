@@ -2,8 +2,9 @@ import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventi
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
+import { createStandardDecoratorPlugin, normalizeFilterId } from './standard-decorators';
 
-export default function au(options: {
+export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
   include?: FilterPattern;
   exclude?: FilterPattern;
   pre?: boolean;
@@ -11,12 +12,38 @@ export default function au(options: {
    * Indiciates whether the plugin should alias aurelia packages to the dev bundle.
    */
   useDev?: boolean;
-} & IOptionalPreprocessOptions = {}) {
+  /**
+   * Transform TC39 standard decorators before Vite compiles application modules.
+   *
+   * Defaults to true on Vite 8 and false on Vite 7. Set this to false when a
+   * custom compiler or AOT pipeline guarantees decorator-free output.
+   */
+  transformStandardDecorators?: boolean;
+  /**
+   * Files eligible for standard decorator transformation.
+   *
+   * This is intentionally independent from `include`, which controls Aurelia
+   * convention preprocessing.
+   */
+  standardDecoratorInclude?: FilterPattern;
+  /**
+   * Files excluded from standard decorator transformation.
+   *
+   * This is intentionally independent from `exclude`, which controls Aurelia
+   * convention preprocessing.
+   */
+  standardDecoratorExclude?: FilterPattern;
+}
+
+export default function au(options: AureliaPluginOptions = {}) {
   const {
     include = 'src/**/*.{ts,js,html}',
     exclude,
     pre = true,
     useDev,
+    transformStandardDecorators,
+    standardDecoratorInclude,
+    standardDecoratorExclude,
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
@@ -105,7 +132,16 @@ export default function au(options: {
     }
   };
 
-  return [devPlugin, auPlugin];
+  return [
+    devPlugin,
+    auPlugin,
+    createStandardDecoratorPlugin({
+      include: standardDecoratorInclude,
+      exclude: standardDecoratorExclude,
+      pre,
+      transformStandardDecorators,
+    }),
+  ];
 }
 
 function getHmrCode(className: string, moduleNames: string = ''): string {
@@ -240,16 +276,4 @@ if (${moduleText}.hot) {
 }`;
 
   return code;
-}
-
-// Vite can surface Windows absolute paths with a drive letter casing that differs
-// from process.cwd(), likely due to fs.realpathSync.native() during resolution.
-// Normalize the drive letter before createFilter() so include/exclude checks stay stable.
-function normalizeFilterId(id: string, cwd: string = process.cwd(), platform: NodeJS.Platform = process.platform): string {
-  if (platform !== 'win32' || !/^[a-zA-Z]:/.test(id) || cwd.length === 0) {
-    return id;
-  }
-
-  const cwdDrive = cwd[0];
-  return id[0] === cwdDrive ? id : `${cwdDrive}${id.slice(1)}`;
 }

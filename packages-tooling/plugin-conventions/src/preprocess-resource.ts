@@ -99,6 +99,10 @@ interface IPos {
   end: number;
 }
 
+interface IImplicitElement extends IPos {
+  hasStaticAuProperty: boolean;
+}
+
 interface CustomElementDecorator {
   position: IPos;
   namePosition: IPos;
@@ -119,7 +123,7 @@ interface IFoundResource {
   classMetadata?: ClassMetadata;
   localDep?: string;
   modification?: Modification;
-  implicitStatement?: IPos;
+  implicitStatement?: IImplicitElement;
   runtimeImportName?: string;
   customElementDecorator?: CustomElementDecorator;
   defineElementInformation?: DefineElementInformation;
@@ -132,7 +136,7 @@ interface IResourceDecorator {
 }
 
 interface IModifyResourceOptions {
-  implicitElement?: IPos;
+  implicitElement?: IImplicitElement;
   localDeps: string[];
   modifications: Modification[];
   customElementDecorator?: CustomElementDecorator;
@@ -151,7 +155,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
-  let implicitElement: IPos | undefined;
+  let implicitElement: IImplicitElement | undefined;
   let customElementDecorator: CustomElementDecorator | undefined; // for @customName('custom-name')
   let defineElementInformation: DefineElementInformation | undefined;
   const templateMetadata: ITemplateMetadata[] = [];
@@ -287,43 +291,41 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
 
     if (defineElementInformation) {
       m.replace(defineElementInformation.position.pos, defineElementInformation.position.end, defineElementInformation.modifiedContent);
-    } else {
+    } else if (implicitElement.hasStaticAuProperty) {
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
-      if (elementStatement.includes('$au')) {
-        const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest, true);
-        const result = transform(sf, [createAuResourceTransformer()]);
-        const modified = createPrinter().printFile(result.transformed[0]);
-        m.replace(implicitElement.pos, implicitElement.end, modified);
-      } else if (localDeps.length) {
-        const pos = implicitElement.pos;
-        // When in-file deps are used, move the body of custom element to end of the file,
-        // in order to avoid TS2449: Class '...' used before its declaration.
-        if (customElementDecorator) {
-          // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name', dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
-          const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
-          m.replace(pos, implicitElement.end, '');
-          const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n@customElement({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })${elementStatement}`);
-        } else {
-          // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
-          const elementStatement = unit.contents.slice(pos, implicitElement.end);
-          m.replace(pos, implicitElement.end, '');
-          m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);
-        }
+      const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest, true);
+      const result = transform(sf, [createAuResourceTransformer()]);
+      const modified = createPrinter().printFile(result.transformed[0]);
+      m.replace(implicitElement.pos, implicitElement.end, modified);
+    } else if (localDeps.length) {
+      const pos = implicitElement.pos;
+      // When in-file deps are used, move the body of custom element to end of the file,
+      // in order to avoid TS2449: Class '...' used before its declaration.
+      if (customElementDecorator) {
+        // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name', dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
+        const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
+        m.replace(pos, implicitElement.end, '');
+        const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
+        m.append(`\n@customElement({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })${elementStatement}`);
       } else {
-        if (customElementDecorator) {
-          // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
-          const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.pos, `@customElement({ ...${viewDef}, name: ${name} })`);
-        } else {
-          // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
-          let sb = viewDef;
-          if (sb.startsWith('...')) {
-            sb = `{ ${sb} }`;
-          }
-          m.insert(implicitElement.pos, `@customElement(${sb})\n`);
+        // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
+        const elementStatement = unit.contents.slice(pos, implicitElement.end);
+        m.replace(pos, implicitElement.end, '');
+        m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);
+      }
+    } else {
+      if (customElementDecorator) {
+        // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
+        const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
+        m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
+        m.insert(implicitElement.pos, `@customElement({ ...${viewDef}, name: ${name} })`);
+      } else {
+        // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
+        let sb = viewDef;
+        if (sb.startsWith('...')) {
+          sb = `{ ${sb} }`;
         }
+        m.insert(implicitElement.pos, `@customElement(${sb})\n`);
       }
     }
   }
@@ -620,6 +622,7 @@ function findResource(
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 
   const resourceType = collectClassDecorators(node);
+  const hasStaticAuProperty = node.members.some(isStatic$auProperty);
 
   if (resourceType) {
     const decorator = resourceType.expression;
@@ -671,7 +674,7 @@ function findResource(
       return {
         type: resourceType.type,
         classMetadata: $class,
-        implicitStatement: { pos: pos, end: node.end },
+        implicitStatement: { pos: pos, end: node.end, hasStaticAuProperty },
         customElementDecorator: {
           position: getPosition(decorator!, code),
           namePosition: getPosition(customName, code)
@@ -694,7 +697,7 @@ function findResource(
       return {
         type,
         classMetadata: $class,
-        implicitStatement: { pos: pos, end: node.end },
+        implicitStatement: { pos: pos, end: node.end, hasStaticAuProperty },
         runtimeImportName: type,
       };
     }

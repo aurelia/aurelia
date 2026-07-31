@@ -161,15 +161,15 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
 
     it('allows reserved source property names when they are given safe aliases', function () {
       const { assertText } = createFixture(
-        `<div repeat.for="{ $index: itemIndex, constructor: ctor } of items">\${itemIndex}/\${ctor}</div>`,
+        `<div repeat.for="{ $index: itemIndex, $item: sourceItem, constructor: ctor } of items">\${itemIndex}/\${sourceItem}/\${ctor}</div>`,
         class App {
           public items = [
-            { $index: 'source-index', constructor: 'source-constructor' },
+            { $index: 'source-index', $item: 'source-item', constructor: 'source-constructor' },
           ];
         },
       );
 
-      assertText('source-index/source-constructor');
+      assertText('source-index/source-item/source-constructor');
     });
 
     it('hydrates SSR-adopted rows with reactive object-pattern locals', async function () {
@@ -371,6 +371,19 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
         component.snapshots.every(snapshot => snapshot === 'Grace/Hopper'),
         `body bindings must not observe a partially projected pattern: ${component.snapshots.join(', ')}`,
       );
+    });
+
+    it('installs the declaration binding when the repeated body has no other bindings', function () {
+      const order = { name: 'Coffee' };
+      const { observerLocator } = createFixture(
+        `<div repeat.for="{ name } of orders"></div>`,
+        class App {
+          public orders = [order];
+        },
+      );
+
+      const nameObserver = observerLocator.getObserver(order, 'name') as unknown as ISubscriberCollection;
+      assert.strictEqual(nameObserver.subs.count, 1, 'the declaration binding is installed and connected');
     });
 
     it('disconnects removed and stopped rows and reconnects them exactly once', async function () {

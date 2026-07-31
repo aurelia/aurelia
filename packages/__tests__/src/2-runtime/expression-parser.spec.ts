@@ -1531,6 +1531,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       '{id, id} of items',
       '{id: value, name: value} of items',
       '{id: $index} of items',
+      '{id: $item} of items',
       '{id: constructor} of items',
       '{id: __proto__} of items',
       '{id: target.member} of items',

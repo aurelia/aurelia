@@ -21,7 +21,6 @@ import type { IBinding } from '../../binding/interfaces-bindings';
 import { ErrorNames, createMappedError } from '../../errors';
 import {
   activated,
-  prependBinding,
   type ISyntheticView,
 } from '../../templating/controller';
 
@@ -34,11 +33,11 @@ import {
  *
  * @internal
  */
-export class RepeatObjectDestructuring {
+export class RepeatObjectBindingPattern {
   /** @internal */ public readonly sourceKeys: readonly (string | number)[];
   /** @internal */ private readonly _localNames: readonly string[];
   /** @internal */ private readonly _sourceByScope = new WeakMap<Scope, unknown>();
-  /** @internal */ private readonly _activeByScope = new WeakMap<Scope, RepeatObjectDestructuringBinding>();
+  /** @internal */ private readonly _activeByScope = new WeakMap<Scope, RepeatObjectBindingPatternBinding>();
   /** @internal */ private readonly _installedViews = new WeakSet<ISyntheticView>();
 
   public constructor(
@@ -50,7 +49,7 @@ export class RepeatObjectDestructuring {
     // unique names. Like other renderer paths, Repeat trusts pre-parsed ASTs
     // to uphold the parser's invariant.
     this._localNames = pattern.values.map(value => (value as AccessScopeExpression).name);
-    RepeatObjectDestructuringBinding.mix();
+    RepeatObjectBindingPatternBinding.mix();
   }
 
   /**
@@ -105,16 +104,16 @@ export class RepeatObjectDestructuring {
       return;
     }
     this._installedViews.add(view);
-    prependBinding(view, new RepeatObjectDestructuringBinding(view, this));
+    view.prependBinding(new RepeatObjectBindingPatternBinding(view, this));
   }
 
   /** @internal */
-  public connect(scope: Scope, binding: RepeatObjectDestructuringBinding): void {
+  public connect(scope: Scope, binding: RepeatObjectBindingPatternBinding): void {
     this._activeByScope.set(scope, binding);
   }
 
   /** @internal */
-  public disconnect(scope: Scope, binding: RepeatObjectDestructuringBinding): void {
+  public disconnect(scope: Scope, binding: RepeatObjectBindingPatternBinding): void {
     if (this._activeByScope.get(scope) === binding) {
       this._activeByScope.delete(scope);
     }
@@ -126,7 +125,7 @@ export class RepeatObjectDestructuring {
   }
 }
 
-interface RepeatObjectDestructuringBinding extends IObserverLocatorBasedConnectable {}
+interface RepeatObjectBindingPatternBinding extends IObserverLocatorBasedConnectable {}
 
 /**
  * Connects one repeated row to the selected properties of its current item.
@@ -135,9 +134,9 @@ interface RepeatObjectDestructuringBinding extends IObserverLocatorBasedConnecta
  * source changes refresh the local, while assigning the local does not write
  * through to the source object.
  */
-class RepeatObjectDestructuringBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+class RepeatObjectBindingPatternBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
-    connectable(RepeatObjectDestructuringBinding, null!);
+    connectable(RepeatObjectBindingPatternBinding, null!);
   });
 
   public isBound: boolean = false;
@@ -148,10 +147,10 @@ class RepeatObjectDestructuringBinding implements IBinding, ISubscriber, ICollec
 
   public constructor(
     /** @internal */ private readonly _controller: ISyntheticView,
-    /** @internal */ private readonly _destructuring: RepeatObjectDestructuring,
+    /** @internal */ private readonly _pattern: RepeatObjectBindingPattern,
   ) {
-    this.oL = _destructuring.observerLocator;
-    this._values = Array(_destructuring.sourceKeys.length);
+    this.oL = _pattern.observerLocator;
+    this._values = Array(_pattern.sourceKeys.length);
   }
 
   public bind(scope: Scope): void {
@@ -163,12 +162,12 @@ class RepeatObjectDestructuringBinding implements IBinding, ISubscriber, ICollec
     }
 
     this._scope = scope;
-    this._destructuring.connect(scope, this);
+    this._pattern.connect(scope, this);
     try {
       this._refresh();
       this.isBound = true;
     } catch (error) {
-      this._destructuring.disconnect(scope, this);
+      this._pattern.disconnect(scope, this);
       this._scope = void 0;
       this.obs.clearAll();
       throw error;
@@ -199,7 +198,7 @@ class RepeatObjectDestructuringBinding implements IBinding, ISubscriber, ICollec
       return;
     }
     this.isBound = false;
-    this._destructuring.disconnect(this._scope!, this);
+    this._pattern.disconnect(this._scope!, this);
     this._scope = void 0;
     this.obs.clearAll();
   }
@@ -207,11 +206,11 @@ class RepeatObjectDestructuringBinding implements IBinding, ISubscriber, ICollec
   /** @internal */
   private _refresh(): void {
     const scope = this._scope!;
-    const destructuring = this._destructuring;
-    const source = destructuring.getSource(scope);
+    const pattern = this._pattern;
+    const source = pattern.getSource(scope);
     ensureObjectSource(source);
 
-    const sourceKeys = destructuring.sourceKeys;
+    const sourceKeys = pattern.sourceKeys;
     const values = this._values;
     this.obs.version++;
     try {
@@ -225,7 +224,7 @@ class RepeatObjectDestructuringBinding implements IBinding, ISubscriber, ICollec
     }
 
     const bindingContext = scope.bindingContext;
-    const localNames = destructuring.localNames;
+    const localNames = pattern.localNames;
     const localCount = localNames.length;
 
     // On initial bind the repeated body has no subscribers yet, and a

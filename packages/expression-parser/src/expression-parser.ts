@@ -1377,6 +1377,8 @@ const reservedObjectBindingPatternLocalNames = new Set([
   '$middle',
   '$last',
   '$previous',
+  // Keep available for exposing the original item alongside projected locals.
+  '$item',
   '__items__',
 ]);
 function parseForOfStatement(result: BindingIdentifierOrPattern): ForOfStatement {

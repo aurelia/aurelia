@@ -46,14 +46,14 @@ import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';
 import { createInterface, singletonRegistration } from '../../utilities-di';
-import { RepeatObjectDestructuring } from './repeat-object-destructuring';
+import { RepeatObjectBindingPattern } from './repeat-object-binding-pattern';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
 type RepeatDeclaration =
   | { readonly kind: 'local'; readonly local: string }
   | { readonly kind: 'destructuring'; readonly value: DestructuringAssignmentExpression }
-  | { readonly kind: 'object'; readonly value: RepeatObjectDestructuring };
+  | { readonly kind: 'object-binding'; readonly value: RepeatObjectBindingPattern };
 
 function dispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -95,7 +95,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _innerItemsExpression: IsBindingBehavior | null = null;
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
   /** @internal */ private _declaration!: RepeatDeclaration;
-  /** @internal */ private _objectDestructuring?: RepeatObjectDestructuring = void 0;
+  /** @internal */ private _objectBindingPattern?: RepeatObjectBindingPattern = void 0;
   /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
 
   /** @internal */
@@ -176,12 +176,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     switch (dec.$kind) {
       case 'ArrayDestructuring':
       case 'ObjectDestructuring':
+        // These pre-lowered assignment ASTs retain their existing one-shot
+        // astAssign path. Current object repeat syntax produces the binding
+        // pattern handled by the live projection below.
         this._declaration = { kind: 'destructuring', value: dec };
         break;
       case 'ObjectBindingPattern':
         this._declaration = {
-          kind: 'object',
-          value: this._objectDestructuring ??= new RepeatObjectDestructuring(
+          kind: 'object-binding',
+          value: this._objectBindingPattern ??= new RepeatObjectBindingPattern(
             dec,
             binding.oL,
           ),
@@ -397,7 +400,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             // `repeat.for="i of items; key: key" - efficient
             const scope = createScope(items[i], declaration, parentScope, binding);
             setItem(declaration, scope, binding, items[i]);
-            if (declaration.kind === 'object') {
+            if (declaration.kind === 'object-binding') {
               declaration.value.projectForKey(scope);
             }
             keys[i] = astEvaluate(key, scope, binding, null);
@@ -481,7 +484,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (let i = 0; i < newLen; ++i) {
       const view = adoptedViews[i];
       const scope = _scopes[i];
-      if (this._declaration.kind === 'object') {
+      if (this._declaration.kind === 'object-binding') {
         this._declaration.value.ensureViewBinding(view);
       }
 
@@ -516,7 +519,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let promises: Promise<void>[] | undefined = void 0;
     for (let i = 0; i < newLen; ++i) {
       const view = views[i] = _factory.create($controller).setLocation(_location);
-      if (this._declaration.kind === 'object') {
+      if (this._declaration.kind === 'object-binding') {
         this._declaration.value.ensureViewBinding(view);
       }
       view.nodes.unlink();
@@ -620,7 +623,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; newLen > i; ++i) {
       if (indexMap[i] === -2) {
         view = _factory.create($controller);
-        if (this._declaration.kind === 'object') {
+        if (this._declaration.kind === 'object-binding') {
           this._declaration.value.ensureViewBinding(view);
         }
         views.splice(i, 0, view);
@@ -977,7 +980,7 @@ const setItem = (
     case 'destructuring':
       astAssign(declaration.value, scope, binding, null, item);
       break;
-    case 'object':
+    case 'object-binding':
       declaration.value.setSource(scope, item);
       break;
   }
@@ -993,7 +996,7 @@ const getItem = (
       return scope.bindingContext[declaration.local];
     case 'destructuring':
       return astEvaluate(declaration.value, scope, binding, null);
-    case 'object':
+    case 'object-binding':
       return declaration.value.getSource(scope);
   }
 };

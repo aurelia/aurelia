@@ -81,6 +81,156 @@ export abstract class SimpleActivityTrackingVMBase {
 }
 
 describe('router/config-tests.spec.ts', function () {
+  describe('RouteConfig normalization', function () {
+    it('applies explicit, static, and default nav values in precedence order', function () {
+      @route({ path: 'static-nav' })
+      @customElement({ name: 'static-nav', template: null })
+      class StaticNav {
+        public static readonly nav = false;
+      }
+
+      @route({ path: 'explicit-nav', nav: true })
+      @customElement({ name: 'explicit-nav', template: null })
+      class ExplicitNav {
+        public static readonly nav = false;
+      }
+
+      @customElement({ name: 'default-nav', template: null })
+      class DefaultNav {}
+
+      assert.strictEqual(Route.getConfig(StaticNav).nav, false);
+      assert.strictEqual(Route.getConfig(ExplicitNav).nav, true);
+      assert.strictEqual(Route.getConfig(DefaultNav).nav, true);
+    });
+
+    it('derives convention IDs from the primary custom element path', function () {
+      @customElement({
+        name: 'convention-route',
+        aliases: ['convention-alias', 'other-alias'],
+        template: null,
+      })
+      class ConventionRoute {}
+
+      const config = Route.getConfig(ConventionRoute);
+      assert.strictEqual(config.id, 'convention-route');
+      assert.deepStrictEqual(config.path, ['convention-route', 'convention-alias', 'other-alias']);
+    });
+
+    it('derives child IDs from each effective child path', async function () {
+      @customElement({
+        name: 'convention-child',
+        aliases: ['child-alias'],
+        template: null,
+      })
+      class ConventionChild {}
+
+      @customElement({ name: 'empty-path-child', aliases: ['empty-path-alias'], template: null })
+      class EmptyPathChild {}
+
+      @route({
+        routes: [
+          ConventionChild,
+          { path: 'configured-child', component: ConventionChild },
+          { path: [], component: EmptyPathChild },
+        ],
+      })
+      @customElement({ name: 'child-root', template: vp(1), dependencies: [ConventionChild, EmptyPathChild] })
+      class ChildRoot {}
+
+      const fixture = await createFixture(ChildRoot, [], getDefaultHIAConfig);
+      const childRoutes = fixture.router.routeTree.root.context.routeConfigContext.childRoutes;
+      const bareConfig = await childRoutes[0];
+      assert.strictEqual(bareConfig.id, 'convention-child');
+      assert.deepStrictEqual(bareConfig.path, ['convention-child', 'child-alias']);
+
+      const objectConfig = await childRoutes[1];
+      assert.strictEqual(objectConfig.id, 'configured-child');
+      assert.deepStrictEqual(objectConfig.path, ['configured-child']);
+
+      const emptyPathConfig = await childRoutes[2];
+      assert.strictEqual(emptyPathConfig.id, 'empty-path-child');
+      assert.deepStrictEqual(emptyPathConfig.path, ['empty-path-child', 'empty-path-alias']);
+      await fixture.tearDown();
+    });
+
+    it('derives convention IDs with either route and custom element decorator order', function () {
+      @route({})
+      @customElement({ name: 'route-outermost', template: null })
+      class RouteOutermost {}
+
+      @customElement({ name: 'element-outermost', template: null })
+      @route({})
+      class ElementOutermost {}
+
+      assert.strictEqual(Route.getConfig(RouteOutermost).id, 'route-outermost');
+      assert.strictEqual(Route.getConfig(ElementOutermost).id, 'element-outermost');
+    });
+
+    it('updates convention IDs when a configuration hook replaces the effective path', async function () {
+      @customElement({ name: 'hook-route', template: null })
+      class HookRoute implements IRouteViewModel {
+        public getRouteConfig(): IRouteConfig {
+          return { path: 'hook-path' };
+        }
+      }
+
+      const fixture = await createFixture(HookRoute, [], getDefaultHIAConfig);
+      const config = Route.getConfig(HookRoute);
+      assert.strictEqual(config.id, 'hook-path');
+      assert.deepStrictEqual(config.path, ['hook-path']);
+      await fixture.tearDown();
+    });
+
+    it('preserves an explicit configuration hook ID through a child path override', async function () {
+      @customElement({ name: 'explicit-hook-route', template: null })
+      class ExplicitHookRoute implements IRouteViewModel {
+        public getRouteConfig(): IRouteConfig {
+          return { id: 'hook-id', path: 'hook-path' };
+        }
+      }
+
+      const hookFixture = await createFixture(ExplicitHookRoute, [], getDefaultHIAConfig);
+      const hookConfig = Route.getConfig(ExplicitHookRoute);
+      assert.strictEqual(hookConfig.id, 'hook-id');
+      assert.deepStrictEqual(hookConfig.path, ['hook-path']);
+      await hookFixture.tearDown();
+
+      @route({ routes: [{ path: 'child-path', component: ExplicitHookRoute }] })
+      @customElement({ name: 'hook-parent', template: vp(1), dependencies: [ExplicitHookRoute] })
+      class HookParent {}
+
+      const parentFixture = await createFixture(HookParent, [], getDefaultHIAConfig);
+      const childConfig = await parentFixture.router.routeTree.root.context.routeConfigContext.childRoutes[0];
+      assert.strictEqual(childConfig.id, 'hook-id');
+      assert.deepStrictEqual(childConfig.path, ['child-path']);
+      await parentFixture.tearDown();
+    });
+
+    it('preserves configured and static route identity precedence', function () {
+      @route({ id: 'configured-id', path: ['configured-path', 'configured-alias'] })
+      @customElement({ name: 'configured-element', template: null })
+      class ConfiguredIdentity {
+        public static readonly id = 'static-id';
+        public static readonly path = 'static-path';
+      }
+
+      @route({})
+      @customElement({ name: 'static-element', template: null })
+      class StaticIdentity {
+        public static readonly id = 'static-id';
+        public static readonly path = ['static-path', 'static-alias'];
+      }
+
+      const configured = Route.getConfig(ConfiguredIdentity);
+      assert.strictEqual(configured.id, 'configured-id');
+      assert.deepStrictEqual(configured.path, ['configured-path', 'configured-alias']);
+
+      const staticConfig = Route.getConfig(StaticIdentity);
+      assert.strictEqual(staticConfig.id, 'static-id');
+      assert.deepStrictEqual(staticConfig.path, ['static-path', 'static-alias']);
+    });
+  });
+
   describe('monomorphic timings', function () {
     const componentSpecs: IComponentSpec[] = [
       {

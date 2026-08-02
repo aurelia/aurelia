@@ -13,6 +13,11 @@ import { Events, getMessage } from './events';
 import { RecognizedRoute, RESIDUE } from '@aurelia/route-recognizer';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
+// A convention ID cannot be resolved in _create because @route may initialize before @customElement. Route.getConfig
+// finalizes it once the custom-element definition exists, but membership remains here so child configs and hooks can
+// distinguish the derived ID from an explicit/static one and rederive it when they replace the effective path.
+// External bookkeeping also preserves id as an own enumerable RouteConfig field.
+const conventionIdConfigs = new WeakSet<RouteConfig>();
 
 // Every kind of route configurations are normalized to this `RouteConfig` class.
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
@@ -45,6 +50,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     component: Routeable | NavigationStrategy,
     public readonly nav: boolean,
   ) {
+    if (id === void 0) conventionIdConfigs.add(this);
     this._component = component;
     this._isNavigationStrategy = component instanceof NavigationStrategy;
   }
@@ -111,7 +117,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         children,
         config.fallback ?? Type?.fallback ?? null,
         (config as IChildRouteConfig).component ?? Type ?? null,
-        config.nav ?? true,
+        config.nav ?? Type?.nav ?? true,
       );
     } else {
       expectType('string, function/class or object', '', configOrPath);
@@ -128,8 +134,8 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public _applyChildRouteConfig(config: IChildRouteConfig, parentConfig: RouteConfig | null): RouteConfig {
     validateRouteConfig(config, this.path[0] ?? '');
     const path = ensureArrayOfStrings(config.path ?? this.path);
-    return new RouteConfig(
-      ensureString(config.id ?? this.id ?? path),
+    const childConfig = new RouteConfig(
+      ensureString(config.id ?? (conventionIdConfigs.has(this) ? path : this.id)),
       path,
       config.title ?? this.title,
       config.redirectTo ?? this.redirectTo,
@@ -142,6 +148,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
       config.nav ?? this.nav,
     );
+    return finalizeRouteConfigId(childConfig);
   }
 
   /** @internal */
@@ -180,8 +187,13 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         validateRouteConfig(value, parentPath);
 
         // the value from the hook takes precedence
-        (this as Writable<RouteConfig>).id = value.id ?? this.id;
         (this as Writable<RouteConfig>)._path = ensureArrayOfStrings(value.path ?? this.path);
+        if (value.id != null) {
+          conventionIdConfigs.delete(this);
+          (this as Writable<RouteConfig>).id = value.id;
+        } else {
+          finalizeRouteConfigId(this);
+        }
         (this as Writable<RouteConfig>).title = value.title ?? this.title;
         (this as Writable<RouteConfig>).redirectTo = value.redirectTo ?? this.redirectTo;
         (this as Writable<RouteConfig>).caseSensitive = value.caseSensitive ?? this.caseSensitive;
@@ -196,7 +208,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
   /** @internal */
   public _clone(): RouteConfig {
-    return new RouteConfig(
+    const clone = new RouteConfig(
       this.id,
       this.path,
       this.title,
@@ -210,6 +222,8 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       this._component,
       this.nav,
     );
+    if (conventionIdConfigs.has(this)) conventionIdConfigs.add(clone);
+    return finalizeRouteConfigId(clone);
   }
 
   /** @internal */
@@ -263,6 +277,13 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 }
 
+function finalizeRouteConfigId(config: RouteConfig): RouteConfig {
+  if (conventionIdConfigs.has(config)) {
+    (config as Writable<RouteConfig>).id = ensureString(config.path);
+  }
+  return config;
+}
+
 export const Route = {
   name: /*@__PURE__*/getResourceKeyFor('route-configuration'),
   /**
@@ -293,7 +314,7 @@ export const Route = {
       Route.configure({}, Type);
     }
 
-    return Metadata.get(Route.name, Type)!;
+    return finalizeRouteConfigId(Metadata.get(Route.name, Type)!);
   },
 };
 

@@ -51,6 +51,8 @@ const validE2e = [
   'hmr-parcel',
   '7-select-safari16',
   '8-ui-virtualization',
+  '15-ts6-webpack-smoke',
+  '16-ts7-webpack-smoke',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 

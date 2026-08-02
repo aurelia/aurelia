@@ -52,6 +52,8 @@
     "packages/__e2e__/12-type-check",
     "packages/__e2e__/13-hmr-convention-routing-memory-leak",
     "packages/__e2e__/14-vite8-decorators",
+    "packages/__e2e__/15-ts6-webpack-smoke",
+    "packages/__e2e__/16-ts7-webpack-smoke",
     "benchmarks",
     "examples/1kcomponents",
     "examples/doc-example",

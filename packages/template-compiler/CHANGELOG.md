@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2446](https://github.com/aurelia/aurelia/pull/2446) [`dfb4edf`](https://github.com/aurelia/aurelia/commit/dfb4edfc6aca1ba76b0759a0edfde3ff15e58453) Thanks [@bigopon](https://github.com/bigopon)! - Underscores in `<let>` binding targets are now preserved instead of being converted to camel case.
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

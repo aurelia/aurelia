@@ -1,5 +1,29 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2443](https://github.com/aurelia/aurelia/pull/2443) [`a6e332e`](https://github.com/aurelia/aurelia/commit/a6e332efb950b18311a7e7f2eecfaa0302f7d933) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix application-root navigation under configured base paths. Root-prefixed string instructions now retain their application-root meaning when the base is removed, and a base such as `/app` is stripped only at a path, query, or fragment boundary—not from paths such as `/apple`.
+
+  Consume excess leading `../` prefixes while clamping route-context traversal at the application root. This prevents unresolved parent syntax from leaking into browser URLs after intercepted navigation has already resolved at the root.
+
+  Keep hash-mode `load` links under the configured application base, matching `href` links and the destination used by router navigation.
+
+- [#2431](https://github.com/aurelia/aurelia/pull/2431) [`987dba7`](https://github.com/aurelia/aurelia/commit/987dba7c2161e01e6e120023848456e0b6fea85c) Thanks [@Sayan751](https://github.com/Sayan751)! - Cancelling navigation by returning `false` from `canUnload` now restores the route-context's node.
+
+- [#2441](https://github.com/aurelia/aurelia/pull/2441) [`08e2a10`](https://github.com/aurelia/aurelia/commit/08e2a105698b2b3cac1b06ea3ecfa866a93e923e) Thanks [@fkleuver](https://github.com/fkleuver)! - Object-form route configurations now preserve a component's static `nav` value when no explicit override is supplied.
+
+  Routes without an explicit or static `id` now derive it from their primary effective path, including path overrides supplied by child route configuration or `getRouteConfig`.
+
+- [#2413](https://github.com/aurelia/aurelia/pull/2413) [`6d86c8c`](https://github.com/aurelia/aurelia/commit/6d86c8c8ee6a4cc4761e1ed2bbce5002679ffcde) Thanks [@bigopon](https://github.com/bigopon)! - Routed content now renders correctly through `<au-viewport containerless>`, including through nested containerless viewports and when the routed component is also containerless.
+
+- [#2418](https://github.com/aurelia/aurelia/pull/2418) [`b070950`](https://github.com/aurelia/aurelia/commit/b070950694098cf1e3e67b15d04030266aebdcff) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix cold-start deep links to child routes nested beneath an empty-path parent. The router now passes the remaining URL to the matched parent's child routes instead of prematurely reporting an unknown route at the root.
+
+- [#2427](https://github.com/aurelia/aurelia/pull/2427) [`c8b0b78`](https://github.com/aurelia/aurelia/commit/c8b0b78dc25bffba1175efd56be1a824ce2b6467) Thanks [@Vheissu](https://github.com/Vheissu)! - `RouteNode.title` is now writable, allowing lifecycle and router hooks to update a route node's title part during navigation.
+
+- [#2396](https://github.com/aurelia/aurelia/pull/2396) [`72558aa`](https://github.com/aurelia/aurelia/commit/72558aa05aaf2b4131c4502684f894e49ef91a83) Thanks [@Sayan751](https://github.com/Sayan751)! - Hash-based routing now handles navigation to an empty-path root route. Fixes #2393.
+
 ## 2.0.0-rc.1
 
 ### Minor Changes

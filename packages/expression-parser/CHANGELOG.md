@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2448](https://github.com/aurelia/aurelia/pull/2448) [`1f4fe5b`](https://github.com/aurelia/aurelia/commit/1f4fe5bb4d5293f2a3c270fa728caf49d2541d95) Thanks [@fkleuver](https://github.com/fkleuver)! - Shallow object destructuring and property aliases in `repeat.for` declarations now create reactive locals that follow the source item without writing local assignments back to it. Reused rows reconnect those locals when their item is replaced, and unsupported targets report `AUR0177` instead of creating invalid locals.
+
 ## 2.0.0-rc.1
 
 ## 2.0.0-rc.0

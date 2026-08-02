@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2412](https://github.com/aurelia/aurelia/pull/2412) [`b2d8766`](https://github.com/aurelia/aurelia/commit/b2d87663aff992bd2a21c3f487e2135ec322b611) Thanks [@bigopon](https://github.com/bigopon)! - Improve TypeScript inference for dialog results and decorator callbacks:
+
+  - `DialogOpenPromise.whenClosed()` now resolves to `DialogCloseResult` when called without handlers and correctly infers fulfillment and rejection callback result types.
+  - `@watch` now carries the watched expression's value type into handler parameters, including the previous value and decorated instance.
+  - `@computed` dependency callbacks now infer the decorated class instance and return a typed getter or method decorator instead of `any`.
+
 ## 2.0.0-rc.1
 
 ## 2.0.0-rc.0

@@ -18,14 +18,14 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-rc.1",
-    "@aurelia/metadata": "2.0.0-rc.1",
-    "@aurelia/runtime": "2.0.0-rc.1",
-    "@aurelia/runtime-html": "2.0.0-rc.1",
-    "aurelia": "2.0.0-rc.1"
+    "@aurelia/kernel": "2.0.0-rc.2",
+    "@aurelia/metadata": "2.0.0-rc.2",
+    "@aurelia/runtime": "2.0.0-rc.2",
+    "@aurelia/runtime-html": "2.0.0-rc.2",
+    "aurelia": "2.0.0-rc.2"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.0.0-rc.1",
+    "@aurelia/webpack-loader": "2.0.0-rc.2",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "@typescript/native": "npm:typescript@~7.0.2",

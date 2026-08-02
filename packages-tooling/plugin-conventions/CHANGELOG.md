@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Minor Changes
+
+- [#2447](https://github.com/aurelia/aurelia/pull/2447) [`b5063b2`](https://github.com/aurelia/aurelia/commit/b5063b26709c9050acdd948820709f309770403c) Thanks [@bigopon](https://github.com/bigopon)! - Convention preprocessing now supports TypeScript 6 while preserving TypeScript 5 support, and Aurelia tooling can coexist with the TypeScript 7.0 CLI. The plugin uses the TypeScript 6 compatibility API internally rather than the application's TypeScript installation.
+
+### Patch Changes
+
+- [#2450](https://github.com/aurelia/aurelia/pull/2450) [`925db67`](https://github.com/aurelia/aurelia/commit/925db675385e6076da187994f84de751f290ec27) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix conventional template pairing for classes containing `$au` in strings or other non-resource code. Only an actual static `$au` property now selects the static resource-definition path.
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

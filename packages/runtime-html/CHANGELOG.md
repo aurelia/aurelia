@@ -1,5 +1,29 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2444](https://github.com/aurelia/aurelia/pull/2444) [`d38ab5b`](https://github.com/aurelia/aurelia/commit/d38ab5b6a770b3fce4deee9222070e3fddc1ef1e) Thanks [@fkleuver](https://github.com/fkleuver)! - The obsolete `define` component lifecycle hook has been removed from the public types and documentation. The runtime had already stopped invoking it.
+
+- [#2445](https://github.com/aurelia/aurelia/pull/2445) [`5d30b82`](https://github.com/aurelia/aurelia/commit/5d30b82a599e6d9ad68685e558fc2f0ee090d987) Thanks [@fkleuver](https://github.com/fkleuver)! - The default keyboard modifier mappings now include the missing Z entries, so `:z`, `:90`, and `:122` work consistently with the other letters.
+
+- [#2412](https://github.com/aurelia/aurelia/pull/2412) [`b2d8766`](https://github.com/aurelia/aurelia/commit/b2d87663aff992bd2a21c3f487e2135ec322b611) Thanks [@bigopon](https://github.com/bigopon)! - Improve TypeScript inference for dialog results and decorator callbacks:
+
+  - `DialogOpenPromise.whenClosed()` now resolves to `DialogCloseResult` when called without handlers and correctly infers fulfillment and rejection callback result types.
+  - `@watch` now carries the watched expression's value type into handler parameters, including the previous value and decorated instance.
+  - `@computed` dependency callbacks now infer the decorated class instance and return a typed getter or method decorator instead of `any`.
+
+- [#2448](https://github.com/aurelia/aurelia/pull/2448) [`1f4fe5b`](https://github.com/aurelia/aurelia/commit/1f4fe5bb4d5293f2a3c270fa728caf49d2541d95) Thanks [@fkleuver](https://github.com/fkleuver)! - Shallow object destructuring and property aliases in `repeat.for` declarations now create reactive locals that follow the source item without writing local assignments back to it. Reused rows reconnect those locals when their item is replaced, and unsupported targets report `AUR0177` instead of creating invalid locals.
+
+- [#2421](https://github.com/aurelia/aurelia/pull/2421) [`15d6454`](https://github.com/aurelia/aurelia/commit/15d64548647033c724ed99318eccdfcc5783877f) Thanks [@fkleuver](https://github.com/fkleuver)! - Prevent large finite task queue workloads from falsely triggering the recursive deadlock guard. Applications can now queue very large finite batches, including work that queues more work during a drain, without hitting a deadlock error merely because the batch is large.
+
+  Automatic `queueTask` drains now process work in timed slices and continue through host timer turns until the queue is idle. This gives the browser opportunities to paint and process input during unusually large flushes. As a result, code that needs to observe the completion of all queued work should use `tasksSettled()` instead of assuming that one microtask turn is always enough for very large automatic drains. Manual `runTasks()` calls remain synchronous and keep an internal deadlock guard for low-level tests and diagnostics.
+
+  The task queue error surface is also more explicit. Multiple failures now reject or throw a `TaskQueueAggregateError`, which extends `AggregateError`, preserves the original errors in order, sets `cause` to the first error, and includes a more useful message with the error count and a short preview. Unobserved automatic queue errors are reported and cleared so later `tasksSettled()` cycles start fresh instead of failing with stale errors.
+
+  Because automatic drains may now continue after other host events have run, delayed runtime-html work now re-checks lifecycle state before mutating DOM state. Queued layout writes and `show` updates no-op when their binding, controller, or attribute has already been torn down.
+
 ## 2.0.0-rc.1
 
 ### Minor Changes

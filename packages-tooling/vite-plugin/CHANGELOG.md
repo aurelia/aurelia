@@ -1,5 +1,21 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Minor Changes
+
+- [#2449](https://github.com/aurelia/aurelia/pull/2449) [`0d97795`](https://github.com/aurelia/aurelia/commit/0d9779502b3239db16b7674d6212ab53ea78f9fc) Thanks [@fkleuver](https://github.com/fkleuver)! - The Aurelia Vite plugin now supports Vite 8. Convention-based components and TC39 decorators work correctly with Vite's Oxc transform, including in HMR, SSR, web workers, and TSX applications. Vite 7 retains its existing behavior.
+
+  Projects using legacy TypeScript decorators or incompatible custom Oxc settings now receive a clear error with guidance on how to configure their build.
+
+### Patch Changes
+
+- [#2417](https://github.com/aurelia/aurelia/pull/2417) [`f8f765f`](https://github.com/aurelia/aurelia/commit/f8f765fb2a0f04e6d58c4197f0cec6d3fac774bb) Thanks [@bigopon](https://github.com/bigopon)! - Fix Vite builds that use custom `--mode` names. HTML imports are now rewritten whenever Vite runs the `build` command, so compiled templates—including templates for lazy-loaded routes—are no longer omitted when the mode is not literally `production`.
+
+- [#2419](https://github.com/aurelia/aurelia/pull/2419) [`b680eb5`](https://github.com/aurelia/aurelia/commit/b680eb5337dd985cb6c1796c2c5a1468e874626f) Thanks [@bigopon](https://github.com/bigopon)! - Fix Aurelia development-package resolution in Vite so it no longer adds the global `development` export condition. When development imports are enabled, only bare imports of `aurelia` and `@aurelia/<package>` are redirected to their `/development` subpaths, preserving the correct browser exports for third-party dependencies.
+
+- [#2420](https://github.com/aurelia/aurelia/pull/2420) [`d603f42`](https://github.com/aurelia/aurelia/commit/d603f426fdb0bd68af92090b0f65b630aec3eca6) Thanks [@bigopon](https://github.com/bigopon)! - Fix source filtering on Windows when Vite reports an absolute module ID whose drive-letter casing differs from the current working directory. The plugin now normalizes the drive letter before include/exclude matching so eligible Aurelia source files are transformed instead of skipped.
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

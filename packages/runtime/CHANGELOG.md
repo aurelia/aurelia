@@ -1,5 +1,31 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2439](https://github.com/aurelia/aurelia/pull/2439) [`c784695`](https://github.com/aurelia/aurelia/commit/c78469500a9b08e7995429683a36ef6323398512) Thanks [@fkleuver](https://github.com/fkleuver)! - Collection length and size observers now detach from their owning collection after their final subscriber unsubscribes, avoiding unnecessary collection-change work.
+
+- [#2442](https://github.com/aurelia/aurelia/pull/2442) [`2de974d`](https://github.com/aurelia/aurelia/commit/2de974dbe6e748b3172f72aa02b61d2b520f102c) Thanks [@fkleuver](https://github.com/fkleuver)! - Deep computed observation now traverses cyclic object, array, map, and set graphs without overflowing the stack.
+
+  Computed observers now finish queued reconciliation without retaining dependencies after their final subscriber detaches.
+
+  Setter-backed computed properties no longer suppress assignments based on dirty or detached cached values. Successful assignments also invalidate the cached getter value when the setter updates otherwise unobservable state.
+
+- [#2412](https://github.com/aurelia/aurelia/pull/2412) [`b2d8766`](https://github.com/aurelia/aurelia/commit/b2d87663aff992bd2a21c3f487e2135ec322b611) Thanks [@bigopon](https://github.com/bigopon)! - Improve TypeScript inference for dialog results and decorator callbacks:
+
+  - `DialogOpenPromise.whenClosed()` now resolves to `DialogCloseResult` when called without handlers and correctly infers fulfillment and rejection callback result types.
+  - `@watch` now carries the watched expression's value type into handler parameters, including the previous value and decorated instance.
+  - `@computed` dependency callbacks now infer the decorated class instance and return a typed getter or method decorator instead of `any`.
+
+- [#2421](https://github.com/aurelia/aurelia/pull/2421) [`15d6454`](https://github.com/aurelia/aurelia/commit/15d64548647033c724ed99318eccdfcc5783877f) Thanks [@fkleuver](https://github.com/fkleuver)! - Prevent large finite task queue workloads from falsely triggering the recursive deadlock guard. Applications can now queue very large finite batches, including work that queues more work during a drain, without hitting a deadlock error merely because the batch is large.
+
+  Automatic `queueTask` drains now process work in timed slices and continue through host timer turns until the queue is idle. This gives the browser opportunities to paint and process input during unusually large flushes. As a result, code that needs to observe the completion of all queued work should use `tasksSettled()` instead of assuming that one microtask turn is always enough for very large automatic drains. Manual `runTasks()` calls remain synchronous and keep an internal deadlock guard for low-level tests and diagnostics.
+
+  The task queue error surface is also more explicit. Multiple failures now reject or throw a `TaskQueueAggregateError`, which extends `AggregateError`, preserves the original errors in order, sets `cause` to the first error, and includes a more useful message with the error count and a short preview. Unobserved automatic queue errors are reported and cleared so later `tasksSettled()` cycles start fresh instead of failing with stale errors.
+
+  Because automatic drains may now continue after other host events have run, delayed runtime-html work now re-checks lifecycle state before mutating DOM state. Queued layout writes and `show` updates no-op when their binding, controller, or attribute has already been torn down.
+
 ## 2.0.0-rc.1
 
 ### Minor Changes

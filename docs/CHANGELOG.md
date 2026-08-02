@@ -3,6 +3,84 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2.0.0-rc.2
+
+### Minor Changes
+
+- [#2409](https://github.com/aurelia/aurelia/pull/2409) [`4c1f7f3`](https://github.com/aurelia/aurelia/commit/4c1f7f3fc77228797e1da24b5ecd3f93682aee79) Thanks [@bigopon](https://github.com/bigopon)! - Add a `gap` option to `virtual-repeat` for layouts with fixed spacing between items. Configure the gap separately from `item-height` or `item-width`; vertical and horizontal spacer and scroll-position calculations now account for that spacing.
+- [#2447](https://github.com/aurelia/aurelia/pull/2447) [`b5063b2`](https://github.com/aurelia/aurelia/commit/b5063b26709c9050acdd948820709f309770403c) Thanks [@bigopon](https://github.com/bigopon)! - Convention preprocessing now supports TypeScript 6 while preserving TypeScript 5 support, and Aurelia tooling can coexist with the TypeScript 7.0 CLI. The plugin uses the TypeScript 6 compatibility API internally rather than the application's TypeScript installation.
+- [#2449](https://github.com/aurelia/aurelia/pull/2449) [`0d97795`](https://github.com/aurelia/aurelia/commit/0d9779502b3239db16b7674d6212ab53ea78f9fc) Thanks [@fkleuver](https://github.com/fkleuver)! - The Aurelia Vite plugin now supports Vite 8. Convention-based components and TC39 decorators work correctly with Vite's Oxc transform, including in HMR, SSR, web workers, and TSX applications. Vite 7 retains its existing behavior.
+  
+  Projects using legacy TypeScript decorators or incompatible custom Oxc settings now receive a clear error with guidance on how to configure their build.
+
+### Patch Changes
+
+- [#2443](https://github.com/aurelia/aurelia/pull/2443) [`a6e332e`](https://github.com/aurelia/aurelia/commit/a6e332efb950b18311a7e7f2eecfaa0302f7d933) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix application-root navigation under configured base paths. Root-prefixed string instructions now retain their application-root meaning when the base is removed, and a base such as `/app` is stripped only at a path, query, or fragment boundary—not from paths such as `/apple`.
+  
+  Consume excess leading `../` prefixes while clamping route-context traversal at the application root. This prevents unresolved parent syntax from leaking into browser URLs after intercepted navigation has already resolved at the root.
+  
+  Keep hash-mode `load` links under the configured application base, matching `href` links and the destination used by router navigation.
+- [#2431](https://github.com/aurelia/aurelia/pull/2431) [`987dba7`](https://github.com/aurelia/aurelia/commit/987dba7c2161e01e6e120023848456e0b6fea85c) Thanks [@Sayan751](https://github.com/Sayan751)! - Cancelling navigation by returning `false` from `canUnload` now restores the route-context's node.
+- [#2444](https://github.com/aurelia/aurelia/pull/2444) [`d38ab5b`](https://github.com/aurelia/aurelia/commit/d38ab5b6a770b3fce4deee9222070e3fddc1ef1e) Thanks [@fkleuver](https://github.com/fkleuver)! - The obsolete `define` component lifecycle hook has been removed from the public types and documentation. The runtime had already stopped invoking it.
+- [#2439](https://github.com/aurelia/aurelia/pull/2439) [`c784695`](https://github.com/aurelia/aurelia/commit/c78469500a9b08e7995429683a36ef6323398512) Thanks [@fkleuver](https://github.com/fkleuver)! - Collection length and size observers now detach from their owning collection after their final subscriber unsubscribes, avoiding unnecessary collection-change work.
+- [#2442](https://github.com/aurelia/aurelia/pull/2442) [`2de974d`](https://github.com/aurelia/aurelia/commit/2de974dbe6e748b3172f72aa02b61d2b520f102c) Thanks [@fkleuver](https://github.com/fkleuver)! - Deep computed observation now traverses cyclic object, array, map, and set graphs without overflowing the stack.
+  
+  Computed observers now finish queued reconciliation without retaining dependencies after their final subscriber detaches.
+  
+  Setter-backed computed properties no longer suppress assignments based on dirty or detached cached values. Successful assignments also invalidate the cached getter value when the setter updates otherwise unobservable state.
+- [#2445](https://github.com/aurelia/aurelia/pull/2445) [`5d30b82`](https://github.com/aurelia/aurelia/commit/5d30b82a599e6d9ad68685e558fc2f0ee090d987) Thanks [@fkleuver](https://github.com/fkleuver)! - The default keyboard modifier mappings now include the missing Z entries, so `:z`, `:90`, and `:122` work consistently with the other letters.
+- [#2438](https://github.com/aurelia/aurelia/pull/2438) [`e7cf404`](https://github.com/aurelia/aurelia/commit/e7cf404e0fcf66fa91fb28d2ad5917170813f9f2) Thanks [@fkleuver](https://github.com/fkleuver)! - Resolving an interface without a registration or default implementation now reports `AUR0012`. Using `newInstanceOf` or `newInstanceForScope` instead reports `AUR0017`, even if another interface with a default implementation was resolved first.
+- [#2440](https://github.com/aurelia/aurelia/pull/2440) [`95604cd`](https://github.com/aurelia/aurelia/commit/95604cdbcbef37111d73c3c6e63d5da87a5649f9) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix DI metadata inheritance so derived classes honor their own `static inject` and `@inject` declarations without reusing or mutating base-class dependency metadata.
+- [#2412](https://github.com/aurelia/aurelia/pull/2412) [`b2d8766`](https://github.com/aurelia/aurelia/commit/b2d87663aff992bd2a21c3f487e2135ec322b611) Thanks [@bigopon](https://github.com/bigopon)! - Improve TypeScript inference for dialog results and decorator callbacks:
+  
+  - `DialogOpenPromise.whenClosed()` now resolves to `DialogCloseResult` when called without handlers and correctly infers fulfillment and rejection callback result types.
+  - `@watch` now carries the watched expression's value type into handler parameters, including the previous value and decorated instance.
+  - `@computed` dependency callbacks now infer the decorated class instance and return a typed getter or method decorator instead of `any`.
+- [#2441](https://github.com/aurelia/aurelia/pull/2441) [`08e2a10`](https://github.com/aurelia/aurelia/commit/08e2a105698b2b3cac1b06ea3ecfa866a93e923e) Thanks [@fkleuver](https://github.com/fkleuver)! - Object-form route configurations now preserve a component's static `nav` value when no explicit override is supplied.
+  
+  Routes without an explicit or static `id` now derive it from their primary effective path, including path overrides supplied by child route configuration or `getRouteConfig`.
+- [#2413](https://github.com/aurelia/aurelia/pull/2413) [`6d86c8c`](https://github.com/aurelia/aurelia/commit/6d86c8c8ee6a4cc4761e1ed2bbce5002679ffcde) Thanks [@bigopon](https://github.com/bigopon)! - Routed content now renders correctly through `<au-viewport containerless>`, including through nested containerless viewports and when the routed component is also containerless.
+- [#2418](https://github.com/aurelia/aurelia/pull/2418) [`b070950`](https://github.com/aurelia/aurelia/commit/b070950694098cf1e3e67b15d04030266aebdcff) Thanks [@Sayan751](https://github.com/Sayan751)! - Fix cold-start deep links to child routes nested beneath an empty-path parent. The router now passes the remaining URL to the matched parent's child routes instead of prematurely reporting an unknown route at the root.
+- [#2427](https://github.com/aurelia/aurelia/pull/2427) [`c8b0b78`](https://github.com/aurelia/aurelia/commit/c8b0b78dc25bffba1175efd56be1a824ce2b6467) Thanks [@Vheissu](https://github.com/Vheissu)! - `RouteNode.title` is now writable, allowing lifecycle and router hooks to update a route node's title part during navigation.
+- [#2450](https://github.com/aurelia/aurelia/pull/2450) [`925db67`](https://github.com/aurelia/aurelia/commit/925db675385e6076da187994f84de751f290ec27) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix conventional template pairing for classes containing `$au` in strings or other non-resource code. Only an actual static `$au` property now selects the static resource-definition path.
+- [#2410](https://github.com/aurelia/aurelia/pull/2410) [`ebe877c`](https://github.com/aurelia/aurelia/commit/ebe877c5c5917eb34f878eb3d639a5d18ad665ce) Thanks [@bigopon](https://github.com/bigopon)! - Fix `virtual-repeat` collection observation when its iterable is wrapped in a value converter or binding behavior. Mutations to the original collection now re-evaluate the wrapped expression and refresh the rendered views even when the wrapper returns a different collection instance.
+- [#2417](https://github.com/aurelia/aurelia/pull/2417) [`f8f765f`](https://github.com/aurelia/aurelia/commit/f8f765fb2a0f04e6d58c4197f0cec6d3fac774bb) Thanks [@bigopon](https://github.com/bigopon)! - Fix Vite builds that use custom `--mode` names. HTML imports are now rewritten whenever Vite runs the `build` command, so compiled templates—including templates for lazy-loaded routes—are no longer omitted when the mode is not literally `production`.
+- [#2419](https://github.com/aurelia/aurelia/pull/2419) [`b680eb5`](https://github.com/aurelia/aurelia/commit/b680eb5337dd985cb6c1796c2c5a1468e874626f) Thanks [@bigopon](https://github.com/bigopon)! - Fix Aurelia development-package resolution in Vite so it no longer adds the global `development` export condition. When development imports are enabled, only bare imports of `aurelia` and `@aurelia/<package>` are redirected to their `/development` subpaths, preserving the correct browser exports for third-party dependencies.
+- [#2420](https://github.com/aurelia/aurelia/pull/2420) [`d603f42`](https://github.com/aurelia/aurelia/commit/d603f426fdb0bd68af92090b0f65b630aec3eca6) Thanks [@bigopon](https://github.com/bigopon)! - Fix source filtering on Windows when Vite reports an absolute module ID whose drive-letter casing differs from the current working directory. The plugin now normalizes the drive letter before include/exclude matching so eligible Aurelia source files are transformed instead of skipped.
+- [#2401](https://github.com/aurelia/aurelia/pull/2401) [`083d25f`](https://github.com/aurelia/aurelia/commit/083d25fc9735b8a292209c2b75067e9a1d4e408f) Thanks [@Sayan751](https://github.com/Sayan751)! - Encoded parameter values in child routes are now handled correctly, including values containing spaces, symbols, and Unicode characters. Fixes #2398.
+- [#2448](https://github.com/aurelia/aurelia/pull/2448) [`1f4fe5b`](https://github.com/aurelia/aurelia/commit/1f4fe5bb4d5293f2a3c270fa728caf49d2541d95) Thanks [@fkleuver](https://github.com/fkleuver)! - Shallow object destructuring and property aliases in `repeat.for` declarations now create reactive locals that follow the source item without writing local assignments back to it. Reused rows reconnect those locals when their item is replaced, and unsupported targets report `AUR0177` instead of creating invalid locals.
+- [#2396](https://github.com/aurelia/aurelia/pull/2396) [`72558aa`](https://github.com/aurelia/aurelia/commit/72558aa05aaf2b4131c4502684f894e49ef91a83) Thanks [@Sayan751](https://github.com/Sayan751)! - Hash-based routing now handles navigation to an empty-path root route. Fixes #2393.
+- [#2421](https://github.com/aurelia/aurelia/pull/2421) [`15d6454`](https://github.com/aurelia/aurelia/commit/15d64548647033c724ed99318eccdfcc5783877f) Thanks [@fkleuver](https://github.com/fkleuver)! - Prevent large finite task queue workloads from falsely triggering the recursive deadlock guard. Applications can now queue very large finite batches, including work that queues more work during a drain, without hitting a deadlock error merely because the batch is large.
+  
+  Automatic `queueTask` drains now process work in timed slices and continue through host timer turns until the queue is idle. This gives the browser opportunities to paint and process input during unusually large flushes. As a result, code that needs to observe the completion of all queued work should use `tasksSettled()` instead of assuming that one microtask turn is always enough for very large automatic drains. Manual `runTasks()` calls remain synchronous and keep an internal deadlock guard for low-level tests and diagnostics.
+  
+  The task queue error surface is also more explicit. Multiple failures now reject or throw a `TaskQueueAggregateError`, which extends `AggregateError`, preserves the original errors in order, sets `cause` to the first error, and includes a more useful message with the error count and a short preview. Unobserved automatic queue errors are reported and cleared so later `tasksSettled()` cycles start fresh instead of failing with stale errors.
+  
+  Because automatic drains may now continue after other host events have run, delayed runtime-html work now re-checks lifecycle state before mutating DOM state. Queued layout writes and `show` updates no-op when their binding, controller, or attribute has already been torn down.
+- [#2387](https://github.com/aurelia/aurelia/pull/2387) [`3bd0cb0`](https://github.com/aurelia/aurelia/commit/3bd0cb0c920c9d55baef5e3abd9075d894fcf421) Thanks [@Sayan751](https://github.com/Sayan751)! - The built-in email validation rule is now deprecated because its pattern does not comply with RFC 5322 or RFC 6532.
+  
+  It is recommended to apply an RFC-compliant email address parser in a custom rule via `.satisfiesRule()` or `.satisfies()` instead.
+- [#2446](https://github.com/aurelia/aurelia/pull/2446) [`dfb4edf`](https://github.com/aurelia/aurelia/commit/dfb4edfc6aca1ba76b0759a0edfde3ff15e58453) Thanks [@bigopon](https://github.com/bigopon)! - Underscores in `<let>` binding targets are now preserved instead of being converted to camel case.
+
+### Affected Packages
+
+The following packages have direct changes:
+
+- `@aurelia/dialog`
+- `@aurelia/expression-parser`
+- `@aurelia/kernel`
+- `@aurelia/plugin-conventions`
+- `@aurelia/route-recognizer`
+- `@aurelia/router`
+- `@aurelia/runtime`
+- `@aurelia/runtime-html`
+- `@aurelia/template-compiler`
+- `@aurelia/ui-virtualization`
+- `@aurelia/validation`
+- `@aurelia/vite-plugin`
+
+All packages in the fixed release group will be versioned together.
+
 ## 2.0.0-rc.1
 
 ### Minor Changes

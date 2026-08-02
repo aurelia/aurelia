@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2387](https://github.com/aurelia/aurelia/pull/2387) [`3bd0cb0`](https://github.com/aurelia/aurelia/commit/3bd0cb0c920c9d55baef5e3abd9075d894fcf421) Thanks [@Sayan751](https://github.com/Sayan751)! - The built-in email validation rule is now deprecated because its pattern does not comply with RFC 5322 or RFC 6532.
+
+  It is recommended to apply an RFC-compliant email address parser in a custom rule via `.satisfiesRule()` or `.satisfies()` instead.
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2401](https://github.com/aurelia/aurelia/pull/2401) [`083d25f`](https://github.com/aurelia/aurelia/commit/083d25fc9735b8a292209c2b75067e9a1d4e408f) Thanks [@Sayan751](https://github.com/Sayan751)! - Encoded parameter values in child routes are now handled correctly, including values containing spaces, symbols, and Unicode characters. Fixes #2398.
+
 ## 2.0.0-rc.1
 
 ### Minor Changes

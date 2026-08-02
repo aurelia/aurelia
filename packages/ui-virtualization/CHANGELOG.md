@@ -1,5 +1,15 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Minor Changes
+
+- [#2409](https://github.com/aurelia/aurelia/pull/2409) [`4c1f7f3`](https://github.com/aurelia/aurelia/commit/4c1f7f3fc77228797e1da24b5ecd3f93682aee79) Thanks [@bigopon](https://github.com/bigopon)! - Add a `gap` option to `virtual-repeat` for layouts with fixed spacing between items. Configure the gap separately from `item-height` or `item-width`; vertical and horizontal spacer and scroll-position calculations now account for that spacing.
+
+### Patch Changes
+
+- [#2410](https://github.com/aurelia/aurelia/pull/2410) [`ebe877c`](https://github.com/aurelia/aurelia/commit/ebe877c5c5917eb34f878eb3d639a5d18ad665ce) Thanks [@bigopon](https://github.com/bigopon)! - Fix `virtual-repeat` collection observation when its iterable is wrapped in a value converter or binding behavior. Mutations to the original collection now re-evaluate the wrapped expression and refresh the rendered views even when the wrapper returns a different collection instance.
+
 ## 2.0.0-rc.1
 
 ## 2.0.0-rc.0

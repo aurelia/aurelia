@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [#2438](https://github.com/aurelia/aurelia/pull/2438) [`e7cf404`](https://github.com/aurelia/aurelia/commit/e7cf404e0fcf66fa91fb28d2ad5917170813f9f2) Thanks [@fkleuver](https://github.com/fkleuver)! - Resolving an interface without a registration or default implementation now reports `AUR0012`. Using `newInstanceOf` or `newInstanceForScope` instead reports `AUR0017`, even if another interface with a default implementation was resolved first.
+
+- [#2440](https://github.com/aurelia/aurelia/pull/2440) [`95604cd`](https://github.com/aurelia/aurelia/commit/95604cdbcbef37111d73c3c6e63d5da87a5649f9) Thanks [@fkleuver](https://github.com/fkleuver)! - Fix DI metadata inheritance so derived classes honor their own `static inject` and `@inject` declarations without reusing or mutating base-class dependency metadata.
+
 ## 2.0.0-rc.1
 
 ## 2.0.0-rc.0

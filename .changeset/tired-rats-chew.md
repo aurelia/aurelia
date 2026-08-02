@@ -2,4 +2,4 @@
 "@aurelia/template-compiler": patch
 ---
 
-dont apply camelcase for \_ for let bindings
+Underscores in `<let>` binding targets are now preserved instead of being converted to camel case.

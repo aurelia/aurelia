@@ -2,8 +2,8 @@
 "@aurelia/validation": patch
 ---
 
-chore(validation): deprecated the email rule
+The built-in email validation rule is now deprecated because its pattern does not comply with RFC 5322 or RFC 6532.
 
-The non-RFC-compliant email rule is now deprecated. It is recommended to apply a RFC compliant email address parser in a custom rule via `.satisfiesRule()` or `.satisfies()` instead.
+It is recommended to apply an RFC-compliant email address parser in a custom rule via `.satisfiesRule()` or `.satisfies()` instead.
 
 pr: #2387

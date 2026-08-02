@@ -2,4 +2,4 @@
 "@aurelia/runtime-html": patch
 ---
 
-Remove the obsolete `define` component lifecycle declaration. The runtime hook was removed previously but remained exposed through types and documentation.
+The obsolete `define` component lifecycle hook has been removed from the public types and documentation. The runtime had already stopped invoking it.

@@ -2,6 +2,6 @@
 "@aurelia/router": patch
 ---
 
-fix(router): returning false from canUnload did not restore the route-context.
+Cancelling navigation by returning `false` from `canUnload` now restores the route-context's node.
 
 pr: #2431

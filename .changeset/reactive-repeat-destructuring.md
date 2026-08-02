@@ -3,4 +3,4 @@
 "@aurelia/runtime-html": patch
 ---
 
-Make shallow object destructuring and aliases in repeat declarations reactive. Reused rows now reconnect their locals to replacement items, and invalid object targets report AUR0177 instead of silently producing invalid locals.
+Shallow object destructuring and property aliases in `repeat.for` declarations now create reactive locals that follow the source item without writing local assignments back to it. Reused rows reconnect those locals when their item is replaced, and unsupported targets report `AUR0177` instead of creating invalid locals.

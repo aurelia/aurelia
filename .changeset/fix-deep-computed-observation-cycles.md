@@ -6,4 +6,4 @@ Deep computed observation now traverses cyclic object, array, map, and set graph
 
 Computed observers now finish queued reconciliation without retaining dependencies after their final subscriber detaches.
 
-Setter-backed computed properties no longer suppress assignments based on dirty or detached cached values, and successful assignments invalidate the cached getter value even when the setter updates otherwise unobservable state.
+Setter-backed computed properties no longer suppress assignments based on dirty or detached cached values. Successful assignments also invalidate the cached getter value when the setter updates otherwise unobservable state.

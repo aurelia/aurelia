@@ -2,8 +2,6 @@
 "@aurelia/router": patch
 ---
 
-fix(router): empty path handling for hash-based setup
-
-fixes: #2393
+Hash-based routing now handles navigation to an empty-path root route. Fixes #2393.
 
 pr: #2396

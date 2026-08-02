@@ -1,8 +1,8 @@
 import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement, ILocation } from '@aurelia/runtime-html';
+import { CustomElement, customElement, ILocation, IWindow } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
-import { resolve } from '@aurelia/kernel';
+import { Registration, resolve } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 
 describe('router/resources/load.spec.ts', function () {
@@ -671,11 +671,32 @@ describe('router/resources/load.spec.ts', function () {
     })
     class Root { }
 
-    const { au, host } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo] });
+    const { au, host } = await start({
+      appRoot: Root,
+      useHash: true,
+      registrations: [
+        CeOne,
+        CeTwo,
+        Registration.instance(IWindow, {
+          document: {
+            baseURI: 'https://portal.example.com/app/',
+          },
+          removeEventListener() { /** noop */ },
+          addEventListener() { /** noop */ },
+        }),
+      ],
+    });
     await tasksSettled();
 
     const anchors = Array.from(host.querySelectorAll('a'));
-    assert.deepStrictEqual(anchors.map(a => a.getAttribute('href')), ['/#/ce-one', '/#/ce-two', '/#/ce-two']);
+    assert.deepStrictEqual(
+      anchors.map(a => a.href),
+      [
+        'https://portal.example.com/app/#/ce-one',
+        'https://portal.example.com/app/#/ce-two',
+        'https://portal.example.com/app/#/ce-two',
+      ],
+    );
 
     anchors[1].click();
     await tasksSettled();

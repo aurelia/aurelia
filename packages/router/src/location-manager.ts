@@ -109,10 +109,7 @@ export class BrowserLocationManager {
   }
 
   public removeBaseHref(path: string): string {
-    const basePath = this._baseHref.pathname;
-    if (path.startsWith(basePath)) {
-      path = path.slice(basePath.length);
-    }
+    path = removeBasePath(path, this._baseHref.pathname);
 
     if (this._useUrlFragmentHash && path.startsWith('#')) {
       path = path.slice(1);
@@ -151,6 +148,35 @@ export function normalizePath(path: string): string {
 
 function normalizeQuery(query: string): string {
   return query.length > 0 && !query.startsWith('?') ? `?${query}` : query;
+}
+
+/**
+ * Strip one deployment-base occurrence from a location-shaped string.
+ *
+ * This is a path-boundary check, not an arbitrary prefix check: `/app` matches
+ * `/app`, `/app/...`, `/app?...`, and `/app#...`, but not `/apple`. A trailing
+ * slash is ignored for non-root bases. Root remains special because consuming
+ * `/` also consumes the spelling that denotes an application-root instruction;
+ * callers that need that meaning must retain it before stripping.
+ *
+ * This operation has no input-provenance information, so it cannot distinguish
+ * a base-qualified location from an already-rebased route whose first segment
+ * happens to equal the base.
+ */
+function removeBasePath(path: string, basePath: string): string {
+  if (basePath.length === 0) return path;
+  if (basePath.length > 1 && basePath.endsWith('/')) {
+    basePath = basePath.slice(0, -1);
+  }
+
+  const hasBasePath = basePath === '/'
+    ? path.startsWith('/')
+    : path === basePath
+      || path.startsWith(`${basePath}/`)
+      || path.startsWith(`${basePath}?`)
+      || path.startsWith(`${basePath}#`);
+
+  return hasBasePath ? path.slice(basePath.length) : path;
 }
 
 /**
@@ -203,9 +229,6 @@ export class ServerLocationManager {
   }
 
   public removeBaseHref(path: string): string {
-    if (path.startsWith(this._baseHref)) {
-      path = path.slice(this._baseHref.length);
-    }
-    return normalizePath(path);
+    return normalizePath(removeBasePath(path, this._baseHref));
   }
 }

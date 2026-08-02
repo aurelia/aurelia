@@ -421,9 +421,9 @@ export class Router {
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;

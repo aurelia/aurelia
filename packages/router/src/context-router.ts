@@ -104,9 +104,9 @@ export class ContextRouter {
     return this._router.generatePath(instructionOrInstructions, this._context);
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, parentRoutePath: string | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     return this._router.createViewportInstructions(instructionOrInstructions, { context: this._context, ...options }, parentRoutePath, traverseChildren as true);
   }
 

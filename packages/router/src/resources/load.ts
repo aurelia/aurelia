@@ -98,7 +98,12 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     }
 
     const hasHref = this._href !== null;
-    const url = hasHref ? (options.useUrlFragmentHash ? this._href : this._locationMgr.addBaseHref(this._href!)) : null;
+    // `toUrl` owns route serialization; the location manager owns the
+    // deployment base. In hash mode the serialized value is application-rooted
+    // (`/#/...`) but still not deployment-qualified. Materialize both modes
+    // here so `load` and `href`, including native or modified-click activation,
+    // target the same URL.
+    const url = hasHref ? this._locationMgr.addBaseHref(this._href!) : null;
     const controller = CustomElement.for(this._el, { optional: true });
     if (controller !== null) {
       (controller.viewModel as IIndexable)[this.attribute] = url;

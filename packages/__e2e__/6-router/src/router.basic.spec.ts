@@ -169,10 +169,13 @@ test.describe('router.basic', () => {
         await page.goto(`${baseURL}/?useUrlFragmentHash=true`);
       }
 
+      // `href1` is a native href. The remaining values are produced by `load`
+      // on an as-element anchor, a native anchor, and a button. Every surface
+      // must materialize the same application-qualified URL in both modes.
       const href1 = `${baseURL}${useUrlFragmentHash ? '/#' : ''}/sub/1`;
-      const href2 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/2`;
-      const href3 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/3`;
-      const href4 = `${useUrlFragmentHash ? '/#' : baseURL}/sub/4`;
+      const href2 = `${baseURL}${useUrlFragmentHash ? '/#' : ''}/sub/2`;
+      const href3 = `${baseURL}${useUrlFragmentHash ? '/#' : ''}/sub/3`;
+      const href4 = `${baseURL}${useUrlFragmentHash ? '/#' : ''}/sub/4`;
 
       await test.step('navigates to sub route', async () => {
         await page.click('a:has-text("Sub")');

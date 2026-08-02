@@ -1,5 +1,5 @@
 import { lazy, optional, resolve } from '@aurelia/kernel';
-import { IContextRouter, route } from '@aurelia/router';
+import { IContextRouter, IRouteContext, route } from '@aurelia/router';
 import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
@@ -9,6 +9,7 @@ describe('router/context-router.spec.ts', function () {
   abstract class BaseViewModel {
     public readonly lazyContextRouter: () => IContextRouter = resolve(lazy(IContextRouter));
     public readonly contextRouter?: IContextRouter = resolve(optional(IContextRouter));
+    public readonly routeContext?: IRouteContext = resolve(optional(IRouteContext));
   }
 
   it('captures context and enables context-specific routing', async function () {
@@ -61,7 +62,26 @@ describe('router/context-router.spec.ts', function () {
     assert.html.textContent(host, 'root c-11 gc-12', 'round#2');
 
     let grandChildVm = CustomElement.for<Gc12>(host.querySelector('gc-12')!).viewModel;
-    await grandChildVm.contextRouter.load('../gc1');
+    const siblingInstructions = Object.freeze([
+      Object.freeze({ component: '../gc1', recognizedRoute: null }),
+      Object.freeze({ component: '../gc2', recognizedRoute: null }),
+    ]);
+    const siblingTree = grandChildVm.contextRouter.createViewportInstructions(siblingInstructions, null, null);
+    assert.strictEqual(siblingTree.options.context, childVm.routeContext, 'sibling instructions share the rebased parent context');
+    assert.deepStrictEqual(
+      siblingTree.children.map(instruction => instruction.component.toUrlComponent()),
+      ['gc1', 'gc2'],
+      'later sibling prefixes are consumed without cumulative traversal',
+    );
+    assert.deepStrictEqual(
+      siblingInstructions.map(instruction => instruction.component),
+      ['../gc1', '../gc2'],
+      'sibling inputs remain unchanged',
+    );
+
+    const frozenViewportInstruction = Object.freeze({ component: '../gc1', recognizedRoute: null });
+    await grandChildVm.contextRouter.load(frozenViewportInstruction);
+    assert.strictEqual(frozenViewportInstruction.component, '../gc1', 'round#3 instruction remains unchanged');
     assert.html.textContent(host, 'root c-11 gc-11', 'round#3');
 
     grandChildVm = CustomElement.for<Gc11>(host.querySelector('gc-11')!).viewModel;
@@ -69,7 +89,9 @@ describe('router/context-router.spec.ts', function () {
     assert.html.textContent(host, 'root c-12 gc-14', 'round#4');
 
     childVm = CustomElement.for<C12>(host.querySelector('c-12')!).viewModel;
-    await childVm.contextRouter.load('gc1');
+    const frozenInstructions = Object.freeze(['gc1']);
+    await childVm.contextRouter.load(frozenInstructions);
+    assert.deepStrictEqual(frozenInstructions, ['gc1'], 'round#5 instructions remain unchanged');
     assert.html.textContent(host, 'root c-12 gc-13', 'round#5');
 
     await au.stop(true);

@@ -1,10 +1,9 @@
-import * as path from 'path';
 import { type ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 import { resourceName } from './resource-name';
-import { fileExists } from './file-exists';
 import { modifyCode } from './modify-code';
+import { basename, extname } from './path-utils';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
@@ -18,7 +17,7 @@ export function preprocessHtmlTemplate(
   unit: IFileUnit,
   options: IPreprocessOptions,
   hasViewModel?: boolean,
-  _fileExists = fileExists,
+  fileExists: (unit: IFileUnit, path: string) => boolean = () => false,
 ): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
@@ -26,8 +25,8 @@ export function preprocessHtmlTemplate(
   let { shadowMode } = stripped;
 
   if (unit.filePair) {
-    const basename = path.basename(unit.filePair, path.extname(unit.filePair));
-    if (!deps.some(dep => options.cssExtensions.some(e => dep === `./${basename}${e}`))) {
+    const fileName = basename(unit.filePair, extname(unit.filePair));
+    if (!deps.some(dep => options.cssExtensions.some(e => dep === `./${fileName}${e}`))) {
       // implicit dep ./foo.css for foo.html
       deps.unshift(`./${unit.filePair}`);
     }
@@ -52,15 +51,15 @@ export function preprocessHtmlTemplate(
 
   deps.forEach((d, i) => {
     const aliases = depsAliases[d] ?? {};
-    let ext = path.extname(d);
+    let ext = extname(d);
 
     if (!ext) {
       // When possible, fill up explicit file extension.
       // Parcel requires this to work.
       // https://github.com/aurelia/aurelia/issues/1657
-      if (_fileExists(unit, `${d}.ts`)) {
+      if (fileExists(unit, `${d}.ts`)) {
         ext = '.ts';
-      } else if (_fileExists(unit, `${d}.js`)) {
+      } else if (fileExists(unit, `${d}.js`)) {
         ext = '.js';
       }
       d = d + ext;
@@ -106,7 +105,7 @@ export function preprocessHtmlTemplate(
         const stringModuleId = options.stringModuleWrap ? options.stringModuleWrap(d) : d;
         statements.push(`import d${i} from ${s(stringModuleId)};\n`);
         cssDeps.push(`d${i}`);
-      } else if (useCSSModule || path.basename(d, ext).endsWith('.module')) {
+      } else if (useCSSModule || basename(d, ext).endsWith('.module')) {
         statements.push(`import d${i} from ${s(d)};\n`);
         cssModuleDeps.push(`d${i}`);
       } else {
@@ -126,7 +125,7 @@ export function preprocessHtmlTemplate(
   });
 
   const m = modifyCode('', unit.path);
-  const hmrEnabled = !hasViewModel && options.hmr && process.env.NODE_ENV !== 'production';
+  const hmrEnabled = !hasViewModel && options.hmr && options.isDev;
   m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
   if (cssDeps.length > 0 && shadowMode !== null) {
     m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);
@@ -203,4 +202,3 @@ export function register(container) {
 function s(input: unknown) {
   return JSON.stringify(input);
 }
-

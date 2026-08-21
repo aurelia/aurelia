@@ -1,4 +1,5 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import { getOptions } from 'loader-utils';
 import type webpack from 'webpack';
 
@@ -27,8 +28,10 @@ export function loader(
       { path: filePath, contents },
       preprocessOptions({
         ...options,
+        isDev: this.mode !== 'production',
         getHmrCode
-      })
+      }),
+      nodeFileUnitHost
     );
     // webpack uses source-map 0.6.1 typings for RawSourceMap which
     // contains typing error version: string (should be number).

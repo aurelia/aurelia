@@ -1,8 +1,52 @@
 import * as path from 'path';
-import { preprocess, IFileUnit } from '@aurelia/plugin-conventions';
+import * as fs from 'fs';
+import * as os from 'os';
+import { preprocess, IFileUnit, IFileUnitHost } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import { assert } from '@aurelia/testing';
 
+function host(fileExists: IFileUnitHost['fileExists']): IFileUnitHost {
+  return {
+    fileExists,
+    readFile: () => '',
+  };
+}
+
 describe('preprocess', function () {
+  it('produces the same output with in-memory and Node file hosts', function () {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'au-conventions-'));
+    const source = 'export class UserCard {}';
+    const template = '<template class="card">User</template>';
+    const style = '.card { display: block; }';
+    const memoryFiles = new Map([
+      ['/src/user-card.ts', source],
+      ['/src/user-card.html', template],
+      ['/src/user-card.css', style],
+    ]);
+    const memoryHost: IFileUnitHost = {
+      fileExists(unit, filePath) {
+        return memoryFiles.has(resolveMemoryPath(unit, filePath));
+      },
+      readFile(unit, filePath) {
+        return memoryFiles.get(resolveMemoryPath(unit, filePath))!;
+      },
+    };
+
+    try {
+      fs.writeFileSync(path.join(root, 'user-card.ts'), source);
+      fs.writeFileSync(path.join(root, 'user-card.html'), template);
+      fs.writeFileSync(path.join(root, 'user-card.css'), style);
+
+      const options = { hmr: false };
+      const memoryResult = preprocess({ path: '/src/user-card.ts', contents: source }, options, memoryHost)!;
+      const nodeResult = preprocess({ path: path.join(root, 'user-card.ts'), contents: source }, options, nodeFileUnitHost)!;
+
+      assert.equal(memoryResult.code, nodeResult.code);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('transforms html file', function () {
     const html = '<template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
@@ -19,7 +63,7 @@ export function register(container) {
   container.register(_e);
 }
 `;
-    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, () => false)!;
+    const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, host(() => false))!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
@@ -51,7 +95,7 @@ export function register(container) {
         hmr: false,
         enableConventions: true
       },
-      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.less'
+      host((unit: IFileUnit, filePath: string) => filePath === './foo-bar.less')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -85,7 +129,7 @@ export function register(container) {
         hmr: false,
         enableConventions: true
       },
-      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.module.less'
+      host((unit: IFileUnit, filePath: string) => filePath === './foo-bar.module.less')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -120,7 +164,7 @@ export function register(container) {
         hmr: false,
         enableConventions: true
       },
-      () => false
+      host(() => false)
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -155,7 +199,7 @@ export function register(container) {
         hmr: false,
         enableConventions: true
       },
-      (unit: IFileUnit, filePath: string) => filePath === './foo.ts'
+      host((unit: IFileUnit, filePath: string) => filePath === './foo.ts')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -166,7 +210,7 @@ export function register(container) {
     const result = preprocess(
       { path: path.join('src', 'foo.js'), contents: js },
       { hmr: false },
-      () => false
+      host(() => false)
     )!;
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
@@ -177,7 +221,7 @@ export function register(container) {
     const result = preprocess(
       { path: path.join('src', 'bar.js'), contents: js },
       { hmr: false },
-      (unit: IFileUnit, filePath: string) => filePath === './bar.html'
+      host((unit: IFileUnit, filePath: string) => filePath === './bar.html')
     )!;
     assert.equal(result.code, js);
     assert.equal(result.map.version, 3);
@@ -197,7 +241,7 @@ export class FooBar {}
         base: 'base'
       },
       { hmr: false },
-      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.html'
+      host((unit: IFileUnit, filePath: string) => filePath === './foo-bar.html')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -217,7 +261,7 @@ export class FooBar {}
         base: 'base'
       },
       { hmr: false },
-      (unit: IFileUnit, filePath: string) => filePath === './index.html'
+      host((unit: IFileUnit, filePath: string) => filePath === './index.html')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -301,7 +345,7 @@ export class FooBar {}`;
         contents: js
       },
       { hmr: false },
-      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.html'
+      host((unit: IFileUnit, filePath: string) => filePath === './foo-bar.html')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
@@ -385,9 +429,13 @@ export class FooBar {}`;
         contents: js
       },
       { hmr: false },
-      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.haml'
+      host((unit: IFileUnit, filePath: string) => filePath === './foo-bar.haml')
     )!;
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });
 });
+
+function resolveMemoryPath(unit: IFileUnit, filePath: string): string {
+  return path.posix.resolve(path.posix.dirname(unit.path), filePath);
+}

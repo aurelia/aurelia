@@ -1,10 +1,12 @@
 import { Transform } from 'stream';
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import * as Vinyl from 'vinyl';
 
 export default function (options: IOptionalPreprocessOptions = {}) {
   return plugin({
     ...options,
+    isDev: process.env.NODE_ENV !== 'production',
     useProcessedFilePairFilename: true,
     stringModuleWrap
   });
@@ -28,7 +30,8 @@ export function plugin(
             contents: file.contents.toString(),
             base: file.base
           },
-          allOptions
+          allOptions,
+          nodeFileUnitHost
         );
 
         if (result) {

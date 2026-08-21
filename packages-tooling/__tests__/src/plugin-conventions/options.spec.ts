@@ -11,6 +11,7 @@ describe('preprocessOptions', function () {
         templateExtensions: ['.haml', '.html', '.jade', '.md', '.pug', '.slim', '.slm'],
         useCSSModule: false,
         hmr: true,
+        isDev: true,
         enableConventions: true,
         experimentalTemplateTypeCheck: false,
         hmrModule: 'module'
@@ -31,6 +32,7 @@ describe('preprocessOptions', function () {
         templateExtensions: ['.haml', '.html', '.jade', '.markdown', '.md', '.pug', '.slim', '.slm'],
         useCSSModule: false,
         hmr: true,
+        isDev: true,
         enableConventions: true,
         experimentalTemplateTypeCheck: false,
         hmrModule: 'module'
@@ -58,6 +60,7 @@ describe('preprocessOptions', function () {
         useProcessedFilePairFilename: true,
         useCSSModule: false,
         hmr: true,
+        isDev: true,
         enableConventions: true,
         experimentalTemplateTypeCheck: false,
         hmrModule: 'module'
@@ -85,6 +88,7 @@ describe('preprocessOptions', function () {
         useCSSModule: true,
         useProcessedFilePairFilename: true,
         hmr: true,
+        isDev: true,
         enableConventions: true,
         experimentalTemplateTypeCheck: false,
         hmrModule: 'module'

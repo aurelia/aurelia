@@ -219,7 +219,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   });
 
   let m = modifyCode(unit.contents, unit.path);
-  const hmrEnabled = options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production';
+  const hmrEnabled = options.hmr && options.isDev && exportedClassMetadata;
 
   if (options.enableConventions || hmrEnabled) {
     if (runtimeImport.names.length) {
@@ -242,7 +242,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     templateMetadata: templateMetadata
   });
 
-  if (options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production') {
+  if (options.hmr && options.isDev && exportedClassMetadata) {
     if (options.getHmrCode) {
       m.append(options.getHmrCode(exportedClassMetadata.name, unit.path));
     }

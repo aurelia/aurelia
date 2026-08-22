@@ -75,6 +75,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       itemWithCount_other: '{{count}} items',
 
       html: 'this is a <i>HTML</i> content',
+      markupText: `<img onclick="document.body.dataset.i18nXss='fired'"><strong>markup</strong>&amp;`,
+      empty: '',
       pre: 'tic ',
       preHtml: '<b>tic</b><span>foo</span> ',
       mid: 'tac',
@@ -151,12 +153,93 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   function assertTextContent(host: INode, selector: string, translation: string, message?: string) {
     assert.equal((host as Element).querySelector(selector).textContent, translation, message);
   }
+
+  function assertTextOnlyContent(host: INode, selector: string, translation: string) {
+    const target = (host as Element).querySelector(selector);
+    assert.equal(target.textContent, translation);
+    assert.equal(target.children.length, 0, 'translation should not create elements');
+    assert.equal(target.childNodes.length, 1, 'translation should create one text node');
+    assert.equal(target.firstChild.nodeType, 3, 'translated content should be a text node');
+  }
   {
     @customElement({ name: 'app', template: `<span t='simple.text'></span>` })
     class App { }
 
     $it('works for simple string literal key', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span', translation.simple.text);
+    }, { component: App });
+  }
+  {
+    @customElement({
+      name: 'app',
+      template: `
+        <span id="default" t="markupText"></span>
+        <span id="explicit" t="[text]markupText"></span>
+      `,
+    })
+    class App { }
+
+    $it('renders markup-shaped default and [text] translations as literal text', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      assertTextOnlyContent(host, '#default', translation.markupText);
+      assertTextOnlyContent(host, '#explicit', translation.markupText);
+    }, { component: App });
+  }
+  {
+    @customElement({
+      name: 'app',
+      template: `
+        <span id="default" t="empty"><b>fallback</b></span>
+        <span id="text" t="[text]empty"><b>fallback</b></span>
+        <span id="html" t="[html]empty"><b>fallback</b></span>
+      `,
+    })
+    class App { }
+
+    $it('treats empty default, [text], and [html] translations as present content', async function ({ host }: I18nIntegrationTestContext<App>) {
+      for (const selector of ['#default', '#text', '#html']) {
+        const target = (host as Element).querySelector(selector);
+        assert.equal(target.textContent, '');
+        assert.equal(target.childNodes.length, 0, 'empty translation should remove fallback without adding a node');
+      }
+    }, { component: App });
+  }
+  {
+    @customElement({
+      name: 'app',
+      template: `
+        <span id="text-then-html" t="[text]markupText;[html]midHtml"></span>
+        <span id="html-then-text" t="[html]midHtml;[text]markupText"></span>
+        <span id="empty-html" t="[text]markupText;[html]empty"><b>fallback</b></span>
+      `,
+    })
+    class App { }
+
+    $it('prioritizes [html] over [text] independently of key order, including empty HTML', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      assert.equal((host as Element).querySelector('#text-then-html').innerHTML, translation.midHtml);
+      assert.equal((host as Element).querySelector('#html-then-text').innerHTML, translation.midHtml);
+      assert.equal((host as Element).querySelector('#empty-html').childNodes.length, 0);
+    }, { component: App });
+  }
+  {
+    @customElement({ name: 'app', template: `<span t.bind="key"></span>` })
+    class App {
+      public key: string = 'markupText';
+    }
+
+    $it('remains safe when switching between text and HTML translation modes', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      assertTextOnlyContent(host, 'span', translation.markupText);
+
+      app.key = '[html]midHtml';
+      await tasksSettled();
+      assert.equal((host as Element).querySelector('span').innerHTML, translation.midHtml);
+
+      app.key = '[text]markupText';
+      await tasksSettled();
+      assertTextOnlyContent(host, 'span', translation.markupText);
+
+      app.key = 'empty';
+      await tasksSettled();
+      assert.equal((host as Element).querySelector('span').childNodes.length, 0);
     }, { component: App });
   }
   {

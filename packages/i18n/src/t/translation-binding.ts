@@ -307,21 +307,34 @@ export class TranslationBinding implements IBinding {
   private _prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
     const template = this._platform.document.createElement('template');
 
-    this._addContentToTemplate(template, content.prepend, marker);
+    this._addHtmlContentToTemplate(template, content.prepend, marker);
 
-    // build content: prioritize [html], then textContent, and falls back to original content
-    if (!this._addContentToTemplate(template, content.innerHTML ?? content.textContent, marker)) {
+    // Only explicit [html] content is parsed. Default and [text] translations stay literal,
+    // while prepend and append retain their documented HTML-capable behavior.
+    let hasContent = false;
+    if (content.innerHTML != null) {
+      hasContent = this._addHtmlContentToTemplate(template, content.innerHTML, marker);
+    } else if (content.textContent != null) {
+      if (content.textContent.length > 0) {
+        const textNode = this._platform.document.createTextNode(content.textContent);
+        Reflect.set(textNode, marker, true);
+        template.content.append(textNode);
+      }
+      hasContent = true;
+    }
+
+    if (!hasContent) {
       for (const fallbackContent of fallBackContents) {
         template.content.append(fallbackContent);
       }
     }
 
-    this._addContentToTemplate(template, content.append, marker);
+    this._addHtmlContentToTemplate(template, content.append, marker);
     return template;
   }
 
   /** @internal */
-  private _addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
+  private _addHtmlContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
     if (content !== void 0 && content !== null) {
       const parser = this._platform.document.createElement('div');
       parser.innerHTML = content;

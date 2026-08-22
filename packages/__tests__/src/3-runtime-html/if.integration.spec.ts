@@ -1,14 +1,18 @@
+import { Registration } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import {
+  Aurelia,
   CustomAttribute,
   CustomElement,
   ICustomElementViewModel,
   IHydratedController,
+  ISSRContext,
+  type ISSRScope,
   customAttribute,
   customElement,
 } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
 import {
-  assert, createFixture
+  assert, createFixture, TestContext
 } from '@aurelia/testing';
 
 describe(`3-runtime-html/if.integration.spec.ts`, function () {
@@ -586,6 +590,90 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching', 'd:attaching:resolved']);
       assert.strictEqual(detachResolved, 1);
       assert.strictEqual(attachResolved, 1);
+    });
+
+    it('hydrates an SSR-rendered else-if branch and continues the chain on updates', async function () {
+      class App {
+        public step = 1;
+      }
+
+      const AppElement = CustomElement.define({
+        name: 'app',
+        template: [
+          '<div if.bind="step === 0" data-branch="a">a</div>',
+          '<div else if.bind="step === 1" data-branch="b">b</div>',
+          '<div else if.bind="step === 2" data-branch="c">c</div>',
+          '<div else data-branch="d">d</div>',
+        ].join(''),
+      }, App);
+
+      const serverCtx = TestContext.create();
+      serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+      const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('app'));
+      const serverAu = new Aurelia(serverCtx.container).app({ host: serverHost, component: AppElement });
+      let ssrMarkup: string;
+      try {
+        await serverAu.start();
+        ssrMarkup = serverHost.innerHTML;
+      } finally {
+        await serverAu.stop(true);
+        serverAu.dispose();
+        serverHost.remove();
+      }
+
+      const clientCtx = TestContext.create();
+      const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement('app'));
+      clientHost.innerHTML = ssrMarkup;
+      const ssrBranch = clientHost.querySelector('[data-branch="b"]');
+      assert.notStrictEqual(ssrBranch, null);
+
+      const ssrScope: ISSRScope = {
+        name: 'app',
+        children: [{
+          type: 'if',
+          state: { value: false },
+          views: [{
+            nodeCount: 1,
+            children: [{
+              type: 'if',
+              state: { value: true },
+              views: [{ nodeCount: 1, children: [] }],
+            }],
+          }],
+        }],
+      };
+
+      const clientAu = new Aurelia(clientCtx.container);
+      const assertText = (text: string) => assert.strictEqual(clientHost.textContent, text);
+
+      try {
+        const root = await clientAu.hydrate({ host: clientHost, component: AppElement, ssrScope });
+        try {
+          const component = root.controller.viewModel as App;
+          const hydratedBranch = clientHost.querySelector('[data-branch="b"]');
+
+          assert.strictEqual(hydratedBranch, ssrBranch, 'the SSR else-if branch should be adopted, not cloned');
+          assertText('b');
+
+          component.step = 2;
+          await tasksSettled();
+          assertText('c');
+
+          component.step = 3;
+          await tasksSettled();
+          assertText('d');
+
+          component.step = 0;
+          await tasksSettled();
+          assertText('a');
+        } finally {
+          await root.deactivate();
+          root.dispose();
+        }
+      } finally {
+        clientAu.dispose();
+        clientHost.remove();
+      }
     });
 
     it('throws when else has no preceding if', function () {

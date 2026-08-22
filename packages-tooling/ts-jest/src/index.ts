@@ -1,5 +1,5 @@
-import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
+import { IOptionalPreprocessOptions, preprocess, preprocessAsync, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost, nodeFileUnitHostAsync } from '@aurelia/plugin-conventions/node';
 import tsJest, { TsJestTransformerOptions } from 'ts-jest';
 import * as TsJest from 'ts-jest';
 import type { TransformOptions, TransformedSource } from '@jest/transform';
@@ -21,10 +21,26 @@ const $createTransformer = (typeof tsJest.createTransformer === 'function'
 const tsTransformer = $createTransformer({ isolatedModules: true });
 
 function _createTransformer(
+  conventionsOptions?: {},
+  _preprocess?: typeof preprocess,
+  _tsProcess?: (
+    sourceText: string,
+    sourcePath: string,
+    transformOptions: TsJest.TsJestTransformOptions
+  ) => TransformedSource,
+): {
+  canInstrument: boolean;
+  getCacheKey: (fileData: string, filePath: string, options: TransformOptions<TsJestTransformerOptions>) => string;
+  process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<TsJestTransformerOptions>) => TransformedSource;
+  processAsync: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<TsJestTransformerOptions>) => Promise<TransformedSource>;
+};
+function _createTransformer(
   conventionsOptions = {},
   // for testing
   _preprocess = preprocess,
-  _tsProcess = tsTransformer.process.bind(tsTransformer)
+  _tsProcess = tsTransformer.process.bind(tsTransformer),
+  _preprocessAsync = preprocessAsync,
+  _tsProcessAsync = tsTransformer.processAsync?.bind(tsTransformer)
 ) {
   const au2Options = preprocessOptions({
     isDev: env.NODE_ENV !== 'production',
@@ -64,10 +80,37 @@ function _createTransformer(
     return _tsProcess(sourceText, sourcePath, transformOptions);
   }
 
+  async function processAsync(
+    sourceText: string,
+    sourcePath: string,
+    transformOptions:  TransformOptions<TsJestTransformerOptions>
+  ): Promise<TransformedSource> {
+    const result = await _preprocessAsync(
+      { path: sourcePath, contents: sourceText },
+      au2Options,
+      nodeFileUnitHostAsync
+    );
+    let newSourcePath = sourcePath;
+    if (result !== undefined) {
+      let newCode = result.code;
+      if (au2Options.templateExtensions.includes(path.extname(sourcePath))) {
+        newSourcePath += '.ts';
+        newCode = `// @ts-nocheck\n${newCode}`;
+      }
+      return _tsProcessAsync != null
+        ? _tsProcessAsync(newCode, newSourcePath, transformOptions)
+        : Promise.resolve(_tsProcess(newCode, newSourcePath, transformOptions));
+    }
+    return _tsProcessAsync != null
+      ? _tsProcessAsync(sourceText, sourcePath, transformOptions)
+      : Promise.resolve(_tsProcess(sourceText, sourcePath, transformOptions));
+  }
+
   return {
     canInstrument: false,
     getCacheKey,
-    process
+    process,
+    processAsync
   };
 }
 

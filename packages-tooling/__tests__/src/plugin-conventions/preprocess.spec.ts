@@ -1,14 +1,21 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { preprocess, IFileUnit, IFileUnitHost } from '@aurelia/plugin-conventions';
-import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
+import { preprocess, preprocessAsync, IFileUnit, IFileUnitHost, IFileUnitHostAsync } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost, nodeFileUnitHostAsync } from '@aurelia/plugin-conventions/node';
 import { assert } from '@aurelia/testing';
 
 function host(fileExists: IFileUnitHost['fileExists']): IFileUnitHost {
   return {
     fileExists,
     readFile: () => '',
+  };
+}
+
+function hostAsync(fileExists: IFileUnitHostAsync['fileExists']): IFileUnitHostAsync {
+  return {
+    fileExists,
+    readFile: async () => '',
   };
 }
 
@@ -47,6 +54,43 @@ describe('preprocess', function () {
     }
   });
 
+  it('produces the same output with in-memory and Node async file hosts', async function () {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'au-conventions-'));
+    const source = 'export class UserCard {}';
+    const template = '<template class="card">User</template>';
+    const style = '.card { display: block; }';
+    const memoryFiles = new Map([
+      ['/src/user-card.ts', source],
+      ['/src/user-card.html', template],
+      ['/src/user-card.css', style],
+    ]);
+    const memoryHost: IFileUnitHostAsync = {
+      async fileExists(unit, filePath) {
+        return memoryFiles.has(resolveMemoryPath(unit, filePath));
+      },
+      async readFile(unit, filePath) {
+        return memoryFiles.get(resolveMemoryPath(unit, filePath))!;
+      },
+    };
+
+    try {
+      fs.writeFileSync(path.join(root, 'user-card.ts'), source);
+      fs.writeFileSync(path.join(root, 'user-card.html'), template);
+      fs.writeFileSync(path.join(root, 'user-card.css'), style);
+
+      const options = { hmr: false };
+      const memoryResult = await preprocessAsync({ path: '/src/user-card.ts', contents: source }, options, memoryHost);
+      const nodeResult = await preprocessAsync({ path: path.join(root, 'user-card.ts'), contents: source }, options, nodeFileUnitHostAsync);
+
+      if (memoryResult == null || nodeResult == null) {
+        throw new Error('Expected preprocessAsync to produce a result.');
+      }
+      assert.equal(memoryResult.code, nodeResult.code);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('transforms html file', function () {
     const html = '<template></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
@@ -64,6 +108,30 @@ export function register(container) {
 }
 `;
     const result = preprocess({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, host(() => false))!;
+    assert.equal(result.code, expected);
+    assert.equal(result.map.version, 3);
+  });
+
+  it('transforms html file asynchronously', async function () {
+    const html = '<template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [  ];
+export const bindables = {};
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = await preprocessAsync({ path: path.join('src', 'foo-bar.html'), contents: html }, { hmr: false, enableConventions: true }, hostAsync(async () => false));
+    if (result == null) {
+      throw new Error('Expected preprocessAsync to produce a result.');
+    }
     assert.equal(result.code, expected);
     assert.equal(result.map.version, 3);
   });

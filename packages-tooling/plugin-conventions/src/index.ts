@@ -4,10 +4,12 @@ export { preprocessResource } from './preprocess-resource';
 export { preprocessHtmlTemplate } from './preprocess-html-template';
 export { stripMetaData } from './strip-meta-data';
 export { preprocess } from './preprocess';
+export { preprocessAsync } from './preprocess-async';
 export {
   type INameConvention,
   type IFileUnit,
   type IFileUnitHost,
+  type IFileUnitHostAsync,
   type IOptionalPreprocessOptions,
   type IPreprocessOptions,
   defaultCssExtensions,

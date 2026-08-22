@@ -1,5 +1,5 @@
-import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
-import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
+import { IOptionalPreprocessOptions, preprocessAsync } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHostAsync } from '@aurelia/plugin-conventions/node';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
@@ -73,7 +73,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       // which already preprocessed by the load hook of this plugin
       if (isVirtualTsFileFromHtml(id)) return;
 
-      const result = preprocess({
+      const result = await preprocessAsync({
         path: id,
         contents: code,
       }, {
@@ -88,7 +88,7 @@ export default function au(options: AureliaPluginOptions = {}) {
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
-      }, nodeFileUnitHost);
+      }, nodeFileUnitHostAsync);
       return result;
     },
 
@@ -121,7 +121,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       }
       const htmlId = id.replace('.$au.ts', '.html');
       const code = await promises.readFile(htmlId, { encoding: 'utf-8' });
-      const result = preprocess({
+      const result = await preprocessAsync({
         path: htmlId,
         contents: code,
       }, {
@@ -130,7 +130,7 @@ export default function au(options: AureliaPluginOptions = {}) {
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
-      }, nodeFileUnitHost);
+      }, nodeFileUnitHostAsync);
       return result!.code;
     }
   };

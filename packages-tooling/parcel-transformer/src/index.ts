@@ -1,8 +1,8 @@
 import { Transformer } from '@parcel/plugin';
 import $SourceMap from '@parcel/source-map';
 import * as ParcelSourceMap from '@parcel/source-map';
-import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
+import { IOptionalPreprocessOptions, preprocessAsync, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHostAsync } from '@aurelia/plugin-conventions/node';
 // eslint-disable-next-line import/no-nodejs-modules
 import { relative, extname } from 'path';
 
@@ -43,13 +43,13 @@ export default new Transformer({
       return [asset];
     }
 
-    const result = preprocess(
+    const result = await preprocessAsync(
       {
         path: relative(options.projectRoot, asset.filePath.slice()),
         contents: source
       },
       auOptions,
-      nodeFileUnitHost
+      nodeFileUnitHostAsync
     );
 
     if (!result) {

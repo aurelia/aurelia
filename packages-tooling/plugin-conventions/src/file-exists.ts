@@ -28,3 +28,19 @@ export function readFile(unit: IFileUnit, relativeOrAbsolutePath: string): strin
   const p = resolveFilePath(unit, relativeOrAbsolutePath);
   return fs.readFileSync(p, 'utf-8');
 }
+
+export async function fileExistsAsync(unit: IFileUnit, relativeOrAbsolutePath: string): Promise<boolean> {
+  const p = resolveFilePath(unit, relativeOrAbsolutePath);
+
+  try {
+    const stats = await fs.promises.stat(p);
+    return stats.isFile();
+  } catch (e) {
+    return false;
+  }
+}
+
+export function readFileAsync(unit: IFileUnit, relativeOrAbsolutePath: string): Promise<string> {
+  const p = resolveFilePath(unit, relativeOrAbsolutePath);
+  return fs.promises.readFile(p, 'utf-8');
+}

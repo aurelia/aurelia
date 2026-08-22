@@ -16,11 +16,17 @@ export interface IFileUnit {
   // For foo.html (or other templates), this is foo.css or foo.scss or foo.sass or foo.less or foo.styl
   filePair?: string;
   readFile?(path: string): string;
+  readFileAsync?(path: string): Promise<string>;
 }
 
 export interface IFileUnitHost {
   fileExists(unit: IFileUnit, path: string): boolean;
   readFile(unit: IFileUnit, path: string): string;
+}
+
+export interface IFileUnitHostAsync {
+  fileExists(unit: IFileUnit, path: string): Promise<boolean>;
+  readFile(unit: IFileUnit, path: string): Promise<string>;
 }
 
 export interface IOptionalPreprocessOptions {

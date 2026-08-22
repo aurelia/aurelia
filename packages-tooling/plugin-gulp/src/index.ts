@@ -1,6 +1,6 @@
 import { Transform } from 'stream';
-import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
-import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
+import { IOptionalPreprocessOptions, preprocessAsync, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHostAsync } from '@aurelia/plugin-conventions/node';
 import * as Vinyl from 'vinyl';
 
 export default function (options: IOptionalPreprocessOptions = {}) {
@@ -14,24 +14,24 @@ export default function (options: IOptionalPreprocessOptions = {}) {
 
 export function plugin(
   options: IOptionalPreprocessOptions,
-  _preprocess = preprocess // for testing
+  _preprocess = preprocessAsync // for testing
 ) {
   const allOptions = preprocessOptions(options);
   return new Transform({
     objectMode: true,
-    transform: function (file: Vinyl, enc, cb) {
+    transform: async function (file: Vinyl, enc, cb) {
       if (file.isStream()) {
         this.emit('error', new Error('@aurelia/plugin-gulp: Streaming is not supported'));
       } else if (file.isBuffer()) {
         // Rewrite foo.html to foo.html.js
-        const result = _preprocess(
+        const result = await _preprocess(
           {
             path: file.relative,
             contents: file.contents.toString(),
             base: file.base
           },
           allOptions,
-          nodeFileUnitHost
+          nodeFileUnitHostAsync
         );
 
         if (result) {

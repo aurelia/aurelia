@@ -4,12 +4,13 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
 
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
-import type { IInstruction } from '@aurelia/template-compiler';
+import type { INodeSequence } from '../../dom';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, ICustomElementController, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
+import { itHydrateTemplateController, type HydrateTemplateController, type IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { isSSRTemplateController, adoptSSRView, type ISSRTemplateController } from '../../templating/ssr';
+import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -184,6 +185,86 @@ export class If implements ICustomAttributeViewModel {
   }
 }
 
+class ElseIfViewFactory implements IViewFactory {
+  public constructor(
+    private readonly _factory: IViewFactory,
+    private readonly _getElseFactory: () => IViewFactory | undefined,
+  ) {}
+
+  public get name(): string {
+    return this._factory.name;
+  }
+
+  public get container() {
+    return this._factory.container;
+  }
+
+  public get def() {
+    return this._factory.def;
+  }
+
+  public set def(value) {
+    this._factory.def = value;
+  }
+
+  public get isCaching(): boolean {
+    return this._factory.isCaching;
+  }
+
+  public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
+    this._factory.setCacheSize(size, doNotOverrideIfAlreadySet);
+  }
+
+  public canReturnToCache(controller: ISyntheticView): boolean {
+    return this._factory.canReturnToCache(controller);
+  }
+
+  public tryReturnToCache(controller: ISyntheticView): boolean {
+    return this._factory.tryReturnToCache(controller);
+  }
+
+  public create(
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+  ): ISyntheticView {
+    return this._applyElseFactory(this._factory.create(parentController));
+  }
+
+  public createAdopted(
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
+  ): ISyntheticView {
+    return this._applyElseFactory(this._factory.createAdopted(parentController, adoptedNodes, ssrScope));
+  }
+
+  private _applyElseFactory(view: ISyntheticView): ISyntheticView {
+    const child = view.children?.[0];
+    if (child != null && child.vmKind === 'customAttribute' && child.viewModel instanceof If) {
+      child.viewModel.elseFactory = this._getElseFactory();
+    }
+    return view;
+  }
+}
+
+const isIfInstruction = (instruction: IInstruction): instruction is HydrateTemplateController => {
+  if (instruction.type !== itHydrateTemplateController) {
+    return false;
+  }
+  const tcInstruction = instruction as HydrateTemplateController;
+  return typeof tcInstruction.res === 'string'
+    ? tcInstruction.res === 'if'
+    : tcInstruction.res.name === 'if';
+};
+
+const hasChainedIf = (factory: IViewFactory): boolean => {
+  const rows = factory.def.instructions;
+  if (rows.length !== 1) {
+    return false;
+  }
+  const row = rows[0];
+  return row.length === 1 && isIfInstruction(row[0]);
+};
+
 export class Else implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
@@ -192,6 +273,8 @@ export class Else implements ICustomAttributeViewModel {
   };
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
+  /** @internal */ private _effectiveFactory: IViewFactory | undefined = void 0;
+  /** @internal */ private _chainedElseFactory: IViewFactory | undefined = void 0;
 
   public link(
     controller: IHydratableController,
@@ -199,14 +282,36 @@ export class Else implements ICustomAttributeViewModel {
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    const children = controller.children!;
-    const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;
+    const children = controller.children;
+    const ifBehavior = children?.[children.length - 1] as If | ICustomAttributeController | undefined;
+    if (ifBehavior == null) {
+      throw createMappedError(ErrorNames.else_without_if);
+    }
+    const ownFactory = this._getEffectiveFactory();
     if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = this._factory;
+      ifBehavior.elseFactory = ownFactory;
     } else if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = this._factory;
+      ifBehavior.viewModel.elseFactory = ownFactory;
+    } else if (ifBehavior.viewModel instanceof Else) {
+      ifBehavior.viewModel._setElseFactory(ownFactory);
     } else {
       throw createMappedError(ErrorNames.else_without_if);
     }
+  }
+
+  /** @internal */
+  private _getEffectiveFactory(): IViewFactory {
+    if (!hasChainedIf(this._factory)) {
+      return this._factory;
+    }
+    return this._effectiveFactory ??= new ElseIfViewFactory(this._factory, () => this._chainedElseFactory);
+  }
+
+  /** @internal */
+  private _setElseFactory(factory: IViewFactory): void {
+    if (!hasChainedIf(this._factory)) {
+      throw createMappedError(ErrorNames.else_without_if);
+    }
+    this._chainedElseFactory = factory;
   }
 }

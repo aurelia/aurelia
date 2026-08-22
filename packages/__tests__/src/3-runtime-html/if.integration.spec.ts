@@ -1,7 +1,9 @@
 import {
   CustomAttribute,
+  CustomElement,
   ICustomElementViewModel,
   IHydratedController,
+  customAttribute,
   customElement,
 } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
@@ -239,6 +241,246 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       void tearDown();
 
       assertText('');
+    });
+
+    it('supports else-if chains followed by else', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else if.bind="step === 2">c</div>',
+          '<div else>d</div>',
+        ].join(''),
+        { step: 0 }
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 3;
+      assertText('d');
+
+      component.step = 0;
+      assertText('a');
+    });
+
+    it('supports else-if when a plain attribute is between else and if on the same element', function () {
+      const { appHost, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else data-branch="b" if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 }
+      );
+
+      assert.visibleTextEqual(appHost, 'a');
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+
+      component.step = 2;
+      assert.visibleTextEqual(appHost, 'c');
+    });
+
+    it('supports else-if when a non-template custom attribute is between else and if on the same element', function () {
+      @customAttribute('marker')
+      class Marker {}
+
+      const { appHost, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else marker if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 },
+        [Marker]
+      );
+
+      assert.visibleTextEqual(appHost, 'a');
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+
+      component.step = 2;
+      assert.visibleTextEqual(appHost, 'c');
+    });
+
+    it('evaluates and activates long else-if chains as expected', function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+      const createdCounts = { a: 0, b: 0, c: 0, d: 0 };
+      const attachingCounts = { a: 0, b: 0, c: 0, d: 0 };
+
+      const BranchA = CustomElement.define({ name: 'count-a', template: 'a' }, class {
+        public created() { createdCounts.a++; }
+        public attaching() { attachingCounts.a++; }
+      });
+      const BranchB = CustomElement.define({ name: 'count-b', template: 'b' }, class {
+        public created() { createdCounts.b++; }
+        public attaching() { attachingCounts.b++; }
+      });
+      const BranchC = CustomElement.define({ name: 'count-c', template: 'c' }, class {
+        public created() { createdCounts.c++; }
+        public attaching() { attachingCounts.c++; }
+      });
+      const BranchD = CustomElement.define({ name: 'count-d', template: 'd' }, class {
+        public created() { createdCounts.d++; }
+        public attaching() { attachingCounts.d++; }
+      });
+
+      class App {
+        public step = 0;
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.step === 1;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.step === 2;
+        }
+      }
+
+      const { appHost, component } = createFixture(
+        [
+          '<template if.bind="isA"><count-a></count-a></template>',
+          '<template else if.bind="isB"><count-b></count-b></template>',
+          '<template else if.bind="isC"><count-c></count-c></template>',
+          '<template else><count-d></count-d></template>',
+        ].join(''),
+        App,
+        [BranchA, BranchB, BranchC, BranchD]
+      );
+
+      assert.visibleTextEqual(appHost, 'a');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
+      assert.deepStrictEqual(createdCounts, { a: 1, b: 0, c: 0, d: 0 });
+      assert.deepStrictEqual(attachingCounts, { a: 1, b: 0, c: 0, d: 0 });
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+
+      component.step = 2;
+      assert.visibleTextEqual(appHost, 'c');
+
+      component.step = 3;
+      assert.visibleTextEqual(appHost, 'd');
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+
+      component.step = 0;
+      assert.visibleTextEqual(appHost, 'a');
+
+      assert.deepStrictEqual(createdCounts, { a: 1, b: 1, c: 1, d: 1 });
+      assert.deepStrictEqual(attachingCounts, { a: 2, b: 2, c: 1, d: 1 });
+    });
+
+    it('waits for async custom element branch lifecycle on long jumps', async function () {
+      let resolveCurrent: (() => void) | null = null;
+      const logs: string[] = [];
+      const createDeferred = () => new Promise<void>(resolve => { resolveCurrent = resolve; });
+
+      const JumpA = CustomElement.define({ name: 'jump-a', template: 'a' }, class {
+        public detaching() {
+          logs.push('a:detaching');
+          return createDeferred();
+        }
+      });
+      const JumpB = CustomElement.define({ name: 'jump-b', template: 'b' }, class {
+        public attaching() {
+          logs.push('b:attaching');
+        }
+      });
+      const JumpC = CustomElement.define({ name: 'jump-c', template: 'c' }, class {
+        public attaching() {
+          logs.push('c:attaching');
+        }
+      });
+      const JumpD = CustomElement.define({ name: 'jump-d', template: 'd' }, class {
+        public attaching() {
+          logs.push('d:attaching');
+        }
+      });
+
+      class App {
+        public step = 0;
+      }
+
+      const { appHost, component } = createFixture(
+        [
+          '<template if.bind="step === 0"><jump-a></jump-a></template>',
+          '<template else if.bind="step === 1"><jump-b></jump-b></template>',
+          '<template else if.bind="step === 2"><jump-c></jump-c></template>',
+          '<template else><jump-d></jump-d></template>',
+        ].join(''),
+        App,
+        [JumpA, JumpB, JumpC, JumpD]
+      );
+
+      assert.visibleTextEqual(appHost, 'a');
+
+      component.step = 3;
+      assert.visibleTextEqual(appHost, 'a');
+      assert.deepStrictEqual(logs, ['a:detaching']);
+
+      resolveCurrent!();
+      await tasksSettled();
+      assert.visibleTextEqual(appHost, 'd');
+      assert.deepStrictEqual(logs, ['a:detaching', 'd:attaching']);
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+      assert.deepStrictEqual(logs, ['a:detaching', 'd:attaching', 'b:attaching']);
+    });
+
+    it('throws when else has no preceding if', function () {
+      assert.throws(() => createFixture(`
+        <div else>b</div>
+      `), /AUR0810/);
+    });
+
+    it('throws when else follows a plain else', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else>b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    it('throws when else follows a non-if template controller', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else repeat.for="i of 1">b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    it('throws when another template controller is between else and if on the same element', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else repeat.for="i of 1" if.bind="false">b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    it('throws when another template controller precedes if after else on the same element', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else with.bind="{ value: 1 }" if.bind="false">b</div>
+        <div else>c</div>
+      `), /AUR0810/);
     });
 
     {

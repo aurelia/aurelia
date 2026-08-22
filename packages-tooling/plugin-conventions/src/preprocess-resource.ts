@@ -33,8 +33,11 @@ const {
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
+  isExportAssignment,
+  isExportDeclaration,
   isIdentifier,
   isImportDeclaration,
+  isNamedExports,
   isObjectLiteralExpression,
   isPropertyDeclaration,
   isPropertyAccessExpression,
@@ -151,6 +154,10 @@ interface IModifyResourceOptions {
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
   const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest, true);
+  const localExports = collectLocalExports(sf);
+  const missingConventionalExport = options.enableConventions && unit.filePair
+    ? findMissingConventionalExport(sf, expectedResourceName, localExports)
+    : void 0;
   let exportedClassMetadata: ClassMetadata | undefined;
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
@@ -189,11 +196,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     }
     if (tryCaptureCustomElementDefine(s, sf, templateMetadata)) return;
 
-    // Only care about export class Foo {...}.
-    // Note this convention simply doesn't work for
-    //   class Foo {}
-    //   export {Foo};
-    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata, sf);
+    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata, sf, localExports);
     if (!resource) return;
     const {
       classMetadata,
@@ -217,6 +220,10 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (customName) customElementDecorator = customName;
     if ($defineElementInformation) defineElementInformation = $defineElementInformation;
   });
+
+  if (missingConventionalExport && implicitElement == null && defineElementInformation == null) {
+    throw new Error(`Conventional component '${expectedResourceName}' in '${unit.path}' must be directly exported. Change 'class ${missingConventionalExport} {}' to 'export class ${missingConventionalExport} {}' or add an explicit @customElement export.`);
+  }
 
   let m = modifyCode(unit.contents, unit.path);
   const hmrEnabled = options.hmr && options.isDev && exportedClassMetadata;
@@ -430,7 +437,7 @@ function getClassMembers(node: ClassDeclaration, sf: SourceFile): ClassMember[] 
         ;
       acc.push({
         name: name.escapedText.toString(),
-        accessModifier: accessModifier!,
+        accessModifier,
         memberType,
         dataType: ((m as PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration).type ?? getJSDocType(m))?.getText(sf) ?? 'any',
         methodArguments: memberType === 'method'
@@ -484,7 +491,10 @@ function ensureTokenStart(start: number, code: string) {
   return start;
 }
 
-function isExported(node: Node): boolean {
+function isExported(node: Node, localExports?: ReadonlySet<string>): boolean {
+  if (isClassDeclaration(node) && node.name != null && localExports?.has(node.name.text)) {
+    return true;
+  }
   if (!canHaveModifiers(node)) return false;
   const modifiers = getModifiers(node);
   if (modifiers === void 0) return false;
@@ -495,6 +505,42 @@ function isExported(node: Node): boolean {
 }
 
 const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController', 'noView', 'inlineView'];
+
+function collectLocalExports(sf: SourceFile): ReadonlySet<string> {
+  const localExports = new Set<string>();
+
+  for (const statement of sf.statements) {
+    if (isExportDeclaration(statement)) {
+      if (statement.moduleSpecifier != null || statement.exportClause == null || !isNamedExports(statement.exportClause)) continue;
+      for (const element of statement.exportClause.elements) {
+        localExports.add(element.propertyName?.text ?? element.name.text);
+      }
+      continue;
+    }
+
+    if (!isExportAssignment(statement) || statement.isExportEquals || !isIdentifier(statement.expression)) continue;
+    localExports.add(statement.expression.text);
+  }
+
+  return localExports;
+}
+
+function findMissingConventionalExport(sf: SourceFile, expectedResourceName: string, localExports: ReadonlySet<string>): string | undefined {
+  let missingClassName: string | undefined;
+
+  for (const statement of sf.statements) {
+    if (!isClassDeclaration(statement) || statement.name == null) continue;
+
+    const className = statement.name.text;
+    const { name, type } = nameConvention(className);
+    if (type !== 'customElement' || !isKindOfSame(name, expectedResourceName)) continue;
+
+    if (isExported(statement, localExports)) return;
+    missingClassName ??= className;
+  }
+
+  return missingClassName;
+}
 
 function isKindOfSame(name1: string, name2: string): boolean {
   return name1.replace(/-/g, '') === name2.replace(/-/g, '');
@@ -610,10 +656,11 @@ function findResource(
   useConvention: boolean | undefined,
   templateMetadata: ITemplateMetadata[],
   sf: SourceFile,
+  localExports: ReadonlySet<string>,
 ): IFoundResource | void {
 
-  // Ignore non-class declarations, anonymous classes, and non-exported classes (in case convention is used).
-  if (!isClassDeclaration(node) || !node.name || !isExported(node) && !useConvention) return;
+  // Ignore non-class declarations, anonymous classes, and non-exported classes.
+  if (!isClassDeclaration(node) || !node.name || !isExported(node, localExports)) return;
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;

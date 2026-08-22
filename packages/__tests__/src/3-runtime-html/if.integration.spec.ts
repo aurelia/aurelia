@@ -309,6 +309,62 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('a');
     });
 
+    it('does not let a nested if-else inside the if branch affect the outer else-if chain', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a',
+          '<span if.bind="inner">x</span>',
+          '<span else>y</span>',
+          '</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0, inner: true }
+      );
+
+      assertText('ax');
+
+      component.inner = false;
+      assertText('ay');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 0;
+      assertText('ay');
+    });
+
+    it('does not let a nested if-else inside an else-if branch affect the outer chain', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b',
+          '<span if.bind="inner">x</span>',
+          '<span else>y</span>',
+          '</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 1, inner: true }
+      );
+
+      assertText('bx');
+
+      component.inner = false;
+      assertText('by');
+
+      component.step = 0;
+      assertText('a');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 1;
+      assertText('by');
+    });
+
     it('supports else-if when a plain attribute is between else and if on the same element', function () {
       const { assertText, component } = createFixture(
         [

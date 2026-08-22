@@ -80,6 +80,7 @@ export class ObserverLocator {
 
   public getObserver(obj: unknown, key: PropertyKey): IObserver;
   public getObserver<T, R>(obj: T, key: ComputedGetterFn<T, R>): IObserver<R>;
+  public getObserver(obj: unknown, key: PropertyKey | ComputedGetterFn): IObserver;
   public getObserver(obj: unknown, key: PropertyKey | ComputedGetterFn): IObserver {
     if (obj == null) {
       throw createMappedError(ErrorNames.observing_null_undefined, key);
@@ -286,4 +287,3 @@ export const getCollectionObserver: {
   }
   return obs;
 };
-

@@ -4,6 +4,7 @@ import { IObserverLocator } from './observer-locator';
 import { unwrap } from './proxy-observation';
 import { queueTask } from './queue';
 import { subscriberCollection } from './subscriber-collection';
+import { type ComputedPropertyDependency } from './object-property-info';
 
 export class ControlledComputedObserver implements IObserver, ISubscriberCollection {
   static {
@@ -33,7 +34,7 @@ export class ControlledComputedObserver implements IObserver, ISubscriberCollect
     private readonly key: PropertyKey,
     private readonly getter: () => unknown,
     private readonly oL: IObserverLocator,
-    private readonly dependencies: (string | symbol)[],
+    private readonly dependencies: readonly ComputedPropertyDependency[],
     private readonly flush: 'sync' | 'async',
     private readonly deep: boolean
   ) {

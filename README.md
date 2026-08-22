@@ -82,6 +82,10 @@ You can read the documentation on Aurelia 2 [here](https://docs.aurelia.io/). Ou
 
 If you are interested in contributing to Aurelia, please see [our contributor documentation](https://docs.aurelia.io/community-contribution/joining-the-community) for more information. You'll learn how to build the code and run tests, how best to engage in our social channels, how to submit PRs, and even how to contribute to our documentation. We welcome you and thank you in advance for joining with us in this endeavor.
 
+## Security
+
+If you believe you have found a security vulnerability, please review [our security policy](SECURITY.md) and report it privately. Do not open a public issue for suspected vulnerabilities.
+
 ## Staying Up-to-Date
 
 To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, have a look around our [Discourse forum](https://discourse.aurelia.io/). For chat on Aurelia 2, [join our new Aurelia 2 community on Discord](https://discord.gg/RBtyM6u). If you'd like to join the growing list of Aurelia sponsors, please [back us on Open Collective](https://opencollective.com/aurelia).

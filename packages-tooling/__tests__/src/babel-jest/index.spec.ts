@@ -8,7 +8,10 @@ import { makeProjectConfig } from '../jest-test-utils/config';
 
 function makePreprocess(_fileExists: (unit: IFileUnit, p: string) => boolean) {
   return function (unit: IFileUnit, options: IOptionalPreprocessOptions) {
-    return preprocess(unit, options, _fileExists);
+    return preprocess(unit, options, {
+      fileExists: _fileExists,
+      readFile: () => '',
+    });
   };
 }
 

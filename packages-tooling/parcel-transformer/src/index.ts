@@ -2,6 +2,7 @@ import { Transformer } from '@parcel/plugin';
 import $SourceMap from '@parcel/source-map';
 import * as ParcelSourceMap from '@parcel/source-map';
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 // eslint-disable-next-line import/no-nodejs-modules
 import { relative, extname } from 'path';
 
@@ -33,6 +34,7 @@ export default new Transformer({
 
     const auOptions = preprocessOptions({
       ...config as IOptionalPreprocessOptions,
+      isDev: options.mode !== 'production',
       stringModuleWrap: (id: string) => `bundle-text:${id}`
     });
     // after html template is compiled to js, parcel will apply full js transformers chain,
@@ -46,7 +48,8 @@ export default new Transformer({
         path: relative(options.projectRoot, asset.filePath.slice()),
         contents: source
       },
-      auOptions
+      auOptions,
+      nodeFileUnitHost
     );
 
     if (!result) {

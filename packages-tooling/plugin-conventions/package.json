@@ -4,11 +4,25 @@
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
-    "types": "./dist/types/index.d.ts",
-    "require": "./dist/cjs/index.cjs",
-    "import": "./dist/esm/index.mjs"
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/cjs/index.cjs",
+      "import": "./dist/esm/index.mjs"
+    },
+    "./node": {
+      "types": "./dist/types/node.d.ts",
+      "require": "./dist/cjs/node.cjs",
+      "import": "./dist/esm/node.mjs"
+    }
   },
   "types": "dist/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "node": [
+        "dist/types/node.d.ts"
+      ]
+    }
+  },
   "license": "MIT",
   "homepage": "https://aurelia.io",
   "repository": {

@@ -18,6 +18,11 @@ export interface IFileUnit {
   readFile?(path: string): string;
 }
 
+export interface IFileUnitHost {
+  fileExists(unit: IFileUnit, path: string): boolean;
+  readFile(unit: IFileUnit, path: string): string;
+}
+
 export interface IOptionalPreprocessOptions {
   defaultShadowOptions?: { mode: 'open' | 'closed' };
   // More details in ./preprocess-html-template.ts
@@ -35,6 +40,7 @@ export interface IOptionalPreprocessOptions {
   // Whenn CSSModule is in use, stringModuleWrap is ignored.
   useCSSModule?: boolean;
   hmr?: boolean;
+  isDev?: boolean;
   enableConventions?: boolean;
   hmrModule?: string;
   /**
@@ -76,6 +82,7 @@ export interface IPreprocessOptions {
   useProcessedFilePairFilename?: boolean;
   useCSSModule: boolean;
   hmr?: boolean;
+  isDev: boolean;
   enableConventions?: boolean;
   hmrModule?: string;
   /**
@@ -118,6 +125,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     templateExtensions = [],
     useCSSModule = false,
     hmr = true,
+    isDev = true,
     enableConventions = true,
     hmrModule = 'module',
     experimentalTemplateTypeCheck = false,
@@ -130,6 +138,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     templateExtensions: Array.from(new Set([...defaultTemplateExtensions, ...templateExtensions])).sort(),
     useCSSModule,
     hmr,
+    isDev,
     hmrModule,
     enableConventions,
     experimentalTemplateTypeCheck,

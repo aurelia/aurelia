@@ -1,4 +1,5 @@
 import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
@@ -85,8 +86,9 @@ export default function au(options: AureliaPluginOptions = {}) {
             : s;
         },
         stringModuleWrap: (id) => `${id}?inline`,
-        ...additionalOptions
-      });
+        ...additionalOptions,
+        isDev: $config.command !== 'build',
+      }, nodeFileUnitHost);
       return result;
     },
 
@@ -126,8 +128,9 @@ export default function au(options: AureliaPluginOptions = {}) {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
         stringModuleWrap: (id) => `${id}?inline`,
-        ...additionalOptions
-      });
+        ...additionalOptions,
+        isDev: $config.command !== 'build',
+      }, nodeFileUnitHost);
       return result!.code;
     }
   };

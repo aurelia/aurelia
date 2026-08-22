@@ -1,8 +1,10 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import tsJest, { TsJestTransformerOptions } from 'ts-jest';
 import * as TsJest from 'ts-jest';
 import type { TransformOptions, TransformedSource } from '@jest/transform';
 import * as path from 'path';
+import { env } from 'process';
 
 // eslint-disable-next-line
 const tsJestCreateTransformer = (TsJest as any).createTransformer;
@@ -24,7 +26,10 @@ function _createTransformer(
   _preprocess = preprocess,
   _tsProcess = tsTransformer.process.bind(tsTransformer)
 ) {
-  const au2Options = preprocessOptions(conventionsOptions as IOptionalPreprocessOptions);
+  const au2Options = preprocessOptions({
+    isDev: env.NODE_ENV !== 'production',
+    ...conventionsOptions as IOptionalPreprocessOptions,
+  });
 
   function getCacheKey(
     fileData: string,
@@ -43,7 +48,8 @@ function _createTransformer(
   ): TransformedSource {
     const result = _preprocess(
       { path: sourcePath, contents: sourceText },
-      au2Options
+      au2Options,
+      nodeFileUnitHost
     );
     let newSourcePath = sourcePath;
     if (result !== undefined) {

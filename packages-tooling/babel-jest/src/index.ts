@@ -1,7 +1,9 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
+import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import * as babelJest from 'babel-jest';
 import { TransformOptions } from '@babel/core';
 import type { TransformOptions as TransformOptionsJest, SyncTransformer, TransformedSource } from '@jest/transform';
+import { env } from 'process';
 
 const babelTransformer = babelJest.createTransformer() as SyncTransformer<TransformOptions>;
 function _createTransformer(
@@ -10,7 +12,10 @@ function _createTransformer(
   _preprocess = preprocess,
   _babelProcess = babelTransformer.process.bind(babelTransformer)
 ) {
-  const au2Options = preprocessOptions(conventionsOptions as IOptionalPreprocessOptions);
+  const au2Options = preprocessOptions({
+    isDev: env.NODE_ENV !== 'production',
+    ...conventionsOptions as IOptionalPreprocessOptions,
+  });
 
   function getCacheKey(
     fileData: string,
@@ -29,7 +34,8 @@ function _createTransformer(
   ): TransformedSource {
     const result = _preprocess(
       { path: sourcePath, contents: sourceText },
-      au2Options
+      au2Options,
+      nodeFileUnitHost
     );
     if (result !== undefined) {
       return _babelProcess(result.code, sourcePath, transformOptions);

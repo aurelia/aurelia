@@ -275,7 +275,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       const BranchC = CustomElement.define({ name: 'branch-c', template: 'c' }, class {});
       const BranchD = CustomElement.define({ name: 'branch-d', template: 'd' }, class {});
 
-      const { appHost, component } = createFixture(
+      const { assertText, component } = createFixture(
         [
           '<branch-a if.bind="step === 0"></branch-a>',
           '<branch-b else if.bind="step === 1"></branch-b>',
@@ -286,23 +286,23 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         [BranchA, BranchB, BranchC, BranchD]
       );
 
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
 
       component.step = 1;
-      assert.visibleTextEqual(appHost, 'b');
+      assertText('b');
 
       component.step = 2;
-      assert.visibleTextEqual(appHost, 'c');
+      assertText('c');
 
       component.step = 3;
-      assert.visibleTextEqual(appHost, 'd');
+      assertText('d');
 
       component.step = 0;
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
     });
 
     it('supports else-if when a plain attribute is between else and if on the same element', function () {
-      const { appHost, component } = createFixture(
+      const { assertText, component } = createFixture(
         [
           '<div if.bind="step === 0">a</div>',
           '<div else data-branch="b" if.bind="step === 1">b</div>',
@@ -311,20 +311,20 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         { step: 0 }
       );
 
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
 
       component.step = 1;
-      assert.visibleTextEqual(appHost, 'b');
+      assertText('b');
 
       component.step = 2;
-      assert.visibleTextEqual(appHost, 'c');
+      assertText('c');
     });
 
     it('supports else-if when a non-template custom attribute is between else and if on the same element', function () {
       @customAttribute('marker')
       class Marker {}
 
-      const { appHost, component } = createFixture(
+      const { assertText, component } = createFixture(
         [
           '<div if.bind="step === 0">a</div>',
           '<div else marker if.bind="step === 1">b</div>',
@@ -334,13 +334,49 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         [Marker]
       );
 
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
 
       component.step = 1;
-      assert.visibleTextEqual(appHost, 'b');
+      assertText('b');
 
       component.step = 2;
-      assert.visibleTextEqual(appHost, 'c');
+      assertText('c');
+    });
+
+    it('supports else after an unrelated plain element sibling', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<p>between</p>',
+          '<div else>b</div>',
+        ].join(''),
+        { step: 0 }
+      );
+
+      assertText('abetween');
+
+      component.step = 1;
+      assertText('bbetween');
+    });
+
+    it('supports else-if after an unrelated plain element sibling', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<p>between</p>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 }
+      );
+
+      assertText('abetween');
+
+      component.step = 1;
+      assertText('bbetween');
+
+      component.step = 2;
+      assertText('cbetween');
     });
 
     it('supports else-if chains with custom attributes on the branches', function () {
@@ -355,7 +391,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         public attaching() { counts.c++; }
       });
 
-      const { appHost, component } = createFixture(
+      const { assertText, component } = createFixture(
         [
           '<div if.bind="step === 0" flag-a>a</div>',
           '<div else if.bind="step === 1" flag-b>b</div>',
@@ -365,15 +401,15 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         [FlagA, FlagB, FlagC]
       );
 
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
       assert.deepStrictEqual(counts, { a: 1, b: 0, c: 0 });
 
       component.step = 1;
-      assert.visibleTextEqual(appHost, 'b');
+      assertText('b');
       assert.deepStrictEqual(counts, { a: 1, b: 1, c: 0 });
 
       component.step = 2;
-      assert.visibleTextEqual(appHost, 'c');
+      assertText('c');
       assert.deepStrictEqual(counts, { a: 1, b: 1, c: 1 });
     });
 
@@ -418,7 +454,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         }
       }
 
-      const { appHost, component } = createFixture(
+      const { assertText, component } = createFixture(
         [
           '<template if.bind="isA"><div count-a>a</div></template>',
           '<template else if.bind="isB"><div count-b>b</div></template>',
@@ -429,7 +465,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         [CountA, CountB, CountC, CountD]
       );
 
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
       assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
       assert.deepStrictEqual(createdCounts, { a: 1, b: 0, c: 0, d: 0 });
       assert.deepStrictEqual(attachingCounts, { a: 1, b: 0, c: 0, d: 0 });
@@ -437,27 +473,27 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       component.step = 1;
       await tasksSettled();
       await tasksSettled();
-      assert.visibleTextEqual(appHost, 'b');
+      assertText('b');
 
       component.step = 2;
       await tasksSettled();
       await tasksSettled();
-      assert.visibleTextEqual(appHost, 'c');
+      assertText('c');
 
       component.step = 3;
       await tasksSettled();
       await tasksSettled();
-      assert.visibleTextEqual(appHost, 'd');
+      assertText('d');
 
       component.step = 1;
       await tasksSettled();
       await tasksSettled();
-      assert.visibleTextEqual(appHost, 'b');
+      assertText('b');
 
       component.step = 0;
       await tasksSettled();
       await tasksSettled();
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
 
       assert.deepStrictEqual(createdCounts, { a: 1, b: 1, c: 1, d: 1 });
       assert.deepStrictEqual(attachingCounts, { a: 2, b: 2, c: 1, d: 1 });
@@ -503,7 +539,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         public step = 0;
       }
 
-      const { appHost, component } = createFixture(
+      const { assertText, component } = createFixture(
         [
           '<jump-a if.bind="step === 0"></jump-a>',
           '<jump-b else if.bind="step === 1"></jump-b>',
@@ -514,23 +550,23 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         [JumpA, JumpB, JumpC, JumpD]
       );
 
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
 
       component.step = 3;
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
       assert.deepStrictEqual(logs, ['a:detaching']);
       assert.strictEqual(resolvers.length, 1);
 
       resolvers.shift()!();
       await Promise.resolve();
-      assert.visibleTextEqual(appHost, 'a');
+      assertText('a');
       assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved']);
       assert.strictEqual(detachResolved, 1);
       assert.strictEqual(attachResolved, 0);
       assert.strictEqual(resolvers.length, 0);
 
       await Promise.resolve();
-      assert.visibleTextEqual(appHost, '');
+      assertText('');
       assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved']);
       assert.strictEqual(detachResolved, 1);
       assert.strictEqual(attachResolved, 0);
@@ -538,7 +574,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       const settling = tasksSettled();
       await Promise.resolve();
-      assert.visibleTextEqual(appHost, 'd');
+      assertText('d');
       assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching']);
       assert.strictEqual(detachResolved, 1);
       assert.strictEqual(attachResolved, 0);
@@ -546,7 +582,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       resolvers.shift()!();
       await settling;
-      assert.visibleTextEqual(appHost, 'd');
+      assertText('d');
       assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching', 'd:attaching:resolved']);
       assert.strictEqual(detachResolved, 1);
       assert.strictEqual(attachResolved, 1);

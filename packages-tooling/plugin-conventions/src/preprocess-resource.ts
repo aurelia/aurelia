@@ -653,7 +653,7 @@ function findResource(
   expectedResourceName: string,
   filePair: string | undefined,
   code: string,
-  useConvention: boolean | undefined,
+  _useConvention: boolean | undefined,
   templateMetadata: ITemplateMetadata[],
   sf: SourceFile,
   localExports: ReadonlySet<string>,

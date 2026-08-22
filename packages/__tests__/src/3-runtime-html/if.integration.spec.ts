@@ -269,6 +269,38 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('a');
     });
 
+    it('supports else-if chains on direct custom element branches', function () {
+      const BranchA = CustomElement.define({ name: 'branch-a', template: 'a' }, class {});
+      const BranchB = CustomElement.define({ name: 'branch-b', template: 'b' }, class {});
+      const BranchC = CustomElement.define({ name: 'branch-c', template: 'c' }, class {});
+      const BranchD = CustomElement.define({ name: 'branch-d', template: 'd' }, class {});
+
+      const { appHost, component } = createFixture(
+        [
+          '<branch-a if.bind="step === 0"></branch-a>',
+          '<branch-b else if.bind="step === 1"></branch-b>',
+          '<branch-c else if.bind="step === 2"></branch-c>',
+          '<branch-d else></branch-d>',
+        ].join(''),
+        { step: 0 },
+        [BranchA, BranchB, BranchC, BranchD]
+      );
+
+      assert.visibleTextEqual(appHost, 'a');
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+
+      component.step = 2;
+      assert.visibleTextEqual(appHost, 'c');
+
+      component.step = 3;
+      assert.visibleTextEqual(appHost, 'd');
+
+      component.step = 0;
+      assert.visibleTextEqual(appHost, 'a');
+    });
+
     it('supports else-if when a plain attribute is between else and if on the same element', function () {
       const { appHost, component } = createFixture(
         [
@@ -311,24 +343,58 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.visibleTextEqual(appHost, 'c');
     });
 
-    it('evaluates and activates long else-if chains as expected', function () {
+    it('supports else-if chains with custom attributes on the branches', function () {
+      const counts = { a: 0, b: 0, c: 0 };
+      const FlagA = CustomAttribute.define('flag-a', class {
+        public attaching() { counts.a++; }
+      });
+      const FlagB = CustomAttribute.define('flag-b', class {
+        public attaching() { counts.b++; }
+      });
+      const FlagC = CustomAttribute.define('flag-c', class {
+        public attaching() { counts.c++; }
+      });
+
+      const { appHost, component } = createFixture(
+        [
+          '<div if.bind="step === 0" flag-a>a</div>',
+          '<div else if.bind="step === 1" flag-b>b</div>',
+          '<div else flag-c>c</div>',
+        ].join(''),
+        { step: 0 },
+        [FlagA, FlagB, FlagC]
+      );
+
+      assert.visibleTextEqual(appHost, 'a');
+      assert.deepStrictEqual(counts, { a: 1, b: 0, c: 0 });
+
+      component.step = 1;
+      assert.visibleTextEqual(appHost, 'b');
+      assert.deepStrictEqual(counts, { a: 1, b: 1, c: 0 });
+
+      component.step = 2;
+      assert.visibleTextEqual(appHost, 'c');
+      assert.deepStrictEqual(counts, { a: 1, b: 1, c: 1 });
+    });
+
+    it('evaluates and activates long else-if chains as expected', async function () {
       const evalCounts = { a: 0, b: 0, c: 0 };
       const createdCounts = { a: 0, b: 0, c: 0, d: 0 };
       const attachingCounts = { a: 0, b: 0, c: 0, d: 0 };
 
-      const BranchA = CustomElement.define({ name: 'count-a', template: 'a' }, class {
+      const CountA = CustomAttribute.define('count-a', class {
         public created() { createdCounts.a++; }
         public attaching() { attachingCounts.a++; }
       });
-      const BranchB = CustomElement.define({ name: 'count-b', template: 'b' }, class {
+      const CountB = CustomAttribute.define('count-b', class {
         public created() { createdCounts.b++; }
         public attaching() { attachingCounts.b++; }
       });
-      const BranchC = CustomElement.define({ name: 'count-c', template: 'c' }, class {
+      const CountC = CustomAttribute.define('count-c', class {
         public created() { createdCounts.c++; }
         public attaching() { attachingCounts.c++; }
       });
-      const BranchD = CustomElement.define({ name: 'count-d', template: 'd' }, class {
+      const CountD = CustomAttribute.define('count-d', class {
         public created() { createdCounts.d++; }
         public attaching() { attachingCounts.d++; }
       });
@@ -354,13 +420,13 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       const { appHost, component } = createFixture(
         [
-          '<template if.bind="isA"><count-a></count-a></template>',
-          '<template else if.bind="isB"><count-b></count-b></template>',
-          '<template else if.bind="isC"><count-c></count-c></template>',
-          '<template else><count-d></count-d></template>',
+          '<template if.bind="isA"><div count-a>a</div></template>',
+          '<template else if.bind="isB"><div count-b>b</div></template>',
+          '<template else if.bind="isC"><div count-c>c</div></template>',
+          '<template else><div count-d>d</div></template>',
         ].join(''),
         App,
-        [BranchA, BranchB, BranchC, BranchD]
+        [CountA, CountB, CountC, CountD]
       );
 
       assert.visibleTextEqual(appHost, 'a');
@@ -369,18 +435,28 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.deepStrictEqual(attachingCounts, { a: 1, b: 0, c: 0, d: 0 });
 
       component.step = 1;
+      await tasksSettled();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'b');
 
       component.step = 2;
+      await tasksSettled();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'c');
 
       component.step = 3;
+      await tasksSettled();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'd');
 
       component.step = 1;
+      await tasksSettled();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'b');
 
       component.step = 0;
+      await tasksSettled();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'a');
 
       assert.deepStrictEqual(createdCounts, { a: 1, b: 1, c: 1, d: 1 });
@@ -388,14 +464,19 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('waits for async custom element branch lifecycle on long jumps', async function () {
-      let resolveCurrent: (() => void) | null = null;
+      const resolvers: (() => void)[] = [];
       const logs: string[] = [];
-      const createDeferred = () => new Promise<void>(resolve => { resolveCurrent = resolve; });
+      let detachResolved = 0;
+      let attachResolved = 0;
+      const createDeferred = () => new Promise<void>(resolve => { resolvers.push(resolve); });
 
       const JumpA = CustomElement.define({ name: 'jump-a', template: 'a' }, class {
         public detaching() {
           logs.push('a:detaching');
-          return createDeferred();
+          return createDeferred().then(() => {
+            detachResolved++;
+            logs.push('a:detaching:resolved');
+          });
         }
       });
       const JumpB = CustomElement.define({ name: 'jump-b', template: 'b' }, class {
@@ -411,6 +492,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       const JumpD = CustomElement.define({ name: 'jump-d', template: 'd' }, class {
         public attaching() {
           logs.push('d:attaching');
+          return createDeferred().then(() => {
+            attachResolved++;
+            logs.push('d:attaching:resolved');
+          });
         }
       });
 
@@ -420,10 +505,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       const { appHost, component } = createFixture(
         [
-          '<template if.bind="step === 0"><jump-a></jump-a></template>',
-          '<template else if.bind="step === 1"><jump-b></jump-b></template>',
-          '<template else if.bind="step === 2"><jump-c></jump-c></template>',
-          '<template else><jump-d></jump-d></template>',
+          '<jump-a if.bind="step === 0"></jump-a>',
+          '<jump-b else if.bind="step === 1"></jump-b>',
+          '<jump-c else if.bind="step === 2"></jump-c>',
+          '<jump-d else></jump-d>',
         ].join(''),
         App,
         [JumpA, JumpB, JumpC, JumpD]
@@ -434,15 +519,37 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       component.step = 3;
       assert.visibleTextEqual(appHost, 'a');
       assert.deepStrictEqual(logs, ['a:detaching']);
+      assert.strictEqual(resolvers.length, 1);
 
-      resolveCurrent!();
-      await tasksSettled();
+      resolvers.shift()!();
+      await Promise.resolve();
+      assert.visibleTextEqual(appHost, 'a');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 0);
+      assert.strictEqual(resolvers.length, 0);
+
+      await Promise.resolve();
+      assert.visibleTextEqual(appHost, '');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 0);
+      assert.strictEqual(resolvers.length, 0);
+
+      const settling = tasksSettled();
+      await Promise.resolve();
       assert.visibleTextEqual(appHost, 'd');
-      assert.deepStrictEqual(logs, ['a:detaching', 'd:attaching']);
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 0);
+      assert.strictEqual(resolvers.length, 1);
 
-      component.step = 1;
-      assert.visibleTextEqual(appHost, 'b');
-      assert.deepStrictEqual(logs, ['a:detaching', 'd:attaching', 'b:attaching']);
+      resolvers.shift()!();
+      await settling;
+      assert.visibleTextEqual(appHost, 'd');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching', 'd:attaching:resolved']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 1);
     });
 
     it('throws when else has no preceding if', function () {

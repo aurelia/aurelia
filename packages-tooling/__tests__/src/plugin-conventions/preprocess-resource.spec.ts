@@ -28,6 +28,60 @@ describe('preprocessResource', function () {
     assert.equal(result.code, code);
   });
 
+  it('throws when a conventional custom element class is not directly exported', function () {
+    const code = `class Foo {}\n`;
+    assert.throws(() => preprocessResource(
+      {
+        path: path.join('bar', 'foo.js'),
+        contents: code,
+        filePair: 'foo.html'
+      },
+      preprocessOptions({ hmr: false })
+    ), /must be directly exported/);
+  });
+
+  it('injects custom element definition for a class exported via export list', function () {
+    const code = `class LoginPage {\n  message = 'Login';\n}\nexport { LoginPage };\n`;
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './login-page.html';
+@customElement(__au2ViewDef)
+class LoginPage {
+  message = 'Login';
+}
+export { LoginPage };
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'login-page.js'),
+        contents: code,
+        filePair: 'login-page.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects custom element definition for a class exported via default export assignment', function () {
+    const code = `class LoginPage {\n  message = 'Login';\n}\nexport default LoginPage;\n`;
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './login-page.html';
+@customElement(__au2ViewDef)
+class LoginPage {
+  message = 'Login';
+}
+export default LoginPage;
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'login-page.js'),
+        contents: code,
+        filePair: 'login-page.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects custom element definition', function () {
     const code = `\nexport class FooBar {}\n`;
     const expected = `import { customElement } from '@aurelia/runtime-html';
@@ -197,6 +251,23 @@ export class FooBarCustomAttribute {}
     assert.equal(result.code, expected);
   });
 
+  it('injects custom attribute definition for a class exported via export list', function () {
+    const code = `class FooBarCustomAttribute {}\nexport { FooBarCustomAttribute };\n`;
+    const expected = `import { customAttribute } from '@aurelia/runtime-html';
+@customAttribute('foo-bar')
+class FooBarCustomAttribute {}
+export { FooBarCustomAttribute };
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects custom attribute definition for non-kebab case file name', function () {
     const code = `export class FooBarCustomAttribute {}\n`;
     const expected = `import { customAttribute } from '@aurelia/runtime-html';
@@ -239,6 +310,23 @@ export class FooBar {}
     const expected = `import { templateController } from '@aurelia/runtime-html';
 @templateController('foo-bar')
 export class FooBarTemplateController {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects template controller definition for a class exported via export list', function () {
+    const code = `class FooBarTemplateController {}\nexport { FooBarTemplateController };\n`;
+    const expected = `import { templateController } from '@aurelia/runtime-html';
+@templateController('foo-bar')
+class FooBarTemplateController {}
+export { FooBarTemplateController };
 `;
     const result = preprocessResource(
       {
@@ -303,6 +391,23 @@ export class FooBarValueConverter {}
     assert.equal(result.code, expected);
   });
 
+  it('injects value converter definition for a class exported via export list', function () {
+    const code = `class FooBarValueConverter {}\nexport { FooBarValueConverter };\n`;
+    const expected = `import { valueConverter } from '@aurelia/runtime-html';
+@valueConverter('fooBar')
+class FooBarValueConverter {}
+export { FooBarValueConverter };
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects value converter definition for non-kebab case file name', function () {
     const code = `export class FooBarValueConverter {}\n`;
     const expected = `import { valueConverter } from '@aurelia/runtime-html';
@@ -356,6 +461,23 @@ export class FooBarBindingBehavior {}
     assert.equal(result.code, expected);
   });
 
+  it('injects binding behavior definition for a class exported via export list', function () {
+    const code = `class FooBarBindingBehavior {}\nexport { FooBarBindingBehavior };\n`;
+    const expected = `import { bindingBehavior } from '@aurelia/runtime-html';
+@bindingBehavior('fooBar')
+class FooBarBindingBehavior {}
+export { FooBarBindingBehavior };
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
   it('injects binding behavior definition for non-kebab case file name', function () {
     const code = `export class FooBarBindingBehavior {}\n`;
     const expected = `import { bindingBehavior } from '@aurelia/runtime-html';
@@ -398,6 +520,23 @@ export class FooBar {}
     const expected = `import { bindingCommand } from '@aurelia/runtime-html';
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('injects binding command definition for a class exported via export list', function () {
+    const code = `class FooBarBindingCommand {}\nexport { FooBarBindingCommand };\n`;
+    const expected = `import { bindingCommand } from '@aurelia/runtime-html';
+@bindingCommand('foo-bar')
+class FooBarBindingCommand {}
+export { FooBarBindingCommand };
 `;
     const result = preprocessResource(
       {

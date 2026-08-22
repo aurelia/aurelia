@@ -4,12 +4,16 @@ import {
   Aurelia,
   CustomAttribute,
   CustomElement,
+  Else,
+  If,
   ICustomElementViewModel,
   IHydratedController,
   ISSRContext,
   type ISSRScope,
   customAttribute,
   customElement,
+  IHydratableController,
+  ICustomAttributeController,
 } from '@aurelia/runtime-html';
 import {
   assert, createFixture, TestContext
@@ -415,6 +419,60 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       component.step = 2;
       assertText('c');
       assert.deepStrictEqual(counts, { a: 1, b: 1, c: 1 });
+    });
+
+    it('exposes the wrapped else-if factory through the IViewFactory surface', function () {
+      const { au } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        class App {
+          public step = 0;
+        }
+      );
+
+      const app = au.root.controller.viewModel as ICustomElementViewModel;
+      const ifCtrl = app.$controller.children.find(c => c.viewModel instanceof If)!;
+      const elseFactory = (ifCtrl.viewModel as If).elseFactory!;
+      const def = elseFactory.def;
+
+      assert.strictEqual(typeof elseFactory.name, 'string');
+      assert.notStrictEqual(elseFactory.container, null);
+      assert.strictEqual(elseFactory.def, def);
+
+      elseFactory.def = def;
+      elseFactory.setCacheSize(1, false);
+      assert.strictEqual(elseFactory.isCaching, true);
+
+      const view = elseFactory.create(ifCtrl as any);
+      assert.strictEqual(elseFactory.canReturnToCache(view), true);
+      assert.strictEqual(elseFactory.tryReturnToCache(view), true);
+    });
+
+    it('rejects unrelated preceding view models during else linking', function () {
+      const { au } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        class App {
+          public step = 0;
+        }
+      );
+
+      const app = au.root.controller.viewModel as ICustomElementViewModel;
+      const elseCtrl = app.$controller.children.find(c => c.viewModel instanceof Else);
+      const elseVm = elseCtrl.viewModel as Else;
+
+      assert.throws(() => elseVm.link(
+        { children: [{ viewModel: {} }] } as unknown as IHydratableController,
+        elseCtrl as ICustomAttributeController,
+        null,
+        null,
+      ), /AUR0810/);
     });
 
     it('evaluates and activates long else-if chains as expected', async function () {

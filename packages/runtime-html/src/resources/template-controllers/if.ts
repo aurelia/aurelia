@@ -141,7 +141,10 @@ export class If implements ICustomAttributeViewModel {
     );
   }
 
-  /** @internal SSR hydration: adopt existing DOM instead of creating new views. */
+  /**
+   * SSR hydration: adopt existing DOM instead of creating new views.
+   * @internal
+   */
   private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
     const ctrl = this.$controller;
     const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;
@@ -283,14 +286,12 @@ export class Else implements ICustomAttributeViewModel {
     _instruction: IInstruction,
   ): void {
     const children = controller.children;
-    const ifBehavior = children?.[children.length - 1] as If | ICustomAttributeController | undefined;
+    const ifBehavior = children?.[children.length - 1] as ICustomAttributeController | undefined;
     if (ifBehavior == null) {
       throw createMappedError(ErrorNames.else_without_if);
     }
     const ownFactory = this._getEffectiveFactory();
-    if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = ownFactory;
-    } else if (ifBehavior.viewModel instanceof If) {
+    if (ifBehavior.viewModel instanceof If) {
       ifBehavior.viewModel.elseFactory = ownFactory;
     } else if (ifBehavior.viewModel instanceof Else) {
       ifBehavior.viewModel._setElseFactory(ownFactory);

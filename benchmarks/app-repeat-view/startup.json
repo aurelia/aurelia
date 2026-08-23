@@ -7,7 +7,13 @@
       "browser": {
         "name": "chrome",
         "headless": true,
-        "addArguments": ["--js-flags=--expose-gc", "--enable-precise-memory-info"]
+        "addArguments": [
+          "--js-flags=--expose-gc",
+          "--enable-precise-memory-info",
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
       },
       "measurement": [
         { "name": "perf", "mode": "performance", "entryName": "startup-10k" },

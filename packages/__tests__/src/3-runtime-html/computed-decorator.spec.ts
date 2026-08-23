@@ -28,6 +28,185 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
       assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes + reuse when binding evaluates`);
     });
 
+    it('works with function dependencies in shorthand and configuration forms', function () {
+      let shorthandCalls = 0;
+      let configuredCalls = 0;
+      const { component, assertText } = createFixture(
+        '${shorthandMessage}|${configuredMessage}',
+        class App {
+          dependency = 'Hello';
+          incidental = 'Aurelia';
+
+          @computed((vm: App) => vm.dependency)
+          get shorthandMessage() {
+            shorthandCalls++;
+            return `${this.dependency} ${this.incidental}`;
+          }
+
+          @computed({ deps: (vm: App) => vm.dependency })
+          get configuredMessage() {
+            configuredCalls++;
+            return `${this.dependency} ${this.incidental}`;
+          }
+        },
+      );
+
+      assertText('Hello Aurelia|Hello Aurelia');
+      assert.strictEqual(shorthandCalls, 1);
+      assert.strictEqual(configuredCalls, 1);
+
+      // Declaring dependencies disables automatic tracking of the getter body.
+      component.incidental = 'World';
+      runTasks();
+      assertText('Hello Aurelia|Hello Aurelia');
+      assert.strictEqual(shorthandCalls, 1);
+      assert.strictEqual(configuredCalls, 1);
+
+      component.dependency = 'Hi';
+      runTasks();
+      assertText('Hi World|Hi World');
+      assert.strictEqual(shorthandCalls, 2);
+      assert.strictEqual(configuredCalls, 2);
+    });
+
+    it('uses automatic observation when called without dependencies', function () {
+      let calls = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          dependency = 'Hello';
+
+          @computed()
+          get computedMessage() {
+            calls++;
+            return `${this.dependency}!`;
+          }
+        },
+      );
+
+      assertText('Hello!');
+      assert.strictEqual(calls, 1);
+
+      component.dependency = 'Hi';
+      assert.strictEqual(calls, 1, 'automatic observation remains async');
+      runTasks();
+      assertText('Hi!');
+      assert.strictEqual(calls, 2);
+    });
+
+    it('recollects changing function dependencies without retaining the old branch', function () {
+      let calls = 0;
+      const { component, assertText, observerLocator } = createFixture(
+        '${computedMessage}',
+        class App {
+          useLeft = true;
+          left = 'left 1';
+          right = 'right 1';
+
+          @computed({ deps: (vm: App) => vm.useLeft ? vm.left : vm.right })
+          get computedMessage() {
+            calls++;
+            return this.useLeft ? this.left : this.right;
+          }
+        },
+      );
+      const leftObserver = observerLocator.getObserver(component, 'left') as unknown as ISubscriberCollection;
+      const rightObserver = observerLocator.getObserver(component, 'right') as unknown as ISubscriberCollection;
+
+      assertText('left 1');
+      assert.strictEqual(calls, 1);
+      assert.strictEqual(leftObserver.subs.count, 1, 'active branch is observed');
+      assert.strictEqual(rightObserver.subs.count, 0, 'inactive branch is not observed');
+
+      component.useLeft = false;
+      runTasks();
+      assertText('right 1');
+      assert.strictEqual(calls, 2);
+      assert.strictEqual(leftObserver.subs.count, 0, 'old branch is detached');
+      assert.strictEqual(rightObserver.subs.count, 1, 'new branch is observed');
+
+      component.left = 'left 2';
+      runTasks();
+      assertText('right 1');
+      assert.strictEqual(calls, 2, 'old branch no longer invalidates the getter');
+
+      component.right = 'right 2';
+      runTasks();
+      assertText('right 2');
+      assert.strictEqual(calls, 3);
+    });
+
+    it('does not reattach a queued function dependency after unbinding', function () {
+      let calls = 0;
+      const { component, observerLocator, stop } = createFixture(
+        '${computedMessage}',
+        class App {
+          dependency = 'Hello';
+
+          @computed({ deps: (vm: App) => vm.dependency })
+          get computedMessage() {
+            calls++;
+            return this.dependency;
+          }
+        },
+      );
+      const dependencyObserver = observerLocator.getObserver(component, 'dependency') as unknown as ISubscriberCollection;
+
+      assert.strictEqual(calls, 1);
+      assert.strictEqual(dependencyObserver.subs.count, 1, 'function dependency is attached');
+
+      component.dependency = 'Hi';
+      void stop();
+      assert.strictEqual(dependencyObserver.subs.count, 0, 'unbind detaches the function dependency');
+
+      // The selector already has queued work, but its owning computed getter is dormant.
+      runTasks();
+      assert.strictEqual(calls, 1, 'queued dependency work does not evaluate the user getter');
+      assert.strictEqual(dependencyObserver.subs.count, 0, 'queued work leaves the dependency detached');
+    });
+
+    it('deep-observes the object returned by a function dependency', function () {
+      const createGraph = (value: number) => ({ leaf: { value } });
+      const oldGraph = createGraph(1);
+      const newGraph = createGraph(2);
+      let calls = 0;
+      const { component, assertText, observerLocator } = createFixture(
+        '${computedMessage}',
+        class App {
+          graph = oldGraph;
+
+          @computed({ deps: (vm: App) => vm.graph, deep: true })
+          get computedMessage() {
+            calls++;
+            return this.graph.leaf.value;
+          }
+        },
+      );
+      const oldLeafObserver = observerLocator.getObserver(oldGraph.leaf, 'value') as unknown as ISubscriberCollection;
+      const newLeafObserver = observerLocator.getObserver(newGraph.leaf, 'value') as unknown as ISubscriberCollection;
+
+      assertText('1');
+      assert.strictEqual(calls, 1);
+      assert.strictEqual(oldLeafObserver.subs.count, 1, 'returned graph is observed');
+
+      component.graph = newGraph;
+      runTasks();
+      assertText('2');
+      assert.strictEqual(calls, 2);
+      assert.strictEqual(oldLeafObserver.subs.count, 0, 'replaced graph is detached');
+      assert.strictEqual(newLeafObserver.subs.count, 1, 'replacement graph is observed');
+
+      oldGraph.leaf.value = 3;
+      runTasks();
+      assertText('2');
+      assert.strictEqual(calls, 2, 'replaced graph no longer invalidates the getter');
+
+      newGraph.leaf.value = 4;
+      runTasks();
+      assertText('4');
+      assert.strictEqual(calls, 3);
+    });
+
     it('works with [multiple] normal property dependency', function () {
       let i = 0;
       const { component, assertText } = createFixture(
@@ -521,6 +700,31 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
       runTasks();
       assertText('Hey!!!');
       assert.strictEqual(i, 2, `1 initial + 2nd when computed observer changes + reuse when binding evaluates`);
+    });
+
+    it('flushes configured function dependencies synchronously', function () {
+      let calls = 0;
+      const { component, assertText } = createFixture(
+        '${computedMessage}',
+        class App {
+          dependency = 'Hello';
+
+          @computed({ deps: (vm: App) => vm.dependency, flush: 'sync' })
+          get computedMessage() {
+            calls++;
+            return `${this.dependency}!`;
+          }
+        },
+      );
+
+      assertText('Hello!');
+      assert.strictEqual(calls, 1);
+
+      component.dependency = 'Hi';
+      assert.strictEqual(calls, 2, 'function and controlled observers both flush synchronously');
+      runTasks();
+      assertText('Hi!');
+      assert.strictEqual(calls, 2, 'binding reuses the computed value');
     });
 
     it('works with [multiple] normal property dependency', function () {

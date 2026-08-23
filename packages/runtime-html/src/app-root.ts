@@ -139,12 +139,14 @@ export class AppRoot<
         /* ssrScope  */config.ssrScope,
       )) as Controller<K>;
 
-      controller._hydrateCustomElement(hydrationInst);
+      void controller._hydrateCustomElement(hydrationInst);
       return onResolve(this._runAppTasks('hydrating'), () => {
-        controller._hydrate();
-        return onResolve(this._runAppTasks('hydrated'), () => {
-          controller._hydrateChildren();
-          this._hydratePromise = void 0;
+        return onResolve(controller._hydrate(), () => {
+          return onResolve(this._runAppTasks('hydrated'), () => {
+            return onResolve(controller._hydrateChildren(), () => {
+              this._hydratePromise = void 0;
+            });
+          });
         });
       });
     });

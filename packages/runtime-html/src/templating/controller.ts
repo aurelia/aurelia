@@ -36,6 +36,7 @@ import type {
   Constructable,
   IContainer,
   IDisposable,
+  MaybePromise,
   IServiceLocator,
   ResourceDefinition,
   Writable,
@@ -123,6 +124,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private debug!: boolean;
   /** @internal */
   private _fullyNamed: boolean = false;
+  /** @internal */
+  private _hydratePromise: void | Promise<void> = void 0;
   /** @internal */
   private readonly _rendering: IRendering;
 
@@ -263,7 +266,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      controller._hydrateCustomElement(hydrationInst);
+      controller._hydratePromise = controller._hydrateCustomElement(hydrationInst);
     }
 
     return controller as ICustomElementController<C>;
@@ -355,7 +358,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     );
     controller.parent = parentController ?? null;
 
-    controller._hydrateSynthetic();
+    controller._hydratePromise = controller._hydrateSynthetic();
 
     return controller as unknown as ISyntheticView;
   }
@@ -394,7 +397,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     // Hydrate with adopted nodes instead of cloning
-    controller._hydrateSyntheticAdopted(adoptedNodes);
+    controller._hydratePromise = controller._hydrateSyntheticAdopted(adoptedNodes);
 
     return controller as unknown as ISyntheticView;
   }
@@ -402,7 +405,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public _hydrateCustomElement(
     hydrationInst: IControllerElementHydrationInstruction | null,
-  ): void {
+  ): void | Promise<void> {
     if (__DEV__) {
       this.logger = this.container.get(ILogger).root;
       this.debug = this.logger.config.level <= LogLevel.debug;
@@ -443,13 +446,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate();
-      this._hydrateChildren();
+      return onResolve(this._hydrate(), () => this._hydrateChildren());
     }
   }
 
   /** @internal */
-  public _hydrate(): void {
+  public _hydrate(): void | Promise<void> {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -460,80 +462,82 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const definition = this.definition!;
-    const compiledDef = this._compiledDef = this._rendering.compile(definition as CustomElementDefinition, this.container);
-    const shadowOptions = compiledDef.shadowOptions;
-    const hasSlots = compiledDef.hasSlots;
-    const containerless = compiledDef.containerless;
-    const host = this.host!;
-    let location: IRenderLocation | null = this.location;
+    return onResolve(this._rendering.compile(definition as CustomElementDefinition, this.container), compiledDef => {
+      this._compiledDef = compiledDef;
+      const shadowOptions = compiledDef.shadowOptions;
+      const hasSlots = compiledDef.hasSlots;
+      const containerless = compiledDef.containerless;
+      const host = this.host!;
+      let location: IRenderLocation | null = this.location;
 
-    if (containerless && location == null) {
-      location = this.location = convertToRenderLocation(host);
-    }
-
-    setRef(host, elementBaseName, this as IHydratedController);
-    setRef(host, definition.key, this as IHydratedController);
-    if (shadowOptions !== null || hasSlots) {
-      if (location != null) {
-        throw createMappedError(ErrorNames.controller_no_shadow_on_containerless);
+      if (containerless && location == null) {
+        location = this.location = convertToRenderLocation(host);
       }
-      setRef(this.shadowRoot = host.attachShadow(shadowOptions ?? defaultShadowOptions), elementBaseName, this as IHydratedController);
-      setRef(this.shadowRoot, definition.key, this as IHydratedController);
-      this.mountTarget = targetShadowRoot;
-    } else if (location != null) {
-      // when template compiler encounter a "containerless" attribute
-      // it replaces the element with a render location
-      // making the controller receive the same comment node as both host and location
-      // todo: consider making template compiler less eager to replace
-      //       this has performance implication when using ad-hoc containerless
-      if (host !== location) {
-        setRef(location, elementBaseName, this as IHydratedController);
-        setRef(location, definition.key, this as IHydratedController);
+
+      setRef(host, elementBaseName, this as IHydratedController);
+      setRef(host, definition.key, this as IHydratedController);
+      if (shadowOptions !== null || hasSlots) {
+        if (location != null) {
+          throw createMappedError(ErrorNames.controller_no_shadow_on_containerless);
+        }
+        setRef(this.shadowRoot = host.attachShadow(shadowOptions ?? defaultShadowOptions), elementBaseName, this as IHydratedController);
+        setRef(this.shadowRoot, definition.key, this as IHydratedController);
+        this.mountTarget = targetShadowRoot;
+      } else if (location != null) {
+        // when template compiler encounter a "containerless" attribute
+        // it replaces the element with a render location
+        // making the controller receive the same comment node as both host and location
+        // todo: consider making template compiler less eager to replace
+        //       this has performance implication when using ad-hoc containerless
+        if (host !== location) {
+          setRef(location, elementBaseName, this as IHydratedController);
+          setRef(location, definition.key, this as IHydratedController);
+        }
+        this.mountTarget = targetLocation;
+      } else {
+        this.mountTarget = targetHost;
       }
-      this.mountTarget = targetLocation;
-    } else {
-      this.mountTarget = targetHost;
-    }
 
-    (this._vm as Writable<C>).$controller = this;
+      (this._vm as Writable<C>).$controller = this;
 
-    // SSR hydration: adopt existing DOM instead of cloning from template
-    if (this.ssrScope != null) {
-      this.nodes = this._rendering.adoptNodes(host);
-    } else {
-      this.nodes = this._rendering.createNodes(compiledDef);
-    }
+      // SSR hydration: adopt existing DOM instead of cloning from template
+      if (this.ssrScope != null) {
+        this.nodes = this._rendering.adoptNodes(host);
+      } else {
+        this.nodes = this._rendering.createNodes(compiledDef);
+      }
 
-    if (this._lifecycleHooks!.hydrated !== void 0) {
-      this._lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
-    }
+      if (this._lifecycleHooks!.hydrated !== void 0) {
+        this._lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
+      }
 
-    if (this._vmHooks._hydrated) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
-      this._vm!.hydrated(this as ICustomElementController);
-    }
+      if (this._vmHooks._hydrated) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
+        this._vm!.hydrated(this as ICustomElementController);
+      }
+    });
   }
 
   /** @internal */
-  public _hydrateChildren(): void {
+  public _hydrateChildren(): void | Promise<void> {
     const targets = this.nodes!.findTargets();
 
-    this._rendering.render(
+    return onResolve(this._rendering.render(
       /* controller */this as ICustomElementController,
       /* targets    */targets,
       /* definition */this._compiledDef!,
       /* host       */this.host,
-    );
-
-    if (this._lifecycleHooks!.created !== void 0) {
-      this._lifecycleHooks!.created.forEach(callCreatedHook, this);
-    }
-    if (this._vmHooks._created) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
-      this._vm!.created(this as ICustomElementController);
-    }
+    ), () => {
+      if (this._lifecycleHooks!.created !== void 0) {
+        this._lifecycleHooks!.created.forEach(callCreatedHook, this);
+      }
+      if (this._vmHooks._created) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
+        this._vm!.created(this as ICustomElementController);
+      }
+    });
   }
 
   /** @internal */
@@ -560,14 +564,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  private _hydrateSynthetic(): void {
-    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container);
-    this._rendering.render(
-      /* controller */this as ISyntheticView,
-      /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
-      /* definition */this._compiledDef,
-      /* host       */this.host,
-    );
+  private _hydrateSynthetic(): void | Promise<void> {
+    return onResolve(this._rendering.compile(this.viewFactory!.def, this.container), compiledDef => {
+      this._compiledDef = compiledDef;
+      return this._rendering.render(
+        /* controller */this as ISyntheticView,
+        /* targets    */(this.nodes = this._rendering.createNodes(compiledDef)).findTargets(),
+        /* definition */compiledDef,
+        /* host       */this.host,
+      );
+    });
   }
 
   /**
@@ -579,18 +585,20 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
    *
    * @internal
    */
-  private _hydrateSyntheticAdopted(adoptedNodes: INodeSequence): void {
-    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container);
-    // Use adopted nodes instead of cloning from template
-    this.nodes = adoptedNodes;
-    // Render to the adopted nodes' targets
-    const targets = adoptedNodes.findTargets();
-    this._rendering.render(
-      /* controller */this as ISyntheticView,
-      /* targets    */targets,
-      /* definition */this._compiledDef,
-      /* host       */this.host,
-    );
+  private _hydrateSyntheticAdopted(adoptedNodes: INodeSequence): void | Promise<void> {
+    return onResolve(this._rendering.compile(this.viewFactory!.def, this.container), compiledDef => {
+      this._compiledDef = compiledDef;
+      // Use adopted nodes instead of cloning from template
+      this.nodes = adoptedNodes;
+      // Render to the adopted nodes' targets
+      const targets = adoptedNodes.findTargets();
+      return this._rendering.render(
+        /* controller */this as ISyntheticView,
+        /* targets    */targets,
+        /* definition */compiledDef,
+        /* host       */this.host,
+      );
+    });
   }
 
   private $initiator: IHydratedController = null!;
@@ -599,6 +607,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     parent: IHydratedController | null,
     scope?: Scope | null,
   ): void | Promise<void> {
+    if (this._hydratePromise !== void 0) {
+      return onResolve(this._hydratePromise, () => {
+        this._hydratePromise = void 0;
+        return this.activate(initiator, parent, scope);
+      });
+    }
     switch (this.state) {
       case none:
       case deactivated:

@@ -4,6 +4,8 @@ import {
   type IContainer,
   type Constructable,
   type IResolver,
+  onResolve,
+  onResolveAll,
   resolve,
   isString,
   registrableMetadataKey,
@@ -106,7 +108,7 @@ export interface IRenderer {
      * Passed by Rendering.render() based on tree position.
      */
     ssrScope?: ISSRScopeChild,
-  ): void;
+  ): void | Promise<void>;
 }
 
 export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
@@ -192,7 +194,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
     ssrScope?: ISSRScopeChild,
-  ): void {
+  ): void | Promise<void> {
     /* eslint-disable prefer-const */
     let def: CustomElementDefinition | null;
     let component: ICustomElementViewModel;
@@ -233,24 +235,30 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
-      /* instruction         */instruction,
+      /* instruction         */{ ...instruction, hydrate: false },
       /* definition          */def,
       /* location            */location,
       /* ssrScope            */ssrScope as ISSRScope | undefined,
     );
+    return onResolve((childCtrl as Controller)._hydrateCustomElement({ ...instruction, hydrate: false }), () => {
+      return onResolve((childCtrl as Controller)._hydrate(), () => onResolve((childCtrl as Controller)._hydrateChildren(), () => {
+      const renderers = this._rendering.renderers;
+      const props = instruction.props;
+      const ii = props.length;
+      let i = 0;
+      let propInst: IInstruction;
+      let ret: void | Promise<void> = void 0;
+      while (ii > i) {
+        propInst = props[i];
+        ret = onResolveAll(ret, renderers[propInst.type].render(renderingCtrl, childCtrl, propInst, platform, exprParser, observerLocator));
+        ++i;
+      }
 
-    const renderers = this._rendering.renderers;
-    const props = instruction.props;
-    const ii = props.length;
-    let i = 0;
-    let propInst: IInstruction;
-    while (ii > i) {
-      propInst = props[i];
-      renderers[propInst.type].render(renderingCtrl, childCtrl, propInst, platform, exprParser, observerLocator);
-      ++i;
-    }
-
-    renderingCtrl.addChild(childCtrl);
+      return onResolve(ret, () => {
+        renderingCtrl.addChild(childCtrl);
+      });
+      }));
+    });
     /* eslint-enable prefer-const */
   }
 }, null!);

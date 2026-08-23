@@ -1,4 +1,4 @@
-import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
+import { createLookup, IContainer, isPromise, isString, onResolve, onResolveAll, type MaybePromise, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
@@ -9,6 +9,7 @@ import { INode } from '../dom.node';
 import { IPlatform } from '../platform';
 import { IRenderer } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
+import { TemplateSourceResolvers } from '../resources/template-source-resolver';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
@@ -22,7 +23,7 @@ export interface IRendering {
   compile(
     definition: CustomElementDefinition,
     container: IContainer,
-  ): CustomElementDefinition;
+  ): MaybePromise<CustomElementDefinition>;
 
   getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
 
@@ -44,7 +45,7 @@ export interface IRendering {
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
-  ): void;
+  ): void | Promise<void>;
 }
 
 export class Rendering implements IRendering {
@@ -59,7 +60,7 @@ export class Rendering implements IRendering {
   /** @internal */
   private readonly _platform: IPlatform;
   /** @internal */
-  private readonly _compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition> = new WeakMap();
+  private readonly _compilationCache: WeakMap<PartialCustomElementDefinition, CustomElementDefinition | Promise<CustomElementDefinition>> = new WeakMap();
   /** @internal */
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
   /** @internal */
@@ -92,21 +93,52 @@ export class Rendering implements IRendering {
   public compile(
     definition: CustomElementDefinition,
     container: IContainer,
-  ): CustomElementDefinition {
+  ): MaybePromise<CustomElementDefinition> {
     const compiler = container.get(ITemplateCompiler);
     const compiledMap = this._compilationCache;
     let compiled = compiledMap.get(definition);
     if (compiled == null) {
-      compiledMap.set(definition, compiled = CustomElementDefinition.create(
-        definition.needsCompile
-          ? compiler.compile(
-            definition,
+      compiled = definition.needsCompile
+        ? onResolve(this._resolveTemplate(definition, container), resolvedDefinition => CustomElementDefinition.create(
+          compiler.compile(
+            resolvedDefinition,
             container,
           )
-          : definition
-      ));
+        ))
+        : definition;
+      if (isPromise(compiled)) {
+        compiled = compiled.then((resolved) => {
+          compiledMap.set(definition, resolved);
+          return resolved;
+        }, (error: unknown) => {
+          compiledMap.delete(definition);
+          throw error;
+        });
+      }
+      compiledMap.set(definition, compiled);
     }
     return compiled;
+  }
+
+  /** @internal */
+  private _resolveTemplate(
+    definition: CustomElementDefinition,
+    container: IContainer,
+  ): MaybePromise<CustomElementDefinition> {
+    let resolvedTemplate: MaybePromise<string | Node | null> = definition.template;
+    const resolvers = TemplateSourceResolvers.findAll(container);
+    const ii = resolvers.length;
+    let i = 0;
+    for (; i < ii; ++i) {
+      const resolver = resolvers[i];
+      resolvedTemplate = onResolve(resolvedTemplate, template => onResolve(
+        resolver.resolveTemplateSource(definition, template, container),
+        nextTemplate => nextTemplate === void 0 ? template : nextTemplate,
+      ));
+    }
+    return onResolve(resolvedTemplate, template => template === definition.template
+      ? definition
+      : CustomElementDefinition.create({ ...definition, template }));
   }
 
   public getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory {
@@ -175,7 +207,7 @@ export class Rendering implements IRendering {
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
-  ): void {
+  ): void | Promise<void> {
     const rows = definition.instructions;
     const renderers = this.renderers;
     const targetCount = targets.length;
@@ -204,15 +236,20 @@ export class Rendering implements IRendering {
       row = definition.surrogates;
       if ((jj = row.length) > 0) {
         j = 0;
+        let ret: void | Promise<void> = void 0;
         while (jj > j) {
           instruction = row[j];
-          renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
+          ret = onResolveAll(ret, renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator));
           ++j;
+        }
+        if (isPromise(ret)) {
+          return ret.then(() => this.render(controller, targets, definition, null));
         }
       }
     }
 
     if (rowCount > 0) {
+      let ret: void | Promise<void> = void 0;
       while (rowCount > i) {
         row = rows[i];
         target = targets[i];
@@ -229,11 +266,12 @@ export class Rendering implements IRendering {
             ? scopeChildren[ssrChildIndex++]
             : undefined;
 
-          renderers[instructionType].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator, childScope);
+          ret = onResolveAll(ret, renderers[instructionType].render(controller, target, instruction, this._platform, this._exprParser, this._observerLocator, childScope));
           ++j;
         }
         ++i;
       }
+      return ret;
     }
   }
 }

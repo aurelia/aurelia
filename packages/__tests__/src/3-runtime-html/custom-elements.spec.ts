@@ -11,7 +11,9 @@ import {
   IAurelia,
   ICustomElementController,
   IKeyMapping,
+  ITemplateSourceResolver,
   ShortHandBindingSyntax,
+  TemplateSourceResolvers,
   ValueConverter,
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
@@ -119,6 +121,102 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     );
 
     assertText('hello world');
+  });
+
+  it('keeps startup synchronous when template source resolution stays synchronous', async function () {
+    let calls = 0;
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<my-el></my-el>`,
+      class App {},
+      [
+        TemplateSourceResolvers.define(class TemplateSourceResolver implements ITemplateSourceResolver {
+          public resolveTemplateSource(definition, template) {
+            if (definition.name === 'my-el') {
+              calls++;
+              return `<input value.bind="value">`;
+            }
+            return template;
+          }
+        }),
+        CustomElement.define({
+          name: 'my-el',
+          template: '<input>',
+        }, class MyEl {
+          public value = 'hello';
+        }),
+      ],
+    );
+
+    assert.strictEqual(startPromise, void 0);
+    await tasksSettled();
+    assert.strictEqual(calls, 1);
+    assert.notStrictEqual(appHost.querySelector('my-el'), null);
+
+    await tearDown();
+  });
+
+  it('returns a startup promise only when async template source resolution does real async work', async function () {
+    let calls = 0;
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<my-el></my-el><my-el></my-el>`,
+      class App {},
+      [
+        TemplateSourceResolvers.define(class TemplateSourceResolver implements ITemplateSourceResolver {
+          public resolveTemplateSource(definition, template) {
+            if (definition.name === 'my-el') {
+              calls++;
+              return Promise.resolve('<input value.bind="value">');
+            }
+            return template;
+          }
+        }),
+        CustomElement.define({
+          name: 'my-el',
+          template: '<input>',
+        }, class MyEl {
+          public value = 'hello';
+        }),
+      ],
+    );
+
+    assert.instanceOf(startPromise, Promise);
+    await startPromise;
+    await tasksSettled();
+
+    assert.strictEqual(calls, 1);
+    assert.deepStrictEqual(Array.from(appHost.querySelectorAll('input')).map(x => x.value), ['hello', 'hello']);
+
+    await tearDown();
+  });
+
+  it('resolves async template sources for custom elements created from synthetic views', async function () {
+    const { appHost, startPromise, tearDown } = createFixture(
+      `<div if.bind="true"><my-el></my-el></div>`,
+      class App {},
+      [
+        TemplateSourceResolvers.define(class TemplateSourceResolver implements ITemplateSourceResolver {
+          public resolveTemplateSource(definition, template) {
+            if (definition.name === 'my-el') {
+              return Promise.resolve('<div class="resolved">${value}</div>');
+            }
+            return template;
+          }
+        }),
+        CustomElement.define({
+          name: 'my-el',
+          template: '<div></div>',
+        }, class MyEl {
+          public value = 'resolved from async';
+        }),
+      ],
+    );
+
+    await startPromise;
+    await tasksSettled();
+
+    assert.visibleTextEqual(appHost, 'resolved from async');
+
+    await tearDown();
   });
 
   it('works with multi layer reactive changes', async function () {

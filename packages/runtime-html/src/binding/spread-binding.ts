@@ -61,7 +61,7 @@ export class SpreadBinding implements IBinding, IHasController {
       }
       return currentContext as IHydrationContext<object>;
     };
-    const renderSpreadInstruction = (ancestor: number) => {
+    const renderSpreadInstruction = (ancestor: number): void => {
       const context = getHydrationContext(ancestor);
       const spreadBinding = new SpreadBinding(context) as SpreadBinding & IHydratableController;
       const instructions = compiler.compileSpread(
@@ -78,7 +78,7 @@ export class SpreadBinding implements IBinding, IHasController {
             renderSpreadInstruction(ancestor + 1);
             break;
           case itSpreadElementProp:
-            renderers[(inst as SpreadElementPropBindingInstruction).instruction.type].render(
+            void renderers[(inst as SpreadElementPropBindingInstruction).instruction.type].render(
               spreadBinding,
               findElementControllerFor(target),
               (inst as SpreadElementPropBindingInstruction).instruction,
@@ -88,7 +88,7 @@ export class SpreadBinding implements IBinding, IHasController {
             );
             break;
           default:
-            renderers[inst.type].render(spreadBinding, target, inst, platform, exprParser, observerLocator);
+            void renderers[inst.type].render(spreadBinding, target, inst, platform, exprParser, observerLocator);
         }
       }
       bindings.push(spreadBinding);

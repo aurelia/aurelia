@@ -1,6 +1,6 @@
 import { type Constructable, type IContainer, type IRegistry, type MaybePromise, registrableMetadataKey } from '@aurelia/kernel';
 import { objectFreeze } from '../utilities';
-import { createInterface, singletonRegistration } from '../utilities-di';
+import { createInterface, instanceRegistration, singletonRegistration } from '../utilities-di';
 import type { CustomElementDefinition } from './custom-element';
 
 export const ITemplateSourceResolver = /*@__PURE__*/createInterface<ITemplateSourceResolver>('ITemplateSourceResolver');
@@ -32,6 +32,15 @@ export const TemplateSourceResolvers = objectFreeze({
         : root.getAll(ITemplateSourceResolver, false);
   },
 });
+
+export function useTemplateSourceResolvers(target: IContainer, source: IContainer): void {
+  if (source === target || source === source.root || !source.has(ITemplateSourceResolver, false)) {
+    return;
+  }
+  for (const resolver of source.getAll(ITemplateSourceResolver, false)) {
+    target.register(instanceRegistration(ITemplateSourceResolver, resolver));
+  }
+}
 
 export function templateSourceResolver<T extends Constructable<ITemplateSourceResolver>>(target: T, context: ClassDecoratorContext): T {
   const metadata = context?.metadata ?? (target[Symbol.metadata] ??= Object.create(null));

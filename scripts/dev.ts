@@ -4,6 +4,7 @@ import yargs from 'yargs';
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { Writable } from 'stream';
 import { c } from './logger';
 
 const args = yargs
@@ -33,6 +34,16 @@ const args = yargs
     describe: 'add extra e2e test setup to development',
     type: 'string',
     array: true,
+  })
+  .option('node-tests', {
+    describe: 'run node test watcher instead of the chrome debugger runner',
+    type: 'boolean',
+    default: false,
+  })
+  .option('log-file', {
+    describe: 'write all dev output to this file while still echoing to stdout',
+    type: 'string',
+    default: '.tmp/dev.log',
   })
   .parseSync();
 
@@ -66,8 +77,10 @@ If it is intended to run e2e test, then specified --e2e + one of the following: 
 
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
+const logFile = path.resolve(process.cwd(), args['log-file']);
 
 const alwaysBuildPackages = [
+  'kernel',
   'runtime',
   'runtime-html',
   'template-compiler',
@@ -157,7 +170,11 @@ if (apps.length > 0) {
 }
 
 const baseAppPort = 9000;
+const outputStream = createTeeStream(logFile);
+console.log(`Writing dev output to ${c.green(logFile)}`);
+
 concurrently([
+  { command: devCmd, cwd: 'packages/kernel', name: 'kernel', env: envVars },
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
   { command: devCmd, cwd: 'packages/template-compiler', name: 'template-compiler', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
@@ -177,9 +194,11 @@ concurrently([
   })),
   hasValidTestPatterns
     ? {
-      command: `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`,
+      command: args['node-tests']
+        ? `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-node:watch:focus -- ${testPatterns === '*' ? '*' : testPatterns}`
+        : `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`,
       cwd: 'packages/__tests__',
-      name: '__tests__(run)',
+      name: args['node-tests'] ? '__tests__(run:node)' : '__tests__(run)',
       env: envVars
     }
     : null,
@@ -208,7 +227,8 @@ concurrently([
     'magentaBright',
     'cyanBright',
     'white',
-  ]
+  ],
+  outputStream,
 });
 
 function isEsmBuilt(pkgPath: string): boolean {
@@ -225,4 +245,28 @@ function isFullyBuilt(pkgPath: string): boolean {
 
 function getElapsed(now: number, then: number) {
   return ((now - then) / 1000).toFixed(2);
+}
+
+function createTeeStream(filePath: string): Writable {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `# aurelia dev log\n# started ${new Date().toISOString()}\n\n`);
+  const fileStream = fs.createWriteStream(filePath, { flags: 'a' });
+
+  const close = () => fileStream.end();
+  process.on('exit', close);
+  process.on('SIGINT', () => {
+    close();
+    process.exit(130);
+  });
+  process.on('SIGTERM', () => {
+    close();
+    process.exit(143);
+  });
+
+  return new Writable({
+    write(chunk, encoding, callback) {
+      process.stdout.write(chunk, encoding);
+      fileStream.write(chunk, encoding, callback);
+    }
+  });
 }

@@ -36,7 +36,6 @@ import type {
   Constructable,
   IContainer,
   IDisposable,
-  MaybePromise,
   IServiceLocator,
   ResourceDefinition,
   Writable,
@@ -602,14 +601,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private $initiator: IHydratedController = null!;
+  public waitForHydration(): void | Promise<void> {
+    return onResolve(this._hydratePromise, () => {
+      this._hydratePromise = void 0;
+    });
+  }
+
   public activate(
     initiator: IHydratedController,
     parent: IHydratedController | null,
     scope?: Scope | null,
   ): void | Promise<void> {
     if (this._hydratePromise !== void 0) {
-      return onResolve(this._hydratePromise, () => {
-        this._hydratePromise = void 0;
+      return onResolve(this.waitForHydration(), () => {
         return this.activate(initiator, parent, scope);
       });
     }
@@ -1658,6 +1662,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   ssrScope?: ISSRScopeChild;
 
   addChild(controller: IController): void;
+  waitForHydration(): void | Promise<void>;
 }
 
 /** @internal */ export const none         = 0b00_00_00;

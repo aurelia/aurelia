@@ -10,6 +10,7 @@ import {
   IHydratedController,
   ISSRContext,
   type ISSRScope,
+  ValueConverter,
   customAttribute,
   customElement,
   IHydratableController,
@@ -615,6 +616,439 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       assert.deepStrictEqual(createdCounts, { a: 1, b: 1, c: 1, d: 1 });
       assert.deepStrictEqual(attachingCounts, { a: 2, b: 2, c: 1, d: 1 });
+    });
+
+    it('lazily skips later else-if expressions when the first branch matches', function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+
+      class App {
+        public step = 0;
+        public left = true;
+        public right = false;
+        public details = { value: 2 };
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.left ? this.step === 1 : this.right;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.details.value > 1 && this.step === 2;
+        }
+      }
+
+      const { assertText } = createFixture(
+        [
+          '<div if.bind="isA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isB">',
+          'b',
+          '</div>',
+          '<div else if.bind="isC">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
+    });
+
+    it('lazily stops after the matching middle else-if expression', function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+
+      class App {
+        public step = 1;
+        public left = true;
+        public right = false;
+        public details = { value: 2 };
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.left ? this.step === 1 : this.right;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.details.value > 1 && this.step === 2;
+        }
+      }
+
+      const { assertText } = createFixture(
+        [
+          '<div if.bind="isA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isB">',
+          'b',
+          '</div>',
+          '<div else if.bind="isC">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 1, c: 0 });
+    });
+
+    it('reacts to active ternary else-if changes without observing the inactive side or later branches', async function () {
+      const evalCounts = { first: 0, left: 0, right: 0, last: 0 };
+
+      class App {
+        public step = 1;
+        public useLeft = true;
+        public left = { c: true };
+        public right = { e: false };
+        public allowLast = true;
+
+        public get isFirst() {
+          evalCounts.first++;
+          return this.step === 0;
+        }
+
+        public get leftValue() {
+          evalCounts.left++;
+          return this.left.c;
+        }
+
+        public get rightValue() {
+          evalCounts.right++;
+          return this.right.e;
+        }
+
+        public get isLast() {
+          evalCounts.last++;
+          return this.allowLast;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isFirst">',
+          'a',
+          '</div>',
+          '<div else if.bind="useLeft ? leftValue : rightValue">',
+          'b',
+          '</div>',
+          '<div else if.bind="isLast">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, left: 1, right: 0, last: 0 });
+
+      component.right.e = true;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, left: 1, right: 0, last: 0 });
+
+      component.left.c = false;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { first: 1, left: 2, right: 0, last: 1 });
+    });
+
+    it('re-evaluates active function-call else-if expressions when parameters change and only checks later branches when falsy', async function () {
+      const evalCounts = { first: 0, call: 0, last: 0 };
+
+      class App {
+        public step = 1;
+        public mode = 'positive';
+        public value = 1;
+        public allowLast = true;
+
+        public get isFirst() {
+          evalCounts.first++;
+          return this.step === 0;
+        }
+
+        public matches(mode: string, value: number) {
+          evalCounts.call++;
+          return mode === 'positive' ? value > 0 : value === 0;
+        }
+
+        public get isLast() {
+          evalCounts.last++;
+          return this.allowLast;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isFirst">',
+          'a',
+          '</div>',
+          '<div else if.bind="matches(mode, value)">',
+          'b',
+          '</div>',
+          '<div else if.bind="isLast">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 1, last: 0 });
+
+      component.value = 2;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 2, last: 0 });
+
+      component.value = 0;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 3, last: 1 });
+
+      component.mode = 'zero';
+      await tasksSettled();
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 4, call: 4, last: 1 });
+    });
+
+    it('re-evaluates active value-converter else-if expressions and only evaluates later branches when the converter returns falsy', async function () {
+      const evalCounts = { first: 0, converter: 0, last: 0 };
+
+      const IsAtLeastValueConverter = ValueConverter.define('isAtLeast', class {
+        public toView(value: number, threshold: number) {
+          evalCounts.converter++;
+          return value >= threshold;
+        }
+      });
+
+      class App {
+        public step = 1;
+        public middleValue = 2;
+        public threshold = 1;
+        public allowLast = true;
+
+        public get isFirst() {
+          evalCounts.first++;
+          return this.step === 0;
+        }
+
+        public get isLast() {
+          evalCounts.last++;
+          return this.allowLast;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isFirst">',
+          'a',
+          '</div>',
+          '<div else if.bind="middleValue | isAtLeast:threshold">',
+          'b',
+          '</div>',
+          '<div else if.bind="isLast">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+        [IsAtLeastValueConverter],
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 1, last: 0 });
+
+      component.threshold = 2;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 2, last: 0 });
+
+      component.threshold = 3;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 3, last: 1 });
+
+      component.middleValue = 4;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 4, converter: 4, last: 1 });
+    });
+
+    it('does not evaluate nested if-else expressions inside an inactive else-if branch', async function () {
+      const evalCounts = { outerA: 0, outerB: 0, inner: 0 };
+
+      class App {
+        public step = 0;
+        public flag = true;
+
+        public get isOuterA() {
+          evalCounts.outerA++;
+          return this.step === 0;
+        }
+
+        public get isOuterB() {
+          evalCounts.outerB++;
+          return this.step === 1;
+        }
+
+        public get isInner() {
+          evalCounts.inner++;
+          return this.flag;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isOuterA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isOuterB">',
+          '<span if.bind="isInner">x</span>',
+          '<span else>y</span>',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { outerA: 1, outerB: 0, inner: 0 });
+
+      component.step = 1;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('x');
+      assert.deepStrictEqual(evalCounts, { outerA: 2, outerB: 1, inner: 1 });
+    });
+
+    it('supports non-terminating else-if chains and renders nothing when no branch matches', async function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">',
+          'a',
+          '</div>',
+          '<div else if.bind="step === 1">',
+          'b',
+          '</div>',
+          '<div else if.bind="step === 2">',
+          'c',
+          '</div>',
+        ].join(''),
+        { step: 0 },
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('b');
+
+      component.step = 2;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('c');
+
+      component.step = 3;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('');
+
+      component.step = 0;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('a');
+    });
+
+    it('lazily skips later checks in a non-terminating else-if chain', async function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+
+      class App {
+        public step = 0;
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.step === 1;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.step === 2;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isB">',
+          'b',
+          '</div>',
+          '<div else if.bind="isC">',
+          'c',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
+
+      component.step = 2;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { a: 2, b: 1, c: 1 });
+
+      component.step = 3;
+      await tasksSettled();
+      await tasksSettled();
+      assertText('');
+      assert.deepStrictEqual(evalCounts, { a: 3, b: 2, c: 2 });
     });
 
     it('waits for async custom element branch lifecycle on long jumps', async function () {

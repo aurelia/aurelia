@@ -143,17 +143,21 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       // change to false
       component.condition2 = false;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       // then true again
       component.condition2 = true;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       // wouldn't create another view
       assert.strictEqual(callCount, 2);
 
       component.condition = false;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       assert.strictEqual(callCount, 4);
 
@@ -839,7 +843,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       await tasksSettled();
       await tasksSettled();
       assertText('b');
-      assert.deepStrictEqual(evalCounts, { first: 4, call: 4, last: 1 });
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 4, last: 1 });
     });
 
     it('re-evaluates active value-converter else-if expressions and only evaluates later branches when the converter returns falsy', async function () {
@@ -907,7 +911,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       await tasksSettled();
       await tasksSettled();
       assertText('b');
-      assert.deepStrictEqual(evalCounts, { first: 4, converter: 4, last: 1 });
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 4, last: 1 });
     });
 
     it('does not evaluate nested if-else expressions inside an inactive else-if branch', async function () {
@@ -1236,6 +1240,14 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         <div else>b</div>
         <div else>c</div>
       `), /AUR0810/);
+    });
+
+    it('throws when else follows a plain else containing one nested if', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="outer">a</div>
+        <div else><span if.bind="inner">b</span></div>
+        <div else>c</div>
+      `, { outer: false, inner: false }), /AUR0810/);
     });
 
     it('throws when else follows a non-if template controller', function () {

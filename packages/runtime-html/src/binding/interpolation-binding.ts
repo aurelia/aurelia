@@ -131,10 +131,19 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
-    for (; ii > i; ++i) {
-      partBindings[i].bind(scope);
+    try {
+      for (; ii > i; ++i) {
+        partBindings[i].bind(scope);
+      }
+      this.updateTarget();
+    } catch (error) {
+      this._scope = void 0;
+      // `i` tracks completed binds, including every part after a target failure; unwind them in reverse activation order.
+      while (i > 0) {
+        partBindings[--i].unbind();
+      }
+      throw error;
     }
-    this.updateTarget();
     this.isBound = true;
   }
 

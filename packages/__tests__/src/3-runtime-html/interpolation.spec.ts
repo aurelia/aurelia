@@ -5,16 +5,23 @@ import {
   createObserverLocator,
   createScopeForTest,
 } from '@aurelia/testing';
-import { createConditionalExpression, createAccessScopeExpression, createInterpolation } from '@aurelia/expression-parser';
 import {
+  createAccessScopeExpression,
+  createBindingBehaviorExpression,
+  createConditionalExpression,
+  createInterpolation,
+} from '@aurelia/expression-parser';
+import {
+  BindingBehavior,
   BindingMode,
   CustomElement,
   InterpolationBinding,
+  InterpolationBindingRenderer,
   SVGAnalyzer,
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
+import { IObserverLocator, type ISubscriberCollection, tasksSettled } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
 
 type CaseType = {
@@ -326,6 +333,160 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       }
     });
 
+    describe('partial bind failures', function () {
+      before(function () {
+        // Direct construction below bypasses the renderer that normally installs the part-binding mixins.
+        createContainer().get(InterpolationBindingRenderer);
+      });
+
+      it('rolls back completed parts in reverse order when a later part fails', async function () {
+        const bindError = new Error('bind failed');
+        const lifecycle: string[] = [];
+        let shouldThrow = true;
+
+        const FirstBehavior = BindingBehavior.define('rollback-first', class {
+          public bind() { lifecycle.push('bind:first'); }
+          public unbind() { lifecycle.push('unbind:first'); }
+        });
+        const SecondBehavior = BindingBehavior.define('rollback-second', class {
+          public bind() { lifecycle.push('bind:second'); }
+          public unbind() { lifecycle.push('unbind:second'); }
+        });
+        const FailingBehavior = BindingBehavior.define('rollback-failing', class {
+          public bind() {
+            lifecycle.push('bind:failing');
+            if (shouldThrow) throw bindError;
+          }
+          public unbind() { lifecycle.push('unbind:failing'); }
+        });
+        const container = createContainer().register(FirstBehavior, SecondBehavior, FailingBehavior);
+        const observerLocator = createObserverLocator(container);
+        const interpolation = createInterpolation(
+          ['', '-', '-', ''],
+          [
+            createBindingBehaviorExpression(createAccessScopeExpression('first'), 'rollback-first', []),
+            createBindingBehaviorExpression(createAccessScopeExpression('second'), 'rollback-second', []),
+            createBindingBehaviorExpression(createAccessScopeExpression('third'), 'rollback-failing', []),
+          ],
+        );
+        const target = { value: 'unchanged' };
+        const binding = new InterpolationBinding(
+          { state: 0 },
+          container,
+          observerLocator,
+          interpolation,
+          target,
+          'value',
+          BindingMode.toView,
+          false,
+        );
+        const source = { first: 'one', second: 'two', third: 'three' };
+        const scope = createScopeForTest(source);
+        const firstObserver = observerLocator.getObserver(source, 'first') as unknown as ISubscriberCollection;
+        const secondObserver = observerLocator.getObserver(source, 'second') as unknown as ISubscriberCollection;
+
+        let thrown: unknown;
+        try {
+          binding.bind(scope);
+        } catch (error) {
+          thrown = error;
+        }
+
+        assert.strictEqual(thrown, bindError, 'the original bind failure is preserved');
+        assert.deepStrictEqual(lifecycle, [
+          'bind:first',
+          'bind:second',
+          'bind:failing',
+          'unbind:second',
+          'unbind:first',
+        ]);
+        assert.strictEqual(binding.isBound, false);
+        assert.strictEqual(Reflect.get(binding, '_scope'), void 0, 'the aggregate releases its scope');
+        assert.deepStrictEqual(binding.partBindings.map(part => part.isBound), [false, false, false]);
+        assert.strictEqual(binding.partBindings[0]._scope, void 0, 'the first completed part releases its scope');
+        assert.strictEqual(binding.partBindings[1]._scope, void 0, 'the second completed part releases its scope');
+        assert.strictEqual(firstObserver.subs.count, 0, 'the first completed part is disconnected');
+        assert.strictEqual(secondObserver.subs.count, 0, 'the second completed part is disconnected');
+        assert.strictEqual(target.value, 'unchanged', 'the target is not updated after a part fails');
+
+        shouldThrow = false;
+        binding.bind(scope);
+
+        assert.strictEqual(binding.isBound, true, 'the binding can be retried');
+        assert.strictEqual(firstObserver.subs.count, 1, 'the first part reconnects once');
+        assert.strictEqual(secondObserver.subs.count, 1, 'the second part reconnects once');
+        assert.strictEqual(target.value, 'one-two-three');
+
+        source.first = 'updated';
+        await tasksSettled();
+        assert.strictEqual(target.value, 'updated-two-three');
+
+        binding.unbind();
+        assert.strictEqual(firstObserver.subs.count, 0);
+        assert.strictEqual(secondObserver.subs.count, 0);
+      });
+
+      it('rolls back every part when the initial target update fails', function () {
+        const updateError = new Error('target update failed');
+        const container = createContainer();
+        const observerLocator = createObserverLocator(container);
+        const interpolation = createInterpolation(
+          ['', '-', ''],
+          [createAccessScopeExpression('first'), createAccessScopeExpression('second')],
+        );
+        let shouldThrow = true;
+        let targetValue = 'unchanged';
+        const target = {
+          get value() { return targetValue; },
+          set value(value: string) {
+            if (shouldThrow) throw updateError;
+            targetValue = value;
+          },
+        };
+        const binding = new InterpolationBinding(
+          { state: 0 },
+          container,
+          observerLocator,
+          interpolation,
+          target,
+          'value',
+          BindingMode.toView,
+          false,
+        );
+        const source = { first: 'one', second: 'two' };
+        const scope = createScopeForTest(source);
+        const firstObserver = observerLocator.getObserver(source, 'first') as unknown as ISubscriberCollection;
+        const secondObserver = observerLocator.getObserver(source, 'second') as unknown as ISubscriberCollection;
+
+        let thrown: unknown;
+        try {
+          binding.bind(scope);
+        } catch (error) {
+          thrown = error;
+        }
+
+        assert.strictEqual(thrown, updateError, 'the original target failure is preserved');
+        assert.strictEqual(binding.isBound, false);
+        assert.strictEqual(Reflect.get(binding, '_scope'), void 0, 'the aggregate releases its scope');
+        assert.deepStrictEqual(binding.partBindings.map(part => part.isBound), [false, false]);
+        assert.strictEqual(binding.partBindings[0]._scope, void 0);
+        assert.strictEqual(binding.partBindings[1]._scope, void 0);
+        assert.strictEqual(firstObserver.subs.count, 0);
+        assert.strictEqual(secondObserver.subs.count, 0);
+        assert.strictEqual(target.value, 'unchanged');
+
+        shouldThrow = false;
+        binding.bind(scope);
+        assert.strictEqual(target.value, 'one-two');
+        assert.strictEqual(firstObserver.subs.count, 1);
+        assert.strictEqual(secondObserver.subs.count, 1);
+
+        binding.unbind();
+        assert.strictEqual(firstObserver.subs.count, 0);
+        assert.strictEqual(secondObserver.subs.count, 0);
+      });
+    });
+
     describe('volatile expressions', function () {
       it('handles single', async function () {
         const container = createContainer();
@@ -520,6 +681,59 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
       });
     });
+  });
+
+  it('releases completed interpolation parts when conditional view activation fails', async function () {
+    const activationError = new Error('conditional view activation failed');
+    let shouldThrow = true;
+    const FailingBehavior = BindingBehavior.define('failActivation', class {
+      public bind() {
+        if (shouldThrow) throw activationError;
+      }
+    });
+    class App {
+      public show = false;
+      public first = 'one';
+      public second = 'two';
+    }
+    const { component, container, appHost, tearDown } = createFixture(
+      `<div if.bind="show" title="\${first}-\${second & failActivation}">active</div>`,
+      App,
+      [FailingBehavior],
+    );
+    const observerLocator = container.get(IObserverLocator);
+    const firstObserver = observerLocator.getObserver(component, 'first') as unknown as ISubscriberCollection;
+
+    let thrown: unknown;
+    try {
+      component.show = true;
+    } catch (error) {
+      thrown = error;
+    }
+    assert.strictEqual(thrown, activationError);
+    assert.html.textContent(appHost, '');
+
+    // A failed conditional view can be deactivated and later activated again.
+    component.show = false;
+    await tasksSettled();
+    assert.strictEqual(firstObserver.subs.count, 0, 'deactivation releases the completed interpolation part');
+
+    shouldThrow = false;
+    component.show = true;
+    await tasksSettled();
+    assert.html.textContent(appHost, 'active');
+    assert.strictEqual(appHost.querySelector('div')!.title, 'one-two');
+    assert.strictEqual(firstObserver.subs.count, 1, 'successful reactivation connects the interpolation once');
+
+    component.first = 'updated';
+    await tasksSettled();
+    assert.strictEqual(appHost.querySelector('div')!.title, 'updated-two');
+
+    component.show = false;
+    await tasksSettled();
+    assert.strictEqual(firstObserver.subs.count, 0, 'normal deactivation disconnects the interpolation');
+
+    await tearDown();
   });
 
   it('works with strict mode', async function () {

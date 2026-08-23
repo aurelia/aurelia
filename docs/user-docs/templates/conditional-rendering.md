@@ -39,6 +39,8 @@ Use `else` immediately after an `if.bind` element to create branching logic:
 </div>
 ```
 
+Formatting whitespace and ordinary HTML comments may appear between the branches. Any other authored content—including non-whitespace text, interpolations, `<let>`, local-template declarations, or elements—ends the pair.
+
 ### Caching Behavior
 
 By default, `if.bind` caches views and view models for performance. Disable caching when you need fresh instances:

@@ -155,6 +155,18 @@ export interface HydrateTemplateController<T extends IAttributeComponentDefiniti
   readonly res: string | /* Constructable | */ T;
   readonly alias: string | undefined;
   /**
+   * Compiler/runtime coordination metadata identifying the significant source
+   * node that produced this instruction. Template controllers on the same
+   * element share an id; formatting whitespace and comments do not consume one.
+   * IDs are unique across the complete compiled root, including its nested
+   * templates and projections.
+   * Compiler-generated instructions include this metadata, while legacy or
+   * hand-authored instructions may omit it.
+   */
+  readonly sourceNodeId?: number;
+  /** Identity of the previous significant sibling source node, when available. */
+  readonly previousSignificantSiblingSourceNodeId?: number;
+  /**
    * Bindable instructions for the template controller instance
    */
   readonly props: IInstruction[];

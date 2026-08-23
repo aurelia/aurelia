@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { onResolve, resolve } from '@aurelia/kernel';
-import { IRenderLocation } from '../../dom';
+import { IRenderLocation, isRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
-import type { IInstruction } from '@aurelia/template-compiler';
+import { isHTMLWhitespace, type HydrateTemplateController, type IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
-import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
+import { CustomAttribute, CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRTemplateController } from '../../templating/ssr';
 
 export class If implements ICustomAttributeViewModel {
@@ -194,19 +194,59 @@ export class Else implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
 
   public link(
-    controller: IHydratableController,
+    _controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
     _instruction: IInstruction,
   ): void {
-    const children = controller.children!;
-    const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;
-    if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = this._factory;
-    } else if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = this._factory;
-    } else {
+    const instruction = _instruction as HydrateTemplateController;
+    const ifController = findPreviousIf(
+      _target as IRenderLocation,
+      instruction.sourceNodeId,
+      instruction.previousSignificantSiblingSourceNodeId,
+    );
+    if (!(ifController?.viewModel instanceof If)) {
       throw createMappedError(ErrorNames.else_without_if);
     }
+    ifController.viewModel.elseFactory = this._factory;
   }
 }
+
+/**
+ * Template controllers are represented by `au-start`/`au-end` marker pairs.
+ * Use those markers to preserve authored sibling structure: the controller list
+ * does not contain ordinary DOM nodes and therefore cannot establish adjacency.
+ * Source-node metadata retains the same boundary when compilation removes a
+ * target, such as an interpolation or `let` element, before linking.
+ */
+const findPreviousIf = (
+  location: IRenderLocation,
+  sourceNodeId: number | undefined,
+  previousSignificantSiblingSourceNodeId: number | undefined,
+): ICustomAttributeController<If> | undefined => {
+  let node = location.$start?.previousSibling ?? null;
+  while (node !== null) {
+    if (isRenderLocation(node)) {
+      const previousSourceNodeId = node.$sourceNodeId;
+      const hasSource = sourceNodeId !== void 0;
+      const hasPreviousSiblingSource = previousSignificantSiblingSourceNodeId !== void 0;
+      const previousHasSource = previousSourceNodeId !== void 0;
+      if (
+        hasSource !== hasPreviousSiblingSource
+        || hasSource !== previousHasSource
+        || (hasSource && previousSignificantSiblingSourceNodeId !== previousSourceNodeId)
+      ) {
+        return;
+      }
+      return CustomAttribute.for<If>(node, 'if');
+    }
+    if (node.nodeType === 3 /* Text */) {
+      if (!isHTMLWhitespace((node as Text).data)) {
+        return;
+      }
+    } else if (node.nodeType !== 8 /* Comment */) {
+      return;
+    }
+    node = node.previousSibling;
+  }
+};

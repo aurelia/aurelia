@@ -137,24 +137,9 @@ Because the same view gets reused, you can cache work (see `If.cache` and `Promi
 
 When several template controllers decorate the same element, Aurelia walks the instruction list from **right to left** (`packages/template-compiler/src/template-compiler.ts`, section 4.1). Only the right-most controller receives the original compiled template. The controllers to its left only see the marker emitted by the inner controller. This is why sequences like `repeat.for="item of items" if.bind="item.visible"` behave predictably—the `if` sees the repeated view because it is to the right of `repeat`.
 
-Template controllers can also cooperate via the optional `link()` hook. The built-in `else` controller uses it to register its `IViewFactory` with the nearest preceding `if`:
+Template controllers can also cooperate via the optional `link()` hook. The built-in `else` controller uses internal compiler source metadata together with render locations to find the immediately preceding sibling `if` and register its `IViewFactory` with that controller.
 
-```typescript
-import { ICustomAttributeController, IHydratableController } from '@aurelia/runtime-html';
-import { IInstruction } from '@aurelia/template-compiler';
-
-export class ElseTemplateController {
-  public link(
-    parent: IHydratableController,
-    _ownController: ICustomAttributeController,
-    _target: Node,
-    _instruction: IInstruction,
-  ) {
-    const lastChild = parent.children?.at(-1);
-    // lastChild.viewModel will be the matching If instance; hand it our factory
-  }
-}
-```
+Do not infer structural adjacency from `parent.children`: that list contains controllers, but deliberately omits ordinary DOM nodes between them. Custom controllers that need structural linking should establish an explicit compiler/runtime contract or coordinate through a supported parent or DI relationship.
 
 Use this hook whenever two controllers must share state (think `switch` / `case` / `default-case`).
 

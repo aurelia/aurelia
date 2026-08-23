@@ -1,13 +1,16 @@
+import { Registration } from '@aurelia/kernel';
 import {
+  Aurelia,
   CustomAttribute,
+  CustomElement,
   ICustomElementViewModel,
   IHydratedController,
+  ISSRContext,
+  type ISSRScope,
   customElement,
 } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
-import {
-  assert, createFixture
-} from '@aurelia/testing';
+import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe(`3-runtime-html/if.integration.spec.ts`, function () {
   class EventLog {
@@ -239,6 +242,272 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       void tearDown();
 
       assertText('');
+    });
+
+    describe('else structural association', function () {
+      const GapMarker = CustomAttribute.define('else-gap-marker', class {});
+
+      @customElement({ name: 'else-gap-element', template: 'gap' })
+      class GapElement {}
+
+      const invalidGaps: readonly {
+        name: string;
+        markup: string;
+        dependencies?: unknown[];
+        value?: string;
+      }[] = [
+        { name: 'significant text', markup: 'gap' },
+        { name: 'a non-breaking space', markup: '\u00a0' },
+        { name: 'an interpolation', markup: '${value}' },
+        { name: 'an initially empty interpolation', markup: '${value}', value: '' },
+        { name: 'a let element', markup: '<let gap.bind="value"></let>' },
+        { name: 'a local template declaration', markup: '<template as-custom-element="else-gap-local">gap</template>' },
+        { name: 'a plain element', markup: '<p>gap</p>' },
+        { name: 'an element with an unregistered attribute', markup: '<p else-gap-marker>gap</p>' },
+        { name: 'a registered custom attribute', markup: '<p else-gap-marker>gap</p>', dependencies: [GapMarker] },
+        { name: 'an unregistered custom element', markup: '<else-gap-element></else-gap-element>' },
+        { name: 'a registered custom element', markup: '<else-gap-element></else-gap-element>', dependencies: [GapElement] },
+        { name: 'another template controller', markup: '<p repeat.for="i of 1">gap</p>' },
+        { name: 'a plain template', markup: '<template>gap</template>' },
+      ];
+
+      for (const { name, markup, dependencies, value = 'value' } of invalidGaps) {
+        it(`rejects else after ${name}`, function () {
+          assert.throws(() => createFixture(
+            `<div if.bind="condition">if</div>${markup}<div else>else</div>`,
+            { condition: false, value },
+            dependencies,
+          ), /AUR0810/);
+        });
+      }
+
+      it('rejects else without a preceding sibling', function () {
+        assert.throws(() => createFixture('<div else>else</div>'), /AUR0810/);
+      });
+
+      it('allows formatting whitespace and comments between if and else', function () {
+        const { appHost, component } = createFixture(
+          '<div if.bind="condition">if</div>\n  <!-- formatting -->\n  <div else>else</div>',
+          { condition: true },
+        );
+
+        assert.strictEqual(appHost.textContent!.trim(), 'if');
+        component.condition = false;
+        assert.strictEqual(appHost.textContent!.trim(), 'else');
+      });
+
+      it('associates adjacent branches through preserved SSR markers', async function () {
+        class App {
+          public show = false;
+        }
+
+        const AppElement = CustomElement.define({
+          name: 'ssr-adjacent-if-else',
+          template: [
+            '<div if.bind="show" data-branch="if">if</div>',
+            '\n  <!-- formatting -->\n  ',
+            '<div else data-branch="else">else</div>',
+          ].join(''),
+        }, App);
+
+        const serverContext = TestContext.create();
+        serverContext.container.register(
+          Registration.instance(ISSRContext, { preserveMarkers: true }),
+        );
+        const serverHost = serverContext.doc.body.appendChild(
+          serverContext.createElement('ssr-adjacent-if-else'),
+        );
+        const serverAu = new Aurelia(serverContext.container).app({
+          host: serverHost,
+          component: AppElement,
+        });
+
+        let markup: string;
+        try {
+          await serverAu.start();
+          markup = serverHost.innerHTML;
+          assert.strictEqual(serverHost.textContent!.trim(), 'else');
+          assert.strictEqual(
+            (markup.match(/<!--au-->/g) ?? []).length,
+            2,
+            'server rendering preserves the target marker for each branch',
+          );
+        } finally {
+          await serverAu.stop(true);
+          serverAu.dispose();
+          serverHost.remove();
+        }
+
+        const clientContext = TestContext.create();
+        const clientHost = clientContext.doc.body.appendChild(
+          clientContext.createElement('ssr-adjacent-if-else'),
+        );
+        clientHost.innerHTML = markup;
+        const serverElse = clientHost.querySelector('[data-branch="else"]');
+        assert.notStrictEqual(serverElse, null);
+
+        const ssrScope: ISSRScope = {
+          name: 'ssr-adjacent-if-else',
+          children: [{
+            type: 'if',
+            state: { value: false },
+            views: [{ nodeCount: 1, children: [] }],
+          }],
+        };
+        const clientAu = new Aurelia(clientContext.container);
+        try {
+          const root = await clientAu.hydrate({
+            host: clientHost,
+            component: AppElement,
+            ssrScope,
+          });
+          try {
+            const component = root.controller.viewModel as App;
+            assert.strictEqual(
+              clientHost.querySelector('[data-branch="else"]'),
+              serverElse,
+              'the server-rendered else branch is adopted',
+            );
+
+            component.show = true;
+            await tasksSettled();
+            assert.strictEqual(clientHost.textContent!.trim(), 'if');
+
+            component.show = false;
+            await tasksSettled();
+            assert.strictEqual(clientHost.textContent!.trim(), 'else');
+            assert.strictEqual(
+              clientHost.querySelector('[data-branch="else"]'),
+              serverElse,
+              'the adopted cached else view is reused',
+            );
+          } finally {
+            await root.deactivate();
+            root.dispose();
+          }
+        } finally {
+          clientAu.dispose();
+          clientHost.remove();
+        }
+      });
+
+      it('does not let a nested if in an intervening element claim the outer else', function () {
+        assert.throws(() => createFixture(
+          [
+            '<div if.bind="outer">outer-if</div>',
+            '<section><span if.bind="inner">inner-if</span></section>',
+            '<div else>outer-else</div>',
+          ].join(''),
+          { outer: true, inner: false },
+        ), /AUR0810/);
+      });
+
+      it('keeps adjacent conditional pairs independent', function () {
+        const { assertText, component } = createFixture(
+          [
+            '<div if.bind="first">a</div>',
+            '<div else>b</div>',
+            '<div if.bind="second">c</div>',
+            '<div else>d</div>',
+          ].join(''),
+          { first: true, second: false },
+        );
+
+        assertText('ad');
+        component.first = false;
+        component.second = true;
+        assertText('bc');
+      });
+
+      it('associates projected branches within the same slot', function () {
+        @customElement({
+          name: 'else-slot-host',
+          template: '<au-slot name="content"></au-slot>',
+        })
+        class SlotHost {}
+
+        const { assertText, component } = createFixture(
+          [
+            '<else-slot-host>',
+            '<div au-slot="content" if.bind="condition">if</div>',
+            '<div au-slot="content" else>else</div>',
+            '</else-slot-host>',
+          ].join(''),
+          { condition: true },
+          [SlotHost],
+        );
+
+        assertText('if');
+        component.condition = false;
+        assertText('else');
+      });
+
+      it('rejects projected branches from different slots with AUR0810', function () {
+        @customElement({
+          name: 'else-multi-slot-host',
+          template: '<au-slot name="first"></au-slot><au-slot name="second"></au-slot>',
+        })
+        class MultiSlotHost {}
+
+        assert.throws(() => createFixture(
+          [
+            '<else-multi-slot-host>',
+            '<div au-slot="first" if.bind="condition">if</div>',
+            '<div au-slot="second" else>else</div>',
+            '</else-multi-slot-host>',
+          ].join(''),
+          { condition: false },
+          [MultiSlotHost],
+        ), /AUR0810/);
+      });
+
+      it('does not join branches unwrapped from separate projection templates', function () {
+        @customElement({
+          name: 'else-template-slot-host',
+          template: '<au-slot name="content"></au-slot>',
+        })
+        class TemplateSlotHost {}
+
+        assert.throws(() => createFixture(
+          [
+            '<else-template-slot-host>',
+            '<template au-slot="content"><div if.bind="condition">if</div></template>',
+            '<template au-slot="content"><div else>else</div></template>',
+            '</else-template-slot-host>',
+          ].join(''),
+          { condition: false },
+          [TemplateSlotHost],
+        ), /AUR0810/);
+      });
+
+      it('associates each repeated pair within its own view', async function () {
+        const { assertText, component } = createFixture(
+          [
+            '<div repeat.for="item of items">',
+            '<span if.bind="item.visible">${item.name}-if</span>',
+            '<span else>${item.name}-else</span>',
+            '</div>',
+          ].join(''),
+          {
+            items: [
+              { name: 'a', visible: true },
+              { name: 'b', visible: false },
+            ],
+          },
+        );
+
+        assertText('a-ifb-else');
+        component.items[1].visible = true;
+        assertText('a-ifb-if');
+
+        component.items.unshift({ name: 'c', visible: false });
+        await tasksSettled();
+        assertText('c-elsea-ifb-if');
+
+        component.items.splice(1, 1);
+        await tasksSettled();
+        assertText('c-elseb-if');
+      });
     });
 
     {

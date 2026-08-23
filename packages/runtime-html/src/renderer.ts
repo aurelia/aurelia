@@ -372,6 +372,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
         : ctxContainer
     );
     const renderLocation = convertToRenderLocation(target);
+    renderLocation.$sourceNodeId = instruction.sourceNodeId;
 
     const results = invokeAttribute(
       /* platform         */platform,

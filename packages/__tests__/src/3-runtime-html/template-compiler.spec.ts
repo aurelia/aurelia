@@ -1235,6 +1235,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         );
         verifyBindingInstructionsEqual(result.instructions[0][0], {
           type: itHydrateTemplateController,
+          sourceNodeId: 0,
           res: CustomAttribute.getDefinition(TemplateControllerAttr),
           props: [createInterpolation({ from: '${hey}', to: 'value' })],
           def: {
@@ -1279,6 +1280,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           type: 'custom-element',
           instructions: [[{
             type: itHydrateTemplateController,
+            sourceNodeId: 0,
             res: CustomAttribute.getDefinition(Foo),
             props: [],
             def: {
@@ -1287,6 +1289,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               template: '<template><div><!--au--><!--au-start--><!--au-end--></div></template>',
               instructions: [[{
                 type: itHydrateTemplateController,
+                sourceNodeId: 1,
                 res: CustomAttribute.getDefinition(Bar),
                 props: [],
                 def: {
@@ -1296,6 +1299,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   type: 'custom-element',
                   instructions: [[{
                     type: itHydrateTemplateController,
+                    sourceNodeId: 2,
                     res: CustomAttribute.getDefinition(Baz),
                     props: [],
                     def: {
@@ -1305,6 +1309,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                       type: 'custom-element',
                       instructions: [[{
                         type: itHydrateTemplateController,
+                        sourceNodeId: 3,
                         res: CustomAttribute.getDefinition(Qux),
                         props: [],
                         def: {
@@ -1353,6 +1358,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             type: 'custom-element',
             instructions: [[{
               type: itHydrateTemplateController,
+              sourceNodeId: 0,
               res: resolveResources ? CustomAttribute.getDefinition(Foo) : 'foo',
               props: [],
               def: {
@@ -1362,6 +1368,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 type: 'custom-element',
                 instructions: [[{
                   type: itHydrateTemplateController,
+                  sourceNodeId: 0,
                   res: resolveResources ? CustomAttribute.getDefinition(Bar) : 'bar',
                   props: [createIterateProp('i of ii', 'value', [])],
                   def: {
@@ -1371,6 +1378,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     type: 'custom-element',
                     instructions: [[{
                       type: itHydrateTemplateController,
+                      sourceNodeId: 0,
                       res: resolveResources ? CustomAttribute.getDefinition(Baz) : 'baz',
                       props: [],
                       def: {
@@ -1380,6 +1388,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                         type: 'custom-element',
                         instructions: [[{
                           type: itHydrateTemplateController,
+                          sourceNodeId: 1,
                           res: resolveResources ? CustomAttribute.getDefinition(Qux) : 'qux',
                           props: [createIterateProp('i of ii', 'value', [])],
                           def: {
@@ -1389,6 +1398,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                             type: 'custom-element',
                             instructions: [[{
                               type: itHydrateTemplateController,
+                              sourceNodeId: 1,
                               res: resolveResources ? CustomAttribute.getDefinition(Quux) : 'quux',
                               props: [],
                               def: {
@@ -1430,6 +1440,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             type: 'custom-element',
             instructions: [[{
               type: itHydrateTemplateController,
+              sourceNodeId: 0,
               res: resolveResources ? CustomAttribute.getDefinition(Foo) : 'foo',
               props: [],
               def: {
@@ -1439,6 +1450,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 type: 'custom-element',
                 instructions: [[{
                   type: itHydrateTemplateController,
+                  sourceNodeId: 0,
                   res: resolveResources ? CustomAttribute.getDefinition(Bar) : 'bar',
                   props: [createIterateProp('i of ii', 'value', [])],
                   def: {
@@ -1448,6 +1460,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     type: 'custom-element',
                     instructions: [[{
                       type: itHydrateTemplateController,
+                      sourceNodeId: 0,
                       res: resolveResources ? CustomAttribute.getDefinition(Baz) : 'baz',
                       props: [],
                       def: {
@@ -1457,6 +1470,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                         type: 'custom-element',
                         instructions: [[{
                           type: itHydrateTemplateController,
+                          sourceNodeId: 1,
                           res: resolveResources ? CustomAttribute.getDefinition(Qux) : 'qux',
                           props: [createIterateProp('i of ii', 'value', [])],
                           def: {
@@ -1466,6 +1480,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                             type: 'custom-element',
                             instructions: [[{
                               type: itHydrateTemplateController,
+                              sourceNodeId: 1,
                               res: resolveResources ? CustomAttribute.getDefinition(Quux) : 'quux',
                               props: [],
                               def: {
@@ -1494,6 +1509,22 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar { });
       const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz { });
 
+      it('records significant source siblings before compilation removes them', function () {
+        const { result } = compileTemplate(
+          '<div foo></div>\n<!-- formatting --><div bar></div>${value}<div foo></div>',
+          Foo,
+          Bar,
+        );
+        const first = result.instructions[0][0] as HydrateTemplateController;
+        const second = result.instructions[1][0] as HydrateTemplateController;
+        const afterInterpolation = result.instructions[3][0] as HydrateTemplateController;
+
+        assert.strictEqual(typeof first.sourceNodeId, 'number');
+        assert.strictEqual(second.previousSignificantSiblingSourceNodeId, first.sourceNodeId);
+        assert.strictEqual(typeof afterInterpolation.previousSignificantSiblingSourceNodeId, 'number');
+        assert.notStrictEqual(afterInterpolation.previousSignificantSiblingSourceNodeId, second.sourceNodeId);
+      });
+
       for (const [otherAttrPosition, appTemplate] of [
         ['before', '<div a.bind="b" foo bar>'],
         ['middle', '<div foo a.bind="b" bar>'],
@@ -1506,6 +1537,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             template: '<template><!--au--><!--au-start--><!--au-end--></template>',
             instructions: [[{
               type: itHydrateTemplateController,
+              sourceNodeId: 0,
               res: CustomAttribute.getDefinition(Foo),
               props: [],
               def: {
@@ -1515,6 +1547,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 type: 'custom-element',
                 instructions: [[{
                   type: itHydrateTemplateController,
+                  sourceNodeId: 0,
                   res: CustomAttribute.getDefinition(Bar),
                   props: [],
                   def: {
@@ -1545,6 +1578,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             // for foo=""
             name: 'unamed',
             type: itHydrateTemplateController,
+            sourceNodeId: 1,
             res: CustomAttribute.getDefinition(Foo),
             props: [],
             def: {
@@ -1555,6 +1589,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               instructions: [[{
                 // for bar.for
                 type: itHydrateTemplateController,
+                sourceNodeId: 1,
                 res: CustomAttribute.getDefinition(Bar),
                 props: [createIterateProp('i of ii', 'value', [])],
                 def: {
@@ -1564,6 +1599,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   template: '<template><!--au--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
                     type: itHydrateTemplateController,
+                    sourceNodeId: 1,
                     res: CustomAttribute.getDefinition(Baz),
                     props: [createPropBinding({ from: 'e', to: 'value' })],
                     def: {
@@ -1595,6 +1631,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             // for foo=""
             name: 'unamed',
             type: itHydrateTemplateController,
+            sourceNodeId: 1,
             res: CustomAttribute.getDefinition(Foo),
             props: [],
             def: {
@@ -1606,6 +1643,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 // for bar.for
                 name: 'unamed',
                 type: itHydrateTemplateController,
+                sourceNodeId: 1,
                 res: CustomAttribute.getDefinition(Bar),
                 props: [createIterateProp('i of ii', 'value', [])],
                 def: {
@@ -1616,6 +1654,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   instructions: [[{
                     name: 'unamed',
                     type: itHydrateTemplateController,
+                    sourceNodeId: 1,
                     res: CustomAttribute.getDefinition(Baz),
                     props: [createPropBinding({ from: 'e', to: 'value', mode: 2 })],
                     def: {

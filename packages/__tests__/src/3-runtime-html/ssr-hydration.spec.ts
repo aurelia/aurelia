@@ -1,4 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
+import { createAccessScopeExpression } from '@aurelia/expression-parser';
 import {
   IRenderLocation,
   type ISSRScope,
@@ -10,13 +11,126 @@ import {
   CustomElementDefinition,
   isSSRTemplateController,
   isSSRScope,
+  hydrateSSRDefinition,
 } from '@aurelia/runtime-html';
 import {
+  BindingMode,
+  itHydrateTemplateController,
+  itPropertyBinding,
+  type HydrateTemplateController,
+  type PropertyBindingInstruction,
+} from '@aurelia/template-compiler';
+import {
   assert,
+  createFixture,
   TestContext,
 } from '@aurelia/testing';
 
 describe('3-runtime-html/ssr-hydration.spec.ts', function () {
+  it('preserves and executes template-controller source provenance in serialized definitions', async function () {
+    const hydrated = hydrateSSRDefinition({
+      template: '<!--au--><!--au-start--><!--au-end--><!--au--><!--au-start--><!--au-end-->',
+      expressions: [],
+      definition: {
+        name: 'app',
+        targetCount: 2,
+        instructions: [
+          [{
+            type: itHydrateTemplateController,
+            res: 'if',
+            templateIndex: 0,
+            instructions: [],
+            sourceNodeId: 1,
+          }],
+          [{
+            type: itHydrateTemplateController,
+            res: 'else',
+            templateIndex: 1,
+            instructions: [],
+            sourceNodeId: 2,
+            previousSignificantSiblingSourceNodeId: 1,
+          }],
+        ],
+        nestedTemplates: [
+          { name: 'if-view', targetCount: 0, instructions: [], nestedTemplates: [] },
+          { name: 'else-view', targetCount: 0, instructions: [], nestedTemplates: [] },
+        ],
+      },
+      nestedHtmlTree: [
+        { html: '<div>if</div>', nested: [] },
+        { html: '<div>else</div>', nested: [] },
+      ],
+    });
+    const ifInstruction = hydrated.instructions[0][0] as HydrateTemplateController;
+    const elseInstruction = hydrated.instructions[1][0] as HydrateTemplateController;
+
+    assert.strictEqual(ifInstruction.sourceNodeId, 1);
+    assert.strictEqual(elseInstruction.sourceNodeId, 2);
+    assert.strictEqual(elseInstruction.previousSignificantSiblingSourceNodeId, 1);
+
+    const conditionBinding: PropertyBindingInstruction = {
+      type: itPropertyBinding,
+      from: createAccessScopeExpression('show'),
+      to: 'value',
+      mode: BindingMode.toView,
+    };
+    ifInstruction.props.push(conditionBinding);
+    const { assertText, component, tearDown } = createFixture(
+      hydrated.template,
+      { show: false },
+      [],
+      true,
+      TestContext.create(),
+      {},
+      hydrated,
+    );
+
+    assertText('else');
+    component.show = true;
+    assertText('if');
+    await tearDown();
+
+    const mutableIfInstruction = ifInstruction as { sourceNodeId?: number };
+    const mutableElseInstruction = elseInstruction as {
+      sourceNodeId?: number;
+      previousSignificantSiblingSourceNodeId?: number;
+    };
+    delete mutableElseInstruction.sourceNodeId;
+    assert.throws(() => createFixture(
+      hydrated.template,
+      { show: false },
+      [],
+      true,
+      TestContext.create(),
+      {},
+      hydrated,
+    ), /AUR0810/, 'mixed source provenance fails closed');
+
+    delete mutableIfInstruction.sourceNodeId;
+    assert.throws(() => createFixture(
+      hydrated.template,
+      { show: false },
+      [],
+      true,
+      TestContext.create(),
+      {},
+      hydrated,
+    ), /AUR0810/, 'dangling predecessor provenance fails closed');
+
+    delete mutableElseInstruction.previousSignificantSiblingSourceNodeId;
+    const legacyFixture = createFixture(
+      hydrated.template,
+      { show: false },
+      [],
+      true,
+      TestContext.create(),
+      {},
+      hydrated,
+    );
+    legacyFixture.assertText('else');
+    await legacyFixture.tearDown();
+  });
+
   /**
    * Creates a render location (au-start/au-end comment pair) with
    * pre-populated child nodes between them.

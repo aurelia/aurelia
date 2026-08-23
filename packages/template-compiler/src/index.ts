@@ -82,6 +82,10 @@ export {
 } from './template-element-factory';
 
 export {
+  isHTMLWhitespace,
+} from './utilities-dom';
+
+export {
   type AttributeBindingInstruction,
   type HydrateAttributeInstruction,
   type HydrateElementInstruction,

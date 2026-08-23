@@ -45,3 +45,10 @@ export const isElement = (node: Node): node is Element => node.nodeType === 1;
 
 /** @internal */
 export const isTextNode = (node: Node): node is Text => node.nodeType === 3;
+
+const htmlWhitespace = /^[\t\n\f\r ]*$/;
+
+/** Whether a value contains only the five whitespace characters defined by HTML. */
+export const isHTMLWhitespace = (value: string): boolean => {
+  return htmlWhitespace.test(value);
+};

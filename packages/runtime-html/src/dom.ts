@@ -21,6 +21,8 @@ export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTa
 export const IRenderLocation = /*@__PURE__*/createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
+  /** Compiler source-node identity used by structurally linked template controllers. */
+  $sourceNodeId?: number;
   /** Target index for SSR hydration manifest lookup */
   $targetIndex?: number;
 };

@@ -59,7 +59,7 @@ import {
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
 import { etInterpolation, etIsProperty, tcObjectFreeze, tcCreateInterface, singletonRegistration, definitionTypeElement } from './utilities';
-import { auLocationStart, auLocationEnd, appendManyToTemplate, appendToTemplate, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
+import { auLocationStart, auLocationEnd, appendManyToTemplate, appendToTemplate, insertBefore, insertManyBefore, isElement, isHTMLWhitespace, isTextNode } from './utilities-dom';
 
 import type {
   IContainer,
@@ -136,6 +136,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     if (template.hasAttribute(localTemplateIdentifier)) {
       throw createMappedError(ErrorNames.compiler_root_is_local, definition);
     }
+    // Capture authored sibling order before local-template extraction and the
+    // normal compilation passes replace or remove source nodes.
+    context._recordSourceSiblingOrder(content);
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
 
@@ -367,6 +370,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   // and it should return the next node to be compiled
   /** @internal */
   private _compileNode(node: Node, context: CompilationContext): Node | null {
+    context._recordSourceNode(node);
     switch (node.nodeType) {
       case 1:
         switch (node.nodeName) {
@@ -388,6 +392,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       case 3:
         return this._compileText(node as Text, context);
       case 11: {
+        context._recordSourceSiblingOrder(node);
         let current: Node | null = (node as DocumentFragment).firstChild;
         while (current !== null) {
           current = this._compileNode(current, context);
@@ -502,6 +507,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     const elementMetadata: Record<PropertyKey, unknown> = {};
     if (isCustomElement) {
       processContentResult = elDef.processContent?.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
+    }
+    if (isCustomElement && processContentResult !== false) {
+      context._recordSourceSiblingOrder(el.nodeName === TEMPLATE_NODE_NAME ? (el as HTMLTemplateElement).content : el);
     }
 
     // 1. Classify all attributes
@@ -921,6 +929,8 @@ export class TemplateCompiler implements ITemplateCompiler {
             def: voidDefinition,
             res: this.resolveResources ? attrDef : attrDef.name,
             alias: void 0,
+            sourceNodeId: context._getSourceNodeId(el),
+            previousSignificantSiblingSourceNodeId: context._getPreviousSignificantSiblingSourceNodeId(el),
             props: attrBindableInstructions,
           } satisfies HydrateTemplateController);
         } else {
@@ -1398,6 +1408,9 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     // Walk through child nodes, extracting those with [au-slot]
     while (child !== null) {
+      if (child.nodeName === TEMPLATE_NODE_NAME) {
+        context._recordSourceSiblingOrder((child as HTMLTemplateElement).content);
+      }
       targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
       hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
       childEl = child.nextSibling as Element;
@@ -1476,6 +1489,14 @@ const TEMPLATE_NODE_NAME = 'TEMPLATE';
 const isMarker = (el: Node): el is Comment =>
   el.nodeType === 8 && (el as Comment).textContent === 'au';
 
+interface SourceOrder {
+  readonly nodeIds: WeakMap<Node, number>;
+  readonly previousSignificantSiblingNodeIds: WeakMap<Node, number>;
+  readonly lastSignificantSiblingNodeIds: WeakMap<Node, number>;
+  readonly recordedParents: WeakSet<Node>;
+  nextNodeId: number;
+}
+
 // this class is intended to be an implementation encapsulating the information at the root level of a template
 // this works at the time this is created because everything inside a template should be retrieved
 // from the root itself.
@@ -1490,6 +1511,7 @@ class CompilationContext {
   public readonly _commandResolver: IBindingCommandResolver;
   public readonly _templateFactory: ITemplateElementFactory;
   public readonly _logger: ILogger;
+  private readonly _sourceOrder: SourceOrder;
   public readonly _attrParser: IAttributeParser;
   public readonly _attrMapper: IAttrMapper;
   public readonly _exprParser: IExpressionParser;
@@ -1512,6 +1534,15 @@ class CompilationContext {
     const hasParent = parent !== null;
     this.c = container;
     this.root = root === null ? this : root;
+    this._sourceOrder = hasParent
+      ? parent._sourceOrder
+      : {
+        nodeIds: new WeakMap(),
+        previousSignificantSiblingNodeIds: new WeakMap(),
+        lastSignificantSiblingNodeIds: new WeakMap(),
+        recordedParents: new WeakSet(),
+        nextNodeId: 0,
+      };
     this.def = def;
     this.parent = parent;
     this._resourceResolver = hasParent ? parent._resourceResolver : container.get(IResourceResolver);
@@ -1533,6 +1564,53 @@ class CompilationContext {
     (this.root.deps ??= []).push(Type);
     this.root.c.register(Type);
     return this;
+  }
+
+  /** Record significant source siblings before subsequent compilation steps mutate them. */
+  public _recordSourceSiblingOrder(parent: Node): void {
+    const sourceOrder = this._sourceOrder;
+    if (sourceOrder.recordedParents.has(parent)) {
+      return;
+    }
+    sourceOrder.recordedParents.add(parent);
+    let child = parent.firstChild;
+    while (child !== null) {
+      this._recordSourceNode(child);
+      child = child.nextSibling;
+    }
+  }
+
+  /** Record one node when its parent can be compiled without a structural prepass. */
+  public _recordSourceNode(node: Node): void {
+    if (
+      node.nodeType !== 1 /* Element */
+      && (node.nodeType !== 3 /* Text */ || isHTMLWhitespace((node as Text).data))
+    ) {
+      return;
+    }
+    const parent = node.parentNode;
+    if (parent === null) {
+      return;
+    }
+    const sourceOrder = this._sourceOrder;
+    let sourceNodeId = sourceOrder.nodeIds.get(node);
+    if (sourceNodeId === void 0) {
+      sourceNodeId = sourceOrder.nextNodeId++;
+      sourceOrder.nodeIds.set(node, sourceNodeId);
+      const previousSourceNodeId = sourceOrder.lastSignificantSiblingNodeIds.get(parent);
+      if (previousSourceNodeId !== void 0) {
+        sourceOrder.previousSignificantSiblingNodeIds.set(node, previousSourceNodeId);
+      }
+    }
+    sourceOrder.lastSignificantSiblingNodeIds.set(parent, sourceNodeId);
+  }
+
+  public _getSourceNodeId(node: Node): number | undefined {
+    return this._sourceOrder.nodeIds.get(node);
+  }
+
+  public _getPreviousSignificantSiblingSourceNodeId(node: Node): number | undefined {
+    return this._sourceOrder.previousSignificantSiblingNodeIds.get(node);
   }
 
   public _text(text: string) {

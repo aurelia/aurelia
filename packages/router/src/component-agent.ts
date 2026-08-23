@@ -1,4 +1,4 @@
-import { ILogger } from '@aurelia/kernel';
+import { ILogger, onResolve } from '@aurelia/kernel';
 import { MountTarget, type ICustomElementController, type ICustomElementViewModel, type IHydratedController, type ILifecycleHooks, type LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { Events, trace } from './events';
@@ -76,16 +76,21 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
-    this._mountToViewport();
-
+    const controller = this._controller as ICustomElementController<T> & { waitForHydration(): void | Promise<void> };
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caActivateSelf);
-      return this._controller.activate(this._controller, parent);
+      return onResolve(controller.waitForHydration(), () => {
+        this._mountToViewport();
+        return controller.activate(controller, parent);
+      });
     }
 
     if (__DEV__) trace(this._logger, Events.caActivateInitiator);
-    // Promise return values from user VM hooks are awaited by the initiator
-    void this._controller.activate(initiator, parent);
+    return onResolve(controller.waitForHydration(), () => {
+      this._mountToViewport();
+      // Promise return values from user VM hooks are awaited by the initiator
+      void controller.activate(initiator, parent);
+    });
   }
 
   /**

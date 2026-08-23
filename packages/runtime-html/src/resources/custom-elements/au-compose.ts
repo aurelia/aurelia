@@ -304,7 +304,7 @@ export class AuCompose {
       compositionHost,
       compositionLocation
     );
-    const compose: () => ICompositionController = () => {
+    const compose = (): MaybePromise<ICompositionController> => {
       const aucomposeCapturedAttrs = _instruction.captures! ?? emptyArray;
       // custom element based composition
       if (vmDef !== null) {
@@ -353,41 +353,42 @@ export class AuCompose {
           name: CustomElement.generateName(),
           template: template,
         });
-        const compiledDef = this._rendering.compile(targetDef, childCtn);
-        const viewFactory = this._rendering.getViewFactory(compiledDef, childCtn);
-        const controller = Controller.$view(
-          viewFactory,
-          $controller,
-          compositionHost,
-        );
-        const scope = this.scopeBehavior === 'auto'
-          ? Scope.fromParent(this.parent.scope, comp)
-          : Scope.create(comp);
+        return onResolve(this._rendering.compile(targetDef, childCtn), compiledDef => {
+          const viewFactory = this._rendering.getViewFactory(compiledDef, childCtn);
+          const controller = Controller.$view(
+            viewFactory,
+            $controller,
+            compositionHost,
+          );
+          const scope = this.scopeBehavior === 'auto'
+            ? Scope.fromParent(this.parent.scope, comp)
+            : Scope.create(comp);
 
-        controller.setHost(compositionHost);
-        if (compositionLocation == null) {
-          // only spread the bindings if there is an actual host
-          // otherwise we may accidentally do unnecessary work
-          this._createSpreadBindings(compositionHost, viewFactory.def, aucomposeCapturedAttrs).forEach(b => controller.addBinding(b));
-        } else {
-          controller.setLocation(compositionLocation);
-        }
+          controller.setHost(compositionHost);
+          if (compositionLocation == null) {
+            // only spread the bindings if there is an actual host
+            // otherwise we may accidentally do unnecessary work
+            this._createSpreadBindings(compositionHost, viewFactory.def, aucomposeCapturedAttrs).forEach(b => controller.addBinding(b));
+          } else {
+            controller.setLocation(compositionLocation);
+          }
 
-        return new CompositionController(
-          controller,
-          (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, scope),
-          // todo: call deactivate on the component
-          // a difference with composing custom element is that we leave render location/host alone
-          // as they all share the same host/render location
-          (detachInitiator) => onResolve(
-            controller.deactivate(detachInitiator ?? controller, $controller),
-            removeCompositionHost
-          ),
-          // casting is technically incorrect
-          // but it's ignored in the caller anyway
-          (model) => comp.activate?.(model),
-          context,
-        );
+          return new CompositionController(
+            controller,
+            (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, scope),
+            // todo: call deactivate on the component
+            // a difference with composing custom element is that we leave render location/host alone
+            // as they all share the same host/render location
+            (detachInitiator) => onResolve(
+              controller.deactivate(detachInitiator ?? controller, $controller),
+              removeCompositionHost
+            ),
+            // casting is technically incorrect
+            // but it's ignored in the caller anyway
+            (model) => comp.activate?.(model),
+            context,
+          );
+        });
       }
     };
     if ('activate' in comp) {

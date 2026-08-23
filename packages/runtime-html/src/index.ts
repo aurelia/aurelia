@@ -267,6 +267,11 @@ export {
   useShadowDOM,
   processContent,
 } from './resources/custom-element';
+export {
+  ITemplateSourceResolver,
+  TemplateSourceResolvers,
+  templateSourceResolver,
+} from './resources/template-source-resolver';
 
 export {
   AuCompose,

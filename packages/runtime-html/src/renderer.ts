@@ -4,6 +4,8 @@ import {
   type IContainer,
   type Constructable,
   type IResolver,
+  onResolve,
+  onResolveAll,
   resolve,
   isString,
   registrableMetadataKey,
@@ -27,6 +29,7 @@ import { RefBinding } from './binding/ref-binding';
 import { IEventModifier, ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
+import { useTemplateSourceResolvers } from './resources/template-source-resolver';
 import { convertToRenderLocation, IRenderLocation, ICssClassMapping, registerHostNode } from './dom';
 import { INode, refs } from './dom.node';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext } from './templating/controller';
@@ -106,7 +109,7 @@ export interface IRenderer {
      * Passed by Rendering.render() based on tree position.
      */
     ssrScope?: ISSRScopeChild,
-  ): void;
+  ): void | Promise<void>;
 }
 
 export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
@@ -169,7 +172,7 @@ export const SetPropertyRenderer = /*@__PURE__*/ renderer(class SetPropertyRende
     renderingCtrl: IHydratableController,
     target: IController,
     instruction: SetPropertyInstruction,
-  ): void {
+  ): void | Promise<void> {
     const obj = getTarget(target) as IObservable;
     if (obj.$observers?.[instruction.to] !== void 0) {
       obj.$observers[instruction.to].setValue(instruction.value);
@@ -192,7 +195,7 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
     ssrScope?: ISSRScopeChild,
-  ): void {
+  ): void | Promise<void> {
     /* eslint-disable prefer-const */
     let def: CustomElementDefinition | null;
     let component: ICustomElementViewModel;
@@ -233,24 +236,30 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* own container       */container,
       /* viewModel           */component,
       /* host                */target,
-      /* instruction         */instruction,
+      /* instruction         */{ ...instruction, hydrate: false },
       /* definition          */def,
       /* location            */location,
       /* ssrScope            */ssrScope as ISSRScope | undefined,
     );
+    return onResolve((childCtrl as Controller)._hydrateCustomElement({ ...instruction, hydrate: false }), () => {
+      return onResolve((childCtrl as Controller)._hydrate(), () => onResolve((childCtrl as Controller)._hydrateChildren(), () => {
+      const renderers = this._rendering.renderers;
+      const props = instruction.props;
+      const ii = props.length;
+      let i = 0;
+      let propInst: IInstruction;
+      let ret: void | Promise<void> = void 0;
+      while (ii > i) {
+        propInst = props[i];
+        ret = onResolveAll(ret, renderers[propInst.type].render(renderingCtrl, childCtrl, propInst, platform, exprParser, observerLocator));
+        ++i;
+      }
 
-    const renderers = this._rendering.renderers;
-    const props = instruction.props;
-    const ii = props.length;
-    let i = 0;
-    let propInst: IInstruction;
-    while (ii > i) {
-      propInst = props[i];
-      renderers[propInst.type].render(renderingCtrl, childCtrl, propInst, platform, exprParser, observerLocator);
-      ++i;
-    }
-
-    renderingCtrl.addChild(childCtrl);
+      return onResolve(ret, () => {
+        renderingCtrl.addChild(childCtrl);
+      });
+      }));
+    });
     /* eslint-enable prefer-const */
   }
 }, null!);
@@ -271,7 +280,7 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
-  ): void {
+  ): void | Promise<void> {
     /* eslint-disable prefer-const */
     let ctxContainer = renderingCtrl.container;
     let def: CustomAttributeDefinition | null;
@@ -315,13 +324,15 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
+    let ret: void | Promise<void> = void 0;
     while (ii > i) {
       propInst = props[i];
-      renderers[propInst.type].render(renderingCtrl, childController, propInst, platform, exprParser, observerLocator);
+      ret = onResolveAll(ret, renderers[propInst.type].render(renderingCtrl, childController, propInst, platform, exprParser, observerLocator));
       ++i;
     }
-
-    renderingCtrl.addChild(childController);
+    return onResolve(ret, () => {
+      renderingCtrl.addChild(childController);
+    });
     /* eslint-enable prefer-const */
   }
 }, null!);
@@ -340,7 +351,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
     ssrScope?: ISSRScopeChild,
-  ): void {
+  ): void | Promise<void> {
     /* eslint-disable prefer-const */
     let ctxContainer = renderingCtrl.container;
     let def: CustomAttributeDefinition | null;
@@ -399,13 +410,15 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
     const ii = props.length;
     let i = 0;
     let propInst: IInstruction;
+    let ret: void | Promise<void> = void 0;
     while (ii > i) {
       propInst = props[i];
-      renderers[propInst.type].render(renderingCtrl, childController, propInst, platform, exprParser, observerLocator);
+      ret = onResolveAll(ret, renderers[propInst.type].render(renderingCtrl, childController, propInst, platform, exprParser, observerLocator));
       ++i;
     }
-
-    renderingCtrl.addChild(childController);
+    return onResolve(ret, () => {
+      renderingCtrl.addChild(childController);
+    });
     /* eslint-enable prefer-const */
   }
 }, null!);
@@ -885,6 +898,7 @@ function createElementContainer(
   auSlotsInfo?: IAuSlotsInfo,
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
+  useTemplateSourceResolvers(ctn, renderingCtrl.container);
 
   registerHostNode(ctn, host, p);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
@@ -946,6 +960,7 @@ function invokeAttribute(
     ? $renderingCtrl
     : ($renderingCtrl as IHasController).$controller;
   const ctn = renderingCtrl.container.createChild();
+  useTemplateSourceResolvers(ctn, renderingCtrl.container);
   registerHostNode(ctn, host, p);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));

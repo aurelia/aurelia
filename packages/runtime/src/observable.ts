@@ -18,6 +18,10 @@ export interface IObservableDefinition {
 type FieldInitializer<TFThis, TValue> = (this: TFThis, initialValue: TValue) => TValue;
 type ObservableFieldDecorator<TFThis, TValue> = (target: undefined, context: ClassFieldDecoratorContext<TFThis, TValue>) => FieldInitializer<TFThis, TValue>;
 type ObservableClassDecorator<TCThis extends Constructable> = (target: TCThis, context: ClassDecoratorContext<TCThis>) => void;
+interface ObservableDecorator {
+  <TCThis extends Constructable>(target: TCThis, context: ClassDecoratorContext<TCThis>): void;
+  <TFThis, TValue>(target: undefined, context: ClassFieldDecoratorContext<TFThis, TValue>): FieldInitializer<TFThis, TValue>;
+}
 
 export const observable = /*@__PURE__*/(() => {
 
@@ -34,7 +38,7 @@ export const observable = /*@__PURE__*/(() => {
   //    class {
   //      @observable({...}) prop
   //    }
-  function observable<TCThis extends Constructable, TFThis, TValue>(config: IObservableDefinition): (target: TCThis | undefined, context: ClassDecoratorContext<TCThis> | ClassFieldDecoratorContext<TFThis, TValue>) => FieldInitializer<TFThis, TValue> | void;
+  function observable(config: IObservableDefinition): ObservableDecorator;
   // for
   //    @observable('') class {}
   //    @observable(5) class {}

@@ -1242,6 +1242,14 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       `), /AUR0810/);
     });
 
+    it('throws when else follows a plain else containing one nested if', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="outer">a</div>
+        <div else><span if.bind="inner">b</span></div>
+        <div else>c</div>
+      `, { outer: false, inner: false }), /AUR0810/);
+    });
+
     it('throws when else follows a non-if template controller', function () {
       assert.throws(() => createFixture(`
         <div if.bind="true">a</div>

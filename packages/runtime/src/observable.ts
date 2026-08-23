@@ -18,6 +18,10 @@ export interface IObservableDefinition {
 type FieldInitializer<TFThis, TValue> = (this: TFThis, initialValue: TValue) => TValue;
 type ObservableFieldDecorator<TFThis, TValue> = (target: undefined, context: ClassFieldDecoratorContext<TFThis, TValue>) => FieldInitializer<TFThis, TValue>;
 type ObservableClassDecorator<TCThis extends Constructable> = (target: TCThis, context: ClassDecoratorContext<TCThis>) => void;
+interface ObservableDecorator {
+  <TCThis extends Constructable>(target: TCThis, context: ClassDecoratorContext<TCThis>): void;
+  <TFThis, TValue>(target: undefined, context: ClassFieldDecoratorContext<TFThis, TValue>): FieldInitializer<TFThis, TValue>;
+}
 
 export const observable = /*@__PURE__*/(() => {
 
@@ -34,7 +38,7 @@ export const observable = /*@__PURE__*/(() => {
   //    class {
   //      @observable({...}) prop
   //    }
-  function observable<TCThis extends Constructable, TFThis, TValue>(config: IObservableDefinition): (target: TCThis | undefined, context: ClassDecoratorContext<TCThis> | ClassFieldDecoratorContext<TFThis, TValue>) => FieldInitializer<TFThis, TValue> | void;
+  function observable(config: IObservableDefinition): ObservableDecorator;
   // for
   //    @observable('') class {}
   //    @observable(5) class {}
@@ -214,3 +218,29 @@ export const observable = /*@__PURE__*/(() => {
 
   return observable;
 })();
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/**
+ * Compile-time coverage for the public decorator overloads. This function is
+ * removed by dead code elimination.
+ */
+function apiTypeCheck() {
+  @observable({
+    name: 'classValue',
+    callback: 'classValueChanged',
+    set: value => Number(value),
+  })
+  class ClassConfiguredObservable {
+    public declare classValue: number;
+
+    public classValueChanged(value: number, oldValue: unknown): void { /*  */ }
+
+    @observable({
+      callback: 'fieldValueChanged',
+      set: value => Number(value),
+    })
+    public fieldValue = 0;
+
+    public fieldValueChanged(value: number, oldValue: unknown): void { /*  */ }
+  }
+}

@@ -1,7 +1,7 @@
 import { AnyFunction, isFunction, isObject } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from './errors';
 import { type IObserver } from './interfaces';
-import { type ComputedPropertyInfo } from './object-property-info';
+import { type ComputedPropertyDependency, type ComputedPropertyInfo } from './object-property-info';
 import { type IObserverLocator } from './observer-locator';
 import { rtObjectAssign } from './utilities';
 import { getRaw } from './proxy-observation';
@@ -23,6 +23,29 @@ export type ComputedMethodOptions = {
 /* eslint-disable @typescript-eslint/ban-types */
 function isClassMethodDecoratorContext(value: unknown): value is ClassMethodDecoratorContext {
   return (value as ClassMethodDecoratorContext)?.kind === 'method';
+}
+
+function createGetterOptions<TThis extends object>(
+  optionsOrDependency: unknown,
+  rest: readonly unknown[],
+): ComputedPropertyInfo {
+  // Observer creation expects undefined for automatic tracking, an empty array
+  // for no tracking, and an array for every explicit dependency declaration.
+  if (isObject(optionsOrDependency)) {
+    const options = optionsOrDependency as {
+      deps?: (string | symbol)[] | ComputedDependencyFn<TThis>;
+      flush?: 'sync' | 'async';
+      deep?: boolean;
+    };
+    const dependencies = options.deps;
+    return isFunction(dependencies)
+      ? { deps: [dependencies], flush: options.flush, deep: options.deep }
+      : options as ComputedPropertyInfo;
+  }
+
+  return optionsOrDependency == null
+    ? {}
+    : { deps: [optionsOrDependency, ...rest] as ComputedPropertyDependency[] };
 }
 
 /**
@@ -122,13 +145,7 @@ export function computed<TThis extends object>(
       return;
     }
 
-    const getterOptions: ComputedPropertyInfo = isObject(targetOrOptionsOrDependency)
-      ? targetOrOptionsOrDependency as ComputedPropertyInfo
-      : {};
-
-    if (!isObject(targetOrOptionsOrDependency)) {
-      getterOptions.deps = [targetOrOptionsOrDependency, ...rest] as (string | symbol)[];
-    }
+    const getterOptions = createGetterOptions<TThis>(targetOrOptionsOrDependency, rest);
 
     const getterTarget = target as () => unknown;
     const getterContext = context;

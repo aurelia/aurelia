@@ -218,3 +218,29 @@ export const observable = /*@__PURE__*/(() => {
 
   return observable;
 })();
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/**
+ * Compile-time coverage for the public decorator overloads. This function is
+ * removed by dead code elimination.
+ */
+function apiTypeCheck() {
+  @observable({
+    name: 'classValue',
+    callback: 'classValueChanged',
+    set: value => Number(value),
+  })
+  class ClassConfiguredObservable {
+    public declare classValue: number;
+
+    public classValueChanged(value: number, oldValue: unknown): void { /*  */ }
+
+    @observable({
+      callback: 'fieldValueChanged',
+      set: value => Number(value),
+    })
+    public fieldValue = 0;
+
+    public fieldValueChanged(value: number, oldValue: unknown): void { /*  */ }
+  }
+}

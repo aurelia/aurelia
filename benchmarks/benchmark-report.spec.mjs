@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { createBenchmarkReport, formatBenchmarkReportMarkdown } from './benchmark-report.mjs';
+import {
+  createBenchmarkReport,
+  formatBenchmarkReportMarkdown,
+  validateBenchmarkReport,
+} from './benchmark-report.mjs';
 
 const MiB = 1024 * 1024;
 
@@ -49,6 +53,34 @@ void describe('benchmark report', () => {
     inputs.provenance.harness.dirty = true;
     assert.throws(() => createBenchmarkReport(inputs), /harness must be clean/);
   });
+
+  void it('validates the machine report before trusted rendering', () => {
+    const report = createReport();
+    const expected = {
+      profile: 'smoke',
+      pullRequest: 2462,
+      base: 'a'.repeat(40),
+      head: 'b'.repeat(40),
+      candidate: 'c'.repeat(40),
+    };
+    assert.equal(validateBenchmarkReport(report, expected), report);
+
+    const tampered = structuredClone(report);
+    tampered.measurements[0].difference.assessment = 'faster';
+    assert.throws(() => validateBenchmarkReport(tampered, expected), /invalid assessment/);
+
+    const injected = structuredClone(report);
+    injected.bundles[0].fixture = '`@team`';
+    assert.throws(() => validateBenchmarkReport(injected, expected), /invalid identity metadata/);
+
+    const toolchainInjection = structuredClone(report);
+    toolchainInjection.environment.bundleToolchain.node = '`@team`';
+    assert.throws(() => validateBenchmarkReport(toolchainInjection, expected), /toolchain metadata is invalid/);
+
+    const browserInjection = structuredClone(report);
+    browserInjection.environment.browsers[0].userAgent = 'HeadlessChrome/1.2.3.4`@team`';
+    assert.throws(() => validateBenchmarkReport(browserInjection, expected), /browser metadata is invalid/);
+  });
 });
 
 function createReport() {
@@ -93,7 +125,13 @@ function provenance() {
       tree: 'd'.repeat(40),
       sha256: hash('e'),
       dirty: false,
-      fixtures: ['app-repeat-view'],
+      fixtures: [
+        'app-repeat-view',
+        'app-repeat-ce',
+        'app-repeat-view-big-template',
+        'app-repeat-view-keyed-string',
+        'app-repeat-view-keyed-expr',
+      ],
     },
     environment: {
       platform: 'linux',
@@ -102,19 +140,25 @@ function provenance() {
     },
     base: { commit: base },
     candidate: { commit: candidate },
-    comparisons: [{
-      fixture: 'app-repeat-view',
+    comparisons: [
+      'app-repeat-view',
+      'app-repeat-ce',
+      'app-repeat-view-big-template',
+      'app-repeat-view-keyed-string',
+      'app-repeat-view-keyed-expr',
+    ].map(fixture => ({
+      fixture,
       identical: false,
       base: { bytes: 214543, sha256: hash('1') },
       candidate: { bytes: 218365, sha256: hash('2') },
-    }],
+    })),
   };
 }
 
 function timingInput(file, scenario, entryName, includeHeap = true) {
   const perf = { name: 'perf', mode: 'performance', entryName };
   const heap = { name: 'used JS heap', mode: 'expression', expression: 'window.usedJSHeapSizeBytes' };
-  const browser = { name: 'chrome', headless: true, userAgent: 'Chrome/140.0.0.0' };
+  const browser = { name: 'chrome', headless: true, userAgent: 'HeadlessChrome/140.0.0.0' };
   const benchmarks = includeHeap
     ? [
         row(`${scenario} base [perf]`, perf, { low: 10, high: 10.4 }, [null, null, null, null], browser),

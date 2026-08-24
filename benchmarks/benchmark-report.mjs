@@ -10,14 +10,14 @@ import {
 
 const shaPattern = /^[0-9a-f]{40}$/;
 const resultContracts = {
-  'repeat-view-startup-10k.json': { scenario: 'startup', metrics: ['perf', 'used JS heap'] },
-  'repeat-ce-startup-10k.json': { scenario: 'startup CE', metrics: ['perf', 'used JS heap'] },
-  'repeat-view-rerender-10k.json': { scenario: 'rerender', metrics: ['perf', 'used JS heap'] },
-  'repeat-ce-rerender-10k.json': { scenario: 'rerender CE', metrics: ['perf', 'used JS heap'] },
-  'repeat-view-startup-100-big-template.json': { scenario: 'big-template startup 100', metrics: ['perf'] },
-  'repeat-view-update-1k.json': { scenario: 'update 1k', metrics: ['perf', 'used JS heap'] },
-  'app-repeat-view-keyed-expr.json': { scenario: 'keyed expr', metrics: ['perf', 'used JS heap'] },
-  'app-repeat-view-keyed-string.json': { scenario: 'keyed string', metrics: ['perf', 'used JS heap'] },
+  'repeat-view-startup-10k.json': { scenario: 'startup', entryName: 'startup-10k', metrics: ['perf', 'used JS heap'] },
+  'repeat-ce-startup-10k.json': { scenario: 'startup CE', entryName: 'startup-10k', metrics: ['perf', 'used JS heap'] },
+  'repeat-view-rerender-10k.json': { scenario: 'rerender', entryName: 'rerender-10k', metrics: ['perf', 'used JS heap'] },
+  'repeat-ce-rerender-10k.json': { scenario: 'rerender CE', entryName: 'rerender-10k', metrics: ['perf', 'used JS heap'] },
+  'repeat-view-startup-100-big-template.json': { scenario: 'big-template startup 100', entryName: 'startup-100-big-template', metrics: ['perf'] },
+  'repeat-view-update-1k.json': { scenario: 'update 1k', entryName: 'update-1k', metrics: ['perf', 'used JS heap'] },
+  'app-repeat-view-keyed-expr.json': { scenario: 'keyed expr', entryName: 'keyed-expr', metrics: ['perf', 'used JS heap'] },
+  'app-repeat-view-keyed-string.json': { scenario: 'keyed string', entryName: 'keyed-string', metrics: ['perf', 'used JS heap'] },
 };
 const smokeFiles = [
   'repeat-view-startup-10k.json',
@@ -39,6 +39,102 @@ export function expectedResultFiles(profile) {
   if (profile === 'smoke') return [...smokeFiles];
   if (profile === 'full' || profile === 'master') return [...fullFiles];
   throw new Error(`Unsupported benchmark report profile "${profile}".`);
+}
+
+export function validateBenchmarkReport(report, expected) {
+  if (report?.schemaVersion !== 1) throw new Error('Unsupported benchmark report schema.');
+  if (
+    report.comparison?.profile !== expected.profile
+    || report.comparison?.pullRequest !== expected.pullRequest
+    || report.comparison?.base !== expected.base
+    || report.comparison?.head !== expected.head
+    || report.comparison?.candidate !== expected.candidate
+    || report.comparison?.mergeParentsVerified !== true
+  ) {
+    throw new Error('Benchmark report comparison does not match the requested PR revisions.');
+  }
+  if (report.harness?.dirty !== false || report.harness?.commit !== expected.candidate) {
+    throw new Error('Benchmark report harness does not match the requested candidate.');
+  }
+  requireSha(report.harness?.tree, 'report harness tree');
+  requireHash(report.harness?.sha256, 'report harness');
+  if (
+    report.statistics?.producer !== 'tachometer'
+    || report.statistics?.producerVersion !== '0.7.1'
+    || report.statistics?.confidenceLevel !== 0.95
+    || report.statistics?.differenceDirection !== 'candidate-minus-base'
+    || report.statistics?.samplingOrder !== 'round-robin'
+  ) {
+    throw new Error('Benchmark report statistics contract is invalid.');
+  }
+  const tools = report.environment?.bundleToolchain;
+  if (
+    report.environment?.platform !== 'linux'
+    || report.environment?.architecture !== 'x64'
+    || !/^v\d+\.\d+\.\d+$/.test(tools?.node)
+    || !/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(tools?.npm)
+    || !/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(tools?.rollup)
+    || !/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(tools?.terserPlugin)
+  ) {
+    throw new Error('Benchmark report toolchain metadata is invalid.');
+  }
+
+  const expectedMeasurements = expectedResultFiles(expected.profile).flatMap(file => {
+    const contract = resultContracts[file];
+    return contract.metrics.map(metric => ({
+      id: `${slug(contract.scenario)}/${metric === 'perf' ? 'duration' : 'immediate-used-js-heap'}/chrome-headless`,
+      source: file,
+      scenario: contract.scenario,
+      metric,
+      entryName: contract.entryName,
+    }));
+  });
+  if (!Array.isArray(report.measurements) || report.measurements.length !== expectedMeasurements.length) {
+    throw new Error('Benchmark report has an unexpected measurement count.');
+  }
+  for (let index = 0; index < expectedMeasurements.length; index++) {
+    validateReportMeasurement(report.measurements[index], expectedMeasurements[index]);
+  }
+
+  const fixtureOrder = [
+    'app-repeat-view',
+    'app-repeat-ce',
+    'app-repeat-view-big-template',
+    'app-repeat-view-keyed-string',
+    'app-repeat-view-keyed-expr',
+  ];
+  if (!Array.isArray(report.bundles) || report.bundles.length !== fixtureOrder.length) {
+    throw new Error('Benchmark report has an unexpected bundle count.');
+  }
+  for (let index = 0; index < fixtureOrder.length; index++) {
+    validateReportBundle(report.bundles[index], fixtureOrder[index]);
+  }
+  if (
+    !Array.isArray(report.environment?.browsers)
+    || report.environment.browsers.length < 1
+    || report.environment.browsers.length > 4
+    || report.environment.browsers.some(browser =>
+      browser?.name !== 'chrome'
+      || browser?.headless !== true
+      || typeof browser?.userAgent !== 'string'
+      || browser.userAgent.length > 512
+      || hasControlCharacters(browser.userAgent)
+      || !/HeadlessChrome\/(\d+(?:\.\d+){1,3})(?:\s|$)/.test(browser.userAgent)
+    )
+  ) {
+    throw new Error('Benchmark report browser metadata is invalid.');
+  }
+  if (
+    report.inputs?.provenance?.file !== 'variants/provenance.json'
+    || !/^[0-9a-f]{64}$/.test(report.inputs?.provenance?.sha256)
+    || !Array.isArray(report.inputs?.tachometerResults)
+    || report.inputs?.tachometerResults?.map(input => input.file).join(',')
+      !== expectedResultFiles(expected.profile).join(',')
+    || report.inputs.tachometerResults.some(input => !/^[0-9a-f]{64}$/.test(input.sha256))
+  ) {
+    throw new Error('Benchmark report input manifest is invalid.');
+  }
+  return report;
 }
 
 export function createBenchmarkReport({
@@ -290,6 +386,108 @@ function validateResultContract(file, comparisons) {
   }
 }
 
+function validateReportMeasurement(measurement, expected) {
+  if (
+    measurement?.id !== expected.id
+    || measurement.source !== expected.source
+    || measurement.scenario !== expected.scenario
+    || measurement.browser?.name !== 'chrome'
+    || measurement.browser?.headless !== true
+  ) {
+    throw new Error(`Benchmark report measurement ${expected.id} has invalid identity metadata.`);
+  }
+  const isDuration = expected.metric === 'perf';
+  if (isDuration) {
+    if (
+      measurement.metric?.id !== 'duration'
+      || measurement.metric.label !== 'Duration'
+      || measurement.metric.kind !== 'duration'
+      || measurement.metric.unit !== 'millisecond'
+      || measurement.metric.measurement?.name !== 'perf'
+      || measurement.metric.measurement?.mode !== 'performance'
+      || measurement.metric.measurement?.entryName !== expected.entryName
+    ) {
+      throw new Error(`Benchmark report measurement ${expected.id} has invalid duration metadata.`);
+    }
+  } else if (
+    measurement.metric?.id !== 'immediate-used-js-heap'
+    || measurement.metric.label !== 'Immediate used JS heap'
+    || measurement.metric.kind !== 'immediate-js-heap'
+    || measurement.metric.unit !== 'byte'
+    || measurement.metric.measurement?.name !== 'used JS heap'
+    || measurement.metric.measurement?.mode !== 'expression'
+    || measurement.metric.measurement?.expression !== 'window.usedJSHeapSizeBytes'
+  ) {
+    throw new Error(`Benchmark report measurement ${expected.id} has invalid heap metadata.`);
+  }
+
+  validateNumericInterval(measurement.base?.meanConfidenceInterval95, `${expected.id} base`, true);
+  validateNumericInterval(measurement.candidate?.meanConfidenceInterval95, `${expected.id} candidate`, true);
+  if (
+    !Number.isSafeInteger(measurement.base?.samples)
+    || measurement.base.samples < 2
+    || measurement.base.samples > 10_000
+    || !Number.isSafeInteger(measurement.candidate?.samples)
+    || measurement.candidate.samples < 2
+    || measurement.candidate.samples > 10_000
+  ) {
+    throw new Error(`Benchmark report measurement ${expected.id} has invalid sample counts.`);
+  }
+  const absolute = validateNumericInterval(
+    measurement.difference?.absoluteConfidenceInterval95,
+    `${expected.id} absolute difference`,
+    false,
+  );
+  const percent = validateNumericInterval(
+    measurement.difference?.percentConfidenceInterval95,
+    `${expected.id} percent difference`,
+    false,
+  );
+  const kind = isDuration ? 'duration' : 'heap-bytes';
+  const assessment = classifyDifference({ absolute, relative: divideInterval(percent, 100) }, kind);
+  if (measurement.difference?.assessment !== assessment) {
+    throw new Error(`Benchmark report measurement ${expected.id} has an invalid assessment.`);
+  }
+}
+
+function validateReportBundle(bundle, fixture) {
+  if (bundle?.fixture !== fixture || bundle.format !== 'minified-esm') {
+    throw new Error(`Benchmark report bundle ${fixture} has invalid identity metadata.`);
+  }
+  const baseBytes = requireFiniteNonNegative(bundle.base?.bytes, `${fixture} report base bytes`);
+  const candidateBytes = requireFiniteNonNegative(bundle.candidate?.bytes, `${fixture} report candidate bytes`);
+  if (baseBytes > 50_000_000 || candidateBytes > 50_000_000) {
+    throw new Error(`Benchmark report bundle ${fixture} is outside the expected size range.`);
+  }
+  const baseHash = requireHash(bundle.base?.sha256, `${fixture} report base`);
+  const candidateHash = requireHash(bundle.candidate?.sha256, `${fixture} report candidate`);
+  const expectedBytes = candidateBytes - baseBytes;
+  const expectedPercent = baseBytes === 0 ? null : expectedBytes / baseBytes * 100;
+  if (
+    bundle.difference?.bytes !== expectedBytes
+    || bundle.difference?.percent !== expectedPercent
+    || bundle.identical !== (baseHash === candidateHash)
+  ) {
+    throw new Error(`Benchmark report bundle ${fixture} has an invalid difference.`);
+  }
+}
+
+function validateNumericInterval(interval, label, nonNegative) {
+  if (
+    interval === null
+    || typeof interval !== 'object'
+    || !Number.isFinite(interval.low)
+    || !Number.isFinite(interval.high)
+    || interval.low > interval.high
+    || Math.abs(interval.low) > 1e12
+    || Math.abs(interval.high) > 1e12
+    || (nonNegative && interval.low < 0)
+  ) {
+    throw new Error(`Benchmark report ${label} interval is invalid.`);
+  }
+  return { low: interval.low, high: interval.high };
+}
+
 function toMetric(measurement, kind) {
   if (kind === 'duration') {
     return { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', measurement };
@@ -325,11 +523,15 @@ const formatSignedPercentPoints = value => value === null
   ? 'n/a'
   : `${value > 0 ? '+' : ''}${normalizeZero(value).toFixed(2)}%`;
 const normalizeZero = value => Math.abs(value) < 0.005 ? 0 : value;
+const hasControlCharacters = value => [...value].some(character => {
+  const code = character.charCodeAt(0);
+  return code < 32 || code === 127;
+});
 const escapeCode = value => String(value).replace(/`/g, '\\`');
-const formatBrowsers = browsers => browsers.map(browser => {
-  const version = /(?:Chrome|Chromium)\/([^\s]+)/.exec(browser.userAgent ?? '')?.[1];
+const formatBrowsers = browsers => [...new Set(browsers.map(browser => {
+  const version = /HeadlessChrome\/(\d+(?:\.\d+){1,3})(?:\s|$)/.exec(browser.userAgent ?? '')?.[1];
   return `\`${browser.name}${version === undefined ? '' : ` ${version}`}\``;
-}).join(', ');
+}))].join(', ');
 
 function requireSha(value, label) {
   if (!shaPattern.test(value)) throw new Error(`Benchmark ${label} revision is not a full SHA.`);

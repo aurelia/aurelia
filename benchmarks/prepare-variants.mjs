@@ -166,6 +166,16 @@ try {
 async function prepareVariant(label, commit) {
   const sourceRoot = path.join(temporaryRoot, `${label}-source`);
   const variantRoot = path.join(temporaryRoot, label);
+
+  // CircleCI checks out a partial clone. Reading the exact tree through Git lets its promisor
+  // remote hydrate missing blobs before a local shared clone depends on the object store.
+  await run(
+    'git',
+    ['archive', '--format=tar', commit],
+    repositoryRoot,
+    {},
+    ['ignore', 'ignore', 'inherit'],
+  );
   await run('git', ['clone', '--shared', '--no-checkout', '--quiet', repositoryRoot, sourceRoot], repositoryRoot);
   await run('git', ['checkout', '--detach', '--quiet', commit], sourceRoot);
 
@@ -427,12 +437,12 @@ function requireValue(argv, index, flag) {
   return value;
 }
 
-async function run(command, args, cwd, extraEnvironment = {}) {
+async function run(command, args, cwd, extraEnvironment = {}, stdio = 'inherit') {
   await new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
       env: { ...process.env, ...extraEnvironment },
-      stdio: 'inherit',
+      stdio,
       shell: false,
     });
     child.on('error', reject);

@@ -103,17 +103,11 @@ function printCompactSummary(results) {
   console.log('\nCompact summary');
   console.log();
 
-  for (const [measurementKey, group] of groups) {
-    const label = formatMeasurementLabel(group[0].result.measurement);
+  for (const [, group] of groups) {
+    const measurement = group[0].result.measurement;
     const names = group.map((entry) => stripMeasurementSuffix(entry.result.name));
     const shortLabels = shortenLabels(names);
-    const baseline = group[0];
-
-    console.log(`${label}:`);
-
-    for (let i = 0; i < group.length; i++) {
-      console.log(`- ${shortLabels[i]}: ${formatInterval(group[i].stats.meanCI, group[i].result.measurement)}`);
-    }
+    const summaryLabel = formatSummaryLabel(names, measurement);
 
     for (let i = 1; i < group.length; i++) {
       const diff = group[i].differences?.[0];
@@ -122,11 +116,13 @@ function printCompactSummary(results) {
       }
 
       console.log(
-        `- Change (${shortLabels[i]} vs ${shortLabels[0]}): ${formatSignedInterval(diff.absolute, group[i].result.measurement)}, ${formatPercentInterval(diff.relative)} (${classifyDifference(diff, group[i].result.measurement)})`
+        `${summaryLabel}: ${shortLabels[i]} ${formatInlineInterval(group[i].stats.meanCI, measurement)} vs ${shortLabels[0]} ${formatInlineInterval(group[0].stats.meanCI, measurement)}`
       );
+      console.log(
+        `${shortLabels[i]} delta: ${formatDeltaInterval(diff.absolute, measurement)} (${formatPercentDeltaInterval(diff.relative)}) -> ${classifyDifference(diff, measurement)}`
+      );
+      console.log();
     }
-
-    console.log();
   }
 }
 
@@ -177,17 +173,24 @@ function shortenLabels(labels) {
 }
 
 function formatMeasurementLabel(measurement) {
-  if (measurement?.name === 'perf') {
-    return 'Time';
+  return measurement?.name ?? 'measurement';
+}
+
+function formatSummaryLabel(names, measurement) {
+  const prefix = getCommonWordPrefix(names);
+  const measurementLabel = formatMeasurementLabel(measurement);
+  if (prefix === '') {
+    return capitalize(measurementLabel);
   }
-  if (measurement?.name === 'memory') {
-    return 'Memory';
-  }
-  return measurement?.name ?? 'Measurement';
+  return `${capitalize(prefix)} ${measurementLabel}`;
 }
 
 function formatInterval(interval, measurement) {
   return `${formatValue(interval.low, measurement)} - ${formatValue(interval.high, measurement)}`;
+}
+
+function formatInlineInterval(interval, measurement) {
+  return `\`${formatValue(interval.low, measurement)}\` - \`${formatValue(interval.high, measurement)}\``;
 }
 
 function formatSignedInterval(interval, measurement) {
@@ -196,6 +199,14 @@ function formatSignedInterval(interval, measurement) {
 
 function formatPercentInterval(interval) {
   return `${formatSignedPercent(interval.low)} - ${formatSignedPercent(interval.high)}`;
+}
+
+function formatDeltaInterval(interval, measurement) {
+  return `${formatSignedInlineValue(interval.low, measurement)} to ${formatSignedInlineValue(interval.high, measurement)}`;
+}
+
+function formatPercentDeltaInterval(interval) {
+  return `${formatSignedPercent(interval.low)} to ${formatSignedPercent(interval.high)}`;
 }
 
 function formatValue(value, measurement) {
@@ -217,6 +228,10 @@ function formatSignedValue(value, measurement) {
     return `-${formatted}`;
   }
   return formatted;
+}
+
+function formatSignedInlineValue(value, measurement) {
+  return `\`${formatSignedValue(value, measurement)}\``;
 }
 
 function formatSignedPercent(value) {
@@ -242,5 +257,27 @@ function classifyDifference(diff, measurement) {
   if (diff.absolute.high < 0 && diff.relative.high < 0) {
     return isMemoryMeasurement(measurement) ? 'lower' : 'faster';
   }
-  return 'unsure';
+  return 'flat';
+}
+
+function getCommonWordPrefix(labels) {
+  const parts = labels.map((label) => label.split(/\s+/).filter(Boolean));
+  if (parts.length === 0) {
+    return '';
+  }
+
+  const shared = [];
+  for (let i = 0; ; i++) {
+    const word = parts[0][i];
+    if (word === undefined || !parts.every((tokens) => tokens[i] === word)) {
+      break;
+    }
+    shared.push(word);
+  }
+
+  return shared.join(' ');
+}
+
+function capitalize(value) {
+  return value === '' ? value : `${value[0].toUpperCase()}${value.slice(1)}`;
 }

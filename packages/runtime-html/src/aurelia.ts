@@ -7,7 +7,7 @@ import type {
   IContainer,
   IDisposable,
 } from '@aurelia/kernel';
-import { ErrorNames, createMappedAggregateError, createMappedError } from './errors';
+import { ErrorNames, createMappedError } from './errors';
 import { refs } from './dom.node';
 import { tasksSettled } from '@aurelia/runtime';
 
@@ -38,6 +38,9 @@ export class Aurelia implements IDisposable {
   }
 
   private next: IAppRoot | undefined = void 0;
+
+  /** @internal */
+  private _transitionFailure: { readonly error: unknown } | undefined = void 0;
 
   /** @internal */
   private readonly _rootProvider: InstanceProvider<IAppRoot>;
@@ -76,7 +79,7 @@ export class Aurelia implements IDisposable {
       rootProvider,
       true
     );
-    return this._activateStandaloneRoot(appRoot, rootProvider);
+    return onResolve(appRoot.activate(), () => appRoot);
   }
 
   /**
@@ -113,73 +116,7 @@ export class Aurelia implements IDisposable {
       this._rootProvider,
       false, // not enhance mode
     );
-    return this._activateStandaloneRoot(appRoot, this._rootProvider);
-  }
-
-  /** @internal */
-  private _activateStandaloneRoot<T extends object>(
-    root: IAppRoot<T>,
-    provider: IDisposable,
-  ): IAppRoot<T> | Promise<IAppRoot<T>> {
-    let activation: void | Promise<void>;
-    try {
-      activation = root.activate();
-    } catch (error) {
-      return this._rollbackStandaloneRoot(root, provider, error);
-    }
-    if (isPromise(activation)) {
-      return activation.then(
-        () => root,
-        error => this._rollbackStandaloneRoot(root, provider, error),
-      );
-    }
-    return root;
-  }
-
-  /** @internal */
-  private _rollbackStandaloneRoot<T extends object>(
-    root: IAppRoot<T>,
-    provider: IDisposable,
-    activationError: unknown,
-  ): never | Promise<never> {
-    // enhance()/hydrate() do not publish through Aurelia._root, so their
-    // rollback owns the AppRoot and its provider directly.
-    const errors = [activationError];
-    let rollback: void | Promise<void>;
-    try {
-      rollback = root instanceof AppRoot ? root._deactivateForRollback() : root.deactivate();
-    } catch (error) {
-      errors.push(error);
-      return this._settleStandaloneRollback(root, provider, errors);
-    }
-    if (isPromise(rollback)) {
-      return rollback.then(
-        () => this._settleStandaloneRollback(root, provider, errors),
-        error => {
-          errors.push(error);
-          return this._settleStandaloneRollback(root, provider, errors);
-        },
-      );
-    }
-    return this._settleStandaloneRollback(root, provider, errors);
-  }
-
-  /** @internal */
-  private _settleStandaloneRollback<T extends object>(
-    root: IAppRoot<T>,
-    provider: IDisposable,
-    errors: unknown[],
-  ): never {
-    try {
-      root.dispose();
-    } catch (error) {
-      errors.push(error);
-    }
-    // Both standalone paths own a concrete InstanceProvider. Its dispose only
-    // clears the current instance and cannot fail, so it is not part of the
-    // user-code cleanup ledger.
-    provider.dispose();
-    throwTransitionErrors(errors, ErrorNames.aurelia_standalone_root_rollback_failed);
+    return onResolve(appRoot.activate(), () => appRoot);
   }
 
   /** @internal */
@@ -196,8 +133,17 @@ export class Aurelia implements IDisposable {
     if (isPromise(this._startPromise)) {
       return this._startPromise;
     }
+    if (this._transitionFailure !== void 0) {
+      throw this._transitionFailure.error;
+    }
 
-    const result = onResolve(this.stop(), () => this._activateRoot(root));
+    let result: void | Promise<void>;
+    try {
+      result = onResolve(this.stop(), () => this._activateRoot(root));
+    } catch (error) {
+      this._transitionFailure = { error };
+      throw error;
+    }
 
     if (isPromise(result)) {
       const startPromise = result.then(
@@ -207,31 +153,10 @@ export class Aurelia implements IDisposable {
           }
         },
         error => {
-          // Identity matters when start(B) is queued behind stop(A): only the
-          // latest start may clear shared transition state or consume a stop
-          // request intended for B.
-          if (this._startPromise === startPromise) {
-            this._startPromise = void 0;
-            const dispose = this._disposeAfterStart;
-            this._stopRequestedWhileStarting = false;
-            this._disposeAfterStart = false;
-            this._isStarting = false;
-            if (dispose && this._root !== root) {
-              // The preceding stop can fail before this queued root ever enters
-              // _activateRoot. A stop(true) issued meanwhile still owns and must
-              // dispose that never-started root.
-              const errors = [error];
-              try {
-                root.dispose();
-              } catch (disposeError) {
-                errors.push(disposeError);
-              }
-              if (this.next === root) {
-                this.next = void 0;
-              }
-              throwTransitionErrors(errors, ErrorNames.aurelia_queued_start_disposal_failed);
-            }
-          }
+          // A failed root transition is terminal. Keep the operation published
+          // so later callers observe the same rejection and no second lifecycle
+          // operation starts against a partially transitioned application.
+          this._transitionFailure = { error };
           throw error;
         },
       );
@@ -254,6 +179,9 @@ export class Aurelia implements IDisposable {
     if (isPromise(this._stopPromise)) {
       return this._stopPromise;
     }
+    if (this._transitionFailure !== void 0) {
+      throw this._transitionFailure.error;
+    }
 
     if (this._isStarting) {
       // A root can call stop re-entrantly before start() has assigned the Promise
@@ -270,53 +198,36 @@ export class Aurelia implements IDisposable {
   }
 
   /** @internal */
-  private _beginStop(root: IAppRoot, dispose: boolean): Promise<void> {
+  private _beginStop(root: IAppRoot, dispose: boolean): void | Promise<void> {
     this._isRunning = false;
     this._isStopping = true;
 
-    let result: void | Promise<void>;
+    let stopPromise: Promise<void>;
     try {
-      result = root.deactivate();
+      // tasksSettled always returns a Promise, so both the synchronous and
+      // asynchronous deactivation paths converge on one asynchronous stop.
+      stopPromise = onResolve(root.deactivate(), () => {
+        return onResolve(tasksSettled(), () => this._completeStop(root, dispose));
+      }) as Promise<void>;
     } catch (error) {
-      if (root instanceof AppRoot && root._consumeDeactivationVeto()) {
-        return this._stopPromise = this._cancelStop(error);
-      }
-      return this._stopPromise = this._settleStop(root, dispose, true, error);
+      this._transitionFailure = { error };
+      throw error;
     }
-
-    if (isPromise(result)) {
-      return this._stopPromise = result.then(
-        () => this._settleStop(root, dispose, false, void 0),
-        error => root instanceof AppRoot && root._consumeDeactivationVeto()
-          ? this._cancelStop(error)
-          : this._settleStop(root, dispose, true, error),
-      );
-    }
-    return this._stopPromise = this._settleStop(root, dispose, false, void 0);
+    return this._stopPromise = stopPromise.catch(error => {
+      this._transitionFailure = { error };
+      throw error;
+    });
   }
 
   /** @internal */
   private _activateRoot(root: IAppRoot): void | Promise<void> {
     this._isStarting = true;
 
-    let result: void | Promise<void>;
-    try {
-      if (!refs.hideProp) {
-        Reflect.set(root.host, '$aurelia', this);
-      }
-      this._rootProvider.prepare(this._root = root);
-      result = root.activate();
-    } catch (error) {
-      return this._rollbackStart(root, error);
+    if (!refs.hideProp) {
+      Reflect.set(root.host, '$aurelia', this);
     }
-
-    if (isPromise(result)) {
-      return result.then(
-        () => this._completeStart(root),
-        error => this._rollbackStart(root, error),
-      );
-    }
-    return this._completeStart(root);
+    this._rootProvider.prepare(this._root = root);
+    return onResolve(root.activate(), () => this._completeStart(root));
   }
 
   /** @internal */
@@ -336,97 +247,10 @@ export class Aurelia implements IDisposable {
   }
 
   /** @internal */
-  private _rollbackStart(root: IAppRoot, activationError: unknown): never | Promise<never> {
-    let rollback: void | Promise<void>;
-    try {
-      // Failed-start cleanup cannot be vetoed. AppTask errors are accumulated,
-      // but Controller teardown must still make the unpublished root inert.
-      rollback = root instanceof AppRoot ? root._deactivateForRollback() : root.deactivate();
-    } catch (rollbackError) {
-      return this._finalizeFailedStart(root, [activationError, rollbackError], true);
-    }
-    if (isPromise(rollback)) {
-      return rollback.then(
-        () => this._finalizeFailedStart(root, [activationError], false),
-        rollbackError => this._finalizeFailedStart(root, [activationError, rollbackError], true),
-      );
-    }
-    return this._finalizeFailedStart(root, [activationError], false);
-  }
-
-  /** @internal */
-  private _finalizeFailedStart(root: IAppRoot, errors: unknown[], quarantine: boolean): never {
-    quarantine ||= root instanceof AppRoot && !root._isRecoverable;
-    const dispose = quarantine || this._disposeAfterStart;
+  private _completeStop(root: IAppRoot, dispose: boolean): void {
     Reflect.deleteProperty(root.host, '$aurelia');
     if (dispose) {
-      try {
-        root.dispose();
-      } catch (error) {
-        errors.push(error);
-      }
-      if (this.next === root) {
-        this.next = void 0;
-      }
-    }
-    if (this._root === root) {
-      this._root = void 0;
-      this._rootProvider.dispose();
-    }
-    this._stopRequestedWhileStarting = false;
-    this._disposeAfterStart = false;
-    this._isStarting = false;
-    throwTransitionErrors(errors, ErrorNames.aurelia_start_rollback_failed);
-  }
-
-  /** @internal */
-  private _settleStop(
-    root: IAppRoot,
-    dispose: boolean,
-    deactivationFailed: boolean,
-    deactivationError: unknown,
-  ): Promise<void> {
-    // Keep a separate failure bit because Promise rejection and synchronous
-    // throws may carry `undefined`, which is still a real deactivation failure.
-    // Unlike partial startup, a formerly running app has fully connected queue
-    // work. Preserve the established stop boundary before disposing resources.
-    return tasksSettled().then(
-      () => this._finalizeStop(root, dispose, deactivationFailed ? [deactivationError] : []),
-      taskError => this._finalizeStop(
-        root,
-        dispose,
-        deactivationFailed ? [deactivationError, taskError] : [taskError],
-      ),
-    );
-  }
-
-  /** @internal */
-  private _cancelStop(vetoError: unknown): Promise<void> {
-    // Tasks already accepted by the veto phase still quiesce before the app is
-    // published as running again and the stop rejection becomes observable.
-    return tasksSettled().then(
-      () => this._finalizeCancelledStop([vetoError]),
-      taskError => this._finalizeCancelledStop([vetoError, taskError]),
-    );
-  }
-
-  /** @internal */
-  private _finalizeCancelledStop(errors: unknown[]): never {
-    this._isRunning = true;
-    this._isStopping = false;
-    this._stopPromise = void 0;
-    throwTransitionErrors(errors, ErrorNames.aurelia_stop_vetoed);
-  }
-
-  /** @internal */
-  private _finalizeStop(root: IAppRoot, dispose: boolean, errors: unknown[]): void {
-    Reflect.deleteProperty(root.host, '$aurelia');
-    if (dispose) {
-      try {
-        root.dispose();
-      } catch (error) {
-        errors.push(error);
-      }
+      root.dispose();
       if (this.next === root) {
         this.next = void 0;
       }
@@ -437,18 +261,7 @@ export class Aurelia implements IDisposable {
     }
     this._isStopping = false;
     this._stopPromise = void 0;
-
-    // au-stopped remains a successful-transition event. A rejected stop still
-    // finalizes the Aurelia instance, while its promise reports the failure.
-    if (errors.length === 0) {
-      // Dispatch is the last operation after state has been cleared. Let a
-      // custom IAppRoot event target report its own failure directly; wrapping
-      // a single error here cannot improve recovery or error identity.
-      this._dispatchEvent(root, 'au-stopped', root.host);
-    }
-    if (errors.length > 0) {
-      throwTransitionErrors(errors, ErrorNames.aurelia_stop_cleanup_failed);
-    }
+    this._dispatchEvent(root, 'au-stopped', root.host);
   }
 
   public dispose(): void {
@@ -469,13 +282,6 @@ export class Aurelia implements IDisposable {
     const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
     target.dispatchEvent(ev);
   }
-}
-
-function throwTransitionErrors(errors: unknown[], code: ErrorNames): never {
-  if (errors.length === 1) {
-    throw errors[0];
-  }
-  throw createMappedAggregateError(code, errors);
 }
 
 export type ISinglePageAppConfig<T extends object = object> = Omit<IAppRootConfig<T>, 'strictBinding'> & {

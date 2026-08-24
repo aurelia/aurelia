@@ -4422,7 +4422,7 @@ describe('router/smoke-tests.spec.ts', function () {
           assert.match((er as Error).message, /AUR3175/);
         }
 
-        await au.stop(true);
+        host.remove();
       });
     }
   });

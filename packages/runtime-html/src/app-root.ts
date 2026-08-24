@@ -65,14 +65,6 @@ export interface IAppRoot<C extends object = object> extends IDisposable {
 }
 export const IAppRoot = /*@__PURE__*/createInterface<IAppRoot>('IAppRoot');
 
-const controllerDeactivationStage = 1;
-const deactivatedTasksStage = 2;
-const deactivationCompleteStage = 3;
-type DeactivationStage =
-  | typeof controllerDeactivationStage
-  | typeof deactivatedTasksStage
-  | typeof deactivationCompleteStage;
-
 export class AppRoot<
   T extends object,
   K extends ICustomElementViewModel = ICustomElementViewModel & (T extends Constructable<infer R> ? R : T),
@@ -80,29 +72,12 @@ export class AppRoot<
 
   /** @internal */
   private _hydratePromise: Promise<void> | void = void 0;
-  /** @internal */
-  private _hydrateFailed: boolean = false;
-  /** @internal */
-  public get _isRecoverable(): boolean { return !this._hydrateFailed; }
 
   /** @internal */
   private _controller!: ICustomElementController<K>;
 
   /** @internal */
   private readonly _useOwnAppTasks: boolean;
-  // AppRoot.deactivate can report only success or an error. Aurelia additionally
-  // needs to know whether that error was a pre-stop AppTask veto (the root is
-  // untouched) or whether mandatory teardown had begun. This one-shot handshake
-  // keeps that distinction private to the AppRoot/Aurelia transition pair.
-  /** @internal */
-  private _lastDeactivationVeto: boolean = false;
-
-  /** @internal */
-  public _consumeDeactivationVeto(): boolean {
-    const veto = this._lastDeactivationVeto;
-    this._lastDeactivationVeto = false;
-    return veto;
-  }
 
   public readonly host: HTMLElement;
   public readonly platform: IPlatform;
@@ -123,7 +98,7 @@ export class AppRoot<
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
 
-    const hydration = onResolve(this._runAppTasks('creating'), () => {
+    this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       if (!config.allowActionlessForm !== false) {
         host.addEventListener('submit', (e: Event) => {
           const target = e.target as HTMLFormElement;
@@ -173,15 +148,6 @@ export class AppRoot<
         });
       });
     });
-    if (isPromise(hydration)) {
-      // A rejected hydration Promise is replayed by every later activate().
-      // Mark this root for quarantine instead of presenting it as retryable.
-      const tracked = hydration.catch(error => {
-        this._hydrateFailed = true;
-        throw error;
-      });
-      this._hydratePromise = tracked;
-    }
   }
 
   public activate(): void | Promise<void> {
@@ -195,95 +161,18 @@ export class AppRoot<
   }
 
   public deactivate(): void | Promise<void> {
-    return this._deactivate(true);
+    return onResolve(this._runAppTasks('deactivating'), () => {
+      return onResolve(this._controller.deactivate(this._controller, null), () => {
+        return this._runAppTasks('deactivated');
+      });
+    });
   }
 
   /** @internal */
-  public _deactivateForRollback(): void | Promise<void> {
-    return this._deactivate(false);
-  }
-
-  /** @internal */
-  private _deactivate(allowVeto: boolean): void | Promise<void> {
-    this._lastDeactivationVeto = false;
-    let result: void | Promise<void>;
-    try {
-      // Deactivating tasks are a pre-stop veto for a running app (Dialog relies
-      // on this). During failed-start rollback there is no successful app to
-      // preserve, so their errors are retained while cleanup continues.
-      result = this._runAppTasks('deactivating', true);
-    } catch (error) {
-      if (allowVeto) {
-        this._lastDeactivationVeto = true;
-        throw error;
-      }
-      return this._continueDeactivation(controllerDeactivationStage, [error]);
-    }
-    if (isPromise(result)) {
-      return result.then(
-        () => this._continueDeactivation(controllerDeactivationStage),
-        error => {
-          if (allowVeto) {
-            this._lastDeactivationVeto = true;
-            throw error;
-          }
-          return this._continueDeactivation(controllerDeactivationStage, [error]);
-        },
-      );
-    }
-    return this._continueDeactivation(controllerDeactivationStage);
-  }
-
-  /** @internal */
-  private _continueDeactivation(stage: DeactivationStage, errors?: unknown[]): void | Promise<void> {
-    // Deactivating AppTasks are handled above because they alone may veto an
-    // ordinary stop. Controller teardown and then deactivated AppTasks are
-    // mandatory best-effort stages, in that order.
-    while (stage !== deactivationCompleteStage) {
-      const nextStage = stage === controllerDeactivationStage
-        ? deactivatedTasksStage
-        : deactivationCompleteStage;
-      let result: void | Promise<void>;
-      try {
-        switch (stage) {
-          case controllerDeactivationStage:
-            result = this._controller?.deactivate(this._controller, null);
-            break;
-          case deactivatedTasksStage:
-            result = this._runAppTasks('deactivated', true);
-            break;
-        }
-      } catch (error) {
-        (errors ??= []).push(error);
-        stage = nextStage;
-        continue;
-      }
-
-      if (isPromise(result)) {
-        return result.then(
-          () => this._continueDeactivation(nextStage, errors),
-          error => {
-            (errors ??= []).push(error);
-            return this._continueDeactivation(nextStage, errors);
-          },
-        );
-      }
-      stage = nextStage;
-    }
-
-    if (errors?.length === 1) {
-      throw errors[0];
-    }
-    if (errors != null && errors.length > 1) {
-      throw createMappedAggregateError(ErrorNames.app_root_deactivation_cleanup_failed, errors);
-    }
-  }
-
-  /** @internal */
-  private _runAppTasks(slot: TaskSlot, bestEffort: boolean = false): void | Promise<void> {
-    // `bestEffort` controls admission after a synchronous throw; it does not make
-    // accepted async tasks fail-fast. Every accepted task quiesces before an error
-    // is reported so activation rollback and teardown cannot race task-owned work.
+  private _runAppTasks(slot: TaskSlot): void | Promise<void> {
+    // A synchronous failure stops task admission. Promises from earlier tasks
+    // have already started, so the phase observes them before reporting its
+    // errors. This keeps rejected sibling work from escaping as unhandled.
     const container = this.container;
     const appTasks = this._useOwnAppTasks && !container.has(IAppTask, false)
       ? []
@@ -302,11 +191,7 @@ export class AppRoot<
         result = task.run();
       } catch (error) {
         (errors ??= []).push({ order, error });
-        if (!bestEffort) {
-          break;
-        }
-        ++order;
-        continue;
+        break;
       }
       if (isPromise(result)) {
         (promises ??= []).push({ order, promise: result });
@@ -315,7 +200,7 @@ export class AppRoot<
     }
 
     if (promises === void 0) {
-      throwAppTaskErrors(errors);
+      throwAppTaskErrors(errors, slot);
       return;
     }
     if (promises.length === 1 && errors === void 0) {
@@ -331,7 +216,7 @@ export class AppRoot<
           (errors ??= []).push({ order: pending[i].order, error: result.reason });
         }
       }
-      throwAppTaskErrors(errors);
+      throwAppTaskErrors(errors, slot);
     });
   }
 
@@ -360,7 +245,7 @@ interface AppTaskError {
   readonly error: unknown;
 }
 
-function throwAppTaskErrors(errors: AppTaskError[] | undefined): void {
+function throwAppTaskErrors(errors: AppTaskError[] | undefined, slot: TaskSlot): void {
   if (errors === void 0) {
     return;
   }
@@ -368,5 +253,5 @@ function throwAppTaskErrors(errors: AppTaskError[] | undefined): void {
   if (errors.length === 1) {
     throw errors[0].error;
   }
-  throw createMappedAggregateError(ErrorNames.app_task_phase_failed, errors.map(x => x.error));
+  throw createMappedAggregateError(ErrorNames.app_task_phase_failed, errors.map(x => x.error), slot);
 }

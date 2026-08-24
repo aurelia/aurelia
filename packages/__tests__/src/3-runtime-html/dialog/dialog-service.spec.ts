@@ -51,55 +51,32 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
   });
 
   describe('on deactivation', function () {
-    it('keeps the application and dialog active when dialog cleanup vetoes stop', async function () {
-      const fixture = createFixture('<span>app running</span>', class App { }, [DialogConfigurationClassic]);
-      const { ctx, startPromise, au, appHost, testHost } = fixture;
+    it('throws when it fails to cleanup', async function () {
+      const { ctx, startPromise, tearDown } = createFixture('', class App { }, [DialogConfigurationClassic]);
 
       await startPromise;
       const dialogService = ctx.container.get(IDialogService);
 
       let canDeactivate = false;
-      const openResult = await dialogService.open<DialogRenderOptionsClassic>({
+      await dialogService.open<DialogRenderOptionsClassic>({
         component: () => ({
           canDeactivate: () => canDeactivate
         }),
         template: () => '<div>Hello world</div>'
       });
 
+      let err: Error;
       try {
-        let error: Error | undefined;
-        try {
-          await au.stop(true);
-        } catch (ex) {
-          error = ex as Error;
-        }
-        assert.notStrictEqual(error, undefined);
-        assert.includes(error.message, 'AUR0901');
-        assert.match(error.message, /1/);
-
-        assert.strictEqual(au.isRunning, true, 'a dialog veto leaves the application running');
-        assert.strictEqual(Reflect.get(appHost, '$aurelia'), au, 'the live application remains published');
-        assert.strictEqual(appHost.textContent, 'app running', 'the application DOM remains mounted');
-        assert.deepStrictEqual(dialogService.controllers, [openResult.dialog], 'the vetoed dialog remains owned by the service');
-        assert.strictEqual(ctx.doc.querySelectorAll('au-dialog-container').length, 1, 'the vetoed dialog remains mounted');
-
-        canDeactivate = true;
-        await au.stop(true);
-
-        assert.strictEqual(au.isRunning, false);
-        assert.strictEqual(Reflect.get(appHost, '$aurelia'), void 0);
-        assert.strictEqual(dialogService.controllers.length, 0);
-        assert.strictEqual(ctx.doc.querySelectorAll('au-dialog-container').length, 0);
-      } finally {
-        canDeactivate = true;
-        await dialogService.closeAll();
-        if (au.isRunning) {
-          await au.stop(true);
-        }
-        au.dispose();
-        testHost.remove();
-        ctx.doc.querySelectorAll('au-dialog-container').forEach(e => e.remove());
+        await tearDown();
+      } catch(ex) {
+        err = ex;
       }
+      assert.notStrictEqual(err, undefined);
+      assert.includes(err.message, 'AUR0901');
+      assert.match(err.message, /1/);
+
+      canDeactivate = true;
+      await dialogService.closeAll();
     });
   });
 

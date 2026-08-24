@@ -4321,8 +4321,11 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['ce-c'], ticks, 'loading'),
                   ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['ce-c'], ticks, 'binding', 'bound'),
+                  // Controller compensates the failed activation before router recovery
+                  // disposes the rest of the transition graph.
+                  ...$(phase, ['ce-c'], ticks, 'unbinding'),
                   ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['ce-c'], ticks, 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'dispose'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
@@ -4355,8 +4358,9 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['ce-c'], ticks, 'loading'),
                   ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'attaching'),
+                  ...$(phase, ['ce-c'], ticks, 'detaching', 'unbinding'),
                   ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['ce-c'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'dispose'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
@@ -4389,8 +4393,9 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['ce-c'], ticks, 'loading'),
                   ...$(phase, ['ce-b'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['ce-c'], ticks, 'binding', 'bound', 'attaching', 'attached'),
+                  ...$(phase, ['ce-c'], ticks, 'detaching', 'unbinding'),
                   ...$(phase, ['ce-a'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['ce-c'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['ce-c'], ticks, 'dispose'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'canLoad'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'loading'),
                   ...$(phase, ['ce-a', 'ce-b'], ticks, 'binding', 'bound', 'attaching', 'attached'),
@@ -4733,10 +4738,11 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['gc-13'], ticks, 'loading'),
                   ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-13'], ticks, 'binding', 'bound'), // <-- this is the error
+                  ...$(phase, ['gc-13'], ticks, 'unbinding'),
 
                   // dispose old stuffs
                   ...$(phase, ['gc-11'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['gc-13'], ticks, 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'dispose'),
                   ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
 
@@ -4775,12 +4781,13 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
                   ...$(phase, ['gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
                   ...$(phase, ['gc-23'], ticks, 'binding', 'bound'), // <- this is the error
+                  ...$(phase, ['gc-23'], ticks, 'unbinding'),
 
                   // dispose the new stuffs
                   ...$(phase, ['gc-11', 'gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-21'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['gc-23'], ticks, 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-23'], ticks, 'dispose'),
                   ...$(phase, ['p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
 
                   // load the old stuffs
@@ -4810,9 +4817,12 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['gc-13'], ticks, 'loading'),
                   ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-13'], ticks, 'binding', 'bound', 'attaching'), // <-- this is the error
+                  ...$(phase, ['gc-13'], ticks, 'detaching', 'unbinding'),
 
                   // dispose old stuffs
-                  ...$(phase, ['gc-11', 'gc-13', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-11'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
 
                   // load old stuffs
@@ -4850,10 +4860,13 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
                   ...$(phase, ['gc-21'], ticks, 'binding', 'bound', 'attaching', 'attached'),
                   ...$(phase, ['gc-23'], ticks, 'binding', 'bound', 'attaching'), // <- this is the error
+                  ...$(phase, ['gc-23'], ticks, 'detaching', 'unbinding'),
 
                   // dispose the new stuffs
                   ...$(phase, ['gc-11', 'gc-12', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['gc-21', 'gc-23', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-23'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
 
                   // load the old stuffs
                   ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),
@@ -4882,9 +4895,12 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['gc-13'], ticks, 'loading'),
                   ...$(phase, ['gc-12'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-13'], ticks, 'binding', 'bound', 'attaching', 'attached'), // <-- this is the error
+                  ...$(phase, ['gc-13'], ticks, 'detaching', 'unbinding'),
 
                   // dispose old stuffs
-                  ...$(phase, ['gc-11', 'gc-13', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-11'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-13'], ticks, 'dispose'),
+                  ...$(phase, ['p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
                   ...$(phase, ['gc-21', 'gc-22', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
 
                   // load old stuffs
@@ -4921,10 +4937,13 @@ describe('router/hook-tests.spec.ts', function () {
                   ...$(phase, ['gc-21', 'gc-23'], ticks, 'canLoad'),
                   ...$(phase, ['gc-21', 'gc-23'], ticks, 'loading'),
                   ...$(phase, ['gc-21', 'gc-23'], ticks, 'binding', 'bound', 'attaching', 'attached'), // <- this is the error
+                  ...$(phase, ['gc-23'], ticks, 'detaching', 'unbinding'),
 
                   // dispose the new stuffs
                   ...$(phase, ['gc-11', 'gc-12', 'p-1'], ticks, 'detaching', 'unbinding', 'dispose'),
-                  ...$(phase, ['gc-21', 'gc-23', 'p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-21'], ticks, 'detaching', 'unbinding', 'dispose'),
+                  ...$(phase, ['gc-23'], ticks, 'dispose'),
+                  ...$(phase, ['p-2'], ticks, 'detaching', 'unbinding', 'dispose'),
 
                   // load the old stuffs
                   ...$(phase, ['p-2', 'p-1'], ticks, 'canLoad'),

@@ -218,6 +218,16 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
     protected $unbinding(_vm: IRouteViewModel, _initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {/* noop */ }
   }
 
+  /**
+   * A failed activation is compensated after every already-started participant has
+   * quiesced. The compensation boundary follows the phase that was reached:
+   *
+   * Binding failures only deactivate already-bound ancestors. Bound failures unbind
+   * the controller without detaching it. Attaching and attached failures remove the
+   * appended DOM before detaching and unbinding the controller. A synchronous
+   * activation-provider error stops later providers in that phase; already-started
+   * asynchronous providers still quiesce before compensation.
+   */
   for (const hook of ['binding', 'bound', 'attaching', 'attached'] as const) {
     describe(`activation aborted by error from ${hook}`, function () {
       it(`Aurelia instance can be deactivated  - root`, async function () {
@@ -247,6 +257,18 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         }
         /* eslint-enable no-fallthrough */
         logs.reverse();
+        if (hook === 'attaching' || hook === 'attached') {
+          logs.push(
+            'start.app.detaching.enter',
+            'start.app.detaching.leave',
+          );
+        }
+        if (hook !== 'binding') {
+          logs.push(
+            'start.app.unbinding.enter',
+            'start.app.unbinding.leave',
+          );
+        }
         mgr.assertLog(logs, 'start');
 
         mgr.setPrefix('stop');
@@ -301,7 +323,25 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'start.app.bound.leave',
           'start.app.attaching.enter',
           'start.app.attaching.leave',
-          ...logs
+          ...logs,
+          ...(hook === 'attaching' || hook === 'attached'
+            ? [
+              'start.c-1.detaching.enter',
+              'start.c-1.detaching.leave',
+            ]
+            : []
+          ),
+          'start.app.detaching.enter',
+          'start.app.detaching.leave',
+          ...(hook === 'binding'
+            ? []
+            : [
+              'start.c-1.unbinding.enter',
+              'start.c-1.unbinding.leave',
+            ]
+          ),
+          'start.app.unbinding.enter',
+          'start.app.unbinding.leave',
         ], 'start');
 
         mgr.setPrefix('stop');
@@ -336,26 +376,23 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             'phase#1.c-1.unbinding.enter',
             'phase#1.c-1.unbinding.leave',
           );
+          if (hook === 'attaching' || hook === 'attached') {
+            logs.push(
+              'phase#1.c-2.detaching.enter',
+              'phase#1.c-2.detaching.leave',
+            );
+          }
+          if (hook !== 'binding') {
+            logs.push(
+              'phase#1.c-2.unbinding.enter',
+              'phase#1.c-2.unbinding.leave',
+            );
+          }
           return logs;
         }
 
         function getErredDeactivationLog() {
           return [
-            ...(
-              hook === 'attached' || hook === 'attaching'
-                ? [
-                  'phase#2.c-2.detaching.enter',
-                  'phase#2.c-2.detaching.leave',
-                  'phase#2.c-2.unbinding.enter',
-                  'phase#2.c-2.unbinding.leave',
-                ]
-                : hook === 'bound'
-                  ? [
-                    'phase#2.c-2.unbinding.enter',
-                    'phase#2.c-2.unbinding.leave',
-                  ]
-                  : []
-            ),
             'phase#2.c-1.binding.enter',
             'phase#2.c-1.binding.leave',
             'phase#2.c-1.bound.enter',
@@ -416,7 +453,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.assertLog(getErredActivationLog(), 'phase#1');
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
+        assert.html.textContent(appHost, '', 'phase#1.textContent');
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
@@ -454,45 +491,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
       it(`Aurelia instance can be deactivated - with lifecycle hooks - hook throws error`, async function () {
 
         function getErredActivationLog() {
-          const logs = [];
-          /* eslint-disable no-fallthrough */
-          switch (hook) {
-            case 'attached': logs.push(
-              'phase#1.Local.c-2.attached.enter',
-              'phase#1.Global.c-2.attached.leave',
-              'phase#1.Global.c-2.attached.enter',
-              'phase#1.c-2.attaching.leave',
-              'phase#1.c-2.attaching.enter',
-              'phase#1.Local.c-2.attaching.leave'
-            );
-            case 'attaching':
-              logs.push(
-                'phase#1.Local.c-2.attaching.enter',
-                'phase#1.Global.c-2.attaching.leave',
-                'phase#1.Global.c-2.attaching.enter',
-                'phase#1.c-2.bound.leave',
-                'phase#1.c-2.bound.enter',
-                'phase#1.Local.c-2.bound.leave'
-              );
-            case 'bound':
-              logs.push(
-                'phase#1.Local.c-2.bound.enter',
-                'phase#1.Global.c-2.bound.leave',
-                'phase#1.Global.c-2.bound.enter',
-                'phase#1.c-2.binding.leave',
-                'phase#1.c-2.binding.enter',
-                'phase#1.Local.c-2.binding.leave'
-              );
-            case 'binding':
-              logs.push(
-                'phase#1.Local.c-2.binding.enter',
-                'phase#1.Global.c-2.binding.leave',
-                'phase#1.Global.c-2.binding.enter'
-              );
-          }
-          /* eslint-enable no-fallthrough */
-          logs.reverse();
-          logs.unshift(
+          const logs = [
             'phase#1.Global.c-1.detaching.enter',
             'phase#1.Global.c-1.detaching.leave',
             'phase#1.c-1.detaching.enter',
@@ -501,39 +500,49 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             'phase#1.Global.c-1.unbinding.leave',
             'phase#1.c-1.unbinding.enter',
             'phase#1.c-1.unbinding.leave',
-          );
+          ];
+          for (const phase of ['binding', 'bound', 'attaching', 'attached'] as const) {
+            logs.push(
+              `phase#1.Global.c-2.${phase}.enter`,
+              `phase#1.Global.c-2.${phase}.leave`,
+              `phase#1.Local.c-2.${phase}.enter`,
+            );
+            if (phase !== hook) {
+              logs.push(`phase#1.Local.c-2.${phase}.leave`);
+              logs.push(
+                `phase#1.c-2.${phase}.enter`,
+                `phase#1.c-2.${phase}.leave`,
+              );
+            }
+            if (phase === hook) {
+              break;
+            }
+          }
+          if (hook === 'attaching' || hook === 'attached') {
+            logs.push(
+              'phase#1.Global.c-2.detaching.enter',
+              'phase#1.Global.c-2.detaching.leave',
+              'phase#1.Local.c-2.detaching.enter',
+              'phase#1.Local.c-2.detaching.leave',
+              'phase#1.c-2.detaching.enter',
+              'phase#1.c-2.detaching.leave',
+            );
+          }
+          if (hook !== 'binding') {
+            logs.push(
+              'phase#1.Global.c-2.unbinding.enter',
+              'phase#1.Global.c-2.unbinding.leave',
+              'phase#1.Local.c-2.unbinding.enter',
+              'phase#1.Local.c-2.unbinding.leave',
+              'phase#1.c-2.unbinding.enter',
+              'phase#1.c-2.unbinding.leave',
+            );
+          }
           return logs;
         }
 
         function getErredDeactivationLog() {
           return [
-            ...(
-              hook === 'attached' || hook === 'attaching'
-                ? [
-                  'phase#2.Global.c-2.detaching.enter',
-                  'phase#2.Global.c-2.detaching.leave',
-                  'phase#2.Local.c-2.detaching.enter',
-                  'phase#2.Local.c-2.detaching.leave',
-                  'phase#2.c-2.detaching.enter',
-                  'phase#2.c-2.detaching.leave',
-                  'phase#2.Global.c-2.unbinding.enter',
-                  'phase#2.Global.c-2.unbinding.leave',
-                  'phase#2.Local.c-2.unbinding.enter',
-                  'phase#2.Local.c-2.unbinding.leave',
-                  'phase#2.c-2.unbinding.enter',
-                  'phase#2.c-2.unbinding.leave'
-                ]
-                : hook === 'bound'
-                  ? [
-                    'phase#2.Global.c-2.unbinding.enter',
-                    'phase#2.Global.c-2.unbinding.leave',
-                    'phase#2.Local.c-2.unbinding.enter',
-                    'phase#2.Local.c-2.unbinding.leave',
-                    'phase#2.c-2.unbinding.enter',
-                    'phase#2.c-2.unbinding.leave'
-                  ]
-                  : []
-            ),
             'phase#2.Global.c-1.binding.enter',
             'phase#2.Global.c-1.binding.leave',
             'phase#2.c-1.binding.enter',
@@ -657,7 +666,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.assertLog(getErredActivationLog(), 'phase#1');
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#1.textContent');
+        assert.html.textContent(appHost, '', 'phase#1.textContent');
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
@@ -1490,14 +1499,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#2.c-1.attached.leave',
         ], 'phase#2');
 
-        // phase#3: try to activate c-2 with rejected promise - should work
+        // phase#3: another rejected activation is rolled back eagerly
         promiseManager.setMode('rejected');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         await tasksSettled();
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
-        mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
+        assert.html.textContent(appHost, '', 'phase#3.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#3', true), 'phase#3');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
 
@@ -1512,20 +1521,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
-          ...(hook === 'attaching' || hook === 'attached'
-            ? [
-              'phase#4.c-2.detaching.enter',
-              'phase#4.c-2.detaching.leave',
-              'phase#4.c-2.unbinding.enter',
-              'phase#4.c-2.unbinding.leave',
-            ]
-            : hook === 'bound'
-              ? [
-                'phase#4.c-2.unbinding.enter',
-                'phase#4.c-2.unbinding.leave',
-              ]
-              : []
-          ),
           'phase#4.c-1.binding.enter',
           'phase#4.c-1.binding.leave',
           'phase#4.c-1.bound.enter',
@@ -1536,15 +1531,15 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#4.c-1.attached.leave',
         ], 'phase#4');
 
-        // phase#5: try to activate c-2 with resolved promise - should work
+        // phase#5: a later rejected activation is independently rolled back
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
         await tasksSettled();
         // Wait for the promises in the lifecycle hooks
         await Promise.resolve();
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
-        mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
+        assert.html.textContent(appHost, '', 'phase#5.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#5', true), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
 
@@ -1559,22 +1554,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         assert.strictEqual(error, null, 'stop');
         mgr.assertLog([
-          ...(hook === 'attaching' || hook === 'attached'
-            ? [
-              'stop.c-2.detaching.enter',
-              'stop.c-2.detaching.leave',
-            ]
-            : []
-          ),
           'stop.app.detaching.enter',
           'stop.app.detaching.leave',
-          ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
-            ? [
-              'stop.c-2.unbinding.enter',
-              'stop.c-2.unbinding.leave',
-            ]
-            : []
-          ),
           'stop.app.unbinding.enter',
           'stop.app.unbinding.leave',
           'stop.app.dispose.enter',
@@ -1816,7 +1797,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#2.c-1.attached.leave',
         ], 'phase#2');
 
-        // phase#3: try to activate c-2 with resolved promise - should work
+        // phase#3: another rejected activation is rolled back eagerly
         promiseManager.setMode('rejected');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
@@ -1824,8 +1805,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // Wait for the promises in the lifecycle hooks
         await Promise.resolve();
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
-        mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
+        assert.html.textContent(appHost, '', 'phase#3.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#3', true), 'phase#3');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
 
@@ -1836,33 +1817,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
-          ...(
-            hook === 'attaching' || hook === 'attached'
-              ? [
-                'phase#4.Global.c-2.detaching.enter',
-                'phase#4.Global.c-2.detaching.leave',
-                'phase#4.Local.c-2.detaching.enter',
-                'phase#4.Local.c-2.detaching.leave',
-                'phase#4.c-2.detaching.enter',
-                'phase#4.c-2.detaching.leave',
-                'phase#4.Global.c-2.unbinding.enter',
-                'phase#4.Global.c-2.unbinding.leave',
-                'phase#4.Local.c-2.unbinding.enter',
-                'phase#4.Local.c-2.unbinding.leave',
-                'phase#4.c-2.unbinding.enter',
-                'phase#4.c-2.unbinding.leave',
-              ]
-              : hook === 'bound'
-                ? [
-                  'phase#4.Global.c-2.unbinding.enter',
-                  'phase#4.Global.c-2.unbinding.leave',
-                  'phase#4.Local.c-2.unbinding.enter',
-                  'phase#4.Local.c-2.unbinding.leave',
-                  'phase#4.c-2.unbinding.enter',
-                  'phase#4.c-2.unbinding.leave',
-                ]
-                : []
-          ),
           'phase#4.Global.c-1.binding.enter',
           'phase#4.Global.c-1.binding.leave',
           'phase#4.c-1.binding.enter',
@@ -1881,15 +1835,15 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#4.c-1.attached.leave',
         ], 'phase#4');
 
-        // phase#5: try to activate c-2 with resolved promise - should work
+        // phase#5: a later rejected activation is independently rolled back
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
         await tasksSettled();
         // Wait for the promises in the lifecycle hooks
         await Promise.resolve();
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
-        mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
+        assert.html.textContent(appHost, '', 'phase#5.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#5', true), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
 
@@ -1906,40 +1860,12 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.assertLog([
           'stop.Global.if.detaching.enter',
           'stop.Global.if.detaching.leave',
-
-          ...(
-            hook === 'attaching' || hook === 'attached'
-              ? ['stop.Global.c-2.detaching.enter',
-                'stop.Global.c-2.detaching.leave',
-                'stop.Local.c-2.detaching.enter',
-                'stop.Local.c-2.detaching.leave',
-                'stop.c-2.detaching.enter',
-                'stop.c-2.detaching.leave',
-              ]
-              : []
-          ),
-
           'stop.Global.else.detaching.enter',
           'stop.Global.else.detaching.leave',
           'stop.Global.app.detaching.enter',
           'stop.Global.app.detaching.leave',
           'stop.app.detaching.enter',
           'stop.app.detaching.leave',
-
-          ...(
-            hook === 'bound' || hook === 'attaching' || hook === 'attached'
-              ? [
-
-                'stop.Global.c-2.unbinding.enter',
-                'stop.Global.c-2.unbinding.leave',
-                'stop.Local.c-2.unbinding.enter',
-                'stop.Local.c-2.unbinding.leave',
-                'stop.c-2.unbinding.enter',
-                'stop.c-2.unbinding.leave',
-              ]
-              : []
-          ),
-
           'stop.Global.if.unbinding.enter',
           'stop.Global.if.unbinding.leave',
 
@@ -1991,31 +1917,31 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
             'phase#1.c-2.attaching.enter',
             'phase#1.c-2.attaching.leave',
           );
+          if (hook === 'attaching' || hook === 'attached') {
+            logs.push(
+              'phase#1.c2-c.detaching.enter',
+              'phase#1.c2-c.detaching.leave',
+            );
+          }
+          logs.push(
+            'phase#1.c-2.detaching.enter',
+            'phase#1.c-2.detaching.leave',
+          );
+          if (hook !== 'binding') {
+            logs.push(
+              'phase#1.c2-c.unbinding.enter',
+              'phase#1.c2-c.unbinding.leave',
+            );
+          }
+          logs.push(
+            'phase#1.c-2.unbinding.enter',
+            'phase#1.c-2.unbinding.leave',
+          );
           return logs;
         }
 
         function getErredDeactivationLog() {
           return [
-            ...(
-              hook === 'attached' || hook === 'attaching'
-                ? [
-                  'phase#2.c2-c.detaching.enter',
-                  'phase#2.c2-c.detaching.leave',
-                ]
-                : []
-            ),
-            'phase#2.c-2.detaching.enter',
-            'phase#2.c-2.detaching.leave',
-            ...(
-              hook === 'bound' || hook === 'attached' || hook === 'attaching'
-                ? [
-                  'phase#2.c2-c.unbinding.enter',
-                  'phase#2.c2-c.unbinding.leave',
-                ]
-                : []
-            ),
-            'phase#2.c-2.unbinding.enter',
-            'phase#2.c-2.unbinding.leave',
             'phase#2.c-1.binding.enter',
             'phase#2.c-1.binding.leave',
             'phase#2.c-1.bound.enter',
@@ -2097,7 +2023,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.assertLog(getErredActivationLog(), 'phase#1');
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#1.textContent');
+        assert.html.textContent(appHost, '', 'phase#1.textContent');
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
@@ -2481,22 +2407,22 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           logs.push(
             ...(hook === 'attaching' || hook === 'attached'
               ? [
-                'phase#1.c2-c.detaching.enter',
-                'phase#1.c2-c.detaching.leave',
+                `${prefix}.c2-c.detaching.enter`,
+                `${prefix}.c2-c.detaching.leave`,
               ]
               : []
             ),
-            'phase#1.c-2.detaching.enter',
-            'phase#1.c-2.detaching.leave',
+            `${prefix}.c-2.detaching.enter`,
+            `${prefix}.c-2.detaching.leave`,
             ...(hook === 'bound' || hook === 'attaching' || hook === 'attached'
               ? [
-                'phase#1.c2-c.unbinding.enter',
-                'phase#1.c2-c.unbinding.leave',
+                `${prefix}.c2-c.unbinding.enter`,
+                `${prefix}.c2-c.unbinding.leave`,
               ]
               : []
             ),
-            'phase#1.c-2.unbinding.enter',
-            'phase#1.c-2.unbinding.leave',
+            `${prefix}.c-2.unbinding.enter`,
+            `${prefix}.c-2.unbinding.leave`,
           );
           return logs;
         }
@@ -2608,14 +2534,14 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#2.c-1.attached.leave',
         ], 'phase#2');
 
-        // phase#3: try to activate c-2 with resolved promise - should work
+        // phase#3: another rejected activation is rolled back eagerly
         promiseManager.setMode('rejected');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
         await tasksSettled();
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#3.textContent');
-        mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
+        assert.html.textContent(appHost, '', 'phase#3.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#3', true), 'phase#3');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
 
@@ -2630,26 +2556,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
         mgr.assertLog([
-          ...(
-            hook === 'attaching' || hook === 'attached'
-              ? [
-                'phase#4.c2-c.detaching.enter',
-                'phase#4.c2-c.detaching.leave',
-              ]
-              : []
-          ),
-          'phase#4.c-2.detaching.enter',
-          'phase#4.c-2.detaching.leave',
-          ...(
-            hook === 'bound' || hook === 'attaching' || hook === 'attached'
-              ? [
-                'phase#4.c2-c.unbinding.enter',
-                'phase#4.c2-c.unbinding.leave',
-              ]
-              : []
-          ),
-          'phase#4.c-2.unbinding.enter',
-          'phase#4.c-2.unbinding.leave',
           'phase#4.c-1.binding.enter',
           'phase#4.c-1.binding.leave',
           'phase#4.c-1.bound.enter',
@@ -2668,15 +2574,15 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'phase#4.c-1.attached.leave',
         ], 'phase#4');
 
-        // phase#5: try to activate c-2 with resolved promise - should work
+        // phase#5: a later rejected activation is independently rolled back
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
         await tasksSettled();
         // Wait for the promises in the lifecycle hooks
         await Promise.resolve();
 
-        assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#5.textContent');
-        mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
+        assert.html.textContent(appHost, '', 'phase#5.textContent');
+        mgr.assertLog(getPendingActivationLog('phase#5', true), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
 
@@ -2691,28 +2597,8 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         assert.strictEqual(error, null, 'stop');
         mgr.assertLog([
-          ...(
-            hook === 'attaching' || hook === 'attached'
-              ? [
-                'stop.c2-c.detaching.enter',
-                'stop.c2-c.detaching.leave',
-              ]
-              : []
-          ),
-          'stop.c-2.detaching.enter',
-          'stop.c-2.detaching.leave',
           'stop.app.detaching.enter',
           'stop.app.detaching.leave',
-          ...(
-            hook === 'bound' || hook === 'attaching' || hook === 'attached'
-              ? [
-                'stop.c2-c.unbinding.enter',
-                'stop.c2-c.unbinding.leave',
-              ]
-              : []
-          ),
-          'stop.c-2.unbinding.enter',
-          'stop.c-2.unbinding.leave',
           'stop.app.unbinding.enter',
           'stop.app.unbinding.leave',
           'stop.app.dispose.enter',

@@ -61,6 +61,8 @@ export const enum ErrorNames {
   controller_watch_invalid_callback = 506,
   controller_property_not_coercible = 507,
   controller_property_no_change_handler = 508,
+  controller_lifecycle_self_await = 509,
+  controller_dispose_active_operation = 510,
 
   node_observer_strategy_not_found = 652,
   node_observer_mapping_existed = 653,
@@ -190,6 +192,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.controller_watch_invalid_callback]: `Invalid callback for @watch decorator: {{0}}`,
   [ErrorNames.controller_property_not_coercible]: `Observer for bindable property {{0}} does not support coercion.`,
   [ErrorNames.controller_property_no_change_handler]: `Observer for property {{0}} does not support change handler.`,
+  [ErrorNames.controller_lifecycle_self_await]: `Controller at {{0}} created a lifecycle dependency cycle: {{1}}.`,
+  [ErrorNames.controller_dispose_active_operation]: `Cannot dispose controller {{0}} while a lifecycle operation is running in its owned subtree.`,
 
   [ErrorNames.attribute_def_not_found]: `No attribute definition found for type {{0:name}}`,
   [ErrorNames.element_def_not_found]: `No element definition found for type {{0:name}}`,

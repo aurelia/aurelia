@@ -24,20 +24,6 @@ export const createMappedError: CreateError = (code, ...details) =>
 export const createMappedAggregateError: CreateAggregateError = (code, errors, ...details) =>
   new AggregateError(errors, createMappedErrorMessage(code, ...details));
 
-/** @internal */
-export const cleanupAfterFailure = (
-  error: unknown,
-  cleanup: () => void,
-  code: ErrorNames,
-): never => {
-  try {
-    cleanup();
-  } catch (cleanupError) {
-    throw createMappedAggregateError(code, [error, cleanupError]);
-  }
-  throw error;
-};
-
 _START_CONST_ENUM();
 /** @internal */
 export const enum ErrorNames {
@@ -165,17 +151,7 @@ export const enum ErrorNames {
   slotted_decorator_invalid_usage = 9990,
   children_invalid_query = 9989,
 
-  hydration_target_count_mismatch = 822,
-  hydration_node_count_mismatch = 823,
-  hydration_view_count_mismatch = 824,
   app_task_phase_failed = 826,
-  au_compose_operation_teardown_failed = 832,
-  au_compose_deactivation_disposal_failed = 833,
-  au_compose_activation_disposal_failed = 834,
-  au_compose_host_cleanup_failed = 835,
-  repeat_row_lifecycle_cleanup_failed = 836,
-  repeat_reconciliation_owner_teardown_failed = 837,
-  switch_activation_teardown_failed = 838,
   node_ref_already_associated = 839,
   ssr_missing_nested_template = 840,
   ssr_unknown_instruction_type = 841,
@@ -321,17 +297,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
   [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`,
 
-  [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
-  [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
-  [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
   [ErrorNames.app_task_phase_failed]: `Multiple application tasks failed during the "{{0}}" phase.`,
-  [ErrorNames.au_compose_operation_teardown_failed]: `AuCompose operation failed during teardown cleanup`,
-  [ErrorNames.au_compose_deactivation_disposal_failed]: `AuCompose deactivation failed during disposal`,
-  [ErrorNames.au_compose_activation_disposal_failed]: `AuCompose activation failed during disposal`,
-  [ErrorNames.au_compose_host_cleanup_failed]: `AuCompose deactivation failed during host cleanup`,
-  [ErrorNames.repeat_row_lifecycle_cleanup_failed]: `Repeat row lifecycle and cleanup failed`,
-  [ErrorNames.repeat_reconciliation_owner_teardown_failed]: `Repeat reconciliation and owner teardown failed`,
-  [ErrorNames.switch_activation_teardown_failed]: `Switch activation failed during teardown cleanup`,
   [ErrorNames.node_ref_already_associated]: `Node already associated with a controller; remove ref "{{0}}" before associating another controller.`,
   [ErrorNames.ssr_missing_nested_template]: `SSR hydration error: missing nested template at index {{0}}.`,
   [ErrorNames.ssr_unknown_instruction_type]: `SSR hydration error: unknown instruction type {{0}}.`,

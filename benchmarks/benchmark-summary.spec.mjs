@@ -13,6 +13,11 @@ const heapMeasurement = {
   mode: 'expression',
   expression: 'window.usedJSHeapSizeBytes',
 };
+const afterGcHeapMeasurement = {
+  name: 'used JS heap after GC (post-teardown)',
+  mode: 'expression',
+  expression: 'window.heapLifecycle?.postTeardownUsedJSHeapAfterGcBytes',
+};
 
 void describe('compact benchmark summary', () => {
   void it('uses the global base index for each measurement and preserves small percentages', () => {
@@ -68,16 +73,18 @@ void describe('compact benchmark summary', () => {
     assert.match(formatCompactSummary(results), /-> no clear change/);
   });
 
-  void it('classifies a lower used-heap interval', () => {
+  void it('classifies and formats a lower after-GC heap interval', () => {
     const results = pairResults(
-      'startup',
-      heapMeasurement,
+      'realistic heap lifecycle 500',
+      afterGcHeapMeasurement,
       interval(82 * MiB, 83 * MiB),
       interval(80 * MiB, 81 * MiB),
       difference(-3 * MiB, -1 * MiB, -0.04, -0.01),
     );
 
-    assert.match(formatCompactSummary(results), /-> lower/);
+    const summary = formatCompactSummary(results);
+    assert.match(summary, /used JS heap after GC \(post-teardown\): candidate `80\.00 MiB` - `81\.00 MiB`/);
+    assert.match(summary, /candidate delta: `-3\.00 MiB` to `-1\.00 MiB`.*-> lower/);
   });
 
   void it('does not invent units for a generic expression', () => {

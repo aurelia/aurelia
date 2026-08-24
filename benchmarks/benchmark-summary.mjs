@@ -132,11 +132,17 @@ export function measurementLabel(measurement) {
 
 export function metricKind(measurement) {
   if (measurement?.mode === 'performance') return 'duration';
-  if (measurement?.mode === 'expression' && measurement.expression === 'window.usedJSHeapSizeBytes') {
+  if (measurement?.mode === 'expression' && usedJsHeapExpressions.has(measurement.expression)) {
     return 'heap-bytes';
   }
   return 'number';
 }
+
+const usedJsHeapExpressions = new Set([
+  'window.usedJSHeapSizeBytes',
+  'window.heapLifecycle?.liveListUsedJSHeapAfterGcBytes',
+  'window.heapLifecycle?.postTeardownUsedJSHeapAfterGcBytes',
+]);
 
 export function formatMetricInterval(interval, kind) {
   return `\`${formatValue(interval.low, kind)}\` - \`${formatValue(interval.high, kind)}\``;

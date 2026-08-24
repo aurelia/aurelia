@@ -1,0 +1,69 @@
+<script type="module">
+import {
+  assertRealisticOpenEvent,
+  assertRealisticRows,
+  captureRealisticViewModels,
+} from '../utils/assert-render.js';
+import {
+  createMixedRealisticRecords,
+  createRealisticRecords,
+} from '../utils/realistic-data.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { measureUsedJsHeapAfterGc } from '../utils/measure-used-heap.js';
+const { CustomElement, start, tasksSettled } = await loadVariant('app-repeat-realistic');
+
+async function runLifecycle(measureLiveHeap) {
+  let host = document.body.appendChild(document.createElement('div'));
+  let au = await start(host, createRealisticRecords(500));
+  let app = au.root.controller.viewModel;
+  let before = captureRealisticViewModels(host, app.items, CustomElement);
+  let nextItems = createMixedRealisticRecords(app.items);
+
+  app.items = nextItems;
+  await tasksSettled();
+  let after = assertRealisticRows(host, nextItems, CustomElement);
+  for (let id = 0; id < 500; id++) {
+    if (id % 10 === 0) {
+      if (after.viewModels[id] !== undefined) throw new Error(`Heap lifecycle retained removed row ${id}.`);
+    } else if (after.viewModels[id] !== before[id]) {
+      throw new Error(`Heap lifecycle replaced retained row ${id}.`);
+    }
+  }
+  assertRealisticOpenEvent(after.hosts[0], after.viewModels[nextItems[0].id]);
+
+  // Assertion structures must not become roots in the live-list heap reading.
+  before.fill(void 0);
+  after.hosts.length = 0;
+  after.viewModels.fill(void 0);
+  before = after = void 0;
+  const liveHeap = measureLiveHeap ? await measureUsedJsHeapAfterGc() : void 0;
+
+  // stop(true) disposes the application root after deactivation; dispose() then releases the
+  // application container. Returning with cleared locals leaves no benchmark-owned application root.
+  await au.stop(true);
+  if (host.childNodes.length !== 0 || '$aurelia' in host) {
+    throw new Error('Heap lifecycle teardown left the application attached to its host.');
+  }
+  au.dispose();
+  host.remove();
+
+  app = nextItems = au = host = void 0;
+  return liveHeap;
+}
+
+for (let cycle = 0; cycle < 2; cycle++) {
+  await runLifecycle(false);
+  // Each warmup includes teardown and collection so the measured cycle starts after the same
+  // framework metadata, engine caches, and row lifecycle have already been exercised.
+  await measureUsedJsHeapAfterGc();
+}
+
+const liveListUsedJSHeapAfterGcBytes = await runLifecycle(true);
+const postTeardownUsedJSHeapAfterGcBytes = await measureUsedJsHeapAfterGc();
+// Tachometer polls expression measurements independently. Publish both only after teardown so
+// neither value can complete the sample while the other lifecycle state is still being prepared.
+window.heapLifecycle = {
+  liveListUsedJSHeapAfterGcBytes,
+  postTeardownUsedJSHeapAfterGcBytes,
+};
+</script>

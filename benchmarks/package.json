@@ -9,6 +9,8 @@
     "build:runtime": "cd ../packages/runtime && npm run build",
     "build:runtime-html": "cd ../packages/runtime-html && npm run build",
     "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
+    "bench:variants": "node prepare-variants.mjs",
+    "bench:variants:test": "node --test variant-utils.spec.mjs",
     "bench": "npm run bench:rerender1k && npm run bench:startup1k && npm run bench:update1k && npm run bench:rerender1k-big && npm run bench:startup1k-big",
     "bench:rerender1k": "node run-tachometer.mjs --config app-repeat-view/rerender.json --json-file results/rerender-1k.json",
     "bench:startup1k": "node run-tachometer.mjs --config app-repeat-view/startup.json --json-file results/startup-1k.json",

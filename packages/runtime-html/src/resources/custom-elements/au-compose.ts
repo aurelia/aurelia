@@ -150,7 +150,11 @@ export class AuCompose {
     ++this._queueVersion;
     this._contextFactory.invalidate();
     this._composition = this._composing = void 0;
-    const deactivate = () => this._disposeOwnedCompositions(initiator);
+    const deactivate = (): void => {
+      // Descendant async work enrolls in the ancestor Controller operation; the
+      // AuCompose hook commits only its synchronous owner boundary here.
+      this._disposeOwnedCompositions(initiator);
+    };
     if (!isPromise(pending)) {
       return deactivate();
     }
@@ -208,47 +212,15 @@ export class AuCompose {
   }
 
   /** @internal */
-  private _disposeOwnedCompositions(initiator: IHydratedController): void | Promise<void> {
-    // `detaching` waits for `_composing` before reaching here, so ordinary
-    // retirement has already settled and this set normally contains only the
-    // current composition. Keep the defensive multi-owner path serial: hosts can
-    // share one render location, and creation order gives deterministic removal
-    // and first-error selection if failed/stale work left more than one owner.
-    const compositions = Array.from(this._ownedCompositions);
-    let index = 0;
-    let hasError = false;
-    let firstError: unknown;
-    const next = (): void | Promise<void> => {
-      while (index < compositions.length) {
-        const composition = compositions[index++];
-        let result: void | Promise<void>;
-        try {
-          result = this._disposeComposition(composition, () => composition.deactivate(initiator));
-        } catch (error) {
-          if (!hasError) {
-            hasError = true;
-            firstError = error;
-          }
-          continue;
-        }
-        if (isPromise(result)) {
-          return result.then(
-            next,
-            error => {
-              if (!hasError) {
-                hasError = true;
-                firstError = error;
-              }
-              return next();
-            },
-          );
-        }
-      }
-      if (hasError) {
-        throw firstError;
-      }
-    };
-    return next();
+  private _disposeOwnedCompositions(initiator: IHydratedController): void {
+    // A composed lifecycle can synchronously change AuCompose inputs before the
+    // outer queue publishes its tail, so more than one composition may be owned.
+    // Snapshot the set because each disposal removes itself from ownership.
+    for (const composition of Array.from(this._ownedCompositions)) {
+      // Descendant async work is enrolled in the ancestor Controller operation;
+      // no second Promise boundary is returned from this owner hook.
+      void this._disposeComposition(composition, () => composition.deactivate(initiator));
+    }
   }
 
   /** @internal */
@@ -381,20 +353,27 @@ export class AuCompose {
             // by always ensuring that the composition context is the latest one
             if (factory._isCurrent(context)) {
               let activation: void | Promise<void>;
-              try {
-                activation = result.activate(initiator);
-              } catch (error) {
-                // Bindable-driven work is self-owned and must roll itself back.
-                // Initial attaching is enrolled in the ancestor Controller
-                // operation, whose rollback reaches this owned controller.
-                if (initiator === void 0) {
+              if (initiator === void 0) {
+                // Bindable-driven work has no ancestor operation to own a
+                // synchronous failure, so AuCompose must clean it locally.
+                try {
+                  activation = result.activate();
+                } catch (error) {
                   return cleanupAfterFailure(
                     error,
-                    () => this._disposeComposition(result, () => result.deactivate(result.controller)),
+                    () => {
+                      // A synchronous activation throw implies Controller
+                      // compensation also completed synchronously.
+                      void this._disposeComposition(result, () => result.deactivate(result.controller));
+                    },
                     'AuCompose activation failed during disposal',
                   );
                 }
-                throw error;
+              } else {
+                // Initial attaching is enrolled in the ancestor Controller.
+                // Descendant synchronous failures propagate through that
+                // operation rather than throwing from this call.
+                activation = result.activate(initiator);
               }
               const conclude = () => {
                 // Don't conclude the [stale] composition
@@ -429,7 +408,11 @@ export class AuCompose {
                     if (initiator === void 0) {
                       return cleanupAfterFailure(
                         error,
-                        () => this._disposeComposition(result, () => result.deactivate(result.controller)),
+                        () => {
+                          // The activation result rejects only after Controller
+                          // compensation has reached its stable boundary.
+                          void this._disposeComposition(result, () => result.deactivate(result.controller));
+                        },
                         'AuCompose activation failed during disposal',
                       );
                     }

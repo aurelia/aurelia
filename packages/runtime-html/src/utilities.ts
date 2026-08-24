@@ -1,7 +1,7 @@
 import { AccessorType, type ISubscriber } from '@aurelia/runtime';
 import { type ISVGAnalyzer } from './observation/svg-analyzer';
 import { type ISignaler } from './signaler';
-import { createLookup, isPromise, isString } from '@aurelia/kernel';
+import { createLookup, isString } from '@aurelia/kernel';
 
 const O = Object;
 
@@ -41,27 +41,20 @@ const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 
 /**
  * Run mandatory cleanup after an operation failed, preserving the original
- * error unless cleanup fails too. The cleanup result remains synchronous when
- * possible and both failures retain their causal order in an AggregateError.
+ * error unless cleanup fails too. Async descendant work is owned by Controller;
+ * these owner-level cleanup callbacks only commit their synchronous boundary.
  *
  * @internal
  */
 export const cleanupAfterFailure = (
   error: unknown,
-  cleanup: () => void | Promise<void>,
+  cleanup: () => void,
   message: string,
-): never | Promise<never> => {
-  let result: void | Promise<void>;
+): never => {
   try {
-    result = cleanup();
+    cleanup();
   } catch (cleanupError) {
     throw new AggregateError([error, cleanupError], message);
-  }
-  if (isPromise(result)) {
-    return result.then(
-      () => { throw error; },
-      cleanupError => { throw new AggregateError([error, cleanupError], message); },
-    );
   }
   throw error;
 };

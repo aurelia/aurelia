@@ -100,7 +100,11 @@ export class Switch implements ICustomAttributeViewModel {
     // admission. Clear the captured tail before waiting to make that closure
     // explicit and prevent stale settlement from remaining publicly observable.
     (this as Writable<Switch>).promise = void 0;
-    const deactivate = () => this.view.deactivate(initiator, this.$controller);
+    const deactivate = (): void => {
+      // Descendant async work enrolls in the ancestor Controller operation; the
+      // Switch hook commits only its synchronous owner boundary here.
+      void this.view.deactivate(initiator, this.$controller);
+    };
     if (!isPromise(pending)) {
       return deactivate();
     }

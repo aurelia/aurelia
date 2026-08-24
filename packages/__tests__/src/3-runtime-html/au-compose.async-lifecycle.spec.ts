@@ -521,6 +521,7 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
 
     it('detaches its composition after a pending model update rejects', async function () {
       const update = new Deferred();
+      const cleanup = new Deferred();
       const calls: string[] = [];
       const error = new Error('pending model update failed');
 
@@ -535,8 +536,9 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
           }
         }
 
-        public detaching(): void {
+        public detaching(): Promise<void> {
           calls.push('detaching');
+          return cleanup.promise;
         }
       });
 
@@ -553,15 +555,6 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       const { component } = fixture;
       await tasksSettled();
 
-      let auCompose: AuCompose | undefined;
-      fixture.au.root.controller.accept(controller => {
-        if (controller.viewModel instanceof AuCompose) {
-          auCompose = controller.viewModel;
-          return true;
-        }
-      });
-      assert.notStrictEqual(auCompose, void 0);
-
       component.model = 'pending';
       await tasksSettled();
       const modelUpdate = component.composing as Promise<void>;
@@ -570,12 +563,16 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       const observedModelRejection = modelUpdate.catch(reason => {
         assert.strictEqual(reason, error);
       });
-      const detachResult = auCompose!.detaching(fixture.au.root.controller);
+      const detachResult = fixture.stop(true);
       assert.instanceOf(detachResult, Promise);
       let detachFulfilled = false;
+      let detachSettled = false;
       const observedDetachRejection = (detachResult as Promise<void>).then(
-        () => { detachFulfilled = true; },
-        reason => { assert.strictEqual(reason, error); }
+        () => { detachFulfilled = detachSettled = true; },
+        reason => {
+          detachSettled = true;
+          assert.strictEqual(reason, error);
+        }
       );
 
       await tasksSettled();
@@ -586,6 +583,10 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
 
       update.reject(error);
       await observedModelRejection;
+      assert.strictEqual(detachSettled, false, 'the original error waits for asynchronous cleanup');
+      assert.deepStrictEqual(calls, ['activate:initial', 'activate:pending', 'detaching']);
+
+      cleanup.resolve();
       await observedDetachRejection;
 
       assert.deepStrictEqual(calls, [
@@ -594,90 +595,300 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
         'detaching',
       ]);
       assert.strictEqual(detachFulfilled, false);
-
-      await fixture.stop(true);
+      // createFixture disposes only after a fulfilled stop(true); this stop
+      // deliberately rejects after completing framework cleanup.
+      fixture.testHost.remove();
+      fixture.au.dispose();
     });
 
-    for (const cleanupKind of ['synchronous', 'asynchronous'] as const) {
-      it(`aggregates a rejected model update with a ${cleanupKind} teardown failure`, async function () {
-        const update = new Deferred();
-        const calls: string[] = [];
-        const updateError = new Error('model update failed');
-        const cleanupError = new Error('composition teardown failed');
+  });
 
-        const ModelComponent = CustomElement.define({
-          name: `${cleanupKind}-failing-model-update-teardown`,
-          template: '',
-        }, class {
-          public activate(model: string): void | Promise<void> {
-            calls.push(`activate:${model}`);
-            if (model === 'pending') {
-              return update.promise;
-            }
-          }
+  describe('structural activation ownership', function () {
+    for (const failureKind of ['synchronous', 'asynchronous'] as const) {
+      it(`cleans a dynamically composed controller after ${failureKind} activation failure`, async function () {
+        const error = new Error(`${failureKind} dynamic composition activation failed`);
 
-          public detaching(): void | Promise<void> {
-            calls.push('detaching');
-            if (cleanupKind === 'synchronous') {
-              throw cleanupError;
+        @customElement({ name: `${failureKind}-stable-composition`, template: 'stable' })
+        class StableComposition {}
+
+        @customElement({ name: `${failureKind}-failing-composition`, template: 'failing' })
+        class FailingComposition {
+          public attaching(): void | Promise<void> {
+            if (failureKind === 'synchronous') {
+              throw error;
             }
-            return Promise.reject(cleanupError);
+            return Promise.reject(error);
           }
-        });
+        }
+
+        @customElement({ name: `${failureKind}-recovered-composition`, template: 'recovered' })
+        class RecoveredComposition {}
 
         const fixture = createFixture(
-          '<au-compose component.bind="component" model.bind="model" composing.bind="composing" composition.bind="composition"></au-compose>',
+          '<au-compose component.bind="component" composing.bind="composing" composition.bind="composition"></au-compose>',
           class App {
-            public component = ModelComponent;
-            public model = 'initial';
+            public component: unknown = StableComposition;
             public composing: void | Promise<void>;
             public composition: ICompositionController | undefined;
           },
-          [ModelComponent],
+          [StableComposition, FailingComposition, RecoveredComposition],
         );
-        const { component } = fixture;
+        await fixture.started;
+        const stableComposition = fixture.component.composition;
+
+        if (failureKind === 'synchronous') {
+          assert.throws(() => { fixture.component.component = FailingComposition; }, error);
+        } else {
+          fixture.component.component = FailingComposition;
+          await tasksSettled();
+          const composing = fixture.component.composing;
+          assert.instanceOf(composing, Promise);
+          await assert.rejects(() => composing as Promise<void>, error);
+        }
         await tasksSettled();
 
-        let auCompose: AuCompose | undefined;
-        fixture.au.root.controller.accept(controller => {
-          if (controller.viewModel instanceof AuCompose) {
-            auCompose = controller.viewModel;
-            return true;
-          }
-        });
-        assert.notStrictEqual(auCompose, void 0);
-        const detachInitiator = component.composition!.controller;
+        assert.strictEqual(fixture.component.composition, stableComposition);
+        assert.strictEqual(fixture.appHost.querySelector(`${failureKind}-failing-composition`), null);
+        fixture.assertText('stable');
 
-        component.model = 'pending';
+        fixture.component.component = RecoveredComposition;
         await tasksSettled();
-        const modelUpdate = component.composing as Promise<void>;
-        assert.instanceOf(modelUpdate, Promise);
-        const observedModelRejection = modelUpdate.catch(reason => {
-          assert.strictEqual(reason, updateError);
-        });
-
-        const detachResult = auCompose!.detaching(detachInitiator) as Promise<void>;
-        assert.instanceOf(detachResult, Promise);
-        update.reject(updateError);
-
-        await observedModelRejection;
-        const aggregate = await detachResult.then(
-          () => void 0,
-          reason => reason
-        );
-        assert.instanceOf(aggregate, AggregateError);
-        assert.deepStrictEqual(aggregate.errors, [updateError, cleanupError]);
-        assert.strictEqual(aggregate.message, 'AuCompose operation failed during teardown cleanup');
-        assert.deepStrictEqual(calls, ['activate:initial', 'activate:pending', 'detaching']);
-
-        await tasksSettled();
-        assert.strictEqual(component.composing, void 0);
-        assert.strictEqual(component.composition, void 0);
-
-        await fixture.stop(true);
+        if (fixture.component.composing != null) {
+          await fixture.component.composing;
+        }
+        fixture.assertText('recovered');
+        await fixture.tearDown();
       });
     }
+
+    it('aggregates dynamic activation and disposal failures in causal order', async function () {
+      const activationError = new Error('dynamic composition activation failed');
+      const disposalError = new Error('failed composition disposal failed');
+
+      @customElement({ name: 'stable-before-failed-disposal', template: 'stable' })
+      class StableComposition {}
+
+      @customElement({ name: 'activation-and-disposal-failure', template: 'failing' })
+      class FailingComposition {
+        public attaching(): never {
+          throw activationError;
+        }
+
+        public dispose(): never {
+          throw disposalError;
+        }
+      }
+
+      const fixture = createFixture(
+        '<au-compose component.bind="component"></au-compose>',
+        class App { public component: unknown = StableComposition; },
+        [StableComposition, FailingComposition],
+      );
+      await fixture.started;
+
+      let aggregate: unknown;
+      try {
+        fixture.component.component = FailingComposition;
+        assert.fail('Expected dynamic composition to fail');
+      } catch (error) {
+        aggregate = error;
+      }
+
+      assert.instanceOf(aggregate, AggregateError);
+      const aggregateError = aggregate as AggregateError;
+      assert.deepStrictEqual(aggregateError.errors, [activationError, disposalError]);
+      assert.strictEqual(aggregateError.message, 'AuCompose activation failed during disposal');
+      assert.strictEqual(fixture.appHost.querySelector('activation-and-disposal-failure'), null);
+      fixture.assertText('stable');
+      await fixture.tearDown();
+    });
+
+    it('cleans every composition owned through a reentrant initial update', async function () {
+      const attaching = new Deferred();
+      const activationError = new Error('outer composition activation failed');
+      let app!: App;
+      let outerDisposeCalls = 0;
+      let innerDisposeCalls = 0;
+
+      @customElement({ name: 'reentrant-outer-composition', template: 'outer' })
+      class OuterComposition {
+        public binding(): void {
+          // Re-enter the bindable while the outer queue is still inside work()
+          // and has not yet published its Promise tail.
+          app.component = InnerComposition;
+        }
+
+        public attaching(): Promise<void> {
+          return attaching.promise;
+        }
+
+        public dispose(): void {
+          ++outerDisposeCalls;
+        }
+      }
+
+      @customElement({ name: 'reentrant-inner-composition', template: 'inner' })
+      class InnerComposition {
+        public dispose(): void {
+          ++innerDisposeCalls;
+        }
+      }
+
+      class App {
+        public component: unknown = OuterComposition;
+
+        public constructor() {
+          app = this;
+        }
+      }
+
+      const fixture = createFixture(
+        '<au-compose component.bind="component"></au-compose>',
+        App,
+        [OuterComposition, InnerComposition],
+        false,
+      );
+      const start = fixture.start() as Promise<void>;
+      assert.instanceOf(start, Promise);
+      assert.notStrictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
+      assert.notStrictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
+
+      attaching.reject(activationError);
+      await assert.rejects(() => start, activationError);
+
+      assert.strictEqual(outerDisposeCalls, 1);
+      assert.strictEqual(innerDisposeCalls, 1);
+      assert.strictEqual(fixture.appHost.textContent, '');
+      assert.strictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
+      assert.strictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
+      await fixture.tearDown();
+    });
+
+    it('propagates synchronous initial composition activation failure to start', async function () {
+      const error = new Error('synchronous initial composition activation failed');
+
+      @customElement({ name: 'synchronously-failing-initial-composition', template: 'failing' })
+      class FailingComposition {
+        public attaching(): never {
+          throw error;
+        }
+      }
+
+      const fixture = createFixture(
+        '<au-compose component.bind="component"></au-compose>',
+        class App { public component = FailingComposition; },
+        [FailingComposition],
+        false,
+      );
+
+      assert.throws(() => fixture.start(), error);
+      assert.strictEqual(fixture.au.isRunning, false);
+      assert.strictEqual(fixture.appHost.textContent, '');
+      await fixture.tearDown();
+    });
+
+    it('retires a composition invalidated while controller activation is pending', async function () {
+      const attaching = new Deferred();
+      let detachingCalls = 0;
+      let disposeCalls = 0;
+
+      @customElement({ name: 'stable-before-controller-activation', template: 'stable' })
+      class StableComposition {}
+
+      @customElement({ name: 'invalidated-during-controller-activation', template: 'pending' })
+      class PendingComposition {
+        public attaching(): Promise<void> {
+          return attaching.promise;
+        }
+
+        public detaching(): void {
+          ++detachingCalls;
+        }
+
+        public dispose(): void {
+          ++disposeCalls;
+        }
+      }
+
+      const fixture = createFixture(
+        '<au-compose component.bind="component" composing.bind="composing"></au-compose>',
+        class App {
+          public component: unknown = StableComposition;
+          public composing: void | Promise<void>;
+        },
+        [StableComposition, PendingComposition],
+      );
+      await fixture.started;
+
+      fixture.component.component = PendingComposition;
+      await tasksSettled();
+      const composing = fixture.component.composing;
+      assert.instanceOf(composing, Promise);
+      const stop = fixture.stop();
+      assert.instanceOf(stop, Promise);
+
+      attaching.resolve();
+      await composing;
+      await stop;
+
+      assert.strictEqual(detachingCalls, 1);
+      assert.strictEqual(disposeCalls, 1);
+      assert.strictEqual(fixture.appHost.textContent, '');
+      await fixture.tearDown();
+    });
+
+    it('retires a never-started composition invalidated during pre-composition activation', async function () {
+      const activating = new Deferred();
+      let bindingCalls = 0;
+      let disposeCalls = 0;
+
+      @customElement({ name: 'stable-before-precomposition-activation', template: 'stable' })
+      class StableComposition {}
+
+      @customElement({ name: 'invalidated-during-precomposition-activation', template: 'pending' })
+      class PendingComposition {
+        public activate(): Promise<void> {
+          return activating.promise;
+        }
+
+        public binding(): void {
+          ++bindingCalls;
+        }
+
+        public dispose(): void {
+          ++disposeCalls;
+        }
+      }
+
+      const fixture = createFixture(
+        '<au-compose component.bind="component" composing.bind="composing"></au-compose>',
+        class App {
+          public component: unknown = StableComposition;
+          public composing: void | Promise<void>;
+        },
+        [StableComposition, PendingComposition],
+      );
+      await fixture.started;
+
+      fixture.component.component = PendingComposition;
+      await tasksSettled();
+      const composing = fixture.component.composing;
+      assert.instanceOf(composing, Promise);
+      const stop = fixture.stop();
+      assert.instanceOf(stop, Promise);
+
+      activating.resolve();
+      await composing;
+      await stop;
+
+      assert.strictEqual(bindingCalls, 0, 'the invalidated controller never enters its lifecycle');
+      assert.strictEqual(disposeCalls, 1);
+      assert.strictEqual(fixture.appHost.querySelector('invalidated-during-precomposition-activation'), null);
+      assert.strictEqual(fixture.appHost.textContent, '');
+      await fixture.tearDown();
+    });
   });
+
   it('rejects initial au-compose child activation and quiesces disposal before start settles', async function () {
     const attaching = new Deferred();
     const detaching = new Deferred();
@@ -885,66 +1096,6 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
     });
   }
 
-  it('disposes defensive multi-owner residue serially and reports its first owner error', async function () {
-    const first = new Deferred();
-    const firstError = new Error('first owned composition failed');
-    const secondError = new Error('second owned composition failed');
-    const calls: string[] = [];
-    const fixture = createFixture('<au-compose template="owned"></au-compose>');
-    await fixture.started;
-
-    let auCompose!: AuCompose;
-    const root = fixture.au.root.controller;
-    root.accept(controller => {
-      if (controller.viewModel instanceof AuCompose) {
-        auCompose = controller.viewModel;
-        return true;
-      }
-    });
-    await fixture.stop();
-
-    const internals = auCompose as unknown as {
-      readonly _ownedCompositions: Set<ICompositionController>;
-      _disposeOwnedCompositions(initiator: IHydratedController): void | Promise<void>;
-    };
-    assert.strictEqual(internals._ownedCompositions.size, 0);
-    // Normal detaching has at most one owner after `_composing` settles. Populate
-    // the defensive residue path directly so its ordering/error contract remains
-    // proven if future composition work leaves multiple owners behind.
-    internals._ownedCompositions.add({
-      controller: {
-        _disposeAfterDeactivate(): void { calls.push('dispose:first'); },
-      },
-      deactivate(): Promise<void> {
-        calls.push('deactivate:first');
-        return first.promise;
-      },
-    } as unknown as ICompositionController);
-    internals._ownedCompositions.add({
-      controller: {
-        _disposeAfterDeactivate(): void { calls.push('dispose:second'); },
-      },
-      deactivate(): never {
-        calls.push('deactivate:second');
-        throw secondError;
-      },
-    } as unknown as ICompositionController);
-
-    const cleanup = internals._disposeOwnedCompositions(root);
-    assert.instanceOf(cleanup, Promise);
-    assert.deepStrictEqual(calls, ['deactivate:first'], 'the second owner waits for first-owner cleanup');
-
-    first.reject(firstError);
-    await assert.rejects(() => cleanup as Promise<void>, firstError);
-    assert.deepStrictEqual(calls, [
-      'deactivate:first',
-      'dispose:first',
-      'deactivate:second',
-      'dispose:second',
-    ]);
-    assert.strictEqual(internals._ownedCompositions.size, 0);
-    await fixture.tearDown();
-  });
 });
 
 async function captureRejection(promise: Promise<void>): Promise<unknown> {

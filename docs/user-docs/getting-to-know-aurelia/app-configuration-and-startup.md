@@ -80,6 +80,30 @@ au.app({
 await au.start();
 ```
 
+## Awaiting lifecycle transitions
+
+`start()` completes with no value. It preserves Aurelia's synchronous fast path, so its return type is `void | Promise<void>` based on the work accepted during startup. `await` handles both forms and gives startup errors one consistent boundary:
+
+```typescript
+const au = new Aurelia()
+  .register(StandardConfiguration)
+  .app({ host: document.body, component: ShellComponent });
+
+await au.start();
+```
+
+If startup throws or rejects, treat that application transition as terminal. Aurelia preserves the original error so its stack points to the failing app task or component hook. Fix that error before creating and starting another application graph.
+
+On success, `stop()` waits for component deactivation, application tasks, and framework task-queue work. The default `stop()` retains the root for another start. `stop(true)` also disposes it. A stop requested during an asynchronous start joins that transition and runs after activation.
+
+```typescript
+await au.stop(true);
+```
+
+A stop failure is terminal for that application graph and preserves the original application error. When several app tasks already started and then fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) with their original values in registration order.
+
+The `au-started` and `au-stopped` events identify successful transitions. Both events bubble from the application host and expose the Aurelia instance through `event.detail`.
+
 **When to use verbose startup:**
 - Integrating Aurelia into existing applications
 - Custom DI container configuration needed
@@ -205,7 +229,7 @@ const enhanceRoot = await Aurelia.enhance({
 });
 ```
 
-Enhancement is ideal for progressive hydration, CMS integrations, or widgets embedded in non-Aurelia pages. You can register resources before enhancing, provide a custom DI container, and tear down the enhanced view by calling `enhanceRoot.deactivate()` when you’re done.
+Enhancement is ideal for progressive hydration, CMS integrations, or widgets embedded in non-Aurelia pages. You can register resources before enhancing and provide a custom DI container. For permanent cleanup, await `enhanceRoot.deactivate()` and then call `enhanceRoot.dispose()`.
 
 For a full guide, including cleanup patterns, lifecycle hooks, and advanced recipes, see the dedicated [Enhance](enhance.md) article.
 

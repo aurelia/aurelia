@@ -85,9 +85,9 @@ const enhanceRoot = await Aurelia.enhance({
 
 ### Key Enhancement Concepts
 
-1. **Existing DOM is preserved**: Enhancement doesn't replace your HTML - it makes it interactive
+1. **Existing DOM is preserved**: Enhancement connects Aurelia behavior to your current HTML.
 2. **Existing event handlers remain**: Any JavaScript event listeners you've already attached stay functional  
-3. **Manual lifecycle management**: You're responsible for calling `deactivate()` when done
+3. **Manual lifecycle management**: Deactivate and dispose the enhancement root during permanent cleanup.
 4. **Template compilation**: Aurelia compiles the existing HTML for bindings and directives
 
 ### Proper Cleanup
@@ -97,8 +97,9 @@ Always clean up enhanced content to prevent memory leaks:
 ```typescript
 const enhanceRoot = await Aurelia.enhance({ host, component });
 
-// Later, when you're done:
+// Later, during permanent cleanup:
 await enhanceRoot.deactivate();
+enhanceRoot.dispose();
 ```
 
 ## Practical Enhancement Examples

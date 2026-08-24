@@ -192,22 +192,22 @@ export const MyLifecyclePlugin = {
         console.log('App hydration completed');
       }),
 
-      // Before root component activation (bindings getting bound)
+      // Before root activation, after creation and hydration
       AppTask.activating(() => {
         console.log('App is activating');
       }),
 
-      // After root component activation (app is running)
+      // After root activation; start() waits for this task
       AppTask.activated(() => {
         console.log('App is activated and running');
       }),
 
-      // Before root component deactivation
+      // Before root deactivation while DOM and bindings are active
       AppTask.deactivating(() => {
         console.log('App is deactivating');
       }),
 
-      // After root component deactivation
+      // After the root reaches its inactive state
       AppTask.deactivated(() => {
         console.log('App has been deactivated');
       })

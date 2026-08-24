@@ -71,20 +71,21 @@ export const AppTask = objectFreeze({
   hydrated: createAppTaskSlotHook('hydrated'),
   /**
    * Return a task that will run right before the root component is activated.
-   * In this phase, scope hierarchy is formed, and bindings are getting bound
+   * Creation and hydration have completed; controller activation has not started.
    */
   activating: createAppTaskSlotHook('activating'),
   /**
-   * Return a task that will run right after the root component is activated - the app is now running
+   * Return a task that will run after the root component finishes activation.
+   * Aurelia.start() completes after tasks in this phase settle.
    */
   activated: createAppTaskSlotHook('activated'),
   /**
-   * Return a task that will runs right before the root component is deactivated.
-   * In this phase, scope hierarchy is unlinked, and bindings are getting unbound
+   * Return a task that will run before root component deactivation.
+   * The root DOM and bindings are still active during this phase.
    */
   deactivating: createAppTaskSlotHook('deactivating'),
   /**
-   * Return a task that will run right after the root component is deactivated
+   * Return a task that will run after the root component reaches its inactive state.
    */
   deactivated: createAppTaskSlotHook('deactivated'),
 });

@@ -130,3 +130,7 @@ On Windows, Tachometer 0.7.1's public CLI invokes `npm.cmd` through `execFile`. 
 the supported Node 22 runtime and on Node 24. The small wrapper keeps local Windows runs usable without changing
 benchmark semantics. It imports private Tachometer modules, so the dependency stays exactly pinned. Validate the
 runner on Windows and CI before changing Tachometer or replacing the wrapper.
+
+The exact `chromedriver` npm dependency satisfies Tachometer's module check. Repository installs disable dependency
+scripts, so this package does not supply the executable. CircleCI installs a ChromeDriver matched to its Chrome build;
+local Selenium uses the driver available for the developer's browser.

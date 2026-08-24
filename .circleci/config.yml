@@ -621,6 +621,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      # Tachometer resolves the npm module; Circle installs the executable matched to this job's Chrome.
       - browser-tools/install_chrome
       - browser-tools/install_chromedriver
       - restore_cache:

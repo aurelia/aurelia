@@ -72,3 +72,7 @@ npm run bench:test
 `run-tachometer.mjs` intentionally retains Tachometer's config, server, runner, JSON output, and cleanup path while
 avoiding the public CLI's broken Windows `npm.cmd` launch. Its imports are private and version-coupled. Keep Tachometer
 exactly pinned and verify the public CLI on supported Windows Node before removing the wrapper.
+
+Keep ChromeDriver's two roles separate. The exact benchmark dependency satisfies Tachometer's module resolution, and
+CircleCI owns the executable matched to its Chrome build. Repository-wide `ignore-scripts=true` prevents the npm
+package from downloading a competing driver.

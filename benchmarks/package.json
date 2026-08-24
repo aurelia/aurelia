@@ -23,6 +23,7 @@
     "bench:realistic-heap500": "node run-tachometer.mjs --config app-repeat-realistic/heap-lifecycle.json --json-file results/repeat-realistic-heap-lifecycle-500.json"
   },
   "dependencies": {
+    "chromedriver": "151.0.5",
     "tachometer": "0.7.1"
   },
   "version": "2.0.0-beta.25"

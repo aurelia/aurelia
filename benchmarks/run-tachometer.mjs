@@ -76,7 +76,9 @@ async function main(argv) {
 
   const runner = new Runner(config, servers);
   try {
-    return await runner.run();
+    const results = await runner.run();
+    printCompactSummary(results);
+    return results;
   } finally {
     const allServers = new Set([...servers.values()]);
     await Promise.all([...allServers].map((server) => server.close()));
@@ -87,3 +89,158 @@ main(process.argv.slice(2)).catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+function printCompactSummary(results) {
+  if (!Array.isArray(results) || results.length < 2) {
+    return;
+  }
+
+  const groups = groupResultsByMeasurement(results);
+  if (groups.length === 0) {
+    return;
+  }
+
+  console.log('\nCompact summary');
+  console.log();
+
+  for (const [measurementKey, group] of groups) {
+    const label = formatMeasurementLabel(group[0].result.measurement);
+    const names = group.map((entry) => stripMeasurementSuffix(entry.result.name));
+    const shortLabels = shortenLabels(names);
+    const baseline = group[0];
+
+    console.log(`${label}:`);
+
+    for (let i = 0; i < group.length; i++) {
+      console.log(`- ${shortLabels[i]}: ${formatInterval(group[i].stats.meanCI, group[i].result.measurement)}`);
+    }
+
+    for (let i = 1; i < group.length; i++) {
+      const diff = group[i].differences?.[0];
+      if (diff == null) {
+        continue;
+      }
+
+      console.log(
+        `- Change (${shortLabels[i]} vs ${shortLabels[0]}): ${formatSignedInterval(diff.absolute, group[i].result.measurement)}, ${formatPercentInterval(diff.relative)} (${classifyDifference(diff, group[i].result.measurement)})`
+      );
+    }
+
+    console.log();
+  }
+}
+
+function groupResultsByMeasurement(results) {
+  const groups = new Map();
+
+  for (const entry of results) {
+    const measurement = entry.result?.measurement ?? {};
+    const key = measurement.name ?? JSON.stringify(measurement);
+    const group = groups.get(key);
+    if (group === undefined) {
+      groups.set(key, [entry]);
+    } else {
+      group.push(entry);
+    }
+  }
+
+  return [...groups.entries()];
+}
+
+function stripMeasurementSuffix(name) {
+  return name.replace(/\s+\[[^\]]+\]$/, '');
+}
+
+function shortenLabels(labels) {
+  const parts = labels.map((label) => label.split(/\s+/).filter(Boolean));
+  if (parts.length === 0) {
+    return labels;
+  }
+
+  let prefixLength = 0;
+  while (true) {
+    const word = parts[0][prefixLength];
+    if (word === undefined) {
+      break;
+    }
+    if (parts.every((tokens) => tokens[prefixLength] === word)) {
+      prefixLength++;
+      continue;
+    }
+    break;
+  }
+
+  return labels.map((label, index) => {
+    const shortened = parts[index].slice(prefixLength).join(' ').trim();
+    return shortened === '' ? label : shortened;
+  });
+}
+
+function formatMeasurementLabel(measurement) {
+  if (measurement?.name === 'perf') {
+    return 'Time';
+  }
+  if (measurement?.name === 'memory') {
+    return 'Memory';
+  }
+  return measurement?.name ?? 'Measurement';
+}
+
+function formatInterval(interval, measurement) {
+  return `${formatValue(interval.low, measurement)} - ${formatValue(interval.high, measurement)}`;
+}
+
+function formatSignedInterval(interval, measurement) {
+  return `${formatSignedValue(interval.low, measurement)} - ${formatSignedValue(interval.high, measurement)}`;
+}
+
+function formatPercentInterval(interval) {
+  return `${formatSignedPercent(interval.low)} - ${formatSignedPercent(interval.high)}`;
+}
+
+function formatValue(value, measurement) {
+  if (isMemoryMeasurement(measurement)) {
+    return `${(value / (1024 * 1024)).toFixed(2)} MiB`;
+  }
+  if (measurement?.mode === 'performance') {
+    return `${value.toFixed(2)}ms`;
+  }
+  return value.toFixed(2);
+}
+
+function formatSignedValue(value, measurement) {
+  const formatted = formatValue(Math.abs(value), measurement);
+  if (value > 0) {
+    return `+${formatted}`;
+  }
+  if (value < 0) {
+    return `-${formatted}`;
+  }
+  return formatted;
+}
+
+function formatSignedPercent(value) {
+  const formatted = `${Math.abs(value * 100).toFixed(0)}%`;
+  if (value > 0) {
+    return `+${formatted}`;
+  }
+  if (value < 0) {
+    return `-${formatted}`;
+  }
+  return formatted;
+}
+
+function isMemoryMeasurement(measurement) {
+  return measurement?.name === 'memory'
+    || /memory|heap|size/i.test(measurement?.expression ?? '');
+}
+
+function classifyDifference(diff, measurement) {
+  if (diff.absolute.low > 0 && diff.relative.low > 0) {
+    return isMemoryMeasurement(measurement) ? 'higher' : 'slower';
+  }
+  if (diff.absolute.high < 0 && diff.relative.high < 0) {
+    return isMemoryMeasurement(measurement) ? 'lower' : 'faster';
+  }
+  return 'unsure';
+}

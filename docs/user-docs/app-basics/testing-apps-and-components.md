@@ -196,6 +196,8 @@ await stop(true);  // true = dispose components
 
 This prevents memory leaks and ensures test isolation.
 
+Use that shutdown path after a successful start. When startup itself throws or rejects, preserve the original lifecycle error and discard the failed fixture. `createFixture` removes the failed test host automatically.
+
 ## Testing Common Scenarios
 
 ### Testing User Input

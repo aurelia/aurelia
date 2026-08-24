@@ -30,7 +30,7 @@ void describe('benchmark report', () => {
     assert.match(markdown, /Realistic keyed refresh 1000 \| Duration/);
     assert.match(markdown, /\+0\.20 MiB` to `\+1\.20 MiB` \(\+0\.25% to \+1\.48%\)/);
     assert.match(markdown, /app-repeat-view.*209\.51 KiB.*213\.25 KiB.*\+3\.73 KiB/);
-    assert.match(markdown, /point-in-time Chrome reading/);
+    assert.match(markdown, /without forcing GC/);
     assert.match(markdown, /no merge threshold is applied/);
   });
 
@@ -86,8 +86,77 @@ void describe('benchmark report', () => {
 
   void it('places the representative workload in every intended profile', () => {
     assert.equal(expectedResultFiles('smoke').filter(file => file.startsWith('repeat-realistic-')).length, 1);
-    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 3);
+    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 4);
+    assert.equal(expectedResultFiles('smoke').includes('repeat-realistic-heap-lifecycle-500.json'), false);
     assert.deepEqual(expectedResultFiles('master'), expectedResultFiles('full'));
+  });
+
+  void it('reports the full-profile lifecycle heap states without turning them into a leak verdict', () => {
+    const inputs = fullInputs();
+    const report = createBenchmarkReport(inputs);
+    const afterGc = report.measurements.filter(measurement => measurement.metric.kind === 'used-js-heap-after-gc');
+
+    assert.equal(report.measurements.length, 23);
+    assert.deepEqual(afterGc.map(measurement => measurement.metric.state), ['live-list', 'post-teardown']);
+    assert.deepEqual(afterGc.map(measurement => measurement.metric.unit), ['byte', 'byte']);
+    assert.deepEqual(afterGc.map(measurement => measurement.difference.assessment), ['lower', 'lower']);
+    assert.deepEqual(report.notices.map(notice => notice.code), [
+      'immediate-used-js-heap',
+      'used-js-heap-after-gc',
+    ]);
+    assert.deepEqual(report.methodology.usedJsHeapAfterGc, {
+      source: 'performance.memory.usedJSHeapSize',
+      scope: 'whole-page-js-heap',
+      explicitGc: true,
+      gcExecution: 'async-major',
+      collectionPasses: 2,
+      warmupLifecycleCycles: 2,
+      rows: 500,
+      comparison: 'absolute-base-vs-candidate-per-state',
+      teardown: 'aurelia.stop(true), aurelia.dispose(), remove host',
+    });
+    assert.ok(afterGc.every(measurement => measurement.base.samples === 20));
+    assert.ok(afterGc.every(measurement => measurement.candidate.samples === 20));
+
+    const markdown = formatBenchmarkReportMarkdown(report);
+    assert.match(markdown, /Used JS heap after GC \(live list\).*`20\.00 MiB` - `20\.20 MiB`/);
+    assert.match(markdown, /`-2\.00 MiB` to `-0\.50 MiB` \(-10\.00% to -2\.50%\).*lower/);
+    assert.match(markdown, /comparative evidence rather than a leak measurement/);
+    assert.match(markdown, /Native DOM and renderer memory are outside this metric/);
+
+    const expected = {
+      profile: 'full',
+      pullRequest: 2462,
+      base: 'a'.repeat(40),
+      head: 'b'.repeat(40),
+      candidate: 'c'.repeat(40),
+    };
+    assert.equal(validateBenchmarkReport(report, expected), report);
+
+    const tampered = structuredClone(report);
+    tampered.measurements.find(measurement => measurement.metric.state === 'post-teardown').metric.state = 'live-list';
+    assert.throws(() => validateBenchmarkReport(tampered, expected), /invalid metric metadata/);
+
+    const missingNotice = structuredClone(report);
+    missingNotice.notices.pop();
+    assert.throws(() => validateBenchmarkReport(missingNotice, expected), /notices do not match/);
+
+    const wrongMethod = structuredClone(report);
+    wrongMethod.methodology.usedJsHeapAfterGc.collectionPasses = 1;
+    assert.throws(() => validateBenchmarkReport(wrongMethod, expected), /after-GC methodology is invalid/);
+
+    const missingMethodology = structuredClone(report);
+    missingMethodology.methodology = null;
+    assert.throws(() => validateBenchmarkReport(missingMethodology, expected), /methodology does not match/);
+
+    const wrongSampleCount = structuredClone(report);
+    wrongSampleCount.measurements.find(measurement => measurement.metric.state === 'live-list').base.samples = 19;
+    assert.throws(() => validateBenchmarkReport(wrongSampleCount, expected), /invalid sample counts/);
+
+    const wrongExpression = fullInputs();
+    const lifecycleInput = wrongExpression.resultDocuments.at(-1);
+    lifecycleInput.document.benchmarks[0].measurement.expression = 'window.unrelatedHeapValue';
+    assert.throws(() => createBenchmarkReport(wrongExpression), /invalid Used JS heap after GC.*metadata/);
   });
 });
 
@@ -117,6 +186,43 @@ function smokeInputs() {
     tachometerVersion: '0.7.1',
     provenanceInput: { file: 'variants/provenance.json', sha256: hash('f') },
   };
+}
+
+function fullInputs() {
+  const inputs = smokeInputs();
+  inputs.provenance.comparison.profile = 'full';
+  inputs.resultDocuments = [
+    timingInput('repeat-view-startup-10k.json', 'startup', 'startup-10k'),
+    timingInput('repeat-ce-startup-10k.json', 'startup CE', 'startup-10k'),
+    timingInput('repeat-view-rerender-10k.json', 'rerender', 'rerender-10k'),
+    timingInput('repeat-ce-rerender-10k.json', 'rerender CE', 'rerender-10k'),
+    timingInput(
+      'repeat-view-startup-100-big-template.json',
+      'big-template startup 100',
+      'startup-100-big-template',
+      false,
+    ),
+    timingInput('repeat-view-update-1k.json', 'update 1k', 'update-1k'),
+    timingInput('app-repeat-view-keyed-expr.json', 'keyed expr', 'keyed-expr'),
+    timingInput('app-repeat-view-keyed-string.json', 'keyed string', 'keyed-string'),
+    timingInput(
+      'repeat-realistic-startup-1000.json',
+      'realistic startup 1000',
+      'realistic-startup-1000',
+    ),
+    timingInput(
+      'repeat-realistic-refresh-1000.json',
+      'realistic keyed refresh 1000',
+      'realistic-refresh-1000',
+    ),
+    timingInput(
+      'repeat-realistic-mixed-1000.json',
+      'realistic mixed reconciliation 1000',
+      'realistic-mixed-1000',
+    ),
+    heapLifecycleInput(),
+  ];
+  return inputs;
 }
 
 function provenance() {
@@ -212,8 +318,62 @@ function timingInput(file, scenario, entryName, includeHeap = true) {
   return { file, document: { benchmarks }, sha256: hash(file[0]) };
 }
 
+function heapLifecycleInput() {
+  const live = {
+    name: 'used JS heap after GC (live list)',
+    mode: 'expression',
+    expression: 'window.heapLifecycle?.liveListUsedJSHeapAfterGcBytes',
+  };
+  const postTeardown = {
+    name: 'used JS heap after GC (post-teardown)',
+    mode: 'expression',
+    expression: 'window.heapLifecycle?.postTeardownUsedJSHeapAfterGcBytes',
+  };
+  const browser = { name: 'chrome', headless: true, userAgent: 'HeadlessChrome/140.0.0.0' };
+  return {
+    file: 'repeat-realistic-heap-lifecycle-500.json',
+    sha256: hash('9'),
+    document: {
+      benchmarks: [
+        heapRow(
+          'realistic heap lifecycle 500 base [used JS heap after GC (live list)]',
+          live,
+          { low: 20 * MiB, high: 20.2 * MiB },
+          [null, null, null, null],
+          browser,
+        ),
+        heapRow(
+          'realistic heap lifecycle 500 base [used JS heap after GC (post-teardown)]',
+          postTeardown,
+          { low: 3 * MiB, high: 3.1 * MiB },
+          [null, null, null, null],
+          browser,
+        ),
+        heapRow(
+          'realistic heap lifecycle 500 candidate [used JS heap after GC (live list)]',
+          live,
+          { low: 19 * MiB, high: 19.5 * MiB },
+          [rawDifference(-2 * MiB, -0.5 * MiB, -10, -2.5), null, null, null],
+          browser,
+        ),
+        heapRow(
+          'realistic heap lifecycle 500 candidate [used JS heap after GC (post-teardown)]',
+          postTeardown,
+          { low: 2.5 * MiB, high: 2.8 * MiB },
+          [null, rawDifference(-0.8 * MiB, -0.1 * MiB, -25, -3), null, null],
+          browser,
+        ),
+      ],
+    },
+  };
+}
+
 function row(name, measurement, mean, differences, browser) {
   return { name, measurement, mean, differences, browser, samples: [10, 11, 10.5] };
+}
+
+function heapRow(...args) {
+  return { ...row(...args), samples: Array(20).fill(10.5) };
 }
 
 const rawDifference = (absoluteLow, absoluteHigh, percentLow, percentHigh) => ({

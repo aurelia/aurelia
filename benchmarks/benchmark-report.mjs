@@ -9,6 +9,46 @@ import {
 } from './benchmark-summary.mjs';
 
 const shaPattern = /^[0-9a-f]{40}$/;
+const metricDefinitions = {
+  perf: { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', mode: 'performance' },
+  'used JS heap': {
+    id: 'immediate-used-js-heap',
+    label: 'Immediate used JS heap',
+    kind: 'immediate-js-heap',
+    unit: 'byte',
+    mode: 'expression',
+    expression: 'window.usedJSHeapSizeBytes',
+  },
+  'used JS heap after GC (live list)': {
+    id: 'live-list-used-js-heap-after-gc',
+    label: 'Used JS heap after GC (live list)',
+    kind: 'used-js-heap-after-gc',
+    state: 'live-list',
+    unit: 'byte',
+    mode: 'expression',
+    expression: 'window.heapLifecycle?.liveListUsedJSHeapAfterGcBytes',
+  },
+  'used JS heap after GC (post-teardown)': {
+    id: 'post-teardown-used-js-heap-after-gc',
+    label: 'Used JS heap after GC (post-teardown)',
+    kind: 'used-js-heap-after-gc',
+    state: 'post-teardown',
+    unit: 'byte',
+    mode: 'expression',
+    expression: 'window.heapLifecycle?.postTeardownUsedJSHeapAfterGcBytes',
+  },
+};
+const usedJsHeapAfterGcMethodology = {
+  source: 'performance.memory.usedJSHeapSize',
+  scope: 'whole-page-js-heap',
+  explicitGc: true,
+  gcExecution: 'async-major',
+  collectionPasses: 2,
+  warmupLifecycleCycles: 2,
+  rows: 500,
+  comparison: 'absolute-base-vs-candidate-per-state',
+  teardown: 'aurelia.stop(true), aurelia.dispose(), remove host',
+};
 const resultContracts = {
   'repeat-view-startup-10k.json': { scenario: 'startup', entryName: 'startup-10k', metrics: ['perf', 'used JS heap'] },
   'repeat-ce-startup-10k.json': { scenario: 'startup CE', entryName: 'startup-10k', metrics: ['perf', 'used JS heap'] },
@@ -21,6 +61,13 @@ const resultContracts = {
   'repeat-realistic-startup-1000.json': { scenario: 'realistic startup 1000', entryName: 'realistic-startup-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-refresh-1000.json': { scenario: 'realistic keyed refresh 1000', entryName: 'realistic-refresh-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-mixed-1000.json': { scenario: 'realistic mixed reconciliation 1000', entryName: 'realistic-mixed-1000', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-heap-lifecycle-500.json': {
+    scenario: 'realistic heap lifecycle 500',
+    metrics: [
+      'used JS heap after GC (live list)',
+      'used JS heap after GC (post-teardown)',
+    ],
+  },
 };
 const smokeFiles = [
   'repeat-view-startup-10k.json',
@@ -40,6 +87,7 @@ const fullFiles = [
   'repeat-realistic-startup-1000.json',
   'repeat-realistic-refresh-1000.json',
   'repeat-realistic-mixed-1000.json',
+  'repeat-realistic-heap-lifecycle-500.json',
 ];
 
 export function expectedResultFiles(profile) {
@@ -89,7 +137,7 @@ export function validateBenchmarkReport(report, expected) {
   const expectedMeasurements = expectedResultFiles(expected.profile).flatMap(file => {
     const contract = resultContracts[file];
     return contract.metrics.map(metric => ({
-      id: `${slug(contract.scenario)}/${metric === 'perf' ? 'duration' : 'immediate-used-js-heap'}/chrome-headless`,
+      id: `${slug(contract.scenario)}/${metricDefinition(metric).id}/chrome-headless`,
       source: file,
       scenario: contract.scenario,
       metric,
@@ -102,6 +150,9 @@ export function validateBenchmarkReport(report, expected) {
   for (let index = 0; index < expectedMeasurements.length; index++) {
     validateReportMeasurement(report.measurements[index], expectedMeasurements[index]);
   }
+  const expectedMetricKinds = expectedMeasurements.map(expected => metricDefinition(expected.metric).kind);
+  validateReportNotices(report.notices, expectedMetricKinds);
+  validateReportMethodology(report.methodology, expectedMetricKinds);
 
   const fixtureOrder = [
     'app-repeat-view',
@@ -183,7 +234,7 @@ export function createBenchmarkReport({
     const comparisons = makeComparisons(adaptTachometerJson(input.document, file));
     validateResultContract(file, comparisons);
     for (const comparison of comparisons) {
-      const metric = toMetric(comparison.measurement, comparison.kind);
+      const metric = toMetric(comparison.measurement);
       const browser = comparison.candidate.result.browser;
       if (browser?.name !== 'chrome' || browser.headless !== true) {
         throw new Error(`Benchmark "${comparison.scenario}" must use headless Chrome.`);
@@ -271,12 +322,8 @@ export function createBenchmarkReport({
       provenance: provenanceInput,
       tachometerResults: expectedFiles.map(file => ({ file, sha256: byFile.get(file).sha256 })),
     },
-    notices: measurements.some(measurement => measurement.metric.kind === 'immediate-js-heap')
-      ? [{
-          code: 'immediate-used-js-heap',
-          text: 'Used JS heap is sampled immediately after the scenario. It is not a forced-GC retained-memory measurement.',
-        }]
-      : [],
+    notices: createNotices(measurements),
+    methodology: createMethodology(measurements),
   };
 }
 
@@ -304,9 +351,7 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
   ];
   for (const measurement of report.measurements) {
     const relative = divideInterval(measurement.difference.percentConfidenceInterval95, 100);
-    const summaryKind = measurement.metric.kind === 'duration'
-      ? 'duration'
-      : measurement.metric.kind === 'immediate-js-heap' ? 'heap-bytes' : 'number';
+    const summaryKind = summaryKindForMetric(measurement.metric.kind);
     lines.push(
       `| ${title(measurement.scenario)} | ${measurement.metric.label} | `
       + `${formatMetricInterval(measurement.base.meanConfidenceInterval95, summaryKind)} | `
@@ -340,8 +385,17 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
   if (report.notices.some(notice => notice.code === 'immediate-used-js-heap')) {
     lines.push(
       '',
-      'Used JS heap is a point-in-time Chrome reading taken after each scenario. Retained-memory analysis '
-        + 'requires a separate forced-GC measurement.',
+      'Immediate used JS heap is sampled before correctness assertions, without forcing GC. The full and '
+        + 'master profiles add a separate lifecycle comparison after explicit collection.',
+    );
+  }
+  if (report.notices.some(notice => notice.code === 'used-js-heap-after-gc')) {
+    lines.push(
+      '',
+      'After-GC values are Chrome’s used JavaScript heap for the whole benchmark page. The post-teardown '
+        + 'row still includes loaded modules and engine or framework caches, so it is comparative evidence '
+        + 'rather than a leak measurement. Native DOM and renderer memory are outside this metric. The two '
+        + 'rows are independent base-to-candidate comparisons, not a live-minus-teardown calculation.',
     );
   }
   const footerLinks = [];
@@ -392,6 +446,17 @@ function validateResultContract(file, comparisons) {
   if (JSON.stringify(metrics) !== JSON.stringify(contract.metrics)) {
     throw new Error(`Benchmark result "${file}" contains metrics ${metrics.join(', ')}.`);
   }
+  for (let index = 0; index < comparisons.length; index++) {
+    const measurement = comparisons[index].measurement;
+    const definition = metricDefinition(contract.metrics[index]);
+    if (
+      measurement?.mode !== definition.mode
+      || (definition.mode === 'performance' && measurement.entryName !== contract.entryName)
+      || (definition.mode === 'expression' && measurement.expression !== definition.expression)
+    ) {
+      throw new Error(`Benchmark result "${file}" has invalid ${definition.label} metadata.`);
+    }
+  }
 }
 
 function validateReportMeasurement(measurement, expected) {
@@ -404,33 +469,24 @@ function validateReportMeasurement(measurement, expected) {
   ) {
     throw new Error(`Benchmark report measurement ${expected.id} has invalid identity metadata.`);
   }
-  const isDuration = expected.metric === 'perf';
-  if (isDuration) {
-    if (
-      measurement.metric?.id !== 'duration'
-      || measurement.metric.label !== 'Duration'
-      || measurement.metric.kind !== 'duration'
-      || measurement.metric.unit !== 'millisecond'
-      || measurement.metric.measurement?.name !== 'perf'
-      || measurement.metric.measurement?.mode !== 'performance'
-      || measurement.metric.measurement?.entryName !== expected.entryName
-    ) {
-      throw new Error(`Benchmark report measurement ${expected.id} has invalid duration metadata.`);
-    }
-  } else if (
-    measurement.metric?.id !== 'immediate-used-js-heap'
-    || measurement.metric.label !== 'Immediate used JS heap'
-    || measurement.metric.kind !== 'immediate-js-heap'
-    || measurement.metric.unit !== 'byte'
-    || measurement.metric.measurement?.name !== 'used JS heap'
-    || measurement.metric.measurement?.mode !== 'expression'
-    || measurement.metric.measurement?.expression !== 'window.usedJSHeapSizeBytes'
+  const definition = metricDefinition(expected.metric);
+  if (
+    measurement.metric?.id !== definition.id
+    || measurement.metric.label !== definition.label
+    || measurement.metric.kind !== definition.kind
+    || (measurement.metric.state ?? null) !== (definition.state ?? null)
+    || measurement.metric.unit !== definition.unit
+    || measurement.metric.measurement?.name !== expected.metric
+    || measurement.metric.measurement?.mode !== definition.mode
+    || (definition.mode === 'performance' && measurement.metric.measurement?.entryName !== expected.entryName)
+    || (definition.mode === 'expression' && measurement.metric.measurement?.expression !== definition.expression)
   ) {
-    throw new Error(`Benchmark report measurement ${expected.id} has invalid heap metadata.`);
+    throw new Error(`Benchmark report measurement ${expected.id} has invalid metric metadata.`);
   }
 
   validateNumericInterval(measurement.base?.meanConfidenceInterval95, `${expected.id} base`, true);
   validateNumericInterval(measurement.candidate?.meanConfidenceInterval95, `${expected.id} candidate`, true);
+  const expectedSamples = definition.kind === 'used-js-heap-after-gc' ? 20 : null;
   if (
     !Number.isSafeInteger(measurement.base?.samples)
     || measurement.base.samples < 2
@@ -438,6 +494,10 @@ function validateReportMeasurement(measurement, expected) {
     || !Number.isSafeInteger(measurement.candidate?.samples)
     || measurement.candidate.samples < 2
     || measurement.candidate.samples > 10_000
+    || (expectedSamples !== null && (
+      measurement.base.samples !== expectedSamples
+      || measurement.candidate.samples !== expectedSamples
+    ))
   ) {
     throw new Error(`Benchmark report measurement ${expected.id} has invalid sample counts.`);
   }
@@ -451,7 +511,7 @@ function validateReportMeasurement(measurement, expected) {
     `${expected.id} percent difference`,
     false,
   );
-  const kind = isDuration ? 'duration' : 'heap-bytes';
+  const kind = summaryKindForMetric(definition.kind);
   const assessment = classifyDifference({ absolute, relative: divideInterval(percent, 100) }, kind);
   if (measurement.difference?.assessment !== assessment) {
     throw new Error(`Benchmark report measurement ${expected.id} has an invalid assessment.`);
@@ -496,20 +556,86 @@ function validateNumericInterval(interval, label, nonNegative) {
   return { low: interval.low, high: interval.high };
 }
 
-function toMetric(measurement, kind) {
-  if (kind === 'duration') {
-    return { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', measurement };
+function toMetric(measurement) {
+  const definition = metricDefinition(measurementLabel(measurement));
+  const metric = {
+    id: definition.id,
+    label: definition.label,
+    kind: definition.kind,
+    unit: definition.unit,
+    measurement,
+  };
+  if (definition.state !== undefined) metric.state = definition.state;
+  return metric;
+}
+
+function metricDefinition(name) {
+  const definition = metricDefinitions[name];
+  if (definition === undefined) throw new Error(`Unsupported benchmark metric "${name}".`);
+  return definition;
+}
+
+function summaryKindForMetric(kind) {
+  if (kind === 'duration') return 'duration';
+  return 'heap-bytes';
+}
+
+function createNotices(measurements) {
+  const notices = [];
+  if (measurements.some(measurement => measurement.metric.kind === 'immediate-js-heap')) {
+    notices.push({ code: 'immediate-used-js-heap' });
   }
-  if (kind === 'heap-bytes') {
-    return {
-      id: 'immediate-used-js-heap',
-      label: 'Immediate used JS heap',
-      kind: 'immediate-js-heap',
-      unit: 'byte',
-      measurement,
-    };
+  if (measurements.some(measurement => measurement.metric.kind === 'used-js-heap-after-gc')) {
+    notices.push({ code: 'used-js-heap-after-gc' });
   }
-  return { id: slug(measurementLabel(measurement)), label: title(measurementLabel(measurement)), kind, unit: null, measurement };
+  return notices;
+}
+
+function createMethodology(measurements) {
+  return measurements.some(measurement => measurement.metric.kind === 'used-js-heap-after-gc')
+    ? { usedJsHeapAfterGc: { ...usedJsHeapAfterGcMethodology } }
+    : {};
+}
+
+function validateReportNotices(notices, expectedMetricKinds) {
+  const expectedCodes = [];
+  if (expectedMetricKinds.includes('immediate-js-heap')) expectedCodes.push('immediate-used-js-heap');
+  if (expectedMetricKinds.includes('used-js-heap-after-gc')) expectedCodes.push('used-js-heap-after-gc');
+  if (
+    !Array.isArray(notices)
+    || notices.length !== expectedCodes.length
+    || notices.some((notice, index) => (
+      !hasExactKeys(notice, ['code'])
+      || notice.code !== expectedCodes[index]
+    ))
+  ) {
+    throw new Error('Benchmark report notices do not match its metrics.');
+  }
+}
+
+function validateReportMethodology(methodology, expectedMetricKinds) {
+  const expectsAfterGc = expectedMetricKinds.includes('used-js-heap-after-gc');
+  const expectedKeys = expectsAfterGc ? ['usedJsHeapAfterGc'] : [];
+  if (
+    !hasExactKeys(methodology, expectedKeys)
+  ) {
+    throw new Error('Benchmark report methodology does not match its metrics.');
+  }
+  if (!expectsAfterGc) return;
+
+  const actual = methodology.usedJsHeapAfterGc;
+  if (
+    !hasExactKeys(actual, Object.keys(usedJsHeapAfterGcMethodology))
+    || Object.entries(usedJsHeapAfterGcMethodology).some(([key, value]) => actual[key] !== value)
+  ) {
+    throw new Error('Benchmark report after-GC methodology is invalid.');
+  }
+}
+
+function hasExactKeys(value, expectedKeys) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const actualKeys = Object.keys(value);
+  return actualKeys.length === expectedKeys.length && actualKeys.every(key => expectedKeys.includes(key));
 }
 
 function sideRecord(entry) {

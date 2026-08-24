@@ -614,6 +614,9 @@ jobs:
         type: string
       result:
         type: string
+      no_output_timeout:
+        type: string
+        default: "30s"
     steps:
       - checkout
       - attach_workspace:
@@ -629,7 +632,8 @@ jobs:
             mkdir -p results
             <<parameters.command>>
           working_directory: "benchmarks"
-          no_output_timeout: "30s"
+          # Explicit-GC lifecycle samples do more work before Tachometer writes its result table.
+          no_output_timeout: <<parameters.no_output_timeout>>
       - persist_to_workspace:
           root: .
           paths:
@@ -979,6 +983,15 @@ workflows:
           requires:
             - bench_prep
 
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_heap_lifecycle
+          command: npm run bench:realistic-heap500
+          result: repeat-realistic-heap-lifecycle-500.json
+          no_output_timeout: "2m"
+          requires:
+            - bench_prep
+
       - benchmark_report:
           <<: *filter_only_topic
           name: benchmark_report
@@ -995,6 +1008,7 @@ workflows:
             - bench_realistic_startup
             - bench_realistic_refresh
             - bench_realistic_mixed
+            - bench_realistic_heap_lifecycle
 
   # Runs build and tests (master)
   build_test:
@@ -1212,6 +1226,14 @@ workflows:
           result: repeat-realistic-mixed-1000.json
           requires:
             - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_heap_lifecycle
+          command: npm run bench:realistic-heap500
+          result: repeat-realistic-heap-lifecycle-500.json
+          no_output_timeout: "2m"
+          requires:
+            - tacho_benchmark_prep
       - benchmark_report:
           <<: *filter_only_master
           name: benchmark_report
@@ -1228,3 +1250,4 @@ workflows:
             - benchmark_realistic_startup
             - benchmark_realistic_refresh
             - benchmark_realistic_mixed
+            - benchmark_realistic_heap_lifecycle

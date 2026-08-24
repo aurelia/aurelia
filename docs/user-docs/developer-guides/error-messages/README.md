@@ -15,6 +15,12 @@ Coded errors in Aurelia use the format `AURxxxx:yyyy` where:
 * `:` is the delimiter between the prefix, code and the dynamic information associated with the error
 * `yyyy` is the extra information, or parameters related to the error
 
+## Errors with multiple causes
+
+An application-task phase can accept more than one asynchronous task before a failure becomes observable. Aurelia reports [AUR0826](runtime-html/aur0826.md) as a native `AggregateError` when several accepted tasks fail.
+
+Start with `error.errors[0]`, then inspect each remaining entry. The array contains the original thrown or rejected values in task registration order, with their identities preserved. An entry can be any JavaScript value, including `undefined`, a symbol, or another `AggregateError`, so inspect the value before reading properties such as `message`.
+
 ## Enabling development debug information
 
 When using production builds of the core Aurelia packages, you may see an error message like `AUR0015:abcxyz`, which can be hard to interpret during development.

@@ -1,11 +1,12 @@
 ---
-description: Errors 0101 to 9989 are @aurelia/runtime-html package related errors.
+description: Reference for coded errors emitted by @aurelia/runtime-html.
 ---
 
-# 0101 to 9989
+# Runtime HTML errors
 
-Please see below a reference to each [@aurelia/runtime-html](https://github.com/aurelia/aurelia/tree/master/packages/runtime-html) package related error with explanations and resources for debugging and solving.
+Use this index to find the cause and recommended action for errors emitted by [@aurelia/runtime-html](https://github.com/aurelia/aurelia/tree/master/packages/runtime-html).
 
+* [AUR0099](aur0099.md)
 * [AUR0101](aur0101.md)
 * [AUR0102](aur0102.md)
 * [AUR0103](aur0103.md)
@@ -42,9 +43,12 @@ Please see below a reference to each [@aurelia/runtime-html](https://github.com/
 * [AUR0506](aur0506.md)
 * [AUR0507](aur0507.md)
 * [AUR0508](aur0508.md)
+* [AUR0509](aur0509.md)
+* [AUR0510](aur0510.md)
 * [AUR0652](aur0652.md)
 * [AUR0653](aur0653.md)
 * [AUR0654](aur0654.md)
+* [AUR0655](aur0655.md)
 * [AUR0714](aur0714.md)
 * [AUR0719](aur0719.md)
 * [AUR0750](aur0750.md)
@@ -83,6 +87,7 @@ Please see below a reference to each [@aurelia/runtime-html](https://github.com/
 * [AUR0806](aur0806.md)
 * [AUR0807](aur0807.md)
 * [AUR0808](aur0808.md)
+* [AUR0809](aur0809.md)
 * [AUR0810](aur0810.md)
 * [AUR0811](aur0811.md)
 * [AUR0812](aur0812.md)
@@ -95,6 +100,11 @@ Please see below a reference to each [@aurelia/runtime-html](https://github.com/
 * [AUR0819](aur0819.md)
 * [AUR0820](aur0820.md)
 * [AUR0821](aur0821.md)
+* [AUR0826](aur0826.md)
+* [AUR0839](aur0839.md)
+* [AUR0840](aur0840.md)
+* [AUR0841](aur0841.md)
+* [AUR0842](aur0842.md)
 * [AUR9989](aur9989.md)
 * [AUR9990](aur9990.md)
 * [AUR9991](aur9991.md)

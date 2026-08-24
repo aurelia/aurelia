@@ -2,11 +2,11 @@ import {
   areEqual,
   isArray,
   isPromise,
+  noop,
   isMap,
   isSet,
   isNumber,
   type IDisposable,
-  onResolve,
   type IIndexable,
   resolve,
   all,
@@ -26,6 +26,7 @@ import {
   getCollectionObserver,
   type IndexMap,
   createIndexMap,
+  cloneIndexMap,
   astEvaluate,
   astAssign,
   Scope,
@@ -39,7 +40,7 @@ import { IViewFactory } from '../../templating/view';
 import { isSSRTemplateController, adoptSSRViews, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
-import { rethrow, etIsProperty } from '../../utilities';
+import { cleanupAfterFailure, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
 
 import type { PropertyBinding } from '../../binding/property-binding';
@@ -54,6 +55,103 @@ type RepeatDeclaration =
   | { readonly kind: 'local'; readonly local: string }
   | { readonly kind: 'destructuring'; readonly value: DestructuringAssignmentExpression }
   | { readonly kind: 'object-binding'; readonly value: RepeatObjectBindingPattern };
+
+interface ReconciliationWait {
+  readonly promise: Promise<void>;
+  readonly resolve: () => void;
+  readonly reject: (reason: unknown) => void;
+}
+
+interface ReconciliationOperation {
+  /** Whether one latest generation was requested while the writer was busy. */
+  needsReconcile: boolean;
+  /** Observer mutations composed relative to the generation the writer owns. */
+  queuedIndexMap?: IndexMap;
+  /** Stable tail exposed to owner teardown once reconciliation becomes async. */
+  promise?: Promise<void>;
+  /** Lazily created when teardown re-enters a still-synchronous writer. */
+  wait?: ReconciliationWait;
+}
+
+// The wrapper distinguishes "no failure" from a hook that throws/rejects
+// `undefined`; the raw error value cannot be used as the sentinel.
+interface ReconciliationFailure {
+  readonly error: unknown;
+}
+
+// Row work is admitted in row order but settles concurrently. Lifecycle errors
+// remain primary to cleanup errors, and the lowest admitted row index selects
+// the raw error after every accepted row has quiesced.
+interface RowTransitionState {
+  readonly promises: Promise<void>[];
+  firstErrorIndex: number;
+  error: unknown;
+}
+
+interface RowTeardownState extends RowTransitionState {
+  firstCleanupErrorIndex: number;
+  cleanupError: unknown;
+}
+
+const createRowTransitionState = (): RowTransitionState => ({
+  promises: [],
+  firstErrorIndex: Number.POSITIVE_INFINITY,
+  error: void 0,
+});
+
+const createRowTeardownState = (): RowTeardownState => ({
+  ...createRowTransitionState(),
+  firstCleanupErrorIndex: Number.POSITIVE_INFINITY,
+  cleanupError: void 0,
+});
+
+const recordRowError = (state: RowTransitionState, index: number, error: unknown): void => {
+  if (index < state.firstErrorIndex) {
+    state.firstErrorIndex = index;
+    state.error = error;
+  }
+};
+
+const trackRowTransition = (state: RowTransitionState, index: number, promise: Promise<void>): void => {
+  // Row hooks start in row order but can reject in any order. Consume each
+  // rejection into the ledger so all siblings quiesce, then report the lowest
+  // row index rather than the fastest rejection.
+  state.promises.push(promise.then(
+    noop,
+    error => { recordRowError(state, index, error); },
+  ));
+};
+
+const recordRowCleanupError = (state: RowTeardownState, index: number, error: unknown): void => {
+  if (index < state.firstCleanupErrorIndex) {
+    state.firstCleanupErrorIndex = index;
+    state.cleanupError = error;
+  }
+};
+
+const throwRowErrors = (state: RowTransitionState | RowTeardownState): void => {
+  if (state.firstErrorIndex !== Number.POSITIVE_INFINITY) {
+    if ('firstCleanupErrorIndex' in state && state.firstCleanupErrorIndex !== Number.POSITIVE_INFINITY) {
+      throw new AggregateError([state.error, state.cleanupError], 'Repeat row lifecycle and cleanup failed');
+    }
+    throw state.error;
+  }
+  if ('firstCleanupErrorIndex' in state && state.firstCleanupErrorIndex !== Number.POSITIVE_INFINITY) {
+    throw state.cleanupError;
+  }
+};
+
+const settleRowTransitions = (state: RowTransitionState | undefined): void | Promise<void> => {
+  if (state === void 0) {
+    return;
+  }
+  if (state.promises.length > 0) {
+    // Tracked row reactions turn every rejection into a ledger entry, so
+    // Promise.all is a quiescence barrier and cannot fail early.
+    return Promise.all(state.promises).then(() => throwRowErrors(state));
+  }
+  throwRowErrors(state);
+};
 
 function dispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -97,9 +195,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _declaration!: RepeatDeclaration;
   /** @internal */ private _objectBindingPattern?: RepeatObjectBindingPattern = void 0;
   /** @internal */ private readonly _contextualExpr?: IsBindingBehavior;
+  /** @internal */ private _isReconciling: boolean = false;
+  // Keep synchronous reconciliation allocation-free. The operation record is
+  // created only when a row yields, a notification re-enters, or teardown needs
+  // a Promise representing work that began synchronously.
+  /** @internal */ private _reconciliation?: ReconciliationOperation = void 0;
 
-  /** @internal */
-  private _hasAdoptedViews: boolean = false;
+  // SSR-adopted and later ordinary rows may coexist. Provenance therefore
+  // belongs to each view; a single owner-wide boolean would misroute caching.
+  /** @internal */ private _adoptedViews?: Set<ISyntheticView> = void 0;
 
   /** @internal */ private readonly _location = resolve(IRenderLocation);
   /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
@@ -207,9 +311,23 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
-    this._normalizeToArray();
-    this._createScopes(void 0);
-    return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
+    if (this.views.length > 0) {
+      // Repeat rebuilds its row graph when an owner is restarted. The previous
+      // Controller operation is fully settled at this point, so dispose every
+      // retained ordinary or adopted row before replacing the views array.
+      const cleanup = createRowTeardownState();
+      for (let i = 0; i < this.views.length; ++i) {
+        this._disposeRow(this.views[i], i, cleanup);
+      }
+      this.views = [];
+      this._adoptedViews = void 0;
+      throwRowErrors(cleanup);
+    }
+    return this._beginReconciliation(() => {
+      this._normalizeToArray();
+      this._createScopes(void 0);
+      return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
+    });
   }
 
   public detaching(
@@ -217,14 +335,38 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._refreshCollectionObserver();
-    // Adopted views can't be cached - their nodes are tied to specific DOM
-    const skipCache = this._hasAdoptedViews;
-    this._hasAdoptedViews = false;
-    const result = this._deactivateAllViews(initiator, skipCache);
-    if (skipCache) {
-      this.views = [];
+    const isActivationRollback = this.$controller.isActivationRollback;
+    // Controller rollback is already waiting for this attaching participant.
+    // Joining Repeat's reconciliation tail from detaching would make that
+    // operation await itself; the accepted row work is owned by Controller.
+    let reconciliation = isActivationRollback
+      ? void 0
+      : this._reconciliation?.promise;
+    if (!isActivationRollback && reconciliation === void 0 && this._isReconciling) {
+      // Teardown can re-enter before a synchronous row transition returns. A
+      // lazy wait keeps that transition owned without allocating on normal
+      // synchronous updates.
+      const operation = this._reconciliation ??= { needsReconcile: false };
+      let wait = operation.wait;
+      if (wait === void 0) {
+        let resolve!: () => void;
+        let reject!: (reason: unknown) => void;
+        const promise = new Promise<void>((res, rej) => {
+          resolve = res;
+          reject = rej;
+        });
+        wait = operation.wait = { promise, resolve, reject };
+      }
+      reconciliation = wait.promise;
     }
-    return result;
+
+    if (reconciliation === void 0) {
+      return this._deactivateOwnedViews(initiator);
+    }
+    return reconciliation.then(
+      () => this._deactivateOwnedViews(initiator),
+      error => this._deactivateOwnedViewsAfterFailure(initiator, error),
+    );
   }
 
   public unbinding(
@@ -240,9 +382,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
     this._refreshCollectionObserver();
-    this._normalizeToArray();
-    this._createScopes(void 0);
-    this._applyIndexMap(void 0);
+    this._requestReconcile(void 0);
   }
 
   public handleCollectionChange(collection: Collection, indexMap: IndexMap | undefined): void {
@@ -260,13 +400,186 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return;
     }
 
-    this._normalizeToArray();
-    this._createScopes(this.key === null ? indexMap : void 0);
-    this._applyIndexMap(indexMap);
+    this._requestReconcile(indexMap);
   }
 
   /** @internal */
-  private _applyIndexMap(indexMap: IndexMap | undefined): void {
+  private _requestReconcile(indexMap: IndexMap | undefined): void {
+    if (this._isReconciling) {
+      this._queueReconcile(indexMap);
+      return;
+    }
+
+    // Notification callbacks cannot return asynchronous settlement. The stable
+    // drain remains on the operation record for owner teardown and diagnostics;
+    // an otherwise unobserved rejection retains the existing host behavior.
+    void this._beginReconciliation(() => this._performReconcile(indexMap));
+  }
+
+  /** @internal */
+  private _queueReconcile(indexMap: IndexMap | undefined): void {
+    const operation = this._reconciliation ??= { needsReconcile: false };
+    if (this.key !== null || indexMap === void 0) {
+      // Keyed and replacement changes cannot be composed from observer indices;
+      // recompute them from the latest collection after the current writer.
+      operation.needsReconcile = true;
+      operation.queuedIndexMap = void 0;
+      return;
+    }
+
+    if (!operation.needsReconcile) {
+      operation.needsReconcile = true;
+      // The observer owns its IndexMap and may reuse it after notification.
+      // Clone before retaining it across an asynchronous row lifecycle.
+      operation.queuedIndexMap = cloneIndexMap(indexMap);
+      return;
+    }
+
+    const previous = operation.queuedIndexMap;
+    if (previous === void 0) {
+      return;
+    }
+
+    // Both maps are relative to consecutive collections. Compose them back to
+    // the generation currently owned by the single writer.
+    operation.queuedIndexMap = composeIndexMaps(previous, indexMap);
+  }
+
+  /** @internal */
+  private _beginReconciliation(action: () => void | Promise<void>): void | Promise<void> {
+    this._isReconciling = true;
+
+    let result: void | Promise<void>;
+    try {
+      result = action();
+    } catch (error) {
+      const reconciliation = this._drainReconciliation({ error });
+      if (isPromise(reconciliation)) {
+        const operation = this._reconciliation ??= { needsReconcile: false };
+        operation.promise = reconciliation;
+      }
+      return reconciliation;
+    }
+
+    if (isPromise(result)) {
+      const operation = this._reconciliation ??= { needsReconcile: false };
+      return operation.promise = this._awaitReconciliation(result);
+    }
+
+    const reconciliation = this._drainReconciliation();
+    if (isPromise(reconciliation)) {
+      const operation = this._reconciliation ??= { needsReconcile: false };
+      operation.promise = reconciliation;
+    }
+    return reconciliation;
+  }
+
+  /** @internal */
+  private _performReconcile(indexMap: IndexMap | undefined): void | Promise<void> {
+    this._normalizeToArray();
+    this._createScopes(this.key === null ? indexMap : void 0);
+    return this._applyIndexMap(indexMap);
+  }
+
+  /** @internal */
+  private _awaitReconciliation(
+    result: Promise<void>,
+    failure?: ReconciliationFailure,
+    recoveryAttempt: boolean = false,
+  ): Promise<void> {
+    return result.then(
+      () => this._drainReconciliation(failure),
+      error => {
+        if (recoveryAttempt) {
+          // Drain the latest queued generation once after a failure so the view
+          // graph reflects current data. If that recovery also fails, discard
+          // further retries and preserve the original cause.
+          const operation = this._reconciliation;
+          if (operation !== void 0) {
+            operation.needsReconcile = false;
+            operation.queuedIndexMap = void 0;
+          }
+          return this._drainReconciliation(failure);
+        }
+        return this._drainReconciliation(failure ?? { error });
+      },
+    );
+  }
+
+  /** @internal */
+  private _drainReconciliation(failure?: ReconciliationFailure): void | Promise<void> {
+    let operation = this._reconciliation;
+    while (operation?.needsReconcile === true && this.$controller.isActive) {
+      const indexMap = operation.queuedIndexMap;
+      operation.needsReconcile = false;
+      operation.queuedIndexMap = void 0;
+      const recoveryAttempt = failure !== void 0;
+
+      let result: void | Promise<void>;
+      try {
+        result = this._performReconcile(indexMap);
+      } catch (error) {
+        if (recoveryAttempt) {
+          operation.needsReconcile = false;
+          operation.queuedIndexMap = void 0;
+          break;
+        }
+        failure ??= { error };
+        operation = this._reconciliation;
+        continue;
+      }
+
+      if (isPromise(result)) {
+        return this._awaitReconciliation(result, failure, recoveryAttempt);
+      }
+      operation = this._reconciliation;
+    }
+
+    this._resetReconciliation(failure?.error, failure !== void 0);
+    if (failure !== void 0) {
+      throw failure.error;
+    }
+  }
+
+  /** @internal */
+  private _deactivateOwnedViews(initiator: IHydratedController): void | Promise<void> {
+    // Rows stay owned until Repeat is disposed or restarted. Disposing inside
+    // this hook would race the ancestor Controller's linked-list cleanup, which
+    // still needs their nodes and bindings; attaching disposes the settled graph
+    // before rebuilding it.
+    return this._deactivateAllViews(initiator, true);
+  }
+
+  /** @internal */
+  private _deactivateOwnedViewsAfterFailure(
+    initiator: IHydratedController,
+    operationError: unknown,
+  ): void | Promise<void> {
+    return cleanupAfterFailure(
+      operationError,
+      () => this._deactivateOwnedViews(initiator),
+      'Repeat reconciliation and owner teardown failed',
+    );
+  }
+
+  /** @internal */
+  private _resetReconciliation(error?: unknown, failed: boolean = false): void {
+    const wait = this._reconciliation?.wait;
+    this._reconciliation = void 0;
+    this._isReconciling = false;
+    if (wait !== void 0) {
+      // `failed` cannot be inferred from `error`: undefined is a valid raw
+      // rejection value that must still reject the lazy owner wait.
+      if (failed) {
+        wait.reject(error);
+      } else {
+        wait.resolve();
+      }
+    }
+  }
+
+  /** @internal */
+  private _applyIndexMap(indexMap: IndexMap | undefined): void | Promise<void> {
     const oldViews = this.views;
     this._oldViews = oldViews.slice();
     const oldLen = oldViews.length;
@@ -324,19 +637,43 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     // first detach+unbind+(remove from array) the deleted view indices
     if (indexMap.deletedIndices.length > 0) {
-      const ret = onResolve(
-        this._deactivateAndRemoveViewsByKey(indexMap),
-        () => {
-          // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return this._createAndActivateAndSortViewsByKey(indexMap);
-        },
-      );
-      if (isPromise(ret)) { ret.catch(rethrow); }
-    } else {
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this._createAndActivateAndSortViewsByKey(indexMap);
+      const complete = () => this.$controller.isActive
+        ? this._createAndActivateAndSortViewsByKey(indexMap)
+        : void 0;
+      const completeAfterFailure = (error: unknown): never | Promise<never> => {
+        // Controller reports a row teardown failure only after that row is
+        // unbound. Finish the map so surviving rows form a coherent graph, but
+        // never let secondary completion failure replace the lifecycle cause.
+        let completion: void | Promise<void>;
+        try {
+          completion = complete();
+        } catch {
+          throw error;
+        }
+        if (isPromise(completion)) {
+          return completion.then(
+            () => { throw error; },
+            () => { throw error; },
+          );
+        }
+        throw error;
+      };
+      let removal: void | Promise<void>;
+      try {
+        removal = this._deactivateAndRemoveViewsByKey(indexMap);
+      } catch (error) {
+        return completeAfterFailure(error);
+      }
+      if (isPromise(removal)) {
+        return removal.then(
+          complete,
+          completeAfterFailure,
+        );
+      }
+      return complete();
     }
+
+    return this._createAndActivateAndSortViewsByKey(indexMap);
   }
 
   // todo: subscribe to collection from inner expression
@@ -370,11 +707,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */
   private _createScopes(indexMap: IndexMap | undefined): void {
     const oldScopes = this._scopes;
-    this._oldScopes = oldScopes.slice();
 
     const items = this._normalizedItems!;
     const len = items.length;
-    const scopes = this._scopes = Array(len);
+    const scopes: Scope[] = Array(len);
 
     const oldScopeMap = this._scopeMap;
     const newScopeMap = new Map<unknown, Scope | Scope[]>();
@@ -428,6 +764,11 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
+    // Key evaluation and object-binding projection can throw. Publish the new
+    // generation only after it has been built completely, leaving the current
+    // scope graph intact and retryable on failure.
+    this._oldScopes = oldScopes.slice();
+    this._scopes = scopes;
     oldScopeMap.clear();
     this._scopeMap = newScopeMap;
   }
@@ -462,7 +803,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     return this._activateAllViewsFresh(initiator, $items);
   }
 
-  /** @internal SSR hydration: adopt existing DOM nodes instead of creating new ones. */
+  // SSR hydration adopts existing DOM nodes instead of creating new ones.
   private _hydrateViews(
     initiator: IHydratedController | null,
     $items: unknown[],
@@ -477,10 +818,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       return this._activateAllViewsFresh(initiator, $items);
     }
 
-    this._hasAdoptedViews = true;
+    this._adoptedViews = new Set(adoptedViews);
     this.views = adoptedViews;
 
-    let promises: Promise<void>[] | undefined = void 0;
+    let transition: RowTransitionState | undefined;
     for (let i = 0; i < newLen; ++i) {
       const view = adoptedViews[i];
       const scope = _scopes[i];
@@ -492,19 +833,22 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
       }
 
-      const ret = view.activate(initiator ?? view, $controller, scope);
+      let ret: void | Promise<void>;
+      try {
+        ret = view.activate(initiator ?? view, $controller, scope);
+      } catch (error) {
+        recordRowError(transition ??= createRowTransitionState(), i, error);
+        continue;
+      }
       if (isPromise(ret)) {
-        (promises ??= []).push(ret);
+        const state = transition ??= createRowTransitionState();
+        trackRowTransition(state, i, ret);
       }
     }
 
     $controller.ssrScope = undefined;
 
-    if (promises !== void 0) {
-      return promises.length === 1
-        ? promises[0]
-        : Promise.all(promises) as unknown as Promise<void>;
-    }
+    return settleRowTransitions(transition);
   }
 
   /** @internal */
@@ -516,7 +860,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const newLen = $items.length;
     const views = this.views = Array(newLen);
 
-    let promises: Promise<void>[] | undefined = void 0;
+    let transition: RowTransitionState | undefined;
     for (let i = 0; i < newLen; ++i) {
       const view = views[i] = _factory.create($controller).setLocation(_location);
       if (this._declaration.kind === 'object-binding') {
@@ -529,82 +873,139 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen, $items);
       }
 
-      const ret = view.activate(initiator ?? view, $controller, scope);
+      let ret: void | Promise<void>;
+      try {
+        ret = view.activate(initiator ?? view, $controller, scope);
+      } catch (error) {
+        recordRowError(transition ??= createRowTransitionState(), i, error);
+        continue;
+      }
       if (isPromise(ret)) {
-        (promises ??= []).push(ret);
+        const state = transition ??= createRowTransitionState();
+        trackRowTransition(state, i, ret);
       }
     }
 
-    if (promises !== void 0) {
-      return promises.length === 1
-        ? promises[0]
-        : Promise.all(promises) as unknown as Promise<void>;
-    }
+    return settleRowTransitions(transition);
   }
 
   /** @internal */
   private _deactivateAllViews(
     initiator: IHydratedController | null,
-    skipCache: boolean = false,
+    deferAdoptedDisposal: boolean = false,
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-    let view: ISyntheticView;
-    let i = 0;
+    let transition: RowTeardownState | undefined;
 
-    const { views, $controller } = this;
-    const ii = views.length;
-
-    for (; ii > i; ++i) {
-      view = views[i];
-      // Adopted views can't be reused
-      if (!skipCache) {
+    const { views, $controller, _adoptedViews } = this;
+    // A synchronous lifecycle hook may mutate the observed collection. Teardown
+    // owns the row set accepted at entry, not whatever length is visible later.
+    const length = views.length;
+    for (let i = 0; i < length; ++i) {
+      const view = views[i];
+      const isAdopted = _adoptedViews?.has(view) === true;
+      const shouldDispose = isAdopted && !deferAdoptedDisposal;
+      if (!isAdopted) {
         view.release();
       }
-      ret = view.deactivate(initiator ?? view, $controller);
-      if (isPromise(ret)) {
-        (promises ?? (promises = [])).push(ret);
+      let result: void | Promise<void>;
+      try {
+        result = view.deactivate(initiator ?? view, $controller);
+      } catch (error) {
+        const state = transition ??= createRowTeardownState();
+        recordRowError(state, i, error);
+        this._disposeRowAfterFailure(view, i, state);
+        continue;
+      }
+      if (isPromise(result)) {
+        const state = transition ??= createRowTeardownState();
+        this._trackRowTeardown(state, i, view, result, shouldDispose);
+      } else if (shouldDispose) {
+        this._disposeRow(view, i, transition ??= createRowTeardownState());
       }
     }
 
-    if (promises !== void 0) {
-      return (promises.length === 1
-        ? promises[0]
-        : Promise.all(promises)) as unknown as Promise<void>;
-    }
+    return settleRowTransitions(transition);
   }
 
   /** @internal */
   private _deactivateAndRemoveViewsByKey(
     indexMap: IndexMap,
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-    let view: ISyntheticView;
+    let transition: RowTeardownState | undefined;
 
-    const { $controller, views } = this;
+    const { $controller, views, _adoptedViews } = this;
 
     const deleted = indexMap.deletedIndices.slice().sort(compareNumber);
     const deletedLen = deleted.length;
-    let i = 0;
-    for (; deletedLen > i; ++i) {
-      view = views[deleted[i]];
-      view.release();
-      ret = view.deactivate(view, $controller);
-      if (isPromise(ret)) {
-        (promises ?? (promises = [])).push(ret);
+    for (let i = 0; i < deletedLen; ++i) {
+      const rowIndex = deleted[i];
+      const view = views[rowIndex];
+      const shouldDispose = _adoptedViews?.delete(view) === true;
+      if (!shouldDispose) {
+        view.release();
+      }
+      let result: void | Promise<void>;
+      try {
+        result = view.deactivate(view, $controller);
+      } catch (error) {
+        const state = transition ??= createRowTeardownState();
+        recordRowError(state, rowIndex, error);
+        this._disposeRowAfterFailure(view, rowIndex, state);
+        continue;
+      }
+      if (isPromise(result)) {
+        const state = transition ??= createRowTeardownState();
+        this._trackRowTeardown(state, rowIndex, view, result, shouldDispose);
+      } else if (shouldDispose) {
+        this._disposeRow(view, rowIndex, transition ??= createRowTeardownState());
       }
     }
 
-    i = 0;
-    for (; deletedLen > i; ++i) {
+    for (let i = 0; i < deletedLen; ++i) {
       views.splice(deleted[i] - i, 1);
     }
 
-    if (promises !== void 0) {
-      return promises.length === 1
-        ? promises[0]
-        : Promise.all(promises) as unknown as Promise<void>;
+    return settleRowTransitions(transition);
+  }
+
+  /** @internal */
+  private _trackRowTeardown(
+    state: RowTeardownState,
+    index: number,
+    view: ISyntheticView,
+    result: Promise<void>,
+    disposeOnSuccess: boolean,
+  ): void {
+    // Convert both reactions into fulfilled ledger entries. Promise.all below is
+    // therefore a quiescence barrier; row rejection timing cannot bypass sibling
+    // cleanup or choose which row error becomes public.
+    state.promises.push(result.then(
+      () => {
+        if (disposeOnSuccess) {
+          this._disposeRow(view, index, state);
+        }
+      },
+      error => {
+        recordRowError(state, index, error);
+        this._disposeRowAfterFailure(view, index, state);
+      },
+    ));
+  }
+
+  /** @internal */
+  private _disposeRowAfterFailure(view: ISyntheticView, index: number, state: RowTeardownState): void {
+    // Ordinary rows may already be marked for factory caching, while adopted
+    // rows can never be reused. Failed teardown invalidates either provenance,
+    // so dispose explicitly instead of leaving the row owned or cacheable.
+    this._disposeRow(view, index, state);
+  }
+
+  /** @internal */
+  private _disposeRow(view: ISyntheticView, index: number, state: RowTeardownState): void {
+    try {
+      view.dispose();
+    } catch (error) {
+      recordRowCleanupError(state, index, error);
     }
   }
 
@@ -612,7 +1013,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   private _createAndActivateAndSortViewsByKey(
     indexMap: IndexMap,
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
+    let transition: RowTransitionState | undefined;
     let ret: void | Promise<void>;
     let view: ISyntheticView;
     let i = 0;
@@ -647,23 +1048,30 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
 
-    let next: ISyntheticView;
+    let next: ISyntheticView | undefined;
     let j = seqLen - 1;
     i = newLen - 1;
     for (; i >= 0; --i) {
       view = views[i];
-      next = views[i + 1];
 
       if (this.contextual) {
         setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen, this._normalizedItems);
       }
 
-      if (indexMap[i] === -2) {
+      if (indexMap[i] === -2 || !view.isActive) {
+        // A retained mapped row may be inactive because its prior activation
+        // rolled back. Retry it with insertions instead of treating it as live.
         view.nodes.link(next?.nodes ?? _location);
         view.setLocation(_location);
-        ret = view.activate(view, $controller, _scopes[i]);
+        try {
+          ret = view.activate(view, $controller, _scopes[i]);
+        } catch (error) {
+          recordRowError(transition ??= createRowTransitionState(), i, error);
+          continue;
+        }
         if (isPromise(ret)) {
-          (promises ?? (promises = [])).push(ret);
+          const state = transition ??= createRowTransitionState();
+          trackRowTransition(state, i, ret);
         }
       } else if (j < 0 || i !== seq[j]) {
         view.nodes.link(next?.nodes ?? _location);
@@ -671,18 +1079,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       } else {
         --j;
       }
+      next = view;
     }
 
-    if (promises !== void 0) {
-      return promises.length === 1
-        ? promises[0]
-        : Promise.all(promises) as unknown as Promise<void>;
-    }
+    return settleRowTransitions(transition);
   }
 
   public dispose(): void {
     this.views.forEach(dispose);
     this.views = (void 0)!;
+    this._adoptedViews = void 0;
   }
 
   public accept(visitor: ControllerVisitor): void | true {
@@ -702,6 +1108,35 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 let maxLen = 16;
 let prevIndices = new Int32Array(maxLen);
 let tailIndices = new Int32Array(maxLen);
+
+/**
+ * Compose two observer maps that describe consecutive collection mutations.
+ * The result maps the latest collection directly back to the collection owned
+ * by the in-flight reconciliation.
+ *
+ * @internal
+ */
+function composeIndexMaps(previous: IndexMap, current: IndexMap): IndexMap {
+  const composed = createIndexMap(current.length);
+  let i = 0;
+  for (; i < current.length; ++i) {
+    const source = current[i];
+    composed[i] = source < 0 ? source : previous[source];
+  }
+
+  for (i = 0; i < previous.deletedIndices.length; ++i) {
+    composed.deletedIndices.push(previous.deletedIndices[i]);
+    composed.deletedItems.push(previous.deletedItems[i]);
+  }
+  for (i = 0; i < current.deletedIndices.length; ++i) {
+    const source = previous[current.deletedIndices[i]];
+    if (source >= 0) {
+      composed.deletedIndices.push(source);
+      composed.deletedItems.push(current.deletedItems[i]);
+    }
+  }
+  return composed;
+}
 
 // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
 // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)
@@ -1010,24 +1445,24 @@ const getScope = (
   parentScope: Scope,
   binding: PropertyBinding,
 ) => {
-  let scope = oldScopeMap.get(key);
-  if (scope === void 0) {
-    scope = createScope(item, declaration, parentScope, binding);
-  } else if (scope instanceof Scope) {
-    oldScopeMap.delete(key);
-  } else if (scope.length === 1) {
-    scope = scope[0];
-    oldScopeMap.delete(key);
-  } else {
-    scope = scope.shift()!;
-  }
+  const oldEntry = oldScopeMap.get(key);
+  const newEntry = newScopeMap.get(key);
+  // Match the Nth duplicate to the Nth old scope without consuming the old
+  // map. A later key/projection failure can then retry against unchanged state.
+  const occurrence = newEntry === void 0
+    ? 0
+    : newEntry instanceof Scope ? 1 : newEntry.length;
+  const scope = oldEntry === void 0
+    ? createScope(item, declaration, parentScope, binding)
+    : oldEntry instanceof Scope
+      ? occurrence === 0 ? oldEntry : createScope(item, declaration, parentScope, binding)
+      : oldEntry[occurrence] ?? createScope(item, declaration, parentScope, binding);
 
-  if (newScopeMap.has(key)) {
-    const entry = newScopeMap.get(key)!;
-    if (entry instanceof Scope) {
-      newScopeMap.set(key, [entry, scope]);
+  if (newEntry !== void 0) {
+    if (newEntry instanceof Scope) {
+      newScopeMap.set(key, [newEntry, scope]);
     } else {
-      entry.push(scope);
+      newEntry.push(scope);
     }
   } else {
     newScopeMap.set(key, scope);

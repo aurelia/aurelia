@@ -128,6 +128,38 @@ A controller runs one lifecycle transition at a time. Requests that arrive durin
 
 For low-level integrations, return the Promise for work started by the hook. Returning a controller transition that depends on the same hook creates a lifecycle dependency cycle and reports [AUR0509](../developer-guides/error-messages/runtime-html/aur0509.md).
 
+## Practical lifecycle patterns
+
+- **Prepare from bindables in `binding()`.** The constructor is suitable for dependency injection and field defaults. Bindable values are available when `binding()` runs.
+- **Use mounted DOM at the appropriate phase.** Start an enter animation in `attaching()` when Aurelia should wait for it. Use `attached()` for measurements that need the component subtree in the document.
+- **Return asynchronous hook work.** Aurelia keeps the DOM in place until a Promise returned by `detaching()` settles:
+
+```typescript
+public detaching(): Promise<void> {
+  const animation = this.element.animate(
+    [{ opacity: 1 }, { opacity: 0 }],
+    { duration: 200 },
+  );
+  return animation.finished.then(() => void 0);
+}
+```
+
+- **Pair resources with the active lifecycle.** Install DOM listeners in `attached()` and remove them in `detaching()` so cached components can reactivate cleanly:
+
+```typescript
+private readonly onResize = (): void => this.updateLayout();
+
+public attached(): void {
+  window.addEventListener('resize', this.onResize);
+}
+
+public detaching(): void {
+  window.removeEventListener('resize', this.onResize);
+}
+```
+
+Use synchronous `dispose()` for permanent cleanup of resources designed to survive ordinary deactivation.
+
 ## Waiting for startup and shutdown
 
 Await application lifecycle calls in tests and in code that depends on the completed transition:

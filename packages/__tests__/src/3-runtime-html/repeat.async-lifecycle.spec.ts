@@ -1,11 +1,16 @@
 import {
+  Aurelia,
+  CustomElement,
+  ISSRContext,
   customElement,
   type IHydratedController,
   type IHydratedParentController,
+  type ISSRScope,
   Repeat,
 } from '@aurelia/runtime-html';
+import { IContainer, Registration, resolve, type IResolver } from '@aurelia/kernel';
 import { createIndexMap, tasksSettled } from '@aurelia/runtime';
-import { assert, createFixture } from '@aurelia/testing';
+import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 class Deferred<T = void> {
   public readonly promise: Promise<T>;
@@ -135,6 +140,92 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       assertText('2');
 
       shouldBlock = false;
+      await fixture.tearDown();
+    });
+
+    it('owns an async generation queued from a synchronous row teardown', async function () {
+      const gate = new Deferred();
+
+      @customElement({ name: 'sync-queues-async-repeat-row', template: '${value}', bindables: ['value'] })
+      class SyncQueuesAsyncRow {
+        public value!: number;
+
+        public attaching(): void | Promise<void> {
+          return this.value === 2 ? gate.promise : void 0;
+        }
+
+        public detaching(): void {
+          if (this.value === 0) {
+            fixture.component.items.push(2);
+          }
+        }
+      }
+
+      class App { public items = [0, 1]; }
+
+      const fixture = createFixture(
+        '<sync-queues-async-repeat-row repeat.for="item of items" value.bind="item"></sync-queues-async-repeat-row>',
+        App,
+        [SyncQueuesAsyncRow],
+      );
+      const repeat = findRepeat(fixture.au.root.controller);
+      const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
+
+      fixture.component.items.shift();
+      const reconciliation = internals._reconciliation?.promise;
+      assert.instanceOf(reconciliation, Promise);
+      let settled = false;
+      void reconciliation!.then(
+        () => { settled = true; },
+        () => { settled = true; },
+      );
+      await Promise.resolve();
+      assert.strictEqual(settled, false);
+      fixture.assertText('12');
+
+      gate.resolve();
+      await reconciliation;
+      fixture.assertText('12');
+      await fixture.tearDown();
+    });
+
+    it('recovers asynchronously when a synchronous row teardown queues a newer generation and fails', async function () {
+      const gate = new Deferred();
+      const teardownError = new Error('synchronous row teardown failed');
+
+      @customElement({ name: 'sync-failure-queues-async-row', template: '${value}', bindables: ['value'] })
+      class SyncFailureQueuesAsyncRow {
+        public value!: number;
+
+        public attaching(): void | Promise<void> {
+          return this.value === 2 ? gate.promise : void 0;
+        }
+
+        public detaching(): void {
+          if (this.value === 0) {
+            fixture.component.items.push(2);
+            throw teardownError;
+          }
+        }
+      }
+
+      class App { public items = [0, 1]; }
+
+      const fixture = createFixture(
+        '<sync-failure-queues-async-row repeat.for="item of items" value.bind="item"></sync-failure-queues-async-row>',
+        App,
+        [SyncFailureQueuesAsyncRow],
+      );
+      const repeat = findRepeat(fixture.au.root.controller);
+      const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
+
+      fixture.component.items.shift();
+      const reconciliation = internals._reconciliation?.promise;
+      assert.instanceOf(reconciliation, Promise);
+
+      gate.resolve();
+      await assert.rejects(() => reconciliation!, teardownError);
+      fixture.assertText('12');
       await fixture.tearDown();
     });
 
@@ -649,6 +740,152 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
         await fixture.tearDown();
       });
 
+      it('keeps the original failure when the queued recovery generation throws synchronously', async function () {
+        const teardownGate = new Deferred();
+        const teardownError = new Error('row teardown failed');
+        const recoveryError = new Error('queued row activation failed');
+        let failRecovery = true;
+
+        @customElement({ name: 'sync-recovery-failure-row', template: '${value}', bindables: ['value'] })
+        class SyncRecoveryFailureRow {
+          public value!: number;
+
+          public attaching(): void {
+            if (failRecovery && this.value === 2) {
+              throw recoveryError;
+            }
+          }
+
+          public detaching(): void | Promise<void> {
+            return this.value === 0 ? teardownGate.promise : void 0;
+          }
+        }
+
+        const fixture = createFixture(
+          '<sync-recovery-failure-row repeat.for="item of items" value.bind="item"></sync-recovery-failure-row>',
+          class { public items = [0, 1]; },
+          [SyncRecoveryFailureRow],
+        );
+        const repeat = findRepeat(fixture.au.root.controller);
+        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
+
+        fixture.component.items.shift();
+        const reconciliation = internals._reconciliation?.promise;
+        assert.instanceOf(reconciliation, Promise);
+        fixture.component.items.push(2);
+
+        teardownGate.reject(teardownError);
+        await assert.rejects(() => reconciliation!, teardownError);
+
+        failRecovery = false;
+        fixture.component.items.push(3);
+        fixture.assertText('123');
+        await fixture.tearDown();
+      });
+
+      it('keeps the original failure when the queued recovery generation rejects asynchronously', async function () {
+        const teardownGate = new Deferred();
+        const recoveryGate = new Deferred();
+        const teardownError = new Error('row teardown failed');
+        const recoveryError = new Error('queued row activation failed');
+        const attaching: number[] = [];
+        let failRecovery = true;
+
+        @customElement({ name: 'async-recovery-failure-row', template: '${value}', bindables: ['value'] })
+        class AsyncRecoveryFailureRow {
+          public value!: number;
+
+          public attaching(): void | Promise<void> {
+            attaching.push(this.value);
+            return failRecovery && this.value === 2 ? recoveryGate.promise : void 0;
+          }
+
+          public detaching(): void | Promise<void> {
+            return this.value === 0 ? teardownGate.promise : void 0;
+          }
+        }
+
+        const fixture = createFixture(
+          '<async-recovery-failure-row repeat.for="item of items" value.bind="item"></async-recovery-failure-row>',
+          class { public items = [0, 1]; },
+          [AsyncRecoveryFailureRow],
+        );
+        const repeat = findRepeat(fixture.au.root.controller);
+        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
+
+        fixture.component.items.shift();
+        const reconciliation = internals._reconciliation?.promise;
+        assert.instanceOf(reconciliation, Promise);
+        fixture.component.items.push(2);
+
+        teardownGate.reject(teardownError);
+        await waitFor(() => attaching.includes(2));
+        recoveryGate.reject(recoveryError);
+        await assert.rejects(() => reconciliation!, teardownError);
+
+        failRecovery = false;
+        fixture.component.items.push(3);
+        fixture.assertText('123');
+        await fixture.tearDown();
+      });
+
+      for (const completionMode of ['throws', 'resolves', 'rejects'] as const) {
+        it(`preserves a synchronous teardown failure when replacement activation ${completionMode}`, async function () {
+          const activationGate = new Deferred();
+          const teardownError = new Error('removed row teardown failed');
+          const activationError = new Error('replacement row activation failed');
+          let fail = true;
+
+          @customElement({ name: `replacement-${completionMode}-row`, template: '${value}', bindables: ['value'] })
+          class ReplacementRow {
+            public value!: number;
+
+            public attaching(): void | Promise<void> {
+              if (!fail || this.value !== 1) {
+                return;
+              }
+              if (completionMode === 'throws') {
+                throw activationError;
+              }
+              return activationGate.promise;
+            }
+
+            public detaching(): void {
+              if (fail && this.value === 0) {
+                throw teardownError;
+              }
+            }
+          }
+
+          const fixture = createFixture(
+            `<replacement-${completionMode}-row repeat.for="item of items" value.bind="item"></replacement-${completionMode}-row>`,
+            class { public items = [0]; },
+            [ReplacementRow],
+          );
+          const repeat = findRepeat(fixture.au.root.controller);
+          const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
+
+          if (completionMode === 'throws') {
+            assert.throws(() => fixture.component.items.splice(0, 1, 1), teardownError);
+          } else {
+            fixture.component.items.splice(0, 1, 1);
+            const reconciliation = internals._reconciliation?.promise;
+            assert.instanceOf(reconciliation, Promise);
+            if (completionMode === 'resolves') {
+              activationGate.resolve();
+            } else {
+              activationGate.reject(activationError);
+            }
+            await assert.rejects(() => reconciliation!, teardownError);
+          }
+
+          fail = false;
+          fixture.component.items.push(2);
+          fixture.assertText('12');
+          await fixture.tearDown();
+        });
+      }
+
       it('cleans remaining rows when owner teardown races a rejected reconciliation', async function () {
         const gate = new Deferred();
         const teardownError = new Error('pending row failed');
@@ -919,6 +1156,137 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
         await fixture.tearDown();
       });
 
+      for (const lifecycleFails of [false, true]) {
+        it(`${lifecycleFails ? 'aggregates lifecycle and cleanup failures' : 'reports cleanup failure'} after adopted rows quiesce`, async function () {
+          const lowerGate = new Deferred();
+          const higherGate = new Deferred();
+          const lifecycleError = new Error('lower adopted row teardown failed');
+          const lowerCleanupError = new Error('lower adopted row cleanup failed');
+          const higherCleanupError = new Error('higher adopted row cleanup failed');
+          const cleanupCalls: number[] = [];
+          let isClient = false;
+          let clientApp!: App;
+
+          @customElement({
+            name: `adopted-cleanup-${lifecycleFails ? 'aggregate' : 'only'}-row`,
+            template: '${value}',
+            bindables: ['value'],
+          })
+          class AdoptedCleanupFailureRow {
+            public value!: number;
+            private readonly container = resolve(IContainer);
+            private registered = false;
+
+            public attaching(): void {
+              if (!isClient || this.registered) {
+                return;
+              }
+              this.registered = true;
+              const cleanupError = this.value === 0 ? lowerCleanupError : higherCleanupError;
+              this.container.registerResolver(Symbol(), {
+                $isResolver: true,
+                resolve: () => void 0,
+                dispose: () => {
+                  cleanupCalls.push(this.value);
+                  throw cleanupError;
+                },
+              } satisfies IResolver, true);
+            }
+
+            public detaching(): void | Promise<void> {
+              return isClient
+                ? this.value === 0 ? lowerGate.promise : higherGate.promise
+                : void 0;
+            }
+          }
+
+          const elementName = `adopted-cleanup-${lifecycleFails ? 'aggregate' : 'only'}-row`;
+          const appName = `adopted-cleanup-${lifecycleFails ? 'aggregate' : 'only'}-app`;
+          class App {
+            public items = [0, 1];
+
+            public constructor() {
+              if (isClient) {
+                clientApp = this;
+              }
+            }
+          }
+          const AppElement = CustomElement.define({
+            name: appName,
+            template: `<${elementName} repeat.for="item of items" value.bind="item"></${elementName}>`,
+          }, App);
+
+          const serverCtx = TestContext.create();
+          serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+          const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement(appName));
+          const serverAu = new Aurelia(serverCtx.container).register(AdoptedCleanupFailureRow).app({
+            host: serverHost,
+            component: AppElement,
+          });
+          let serverMarkup: string;
+          try {
+            await serverAu.start();
+            serverMarkup = serverHost.innerHTML;
+          } finally {
+            await serverAu.stop(true);
+            serverAu.dispose();
+            serverHost.remove();
+          }
+          isClient = true;
+          const clientCtx = TestContext.create();
+          const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement(appName));
+          clientHost.innerHTML = serverMarkup;
+          const ssrScope: ISSRScope = {
+            name: appName,
+            children: [{
+              type: 'repeat',
+              views: [0, 1].map(() => ({
+                // Each repeated view owns its instruction marker and CE host.
+                nodeCount: 2,
+                children: [{ name: elementName, children: [] }],
+              })),
+            }],
+          };
+          const clientAu = new Aurelia(clientCtx.container).register(AdoptedCleanupFailureRow);
+          const root = await clientAu.hydrate({
+            host: clientHost,
+            component: AppElement,
+            ssrScope,
+          });
+          const repeat = findRepeat(root.controller);
+          const internals = repeat as unknown as {
+            _reconciliation?: { promise?: Promise<void> };
+          };
+
+          clientApp.items.splice(0, 2);
+          const reconciliation = internals._reconciliation?.promise;
+          assert.instanceOf(reconciliation, Promise);
+
+          higherGate.resolve();
+          await waitFor(() => cleanupCalls.length === 1);
+          assert.deepStrictEqual(cleanupCalls, [1], 'higher row cleanup runs while the lower row remains pending');
+          if (lifecycleFails) {
+            lowerGate.reject(lifecycleError);
+            await assert.rejects(
+              () => reconciliation!,
+              error => error instanceof AggregateError
+                && error.errors[0] === lifecycleError
+                && error.errors[1] === lowerCleanupError,
+            );
+          } else {
+            lowerGate.resolve();
+            await assert.rejects(() => reconciliation!, lowerCleanupError);
+          }
+
+          assert.deepStrictEqual(cleanupCalls, [1, 0], 'both adopted rows complete cleanup before rejection');
+          assert.strictEqual(clientHost.textContent, '');
+          await root.deactivate();
+          root.dispose();
+          clientAu.dispose();
+          clientHost.remove();
+        });
+      }
+
     });
 
     it('composes three-stage and generated IndexMaps without losing provenance', async function () {
@@ -1053,6 +1421,162 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
   });
 
   describe('ownership and restart', function () {
+    it('queues collection changes behind async activation of an SSR-adopted row', async function () {
+      const gate = new Deferred();
+      let isClient = false;
+      let clientApp!: App;
+
+      @customElement({ name: 'ssr-pending-repeat-row', template: '${value}', bindables: ['value'] })
+      class SsrPendingRow {
+        public value!: number;
+
+        public attaching(): void | Promise<void> {
+          return isClient && this.value === 0 ? gate.promise : void 0;
+        }
+      }
+
+      class App {
+        public items = [0];
+
+        public constructor() {
+          if (isClient) {
+            clientApp = this;
+          }
+        }
+      }
+
+      const AppElement = CustomElement.define({
+        name: 'ssr-pending-repeat-app',
+        template: '<ssr-pending-repeat-row repeat.for="item of items" value.bind="item"></ssr-pending-repeat-row>',
+      }, App);
+
+      const serverCtx = TestContext.create();
+      serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+      const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('ssr-pending-repeat-app'));
+      const serverAu = new Aurelia(serverCtx.container).register(SsrPendingRow).app({
+        host: serverHost,
+        component: AppElement,
+      });
+      let serverMarkup: string;
+      try {
+        await serverAu.start();
+        serverMarkup = serverHost.innerHTML;
+      } finally {
+        await serverAu.stop(true);
+        serverAu.dispose();
+        serverHost.remove();
+      }
+
+      isClient = true;
+      const clientCtx = TestContext.create();
+      const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement('ssr-pending-repeat-app'));
+      clientHost.innerHTML = serverMarkup;
+      const adoptedRow = clientHost.querySelector('ssr-pending-repeat-row');
+      assert.notStrictEqual(adoptedRow, null);
+      const ssrScope: ISSRScope = {
+        name: 'ssr-pending-repeat-app',
+        children: [{
+          type: 'repeat',
+          views: [{
+            nodeCount: 1,
+            children: [{ name: 'ssr-pending-repeat-row', children: [] }],
+          }],
+        }],
+      };
+      const clientAu = new Aurelia(clientCtx.container).register(SsrPendingRow);
+      const hydration = Promise.resolve(clientAu.hydrate({
+        host: clientHost,
+        component: AppElement,
+        ssrScope,
+      }));
+      let settled = false;
+      void hydration.then(
+        () => { settled = true; },
+        () => { settled = true; },
+      );
+
+      clientApp.items.push(1);
+      await Promise.resolve();
+      assert.strictEqual(settled, false);
+      assert.strictEqual(clientHost.querySelector('ssr-pending-repeat-row'), adoptedRow);
+      assert.strictEqual(clientHost.textContent, '0');
+
+      gate.resolve();
+      const root = await hydration;
+      assert.strictEqual(clientHost.querySelector('ssr-pending-repeat-row'), adoptedRow);
+      assert.strictEqual(clientHost.textContent, '01');
+
+      await root.deactivate();
+      root.dispose();
+      clientAu.dispose();
+      clientHost.remove();
+    });
+
+    it('lets reentrant owner teardown join a still-synchronous reconciliation', async function () {
+      let stopping = false;
+      let stop: Promise<void> | undefined;
+
+      @customElement({ name: 'reentrant-stop-repeat-row', template: '${value}', bindables: ['value'] })
+      class ReentrantStopRow {
+        public value!: number;
+
+        public detaching(): void {
+          if (this.value === 0 && !stopping) {
+            stopping = true;
+            stop = Promise.resolve(fixture.stop(true));
+          }
+        }
+      }
+
+      class App { public items = [0, 1]; }
+
+      const fixture = createFixture(
+        '<reentrant-stop-repeat-row repeat.for="item of items" value.bind="item"></reentrant-stop-repeat-row>',
+        App,
+        [ReentrantStopRow],
+      );
+      fixture.component.items.shift();
+
+      assert.instanceOf(stop, Promise);
+      await stop;
+      assert.strictEqual(fixture.appHost.textContent, '');
+    });
+
+    it('rejects reentrant owner teardown when the synchronous reconciliation fails', async function () {
+      const lifecycleError = new Error('reentrant row teardown failed');
+      let stopping = false;
+      let stop: Promise<void> | undefined;
+
+      @customElement({ name: 'reentrant-failing-stop-row', template: '${value}', bindables: ['value'] })
+      class ReentrantFailingStopRow {
+        public value!: number;
+
+        public detaching(): void {
+          if (this.value === 0 && !stopping) {
+            stopping = true;
+            stop = Promise.resolve(fixture.stop(true));
+            void stop.catch(() => { /* observed below */ });
+            throw lifecycleError;
+          }
+        }
+      }
+
+      class App { public items = [0, 1]; }
+
+      const fixture = createFixture(
+        '<reentrant-failing-stop-row repeat.for="item of items" value.bind="item"></reentrant-failing-stop-row>',
+        App,
+        [ReentrantFailingStopRow],
+      );
+      assert.throws(() => fixture.component.items.shift(), lifecycleError);
+
+      assert.instanceOf(stop, Promise);
+      await assert.rejects(() => stop!, lifecycleError);
+      assert.strictEqual(fixture.appHost.textContent, '');
+      fixture.testHost.remove();
+      fixture.au.dispose();
+    });
+
     it('preflights live operations owned by a dynamic controller', async function () {
       const gate = new Deferred();
 
@@ -1085,11 +1609,16 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
     });
 
     it('disposes adopted-provenance and later ordinary rows together on owner teardown', async function () {
+      const gate = new Deferred();
       const disposed: number[] = [];
 
       @customElement({ name: 'adopted-repeat-row', template: '${value}', bindables: ['value'] })
       class AdoptedRepeatRow {
         public value!: number;
+
+        public detaching(): void | Promise<void> {
+          return this.value === 1 ? gate.promise : void 0;
+        }
 
         public dispose(): void {
           disposed.push(this.value);
@@ -1109,6 +1638,18 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       fixture.assertText('01');
       fixture.component.items.push(2);
       fixture.assertText('012');
+
+      fixture.component.items.shift();
+      assert.deepStrictEqual(disposed, [0], 'a synchronously removed adopted row is disposed immediately');
+
+      fixture.component.items.shift();
+      const reconciliation = (repeat as unknown as { _reconciliation?: { promise?: Promise<void> } })
+        ._reconciliation?.promise;
+      assert.instanceOf(reconciliation, Promise);
+      assert.deepStrictEqual(disposed, [0], 'an asynchronously removed adopted row remains owned until it settles');
+      gate.resolve();
+      await reconciliation;
+      assert.deepStrictEqual(disposed, [0, 1]);
 
       await fixture.stop(true);
       assert.deepStrictEqual(disposed.sort(), [0, 1, 2]);
@@ -1187,7 +1728,10 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       fixture.component.items.shift();
 
       let started = false;
-      void Promise.resolve(start).then(() => { started = true; });
+      void Promise.resolve(start).then(
+        () => { started = true; },
+        () => { started = true; },
+      );
       await Promise.resolve();
       assert.strictEqual(started, false);
 
@@ -1235,7 +1779,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
       await fixture.stop(true);
       assert.deepStrictEqual(disposed, [1, 2], 'final disposal owns only the rebuilt row graph');
-      fixture.au.dispose();
     });
 
     it('quiesces an initial row activation failure before rolling back Repeat', async function () {
@@ -1277,6 +1820,51 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
       first.reject(firstError);
       await assert.rejects(() => start, firstError);
+      assert.strictEqual(fixture.appHost.textContent, '');
+
+      fail = false;
+      await fixture.start();
+      fixture.assertText('01');
+      await fixture.tearDown();
+    });
+
+    it('quiesces async siblings after a synchronous initial row activation failure', async function () {
+      const sibling = new Deferred();
+      const activationError = new Error('synchronous initial row failed');
+      let fail = true;
+
+      @customElement({ name: 'sync-rejecting-initial-row', template: '${value}', bindables: ['value'] })
+      class SyncRejectingInitialRow {
+        public value!: number;
+
+        public attaching(): void | Promise<void> {
+          if (!fail) {
+            return;
+          }
+          if (this.value === 0) {
+            throw activationError;
+          }
+          return sibling.promise;
+        }
+      }
+
+      const fixture = createFixture(
+        '<sync-rejecting-initial-row repeat.for="item of items" value.bind="item"></sync-rejecting-initial-row>',
+        class { public items = [0, 1]; },
+        [SyncRejectingInitialRow],
+        false,
+      );
+      const start = fixture.start() as Promise<void>;
+      let settled = false;
+      void start.then(
+        () => { settled = true; },
+        () => { settled = true; },
+      );
+
+      await Promise.resolve();
+      assert.strictEqual(settled, false);
+      sibling.resolve();
+      await assert.rejects(() => start, activationError);
       assert.strictEqual(fixture.appHost.textContent, '');
 
       fail = false;

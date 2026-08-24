@@ -4,17 +4,39 @@
 import { safeString } from './utilities';
 
 /** @internal */
-export const createMappedError: CreateError = __DEV__
+export const createMappedErrorMessage: CreateErrorMessage = __DEV__
   ? (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = safeString(code).padStart(4, '0');
     const message = getMessageByCode(code, ...details);
     const link = `https://docs.aurelia.io/developer-guides/error-messages/runtime-html/aur${paddedCode}`;
-    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+    return `AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`;
   }
   : (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = safeString(code).padStart(4, '0');
-    return new Error(`AUR${paddedCode}:${details.map(safeString)}`);
+    return `AUR${paddedCode}:${details.map(safeString)}`;
   };
+
+/** @internal */
+export const createMappedError: CreateError = (code, ...details) =>
+  new Error(createMappedErrorMessage(code, ...details));
+
+/** @internal */
+export const createMappedAggregateError: CreateAggregateError = (code, errors, ...details) =>
+  new AggregateError(errors, createMappedErrorMessage(code, ...details));
+
+/** @internal */
+export const cleanupAfterFailure = (
+  error: unknown,
+  cleanup: () => void,
+  code: ErrorNames,
+): never => {
+  try {
+    cleanup();
+  } catch (cleanupError) {
+    throw createMappedAggregateError(code, [error, cleanupError]);
+  }
+  throw error;
+};
 
 _START_CONST_ENUM();
 /** @internal */
@@ -146,6 +168,32 @@ export const enum ErrorNames {
   hydration_target_count_mismatch = 822,
   hydration_node_count_mismatch = 823,
   hydration_view_count_mismatch = 824,
+  app_root_deactivation_cleanup_failed = 825,
+  app_task_phase_failed = 826,
+  aurelia_standalone_root_rollback_failed = 827,
+  aurelia_queued_start_disposal_failed = 828,
+  aurelia_start_rollback_failed = 829,
+  aurelia_stop_vetoed = 830,
+  aurelia_stop_cleanup_failed = 831,
+  au_compose_operation_teardown_failed = 832,
+  au_compose_deactivation_disposal_failed = 833,
+  au_compose_activation_disposal_failed = 834,
+  au_compose_host_cleanup_failed = 835,
+  repeat_row_lifecycle_cleanup_failed = 836,
+  repeat_reconciliation_owner_teardown_failed = 837,
+  switch_activation_teardown_failed = 838,
+  node_ref_already_associated = 839,
+  ssr_missing_nested_template = 840,
+  ssr_unknown_instruction_type = 841,
+  ssr_expression_not_found = 842,
+}
+_END_CONST_ENUM();
+
+_START_CONST_ENUM();
+/** @internal */
+export const enum LifecycleSelfAwaitReason {
+  operation = 0,
+  ancestor = 1,
 }
 _END_CONST_ENUM();
 
@@ -192,7 +240,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.controller_watch_invalid_callback]: `Invalid callback for @watch decorator: {{0}}`,
   [ErrorNames.controller_property_not_coercible]: `Observer for bindable property {{0}} does not support coercion.`,
   [ErrorNames.controller_property_no_change_handler]: `Observer for property {{0}} does not support change handler.`,
-  [ErrorNames.controller_lifecycle_self_await]: `Controller at {{0}} created a lifecycle dependency cycle: {{1}}.`,
+  [ErrorNames.controller_lifecycle_self_await]: `Controller at {{0}} created a lifecycle dependency cycle: {{1:lifecycleCycleReason}}.`,
   [ErrorNames.controller_dispose_active_operation]: `Cannot dispose controller {{0}} while a lifecycle operation is running in its owned subtree.`,
 
   [ErrorNames.attribute_def_not_found]: `No attribute definition found for type {{0:name}}`,
@@ -282,6 +330,24 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
   [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
   [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
+  [ErrorNames.app_root_deactivation_cleanup_failed]: `App root deactivation failed during cleanup`,
+  [ErrorNames.app_task_phase_failed]: `Application task phase failed`,
+  [ErrorNames.aurelia_standalone_root_rollback_failed]: `Standalone Aurelia root activation failed during rollback`,
+  [ErrorNames.aurelia_queued_start_disposal_failed]: `Queued Aurelia start failed during disposal`,
+  [ErrorNames.aurelia_start_rollback_failed]: `Aurelia start failed during rollback`,
+  [ErrorNames.aurelia_stop_vetoed]: `Aurelia stop was vetoed during application deactivation`,
+  [ErrorNames.aurelia_stop_cleanup_failed]: `Aurelia stop failed during cleanup`,
+  [ErrorNames.au_compose_operation_teardown_failed]: `AuCompose operation failed during teardown cleanup`,
+  [ErrorNames.au_compose_deactivation_disposal_failed]: `AuCompose deactivation failed during disposal`,
+  [ErrorNames.au_compose_activation_disposal_failed]: `AuCompose activation failed during disposal`,
+  [ErrorNames.au_compose_host_cleanup_failed]: `AuCompose deactivation failed during host cleanup`,
+  [ErrorNames.repeat_row_lifecycle_cleanup_failed]: `Repeat row lifecycle and cleanup failed`,
+  [ErrorNames.repeat_reconciliation_owner_teardown_failed]: `Repeat reconciliation and owner teardown failed`,
+  [ErrorNames.switch_activation_teardown_failed]: `Switch activation failed during teardown cleanup`,
+  [ErrorNames.node_ref_already_associated]: `Node already associated with a controller; remove ref "{{0}}" before associating another controller.`,
+  [ErrorNames.ssr_missing_nested_template]: `SSR hydration error: missing nested template at index {{0}}.`,
+  [ErrorNames.ssr_unknown_instruction_type]: `SSR hydration error: unknown instruction type {{0}}.`,
+  [ErrorNames.ssr_expression_not_found]: `SSR hydration error: expression {{0}} was not found.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
@@ -305,6 +371,9 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
           case 'join(!=)': value = (value as unknown[]).join('!='); break;
           case 'bindingCommandHelp': value = getBindingCommandHelp(value); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
+          case 'lifecycleCycleReason': value = value === LifecycleSelfAwaitReason.operation
+            ? 'a lifecycle hook cannot await the operation that is waiting for that hook'
+            : 'a lifecycle hook cannot await an ancestor drain that is waiting for this child operation'; break;
           default: {
             // property access
             if (method?.startsWith('.')) {
@@ -323,6 +392,8 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
 };
 
 type CreateError = (code: ErrorNames, ...details: unknown[]) => Error;
+type CreateErrorMessage = (code: ErrorNames, ...details: unknown[]) => string;
+type CreateAggregateError = (code: ErrorNames, errors: Iterable<unknown>, ...details: unknown[]) => AggregateError;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function pleaseHelpCreateAnIssue(title: string, body?: string) {

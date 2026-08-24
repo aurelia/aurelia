@@ -61,7 +61,7 @@ import type {
 } from '@aurelia/runtime';
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
-import { ErrorNames, createMappedError } from '../errors';
+import { ErrorNames, createMappedError, LifecycleSelfAwaitReason } from '../errors';
 import type { ISSRScope, ISSRScopeChild, ISSRTemplateController } from './ssr';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
@@ -1292,7 +1292,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this._recordOperationError(
         step,
         getLifecyclePromiseOrder(ret) ?? reserveLifecycleParticipant(),
-        new LifecycleSelfAwaitError(this.name, 'a lifecycle hook cannot await an ancestor drain that is waiting for this child operation'),
+        new LifecycleSelfAwaitError(this.name, LifecycleSelfAwaitReason.ancestor),
       );
       ret = void 0;
     }

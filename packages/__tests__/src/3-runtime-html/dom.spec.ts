@@ -20,6 +20,18 @@ describe('3-runtime-html/dom.spec.ts', function () {
       assertText('ell');
       assert.strictEqual(appHost.querySelector('el')['$au'], undefined);
     });
+
+    it('rejects assigning the same named controller ref twice', function () {
+      const fixture = createFixture('', class {});
+      const { appHost } = fixture;
+      const controller = fixture.au.root.controller;
+
+      refs.set(appHost, 'duplicate', controller);
+      assert.throws(
+        () => refs.set(appHost, 'duplicate', controller),
+        /AUR0839: Node already associated with a controller/,
+      );
+    });
   });
 
   const ctx = TestContext.create();

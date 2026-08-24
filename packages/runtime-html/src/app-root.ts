@@ -10,7 +10,7 @@ import type { TaskSlot } from './app-task';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
-import { ErrorNames, createMappedError } from './errors';
+import { ErrorNames, createMappedAggregateError, createMappedError } from './errors';
 
 import type { ISSRScope } from './templating/ssr';
 
@@ -275,7 +275,7 @@ export class AppRoot<
       throw errors[0];
     }
     if (errors != null && errors.length > 1) {
-      throw new AggregateError(errors, 'App root deactivation failed during cleanup');
+      throw createMappedAggregateError(ErrorNames.app_root_deactivation_cleanup_failed, errors);
     }
   }
 
@@ -368,5 +368,5 @@ function throwAppTaskErrors(errors: AppTaskError[] | undefined): void {
   if (errors.length === 1) {
     throw errors[0].error;
   }
-  throw new AggregateError(errors.map(x => x.error), 'Application task phase failed');
+  throw createMappedAggregateError(ErrorNames.app_task_phase_failed, errors.map(x => x.error));
 }

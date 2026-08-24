@@ -39,26 +39,6 @@ const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 
 /** @internal */ export const rethrow = (err: unknown) => { throw err; };
 
-/**
- * Run mandatory cleanup after an operation failed, preserving the original
- * error unless cleanup fails too. Async descendant work is owned by Controller;
- * these owner-level cleanup callbacks only commit their synchronous boundary.
- *
- * @internal
- */
-export const cleanupAfterFailure = (
-  error: unknown,
-  cleanup: () => void,
-  message: string,
-): never => {
-  try {
-    cleanup();
-  } catch (cleanupError) {
-    throw new AggregateError([error, cleanupError], message);
-  }
-  throw error;
-};
-
 /** @internal */
 export const def = Reflect.defineProperty;
 

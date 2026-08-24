@@ -7,7 +7,7 @@ import type {
   IContainer,
   IDisposable,
 } from '@aurelia/kernel';
-import { ErrorNames, createMappedError } from './errors';
+import { ErrorNames, createMappedAggregateError, createMappedError } from './errors';
 import { refs } from './dom.node';
 import { tasksSettled } from '@aurelia/runtime';
 
@@ -179,7 +179,7 @@ export class Aurelia implements IDisposable {
     // clears the current instance and cannot fail, so it is not part of the
     // user-code cleanup ledger.
     provider.dispose();
-    throwTransitionErrors(errors, 'Standalone Aurelia root activation failed during rollback');
+    throwTransitionErrors(errors, ErrorNames.aurelia_standalone_root_rollback_failed);
   }
 
   /** @internal */
@@ -229,7 +229,7 @@ export class Aurelia implements IDisposable {
               if (this.next === root) {
                 this.next = void 0;
               }
-              throwTransitionErrors(errors, 'Queued Aurelia start failed during disposal');
+              throwTransitionErrors(errors, ErrorNames.aurelia_queued_start_disposal_failed);
             }
           }
           throw error;
@@ -376,7 +376,7 @@ export class Aurelia implements IDisposable {
     this._stopRequestedWhileStarting = false;
     this._disposeAfterStart = false;
     this._isStarting = false;
-    throwTransitionErrors(errors, 'Aurelia start failed during rollback');
+    throwTransitionErrors(errors, ErrorNames.aurelia_start_rollback_failed);
   }
 
   /** @internal */
@@ -415,7 +415,7 @@ export class Aurelia implements IDisposable {
     this._isRunning = true;
     this._isStopping = false;
     this._stopPromise = void 0;
-    throwTransitionErrors(errors, 'Aurelia stop was vetoed during application deactivation');
+    throwTransitionErrors(errors, ErrorNames.aurelia_stop_vetoed);
   }
 
   /** @internal */
@@ -447,7 +447,7 @@ export class Aurelia implements IDisposable {
       this._dispatchEvent(root, 'au-stopped', root.host);
     }
     if (errors.length > 0) {
-      throwTransitionErrors(errors, 'Aurelia stop failed during cleanup');
+      throwTransitionErrors(errors, ErrorNames.aurelia_stop_cleanup_failed);
     }
   }
 
@@ -471,11 +471,11 @@ export class Aurelia implements IDisposable {
   }
 }
 
-function throwTransitionErrors(errors: unknown[], message: string): never {
+function throwTransitionErrors(errors: unknown[], code: ErrorNames): never {
   if (errors.length === 1) {
     throw errors[0];
   }
-  throw new AggregateError(errors, message);
+  throw createMappedAggregateError(code, errors);
 }
 
 export type ISinglePageAppConfig<T extends object = object> = Omit<IAppRootConfig<T>, 'strictBinding'> & {

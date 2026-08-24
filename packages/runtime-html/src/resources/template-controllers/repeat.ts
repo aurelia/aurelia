@@ -40,12 +40,12 @@ import { IViewFactory } from '../../templating/view';
 import { isSSRTemplateController, adoptSSRViews, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
-import { cleanupAfterFailure, etIsProperty } from '../../utilities';
+import { etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
-import { ErrorNames, createMappedError } from '../../errors';
+import { cleanupAfterFailure, createMappedAggregateError, ErrorNames, createMappedError } from '../../errors';
 import { createInterface, singletonRegistration } from '../../utilities-di';
 import { RepeatObjectBindingPattern } from './repeat-object-binding-pattern';
 
@@ -132,7 +132,10 @@ const recordRowCleanupError = (state: RowTeardownState, index: number, error: un
 const throwRowErrors = (state: RowTransitionState | RowTeardownState): void => {
   if (state.firstErrorIndex !== Number.POSITIVE_INFINITY) {
     if ('firstCleanupErrorIndex' in state && state.firstCleanupErrorIndex !== Number.POSITIVE_INFINITY) {
-      throw new AggregateError([state.error, state.cleanupError], 'Repeat row lifecycle and cleanup failed');
+      throw createMappedAggregateError(
+        ErrorNames.repeat_row_lifecycle_cleanup_failed,
+        [state.error, state.cleanupError],
+      );
     }
     throw state.error;
   }
@@ -558,7 +561,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     return cleanupAfterFailure(
       operationError,
       () => this._deactivateOwnedViews(initiator),
-      'Repeat reconciliation and owner teardown failed',
+      ErrorNames.repeat_reconciliation_owner_teardown_failed,
     );
   }
 

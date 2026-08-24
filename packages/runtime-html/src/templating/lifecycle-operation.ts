@@ -8,7 +8,7 @@ import type {
   IHydratedController,
 } from './controller';
 import type { LifecycleHooksEntry } from './lifecycle-hooks';
-import { createMappedError, ErrorNames } from '../errors';
+import { createMappedErrorMessage, ErrorNames, LifecycleSelfAwaitReason } from '../errors';
 
 /**
  * Promoted state for a Controller lifecycle whose ownership can no longer be
@@ -88,8 +88,8 @@ export class OrderedLifecycleFailure {
 }
 
 export class LifecycleSelfAwaitError extends Error {
-  public constructor(controllerName: string, reason: string) {
-    super(createMappedError(ErrorNames.controller_lifecycle_self_await, controllerName, reason).message);
+  public constructor(controllerName: string, reason: LifecycleSelfAwaitReason) {
+    super(createMappedErrorMessage(ErrorNames.controller_lifecycle_self_await, controllerName, reason));
   }
 }
 
@@ -235,7 +235,7 @@ export function invokeControllerPhase(
           ? invokeControllerLifecycleHook(controller, phase, hooks![0], initiator, parent)
           : invokeControllerVmHook(controller, phase, initiator, parent);
         if (isPromise(result) && isControllerOperationPromise(controller, result)) {
-          throw new LifecycleSelfAwaitError(controller.name, 'a lifecycle hook cannot await the operation that is waiting for that hook');
+          throw new LifecycleSelfAwaitError(controller.name, LifecycleSelfAwaitReason.operation);
         }
         if (isPromise(result)) promiseOrders.set(result, firstOrder);
         return result;
@@ -252,7 +252,7 @@ export function invokeControllerPhase(
         let value: unknown = invokeControllerLifecycleHook(controller, phase, hooks![i], initiator, parent);
         if (isPromise(value) && isControllerOperationPromise(controller, value)) {
           value = new SynchronousLifecycleError(
-            new LifecycleSelfAwaitError(controller.name, 'a lifecycle hook cannot await the operation that is waiting for that hook'),
+            new LifecycleSelfAwaitError(controller.name, LifecycleSelfAwaitReason.operation),
           );
         }
         values[accepted++] = { order, value };
@@ -270,7 +270,7 @@ export function invokeControllerPhase(
         let value: unknown = invokeControllerVmHook(controller, phase, initiator, parent);
         if (isPromise(value) && isControllerOperationPromise(controller, value)) {
           value = new SynchronousLifecycleError(
-            new LifecycleSelfAwaitError(controller.name, 'a lifecycle hook cannot await the operation that is waiting for that hook'),
+            new LifecycleSelfAwaitError(controller.name, LifecycleSelfAwaitReason.operation),
           );
         }
         values[accepted++] = { order, value };

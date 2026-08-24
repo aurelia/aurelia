@@ -9,10 +9,9 @@ import { Controller, type ControllerVisitor, HydrationContext, IController, ICus
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
-import { ErrorNames, createMappedError } from '../../errors';
+import { cleanupAfterFailure, ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
-import { cleanupAfterFailure } from '../../utilities';
 
 /**
  * An optional interface describing the dynamic composition activate convention.
@@ -160,7 +159,7 @@ export class AuCompose {
     }
     return pending.then(
       deactivate,
-      error => cleanupAfterFailure(error, deactivate, 'AuCompose operation failed during teardown cleanup'),
+      error => cleanupAfterFailure(error, deactivate, ErrorNames.au_compose_operation_teardown_failed),
     );
   }
 
@@ -200,12 +199,12 @@ export class AuCompose {
     try {
       result = deactivate();
     } catch (error) {
-      return cleanupAfterFailure(error, dispose, 'AuCompose deactivation failed during disposal');
+      return cleanupAfterFailure(error, dispose, ErrorNames.au_compose_deactivation_disposal_failed);
     }
     if (isPromise(result)) {
       return result.then(
         dispose,
-        error => cleanupAfterFailure(error, dispose, 'AuCompose deactivation failed during disposal'),
+        error => cleanupAfterFailure(error, dispose, ErrorNames.au_compose_deactivation_disposal_failed),
       );
     }
     dispose();
@@ -366,7 +365,7 @@ export class AuCompose {
                       // compensation also completed synchronously.
                       void this._disposeComposition(result, () => result.deactivate(result.controller));
                     },
-                    'AuCompose activation failed during disposal',
+                    ErrorNames.au_compose_activation_disposal_failed,
                   );
                 }
               } else {
@@ -413,7 +412,7 @@ export class AuCompose {
                           // compensation has reached its stable boundary.
                           void this._disposeComposition(result, () => result.deactivate(result.controller));
                         },
-                        'AuCompose activation failed during disposal',
+                        ErrorNames.au_compose_activation_disposal_failed,
                       );
                     }
                     throw error;
@@ -659,12 +658,12 @@ function finalizeCompositionDeactivation(
   try {
     result = deactivate();
   } catch (error) {
-    return cleanupAfterFailure(error, cleanup, 'AuCompose deactivation failed during host cleanup');
+    return cleanupAfterFailure(error, cleanup, ErrorNames.au_compose_host_cleanup_failed);
   }
   if (isPromise(result)) {
     return result.then(
       cleanup,
-      error => cleanupAfterFailure(error, cleanup, 'AuCompose deactivation failed during host cleanup'),
+      error => cleanupAfterFailure(error, cleanup, ErrorNames.au_compose_host_cleanup_failed),
     );
   }
   cleanup();

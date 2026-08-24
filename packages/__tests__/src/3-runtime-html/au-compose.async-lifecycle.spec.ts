@@ -698,7 +698,7 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
         assert.fail('Expected activation and disposal failures to aggregate');
       }
       assert.deepStrictEqual(aggregate.errors, [activationError, disposalError]);
-      assert.strictEqual(aggregate.message, 'AuCompose activation failed during disposal');
+      assert.match(aggregate.message, /AUR0834: AuCompose activation failed during disposal/);
       assert.strictEqual(fixture.appHost.querySelector('activation-and-disposal-failure'), null);
       fixture.assertText('stable');
       await fixture.tearDown();

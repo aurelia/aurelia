@@ -3,20 +3,65 @@ import {
   IRenderLocation,
   type ISSRScope,
   type ISSRTemplateController,
+  type ISSRDefinition,
   adoptSSRView,
   adoptSSRViews,
+  hydrateSSRDefinition,
   IViewFactory,
   ViewFactory,
   CustomElementDefinition,
   isSSRTemplateController,
   isSSRScope,
 } from '@aurelia/runtime-html';
+import { itHydrateTemplateController, itPropertyBinding } from '@aurelia/template-compiler';
 import {
   assert,
   TestContext,
 } from '@aurelia/testing';
 
 describe('3-runtime-html/ssr-hydration.spec.ts', function () {
+  describe('definition diagnostics', function () {
+    const createDefinition = (instruction: object): ISSRDefinition => ({
+      template: '',
+      expressions: [],
+      definition: {
+        name: 'diagnostic-root',
+        instructions: [[instruction]],
+        nestedTemplates: [],
+        targetCount: 1,
+      },
+      nestedHtmlTree: [],
+    } as unknown as ISSRDefinition);
+
+    it('reports a missing nested template through an AU code', function () {
+      const definition = createDefinition({
+        type: itHydrateTemplateController,
+        res: 'if',
+        templateIndex: 0,
+        instructions: [],
+      });
+
+      assert.throws(() => hydrateSSRDefinition(definition), /AUR0840: SSR hydration error: missing nested template at index 0/);
+    });
+
+    it('reports an unknown serialized instruction through an AU code', function () {
+      const definition = createDefinition({ type: 99_999 });
+
+      assert.throws(() => hydrateSSRDefinition(definition), /AUR0841: SSR hydration error: unknown instruction type 99999/);
+    });
+
+    it('reports a missing serialized expression through an AU code', function () {
+      const definition = createDefinition({
+        type: itPropertyBinding,
+        exprId: 'missing',
+        to: 'value',
+        mode: 0,
+      });
+
+      assert.throws(() => hydrateSSRDefinition(definition), /AUR0842: SSR hydration error: expression missing was not found/);
+    });
+  });
+
   /**
    * Creates a render location (au-start/au-end comment pair) with
    * pre-populated child nodes between them.

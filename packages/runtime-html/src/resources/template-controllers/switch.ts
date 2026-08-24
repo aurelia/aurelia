@@ -22,9 +22,8 @@ import { adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
-import { createMappedError, ErrorNames } from '../../errors';
+import { cleanupAfterFailure, createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
-import { cleanupAfterFailure } from '../../utilities';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -110,7 +109,7 @@ export class Switch implements ICustomAttributeViewModel {
     }
     return pending.then(
       deactivate,
-      error => cleanupAfterFailure(error, deactivate, 'Switch activation failed during teardown cleanup'),
+      error => cleanupAfterFailure(error, deactivate, ErrorNames.switch_activation_teardown_failed),
     );
   }
 

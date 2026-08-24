@@ -1,5 +1,6 @@
 <script type="module">
-import { start } from './dist/app.latest.js';
+import { loadVariant } from '../utils/load-variant.js';
+const { start } = await loadVariant('app-repeat-view-big-template');
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('1k-start');

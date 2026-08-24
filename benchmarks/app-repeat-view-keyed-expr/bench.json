@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
-  "root": "../../../",
+  "root": "..",
   
   "benchmarks": [
     {
@@ -15,12 +15,12 @@
       ],
       "expand": [
         {
-          "name": "keyed expr npm",
-          "url": "startup-latest.html"
+          "name": "keyed expr base",
+          "url": "startup.html?variant=base"
         },
         {
-          "name": "keyed expr local",
-          "url": "startup-local.html"
+          "name": "keyed expr candidate",
+          "url": "startup.html?variant=candidate"
         }
       ]
     }

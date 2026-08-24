@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
-  "root": "../../../",
+  "root": "..",
   
   "benchmarks": [
     {
@@ -14,12 +14,12 @@
       ],
       "expand": [
         {
-          "name": "startup 1k latest (big template)",
-          "url": "startup1k-latest-big-template.html"
+          "name": "startup 1k base (big template)",
+          "url": "startup1k-big-template.html?variant=base"
         },
         {
-          "name": "startup 1k local (big template)",
-          "url": "startup1k-local-big-template.html"
+          "name": "startup 1k candidate (big template)",
+          "url": "startup1k-big-template.html?variant=candidate"
         }
       ]
     }

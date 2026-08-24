@@ -1,15 +1,14 @@
 <script type="module">
-import { start } from './dist/app.latest.js';
+import { loadVariant } from '../utils/load-variant.js';
+const { start } = await loadVariant('app-repeat-view-keyed-string');
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('start');
 const au = start(host, 10000);
 
 performance.mark('end');
-performance.measure('keyed-expr', 'start', 'end');
+performance.measure('keyed-string', 'start', 'end');
 
 // measure memory in MBs
 window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
-
-
 </script>

@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
-  "root": "../../../",
+  "root": "..",
   
   "benchmarks": [
     {
@@ -15,12 +15,12 @@
       ],
       "expand": [
         {
-          "name": "update 1k latest",
-          "url": "update1k-latest.html"
+          "name": "update 1k base",
+          "url": "update1k.html?variant=base"
         },
         {
-          "name": "update 1k local",
-          "url": "update1k-local.html"
+          "name": "update 1k candidate",
+          "url": "update1k.html?variant=candidate"
         }
       ]
     }

@@ -39,6 +39,21 @@ parameters:
   run_pr_lite:
     type: boolean
     default: true
+  benchmark_profile:
+    type: string
+    default: ""
+  benchmark_pr:
+    type: string
+    default: ""
+  benchmark_base_sha:
+    type: string
+    default: ""
+  benchmark_head_sha:
+    type: string
+    default: ""
+  benchmark_candidate_sha:
+    type: string
+    default: ""
 
 # # # # # # # # # # # # # # # #
 # - Executors -
@@ -480,54 +495,144 @@ jobs:
 
   tacho_benchmark_prep:
     executor: docker_circleci_bench
+    environment:
+      BENCHMARK_REQUEST_PROFILE: << pipeline.parameters.benchmark_profile >>
+      BENCHMARK_REQUEST_PR: << pipeline.parameters.benchmark_pr >>
+      BENCHMARK_REQUEST_BASE_SHA: << pipeline.parameters.benchmark_base_sha >>
+      BENCHMARK_REQUEST_HEAD_SHA: << pipeline.parameters.benchmark_head_sha >>
+      BENCHMARK_REQUEST_CANDIDATE_SHA: << pipeline.parameters.benchmark_candidate_sha >>
     steps:
       - checkout
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-true
       - run:
-          name: "bench prep dep"
-          working_directory: "benchmarks/latest"
-          command: npm i
+          name: "Verify benchmark revisions"
+          command: |
+            set -euo pipefail
+
+            candidate=$(git rev-parse HEAD)
+            if [[ -n "${BENCHMARK_REQUEST_PR}" ]]; then
+              if [[ ! "${BENCHMARK_REQUEST_PR}" =~ ^[1-9][0-9]*$ ]]; then
+                echo "Invalid benchmark PR number: ${BENCHMARK_REQUEST_PR}" >&2
+                exit 1
+              fi
+              if [[ "${CIRCLE_BRANCH}" != "pull/${BENCHMARK_REQUEST_PR}/merge" ]]; then
+                echo "Expected CircleCI merge ref pull/${BENCHMARK_REQUEST_PR}/merge, got ${CIRCLE_BRANCH}." >&2
+                exit 1
+              fi
+
+              sha_pattern='^[0-9a-f]{40}$'
+              for value in \
+                "${BENCHMARK_REQUEST_BASE_SHA}" \
+                "${BENCHMARK_REQUEST_HEAD_SHA}" \
+                "${BENCHMARK_REQUEST_CANDIDATE_SHA}"; do
+                if [[ ! "${value}" =~ ${sha_pattern} ]]; then
+                  echo "Benchmark revisions must be full lowercase commit SHAs: ${value}" >&2
+                  exit 1
+                fi
+              done
+              if [[ "${candidate}" != "${BENCHMARK_REQUEST_CANDIDATE_SHA}" ]]; then
+                echo "CircleCI checked out ${candidate}, expected ${BENCHMARK_REQUEST_CANDIDATE_SHA}." >&2
+                exit 1
+              fi
+
+              read -r first_parent second_parent extra < <(git show -s --format=%P "${candidate}")
+              if [[ -n "${extra:-}" \
+                || "${first_parent:-}" != "${BENCHMARK_REQUEST_BASE_SHA}" \
+                || "${second_parent:-}" != "${BENCHMARK_REQUEST_HEAD_SHA}" ]]; then
+                echo "Candidate parents do not match the requested base and head." >&2
+                exit 1
+              fi
+
+              base=${BENCHMARK_REQUEST_BASE_SHA}
+              head=${BENCHMARK_REQUEST_HEAD_SHA}
+              profile=${BENCHMARK_REQUEST_PROFILE}
+              pr=${BENCHMARK_REQUEST_PR}
+            elif [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              read -r base _ < <(git show -s --format=%P "${candidate}")
+              if [[ -z "${base:-}" ]]; then
+                echo "The master benchmark requires a first-parent baseline." >&2
+                exit 1
+              fi
+              head=''
+              profile='master'
+              pr=''
+            else
+              echo "Benchmark provenance is missing for branch ${CIRCLE_BRANCH}." >&2
+              exit 1
+            fi
+
+            revisions=("${base}" "${candidate}")
+            if [[ -n "${head}" ]]; then
+              revisions+=("${head}")
+            fi
+            for revision in "${revisions[@]}"; do
+              if ! git cat-file -e "${revision}^{commit}"; then
+                git fetch --no-tags origin "${revision}"
+              fi
+            done
+
+            {
+              echo "export BENCHMARK_BASE_SHA=${base}"
+              echo "export BENCHMARK_HEAD_SHA=${head}"
+              echo "export BENCHMARK_CANDIDATE_SHA=${candidate}"
+              echo "export BENCHMARK_PROFILE=${profile}"
+              echo "export BENCHMARK_PR=${pr}"
+            } >> "${BASH_ENV}"
       - run:
-          name: "bench prep build"
+          name: "Prepare exact benchmark variants"
           working_directory: "benchmarks"
-          command: npm run build
-      - save_cache:
-          key: cache-{{ .Revision }}-benchmark-app
+          command: |
+            set -euo pipefail
+            args=(
+              --base "${BENCHMARK_BASE_SHA}"
+              --candidate "${BENCHMARK_CANDIDATE_SHA}"
+              --output results/variants
+              --profile "${BENCHMARK_PROFILE}"
+            )
+            if [[ -n "${BENCHMARK_PR}" ]]; then
+              args+=(--head "${BENCHMARK_HEAD_SHA}" --pull-request "${BENCHMARK_PR}")
+            fi
+            npm run bench:variants -- "${args[@]}"
+      - persist_to_workspace:
+          root: .
           paths:
-            - benchmarks/app-repeat-ce/dist
-            - benchmarks/app-repeat-view/dist
-            - benchmarks/app-repeat-view-big-template/dist
-            - benchmarks/app-repeat-view-keyed-expr/dist
-            - benchmarks/app-repeat-view-keyed-string/dist
+            - benchmarks/results/variants
+      - store_artifacts:
+          path: benchmarks/results/variants
+          destination: benchmark-variants
 
   tacho_benchmark:
     executor: docker_circleci_bench
     parameters:
       command:
         type: string
+      result:
+        type: string
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - browser-tools/install_chrome
       - browser-tools/install_chromedriver
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-true
-      - restore_cache:
-          name: "Restore benchmark artifacts"
-          key: cache-{{ .Revision }}-benchmark-app
       - run:
           name: "benchmark: <<parameters.command>>"
-          command: <<parameters.command>>
+          command: |
+            mkdir -p results
+            <<parameters.command>>
           working_directory: "benchmarks"
           no_output_timeout: "30s"
+      - persist_to_workspace:
+          root: .
+          paths:
+            - benchmarks/results/<<parameters.result>>
+      - store_artifacts:
+          path: benchmarks/results/<<parameters.result>>
+          destination: benchmark-results/<<parameters.result>>
 
   # on branches that only touches doc
   # there's no need to run the workflow
@@ -703,22 +808,16 @@ workflows:
           <<: *filter_only_topic
           name: pr_bench_install
 
-      - build_and_cache:
-          <<: *filter_only_topic
-          name: pr_bench_build_release
-          release: true
-          requires:
-            - pr_bench_install
-
       - tacho_benchmark_prep:
           <<: *filter_only_topic
           requires:
-            - pr_bench_build_release
+            - pr_bench_install
 
       - tacho_benchmark:
           <<: *filter_only_topic
           name: pr_benchmark_startup
           command: npm run bench:startup10k
+          result: repeat-view-startup-10k.json
           requires:
             - tacho_benchmark_prep
 
@@ -726,6 +825,7 @@ workflows:
           <<: *filter_only_topic
           name: pr_benchmark_rerender
           command: npm run bench:rerender10k
+          result: repeat-view-rerender-10k.json
           requires:
             - tacho_benchmark_prep
 
@@ -733,6 +833,7 @@ workflows:
           <<: *filter_only_topic
           name: pr_benchmark_compiler
           command: npm run bench:startup1k-big
+          result: app-repeat-view-startup-1k-big-template.json
           requires:
             - tacho_benchmark_prep
 
@@ -743,23 +844,17 @@ workflows:
           <<: *filter_only_topic
           name: bench_install
 
-      - build_and_cache:
-          <<: *filter_only_topic
-          name: bench_build_release
-          release: true
-          requires:
-            - bench_install
-
       - tacho_benchmark_prep:
           <<: *filter_only_topic
           name: bench_prep
           requires:
-            - bench_build_release
+            - bench_install
 
       - tacho_benchmark:
           <<: *filter_only_topic
           name: bench_startup10k
           command: npm run bench:startup10k
+          result: repeat-view-startup-10k.json
           requires:
             - bench_prep
 
@@ -767,6 +862,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_startup10k_ce
           command: npm run bench:startup10k-ce
+          result: repeat-ce-startup-10k.json
           requires:
             - bench_prep
 
@@ -774,6 +870,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_rerender10k
           command: npm run bench:rerender10k
+          result: repeat-view-rerender-10k.json
           requires:
             - bench_prep
 
@@ -781,6 +878,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_rerender10k_ce
           command: npm run bench:rerender10k-ce
+          result: repeat-ce-rerender-10k.json
           requires:
             - bench_prep
 
@@ -797,6 +895,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_startup1k_big
           command: npm run bench:startup1k-big
+          result: app-repeat-view-startup-1k-big-template.json
           requires:
             - bench_prep
 
@@ -804,6 +903,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_update1k
           command: npm run bench:update1k
+          result: repeat-view-update-1k.json
           requires:
             - bench_prep
 
@@ -811,6 +911,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_repeat_keyed_expression
           command: npm run bench:repeat-expr
+          result: app-repeat-view-keyed-expr.json
           requires:
             - bench_prep
 
@@ -818,6 +919,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_repeat_keyed_string
           command: npm run bench:repeat-string
+          result: app-repeat-view-keyed-string.json
           requires:
             - bench_prep
 
@@ -964,24 +1066,28 @@ workflows:
           <<: *filter_only_master
           name: benchmark_startup
           command: npm run bench:startup10k
+          result: repeat-view-startup-10k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_startup___custom_element
           command: npm run bench:startup10k-ce
+          result: repeat-ce-startup-10k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_rerender
           command: npm run bench:rerender10k
+          result: repeat-view-rerender-10k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_rerender__custom_element
           command: npm run bench:rerender10k-ce
+          result: repeat-ce-rerender-10k.json
           requires:
             - tacho_benchmark_prep
       # the app has been converted to a compiler focused bench
@@ -996,23 +1102,27 @@ workflows:
           <<: *filter_only_master
           name: benchmark_startup1k-big-template
           command: npm run bench:startup1k-big
+          result: app-repeat-view-startup-1k-big-template.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_update
           command: npm run bench:update1k
+          result: repeat-view-update-1k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_repeat_keyed_expression
           command: npm run bench:repeat-expr
+          result: app-repeat-view-keyed-expr.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_repeat_keyed_string
           command: npm run bench:repeat-string
+          result: app-repeat-view-keyed-string.json
           requires:
             - tacho_benchmark_prep

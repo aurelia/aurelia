@@ -1,5 +1,6 @@
 <script type="module">
-import { start } from './dist/app.local.js';
+import { loadVariant } from '../utils/load-variant.js';
+const { start } = await loadVariant('app-repeat-view');
 
 const host = document.body.appendChild(document.createElement('div'));
 const au = start(host, 1000);

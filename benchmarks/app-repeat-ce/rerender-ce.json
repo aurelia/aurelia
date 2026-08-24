@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
-  "root": "../../../",
+  "root": "..",
   
   "benchmarks": [
     {
@@ -15,12 +15,12 @@
       ],
       "expand": [
         {
-          "name": "rerender CE npm",
-          "url": "rerender10k-ce-latest.html"
+          "name": "rerender CE base",
+          "url": "rerender10k-ce.html?variant=base"
         },
         {
-          "name": "rerender CE local",
-          "url": "rerender10k-ce-local.html"
+          "name": "rerender CE candidate",
+          "url": "rerender10k-ce.html?variant=candidate"
         }
       ]
     }

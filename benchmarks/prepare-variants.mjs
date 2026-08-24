@@ -29,10 +29,21 @@ if (npmCli === undefined) {
 }
 
 const options = parseArguments(process.argv.slice(2));
-// This local primitive accepts any two exact revisions. The trusted CI trigger is responsible for
-// proving which base, head, and merge revisions belong to a PR before it invokes this script.
+// Local runs may compare any exact revisions. CI also supplies the PR head so this script can prove
+// that the candidate is the test merge of the requested base and head before doing expensive work.
 const baseCommit = await resolveCommit(options.base);
+const headCommit = options.head === undefined ? undefined : await resolveCommit(options.head);
 const candidateCommit = await resolveCommit(options.candidate);
+if (headCommit !== undefined) {
+  await verifyMergeCandidate(baseCommit, headCommit, candidateCommit);
+}
+const harnessCommit = await runCapture('git', ['rev-parse', 'HEAD'], repositoryRoot);
+const harnessTree = await runCapture('git', ['rev-parse', 'HEAD^{tree}'], repositoryRoot);
+if (options.pullRequest !== undefined && harnessCommit !== candidateCommit) {
+  throw new Error(
+    `PR benchmark harness is ${harnessCommit}, expected the verified candidate ${candidateCommit}.`
+  );
+}
 const outputRoot = path.resolve(
   options.output ?? path.join(benchmarksRoot, 'results', `comparison-${baseCommit.slice(0, 7)}-${candidateCommit.slice(0, 7)}`)
 );
@@ -89,9 +100,17 @@ try {
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
     repository: await runCapture('git', ['remote', 'get-url', 'origin'], repositoryRoot),
+    comparison: {
+      profile: options.profile ?? null,
+      pullRequest: options.pullRequest ?? null,
+      base: baseCommit,
+      head: headCommit ?? null,
+      candidate: candidateCommit,
+      mergeParentsVerified: headCommit !== undefined,
+    },
     harness: {
-      commit: await runCapture('git', ['rev-parse', 'HEAD'], repositoryRoot),
-      tree: await runCapture('git', ['rev-parse', 'HEAD^{tree}'], repositoryRoot),
+      commit: harnessCommit,
+      tree: harnessTree,
       dirty: (await runCapture('git', ['status', '--porcelain'], repositoryRoot)) !== '',
       fixtures: options.fixtures,
       sha256: harnessFileSet.sha256,
@@ -319,6 +338,7 @@ async function getHarnessFileSet() {
     'ls-files',
     '--',
     '.circleci/config.yml',
+    '.github/scripts',
     '.github/workflows/main.yml',
     '.github/workflows/trigger-circleci-bench.yml',
     '.github/workflows/trigger-circleci-pr-full.yml',
@@ -344,13 +364,28 @@ async function resolveCommit(revision) {
   return runCapture('git', ['rev-parse', '--verify', `${revision}^{commit}`], repositoryRoot);
 }
 
+async function verifyMergeCandidate(base, head, candidate) {
+  const [resolvedCandidate, ...parents] = (
+    await runCapture('git', ['rev-list', '--parents', '-n', '1', candidate], repositoryRoot)
+  ).split(' ');
+  if (resolvedCandidate !== candidate || parents.length !== 2 || parents[0] !== base || parents[1] !== head) {
+    throw new Error(
+      `Benchmark candidate ${candidate} is not the test merge of base ${base} and head ${head}. `
+      + `Found parents: ${parents.join(', ') || '<none>'}.`
+    );
+  }
+}
+
 function parseArguments(argv) {
   const parsed = { fixtures: [], expectIdentical: false, keepWorkdir: false };
   for (let index = 0; index < argv.length; index++) {
     const argument = argv[index];
     switch (argument) {
       case '--base': parsed.base = requireValue(argv, ++index, argument); break;
+      case '--head': parsed.head = requireValue(argv, ++index, argument); break;
       case '--candidate': parsed.candidate = requireValue(argv, ++index, argument); break;
+      case '--pull-request': parsed.pullRequest = requireValue(argv, ++index, argument); break;
+      case '--profile': parsed.profile = requireValue(argv, ++index, argument); break;
       case '--fixture': parsed.fixtures.push(requireValue(argv, ++index, argument)); break;
       case '--output': parsed.output = requireValue(argv, ++index, argument); break;
       case '--expect-identical': parsed.expectIdentical = true; break;
@@ -359,7 +394,21 @@ function parseArguments(argv) {
     }
   }
   if (parsed.base === undefined || parsed.candidate === undefined) {
-    throw new Error('Usage: node benchmarks/prepare-variants.mjs --base <revision> --candidate <revision> [--expect-identical]');
+    throw new Error(
+      'Usage: node benchmarks/prepare-variants.mjs --base <revision> --candidate <revision> '
+      + '[--head <revision> --pull-request <number>] [--expect-identical]'
+    );
+  }
+  if (parsed.pullRequest !== undefined) {
+    if (!/^[1-9]\d*$/.test(parsed.pullRequest)) {
+      throw new Error(`Invalid pull request number "${parsed.pullRequest}".`);
+    }
+    if (parsed.head === undefined) {
+      throw new Error('--head is required when --pull-request is provided.');
+    }
+  }
+  if (parsed.profile !== undefined && !['smoke', 'full', 'master'].includes(parsed.profile)) {
+    throw new Error(`Unknown benchmark profile "${parsed.profile}".`);
   }
   if (parsed.fixtures.length === 0) parsed.fixtures = [...defaultFixtures];
   for (const fixture of parsed.fixtures) {

@@ -188,7 +188,7 @@ The structural rule is strict:
 - **Container strategy matters** – Setting `containerStrategy: 'new'` ensures each rendered view gets a fresh child container (see `PromiseTemplateController`); the default `'reuse'` is faster but shares services.
 - **Lifecycle must be balanced** – Always deactivate and dispose views you created. Built-ins call `.dispose()` in `detaching` to release DOM and avoid leaks.
 
-**Async swaps are phased** â€“ When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.
+**Async swaps are phased** “ When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.
 
 ## Next Steps
 

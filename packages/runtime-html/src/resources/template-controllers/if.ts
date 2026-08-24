@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve, resolve } from '@aurelia/kernel';
+import { isString, onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
@@ -268,7 +268,7 @@ export class Else implements ICustomAttributeViewModel {
     controller: IHydratableController,
     childController: ICustomAttributeController,
     _target: INode,
-    _instruction: IInstruction,
+    instruction: IInstruction,
   ): void {
     const children = controller.children;
     const prevBehavior = children?.[children.length - 1] as ICustomAttributeController | undefined;
@@ -282,8 +282,8 @@ export class Else implements ICustomAttributeViewModel {
     const link = childController.definition.attributeLink;
     const stampedTarget = link == null
       ? void 0
-      : (_instruction as HydrateTemplateController | null)?.data?.[link.marker];
-    this.isElseIf = typeof stampedTarget === 'string' && link?.target === stampedTarget;
+      : (instruction as HydrateTemplateController | null)?.data?.[link.marker];
+    this.isElseIf = isString(stampedTarget) && link?.target === stampedTarget;
     const ownFactory = this.isElseIf
       ? this._effectiveFactory ??= new ElseIfViewFactory(this._factory, () => this._chainedElseFactory)
       : this._factory;

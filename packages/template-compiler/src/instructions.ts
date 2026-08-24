@@ -54,6 +54,7 @@ export const itSetStyleAttribute = 36;
 export const itSpreadTransferedBinding = 50;
 export const itSpreadElementProp = 51;
 export const itSpreadValueBinding = 52;
+export const ifChainBranches = '__au_ifChainBranches';
 
 /**
  * Base instruction interface - use `Instruction` union type for stricter typing
@@ -167,6 +168,11 @@ export interface HydrateTemplateController<T extends IAttributeComponentDefiniti
   /**
    * Bindable instructions for the template controller instance
    */
+  readonly props: IInstruction[];
+}
+
+export interface IfChainBranchInstruction {
+  readonly def: IElementComponentDefinition;
   readonly props: IInstruction[];
 }
 

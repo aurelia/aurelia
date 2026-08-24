@@ -1,18 +1,132 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { onResolve, resolve } from '@aurelia/kernel';
+import { IObserverLocator } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
+import { PropertyBinding } from '../../binding/property-binding';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
+import { IRendering } from '../../templating/rendering';
 
 import type { INodeSequence } from '../../dom';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, ICustomElementController, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
-import { type HydrateTemplateController, type IInstruction } from '@aurelia/template-compiler';
+import {
+  itPropertyBinding,
+  itSetProperty,
+  type HydrateTemplateController,
+  type IInstruction,
+  type PropertyBindingInstruction,
+  type SetPropertyInstruction,
+} from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
 
 const elseLinkMarker = '__au_elseLink';
+const ifChainBranchesKey = '__au_ifChainBranches';
+type IfInstructionData = Record<PropertyKey, unknown> & {
+  [ifChainBranchesKey]?: { def: HydrateTemplateController['def']; props: IInstruction[] }[];
+};
+
+class IfChainBranch {
+  public view?: ISyntheticView = void 0;
+  public readonly hasCondition: boolean;
+  private _value: boolean = false;
+  private _cache: boolean | undefined = void 0;
+  private readonly _valueBinding?: PropertyBinding;
+  private readonly _cacheBinding?: PropertyBinding;
+  private _factory?: IViewFactory = void 0;
+
+  public constructor(
+    private readonly _owner: If,
+    controller: ICustomAttributeController,
+    public readonly def: HydrateTemplateController['def'],
+    props: IInstruction[],
+  ) {
+    let valueInstruction: PropertyBindingInstruction | SetPropertyInstruction | undefined;
+    let cacheInstruction: PropertyBindingInstruction | SetPropertyInstruction | undefined;
+
+    for (const prop of props) {
+      const propInstruction = prop as PropertyBindingInstruction | SetPropertyInstruction;
+      if (prop.type === itPropertyBinding || prop.type === itSetProperty) {
+        if (propInstruction.to === 'value') {
+          valueInstruction = propInstruction;
+        } else if (propInstruction.to === 'cache') {
+          cacheInstruction = propInstruction;
+        }
+      }
+    }
+
+    this.hasCondition = valueInstruction != null;
+
+    if (valueInstruction?.type === itPropertyBinding) {
+      PropertyBinding.mix();
+      this._valueBinding = new PropertyBinding(
+        controller,
+        controller.container,
+        this._owner._observerLocator,
+        valueInstruction.from as PropertyBinding['ast'],
+        this,
+        'value',
+        valueInstruction.mode,
+        false,
+      );
+    } else if (valueInstruction?.type === itSetProperty) {
+      this.value = valueInstruction.value;
+    }
+
+    if (cacheInstruction?.type === itPropertyBinding) {
+      PropertyBinding.mix();
+      this._cacheBinding = new PropertyBinding(
+        controller,
+        controller.container,
+        this._owner._observerLocator,
+        cacheInstruction.from as PropertyBinding['ast'],
+        this,
+        'cache',
+        cacheInstruction.mode,
+        false,
+      );
+    } else if (cacheInstruction?.type === itSetProperty) {
+      this.cache = cacheInstruction.value;
+    }
+  }
+
+  public get value(): boolean {
+    return this._value;
+  }
+
+  public set value(value: unknown) {
+    const nextValue = !!value;
+    if (this._value === nextValue) {
+      return;
+    }
+    this._value = nextValue;
+    this._owner._branchValueChanged();
+  }
+
+  public get cache(): boolean {
+    return this._cache ?? this._owner.cache;
+  }
+
+  public set cache(value: unknown) {
+    this._cache = value === '' || !!value && value !== 'false';
+  }
+
+  public bind(scope: Parameters<PropertyBinding['bind']>[0]): void {
+    this._cacheBinding?.bind(scope);
+    this._valueBinding?.bind(scope);
+  }
+
+  public unbind(): void {
+    this._valueBinding?.unbind();
+    this._cacheBinding?.unbind();
+  }
+
+  public getFactory(rendering: IRendering, controller: ICustomAttributeController): IViewFactory {
+    return this._factory ??= rendering.getViewFactory(this.def, controller.container);
+  }
+}
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -42,9 +156,27 @@ export class If implements ICustomAttributeViewModel {
   private pending: void | Promise<void> = void 0;
   /** @internal */ private _wantsDeactivate: boolean = false;
   /** @internal */ private _swapId: number = 0;
+  /** @internal */ private _isEvaluatingChain: boolean = false;
+  /** @internal */ private _chainBranches: IfChainBranch[] | undefined = void 0;
   /** @internal */ private readonly _ifFactory = resolve(IViewFactory);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ public readonly _observerLocator = resolve(IObserverLocator);
   /** @internal */ private readonly _platform = resolve(IPlatform);
+  /** @internal */ private readonly _rendering = resolve(IRendering);
+
+  public link(
+    _controller: IHydratableController,
+    childController: ICustomAttributeController,
+    _target: INode,
+    instruction: IInstruction,
+  ): void {
+    const chain = (instruction as HydrateTemplateController | null)?.data as IfInstructionData | null;
+    const branches = chain?.[ifChainBranchesKey];
+    if (branches == null || branches.length === 0) {
+      return;
+    }
+    this._chainBranches = branches.map(branch => new IfChainBranch(this, childController, branch.def, branch.props));
+  }
 
   public attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
     // SSR hydration: adopt existing DOM instead of creating new views.
@@ -94,14 +226,23 @@ export class If implements ICustomAttributeViewModel {
           if (!isCurrent()) {
             return;
           }
-          // falsy -> truthy
           if (value) {
+            this._unbindChainBranches();
             view = (this.view = this.ifView = this.cache && this.ifView != null
               ? this.ifView
               : this._ifFactory.create(ctrl)
             );
+          } else if (this._chainBranches != null) {
+            const branch = this._selectChainBranch();
+            if (branch != null) {
+              view = (this.view = branch.view = branch.cache && branch.view != null
+                ? branch.view
+                : branch.getFactory(this._rendering, ctrl).create(ctrl)
+              );
+            } else {
+              this.view = void 0;
+            }
           } else {
-            // truthy -> falsy
             view = (this.view = this.elseView = this.cache && this.elseView != null
               ? this.elseView
               : this.elseFactory?.create(ctrl)
@@ -149,8 +290,19 @@ export class If implements ICustomAttributeViewModel {
    */
   private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
     const ctrl = this.$controller;
-    const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;
-    const factory = wasIfBranch ? this._ifFactory : this.elseFactory;
+    const state = ssrScope.state as { value?: boolean; branchIndex?: number } | undefined;
+    if (state?.value !== true && this._chainBranches != null) {
+      this._selectChainBranch();
+    }
+    const branchIndex = state?.value === true
+      ? 0
+      : state?.branchIndex ?? this._getLegacyHydratedBranchIndex(ssrScope);
+    const branch = branchIndex != null && branchIndex > 0
+      ? this._chainBranches?.[branchIndex - 1]
+      : void 0;
+    const factory = branchIndex === 0
+      ? this._ifFactory
+      : branch?.getFactory(this._rendering, ctrl) ?? this.elseFactory;
 
     if (factory == null || ssrScope.views.length === 0) {
       ctrl.ssrScope = void 0;
@@ -164,8 +316,10 @@ export class If implements ICustomAttributeViewModel {
     }
 
     const { view } = result;
-    if (wasIfBranch) {
+    if (branchIndex === 0) {
       this.view = this.ifView = view;
+    } else if (branch != null) {
+      this.view = branch.view = view;
     } else {
       this.view = this.elseView = view;
     }
@@ -175,8 +329,10 @@ export class If implements ICustomAttributeViewModel {
   }
 
   public dispose(): void {
+    this._unbindChainBranches();
     this.ifView?.dispose();
     this.elseView?.dispose();
+    this._chainBranches?.forEach(branch => branch.view?.dispose());
     this.ifView
       = this.elseView
       = this.view
@@ -187,6 +343,76 @@ export class If implements ICustomAttributeViewModel {
     if (this.view?.accept(visitor) === true) {
       return true;
     }
+  }
+
+  /** @internal */
+  public _branchValueChanged(): void {
+    if (this._isEvaluatingChain || !this.$controller.isActive) {
+      return;
+    }
+    void this._swap(this.value);
+  }
+
+  /** @internal */
+  private _selectChainBranch(): IfChainBranch | undefined {
+    const branches = this._chainBranches!;
+    const scope = this.$controller.scope!;
+    let index = 0;
+    let selected: IfChainBranch | undefined;
+
+    this._isEvaluatingChain = true;
+    try {
+      for (; index < branches.length; ++index) {
+        const branch = branches[index];
+        if (branch.hasCondition) {
+          branch.bind(scope);
+          if (branch.value) {
+            selected = branch;
+            ++index;
+            break;
+          }
+          continue;
+        }
+        selected = branch;
+        ++index;
+        break;
+      }
+    } finally {
+      this._isEvaluatingChain = false;
+    }
+
+    while (index < branches.length) {
+      branches[index].unbind();
+      ++index;
+    }
+
+    return selected;
+  }
+
+  /** @internal */
+  private _unbindChainBranches(): void {
+    this._chainBranches?.forEach(branch => branch.unbind());
+  }
+
+  /** @internal */
+  private _getLegacyHydratedBranchIndex(ssrScope: ISSRTemplateController): number | undefined {
+    const state = ssrScope.state as { value?: boolean } | undefined;
+    if (state?.value === true) {
+      return 0;
+    }
+
+    let index = 0;
+    let current = ssrScope;
+    while ((current.state as { value?: boolean } | undefined)?.value !== true) {
+      const nested = current.views[0]?.children[0];
+      if (nested == null || !isSSRTemplateController(nested) || nested.type !== 'if') {
+        return index > 0 ? index : void 0;
+      }
+      ++index;
+      current = nested;
+    }
+
+    return index;
   }
 }
 

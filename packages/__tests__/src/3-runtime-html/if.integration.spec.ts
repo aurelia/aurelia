@@ -514,19 +514,31 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('exposes the wrapped else-if factory through the IViewFactory surface', function () {
+      const When = CustomAttribute.define({
+        name: 'when',
+        isTemplateController: true,
+        bindables: If.$au.bindables,
+      }, class When extends If {});
+      const Otherwise = CustomAttribute.define({
+        name: 'otherwise',
+        isTemplateController: true,
+        attributeLink: { direction: 'forward', marker: 'when-link', target: 'when' },
+      }, class Otherwise extends Else {});
+
       const { au } = createFixture(
         [
-          '<div if.bind="step === 0">a</div>',
-          '<div else if.bind="step === 1">b</div>',
-          '<div else>c</div>',
+          '<div when.bind="step === 0">a</div>',
+          '<div otherwise when.bind="step === 1">b</div>',
+          '<div otherwise>c</div>',
         ].join(''),
         class App {
           public step = 0;
-        }
+        },
+        [When, Otherwise]
       );
 
       const app = au.root.controller.viewModel as ICustomElementViewModel;
-      const ifCtrl = app.$controller.children.find(c => c.viewModel instanceof If)!;
+      const ifCtrl = app.$controller.children.find(c => c.viewModel instanceof When)!;
       const elseFactory = (ifCtrl.viewModel as If).elseFactory!;
       const def = elseFactory.def;
 
@@ -544,19 +556,31 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('rejects unrelated preceding view models during else linking', function () {
+      const When = CustomAttribute.define({
+        name: 'when',
+        isTemplateController: true,
+        bindables: If.$au.bindables,
+      }, class When extends If {});
+      const Otherwise = CustomAttribute.define({
+        name: 'otherwise',
+        isTemplateController: true,
+        attributeLink: { direction: 'forward', marker: 'when-link', target: 'when' },
+      }, class Otherwise extends Else {});
+
       const { au } = createFixture(
         [
-          '<div if.bind="step === 0">a</div>',
-          '<div else if.bind="step === 1">b</div>',
-          '<div else>c</div>',
+          '<div when.bind="step === 0">a</div>',
+          '<div otherwise when.bind="step === 1">b</div>',
+          '<div otherwise>c</div>',
         ].join(''),
         class App {
           public step = 0;
-        }
+        },
+        [When, Otherwise]
       );
 
       const app = au.root.controller.viewModel as ICustomElementViewModel;
-      const elseCtrl = app.$controller.children.find(c => c.viewModel instanceof Else);
+      const elseCtrl = app.$controller.children.find(c => c.viewModel instanceof Otherwise)!;
       const elseVm = elseCtrl.viewModel as Else;
 
       assert.throws(() => elseVm.link(
@@ -1214,14 +1238,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         name: 'app',
         children: [{
           type: 'if',
-          state: { value: false },
+          state: { branchIndex: 1 },
           views: [{
             nodeCount: 1,
-            children: [{
-              type: 'if',
-              state: { value: true },
-              views: [{ nodeCount: 1, children: [] }],
-            }],
+            children: [],
           }],
         }],
       };

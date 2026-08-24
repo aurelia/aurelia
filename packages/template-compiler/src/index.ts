@@ -88,6 +88,7 @@ export {
   type HydrateElementInstruction,
   type HydrateLetElementInstruction,
   type HydrateTemplateController,
+  type IfChainBranchInstruction,
   IInstruction,
   type Instruction,
   type InterpolationInstruction,
@@ -129,4 +130,5 @@ export {
   itSpreadTransferedBinding,
   itSpreadElementProp,
   itSpreadValueBinding,
+  ifChainBranches,
 } from './instructions';

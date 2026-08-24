@@ -28,6 +28,7 @@ import {
   itHydrateElement,
   itHydrateLetElement,
   itHydrateTemplateController,
+  ifChainBranches,
   itInterpolation,
   itLetBinding,
   itSetAttribute,
@@ -44,6 +45,7 @@ import {
   type HydrateElementInstruction,
   type HydrateLetElementInstruction,
   type HydrateTemplateController,
+  type IfChainBranchInstruction,
   type InterpolationInstruction,
   type LetBindingInstruction,
   type SetAttributeInstruction,
@@ -101,6 +103,11 @@ interface IAttrClassificationResult {
   plainAttrInstructions: IInstruction[] | undefined;
   /** Whether the element has the containerless attribute */
   hasContainerless: boolean;
+}
+
+interface ICompiledIfChainResult {
+  branches: IfChainBranchInstruction[];
+  nextSibling: Node | null;
 }
 
 export class TemplateCompiler implements ITemplateCompiler {
@@ -480,7 +487,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // 4. Compile children (handling template controllers specially)
     // 5. Return next sibling for continued compilation
 
-    const nextSibling = el.nextSibling;
+    let nextSibling = el.nextSibling;
     const elName = (el.getAttribute('as-element') ?? el.nodeName).toLowerCase();
     const elDef = context._findElement(elName);
 
@@ -620,6 +627,15 @@ export class TemplateCompiler implements ITemplateCompiler {
         instructions: tcChildContext.rows,
         needsCompile: false,
       };
+
+      if (tcCount === 1 && this._getAttributeDefinition(tcInstruction, context).name === 'if') {
+        const chain = this._compileFlatIfChain(nextSibling, context);
+        if (chain.branches.length > 0) {
+          const tcData = (tcInstruction as { data: Record<PropertyKey, unknown> | null }).data ??= {};
+          tcData[ifChainBranches] = chain.branches;
+          nextSibling = chain.nextSibling as ChildNode | null;
+        }
+      }
 
       // Step 7: Chain outer TCs from inside-out
       // Each outer TC gets a template with just a marker; its instruction is the next-inner TC
@@ -1487,6 +1503,67 @@ export class TemplateCompiler implements ITemplateCompiler {
     return typeof instruction.res === 'string'
       ? context._findAttr(instruction.res)!
       : instruction.res;
+  }
+
+  /** @internal */
+  private _compileFlatIfChain(
+    nextSibling: Node | null,
+    context: CompilationContext,
+  ): ICompiledIfChainResult {
+    const branches: IfChainBranchInstruction[] = [];
+    let candidate = nextSibling;
+
+    while (candidate !== null) {
+      if (!isElement(candidate)) {
+        break;
+      }
+      const branch = this._compileDetachedIfChainBranch(candidate, context);
+      if (branch == null) {
+        break;
+      }
+      const sibling = candidate.nextSibling;
+      candidate.parentNode?.removeChild(candidate);
+      branches.push(branch);
+      candidate = sibling;
+    }
+
+    return { branches, nextSibling: candidate };
+  }
+
+  /** @internal */
+  private _compileDetachedIfChainBranch(
+    source: Element,
+    context: CompilationContext,
+  ): IfChainBranchInstruction | null {
+    const branchHost = context.t();
+    const branchEl = source.cloneNode(true) as Element;
+    appendToTemplate(branchHost, branchEl);
+    const branchContext = context._createChild();
+    this._compileNode(branchEl, branchContext);
+
+    const instruction = branchContext.rows[0]?.[0];
+    if (instruction?.type !== itHydrateTemplateController) {
+      return null;
+    }
+
+    const outer = instruction as HydrateTemplateController;
+    const outerDef = this._getAttributeDefinition(outer, branchContext);
+    if (outerDef.name !== 'else') {
+      return null;
+    }
+
+    const nested = outer.def.instructions?.[0]?.[0] as HydrateTemplateController | undefined;
+    if (nested?.type === itHydrateTemplateController && this._getAttributeDefinition(nested, branchContext).name === 'if') {
+      return {
+        def: nested.def,
+        props: nested.props,
+      };
+    }
+
+    return {
+      def: outer.def,
+      props: emptyArray,
+    };
   }
 }
 

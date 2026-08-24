@@ -267,7 +267,6 @@ export class TemplateCompiler implements ITemplateCompiler {
           //       where instructions need to be serialized, def.name should be used
           res: this.resolveResources ? attrDef : attrDef.name,
           alias: attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
-          data: null,
           props: attrBindableInstructions
         } as HydrateAttributeInstruction);
         continue;
@@ -641,7 +640,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           attributeLink?.direction === 'forward'
           && attributeLink.target === nextTcDefinition.name
         ) {
-          const tcData = (tcInstruction as { data: Record<PropertyKey, unknown> | null }).data ??= {};
+          const tcData = (tcInstruction as { data?: Record<PropertyKey, unknown> }).data ??= {};
           tcData[attributeLink.marker] = nextTcDefinition.name;
         }
 
@@ -934,7 +933,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             def: voidDefinition,
             res: this.resolveResources ? attrDef : attrDef.name,
             alias: void 0,
-            data: null,
             props: attrBindableInstructions,
           } satisfies HydrateTemplateController);
         } else {
@@ -942,7 +940,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             type: itHydrateAttribute,
             res: this.resolveResources ? attrDef : attrDef.name,
             alias: attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
-            data: null,
             props: attrBindableInstructions
           } as HydrateAttributeInstruction);
         }

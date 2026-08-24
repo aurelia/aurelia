@@ -147,7 +147,7 @@ export interface HydrateAttributeInstruction<T extends IAttributeComponentDefini
    * Semi-private compiler/runtime metadata for this instruction.
    * Applications should not use this property directly, as it is subject to change without notice.
    */
-  readonly data: Record<PropertyKey, unknown> | null;
+  readonly data?: Record<PropertyKey, unknown>;
   /**
    * Bindable instructions for the custom attribute instance
    */
@@ -163,7 +163,7 @@ export interface HydrateTemplateController<T extends IAttributeComponentDefiniti
    * Semi-private compiler/runtime metadata for this instruction.
    * Applications should not use this property directly, as it is subject to change without notice.
    */
-  readonly data: Record<PropertyKey, unknown> | null;
+  readonly data?: Record<PropertyKey, unknown>;
   /**
    * Bindable instructions for the template controller instance
    */

@@ -11,7 +11,7 @@ const performanceMeasurement = {
 const heapMeasurement = {
   name: 'used JS heap',
   mode: 'expression',
-  expression: 'usedJSHeapSizeBytes',
+  expression: 'window.usedJSHeapSizeBytes',
 };
 
 void describe('compact benchmark summary', () => {

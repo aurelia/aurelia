@@ -132,7 +132,7 @@ export function measurementLabel(measurement) {
 
 export function metricKind(measurement) {
   if (measurement?.mode === 'performance') return 'duration';
-  if (measurement?.mode === 'expression' && measurement.expression === 'usedJSHeapSizeBytes') {
+  if (measurement?.mode === 'expression' && measurement.expression === 'window.usedJSHeapSizeBytes') {
     return 'heap-bytes';
   }
   return 'number';

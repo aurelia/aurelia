@@ -1,6 +1,7 @@
 <script type="module">
 import { assertDirectRows } from '../utils/assert-render.js';
 import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
 const { start, tasksSettled } = await loadVariant('app-repeat-view');
 
 const host = document.body.appendChild(document.createElement('div'));
@@ -22,6 +23,5 @@ assertDirectRows(host, 1000, 'div', {
   500: 'hello updated item 501 item',
   999: 'hello updated item 2 item',
 });
-performance.measure('update-1k', '1k-start', '1k-end');
-window.usedJSHeapSizeBytes = usedJSHeapSizeBytes;
+publishMeasurement('update-1k', '1k-start', '1k-end', usedJSHeapSizeBytes);
 </script>

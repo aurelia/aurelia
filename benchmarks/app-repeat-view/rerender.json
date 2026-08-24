@@ -16,7 +16,7 @@
       },
       "measurement": [
         { "name": "perf", "mode": "performance", "entryName": "rerender-10k" },
-        { "name": "used JS heap", "mode": "expression", "expression": "usedJSHeapSizeBytes" }
+        { "name": "used JS heap", "mode": "expression", "expression": "window.usedJSHeapSizeBytes" }
       ],
       "expand": [
         {

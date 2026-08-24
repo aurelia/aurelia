@@ -113,7 +113,7 @@ function provenance() {
 
 function timingInput(file, scenario, entryName, includeHeap = true) {
   const perf = { name: 'perf', mode: 'performance', entryName };
-  const heap = { name: 'used JS heap', mode: 'expression', expression: 'usedJSHeapSizeBytes' };
+  const heap = { name: 'used JS heap', mode: 'expression', expression: 'window.usedJSHeapSizeBytes' };
   const browser = { name: 'chrome', headless: true, userAgent: 'Chrome/140.0.0.0' };
   const benchmarks = includeHeap
     ? [

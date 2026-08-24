@@ -1,6 +1,7 @@
 <script type="module">
 import { assertSelectorCount } from '../utils/assert-render.js';
 import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
 const { start } = await loadVariant('app-repeat-view-big-template');
 
 const host = document.body.appendChild(document.createElement('div'));
@@ -9,5 +10,5 @@ await start(host, 100);
 performance.mark('100-end');
 
 assertSelectorCount(host, '[data-attr-0]', 100);
-performance.measure('startup-100-big-template', '100-start', '100-end');
+publishMeasurement('startup-100-big-template', '100-start', '100-end');
 </script>

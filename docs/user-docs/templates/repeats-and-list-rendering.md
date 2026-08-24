@@ -5,9 +5,9 @@ description: >-
   dynamic collections including arrays, maps, sets, and custom data structures.
 ---
 
-# List Rendering
+# List rendering
 
-The `repeat.for` binding is Aurelia's powerful list rendering mechanism that creates highly optimized, reactive displays of collection data. It intelligently tracks changes, minimizes DOM updates, and provides rich contextual information for sophisticated data presentation.
+The `repeat.for` binding renders one view for each value in a collection. Aurelia observes collection changes, reuses existing row views, and provides contextual values such as `$index` and `$first`.
 
 ## Core Concepts
 
@@ -45,27 +45,33 @@ export class MyComponent {
   }
 
   updateFirst() {
-    // This change is also detected
-    this.items[0] = { name: 'Johnny' };
+    // splice reports the replacement to the collection observer
+    this.items.splice(0, 1, { name: 'Johnny' });
   }
 }
 ```
 
-**Important:** Use array mutating methods (`push`, `pop`, `splice`, `reverse`, `sort`) for automatic detection. Direct index assignment works but requires the array reference to change for detection.
+Use observed array methods such as `push`, `pop`, `splice`, `reverse`, and `sort` for in-place updates. You can also assign a new array reference. Native index assignment bypasses the collection observer.
+
+### Rows with asynchronous lifecycle hooks
+
+Repeated components keep their normal lifecycle. When row activation or teardown returns a Promise, Aurelia completes one reconciliation at a time. Collection changes received during that work are recorded and applied from the current collection when the row lifecycle settles. Fully synchronous rows continue to update inline.
+
+If row work fails, Repeat observes every row operation it already accepted and reports the original failure from the lowest row index. The reconciliation is terminal for that Repeat instance. Use stable item identifiers in application logging to locate the component and lifecycle hook that failed.
 
 ## Performance Optimization with Keys
 
 ### Why Keys Matter
 
-Without keys, Aurelia recreates DOM elements when collections change. With keys, it reuses existing elements:
+An unkeyed repeat associates row views with collection positions. A keyed repeat associates them with item identities, which lets a row's DOM and component state follow the item through a reorder:
 
 ```html
-<!-- Without keys: recreates all DOM on reorder -->
+<!-- Row state follows each collection position -->
 <div repeat.for="user of users">
   <input value.bind="user.name">
 </div>
 
-<!-- With keys: preserves DOM and form state -->
+<!-- Row state follows each user id -->
 <div repeat.for="user of users; key.bind: user.id">
   <input value.bind="user.name">
 </div>
@@ -80,6 +86,8 @@ Without keys, Aurelia recreates DOM elements when collections change. With keys,
   ${product.name}
 </li>
 ```
+
+Stable, unique keys express one unambiguous identity per item. Duplicate keys are matched by occurrence order, so the first new occurrence reuses the first old occurrence with that key.
 
 **Literal property keys (more efficient):**
 ```html
@@ -671,7 +679,7 @@ this.items = [...this.items.slice(0, 0), newItem, ...this.items.slice(1)];
 
 **Problem:** Input values disappear when list is reordered
 ```html
-<!-- No keys = DOM recreation -->
+<!-- Row state follows position during a reorder -->
 <div repeat.for="item of items">
   <input value.bind="item.name">
 </div>
@@ -679,7 +687,7 @@ this.items = [...this.items.slice(0, 0), newItem, ...this.items.slice(1)];
 
 **Solution:** Use stable keys
 ```html
-<!-- Keys preserve DOM elements -->
+<!-- Row state follows each item id -->
 <div repeat.for="item of items; key.bind: item.id">
   <input value.bind="item.name">
 </div>

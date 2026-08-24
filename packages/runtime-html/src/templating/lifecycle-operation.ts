@@ -12,9 +12,9 @@ import { createMappedErrorMessage, ErrorNames, LifecycleSelfAwaitReason } from '
 
 /**
  * Promoted state for a Controller lifecycle whose ownership can no longer be
- * represented by the synchronous counters alone. Promotion happens only after
- * a hook yields, an error requires compensation, or another transition joins
- * or overlaps it; compensation can still finish and throw synchronously.
+ * represented by the synchronous counters alone. Promotion happens after a
+ * hook yields, a failure needs a stable result, or another transition joins or
+ * overlaps it. A requested opposite transition may still finish synchronously.
  *
  * One operation is shared by the initiator subtree. Each participating
  * Controller has a step that fixes its parent chain and owns its local result,
@@ -24,7 +24,7 @@ import { createMappedErrorMessage, ErrorNames, LifecycleSelfAwaitReason } from '
  * @internal
  */
 export type LifecycleOperationKind = 'activate' | 'deactivate';
-export type LifecycleOperationMode = 'running' | 'activation-rollback' | 'settled';
+export type LifecycleOperationMode = 'running' | 'activation-cancellation' | 'settled';
 export type InvocableLifecyclePhase = 'binding' | 'bound' | 'attaching' | 'attached' | 'detaching' | 'unbinding';
 
 export interface TransitionRequest {
@@ -37,7 +37,6 @@ export interface TransitionRequest {
 export interface LifecycleErrorRecord {
   readonly order: number;
   readonly error: unknown;
-  readonly activation: boolean;
 }
 
 export interface LifecycleOperation {
@@ -53,8 +52,6 @@ export interface LifecycleOperation {
   teardownTail: Controller | null;
   /** Ancestor drain this independently initiated child operation has joined. */
   joinedInto?: Promise<void>;
-  /** Explicit deactivation may supersede its own activation failure, but never cleanup/cycle failures. */
-  suppressActivationError: boolean;
 }
 
 export interface ControllerStep {
@@ -67,8 +64,6 @@ export interface ControllerStep {
   /** Local controller/subtree result; the initiator result remains the whole-operation drain. */
   result?: LifecycleDeferred;
   firstError?: LifecycleErrorRecord;
-  /** First rollback/cleanup error in this step's subtree when activation was explicitly superseded. */
-  firstNonActivationError?: LifecycleErrorRecord;
   /** Dynamic owners defer disposal until this step has completed structural cleanup. */
   disposeRequested: boolean;
 }
@@ -152,15 +147,9 @@ export const recordStepError = (
   order: number,
   error: unknown,
 ): void => {
-  if (error instanceof LifecycleSelfAwaitError) {
-    // A cycle is caused by the replacement transition itself, not by the
-    // activation it superseded, so it must remain observable.
-    source.operation.suppressActivationError = false;
-  }
   const record: LifecycleErrorRecord = {
     order,
     error,
-    activation: source.operation.kind === 'activate' && source.operation.mode !== 'activation-rollback',
   };
   // Cache the first relevant error at every subtree boundary. This is what
   // allows a descendant result to settle before the stronger initiator drain.
@@ -169,25 +158,11 @@ export const recordStepError = (
     if (step.firstError === void 0 || order < step.firstError.order) {
       step.firstError = record;
     }
-    if (
-      !record.activation
-      && (step.firstNonActivationError === void 0 || order < step.firstNonActivationError.order)
-    ) {
-      step.firstNonActivationError = record;
-    }
     step = step.parent;
   }
 };
 
-export const getOperationError = (step: ControllerStep): LifecycleErrorRecord | undefined => {
-  if (!step.operation.suppressActivationError) {
-    return step.firstError;
-  }
-  // Explicit deactivation suppresses only work from the activation it
-  // superseded. The per-step cache keeps a descendant result scoped to its own
-  // subtree instead of accidentally importing a sibling cleanup failure.
-  return step.firstNonActivationError;
-};
+export const getOperationError = (step: ControllerStep): LifecycleErrorRecord | undefined => step.firstError;
 
 type ActivationHookEntry =
   | LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'binding'>
@@ -212,7 +187,6 @@ export function invokeControllerPhase(
   phase: InvocableLifecyclePhase,
   initiator: IHydratedController,
   parent: IHydratedController | null,
-  bestEffort: boolean,
   operation: LifecycleOperation | undefined,
 ): void | Promise<void> {
   // Controller's phase dispatch excludes synthetic views before reaching this
@@ -256,12 +230,12 @@ export function invokeControllerPhase(
           );
         }
         values[accepted++] = { order, value };
-        // Activation stops admitting later providers after a synchronous
-        // failure. Teardown uses bestEffort so every cleanup provider runs.
-        if (value instanceof SynchronousLifecycleError && !bestEffort) return settleLifecycleValues(values, accepted);
+        // A synchronous failure stops admission of later providers. Promises
+        // returned by providers already called still settle before it surfaces.
+        if (value instanceof SynchronousLifecycleError) return settleLifecycleValues(values, accepted);
       } catch (error) {
         values[accepted++] = { order, value: new SynchronousLifecycleError(error) };
-        if (!bestEffort) return settleLifecycleValues(values, accepted);
+        return settleLifecycleValues(values, accepted);
       }
     }
     if (hasVmHook) {
@@ -394,8 +368,9 @@ function settleLifecycleValues(
     promiseOrders.set(participant.promise, participant.order);
     return participant.promise as Promise<void>;
   }
-  // A phase does not complete at its first rejection: already accepted hooks
-  // may still own DOM or other resources that the next phase must not race.
+  // Preserve registration-order error selection across providers that were
+  // already invoked. This makes the reported error deterministic without
+  // admitting more hooks after a synchronous failure.
   const result = Promise.allSettled(promises.map(x => x.promise)).then(results => {
     for (let i = 0; i < results.length; ++i) {
       const result = results[i];

@@ -116,16 +116,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return (this.state & (activating | activated)) > 0 && (this.state & deactivating) === 0;
   }
 
-  /**
-   * Whether this controller is participating in its initiator's activation rollback.
-   * This is intentionally operation-wide so unpromoted descendants can distinguish
-   * compensation from an ordinary owner-requested teardown.
-   * @internal
-   */
-  public get isActivationRollback(): boolean {
-    return (this.$initiator as Controller | null)?._operation?.operation.mode === 'activation-rollback';
-  }
-
   public get name(): string {
     if (this.parent === null) {
       switch (this.vmKind) {
@@ -639,9 +629,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       if (current.operation.initiator !== initiator) {
         throw createMappedError(ErrorNames.controller_activation_unexpected_state, this.name, stringifyState(this.state));
       }
-      // Activation rollback may change kind in place; an opposite request can
-      // also reuse a live operation whose kind differs. Initiator identity owns
-      // both forms of reuse.
+      // Activation cancellation may change kind in place. An opposite request
+      // can also reuse a live operation whose kind differs. Initiator identity
+      // owns both forms of reuse.
       return current;
     }
 
@@ -662,7 +652,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         },
         teardownHead: this.head as Controller | null,
         teardownTail: this.tail as Controller | null,
-        suppressActivationError: false,
       };
     } else {
       // Build immutable operation ancestry alongside the existing counter
@@ -724,9 +713,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     phase: InvocableLifecyclePhase,
     initiator: IHydratedController,
     parent: IHydratedController | null,
-    bestEffort: boolean,
   ): void | Promise<void> {
-    return invokeControllerPhase(this, phase, initiator, parent, bestEffort, this._operation?.operation);
+    return invokeControllerPhase(this, phase, initiator, parent, this._operation?.operation);
   }
 
   /** @internal */
@@ -742,11 +730,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // without replacing those boundaries with a new .then() chain.
     void promise.then(
       () => {
+        if (step.operation.mode === 'settled') {
+          return;
+        }
         // Framework continuations contain their own phase/cleanup errors before
         // returning; the participant observer only advances their counters.
         onFulfilled();
       },
       error => {
+        if (step.operation.mode === 'settled') {
+          return;
+        }
         this._recordOperationError(step, order, error);
         onFailure();
       },
@@ -779,8 +773,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _throwSynchronousOperationError(step: ControllerStep): void {
     // Keep a promoted-but-synchronous failure as a raw synchronous throw. A
-    // Controller should not become async merely because compensation needed an
-    // operation record but no participant actually yielded.
+    // Controller should not become async merely because error tracking needed
+    // an operation record while every participant remained synchronous.
     if (this._operation === step) {
       this._operation = null;
     }
@@ -794,17 +788,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   private _finalizeOperationError(step: ControllerStep): LifecycleErrorRecord | undefined {
-    // Requested disposal belongs to this settlement. Run it after operation
-    // identity is released, but before choosing the public error, so disposal
-    // failures retain their causal order without changing sync/async delivery.
-    if (step.disposeRequested) {
+    let error = getOperationError(step);
+    // Deferred disposal belongs to a successfully completed teardown. A failed
+    // transition remains available for diagnosis instead of pretending that a
+    // partially completed lifecycle can be repaired by further cleanup.
+    if (error === void 0 && step.disposeRequested) {
       try {
         this._disposeCore();
-      } catch (error) {
-        this._recordOperationError(step, void 0, error);
+      } catch (disposeError) {
+        this._recordOperationError(step, void 0, disposeError);
+        error = getOperationError(step);
       }
     }
-    return getOperationError(step);
+    return error;
   }
 
   public activate(
@@ -886,7 +882,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.$initiator = initiator;
 
     // One base participant spans binding through child activation and attached;
-    // the successful attach path or activation compensation closes it.
+    // successful activation, failure, or explicit cancellation closes it.
     this._enterActivating(initiator, parent);
     // Hookless views stay on the historical direct path. Besides avoiding
     // allocations, this keeps large Repeat trees at their established cost.
@@ -908,7 +904,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void | Promise<void> {
     let result: void | Promise<void>;
     try {
-      result = this._invokePhase(phase, initiator, parent, false);
+      result = this._invokePhase(phase, initiator, parent);
     } catch (error) {
       return this._failActivationPhase(initiator, parent, error);
     }
@@ -1026,6 +1022,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
+    /* istanbul ignore next -- native DOM insertion failure requires a hostile DOM implementation */
     try {
       switch (this.mountTarget) {
         case targetHost:
@@ -1057,7 +1054,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       && (this._lifecycleHooks!.attaching != null || this._vmHooks._attaching)
     ) {
       try {
-        ret = this._invokePhase('attaching', initiator, parent, false);
+        ret = this._invokePhase('attaching', initiator, parent);
       } catch (error) {
         return this._failActivationPhase(initiator, parent, error);
       }
@@ -1110,7 +1107,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void {
     // A child belonging to a separately initiated operation did not increment
     // this ancestor's counters. Enroll its drain as one ancestor participant so
-    // activation cannot publish success or begin rollback while the child is live.
+    // activation cannot publish success or honor cancellation while the child is live.
     const source = this._operation ?? this._ensureStep(
       'activate',
       initiator as Controller,
@@ -1140,23 +1137,30 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
       case activating:
         {
+          if (this._operation === null && this._activatingStack === 0) {
+            // A previous activation request has already reported its error.
+            // A later explicit stop is a new transition and may tear down the
+            // partially initialized controller without implying automatic recovery.
+            this.state = (deactivating | (this.state & released)) as State;
+            return this._startDeactivation(
+              void 0,
+              parent as Controller | null,
+              initiator as Controller,
+            );
+          }
           const activationInitiator = this.$initiator as Controller;
           const step = this._operation ?? this._ensureStep('activate', activationInitiator, this.parent as Controller | null);
-          if (step.operation.mode === 'activation-rollback') {
-            return this._startDeactivation(step, parent as Controller | null, activationInitiator);
-          }
           step.operation.desired = {
             active: false,
             initiator: initiator as Controller,
             parent: parent as Controller | null,
           };
-          step.operation.suppressActivationError = true;
-          // Explicit deactivation supersedes the activation result, but waits
-          // every participant already admitted before compensation begins.
+          // Explicit deactivation supersedes the requested active state, while
+          // every participant already admitted remains observable.
           this.state = (deactivating | (this.state & released)) as State;
           if (step.operation.initiator !== initiator) {
             // A self-activating child is a separate operation. Ancestor teardown
-            // must wait on its local drain through compensation; merely changing
+            // must wait on its local drain through cancellation; merely changing
             // the child's desired state would let the ancestor settle too early.
             this._joinDeactivation(step, initiator as Controller, parent as Controller | null);
             return;
@@ -1270,11 +1274,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       && (this._lifecycleHooks!.detaching != null || this._vmHooks._detaching)
     ) {
       try {
-        ret = this._invokePhase('detaching', this.$initiator, this.parent, true);
+        ret = this._invokePhase('detaching', this.$initiator, this.parent);
       } catch (error) {
         const step = capturedStep ?? this._ensureStep('deactivate', initiator, parent);
         this._recordOperationError(step, void 0, error);
-        capturedStep = step;
+        this._abortDeactivation(step);
+        // When earlier async work already created a drain, aborting rejects it.
+        // This hook still failed synchronously, so keep the public call
+        // synchronous and prevent the rejected internal drain from orphaning.
+        void step.operation.drain?.promise.catch(noop);
+        throw getOperationError(step)!.error;
       }
     }
 
@@ -1341,6 +1350,43 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     return result;
   }
 
+  /** @internal */
+  private _abortDeactivation(step: ControllerStep): void {
+    const operation = step.operation;
+    const initiator = operation.initiator;
+    let current = operation.teardownHead ?? initiator.head as Controller | null;
+    while (current !== null) {
+      const next = current.next as Controller | null;
+      const currentStep = current._operation;
+      if (
+        current !== initiator
+        && currentStep !== null
+        && currentStep.operation === operation
+      ) {
+        current._settleStep(currentStep);
+      }
+      current = next;
+    }
+
+    // The initiator step owns the operation until this method settles it. Only
+    // descendant steps were released by the traversal above.
+    const initiatorStep = initiator._operation!;
+    if (initiatorStep.result === void 0) {
+      initiator._throwSynchronousOperationError(initiatorStep);
+    } else {
+      initiator._settleStep(initiatorStep);
+    }
+  }
+
+  /** @internal */
+  private _hasBlockingDeactivationError(step: ControllerStep): boolean {
+    const error = getOperationError(step);
+    // AUR0509 replaces a dependency cycle that would otherwise deadlock the
+    // requested transition. Finishing that same transition makes the diagnostic
+    // observable; it is not an attempt to recover from an application hook failure.
+    return error !== void 0 && !(error.error instanceof LifecycleSelfAwaitError);
+  }
+
   private removeNodes(): void {
     switch (this.vmKind) {
       case vmkCe:
@@ -1358,13 +1404,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (this.bindings !== null) {
       for (; i < this.bindings.length; ++i) {
-        try {
-          this.bindings[i].unbind();
-        } catch (error) {
-          const initiator = this.$initiator as Controller;
-          const step = this._operation ?? this._ensureStep('deactivate', initiator, this.parent as Controller | null);
-          this._recordOperationError(step, void 0, error);
-        }
+        this.bindings[i].unbind();
       }
     }
 
@@ -1394,7 +1434,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
               const canCache = step?.firstError === void 0;
               const cached = canCache && this.viewFactory!.tryReturnToCache(this as ISyntheticView);
               if (!cached) {
-                this._disposeReleasedView(step);
+                this._disposeReleasedView();
               }
             }
           }
@@ -1413,15 +1453,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  private _disposeReleasedView(step: ControllerStep | null | undefined): void {
-    try {
-      this._disposeCore();
-    } catch (error) {
-      const operationStep = step
-        ?? this._operation
-        ?? this._ensureStep('deactivate', this.$initiator as Controller, this.parent as Controller | null);
-      this._recordOperationError(operationStep, reserveLifecycleParticipant(), error);
-    }
+  private _disposeReleasedView(): void {
+    this._disposeCore();
   }
 
   /** @internal */
@@ -1492,7 +1525,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         attachedResult = void 0;
       } else {
         try {
-          attachedResult = this._invokePhase('attached', initiator, null, false);
+          attachedResult = this._invokePhase('attached', initiator, null);
         } catch (error) {
           const operationStep = step ?? this._promoteActivationPhase(initiator, operationParent);
           this._recordOperationError(operationStep, void 0, error);
@@ -1549,23 +1582,36 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): void {
     if (initiator !== this) {
       // Local callers may observe this descendant boundary now. The initiator
-      // remains pending until sibling work and whole-tree rollback quiesce.
+      // remains pending until every already-admitted sibling has settled.
       this._settleStep(step);
       parent!._leaveActivating(initiator, parent!.parent, step.parent ?? void 0);
       return;
     }
 
-    // Compensation remains part of the failed activation operation so its
-    // original error and every cleanup participant settle one stable drain.
-    step.operation.mode = 'activation-rollback';
+    if (step.operation.desired.active) {
+      // A hook failure ends this request with the original application error.
+      // Teardown is a separate, explicit transition; activation failure alone
+      // does not establish a transactional rollback contract.
+      if (step.result === void 0) {
+        this._throwSynchronousOperationError(step);
+      } else {
+        this._settleStep(step);
+      }
+      return;
+    }
+
+    // A real deactivation request superseded this activation. Its teardown is
+    // still part of the same public drain so callers cannot race the partially
+    // completed activation work.
+    step.operation.mode = 'activation-cancellation';
     step.operation.kind = 'deactivate';
     step.operation.desired = {
       active: false,
       initiator: this,
       parent,
     };
-    // Compensation is already owned by this operation's counters. Discard only
-    // its already-owned drain; a synchronous cleanup throw still propagates.
+    // Cancellation is already owned by this operation's counters. The existing
+    // drain remains the stable result returned to both transition callers.
     void this._startDeactivation(step, parent);
   }
 
@@ -1583,14 +1629,22 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`detach()`); }
 
-      // Open the base token before structural removal so node-removal failures
-      // and every async unbinding hook admitted below share one cleanup barrier.
+      if (operationStep !== null && this._hasBlockingDeactivationError(operationStep)) {
+        this._abortDeactivation(operationStep);
+        return;
+      }
+
+      // Open the base token before structural removal so asynchronous unbinding
+      // hooks admitted below share one operation barrier.
       this._enterUnbinding();
+      /* istanbul ignore next -- native DOM removal failure requires a hostile DOM implementation */
       try {
         this.removeNodes();
       } catch (error) {
         const step = this._operation ?? this._ensureStep('deactivate', this, this.parent as Controller | null);
         this._recordOperationError(step, void 0, error);
+        this._abortDeactivation(step);
+        return;
       }
 
       // A promoted operation owns a stable list captured before cleanup starts;
@@ -1602,11 +1656,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           /* istanbul ignore next */
           if (cur.debug) { cur.logger!.trace(`detach()`); }
 
+          /* istanbul ignore next -- native DOM removal failure requires a hostile DOM implementation */
           try {
             cur.removeNodes();
           } catch (error) {
             const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
             cur._recordOperationError(step, void 0, error);
+            this._abortDeactivation(step);
+            return;
           }
         }
 
@@ -1617,11 +1674,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         ) {
           let result: void | Promise<void>;
           try {
-            result = cur._invokePhase('unbinding', cur.$initiator, cur.parent, true);
+            result = cur._invokePhase('unbinding', cur.$initiator, cur.parent);
           } catch (error) {
             const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
             cur._recordOperationError(step, void 0, error);
-            result = void 0;
+            this._abortDeactivation(step);
+            return;
           }
           if (isPromise(result)) {
             const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
@@ -1659,13 +1717,25 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
+      if (operationStep !== null && this._hasBlockingDeactivationError(operationStep)) {
+        this._abortDeactivation(operationStep);
+        return;
+      }
+
       let cur = operationStep?.operation.teardownHead ?? this.$initiator.head as Controller | null;
       let next: Controller | null = null;
       while (cur !== null) {
         if (cur !== this) {
           cur._isBindingDone = false;
           cur.isBound = false;
-          cur.unbind();
+          try {
+            cur.unbind();
+          } catch (error) {
+            const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
+            cur._recordOperationError(step, void 0, error);
+            this._abortDeactivation(step);
+            return;
+          }
         }
         next = cur.next as Controller;
         cur.next = null;
@@ -1681,7 +1751,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       const step = this._operation;
       // Delay settlement until _completeDeactivation has decided whether the
       // latest desired state requires a queued successor activation.
-      this.unbind(false);
+      try {
+        this.unbind(false);
+      } catch (error) {
+        const operationStep = step ?? this._ensureStep('deactivate', this, this.parent as Controller | null);
+        this._recordOperationError(operationStep, void 0, error);
+        this._abortDeactivation(operationStep);
+        return;
+      }
       if (step !== null) {
         this._completeDeactivation(step);
       }
@@ -1828,7 +1905,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /**
-   * Dispose as soon as the controller's current transition or compensation
+   * Dispose as soon as the controller's current transition or cancellation
    * reaches its local cleanup boundary. Dynamic owners use this after initiating
    * descendant teardown because an ancestor-driven deactivate call intentionally
    * does not expose the ancestor's drain.
@@ -1881,39 +1958,16 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if ((this.state & disposed) === disposed) {
       return;
     }
-    // Mark first so re-entrant disposal callbacks remain idempotent even when a
-    // later resolver or child cleanup throws.
+    // Mark first so re-entrant disposal callbacks remain idempotent.
     this.state |= disposed;
 
-    let firstError: unknown;
-    let hasError = false;
-    const step = this._operation;
-    const capture = (order: number, error: unknown): void => {
-      // A live operation owns every cleanup failure. Outside an operation we
-      // still finish best-effort disposal and synchronously throw the first.
-      if (step !== null) {
-        this._recordOperationError(step, order, error);
-      } else if (!hasError) {
-        hasError = true;
-        firstError = error;
-      }
-    };
-
     if (this._vmHooks._dispose) {
-      try {
-        this._vm!.dispose();
-      } catch (error) {
-        capture(reserveLifecycleParticipant(), error);
-      }
+      this._vm!.dispose();
     }
 
     if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
-        try {
-          this.children[i]._disposeCore();
-        } catch (error) {
-          capture(reserveLifecycleParticipant(), error);
-        }
+        this.children[i]._disposeCore();
       }
       this.children = null;
     }
@@ -1930,14 +1984,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._vm = null;
     this.host = null;
     this.shadowRoot = null;
-    try {
-      this.container.disposeResolvers();
-    } catch (error) {
-      capture(reserveLifecycleParticipant(), error);
-    }
-    if (hasError) {
-      throw firstError;
-    }
+    this.container.disposeResolvers();
   }
 
   public accept(visitor: ControllerVisitor): void | true {
@@ -2250,14 +2297,6 @@ export interface IController<C extends IViewModel = IViewModel> extends IDisposa
   readonly host: HTMLElement | null;
   readonly state: State;
   readonly isActive: boolean;
-  /**
-   * Whether the initiator operation is compensating a failed activation.
-   * Dynamic owners use this to avoid awaiting the activation drain that caused
-   * the compensation.
-   *
-   * @internal
-   */
-  readonly isActivationRollback: boolean;
   readonly parent: IHydratedController | null;
   readonly isBound: boolean;
   readonly bindings: readonly IBinding[] | null;

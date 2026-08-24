@@ -1,13 +1,10 @@
 import {
   customElement,
-  CustomElement,
-  type IController,
+  type IBinding,
   type ICustomElementController,
   type IHydratedController,
-  lifecycleHooks,
   Repeat,
 } from '@aurelia/runtime-html';
-import type { IResolver } from '@aurelia/kernel';
 import { assert, createFixture } from '@aurelia/testing';
 
 class Deferred<T = void> {
@@ -23,6 +20,11 @@ class Deferred<T = void> {
   }
 }
 
+function abandonTerminalFixture(fixture: { readonly testHost: HTMLElement }): void {
+  Object.defineProperty(fixture, 'torn', { configurable: true, value: true });
+  fixture.testHost.remove();
+}
+
 function findRepeat(root: IHydratedController): Repeat {
   let repeat: Repeat | undefined;
   root.accept(controller => {
@@ -36,254 +38,6 @@ function findRepeat(root: IHydratedController): Repeat {
 }
 
 describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function () {
-  it('completes teardown before rejecting an async detaching error', async function () {
-    const error = new Error('detaching failed');
-    let child!: Child;
-    let unbindingCalls = 0;
-    let fail = true;
-
-    @customElement({ name: 'rejected-detaching-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public detaching(): void | Promise<void> {
-        return fail ? Promise.reject(error) : void 0;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<rejected-detaching-child></rejected-detaching-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const host = fixture.appHost.querySelector('rejected-detaching-child')!;
-    const result = child.$controller.deactivate(child.$controller, fixture.au.root.controller);
-
-    assert.instanceOf(result, Promise);
-    assert.strictEqual(
-      child.$controller.deactivate(child.$controller, fixture.au.root.controller),
-      result,
-    );
-    await assert.rejects(() => result as Promise<void>, error);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(host.textContent, '');
-
-    fail = false;
-    await child.$controller.activate(
-      child.$controller,
-      fixture.au.root.controller,
-      fixture.au.root.controller.scope,
-    );
-    assert.strictEqual(child.$controller.isActive, true);
-    assert.strictEqual(child.$controller.isBound, true);
-    assert.strictEqual(host.textContent, 'child');
-
-    await fixture.tearDown();
-  });
-
-  it('completes teardown before rejecting an async unbinding error', async function () {
-    const error = new Error('unbinding failed');
-    let child!: Child;
-    let detachingCalls = 0;
-
-    @customElement({ name: 'rejected-unbinding-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public detaching(): void {
-        ++detachingCalls;
-      }
-
-      public unbinding(): Promise<void> {
-        return Promise.reject(error);
-      }
-    }
-
-    const fixture = createFixture(
-      '<rejected-unbinding-child></rejected-unbinding-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const host = fixture.appHost.querySelector('rejected-unbinding-child')!;
-    const result = child.$controller.deactivate(child.$controller, fixture.au.root.controller);
-
-    assert.instanceOf(result, Promise);
-    await assert.rejects(() => result as Promise<void>, error);
-    assert.strictEqual(detachingCalls, 1);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(host.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('throws a synchronous hook error only after synchronous teardown completes', async function () {
-    const error = new Error('synchronous detaching failed');
-    let child!: Child;
-    let unbindingCalls = 0;
-
-    @customElement({ name: 'throwing-detaching-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public detaching(): void {
-        throw error;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<throwing-detaching-child></throwing-detaching-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const host = fixture.appHost.querySelector('throwing-detaching-child')!;
-
-    assert.throws(
-      () => child.$controller.deactivate(child.$controller, fixture.au.root.controller),
-      error,
-    );
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(host.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('waits for sibling teardown and rejects with the first participant error', async function () {
-    const first = new Deferred();
-    const second = new Deferred();
-    const firstError = new Error('first child failed');
-    const secondError = new Error('second child failed');
-    const children: Child[] = [];
-    const unbound: number[] = [];
-
-    @customElement({ name: 'ordered-rejection-child', template: '${id}', bindables: ['id'] })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-      public id!: number;
-
-      public constructor() {
-        children.push(this);
-      }
-
-      public detaching(): Promise<void> {
-        return this.id === 0 ? first.promise : second.promise;
-      }
-
-      public unbinding(): void {
-        unbound.push(this.id);
-      }
-    }
-
-    const fixture = createFixture(
-      '<ordered-rejection-child id.bind="0"></ordered-rejection-child>' +
-      '<ordered-rejection-child id.bind="1"></ordered-rejection-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-
-    const result = fixture.au.root.controller.deactivate(fixture.au.root.controller, null);
-    assert.instanceOf(result, Promise);
-    let settled = false;
-    void (result as Promise<void>).then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    second.reject(secondError);
-    await Promise.resolve();
-    await Promise.resolve();
-    assert.strictEqual(settled, false);
-    assert.deepStrictEqual(unbound, []);
-
-    first.reject(firstError);
-    await assert.rejects(() => result as Promise<void>, firstError);
-    assert.deepStrictEqual(unbound, [0, 1]);
-    assert.strictEqual(children.every(child => !child.$controller.isActive && !child.$controller.isBound), true);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('waits for sibling unbinding and preserves an undefined first error', async function () {
-    const first = new Deferred();
-    const second = new Deferred();
-    const children: Child[] = [];
-
-    @customElement({ name: 'ordered-unbinding-child', template: 'child', bindables: ['id'] })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-      public id!: number;
-
-      public constructor() {
-        children.push(this);
-      }
-
-      public unbinding(): Promise<void> {
-        return this.id === 0 ? first.promise : second.promise;
-      }
-    }
-
-    const fixture = createFixture(
-      '<ordered-unbinding-child id.bind="0"></ordered-unbinding-child>' +
-      '<ordered-unbinding-child id.bind="1"></ordered-unbinding-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const result = fixture.au.root.controller.deactivate(fixture.au.root.controller, null) as Promise<void>;
-    let settled = false;
-    void result.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    second.reject(new Error('second unbinding failed'));
-    await Promise.resolve();
-    await Promise.resolve();
-    assert.strictEqual(settled, false);
-
-    first.reject();
-    let rejected = false;
-    try {
-      await result;
-    } catch (error) {
-      rejected = true;
-      assert.strictEqual(error, void 0);
-    }
-    assert.strictEqual(rejected, true);
-    assert.strictEqual(children.every(child => !child.$controller.isActive && !child.$controller.isBound), true);
-
-    await fixture.tearDown();
-  });
-
   it('keeps fully synchronous successful deactivation inline', async function () {
     let child!: Child;
 
@@ -325,68 +79,8 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await fixture.tearDown();
   });
 
-  it('quiesces multiple lifecycle hook errors in registration order', async function () {
-    const first = new Deferred();
-    const second = new Deferred();
-    const firstError = new Error('first lifecycle hook failed');
-    const secondError = new Error('second lifecycle hook failed');
-    let child!: { readonly $controller: ICustomElementController };
-
-    @lifecycleHooks()
-    class FirstHook {
-      public detaching(_vm: unknown, _initiator: IController): Promise<void> {
-        return first.promise;
-      }
-    }
-
-    @lifecycleHooks()
-    class SecondHook {
-      public detaching(_vm: unknown, _initiator: IController): Promise<void> {
-        return second.promise;
-      }
-    }
-
-    const Child = CustomElement.define({
-      name: 'multiple-rejection-hooks-child',
-      template: 'child',
-      dependencies: [FirstHook, SecondHook],
-    }, class {
-      public readonly $controller!: ICustomElementController;
-
-      public constructor() {
-        child = this;
-      }
-    });
-
-    const fixture = createFixture(
-      '<multiple-rejection-hooks-child></multiple-rejection-hooks-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const result = child.$controller.deactivate(child.$controller, fixture.au.root.controller) as Promise<void>;
-    let settled = false;
-    void result.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    second.reject(secondError);
-    await Promise.resolve();
-    await Promise.resolve();
-    assert.strictEqual(settled, false);
-
-    first.reject(firstError);
-    await assert.rejects(() => result, firstError);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-
-    await fixture.tearDown();
-  });
-
   it('joins a self-deactivating child into a later ancestor teardown', async function () {
     const gate = new Deferred();
-    const error = new Error('self-owned child teardown failed');
     let child!: Child;
     let detachingCalls = 0;
 
@@ -425,10 +119,8 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await Promise.resolve();
     assert.strictEqual(rootSettled, false);
 
-    const childRejected = assert.rejects(() => childDrain, error);
-    const rootRejected = assert.rejects(() => rootDrain, error);
-    gate.reject(error);
-    await Promise.all([childRejected, rootRejected]);
+    gate.resolve();
+    await Promise.all([childDrain, rootDrain]);
     assert.strictEqual(detachingCalls, 1);
     assert.strictEqual(root.isActive, false);
 
@@ -485,8 +177,8 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await Promise.resolve();
     await Promise.resolve();
 
-    assert.strictEqual(detachingCalls, 2, 'self-deactivation and compensation each detach once');
-    assert.strictEqual(rootSettled, false, 'ancestor teardown waits for child compensation');
+    assert.strictEqual(detachingCalls, 2, 'self-deactivation and cancellation each detach once');
+    assert.strictEqual(rootSettled, false, 'ancestor teardown waits for child cancellation');
 
     detaching.resolve();
     await Promise.all([childDrain, rootDrain]);
@@ -550,57 +242,7 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await fixture.tearDown();
   });
 
-  it('does not run a queued activation after deactivation cleanup fails', async function () {
-    const gate = new Deferred();
-    const error = new Error('queued activation teardown failed');
-    let child!: Child;
-    let fail = true;
-
-    @customElement({ name: 'failed-successor-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public detaching(): Promise<void> {
-        return gate.promise;
-      }
-
-      public unbinding(): void {
-        if (fail) {
-          throw error;
-        }
-      }
-    }
-
-    const fixture = createFixture(
-      '<failed-successor-child></failed-successor-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const parent = fixture.au.root.controller;
-    const drain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
-    assert.strictEqual(
-      child.$controller.activate(child.$controller, parent, parent.scope),
-      drain,
-    );
-
-    gate.resolve();
-    await assert.rejects(() => drain, error);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    fail = false;
-    await child.$controller.activate(child.$controller, parent, parent.scope);
-    fixture.assertText('child');
-    await fixture.tearDown();
-  });
-
-  it('rejects a detaching hook that returns its own queued activation drain', async function () {
+  it('reports a detaching hook that returns its own queued activation drain', async function () {
     let child!: Child;
     const parentRef = { value: null! as IHydratedController };
     let cycle = false;
@@ -630,16 +272,12 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     const parent = parentRef.value = fixture.au.root.controller;
     cycle = true;
 
-    const drain = child.$controller.deactivate(child.$controller, parent);
-    assert.instanceOf(drain, Promise);
-    await assert.rejects(() => drain as Promise<void>, /AUR0509:.*cannot await.*operation/i);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
+    assert.throws(
+      () => child.$controller.deactivate(child.$controller, parent),
+      /AUR0509:.*cannot await.*operation/i,
+    );
 
-    cycle = false;
-    await child.$controller.activate(child.$controller, parent, parent.scope);
-    fixture.assertText('child');
-    await fixture.tearDown();
+    abandonTerminalFixture(fixture);
   });
 
   it('rejects a direct self-await cycle between child teardown and its ancestor drain', async function () {
@@ -677,119 +315,6 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
       assert.rejects(() => rootDrain, /AUR0509:.*cannot await an ancestor drain/i),
     ]);
     assert.strictEqual(root.isActive, false);
-    await fixture.tearDown();
-  });
-
-  it('contains node-removal errors and still unbinds the controller', async function () {
-    const error = new Error('node removal failed');
-    let child!: Child;
-    let unbindingCalls = 0;
-
-    @customElement({ name: 'node-cleanup-failure-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<node-cleanup-failure-child></node-cleanup-failure-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const nodes = child.$controller.nodes;
-    const remove = nodes.remove;
-    (nodes as unknown as { remove(): void }).remove = () => { throw error; };
-
-    assert.throws(
-      () => child.$controller.deactivate(child.$controller, fixture.au.root.controller),
-      error,
-    );
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(child.$controller.isActive, false);
-
-    (nodes as unknown as { remove: typeof remove }).remove = remove;
-    await fixture.tearDown();
-  });
-
-  it('contains descendant node-removal errors during ancestor teardown', async function () {
-    const error = new Error('descendant node removal failed');
-    let child!: Child;
-    let unbindingCalls = 0;
-
-    @customElement({ name: 'descendant-node-cleanup-failure-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<descendant-node-cleanup-failure-child></descendant-node-cleanup-failure-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const nodes = child.$controller.nodes;
-    const remove = nodes.remove;
-    (nodes as unknown as { remove(): void }).remove = () => { throw error; };
-    const root = fixture.au.root.controller;
-
-    assert.throws(() => root.deactivate(root, null), error);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(root.isActive, false);
-
-    (nodes as unknown as { remove: typeof remove }).remove = remove;
-    await fixture.tearDown();
-  });
-
-  it('contains binding-unbind errors and publishes stable inactive state', async function () {
-    const error = new Error('binding unbind failed');
-    let child!: Child;
-
-    @customElement({ name: 'binding-cleanup-failure-child', template: '${value}' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-      public value = 'child';
-
-      public constructor() {
-        child = this;
-      }
-    }
-
-    const fixture = createFixture(
-      '<binding-cleanup-failure-child></binding-cleanup-failure-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const binding = child.$controller.bindings![0];
-    const unbind = binding.unbind;
-    (binding as unknown as { unbind(): void }).unbind = () => { throw error; };
-
-    assert.throws(
-      () => child.$controller.deactivate(child.$controller, fixture.au.root.controller),
-      error,
-    );
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(child.$controller.isActive, false);
-
-    (binding as unknown as { unbind: typeof unbind }).unbind = unbind;
     await fixture.tearDown();
   });
 
@@ -867,36 +392,6 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     const cached = internals._factory.create(repeat.$controller);
     assert.notStrictEqual(cached, view, 'an active successor must not remain obtainable from the view cache');
     cached.dispose();
-
-    await fixture.tearDown();
-  });
-
-  it('propagates a synchronous released-view disposal error after stable teardown', async function () {
-    const error = new Error('released view disposal failed');
-    let disposeCalls = 0;
-
-    @customElement({ name: 'released-disposal-child', template: 'child' })
-    class Child {
-      public dispose(): void {
-        ++disposeCalls;
-        throw error;
-      }
-    }
-
-    const fixture = createFixture(
-      '<released-disposal-child repeat.for="item of items"></released-disposal-child>',
-      class { public items = [0]; },
-      [Child],
-    );
-    await fixture.started;
-    const repeat = findRepeat(fixture.au.root.controller);
-    const view = repeat.views[0];
-    view.release();
-
-    assert.throws(() => view.deactivate(view, repeat.$controller), error);
-    assert.strictEqual(disposeCalls, 1);
-    assert.strictEqual(view.isActive, false);
-    assert.strictEqual(view.isBound, false);
 
     await fixture.tearDown();
   });
@@ -985,14 +480,14 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await fixture.tearDown();
   });
 
-  it('makes reentrant deactivation from activation compensation a no-op', async function () {
+  it('makes reentrant deactivation from activation cancellation a no-op', async function () {
     const attaching = new Deferred();
     let child!: Child;
     let blockActivation = false;
     let reenter = false;
     const parentRef = { value: null! as IHydratedController };
 
-    @customElement({ name: 'compensation-reentrant-child', template: 'child' })
+    @customElement({ name: 'cancellation-reentrant-child', template: 'child' })
     class Child {
       public readonly $controller!: ICustomElementController<this>;
 
@@ -1012,7 +507,7 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     }
 
     const fixture = createFixture(
-      '<compensation-reentrant-child></compensation-reentrant-child>',
+      '<cancellation-reentrant-child></cancellation-reentrant-child>',
       class {},
       [Child],
     );
@@ -1032,7 +527,228 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await fixture.tearDown();
   });
 
-  it('rejects the predecessor drain when queued reactivation fails synchronously', async function () {
+  it('settles a predecessor drain after asynchronous queued reactivation', async function () {
+    const detaching = new Deferred();
+    const attaching = new Deferred();
+    let child!: Child;
+    let asyncActivation = false;
+
+    @customElement({ name: 'async-failed-reactivation-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public attaching(): void | Promise<void> {
+        return asyncActivation ? attaching.promise : void 0;
+      }
+
+      public detaching(): Promise<void> {
+        return detaching.promise;
+      }
+    }
+
+    const fixture = createFixture(
+      '<async-failed-reactivation-child></async-failed-reactivation-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const parent = fixture.au.root.controller;
+    asyncActivation = true;
+    const successfulDrain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
+    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), successfulDrain);
+
+    detaching.resolve();
+    await Promise.resolve();
+    attaching.resolve();
+    await successfulDrain;
+    assert.strictEqual(child.$controller.isActive, true);
+    await fixture.tearDown();
+  });
+
+  for (const settlement of ['resolve', 'reject'] as const) {
+    it(`ignores a late ${settlement} from an operation ended by a synchronous sibling error`, async function () {
+      const gate = new Deferred();
+      const error = new Error('later sibling detaching failed');
+
+      @customElement({ name: `late-${settlement}-detaching-child`, template: 'async' })
+      class AsyncChild {
+        public detaching(): Promise<void> {
+          return gate.promise;
+        }
+      }
+
+      @customElement({ name: `throwing-${settlement}-detaching-child`, template: 'sync' })
+      class ThrowingChild {
+        public detaching(): void {
+          throw error;
+        }
+      }
+
+      const fixture = createFixture(
+        `<late-${settlement}-detaching-child></late-${settlement}-detaching-child>`
+        + `<throwing-${settlement}-detaching-child></throwing-${settlement}-detaching-child>`,
+        class {},
+        [AsyncChild, ThrowingChild],
+      );
+      await fixture.started;
+      const root = fixture.au.root.controller;
+      const internals = root as unknown as { readonly _operation: unknown; readonly _detachingStack: number };
+
+      assert.throws(() => root.deactivate(root, null), error);
+      assert.strictEqual(internals._operation, null);
+      assert.strictEqual(internals._detachingStack, 0);
+
+      if (settlement === 'resolve') {
+        gate.resolve();
+      } else {
+        gate.reject(new Error('late detaching rejection'));
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+
+      assert.strictEqual(internals._operation, null);
+      assert.strictEqual(internals._detachingStack, 0);
+      abandonTerminalFixture(fixture);
+    });
+  }
+
+  it('reports a synchronous detaching error inline', async function () {
+    const error = new Error('synchronous detaching failed');
+    let child!: Child;
+
+    @customElement({ name: 'throwing-detaching-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public detaching(): void {
+        throw error;
+      }
+    }
+
+    const fixture = createFixture(
+      '<throwing-detaching-child></throwing-detaching-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+
+    assert.throws(
+      () => child.$controller.deactivate(child.$controller, fixture.au.root.controller),
+      error,
+    );
+    abandonTerminalFixture(fixture);
+  });
+
+  it('reports a synchronous unbinding hook error without admitting later teardown hooks', async function () {
+    const error = new Error('child unbinding failed');
+    let laterUnbindingCalls = 0;
+
+    @customElement({ name: 'throwing-unbinding-child', template: 'first' })
+    class ThrowingChild {
+      public unbinding(): void {
+        throw error;
+      }
+    }
+
+    @customElement({ name: 'later-unbinding-child', template: 'second' })
+    class LaterChild {
+      public unbinding(): void {
+        ++laterUnbindingCalls;
+      }
+    }
+
+    class App {
+      public detaching(): Promise<void> {
+        return Promise.resolve();
+      }
+    }
+
+    const fixture = createFixture(
+      '<throwing-unbinding-child></throwing-unbinding-child>'
+      + '<later-unbinding-child></later-unbinding-child>',
+      App,
+      [ThrowingChild, LaterChild],
+    );
+    await fixture.started;
+    const root = fixture.au.root.controller;
+
+    await assert.rejects(() => root.deactivate(root, null) as Promise<void>, error);
+    assert.strictEqual(laterUnbindingCalls, 0);
+    abandonTerminalFixture(fixture);
+  });
+
+  it('reports a descendant binding error at its unbind boundary', async function () {
+    const error = new Error('descendant binding unbind failed');
+
+    @customElement({ name: 'throwing-binding-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public binding(): void {
+        const binding: IBinding = {
+          isBound: true,
+          bind() {/* noop */},
+          unbind() { throw error; },
+          get() { return void 0; },
+        };
+        this.$controller.addBinding(binding);
+      }
+
+      public detaching(): Promise<void> {
+        return Promise.resolve();
+      }
+    }
+
+    const fixture = createFixture(
+      '<throwing-binding-child></throwing-binding-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const root = fixture.au.root.controller;
+
+    await assert.rejects(() => root.deactivate(root, null) as Promise<void>, error);
+    abandonTerminalFixture(fixture);
+  });
+
+  it('reports an initiator binding error at its unbind boundary', async function () {
+    const error = new Error('initiator binding unbind failed');
+
+    class App {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public binding(): void {
+        const binding: IBinding = {
+          isBound: true,
+          bind() {/* noop */},
+          unbind() { throw error; },
+          get() { return void 0; },
+        };
+        this.$controller.addBinding(binding);
+      }
+
+      public detaching(): Promise<void> {
+        return Promise.resolve();
+      }
+    }
+
+    const fixture = createFixture('app', App);
+    await fixture.started;
+    const root = fixture.au.root.controller;
+
+    await assert.rejects(() => root.deactivate(root, null) as Promise<void>, error);
+    abandonTerminalFixture(fixture);
+  });
+
+  it('reports a synchronous queued activation error through the predecessor drain', async function () {
     const detaching = new Deferred();
     const error = new Error('queued synchronous activation failed');
     let child!: Child;
@@ -1070,17 +786,15 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
 
     detaching.resolve();
     await assert.rejects(() => drain, error);
-    assert.strictEqual(child.$controller.isActive, false);
-    failActivation = false;
-    await fixture.tearDown();
+    abandonTerminalFixture(fixture);
   });
 
-  it('settles predecessor drains with asynchronous queued reactivation success and failure', async function () {
-    let detaching = new Deferred();
-    let attaching = new Deferred();
+  it('reports an asynchronous queued activation error through the predecessor drain', async function () {
+    const detaching = new Deferred();
+    const attaching = new Deferred();
     const error = new Error('queued asynchronous activation failed');
     let child!: Child;
-    let asyncActivation = false;
+    let failActivation = false;
 
     @customElement({ name: 'async-failed-reactivation-child', template: 'child' })
     class Child {
@@ -1091,7 +805,7 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
       }
 
       public attaching(): void | Promise<void> {
-        return asyncActivation ? attaching.promise : void 0;
+        return failActivation ? attaching.promise : void 0;
       }
 
       public detaching(): Promise<void> {
@@ -1106,60 +820,14 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     );
     await fixture.started;
     const parent = fixture.au.root.controller;
-    asyncActivation = true;
-    const successfulDrain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
-    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), successfulDrain);
-
-    detaching.resolve();
-    await Promise.resolve();
-    attaching.resolve();
-    await successfulDrain;
-    assert.strictEqual(child.$controller.isActive, true);
-
-    detaching = new Deferred();
-    attaching = new Deferred();
-    const failedDrain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
-    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), failedDrain);
+    const drain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
+    failActivation = true;
+    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), drain);
 
     detaching.resolve();
     await Promise.resolve();
     attaching.reject(error);
-    await assert.rejects(() => failedDrain, error);
-    assert.strictEqual(child.$controller.isActive, false);
-    asyncActivation = false;
-    await fixture.tearDown();
-  });
-
-  it('reports disposable resolver failure after completing controller disposal', async function () {
-    const error = new Error('resolver disposal failed');
-    let child!: Child;
-
-    @customElement({ name: 'resolver-disposal-child', template: 'child' })
-    class Child {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-    }
-
-    const fixture = createFixture(
-      '<resolver-disposal-child></resolver-disposal-child>',
-      class {},
-      [Child],
-    );
-    await fixture.started;
-    const parent = fixture.au.root.controller;
-    await child.$controller.deactivate(child.$controller, parent);
-    const resolver: IResolver = {
-      $isResolver: true,
-      resolve: () => void 0,
-      dispose: () => { throw error; },
-    };
-    child.$controller.container.registerResolver(Symbol('throwing resolver'), resolver, true);
-
-    assert.throws(() => child.$controller.dispose(), error);
-    assert.strictEqual(child.$controller.isActive, false);
-    await fixture.tearDown();
+    await assert.rejects(() => drain, error);
+    abandonTerminalFixture(fixture);
   });
 });

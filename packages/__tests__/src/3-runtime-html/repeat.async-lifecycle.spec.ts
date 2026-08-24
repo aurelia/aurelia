@@ -4,11 +4,10 @@ import {
   ISSRContext,
   customElement,
   type IHydratedController,
-  type IHydratedParentController,
   type ISSRScope,
   Repeat,
 } from '@aurelia/runtime-html';
-import { IContainer, Registration, resolve, type IResolver } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import { createIndexMap, tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
@@ -35,6 +34,20 @@ function findRepeat(root: IHydratedController): Repeat {
   });
   assert.notStrictEqual(repeat, void 0);
   return repeat!;
+}
+
+function abandonTerminalFixture(fixture: { readonly testHost: HTMLElement }): void {
+  Object.defineProperty(fixture, 'torn', { configurable: true, value: true });
+  fixture.testHost.remove();
+}
+
+async function captureFailure(action: () => void | Promise<void>): Promise<unknown> {
+  try {
+    await action();
+  } catch (error) {
+    return error;
+  }
+  assert.fail('Expected operation to fail');
 }
 
 describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
@@ -187,48 +200,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
       gate.resolve();
       await reconciliation;
-      fixture.assertText('12');
-      await fixture.tearDown();
-    });
-
-    it('recovers asynchronously when a synchronous row teardown queues a newer generation and fails', async function () {
-      const gate = new Deferred();
-      const teardownError = new Error('synchronous row teardown failed');
-
-      @customElement({ name: 'sync-failure-queues-async-row', template: '${value}', bindables: ['value'] })
-      class SyncFailureQueuesAsyncRow {
-        public value!: number;
-
-        public attaching(): void | Promise<void> {
-          return this.value === 2 ? gate.promise : void 0;
-        }
-
-        public detaching(): void {
-          if (this.value === 0) {
-            fixture.component.items.push(2);
-            throw teardownError;
-          }
-        }
-      }
-
-      class App { public items = [0, 1]; }
-
-      const fixture = createFixture(
-        '<sync-failure-queues-async-row repeat.for="item of items" value.bind="item"></sync-failure-queues-async-row>',
-        App,
-        [SyncFailureQueuesAsyncRow],
-      );
-      const repeat = findRepeat(fixture.au.root.controller);
-      const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-
-      fixture.component.items.shift();
-      const reconciliation = internals._reconciliation?.promise;
-      if (!(reconciliation instanceof Promise)) {
-        throw new Error('Expected an asynchronous reconciliation');
-      }
-
-      gate.resolve();
-      await assert.rejects(() => reconciliation, teardownError);
       fixture.assertText('12');
       await fixture.tearDown();
     });
@@ -419,108 +390,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       await fixture.tearDown();
     });
 
-    it('recovers after a queued key expression throws', async function () {
-      const gate = new Deferred();
-      const keyError = new Error('repeat key failed');
-      let block = true;
-
-      @customElement({ name: 'throwing-key-repeat-row', template: '${item.label}', bindables: ['item'] })
-      class ThrowingKeyRow {
-        public item!: { readonly id: number; readonly label: string };
-
-        public detaching(): void | Promise<void> {
-          if (block && this.item.id === 1) {
-            return gate.promise;
-          }
-        }
-      }
-
-      const first = { id: 1, label: 'A' };
-      const second = { id: 2, label: 'B' };
-      const invalid = {
-        get id(): number { throw keyError; },
-        label: 'invalid',
-      };
-      const fixture = createFixture(
-        '<throwing-key-repeat-row repeat.for="item of items; key.bind: item.id" item.bind="item"></throwing-key-repeat-row>',
-        class { public items = [first, second]; },
-        [ThrowingKeyRow],
-      );
-      const repeat = findRepeat(fixture.au.root.controller);
-      const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-
-      fixture.component.items.shift();
-      fixture.component.items = [invalid];
-      await tasksSettled();
-      const reconciliation = internals._reconciliation?.promise;
-      assert.instanceOf(reconciliation, Promise);
-      const rejected = assert.rejects(() => reconciliation!, keyError);
-
-      gate.resolve();
-      await rejected;
-      fixture.assertText('B');
-
-      fixture.component.items = [{ id: 3, label: 'C' }];
-      await tasksSettled();
-      fixture.assertText('C');
-
-      block = false;
-      await fixture.tearDown();
-    });
-
-    it('recovers after an active object-binding projection throws', async function () {
-      const gate = new Deferred();
-      const projectionError = new Error('repeat projection failed');
-      let block = true;
-
-      @customElement({ name: 'throwing-pattern-repeat-row', template: '${id}:${name}', bindables: ['id', 'name'] })
-      class ThrowingPatternRow {
-        public id!: number;
-        public name!: string;
-
-        public detaching(): void | Promise<void> {
-          if (block && this.id === 1) {
-            return gate.promise;
-          }
-        }
-      }
-
-      const fixture = createFixture(
-        '<throwing-pattern-repeat-row repeat.for="{ id, name } of items; key: id" id.bind="id" name.bind="name"></throwing-pattern-repeat-row>',
-        class {
-          public items: { readonly id: number; readonly name: string }[] = [
-            { id: 1, name: 'A' },
-            { id: 2, name: 'B' },
-          ];
-        },
-        [ThrowingPatternRow],
-      );
-      const repeat = findRepeat(fixture.au.root.controller);
-      const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-      const invalid = {
-        id: 2,
-        get name(): string { throw projectionError; },
-      };
-
-      fixture.component.items.shift();
-      fixture.component.items = [invalid];
-      await tasksSettled();
-      const reconciliation = internals._reconciliation?.promise;
-      assert.instanceOf(reconciliation, Promise);
-      const rejected = assert.rejects(() => reconciliation!, projectionError);
-
-      gate.resolve();
-      await rejected;
-      fixture.assertText('2:B');
-
-      fixture.component.items = [{ id: 2, name: 'B2' }];
-      await tasksSettled();
-      fixture.assertText('2:B2');
-
-      block = false;
-      await fixture.tearDown();
-    });
-
     it('composes queued Set delete, re-add, and clear mutations while a row is detaching', async function () {
       const gate = new Deferred();
       const detaching: number[] = [];
@@ -628,13 +497,12 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       await fixture.tearDown();
     });
 
-    describe('failure and quiescence', function () {
-      it('waits for all rejected row teardowns, keeps the first error, and remains reusable', async function () {
+    describe('failure reporting', function () {
+      it('waits for accepted row teardowns and reports the first row error', async function () {
         const first = new Deferred();
         const second = new Deferred();
         const firstError = new Error('first row failed');
         const secondError = new Error('second row failed');
-        const disposed: number[] = [];
         let rejectRows = true;
 
         @customElement({ name: 'rejecting-repeat-row', template: '${value}', bindables: ['value'] })
@@ -647,10 +515,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
             }
             return this.value === 1 ? first.promise : second.promise;
           }
-
-          public dispose(): void {
-            disposed.push(this.value);
-          }
         }
 
         const fixture = createFixture(
@@ -658,17 +522,17 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
           class { public items = [0, 1, 2]; },
           [RejectingRow],
         );
-        const { appHost, assertText, component } = fixture;
         const repeat = findRepeat(fixture.au.root.controller);
         const internals = repeat as unknown as {
           _reconciliation?: { promise?: Promise<void> };
         };
 
-        component.items.splice(1, 2);
+        fixture.component.items.splice(1, 2);
         const reconciliation = internals._reconciliation?.promise;
         if (!(reconciliation instanceof Promise)) {
           throw new Error('Expected an asynchronous reconciliation');
         }
+
         second.reject(secondError);
         await Promise.resolve();
         await Promise.resolve();
@@ -681,626 +545,179 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
         first.reject(firstError);
         await assert.rejects(() => reconciliation, firstError);
-        await waitFor(() => appHost.textContent === '0');
-
-        assert.deepStrictEqual(disposed.sort(), [1, 2]);
-        assertText('0');
 
         rejectRows = false;
-        component.items.push(3);
-        assertText('03');
-
         await fixture.tearDown();
       });
 
-      it('drains a queued desired generation before reporting a teardown failure', async function () {
-        const gate = new Deferred();
-        const teardownError = new Error('row teardown failed');
-        const disposed: number[] = [];
-
-        @customElement({ name: 'queued-failure-repeat-row', template: '${value}', bindables: ['value'] })
-        class QueuedFailureRow {
-          public value!: number;
-
-          public detaching(): void | Promise<void> {
-            return this.value === 1 ? gate.promise : void 0;
-          }
-
-          public dispose(): void {
-            disposed.push(this.value);
-          }
-        }
-
-        const fixture = createFixture(
-          '<queued-failure-repeat-row repeat.for="item of items" value.bind="item"></queued-failure-repeat-row>',
-          class { public items = [0, 1, 2]; },
-          [QueuedFailureRow],
-        );
-        const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as {
-          _factory: {
-            setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
-            create(parent?: unknown): { dispose(): void };
-          };
-          _reconciliation?: { promise?: Promise<void> };
-        };
-        internals._factory.setCacheSize('*', false);
-
-        const failedView = repeat!.views[1];
-        fixture.component.items.splice(1, 1);
-        const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
-        fixture.component.items.push(3);
-
-        gate.reject(teardownError);
-        await assert.rejects(() => reconciliation!, teardownError);
-        await waitFor(() => fixture.appHost.textContent === '023');
-        fixture.assertText('023');
-        assert.deepStrictEqual(disposed, [1]);
-        const nextView = internals._factory.create(repeat!.$controller);
-        assert.notStrictEqual(nextView, failedView, 'a disposed failed view must not remain in the factory cache');
-        nextView.dispose();
-
-        fixture.component.items.push(4);
-        fixture.assertText('0234');
-        await fixture.tearDown();
-      });
-
-      it('keeps the original failure when the queued recovery generation throws synchronously', async function () {
-        const teardownGate = new Deferred();
-        const teardownError = new Error('row teardown failed');
-        const recoveryError = new Error('queued row activation failed');
-        let failRecovery = true;
-
-        @customElement({ name: 'sync-recovery-failure-row', template: '${value}', bindables: ['value'] })
-        class SyncRecoveryFailureRow {
-          public value!: number;
-
-          public attaching(): void {
-            if (failRecovery && this.value === 2) {
-              throw recoveryError;
-            }
-          }
-
-          public detaching(): void | Promise<void> {
-            return this.value === 0 ? teardownGate.promise : void 0;
-          }
-        }
-
-        const fixture = createFixture(
-          '<sync-recovery-failure-row repeat.for="item of items" value.bind="item"></sync-recovery-failure-row>',
-          class { public items = [0, 1]; },
-          [SyncRecoveryFailureRow],
-        );
-        const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-
-        fixture.component.items.shift();
-        const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
-        fixture.component.items.push(2);
-
-        teardownGate.reject(teardownError);
-        await assert.rejects(() => reconciliation!, teardownError);
-
-        failRecovery = false;
-        fixture.component.items.push(3);
-        fixture.assertText('123');
-        await fixture.tearDown();
-      });
-
-      it('keeps the original failure when the queued recovery generation rejects asynchronously', async function () {
-        const teardownGate = new Deferred();
-        const recoveryGate = new Deferred();
-        const teardownError = new Error('row teardown failed');
-        const recoveryError = new Error('queued row activation failed');
-        const attaching: number[] = [];
-        let failRecovery = true;
-
-        @customElement({ name: 'async-recovery-failure-row', template: '${value}', bindables: ['value'] })
-        class AsyncRecoveryFailureRow {
-          public value!: number;
-
-          public attaching(): void | Promise<void> {
-            attaching.push(this.value);
-            return failRecovery && this.value === 2 ? recoveryGate.promise : void 0;
-          }
-
-          public detaching(): void | Promise<void> {
-            return this.value === 0 ? teardownGate.promise : void 0;
-          }
-        }
-
-        const fixture = createFixture(
-          '<async-recovery-failure-row repeat.for="item of items" value.bind="item"></async-recovery-failure-row>',
-          class { public items = [0, 1]; },
-          [AsyncRecoveryFailureRow],
-        );
-        const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-
-        fixture.component.items.shift();
-        const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
-        fixture.component.items.push(2);
-
-        teardownGate.reject(teardownError);
-        await waitFor(() => attaching.includes(2));
-        recoveryGate.reject(recoveryError);
-        await assert.rejects(() => reconciliation!, teardownError);
-
-        failRecovery = false;
-        fixture.component.items.push(3);
-        fixture.assertText('123');
-        await fixture.tearDown();
-      });
-
-      for (const completionMode of ['throws', 'resolves', 'rejects'] as const) {
-        it(`preserves a synchronous teardown failure when replacement activation ${completionMode}`, async function () {
-          const activationGate = new Deferred();
-          const teardownError = new Error('removed row teardown failed');
-          const activationError = new Error('replacement row activation failed');
-          let fail = true;
-
-          @customElement({ name: `replacement-${completionMode}-row`, template: '${value}', bindables: ['value'] })
-          class ReplacementRow {
-            public value!: number;
-
-            public attaching(): void | Promise<void> {
-              if (!fail || this.value !== 1) {
-                return;
-              }
-              if (completionMode === 'throws') {
-                throw activationError;
-              }
-              return activationGate.promise;
-            }
-
-            public detaching(): void {
-              if (fail && this.value === 0) {
-                throw teardownError;
-              }
-            }
-          }
-
-          const fixture = createFixture(
-            `<replacement-${completionMode}-row repeat.for="item of items" value.bind="item"></replacement-${completionMode}-row>`,
-            class { public items = [0]; },
-            [ReplacementRow],
-          );
-          const repeat = findRepeat(fixture.au.root.controller);
-          const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-
-          if (completionMode === 'throws') {
-            assert.throws(() => fixture.component.items.splice(0, 1, 1), teardownError);
-          } else {
-            fixture.component.items.splice(0, 1, 1);
-            const reconciliation = internals._reconciliation?.promise;
-            assert.instanceOf(reconciliation, Promise);
-            if (completionMode === 'resolves') {
-              activationGate.resolve();
-            } else {
-              activationGate.reject(activationError);
-            }
-            await assert.rejects(() => reconciliation!, teardownError);
-          }
-
-          fail = false;
-          fixture.component.items.push(2);
-          fixture.assertText('12');
-          await fixture.tearDown();
-        });
-      }
-
-      it('cleans remaining rows when owner teardown races a rejected reconciliation', async function () {
-        const gate = new Deferred();
-        const teardownError = new Error('pending row failed');
-        const detaching: number[] = [];
-
-        @customElement({ name: 'owner-failure-repeat-row', template: '${value}', bindables: ['value'] })
-        class OwnerFailureRow {
-          public value!: number;
-
-          public detaching(): void | Promise<void> {
-            detaching.push(this.value);
-            return this.value === 0 ? gate.promise : void 0;
-          }
-        }
-
-        const fixture = createFixture(
-          '<owner-failure-repeat-row repeat.for="item of items" value.bind="item"></owner-failure-repeat-row>',
-          class { public items = [0, 1]; },
-          [OwnerFailureRow],
-        );
-        fixture.component.items.shift();
-        const stop = Promise.resolve(fixture.stop(true));
-        gate.reject(teardownError);
-
-        await assert.rejects(() => stop, teardownError);
-        assert.deepStrictEqual(detaching, [0, 1]);
-        assert.strictEqual(fixture.appHost.textContent, '');
-      });
-
-      it('aggregates reconciliation and owner-cleanup failures in causal order', async function () {
-        const gate = new Deferred();
-        const reconciliationError = new Error('reconciliation failed');
-        const cleanupError = new Error('owner cleanup failed');
-
-        @customElement({ name: 'owner-double-failure-row', template: '${value}', bindables: ['value'] })
-        class OwnerDoubleFailureRow {
-          public value!: number;
-
-          public detaching(): void | Promise<void> {
-            if (this.value === 0) {
-              return gate.promise;
-            }
-          }
-        }
-
-        const fixture = createFixture(
-          '<owner-double-failure-row repeat.for="item of items" value.bind="item"></owner-double-failure-row>',
-          class { public items = [0, 1]; },
-          [OwnerDoubleFailureRow],
-        );
-        const repeat = findRepeat(fixture.au.root.controller);
-        fixture.component.items.shift();
-        const remainingView = repeat.views[0];
-        const deactivate = remainingView.deactivate;
-        (remainingView as unknown as { deactivate(): void }).deactivate = () => { throw cleanupError; };
-        const teardown = Promise.resolve(repeat.detaching(
-          repeat.$controller,
-          repeat.$controller.parent as IHydratedParentController,
-        ));
-        gate.reject(reconciliationError);
-
-        await assert.rejects(
-          () => teardown,
-          error => error instanceof AggregateError
-            && error.errors[0] === reconciliationError
-            && error.errors[1] === cleanupError,
-        );
-        (remainingView as unknown as { deactivate: typeof deactivate }).deactivate = deactivate;
-        repeat.views = [];
-        await fixture.tearDown();
-      });
-
-      it('quiesces dynamic insertions after a synchronous row activation failure and retries the row', async function () {
-        const gate = new Deferred();
-        const activationError = new Error('sync inserted row failed');
-        const attaching: number[] = [];
-        let fail = true;
-
-        @customElement({ name: 'sync-insert-failure-row', template: '${value}', bindables: ['value'] })
-        class SyncInsertFailureRow {
-          public value!: number;
-
-          public attaching(): void | Promise<void> {
-            attaching.push(this.value);
-            if (!fail) {
-              return;
-            }
-            if (this.value === 1) {
-              throw activationError;
-            }
-            return this.value === 2 ? gate.promise : void 0;
-          }
-        }
-
-        const fixture = createFixture(
-          '<sync-insert-failure-row repeat.for="item of items" value.bind="item"></sync-insert-failure-row>',
-          class { public items = [0]; },
-          [SyncInsertFailureRow],
-        );
-        const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
-
-        fixture.component.items.push(1, 2);
-        const reconciliation = internals._reconciliation?.promise;
-        if (!(reconciliation instanceof Promise)) {
-          throw new Error('Expected an asynchronous reconciliation');
-        }
-        assert.deepStrictEqual(attaching, [0, 2, 1]);
-        let settled = false;
-        void reconciliation.then(
-          () => { settled = true; },
-          () => { settled = true; },
-        );
-        await Promise.resolve();
-        assert.strictEqual(settled, false);
-
-        gate.resolve();
-        await assert.rejects(() => reconciliation, activationError);
-        fixture.assertText('02');
-
-        fail = false;
-        fixture.component.items.push(3);
-        fixture.assertText('0123');
-        await fixture.tearDown();
-      });
-
-      it('orders dynamic async insertion failures by row and retries both rows', async function () {
+      it('waits for inserted row activations and reports the first row error', async function () {
         const first = new Deferred();
         const second = new Deferred();
         const firstError = new Error('first inserted row failed');
         const secondError = new Error('second inserted row failed');
-        let fail = true;
 
-        @customElement({ name: 'async-insert-failure-row', template: '${value}', bindables: ['value'] })
-        class AsyncInsertFailureRow {
+        @customElement({ name: 'rejecting-inserted-repeat-row', template: '${value}', bindables: ['value'] })
+        class RejectingInsertedRow {
           public value!: number;
 
           public attaching(): void | Promise<void> {
-            if (!fail) {
-              return;
+            if (this.value === 1) {
+              return first.promise;
             }
-            return this.value === 1
-              ? first.promise
-              : this.value === 2
-                ? second.promise
-                : void 0;
+            if (this.value === 2) {
+              return second.promise;
+            }
           }
         }
 
         const fixture = createFixture(
-          '<async-insert-failure-row repeat.for="item of items" value.bind="item"></async-insert-failure-row>',
+          '<rejecting-inserted-repeat-row repeat.for="item of items" value.bind="item"></rejecting-inserted-repeat-row>',
           class { public items = [0]; },
-          [AsyncInsertFailureRow],
+          [RejectingInsertedRow],
         );
         const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
 
         fixture.component.items.push(1, 2);
-        const reconciliation = internals._reconciliation?.promise;
-        if (!(reconciliation instanceof Promise)) {
-          throw new Error('Expected an asynchronous reconciliation');
-        }
+        const reconciliation = (repeat as unknown as { _reconciliation?: { promise?: Promise<void> } })
+          ._reconciliation?.promise;
+        assert.instanceOf(reconciliation, Promise);
+
         second.reject(secondError);
         await Promise.resolve();
-        await Promise.resolve();
         let settled = false;
-        void reconciliation.then(
+        void reconciliation!.then(
           () => { settled = true; },
           () => { settled = true; },
         );
+        await Promise.resolve();
         assert.strictEqual(settled, false);
 
         first.reject(firstError);
-        await assert.rejects(() => reconciliation, firstError);
-        fixture.assertText('0');
-
-        fail = false;
-        fixture.component.items.push(3);
-        fixture.assertText('0123');
-        await fixture.tearDown();
+        await assert.rejects(() => reconciliation!, firstError);
+        abandonTerminalFixture(fixture);
       });
 
-      it('continues synchronous row teardown when failed-view disposal also throws', async function () {
-        const sibling = new Deferred();
-        const lifecycleError = new Error('row lifecycle failed');
-        const cleanupError = new Error('row disposal failed');
-        const detaching: number[] = [];
+      it('reports a synchronous failure from the latest queued generation', async function () {
+        const detaching = new Deferred();
+        const keyError = new Error('queued repeat key failed');
 
-        @customElement({ name: 'sync-dispose-failure-row', template: '${value}', bindables: ['value'] })
-        class SyncDisposeFailureRow {
-          public value!: number;
+        @customElement({ name: 'queued-key-failure-row', template: '${item.label}', bindables: ['item'] })
+        class QueuedKeyFailureRow {
+          public item!: { readonly id: number; readonly label: string };
 
           public detaching(): void | Promise<void> {
-            detaching.push(this.value);
-            if (this.value === 1) {
+            return this.item.id === 0 ? detaching.promise : void 0;
+          }
+        }
+
+        const fixture = createFixture(
+          '<queued-key-failure-row repeat.for="item of items; key.bind: item.id" item.bind="item"></queued-key-failure-row>',
+          class {
+            public items: { readonly id: number; readonly label: string }[] = [{ id: 0, label: 'initial' }];
+          },
+          [QueuedKeyFailureRow],
+        );
+        const repeat = findRepeat(fixture.au.root.controller);
+
+        fixture.component.items.splice(0, 1);
+        const reconciliation = (repeat as unknown as { _reconciliation?: { promise?: Promise<void> } })
+          ._reconciliation?.promise;
+        assert.instanceOf(reconciliation, Promise);
+
+        fixture.component.items = [{
+          get id(): number { throw keyError; },
+          label: 'invalid',
+        }];
+        await tasksSettled();
+
+        detaching.resolve();
+        await assert.rejects(() => reconciliation!, keyError);
+        abandonTerminalFixture(fixture);
+      });
+
+      it('reports a reentrant teardown failure to the mutation and owner stop', async function () {
+        const lifecycleError = new Error('reentrant repeat teardown failed');
+        let stop: Promise<void> | undefined;
+        let laterDetachingCalls = 0;
+
+        @customElement({ name: 'reentrant-failing-repeat-row', template: '${value}', bindables: ['value'] })
+        class ReentrantFailingRow {
+          public value!: number;
+
+          public detaching(): void {
+            if (this.value === 0) {
+              stop = Promise.resolve(fixture.stop(true));
+              void stop.catch(() => { /* asserted below */ });
               throw lifecycleError;
             }
-            return this.value === 2 ? sibling.promise : void 0;
-          }
-
-          public dispose(): void {
-            if (this.value === 1) {
-              throw cleanupError;
-            }
+            ++laterDetachingCalls;
           }
         }
 
         const fixture = createFixture(
-          '<sync-dispose-failure-row repeat.for="item of items" value.bind="item"></sync-dispose-failure-row>',
-          class { public items = [0, 1, 2]; },
-          [SyncDisposeFailureRow],
+          '<reentrant-failing-repeat-row repeat.for="item of items" value.bind="item"></reentrant-failing-repeat-row>',
+          class { public items = [0, 1]; },
+          [ReentrantFailingRow],
         );
-        const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
 
-        fixture.component.items.splice(1, 2);
-        const reconciliation = internals._reconciliation?.promise;
-        if (!(reconciliation instanceof Promise)) {
-          throw new Error('Expected an asynchronous reconciliation');
-        }
-        assert.deepStrictEqual(detaching, [1, 2]);
-        sibling.resolve();
-
-        await assert.rejects(() => reconciliation!, lifecycleError);
-        fixture.assertText('0');
-        await fixture.tearDown();
+        assert.throws(() => fixture.component.items.splice(0, 2), lifecycleError);
+        assert.instanceOf(stop, Promise);
+        await assert.rejects(() => stop!, lifecycleError);
+        assert.strictEqual(laterDetachingCalls, 0, 'a synchronous error stops later row work');
+        abandonTerminalFixture(fixture);
       });
 
-      it('quiesces asynchronous siblings when failed-view disposal throws', async function () {
-        const first = new Deferred();
-        const second = new Deferred();
-        const lifecycleError = new Error('async row lifecycle failed');
-        const cleanupError = new Error('async row disposal failed');
+      it('reports a row disposal failure while rebuilding after stop(false)', async function () {
+        const disposalError = new Error('retained repeat row disposal failed');
 
-        @customElement({ name: 'async-dispose-failure-row', template: '${value}', bindables: ['value'] })
-        class AsyncDisposeFailureRow {
+        @customElement({ name: 'failing-restart-disposal-row', template: '${value}', bindables: ['value'] })
+        class FailingRestartDisposalRow {
           public value!: number;
 
-          public detaching(): void | Promise<void> {
-            return this.value === 1 ? first.promise : second.promise;
+          public dispose(): never {
+            throw disposalError;
           }
+        }
 
-          public dispose(): void {
-            if (this.value === 1) {
-              throw cleanupError;
+        const fixture = createFixture(
+          '<failing-restart-disposal-row repeat.for="item of items" value.bind="item"></failing-restart-disposal-row>',
+          class { public items = [0]; },
+          [FailingRestartDisposalRow],
+        );
+        await fixture.started;
+        await fixture.stop(false);
+
+        assert.strictEqual(await captureFailure(() => fixture.au.start()), disposalError);
+        abandonTerminalFixture(fixture);
+      });
+
+      it('stops inserting rows after a synchronous activation failure', async function () {
+        const activationError = new Error('inserted repeat row failed synchronously');
+        const attaching: number[] = [];
+
+        @customElement({ name: 'sync-failing-inserted-row', template: '${value}', bindables: ['value'] })
+        class SyncFailingInsertedRow {
+          public value!: number;
+
+          public attaching(): void {
+            attaching.push(this.value);
+            if (this.value === 2) {
+              throw activationError;
             }
           }
         }
 
         const fixture = createFixture(
-          '<async-dispose-failure-row repeat.for="item of items" value.bind="item"></async-dispose-failure-row>',
-          class { public items = [0, 1, 2]; },
-          [AsyncDisposeFailureRow],
+          '<sync-failing-inserted-row repeat.for="item of items" value.bind="item"></sync-failing-inserted-row>',
+          class { public items = [0]; },
+          [SyncFailingInsertedRow],
         );
-        const repeat = findRepeat(fixture.au.root.controller);
-        const internals = repeat as unknown as { _reconciliation?: { promise?: Promise<void> } };
+        attaching.length = 0;
 
-        fixture.component.items.splice(1, 2);
-        const reconciliation = internals._reconciliation?.promise;
-        if (!(reconciliation instanceof Promise)) {
-          throw new Error('Expected an asynchronous reconciliation');
-        }
-        first.reject(lifecycleError);
-        await Promise.resolve();
-        await Promise.resolve();
-        let settled = false;
-        void reconciliation.then(
-          () => { settled = true; },
-          () => { settled = true; },
-        );
-        assert.strictEqual(settled, false);
-
-        second.resolve();
-        await assert.rejects(() => reconciliation, lifecycleError);
-        fixture.assertText('0');
-        await fixture.tearDown();
+        assert.throws(() => fixture.component.items.push(1, 2, 3), activationError);
+        assert.deepStrictEqual(attaching, [3, 2]);
+        abandonTerminalFixture(fixture);
       });
-
-      for (const lifecycleFails of [false, true]) {
-        it(`${lifecycleFails ? 'aggregates lifecycle and cleanup failures' : 'reports cleanup failure'} after adopted rows quiesce`, async function () {
-          const lowerGate = new Deferred();
-          const higherGate = new Deferred();
-          const lifecycleError = new Error('lower adopted row teardown failed');
-          const lowerCleanupError = new Error('lower adopted row cleanup failed');
-          const higherCleanupError = new Error('higher adopted row cleanup failed');
-          const cleanupCalls: number[] = [];
-          let isClient = false;
-          let clientApp!: App;
-
-          @customElement({
-            name: `adopted-cleanup-${lifecycleFails ? 'aggregate' : 'only'}-row`,
-            template: '${value}',
-            bindables: ['value'],
-          })
-          class AdoptedCleanupFailureRow {
-            public value!: number;
-            private readonly container = resolve(IContainer);
-            private registered = false;
-
-            public attaching(): void {
-              if (!isClient || this.registered) {
-                return;
-              }
-              this.registered = true;
-              const cleanupError = this.value === 0 ? lowerCleanupError : higherCleanupError;
-              this.container.registerResolver(Symbol(), {
-                $isResolver: true,
-                resolve: () => void 0,
-                dispose: () => {
-                  cleanupCalls.push(this.value);
-                  throw cleanupError;
-                },
-              } satisfies IResolver, true);
-            }
-
-            public detaching(): void | Promise<void> {
-              return isClient
-                ? this.value === 0 ? lowerGate.promise : higherGate.promise
-                : void 0;
-            }
-          }
-
-          const elementName = `adopted-cleanup-${lifecycleFails ? 'aggregate' : 'only'}-row`;
-          const appName = `adopted-cleanup-${lifecycleFails ? 'aggregate' : 'only'}-app`;
-          class App {
-            public items = [0, 1];
-
-            public constructor() {
-              if (isClient) {
-                clientApp = this;
-              }
-            }
-          }
-          const AppElement = CustomElement.define({
-            name: appName,
-            template: `<${elementName} repeat.for="item of items" value.bind="item"></${elementName}>`,
-          }, App);
-
-          const serverCtx = TestContext.create();
-          serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
-          const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement(appName));
-          const serverAu = new Aurelia(serverCtx.container).register(AdoptedCleanupFailureRow).app({
-            host: serverHost,
-            component: AppElement,
-          });
-          let serverMarkup: string;
-          try {
-            await serverAu.start();
-            serverMarkup = serverHost.innerHTML;
-          } finally {
-            await serverAu.stop(true);
-            serverAu.dispose();
-            serverHost.remove();
-          }
-          isClient = true;
-          const clientCtx = TestContext.create();
-          const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement(appName));
-          clientHost.innerHTML = serverMarkup;
-          const ssrScope: ISSRScope = {
-            name: appName,
-            children: [{
-              type: 'repeat',
-              views: [0, 1].map(() => ({
-                // Each repeated view owns its instruction marker and CE host.
-                nodeCount: 2,
-                children: [{ name: elementName, children: [] }],
-              })),
-            }],
-          };
-          const clientAu = new Aurelia(clientCtx.container).register(AdoptedCleanupFailureRow);
-          const root = await clientAu.hydrate({
-            host: clientHost,
-            component: AppElement,
-            ssrScope,
-          });
-          const repeat = findRepeat(root.controller);
-          const internals = repeat as unknown as {
-            _reconciliation?: { promise?: Promise<void> };
-          };
-
-          clientApp.items.splice(0, 2);
-          const reconciliation = internals._reconciliation?.promise;
-          assert.instanceOf(reconciliation, Promise);
-
-          higherGate.resolve();
-          await waitFor(() => cleanupCalls.length === 1);
-          assert.deepStrictEqual(cleanupCalls, [1], 'higher row cleanup runs while the lower row remains pending');
-          if (lifecycleFails) {
-            lowerGate.reject(lifecycleError);
-            await assert.rejects(
-              () => reconciliation!,
-              error => error instanceof AggregateError
-                && error.errors[0] === lifecycleError
-                && error.errors[1] === lowerCleanupError,
-            );
-          } else {
-            lowerGate.resolve();
-            await assert.rejects(() => reconciliation!, lowerCleanupError);
-          }
-
-          assert.deepStrictEqual(cleanupCalls, [1, 0], 'both adopted rows complete cleanup before rejection');
-          assert.strictEqual(clientHost.textContent, '');
-          await root.deactivate();
-          root.dispose();
-          clientAu.dispose();
-          clientHost.remove();
-        });
-      }
-
     });
 
     it('composes three-stage and generated IndexMaps without losing provenance', async function () {
@@ -1556,41 +973,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       assert.strictEqual(fixture.appHost.textContent, '');
     });
 
-    it('rejects reentrant owner teardown when the synchronous reconciliation fails', async function () {
-      const lifecycleError = new Error('reentrant row teardown failed');
-      let stopping = false;
-      let stop: Promise<void> | undefined;
-
-      @customElement({ name: 'reentrant-failing-stop-row', template: '${value}', bindables: ['value'] })
-      class ReentrantFailingStopRow {
-        public value!: number;
-
-        public detaching(): void {
-          if (this.value === 0 && !stopping) {
-            stopping = true;
-            stop = Promise.resolve(fixture.stop(true));
-            void stop.catch(() => { /* observed below */ });
-            throw lifecycleError;
-          }
-        }
-      }
-
-      class App { public items = [0, 1]; }
-
-      const fixture = createFixture(
-        '<reentrant-failing-stop-row repeat.for="item of items" value.bind="item"></reentrant-failing-stop-row>',
-        App,
-        [ReentrantFailingStopRow],
-      );
-      assert.throws(() => fixture.component.items.shift(), lifecycleError);
-
-      assert.instanceOf(stop, Promise);
-      await assert.rejects(() => stop!, lifecycleError);
-      assert.strictEqual(fixture.appHost.textContent, '');
-      fixture.testHost.remove();
-      fixture.au.dispose();
-    });
-
     it('preflights live operations owned by a dynamic controller', async function () {
       const gate = new Deferred();
 
@@ -1793,98 +1175,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
       await fixture.stop(true);
       assert.deepStrictEqual(disposed, [1, 2], 'final disposal owns only the rebuilt row graph');
-    });
-
-    it('quiesces an initial row activation failure before rolling back Repeat', async function () {
-      const first = new Deferred();
-      const second = new Deferred();
-      const firstError = new Error('first repeated row failed');
-      const secondError = new Error('second repeated row failed');
-      let fail = true;
-
-      @customElement({ name: 'rejecting-attaching-repeat-row', template: '${value}', bindables: ['value'] })
-      class RejectingAttachingRow {
-        public value!: number;
-
-        public attaching(): void | Promise<void> {
-          if (!fail) {
-            return;
-          }
-          return this.value === 0 ? first.promise : second.promise;
-        }
-      }
-
-      const fixture = createFixture(
-        '<rejecting-attaching-repeat-row repeat.for="item of items" value.bind="item"></rejecting-attaching-repeat-row>',
-        class { public items = [0, 1]; },
-        [RejectingAttachingRow],
-        false,
-      );
-      const start = fixture.start() as Promise<void>;
-      let settled = false;
-      void start.then(
-        () => { settled = true; },
-        () => { settled = true; },
-      );
-
-      second.reject(secondError);
-      await Promise.resolve();
-      await Promise.resolve();
-      assert.strictEqual(settled, false);
-
-      first.reject(firstError);
-      await assert.rejects(() => start, firstError);
-      assert.strictEqual(fixture.appHost.textContent, '');
-
-      fail = false;
-      await fixture.start();
-      fixture.assertText('01');
-      await fixture.tearDown();
-    });
-
-    it('quiesces async siblings after a synchronous initial row activation failure', async function () {
-      const sibling = new Deferred();
-      const activationError = new Error('synchronous initial row failed');
-      let fail = true;
-
-      @customElement({ name: 'sync-rejecting-initial-row', template: '${value}', bindables: ['value'] })
-      class SyncRejectingInitialRow {
-        public value!: number;
-
-        public attaching(): void | Promise<void> {
-          if (!fail) {
-            return;
-          }
-          if (this.value === 0) {
-            throw activationError;
-          }
-          return sibling.promise;
-        }
-      }
-
-      const fixture = createFixture(
-        '<sync-rejecting-initial-row repeat.for="item of items" value.bind="item"></sync-rejecting-initial-row>',
-        class { public items = [0, 1]; },
-        [SyncRejectingInitialRow],
-        false,
-      );
-      const start = fixture.start() as Promise<void>;
-      let settled = false;
-      void start.then(
-        () => { settled = true; },
-        () => { settled = true; },
-      );
-
-      await Promise.resolve();
-      assert.strictEqual(settled, false);
-      sibling.resolve();
-      await assert.rejects(() => start, activationError);
-      assert.strictEqual(fixture.appHost.textContent, '');
-
-      fail = false;
-      await fixture.start();
-      fixture.assertText('01');
-      await fixture.tearDown();
     });
 
   });

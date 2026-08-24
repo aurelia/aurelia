@@ -343,8 +343,8 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
 }
 
 // Promise branch views are created dynamically and are not guaranteed to be in
-// Controller.children. Delegate explicitly so rollback and disposal traversal
-// still owns pending, fulfilled, and rejected branches.
+// Controller.children. Delegate explicitly so traversal still owns pending,
+// fulfilled, and rejected branches.
 function acceptOwnedView(view: ISyntheticView | undefined, visitor: ControllerVisitor): void | true {
   return view?.accept(visitor);
 }

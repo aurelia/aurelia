@@ -1,6 +1,5 @@
 import {
   customElement,
-  If,
   Switch,
   type ICustomElementController,
 } from '@aurelia/runtime-html';
@@ -21,70 +20,26 @@ class Deferred<T = void> {
 }
 
 describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
-  it('rejects initial switch case activation and quiesces rollback before start settles', async function () {
-    const attaching = new Deferred();
-    const detaching = new Deferred();
+  it('reports an initial switch case activation failure', async function () {
     const error = new Error('initial switch case attaching failed');
-    let child!: ActiveCase;
-    let detachingCalls = 0;
-    let unbindingCalls = 0;
 
     @customElement({ name: 'initial-active-case', template: 'active case' })
     class ActiveCase {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
       public attaching(): Promise<void> {
-        return attaching.promise;
-      }
-
-      public detaching(): Promise<void> {
-        ++detachingCalls;
-        return detaching.promise;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
+        return Promise.reject(error);
       }
     }
 
     const fixture = createFixture(
       '<div switch.bind="value"><initial-active-case case="active"></initial-active-case></div>',
-      class {
-        public readonly value = 'active';
-      },
+      class { public readonly value = 'active'; },
       [ActiveCase],
       false,
     );
+
     const start = fixture.start() as Promise<void>;
-    let settled = false;
-    void start.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    assert.ok(child, 'the initially active case enters its attaching hook');
-    attaching.reject(error);
-    const rollbackStarted = await waitForMicrotasks(() => detachingCalls > 0);
-    const settledBeforeRollbackDrain = settled;
-    detaching.resolve();
-
-    assert.strictEqual(rollbackStarted, true, 'the active case enters rollback');
-    assert.strictEqual(settledBeforeRollbackDrain, false, 'start waits for asynchronous case rollback');
-    assert.strictEqual(detachingCalls, 1);
-    assert.strictEqual(unbindingCalls, 0);
-
     assert.strictEqual(await captureRejection(start), error);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(fixture.appHost.querySelector('initial-active-case'), null);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
+    assert.strictEqual(fixture.torn, true);
   });
 
   it('keeps a retiring switch case visible to controller disposal preflight', async function () {
@@ -159,78 +114,60 @@ describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
     await fixture.tearDown();
   });
 
-  for (const failureKind of ['synchronous', 'asynchronous'] as const) {
-    it(`removes a retiring switch case after ${failureKind} deactivation failure`, async function () {
-      const error = new Error(`${failureKind} switch case deactivation failed`);
-      let retiringCase!: RetiringCase;
+  it('joins a pending case transition before switch teardown', async function () {
+    const detaching = new Deferred();
+    let retiringDetachingCalls = 0;
+    let replacementAttachingCalls = 0;
 
-      @customElement({ name: `${failureKind}-retiring-switch-case`, template: 'A' })
-      class RetiringCase {
-        public constructor() {
-          retiringCase = this;
-        }
-
-        public detaching(): void | Promise<void> {
-          if (failureKind === 'synchronous') {
-            throw error;
-          }
-          return Promise.reject(error);
-        }
+    @customElement({ name: 'pending-switch-retiring-case', template: 'A' })
+    class RetiringCase {
+      public detaching(): Promise<void> {
+        ++retiringDetachingCalls;
+        return detaching.promise;
       }
+    }
 
-      @customElement({ name: `${failureKind}-replacement-switch-case`, template: 'B' })
-      class ReplacementCase {}
-
-      const fixture = createFixture(
-        '<div switch.bind="value">'
-        + `<${failureKind}-retiring-switch-case case="a"></${failureKind}-retiring-switch-case>`
-        + `<${failureKind}-replacement-switch-case case="b"></${failureKind}-replacement-switch-case>`
-        + '</div>',
-        class App { public value = 'a'; },
-        [RetiringCase, ReplacementCase],
-      );
-      await fixture.started;
-
-      let switchVm!: Switch;
-      const root = fixture.au.root.controller;
-      root.accept(controller => {
-        if (controller.viewModel instanceof Switch) {
-          switchVm = controller.viewModel;
-          return true;
-        }
-      });
-
-      if (failureKind === 'synchronous') {
-        assert.throws(() => { fixture.component.value = 'b'; }, error);
-      } else {
-        fixture.component.value = 'b';
-        const transitionStarted = await waitForMicrotasks(() => switchVm.promise instanceof Promise);
-        assert.strictEqual(transitionStarted, true);
-        await assert.rejects(() => switchVm.promise as Promise<void>, error);
+    @customElement({ name: 'pending-switch-replacement-case', template: 'B' })
+    class ReplacementCase {
+      public attaching(): void {
+        ++replacementAttachingCalls;
       }
+    }
 
-      let retiringVisible = false;
-      root.accept(controller => {
-        if (controller.viewModel === retiringCase) {
-          retiringVisible = true;
-          return true;
-        }
-      });
-      assert.strictEqual(retiringVisible, false, 'a failed case is removed from retirement traversal');
+    const fixture = createFixture(
+      '<div switch.bind="value">'
+      + '<pending-switch-retiring-case case="a"></pending-switch-retiring-case>'
+      + '<pending-switch-replacement-case case="b"></pending-switch-replacement-case>'
+      + '</div>',
+      class App { public value = 'a'; },
+      [RetiringCase, ReplacementCase],
+    );
+    await fixture.started;
 
-      const stop = fixture.stop(true);
-      if (failureKind === 'asynchronous') {
-        // The rejected Switch tail remains the owner-visible transition result;
-        // stop joins it, completes structural cleanup, then reports that cause.
-        await assert.rejects(() => stop as Promise<void>, error);
-        fixture.testHost.remove();
-        fixture.au.dispose();
-      } else {
-        await stop;
+    let switchVm!: Switch;
+    fixture.au.root.controller.accept(controller => {
+      if (controller.viewModel instanceof Switch) {
+        switchVm = controller.viewModel;
+        return true;
       }
-      assert.strictEqual(fixture.appHost.textContent, '');
     });
-  }
+
+    fixture.component.value = 'b';
+    assert.strictEqual(await waitForMicrotasks(() => retiringDetachingCalls === 1), true);
+    const transition = switchVm.promise;
+    assert.instanceOf(transition, Promise);
+
+    const stop = fixture.stop(true);
+    assert.instanceOf(stop, Promise);
+    assert.strictEqual(replacementAttachingCalls, 0);
+
+    detaching.resolve();
+    await transition;
+    await stop;
+
+    assert.strictEqual(replacementAttachingCalls, 0);
+    assert.strictEqual(fixture.appHost.textContent, '');
+  });
 
   it('does not admit case collection changes after switch teardown starts', async function () {
     const detaching = new Deferred();
@@ -278,236 +215,11 @@ describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
     await fixture.tearDown();
   });
 
-  it('rejects initial with view activation and quiesces rollback before start settles', async function () {
-    const attaching = new Deferred();
-    const detaching = new Deferred();
-    const error = new Error('initial with child attaching failed');
-    let child!: WithChild;
-    let childHost!: HTMLElement;
-    let detachingCalls = 0;
-    let unbindingCalls = 0;
-
-    @customElement({ name: 'initial-with-child', template: 'with child' })
-    class WithChild {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public attaching(): Promise<void> {
-        childHost = this.$controller.host!;
-        return attaching.promise;
-      }
-
-      public detaching(): Promise<void> {
-        ++detachingCalls;
-        return detaching.promise;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<initial-with-child with.bind="context"></initial-with-child>',
-      class {
-        public readonly context = {};
-      },
-      [WithChild],
-      false,
-    );
-    const start = fixture.start() as Promise<void>;
-    let settled = false;
-    void start.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    assert.ok(child, 'the initial with view enters its attaching hook');
-    assert.strictEqual(childHost.isConnected, true);
-
-    attaching.reject(error);
-    const rollbackStarted = await waitForMicrotasks(() => detachingCalls > 0);
-    const settledBeforeRollbackDrain = settled;
-    detaching.resolve();
-
-    assert.strictEqual(rollbackStarted, true, 'the with view enters rollback');
-    assert.strictEqual(settledBeforeRollbackDrain, false, 'start waits for asynchronous with view rollback');
-    assert.strictEqual(detachingCalls, 1);
-    assert.strictEqual(unbindingCalls, 0);
-
-    assert.strictEqual(await captureRejection(start), error);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(childHost.isConnected, false);
-    assert.strictEqual(fixture.appHost.querySelector('initial-with-child'), null);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('rejects initial portal view activation and quiesces rollback before start settles', async function () {
-    const attaching = new Deferred();
-    const detaching = new Deferred();
-    const error = new Error('initial portal child attaching failed');
-    let child!: PortalChild;
-    let childHost!: HTMLElement;
-    let detachingCalls = 0;
-    let unbindingCalls = 0;
-
-    @customElement({ name: 'initial-portal-child', template: 'portal child' })
-    class PortalChild {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public attaching(): Promise<void> {
-        childHost = this.$controller.host!;
-        return attaching.promise;
-      }
-
-      public detaching(): Promise<void> {
-        ++detachingCalls;
-        return detaching.promise;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<div id="initial-portal-target"></div>'
-      + '<initial-portal-child portal="target: #initial-portal-target"></initial-portal-child>',
-      class {},
-      [PortalChild],
-      false,
-    );
-    const start = fixture.start() as Promise<void>;
-    let settled = false;
-    void start.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    assert.ok(child, 'the initial portal view enters its attaching hook');
-    assert.strictEqual(childHost.isConnected, true);
-    assert.strictEqual(
-      fixture.appHost.querySelector('#initial-portal-target initial-portal-child'),
-      childHost,
-      'the child is moved into the portal target before its attaching hook settles',
-    );
-
-    attaching.reject(error);
-    const rollbackStarted = await waitForMicrotasks(() => detachingCalls > 0);
-    const settledBeforeRollbackDrain = settled;
-    detaching.resolve();
-
-    assert.strictEqual(rollbackStarted, true, 'the portal view enters rollback');
-    assert.strictEqual(settledBeforeRollbackDrain, false, 'start waits for asynchronous portal rollback');
-    assert.strictEqual(detachingCalls, 1);
-    assert.strictEqual(unbindingCalls, 0);
-
-    assert.strictEqual(await captureRejection(start), error);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(childHost.isConnected, false);
-    assert.strictEqual(fixture.appHost.querySelector('initial-portal-child'), null);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('rejects initial projected view activation and quiesces au-slot rollback before start settles', async function () {
-    const attaching = new Deferred();
-    const detaching = new Deferred();
-    const error = new Error('initial projected child attaching failed');
-    let child!: ProjectedChild;
-    let childHost!: HTMLElement;
-    let detachingCalls = 0;
-    let unbindingCalls = 0;
-
-    @customElement({ name: 'initial-slot-owner', template: '<au-slot></au-slot>' })
-    class SlotOwner {}
-
-    @customElement({ name: 'initial-projected-child', template: 'projected child' })
-    class ProjectedChild {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public attaching(): Promise<void> {
-        childHost = this.$controller.host!;
-        return attaching.promise;
-      }
-
-      public detaching(): Promise<void> {
-        ++detachingCalls;
-        return detaching.promise;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<initial-slot-owner><initial-projected-child></initial-projected-child></initial-slot-owner>',
-      class {},
-      [SlotOwner, ProjectedChild],
-      false,
-    );
-    const start = fixture.start() as Promise<void>;
-    let settled = false;
-    void start.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    assert.ok(child, 'the initial projected view enters its attaching hook');
-    assert.strictEqual(childHost.isConnected, true);
-
-    attaching.reject(error);
-    const rollbackStarted = await waitForMicrotasks(() => detachingCalls > 0);
-    const settledBeforeRollbackDrain = settled;
-    detaching.resolve();
-
-    assert.strictEqual(rollbackStarted, true, 'the projected view enters rollback through au-slot');
-    assert.strictEqual(settledBeforeRollbackDrain, false, 'start waits for asynchronous projected-view rollback');
-    assert.strictEqual(detachingCalls, 1);
-    assert.strictEqual(unbindingCalls, 0);
-
-    assert.strictEqual(await captureRejection(start), error);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(childHost.isConnected, false);
-    assert.strictEqual(fixture.appHost.querySelector('initial-projected-child'), null);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('rejects an initial if branch async attaching failure', async function () {
+  it('reports an initial if branch activation failure', async function () {
     const error = new Error('initial if branch attaching failed');
-    let child!: IfBranch;
 
     @customElement({ name: 'initial-if-branch', template: 'if branch' })
     class IfBranch {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
       public attaching(): Promise<void> {
         return Promise.reject(error);
       }
@@ -515,71 +227,14 @@ describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
 
     const fixture = createFixture(
       '<initial-if-branch if.bind="show"></initial-if-branch>',
-      class {
-        public readonly show = true;
-      },
+      class { public readonly show = true; },
       [IfBranch],
       false,
     );
 
     const start = fixture.start() as Promise<void>;
     assert.strictEqual(await captureRejection(start), error);
-    assert.strictEqual(fixture.au.isRunning, false);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(fixture.appHost.querySelector('initial-if-branch'), null);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
-  });
-
-  it('recovers a later if swap after its branch activation rejects', async function () {
-    const attaching = new Deferred();
-    const error = new Error('later if branch attaching failed');
-    let shouldFail = true;
-
-    @customElement({ name: 'recovering-if-branch', template: 'if branch' })
-    class IfBranch {
-      public attaching(): void | Promise<void> {
-        if (shouldFail) {
-          shouldFail = false;
-          return attaching.promise;
-        }
-      }
-    }
-
-    const fixture = createFixture(
-      '<recovering-if-branch if.bind="show"></recovering-if-branch>',
-      class App {
-        public show = false;
-      },
-      [IfBranch],
-    );
-    await fixture.started;
-
-    let ifVm!: If;
-    fixture.au.root.controller.accept(controller => {
-      if (controller.viewModel instanceof If) {
-        ifVm = controller.viewModel;
-        return true;
-      }
-    });
-
-    fixture.component.show = true;
-    const failedSwap = (ifVm as unknown as { pending: Promise<void> }).pending;
-    assert.instanceOf(failedSwap, Promise);
-    attaching.reject(error);
-    await failedSwap;
-
-    assert.strictEqual(fixture.appHost.querySelector('recovering-if-branch'), null);
-
-    fixture.component.show = false;
-    await (ifVm as unknown as { pending?: Promise<void> }).pending;
-    fixture.component.show = true;
-    await (ifVm as unknown as { pending?: Promise<void> }).pending;
-
-    assert.strictEqual(fixture.appHost.textContent, 'if branch');
-    await fixture.tearDown();
+    assert.strictEqual(fixture.torn, true);
   });
 
   for (const branch of ['pending', 'then', 'catch'] as const) {

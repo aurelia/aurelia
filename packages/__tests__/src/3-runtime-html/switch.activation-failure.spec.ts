@@ -7,17 +7,14 @@ describe('3-runtime-html/switch.activation-failure.spec.ts', function () {
   interface IPromiseManager {
     createPromise(): Promise<void>;
     reject(err: unknown): void;
-    currentPromise: Promise<void> | null;
   }
   const IPromiseManager = DI.createInterface<IPromiseManager>('IPromiseManager', x => x.singleton(PromiseManager));
 
   class PromiseManager implements IPromiseManager {
     private _reject: ((err: unknown) => void) | null = null;
-    private _currentPromise: Promise<void> | null = null;
-    public get currentPromise(): Promise<void> | null { return this._currentPromise; }
 
     public createPromise(): Promise<void> {
-      return this._currentPromise = new Promise<void>((_, rej) => { this._reject = rej; });
+      return new Promise<void>((_, rej) => { this._reject = rej; });
     }
 
     public reject(err: unknown): void {
@@ -25,7 +22,7 @@ describe('3-runtime-html/switch.activation-failure.spec.ts', function () {
     }
   }
 
-  it('recovers when case activation fails and switch value changes again', async function () {
+  it('keeps a failed case activation terminal for the switch queue', async function () {
     @customElement({ name: 'c-a', template: 'A' })
     class CaseA implements ICustomElementViewModel {
       private readonly promiseManager = resolve(IPromiseManager);
@@ -80,22 +77,29 @@ describe('3-runtime-html/switch.activation-failure.spec.ts', function () {
     await Promise.resolve();
 
     // Reject the activation promise while activation is in progress
-    promiseManager.reject(new Error('Synthetic activation failure'));
+    const activationError = new Error('Synthetic activation failure');
+    promiseManager.reject(activationError);
 
-    // Wait for rejection to be processed and switch queue to settle
-    await Promise.allSettled([promiseManager.currentPromise, switchVm?.promise]);
-    await Promise.resolve();
+    let reportedError: unknown;
+    try {
+      await switchVm?.promise;
+    } catch (error) {
+      reportedError = error;
+    }
+    assert.strictEqual(reportedError, activationError);
 
-    // Now switch to case B - this should work
+    // A later value change remains behind the rejected queue.
     app.value = 'b';
-
-    // Wait for the switch queue to complete
-    await Promise.allSettled([switchVm?.promise]);
     await Promise.resolve();
 
-    // Should show B again
-    assert.html.textContent(host, 'B', 'after recovery');
+    let repeatedError: unknown;
+    try {
+      await switchVm?.promise;
+    } catch (error) {
+      repeatedError = error;
+    }
+    assert.strictEqual(repeatedError, activationError);
 
-    await au.stop();
+    host.remove();
   });
 });

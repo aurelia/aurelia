@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { isPromise, onResolve, resolve } from '@aurelia/kernel';
+import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
@@ -50,7 +50,7 @@ export class If implements ICustomAttributeViewModel {
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
       return this._hydrateView(ssrScope);
     }
-    return this._swap(this.value, true);
+    return this._swap(this.value);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -74,7 +74,7 @@ export class If implements ICustomAttributeViewModel {
   }
 
   /** @internal */
-  private _swap(value: unknown, reportInitialFailure: boolean = false): void | Promise<void> {
+  private _swap(value: unknown): void | Promise<void> {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -115,32 +115,11 @@ export class If implements ICustomAttributeViewModel {
           //       instead of always of the [if]
           view.setLocation(this._location);
 
-          const ret = view.activate(view, ctrl, ctrl.scope);
-          if (isPromise(ret)) {
-            return ret.then(
-              () => {
-                if (isCurrent()) {
-                  this.pending = void 0;
-                }
-              },
-              error => {
-                // Controller has already rolled this self-initiated view back
-                // when its local result rejects. Initial attachment still
-                // belongs to application start and must expose the failure;
-                // later value changes consume their request so a new swap can
-                // recover, preserving If's established update behavior.
-                if (isCurrent()) {
-                  this.pending = void 0;
-                }
-                if (reportInitialFailure) {
-                  throw error;
-                }
-              }
-            );
-          }
-          if (isCurrent()) {
-            this.pending = void 0;
-          }
+          return onResolve(view.activate(view, ctrl, ctrl.scope), () => {
+            if (isCurrent()) {
+              this.pending = void 0;
+            }
+          });
         }
       )
     );

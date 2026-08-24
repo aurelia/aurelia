@@ -22,7 +22,7 @@ import { adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
-import { cleanupAfterFailure, createMappedError, ErrorNames } from '../../errors';
+import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
 
 export class Switch implements ICustomAttributeViewModel {
@@ -107,10 +107,7 @@ export class Switch implements ICustomAttributeViewModel {
     if (!isPromise(pending)) {
       return deactivate();
     }
-    return pending.then(
-      deactivate,
-      error => cleanupAfterFailure(error, deactivate, ErrorNames.switch_activation_teardown_failed),
-    );
+    return pending.then(deactivate);
   }
 
   public dispose(): void {
@@ -258,23 +255,7 @@ export class Switch implements ICustomAttributeViewModel {
   private _retireCase($case: Case, initiator: IHydratedController | null): void | Promise<void> {
     this.retiringCases.add($case);
     const complete = () => { this.retiringCases.delete($case); };
-    let result: void | Promise<void>;
-    try {
-      result = $case.deactivate(initiator);
-    } catch (error) {
-      complete();
-      throw error;
-    }
-    if (isPromise(result)) {
-      return result.then(
-        complete,
-        error => {
-          complete();
-          throw error;
-        },
-      );
-    }
-    complete();
+    return onResolve($case.deactivate(initiator), complete);
   }
 
   private queue(action: () => void | Promise<void>): void {
@@ -410,14 +391,7 @@ export class Case implements ICustomAttributeViewModel {
       }
     }
     if (view.isActive) { return; }
-    const ret = view.activate(initiator ?? view, this.$controller, scope);
-    if (isPromise(ret) && initiator === null) {
-      // A value change owns this view's activation independently. Controller
-      // has already rolled the failed view back when the local result rejects;
-      // consume that request's failure so the next switch update can proceed.
-      return ret.catch(() => void 0);
-    }
-    return ret;
+    return view.activate(initiator ?? view, this.$controller, scope);
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {

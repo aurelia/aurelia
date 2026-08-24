@@ -2,7 +2,6 @@ import {
   AuCompose,
   customElement,
   CustomElement,
-  type ICustomElementController,
   type IHydratedController,
 } from '@aurelia/runtime-html';
 import { runTasks, tasksSettled } from '@aurelia/runtime';
@@ -106,93 +105,6 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
         await fixture.stop(true);
       });
     }
-
-    it('reports a rejected model update without poisoning later updates', async function () {
-      const first = new Deferred();
-      const third = new Deferred();
-      const calls: string[] = [];
-      const error = new Error('model update failed');
-      const laterError = new Error('later model update failed');
-
-      const ModelComponent = CustomElement.define({
-        name: 'rejecting-model-update',
-        template: '',
-      }, class {
-        public activate(model: string): void | Promise<void> {
-          calls.push(model);
-          if (model === 'first') {
-            return first.promise;
-          }
-          if (model === 'third') {
-            return third.promise;
-          }
-        }
-      });
-
-      const fixture = createFixture(
-        '<au-compose component.bind="component" model.bind="model" composing.bind="composing" composition.bind="composition"></au-compose>',
-        class App {
-          public component = ModelComponent;
-          public model = 'initial';
-          public composing: void | Promise<void>;
-          public composition: ICompositionController | undefined;
-        },
-        [ModelComponent],
-      );
-      const { component } = fixture;
-      await tasksSettled();
-
-      const initialComposition = component.composition;
-      component.model = 'first';
-      await tasksSettled();
-      const rejectedOperation = component.composing as Promise<void>;
-      assert.instanceOf(rejectedOperation, Promise);
-      const observedRejection = rejectedOperation.catch(reason => {
-        assert.strictEqual(reason, error);
-      });
-
-      component.model = 'second';
-      await tasksSettled();
-      const recoveryOperation = component.composing as Promise<void>;
-      assert.instanceOf(recoveryOperation, Promise);
-      assert.notStrictEqual(recoveryOperation, rejectedOperation);
-      assert.deepStrictEqual(calls, ['initial', 'first']);
-
-      first.reject(error);
-      await observedRejection;
-      await recoveryOperation;
-      await tasksSettled();
-
-      assert.deepStrictEqual(calls, ['initial', 'first', 'second']);
-      assert.strictEqual(component.composing, void 0);
-      assert.strictEqual(component.composition, initialComposition);
-      const capturedError = await rejectedOperation.then(
-        () => void 0,
-        reason => reason
-      );
-      assert.strictEqual(capturedError, error, 'later recovery does not change the captured rejected operation');
-
-      component.model = 'third';
-      await tasksSettled();
-      const laterRejectedOperation = component.composing as Promise<void>;
-      assert.instanceOf(laterRejectedOperation, Promise);
-      const observedLaterRejection = laterRejectedOperation.catch(reason => {
-        assert.strictEqual(reason, laterError);
-      });
-      third.reject(laterError);
-      await observedLaterRejection;
-      await tasksSettled();
-
-      assert.deepStrictEqual(calls, ['initial', 'first', 'second', 'third']);
-      assert.strictEqual(component.composing, void 0);
-
-      component.model = 'fourth';
-      await tasksSettled();
-      assert.deepStrictEqual(calls, ['initial', 'first', 'second', 'third', 'fourth']);
-      assert.strictEqual(component.composing, void 0);
-
-      await fixture.stop(true);
-    });
 
     it('keeps structural composition behind a pending model update', async function () {
       const update = new Deferred();
@@ -452,261 +364,12 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       assert.strictEqual(fixture.appHost.textContent, '');
     });
 
-    it('preserves a pending model rejection when detaching cancels its queued successor', async function () {
-      const update = new Deferred();
-      const error = new Error('canceled model queue failed');
-      const calls: string[] = [];
-      const unhandled: unknown[] = [];
-      let handler: (reason: unknown) => void;
-      let disposeHandler: () => void;
-
-      if (typeof process !== 'undefined' && typeof process.on === 'function') {
-        handler = (reason: unknown) => unhandled.push(reason);
-        process.on('unhandledRejection', handler);
-        disposeHandler = () => process.off('unhandledRejection', handler);
-      } else {
-        handler = (event: PromiseRejectionEvent) => unhandled.push(event.reason);
-        addEventListener('unhandledrejection', handler);
-        disposeHandler = () => removeEventListener('unhandledrejection', handler);
-      }
-
-      const ModelComponent = CustomElement.define({
-        name: 'rejecting-model-queue-during-stop',
-        template: '',
-      }, class {
-        public activate(model: string): void | Promise<void> {
-          calls.push(`activate:${model}`);
-          return model === 'first' ? update.promise : void 0;
-        }
-
-        public detaching(): void {
-          calls.push('detaching');
-        }
-      });
-
-      const fixture = createFixture(
-        '<au-compose component.bind="component" model.bind="model" composing.bind="composing"></au-compose>',
-        class App {
-          public component = ModelComponent;
-          public model = 'initial';
-          public composing: void | Promise<void>;
-        },
-        [ModelComponent],
-      );
-      await fixture.started;
-
-      fixture.component.model = 'first';
-      await tasksSettled();
-      fixture.component.model = 'second';
-      await tasksSettled();
-      const stop = Promise.resolve(fixture.stop(true));
-
-      try {
-        update.reject(error);
-        await assert.rejects(() => stop, error);
-        await new Promise<void>(resolve => setTimeout(resolve));
-      } finally {
-        disposeHandler();
-      }
-
-      assert.deepStrictEqual(calls, [
-        'activate:initial',
-        'activate:first',
-        'detaching',
-      ]);
-      assert.deepStrictEqual(unhandled, []);
-      assert.strictEqual(fixture.component.composing, void 0);
-      fixture.au.dispose();
-    });
-
-    it('detaches its composition after a pending model update rejects', async function () {
-      const update = new Deferred();
-      const cleanup = new Deferred();
-      const calls: string[] = [];
-      const error = new Error('pending model update failed');
-
-      const ModelComponent = CustomElement.define({
-        name: 'detaching-model-update',
-        template: '',
-      }, class {
-        public activate(model: string): void | Promise<void> {
-          calls.push(`activate:${model}`);
-          if (model === 'pending') {
-            return update.promise;
-          }
-        }
-
-        public detaching(): Promise<void> {
-          calls.push('detaching');
-          return cleanup.promise;
-        }
-      });
-
-      const fixture = createFixture(
-        '<au-compose component.bind="component" model.bind="model" composing.bind="composing" composition.bind="composition"></au-compose>',
-        class App {
-          public component = ModelComponent;
-          public model = 'initial';
-          public composing: void | Promise<void>;
-          public composition: ICompositionController | undefined;
-        },
-        [ModelComponent],
-      );
-      const { component } = fixture;
-      await tasksSettled();
-
-      component.model = 'pending';
-      await tasksSettled();
-      const modelUpdate = component.composing as Promise<void>;
-      assert.instanceOf(modelUpdate, Promise);
-
-      const observedModelRejection = modelUpdate.catch(reason => {
-        assert.strictEqual(reason, error);
-      });
-      const detachResult = fixture.stop(true);
-      assert.instanceOf(detachResult, Promise);
-      let detachFulfilled = false;
-      let detachSettled = false;
-      const observedDetachRejection = (detachResult as Promise<void>).then(
-        () => { detachFulfilled = detachSettled = true; },
-        reason => {
-          detachSettled = true;
-          assert.strictEqual(reason, error);
-        }
-      );
-
-      await tasksSettled();
-      assert.deepStrictEqual(calls, ['activate:initial', 'activate:pending']);
-      assert.strictEqual(detachFulfilled, false);
-      assert.strictEqual(component.composing, void 0);
-      assert.strictEqual(component.composition, void 0);
-
-      update.reject(error);
-      await observedModelRejection;
-      assert.strictEqual(detachSettled, false, 'the original error waits for asynchronous cleanup');
-      assert.deepStrictEqual(calls, ['activate:initial', 'activate:pending', 'detaching']);
-
-      cleanup.resolve();
-      await observedDetachRejection;
-
-      assert.deepStrictEqual(calls, [
-        'activate:initial',
-        'activate:pending',
-        'detaching',
-      ]);
-      assert.strictEqual(detachFulfilled, false);
-      // createFixture disposes only after a fulfilled stop(true); this stop
-      // deliberately rejects after completing framework cleanup.
-      fixture.testHost.remove();
-      fixture.au.dispose();
-    });
-
   });
 
   describe('structural activation ownership', function () {
-    for (const failureKind of ['synchronous', 'asynchronous'] as const) {
-      it(`cleans a dynamically composed controller after ${failureKind} activation failure`, async function () {
-        const error = new Error(`${failureKind} dynamic composition activation failed`);
 
-        @customElement({ name: `${failureKind}-stable-composition`, template: 'stable' })
-        class StableComposition {}
-
-        @customElement({ name: `${failureKind}-failing-composition`, template: 'failing' })
-        class FailingComposition {
-          public attaching(): void | Promise<void> {
-            if (failureKind === 'synchronous') {
-              throw error;
-            }
-            return Promise.reject(error);
-          }
-        }
-
-        @customElement({ name: `${failureKind}-recovered-composition`, template: 'recovered' })
-        class RecoveredComposition {}
-
-        const fixture = createFixture(
-          '<au-compose component.bind="component" composing.bind="composing" composition.bind="composition"></au-compose>',
-          class App {
-            public component: unknown = StableComposition;
-            public composing: void | Promise<void>;
-            public composition: ICompositionController | undefined;
-          },
-          [StableComposition, FailingComposition, RecoveredComposition],
-        );
-        await fixture.started;
-        const stableComposition = fixture.component.composition;
-
-        if (failureKind === 'synchronous') {
-          assert.throws(() => { fixture.component.component = FailingComposition; }, error);
-        } else {
-          fixture.component.component = FailingComposition;
-          await tasksSettled();
-          const composing = fixture.component.composing;
-          assert.instanceOf(composing, Promise);
-          await assert.rejects(() => composing as Promise<void>, error);
-        }
-        await tasksSettled();
-
-        assert.strictEqual(fixture.component.composition, stableComposition);
-        assert.strictEqual(fixture.appHost.querySelector(`${failureKind}-failing-composition`), null);
-        fixture.assertText('stable');
-
-        fixture.component.component = RecoveredComposition;
-        await tasksSettled();
-        if (fixture.component.composing != null) {
-          await fixture.component.composing;
-        }
-        fixture.assertText('recovered');
-        await fixture.tearDown();
-      });
-    }
-
-    it('aggregates dynamic activation and disposal failures in causal order', async function () {
-      const activationError = new Error('dynamic composition activation failed');
-      const disposalError = new Error('failed composition disposal failed');
-
-      @customElement({ name: 'stable-before-failed-disposal', template: 'stable' })
-      class StableComposition {}
-
-      @customElement({ name: 'activation-and-disposal-failure', template: 'failing' })
-      class FailingComposition {
-        public attaching(): never {
-          throw activationError;
-        }
-
-        public dispose(): never {
-          throw disposalError;
-        }
-      }
-
-      const fixture = createFixture(
-        '<au-compose component.bind="component"></au-compose>',
-        class App { public component: unknown = StableComposition; },
-        [StableComposition, FailingComposition],
-      );
-      await fixture.started;
-
-      let aggregate: unknown;
-      try {
-        fixture.component.component = FailingComposition;
-        assert.fail('Expected dynamic composition to fail');
-      } catch (error) {
-        aggregate = error;
-      }
-
-      if (!(aggregate instanceof AggregateError)) {
-        assert.fail('Expected activation and disposal failures to aggregate');
-      }
-      assert.deepStrictEqual(aggregate.errors, [activationError, disposalError]);
-      assert.match(aggregate.message, /AUR0834: AuCompose activation failed during disposal/);
-      assert.strictEqual(fixture.appHost.querySelector('activation-and-disposal-failure'), null);
-      fixture.assertText('stable');
-      await fixture.tearDown();
-    });
-
-    it('cleans every composition owned through a reentrant initial update', async function () {
+    it('retires every composition created by a reentrant initial update', async function () {
       const attaching = new Deferred();
-      const activationError = new Error('outer composition activation failed');
       let app!: App;
       let outerDisposeCalls = 0;
       let innerDisposeCalls = 0;
@@ -754,15 +417,17 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       assert.notStrictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
       assert.notStrictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
 
-      attaching.reject(activationError);
-      await assert.rejects(() => start, activationError);
+      attaching.resolve();
+      await start;
 
       assert.strictEqual(outerDisposeCalls, 1);
+      assert.strictEqual(innerDisposeCalls, 0);
+      assert.strictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
+      assert.notStrictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
+
+      await fixture.stop(true);
       assert.strictEqual(innerDisposeCalls, 1);
       assert.strictEqual(fixture.appHost.textContent, '');
-      assert.strictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
-      assert.strictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
-      await fixture.tearDown();
     });
 
     it('propagates synchronous initial composition activation failure to start', async function () {
@@ -783,9 +448,7 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       );
 
       assert.throws(() => fixture.start(), error);
-      assert.strictEqual(fixture.au.isRunning, false);
-      assert.strictEqual(fixture.appHost.textContent, '');
-      await fixture.tearDown();
+      assert.strictEqual(fixture.torn, true);
     });
 
     it('retires a composition invalidated while controller activation is pending', async function () {
@@ -890,83 +553,6 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
     });
   });
 
-  it('rejects initial au-compose child activation and quiesces disposal before start settles', async function () {
-    const attaching = new Deferred();
-    const detaching = new Deferred();
-    const error = new Error('initial composed child attaching failed');
-    let child!: ComposedChild;
-    let compositionHost!: HTMLElement;
-    let detachingCalls = 0;
-    let unbindingCalls = 0;
-    let disposeCalls = 0;
-
-    @customElement({ name: 'initial-composed-child', template: 'composed child' })
-    class ComposedChild {
-      public readonly $controller!: ICustomElementController<this>;
-
-      public constructor() {
-        child = this;
-      }
-
-      public attaching(): Promise<void> {
-        compositionHost = this.$controller.host!;
-        return attaching.promise;
-      }
-
-      public detaching(): Promise<void> {
-        ++detachingCalls;
-        return detaching.promise;
-      }
-
-      public unbinding(): void {
-        ++unbindingCalls;
-      }
-
-      public dispose(): void {
-        ++disposeCalls;
-      }
-    }
-
-    const fixture = createFixture(
-      '<au-compose component.bind="component"></au-compose>',
-      class {
-        public readonly component = ComposedChild;
-      },
-      [ComposedChild],
-      false,
-    );
-    const start = fixture.start() as Promise<void>;
-    let settled = false;
-    void start.then(
-      () => { settled = true; },
-      () => { settled = true; },
-    );
-
-    assert.ok(child, 'the initial composition enters its attaching hook');
-    assert.strictEqual(compositionHost.isConnected, true);
-
-    attaching.reject(error);
-    const rollbackStarted = await waitForMicrotasks(() => detachingCalls > 0);
-    const settledBeforeRollbackDrain = settled;
-    detaching.resolve();
-
-    assert.strictEqual(rollbackStarted, true, 'the composed child enters rollback');
-    assert.strictEqual(settledBeforeRollbackDrain, false, 'start waits for asynchronous rollback');
-    assert.strictEqual(detachingCalls, 1);
-    assert.strictEqual(unbindingCalls, 0);
-
-    assert.strictEqual(await captureRejection(start), error);
-    assert.strictEqual(child.$controller.isActive, false);
-    assert.strictEqual(child.$controller.isBound, false);
-    assert.strictEqual(unbindingCalls, 1);
-    assert.strictEqual(disposeCalls, 1);
-    assert.strictEqual(compositionHost.isConnected, false);
-    assert.strictEqual(fixture.appHost.querySelector('initial-composed-child'), null);
-    assert.strictEqual(fixture.appHost.textContent, '');
-
-    await fixture.tearDown();
-  });
-
   it('preflights a live controller owned by AuCompose', async function () {
     const gate = new Deferred();
 
@@ -1049,68 +635,4 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
     await fixture.tearDown();
   });
 
-  for (const failureKind of ['synchronous', 'asynchronous'] as const) {
-    it(`removes an old AuCompose host after ${failureKind} recomposition teardown failure`, async function () {
-      const error = new Error(`${failureKind} old composition teardown failed`);
-
-      @customElement({ name: `${failureKind}-failing-retiring-child`, template: 'old' })
-      class RetiringChild {
-        public detaching(): void | Promise<void> {
-          if (failureKind === 'synchronous') {
-            throw error;
-          }
-          return Promise.reject(error);
-        }
-      }
-
-      @customElement({ name: `${failureKind}-replacement-child`, template: 'new' })
-      class ReplacementChild {}
-
-      const fixture = createFixture(
-        '<au-compose component.bind="component" composing.bind="composing" composition.bind="composition"></au-compose>',
-        class App {
-          public component: unknown = RetiringChild;
-          public composing?: Promise<void> | void;
-          public composition?: { readonly controller: IHydratedController };
-        },
-        [RetiringChild, ReplacementChild],
-      );
-      await fixture.started;
-
-      if (failureKind === 'synchronous') {
-        assert.throws(() => { fixture.component.component = ReplacementChild; }, error);
-      } else {
-        fixture.component.component = ReplacementChild;
-        await tasksSettled();
-        const composing = fixture.component.composing;
-        assert.instanceOf(composing, Promise);
-        await assert.rejects(() => composing as Promise<void>, error);
-      }
-      await tasksSettled();
-
-      assert.strictEqual(fixture.appHost.querySelectorAll(`${failureKind}-failing-retiring-child`).length, 0);
-      assert.strictEqual(fixture.appHost.querySelectorAll(`${failureKind}-replacement-child`).length, 1);
-      fixture.assertText('new');
-      assert.strictEqual(fixture.component.composing, void 0);
-
-      await fixture.tearDown();
-    });
-  }
-
 });
-
-async function captureRejection(promise: Promise<void>): Promise<unknown> {
-  try {
-    await promise;
-  } catch (error) {
-    return error;
-  }
-  assert.fail('Expected promise to reject');
-}
-
-async function waitForMicrotasks(predicate: () => boolean): Promise<boolean> {
-  for (let i = 0; i < 20 && !predicate(); ++i) {
-    await Promise.resolve();
-  }
-  return predicate();
-}

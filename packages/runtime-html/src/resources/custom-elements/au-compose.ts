@@ -9,7 +9,7 @@ import { Controller, type ControllerVisitor, HydrationContext, IController, ICus
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
-import { cleanupAfterFailure, ErrorNames, createMappedError } from '../../errors';
+import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
 
@@ -18,8 +18,8 @@ import { SpreadBinding } from '../../binding/spread-binding';
  */
 export interface IDynamicComponentActivate<T> {
   /**
-   * Implement this hook if you want to perform custom logic just before the component is is composed.
-   * The returned value is not used.
+   * Implement this hook to run custom logic before the component is composed.
+   * A returned Promise delays composition until it settles. Its fulfillment value is ignored.
    */
   activate?(model?: T): unknown;
 }
@@ -157,10 +157,7 @@ export class AuCompose {
     if (!isPromise(pending)) {
       return deactivate();
     }
-    return pending.then(
-      deactivate,
-      error => cleanupAfterFailure(error, deactivate, ErrorNames.au_compose_operation_teardown_failed),
-    );
+    return pending.then(deactivate);
   }
 
   public accept(visitor: ControllerVisitor): void | true {
@@ -195,17 +192,9 @@ export class AuCompose {
         this._ownedCompositions.delete(composition);
       }
     };
-    let result: void | Promise<void>;
-    try {
-      result = deactivate();
-    } catch (error) {
-      return cleanupAfterFailure(error, dispose, ErrorNames.au_compose_deactivation_disposal_failed);
-    }
+    const result = deactivate();
     if (isPromise(result)) {
-      return result.then(
-        dispose,
-        error => cleanupAfterFailure(error, dispose, ErrorNames.au_compose_deactivation_disposal_failed),
-      );
+      return result.then(dispose);
     }
     dispose();
   }
@@ -293,21 +282,12 @@ export class AuCompose {
   /** @internal */
   private _enqueueComposition(work: () => unknown): void | Promise<void> {
     const current = this._composing;
-    // A failed request stays observable but does not poison later work. If
-    // teardown invalidated this queued successor, do not run it and preserve the
-    // predecessor error for the teardown caller instead.
+    // If teardown invalidated this queued successor, do not run it. A rejected
+    // predecessor also stops its queued successors and remains the public error.
     let result: unknown;
     if (isPromise(current)) {
       const version = this._queueVersion;
-      result = current.then(
-        () => version === this._queueVersion ? work() : void 0,
-        error => {
-          if (version !== this._queueVersion) {
-            throw error;
-          }
-          return work();
-        },
-      );
+      result = current.then(() => version === this._queueVersion ? work() : void 0);
     } else {
       result = work();
     }
@@ -315,20 +295,12 @@ export class AuCompose {
       return;
     }
 
-    const composing = result.then(
-      () => {
-        // An older tail must not clear a newer queued tail.
-        if (this._composing === composing) {
-          this._composing = void 0;
-        }
-      },
-      error => {
-        if (this._composing === composing) {
-          this._composing = void 0;
-        }
-        throw error;
+    const composing = result.then(() => {
+      // An older tail must not clear a newer queued tail.
+      if (this._composing === composing) {
+        this._composing = void 0;
       }
-    );
+    });
     this._composing = composing;
     return composing;
   }
@@ -345,35 +317,13 @@ export class AuCompose {
         if (factory._isCurrent(context)) {
           return onResolve(this.compose(context), (result) => {
             // Ownership begins when compose inserts/creates the controller, not
-            // when activation commits. Stale and failed results still need host
-            // cleanup and must remain visible to Controller traversal.
+            // when activation commits. Pending and stale results must remain
+            // visible to Controller traversal.
             this._ownedCompositions.add(result);
             // Don't activate [stale] controller
             // by always ensuring that the composition context is the latest one
             if (factory._isCurrent(context)) {
-              let activation: void | Promise<void>;
-              if (initiator === void 0) {
-                // Bindable-driven work has no ancestor operation to own a
-                // synchronous failure, so AuCompose must clean it locally.
-                try {
-                  activation = result.activate();
-                } catch (error) {
-                  return cleanupAfterFailure(
-                    error,
-                    () => {
-                      // A synchronous activation throw implies Controller
-                      // compensation also completed synchronously.
-                      void this._disposeComposition(result, () => result.deactivate(result.controller));
-                    },
-                    ErrorNames.au_compose_activation_disposal_failed,
-                  );
-                }
-              } else {
-                // Initial attaching is enrolled in the ancestor Controller.
-                // Descendant synchronous failures propagate through that
-                // operation rather than throwing from this call.
-                activation = result.activate(initiator);
-              }
+              const activation = result.activate(initiator);
               const conclude = () => {
                 // Don't conclude the [stale] composition
                 // by always ensuring that the composition context is the latest one
@@ -399,25 +349,7 @@ export class AuCompose {
                 }
               };
               if (isPromise(activation)) {
-                return activation.then(
-                  conclude,
-                  error => {
-                    // See the synchronous failure branch above: only dynamic
-                    // work owns its local rollback here.
-                    if (initiator === void 0) {
-                      return cleanupAfterFailure(
-                        error,
-                        () => {
-                          // The activation result rejects only after Controller
-                          // compensation has reached its stable boundary.
-                          void this._disposeComposition(result, () => result.deactivate(result.controller));
-                        },
-                        ErrorNames.au_compose_activation_disposal_failed,
-                      );
-                    }
-                    throw error;
-                  }
-                );
+                return activation.then(conclude);
               }
               return conclude();
             }
@@ -651,22 +583,9 @@ function finalizeCompositionDeactivation(
   deactivate: () => void | Promise<void>,
   cleanup: () => void,
 ): void | Promise<void> {
-  // AuCompose allocates dynamic hosts/render locations outside the composed
-  // Controller's node sequence. That host ownership must be released even when
-  // user deactivation fails, while the original failure remains observable.
-  let result: void | Promise<void>;
-  try {
-    result = deactivate();
-  } catch (error) {
-    return cleanupAfterFailure(error, cleanup, ErrorNames.au_compose_host_cleanup_failed);
-  }
-  if (isPromise(result)) {
-    return result.then(
-      cleanup,
-      error => cleanupAfterFailure(error, cleanup, ErrorNames.au_compose_host_cleanup_failed),
-    );
-  }
-  cleanup();
+  // AuCompose owns the dynamic host outside the composed Controller's node
+  // sequence and releases it when that controller deactivates successfully.
+  return onResolve(deactivate(), cleanup);
 }
 
 class EmptyComponent { }

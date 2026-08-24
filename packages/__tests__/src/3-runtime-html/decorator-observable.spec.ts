@@ -132,6 +132,50 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
+  it('supports object configuration as class and field decorators', function () {
+    const changes: [string, number, unknown][] = [];
+
+    @observable({
+      name: 'classValue',
+      callback: 'classValueChanged',
+      set: value => Number(value),
+    })
+    class Test {
+      public declare classValue: number;
+
+      @observable({
+        callback: 'fieldValueChanged',
+        set: value => Number(value),
+      })
+      public fieldValue = 0;
+
+      public classValueChanged(value: number, oldValue: unknown) {
+        changes.push(['class', value, oldValue]);
+      }
+
+      public fieldValueChanged(value: number, oldValue: unknown) {
+        changes.push(['field', value, oldValue]);
+      }
+    }
+
+    const instance = new Test();
+    assert.strictEqual(instance.classValue, void 0);
+    assert.strictEqual(instance.fieldValue, 0);
+
+    instance.classValue = '1' as unknown as number;
+    instance.fieldValue = '2' as unknown as number;
+    assert.strictEqual(instance.classValue, 1);
+    assert.strictEqual(instance.fieldValue, 2);
+    assert.deepStrictEqual(changes, [
+      ['class', 1, void 0],
+      ['field', 2, 0],
+    ]);
+
+    instance.classValue = 1;
+    instance.fieldValue = 2;
+    assert.strictEqual(changes.length, 2, 'coerced duplicates should not invoke the callbacks');
+  });
+
   describe('with normal app', function () {
     it('works in basic scenario', async function () {
       const noValue = {};

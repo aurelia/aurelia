@@ -5,7 +5,7 @@
   "scripts": {
     "bench:variants": "node prepare-variants.mjs",
     "bench:variants:test": "node --test variant-utils.spec.mjs",
-    "bench:test": "node --test variant-utils.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs",
+    "bench:test": "node --test variant-utils.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs ../.github/scripts/benchmark-comment.spec.cjs",
     "bench:report": "node write-benchmark-report.mjs --results results --output results/report",
     "bench": "npm run bench:rerender10k && npm run bench:startup10k && npm run bench:update1k && npm run bench:rerender500-big && npm run bench:startup100-big",
     "bench:rerender10k": "node run-tachometer.mjs --config app-repeat-view/rerender.json --json-file results/repeat-view-rerender-10k.json",

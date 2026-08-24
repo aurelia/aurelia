@@ -1,5 +1,7 @@
 'use strict';
 
+const { reportBenchmarkRun } = require('./benchmark-comment.cjs');
+
 const shaPattern = /^[0-9a-f]{40}$/;
 
 module.exports = async function triggerBenchmarkPipeline({
@@ -11,6 +13,8 @@ module.exports = async function triggerBenchmarkPipeline({
   circleToken,
   expectedBase = '',
   expectedHead = '',
+  fetchImpl = fetch,
+  reporter = reportBenchmarkRun,
 }) {
   const pullRequest = Number(prNumber);
   if (!Number.isSafeInteger(pullRequest) || pullRequest <= 0) {
@@ -21,6 +25,10 @@ module.exports = async function triggerBenchmarkPipeline({
   }
   if (!circleToken) {
     throw new Error('Missing repository secret CIRCLECI_TOKEN.');
+  }
+  const requestId = Number(process.env.GITHUB_RUN_ID ?? context.runId);
+  if (!Number.isSafeInteger(requestId) || requestId <= 0) {
+    throw new Error('GitHub Actions did not provide a valid run id.');
   }
 
   const expected = {
@@ -49,7 +57,7 @@ module.exports = async function triggerBenchmarkPipeline({
     `Triggering ${profile} benchmarks for PR #${pullRequest}: `
     + `${comparison.base} + ${comparison.head} -> ${comparison.candidate}`
   );
-  const response = await fetch(
+  const response = await fetchImpl(
     `https://circleci.com/api/v2/project/gh/${context.repo.owner}/${context.repo.repo}/pipeline`,
     {
       method: 'POST',
@@ -64,13 +72,32 @@ module.exports = async function triggerBenchmarkPipeline({
   );
   const responseText = await response.text();
   if (!response.ok) {
-    throw new Error(`CircleCI trigger failed (${response.status}): ${responseText}`);
+    throw new Error(`CircleCI trigger failed with status ${response.status}.`);
   }
 
-  core.info(`CircleCI response: ${responseText}`);
+  const pipeline = parsePipelineResponse(responseText);
+  core.info(`CircleCI pipeline #${pipeline.number}: ${pipeline.id}`);
   core.setOutput('base_sha', comparison.base);
   core.setOutput('head_sha', comparison.head);
   core.setOutput('candidate_sha', comparison.candidate);
+  core.setOutput('pipeline_id', pipeline.id);
+  await reporter({
+    github,
+    context,
+    core,
+    circleToken,
+    pipeline,
+    comparison,
+    profile,
+    requestId,
+    fetchImpl,
+    resolveCurrentComparison: () => resolveComparison({
+      github,
+      context,
+      pullRequest,
+      expected: { base: '', head: '' },
+    }),
+  });
 };
 
 async function resolveComparison({ github, context, pullRequest, expected }) {
@@ -105,7 +132,7 @@ async function resolveComparison({ github, context, pullRequest, expected }) {
         });
         const parents = commit.parents.map(parent => parent.sha.toLowerCase());
         if (parents.length === 2 && parents[0] === base && parents[1] === head) {
-          return { base, head, candidate };
+          return { pullRequest, base, head, candidate };
         }
         lastReason = `test merge ${candidate} has parents ${parents.join(', ')}`;
       } catch (error) {
@@ -166,3 +193,24 @@ function validateOptionalSha(name, value) {
   }
   return normalized;
 }
+
+function parsePipelineResponse(value) {
+  let pipeline;
+  try {
+    pipeline = JSON.parse(value);
+  } catch {
+    throw new Error('CircleCI returned an invalid pipeline response.');
+  }
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(pipeline?.id)
+    || !Number.isSafeInteger(pipeline?.number)
+    || pipeline.number <= 0
+    || !['created', 'pending'].includes(pipeline?.state)
+  ) {
+    throw new Error('CircleCI returned an invalid pipeline identity.');
+  }
+  return { id: pipeline.id, number: pipeline.number };
+}
+
+module.exports.parsePipelineResponse = parsePipelineResponse;
+module.exports.resolveComparison = resolveComparison;

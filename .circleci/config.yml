@@ -862,7 +862,7 @@ workflows:
 
       - benchmark_report:
           <<: *filter_only_topic
-          name: pr_benchmark_report
+          name: benchmark_report
           profile: smoke
           requires:
             - pr_benchmark_startup
@@ -948,7 +948,7 @@ workflows:
 
       - benchmark_report:
           <<: *filter_only_topic
-          name: bench_report
+          name: benchmark_report
           profile: full
           requires:
             - bench_startup10k

@@ -20,15 +20,18 @@ on:
 
 permissions:
   contents: read
+  issues: write
   pull-requests: read
 
 jobs:
-  trigger:
+  decide:
     runs-on: ubuntu-latest
-
+    outputs:
+      should: ${{ steps.command.outputs.should }}
+      pr: ${{ steps.command.outputs.pr }}
     steps:
       - name: Decide whether to trigger benchmarks
-        id: decide
+        id: command
         uses: actions/github-script@v7
         with:
           script: |
@@ -51,18 +54,21 @@ jobs:
             core.setOutput('should', should ? 'true' : 'false');
             core.setOutput('pr', prNumber);
 
-      - name: Check out workflow support
-        if: steps.decide.outputs.should == 'true'
+  trigger:
+    needs: decide
+    if: needs.decide.outputs.should == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - name: Check out trusted workflow support
         uses: actions/checkout@v4
         with:
-          # Manual dispatch may intentionally test a workflow update before it reaches master.
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || 'master' }}
+          ref: master
 
-      - name: Trigger CircleCI benchmark pipeline
-        if: steps.decide.outputs.should == 'true'
+      - name: Trigger and report CircleCI benchmark pipeline
         uses: actions/github-script@v7
         env:
-          PR_NUMBER: ${{ steps.decide.outputs.pr }}
+          PR_NUMBER: ${{ needs.decide.outputs.pr }}
           EXPECTED_BASE_SHA: ${{ inputs.expected_base_sha || '' }}
           EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha || '' }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}

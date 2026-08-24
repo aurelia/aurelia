@@ -24,12 +24,12 @@ flowchart LR
 |  | `hydrated` | once | **top ➞ down** | no |
 |  | `created` | once | **bottom ➞ up** | no |
 | Activation | `binding` | every activation | **top ➞ down** | yes (blocks children) |
-|  | `bound` | every activation | **bottom ➞ up** | yes (awaits) |
+|  | `bound` | every activation | **top ➞ down** | yes (awaits) |
 |  | `attaching` | every activation | **top ➞ down** | yes (awaits before `attached`) |
 |  | `attached` | every activation | **bottom ➞ up** | yes (awaits) |
 | Deactivation | `detaching` | every deactivation | **bottom ➞ up** | yes (awaits before DOM removal) |
 |  | `unbinding` | every deactivation | **bottom ➞ up** | yes (awaits) |
-| Cleanup | `dispose` | when permanently discarded | – | – |
+| Cleanup | `dispose` | when permanently discarded | **top ➞ down** | no |
 
 Legend
 * **top ➞ down** – parent executes before its children
@@ -103,7 +103,7 @@ bound(initiator: IHydratedController, parent: IHydratedController): void | Promi
 ```
 
 * View-to-view-model bindings are active; `ref`, `let`, and `from-view` values are available.
-* Executes **child ➞ parent**.
+* Executes **parent ➞ child**.
 
 ### 7. Attaching
 
@@ -152,7 +152,7 @@ unbinding(initiator: IHydratedController, parent: IHydratedController | null): v
 unbinding(initiator: IHydratedController, parent: IHydratedController): void | Promise<void> {}
 ```
 
-* Runs after `detaching` finishes and bindings have been disconnected.
+* Runs after `detaching` finishes and before bindings are disconnected.
 * Executes **child ➞ parent**.
 
 ### 11. Dispose
@@ -163,6 +163,8 @@ dispose(): void {}
 
 * Invoked when the instance is **permanently discarded**—typically when removed from a repeater and the view cache is full, or when the application shuts down.
 * Use to tear down long-lived resources, subscriptions, or manual observers to prevent memory leaks.
+* Runs synchronously, parent before children. `stop(true)` disposes an application root after deactivation.
+* A thrown disposal error ends that disposal call and is reported directly.
 
 ## Lifecycle hooks decorator (`@lifecycleHooks`)
 
@@ -183,11 +185,39 @@ export class ComponentLogger implements ILifecycleHooks<MyComponent> {
 }
 ```
 
-Multiple lifecycle hook classes can be registered; the framework executes them **in registration order** alongside the component's own lifecycle methods.
+Multiple lifecycle hook classes can be registered. Aurelia invokes their matching methods **in registration order**, followed by the component's matching hook. Returned Promises share the same phase boundary.
+
+## Async completion and errors
+
+A lifecycle phase stays active until every Promise already accepted into that phase settles. This includes component hooks, registered lifecycle-hook classes, and child-controller work. Sibling work can settle in any order while Aurelia preserves lifecycle order when selecting the reported failure.
+
+A hook failure ends the affected lifecycle transition and reaches the caller as the original thrown or rejected value. Aurelia observes work that already started so sibling rejections remain attached to their owner. Treat that core controller graph as terminal. Fix the reported application error before running the transition again.
+
+Router navigation is an explicit transactional owner. It can reject a navigation, tear down its failed route candidate, and retain the previous route. That recovery belongs to the [Router lifecycle](../router/routing-lifecycle.md), which owns both sides of the navigation.
+
+Ordinary overlapping requests share the active lifecycle operation. Deactivation requested during activation performs the requested cancellation and finishes inactive. Activation requested during teardown starts after successful cleanup. Repeated requests converge on the latest requested active state.
+
+A hook failure remains observable when it occurs during cancellation. The shared transition reports that original error rather than presenting the cancellation as successful.
+
+Return the Promise created by your hook when Aurelia should wait for that work:
+
+```typescript
+export class AnimatedPanel {
+  public attaching(): Promise<void> {
+    return this.animation.enter();
+  }
+
+  public detaching(): Promise<void> {
+    return this.animation.leave();
+  }
+}
+```
+
+Low-level controller integrations should let the active lifecycle operation own its subtree. Returning the same controller transition that is currently waiting for the hook creates a dependency cycle and reports [AUR0509](../developer-guides/error-messages/runtime-html/aur0509.md). Controller disposal begins after the owned lifecycle work settles; [AUR0510](../developer-guides/error-messages/runtime-html/aur0510.md) identifies an early disposal request.
 
 ## Special cases
 
-* **`<au-compose>`** components additionally support `activate` / `deactivate` hooks—see the [dynamic composition guide](../getting-to-know-aurelia/dynamic-composition.md).
+* Values rendered by **`<au-compose>`** can implement `activate(model)`. Composed custom elements retain their standard `detaching`, `unbinding`, and `dispose` hooks. See the [dynamic composition guide](../getting-to-know-aurelia/dynamic-composition.md).
 * **Router hooks** such as `canLoad`, `loading`, `canUnload`, `unloading`, etc., are documented in the [routing lifecycle section](../router/routing-lifecycle.md) and are available even if you do not use the router.
 
 ## Best practices
@@ -195,5 +225,5 @@ Multiple lifecycle hook classes can be registered; the framework executes them *
 1. **Prefer early exits**—perform checks at the start of hooks and `return` early to minimise nesting.
 2. **Clean up** observers, timeouts, event listeners, or 3rd-party widgets **in the opposite hook** (`unbinding`/`detaching` or `dispose`).
 3. **Avoid heavy work in the constructor.** Move anything needing bindables or DOM to later hooks.
-4. **Mark hooks `async`** and `await` your operations instead of manually creating Promises for clarity.
+4. **Return the complete hook-owned Promise** so Aurelia can coordinate the phase. An `async` hook provides this naturally when it awaits all of its work.
 5. **Keep hooks fast**—expensive work can block the component hierarchy.

@@ -8,6 +8,21 @@ This is accomplished through the `promise.bind` template controller. It intellig
 You may also see `promise.resolve="..."` in older examples. It’s an alias for `promise.bind="..."`.
 {% endhint %}
 
+## Scheduling
+
+The source Promise belongs to application data flow, so `Aurelia.start()` can complete while that Promise remains pending. Aurelia renders the pending branch during startup. When the source settles, the fulfilled or rejected branch transition runs through Aurelia's task queue.
+
+Tests can settle the source and then await the task queue before asserting the selected branch:
+
+```typescript
+import { tasksSettled } from '@aurelia/runtime';
+
+request.resolve(result);
+await tasksSettled();
+```
+
+Branch views participate in their owner's lifecycle. Application teardown waits for accepted branch activation or deactivation work to reach its cleanup boundary.
+
 ## Basic Usage
 
 The `promise.bind` attribute allows you to bind a Promise to a template, rendering different content based on the Promise's current state.

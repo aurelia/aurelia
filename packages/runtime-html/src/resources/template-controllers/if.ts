@@ -6,11 +6,13 @@ import { IPlatform } from '../../platform';
 
 import type { INodeSequence } from '../../dom';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, ICustomElementController, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
-import { itHydrateTemplateController, type HydrateTemplateController, type IInstruction } from '@aurelia/template-compiler';
+import { type HydrateTemplateController, type IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
+
+const elseLinkMarker = '__au_elseLink';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -249,70 +251,50 @@ class ElseIfViewFactory implements IViewFactory {
   }
 }
 
-const isIfInstruction = (instruction: IInstruction): instruction is HydrateTemplateController => {
-  if (instruction.type !== itHydrateTemplateController) {
-    return false;
-  }
-  const tcInstruction = instruction as HydrateTemplateController;
-  return typeof tcInstruction.res === 'string'
-    ? tcInstruction.res === 'if'
-    : tcInstruction.res.name === 'if';
-};
-
-const hasChainedIf = (factory: IViewFactory): boolean => {
-  const rows = factory.def.instructions;
-  if (rows.length !== 1) {
-    return false;
-  }
-  const row = rows[0];
-  return row.length === 1 && isIfInstruction(row[0]);
-};
-
 export class Else implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
     name: 'else',
     isTemplateController: true,
+    attributeLink: { direction: 'forward', marker: elseLinkMarker, target: 'if' },
   };
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
+  public isElseIf: boolean = false;
   /** @internal */ private _effectiveFactory: IViewFactory | undefined = void 0;
   /** @internal */ private _chainedElseFactory: IViewFactory | undefined = void 0;
 
   public link(
     controller: IHydratableController,
-    _childController: ICustomAttributeController,
+    childController: ICustomAttributeController,
     _target: INode,
     _instruction: IInstruction,
   ): void {
     const children = controller.children;
-    const ifBehavior = children?.[children.length - 1] as ICustomAttributeController | undefined;
-    if (ifBehavior == null) {
+    const prevBehavior = children?.[children.length - 1] as ICustomAttributeController | undefined;
+    if (prevBehavior == null) {
       throw createMappedError(ErrorNames.else_without_if);
     }
-    const ownFactory = this._getEffectiveFactory();
-    if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = ownFactory;
-    } else if (ifBehavior.viewModel instanceof Else) {
-      ifBehavior.viewModel._setElseFactory(ownFactory);
-    } else {
+    const prevViewModel = prevBehavior.viewModel;
+    if (!(prevViewModel instanceof If || prevViewModel instanceof Else)) {
       throw createMappedError(ErrorNames.else_without_if);
     }
-  }
+    const link = childController.definition.attributeLink;
+    const stampedTarget = link == null
+      ? void 0
+      : (_instruction as HydrateTemplateController | null)?.data?.[link.marker];
+    this.isElseIf = typeof stampedTarget === 'string' && link?.target === stampedTarget;
+    const ownFactory = this.isElseIf
+      ? this._effectiveFactory ??= new ElseIfViewFactory(this._factory, () => this._chainedElseFactory)
+      : this._factory;
 
-  /** @internal */
-  private _getEffectiveFactory(): IViewFactory {
-    if (!hasChainedIf(this._factory)) {
-      return this._factory;
+    if (prevViewModel instanceof If) {
+      prevViewModel.elseFactory = ownFactory;
+    } else if (prevViewModel instanceof Else) {
+      if (!prevViewModel.isElseIf) {
+        throw createMappedError(ErrorNames.else_without_if);
+      }
+      prevViewModel._chainedElseFactory = ownFactory;
     }
-    return this._effectiveFactory ??= new ElseIfViewFactory(this._factory, () => this._chainedElseFactory);
-  }
-
-  /** @internal */
-  private _setElseFactory(factory: IViewFactory): void {
-    if (!hasChainedIf(this._factory)) {
-      throw createMappedError(ErrorNames.else_without_if);
-    }
-    this._chainedElseFactory = factory;
   }
 }

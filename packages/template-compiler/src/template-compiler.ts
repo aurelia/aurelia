@@ -267,6 +267,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           //       where instructions need to be serialized, def.name should be used
           res: this.resolveResources ? attrDef : attrDef.name,
           alias: attrDef.aliases != null && attrDef.aliases.includes(attrTarget) ? attrTarget : void 0,
+          data: null,
           props: attrBindableInstructions
         } as HydrateAttributeInstruction);
         continue;
@@ -624,6 +625,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // Each outer TC gets a template with just a marker; its instruction is the next-inner TC
       while (tcIndex-- > 0) {
         tcInstruction = tcInstructions[tcIndex];
+        const nextTcInstruction = tcInstructions[tcIndex + 1];
         tcTemplate = context.t();
         // Each outer TC template has exactly 1 marker at index 0
         appendManyToTemplate(tcTemplate, [
@@ -632,12 +634,23 @@ export class TemplateCompiler implements ITemplateCompiler {
           context._comment(auLocationEnd),
         ]);
 
+        const tcDefinition = this._getAttributeDefinition(tcInstruction, context);
+        const nextTcDefinition = this._getAttributeDefinition(nextTcInstruction, context);
+        const attributeLink = tcDefinition.attributeLink;
+        if (
+          attributeLink?.direction === 'forward'
+          && attributeLink.target === nextTcDefinition.name
+        ) {
+          const tcData = (tcInstruction as { data: Record<PropertyKey, unknown> | null }).data ??= {};
+          tcData[attributeLink.marker] = nextTcDefinition.name;
+        }
+
         (tcInstruction as { def: IElementComponentDefinition }).def = {
           name: generateElementName(),
           type: definitionTypeElement,
           template: tcTemplate,
           needsCompile: false,
-          instructions: [[tcInstructions[tcIndex + 1]]],
+          instructions: [[nextTcInstruction]],
         };
       }
 
@@ -921,6 +934,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             def: voidDefinition,
             res: this.resolveResources ? attrDef : attrDef.name,
             alias: void 0,
+            data: null,
             props: attrBindableInstructions,
           } satisfies HydrateTemplateController);
         } else {
@@ -928,6 +942,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             type: itHydrateAttribute,
             res: this.resolveResources ? attrDef : attrDef.name,
             alias: attrDef.aliases != null && attrDef.aliases.includes(realAttrTarget) ? realAttrTarget : void 0,
+            data: null,
             props: attrBindableInstructions
           } as HydrateAttributeInstruction);
         }
@@ -1462,6 +1477,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     return projections;
+  }
+
+  /** @internal */
+  private _getAttributeDefinition(
+    instruction: HydrateTemplateController,
+    context: CompilationContext,
+  ): IAttributeComponentDefinition {
+    return typeof instruction.res === 'string'
+      ? context._findAttr(instruction.res)!
+      : instruction.res;
   }
 }
 

@@ -33,11 +33,22 @@ export type StringBindingMode =
   | 'fromView'
   | 'twoWay';
 
+export interface IAttributeLinkDefinition {
+  direction: 'forward' | 'backward';
+  marker: string;
+  target: string;
+}
+
 export interface IAttributeComponentDefinition<TBindables extends string = string> {
   name: string;
   type: 'custom-attribute';
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
+  /**
+   * Semi-private compile-time adjacency metadata for linked attributes / template controllers.
+   * Applications should not use this property directly, as it is subject to change without notice.
+   */
+  attributeLink?: IAttributeLinkDefinition;
   aliases?: readonly string[];
   /**
    * The name of the property that receives the value when the attribute is used without multi-binding syntax.

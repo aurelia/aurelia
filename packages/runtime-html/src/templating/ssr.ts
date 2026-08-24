@@ -414,6 +414,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         type: itHydrateAttribute,
         res: ins.res,
         alias: ins.alias,
+        data: null,
         props,
       };
       return instruction;
@@ -437,6 +438,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         def,
         res: ins.res,
         alias: void 0,
+        data: null,
         props,
       };
       return instruction;

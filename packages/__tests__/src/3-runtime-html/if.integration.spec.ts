@@ -314,6 +314,37 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('a');
     });
 
+    it('supports definition-driven else-if chaining for renamed template controllers', function () {
+      const When = CustomAttribute.define({
+        name: 'when',
+        isTemplateController: true,
+        bindables: If.$au.bindables,
+      }, class When extends If {});
+      const Otherwise = CustomAttribute.define({
+        name: 'otherwise',
+        isTemplateController: true,
+        attributeLink: { direction: 'forward', marker: 'when-link', target: 'when' },
+      }, class Otherwise extends Else {});
+
+      const { assertText, component } = createFixture(
+        [
+          '<div when.bind="step === 0">a</div>',
+          '<div otherwise when.bind="step === 1">b</div>',
+          '<div otherwise>c</div>',
+        ].join(''),
+        { step: 0 },
+        [When, Otherwise]
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+    });
+
     it('does not let a nested if-else inside the if branch affect the outer else-if chain', function () {
       const { assertText, component } = createFixture(
         [

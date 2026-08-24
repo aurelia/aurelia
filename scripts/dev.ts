@@ -1,12 +1,13 @@
 /* eslint-disable no-console */
 import concurrently from 'concurrently';
-import yargs from 'yargs';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { execSync } from 'child_process';
+import { Writable } from 'stream';
+import yargs from 'yargs/yargs';
 import { c } from './logger';
 
-const args = yargs
+const args = yargs(process.argv.slice(2))
   .usage('$0 <cmd> [args]')
   .option('d', {
     alias: 'dev',
@@ -34,11 +35,22 @@ const args = yargs
     type: 'string',
     array: true,
   })
+  .option('node-tests', {
+    describe: 'run node test watcher instead of the chrome debugger runner',
+    type: 'boolean',
+    default: false,
+  })
+  .option('log-file', {
+    describe: 'write all dev output to this file while still echoing to stdout',
+    type: 'string',
+  })
   .parseSync();
 
 const envVars = { DEV_MODE: true };
-const testPatterns = (args.t ?? []).join(' ');
+const rawTestPatterns = (args.t ?? []) as string[];
+const testPatterns = rawTestPatterns.join(' ');
 const hasValidTestPatterns = testPatterns !== '';
+const nodeTestArgs = hasValidTestPatterns ? rawTestPatterns.map(quoteShellArg).join(' ') : '';
 
 const e2e = args.e2e;
 const validE2e = [
@@ -66,8 +78,12 @@ If it is intended to run e2e test, then specified --e2e + one of the following: 
 
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
+const logFile = typeof args['log-file'] === 'string'
+  ? path.resolve(process.cwd(), args['log-file'])
+  : null;
 
 const alwaysBuildPackages = [
+  'kernel',
   'runtime',
   'runtime-html',
   'template-compiler',
@@ -135,8 +151,9 @@ validToolingPackages
     try {
       execSync(buildCmd, { cwd: `packages-tooling/${pkgName}` });
     } catch (ex) {
-      if (ex.stdout) process.stdout.write(ex.stdout);
-      if (ex.stderr) process.stderr.write(ex.stderr);
+      const $ex = ex as { stdout?: string; stderr?: string };
+      if ($ex.stdout) process.stdout.write($ex.stdout);
+      if ($ex.stderr) process.stderr.write($ex.stderr);
       process.exit(1);
     }
     console.log(`${pkgDisplay} built in ${getElapsed(Date.now(), start)}s`);
@@ -157,7 +174,13 @@ if (apps.length > 0) {
 }
 
 const baseAppPort = 9000;
+const outputStream = logFile === null ? undefined : createTeeStream(logFile);
+if (logFile !== null) {
+  console.log(`Writing dev output to ${c.green(logFile)}`);
+}
+
 concurrently([
+  { command: devCmd, cwd: 'packages/kernel', name: 'kernel', env: envVars },
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
   { command: devCmd, cwd: 'packages/template-compiler', name: 'template-compiler', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
@@ -168,7 +191,7 @@ concurrently([
       name: '__tests__(build)',
       env: envVars
     }
-    : null,
+    : null!,
   ...devPackages.map((folder: string) => ({
     command: devCmd,
     cwd: `packages/${folder}`,
@@ -177,12 +200,14 @@ concurrently([
   })),
   hasValidTestPatterns
     ? {
-      command: `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`,
+      command: args['node-tests']
+        ? `node -e "new Promise(r => setTimeout(r, 6000))" && node z-scripts/run-node-tests.cjs --watch ${nodeTestArgs}`
+        : `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`,
       cwd: 'packages/__tests__',
-      name: '__tests__(run)',
+      name: args['node-tests'] ? '__tests__(run:node)' : '__tests__(run)',
       env: envVars
     }
-    : null,
+    : null!,
   ...(e2e ?? []).map(e => ({ command: 'npm run test:watch', cwd: `packages/__e2e__/${e}`, env: envVars, name: `__e2e__(${e})` })),
   ...apps.map((appFolder, i) => ({
     command: devCmd,
@@ -208,7 +233,8 @@ concurrently([
     'magentaBright',
     'cyanBright',
     'white',
-  ]
+  ],
+  outputStream,
 });
 
 function isEsmBuilt(pkgPath: string): boolean {
@@ -225,4 +251,32 @@ function isFullyBuilt(pkgPath: string): boolean {
 
 function getElapsed(now: number, then: number) {
   return ((now - then) / 1000).toFixed(2);
+}
+
+function createTeeStream(filePath: string): Writable {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `# aurelia dev log\n# started ${new Date().toISOString()}\n\n`);
+  const fileStream = fs.createWriteStream(filePath, { flags: 'a' });
+
+  const close = () => fileStream.end();
+  process.on('exit', close);
+  process.on('SIGINT', () => {
+    close();
+    process.exit(130);
+  });
+  process.on('SIGTERM', () => {
+    close();
+    process.exit(143);
+  });
+
+  return new Writable({
+    write(chunk, encoding, callback) {
+      process.stdout.write(chunk, encoding);
+      fileStream.write(chunk, encoding, callback);
+    }
+  });
+}
+
+function quoteShellArg(value: string): string {
+  return `"${value.replace(/"/g, '\\"')}"`;
 }

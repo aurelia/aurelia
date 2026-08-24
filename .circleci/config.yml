@@ -860,6 +860,14 @@ workflows:
           requires:
             - tacho_benchmark_prep
 
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_realistic_refresh
+          command: npm run bench:realistic-refresh
+          result: repeat-realistic-refresh-1000.json
+          requires:
+            - tacho_benchmark_prep
+
       - benchmark_report:
           <<: *filter_only_topic
           name: benchmark_report
@@ -868,6 +876,7 @@ workflows:
             - pr_benchmark_startup
             - pr_benchmark_rerender
             - pr_benchmark_big_template_startup
+            - pr_benchmark_realistic_refresh
 
   benchmarks:
     when: << pipeline.parameters.run_bench >>
@@ -946,6 +955,30 @@ workflows:
           requires:
             - bench_prep
 
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_startup
+          command: npm run bench:realistic-startup
+          result: repeat-realistic-startup-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_refresh
+          command: npm run bench:realistic-refresh
+          result: repeat-realistic-refresh-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_mixed
+          command: npm run bench:realistic-mixed
+          result: repeat-realistic-mixed-1000.json
+          requires:
+            - bench_prep
+
       - benchmark_report:
           <<: *filter_only_topic
           name: benchmark_report
@@ -959,6 +992,9 @@ workflows:
             - bench_update1k
             - bench_repeat_keyed_expression
             - bench_repeat_keyed_string
+            - bench_realistic_startup
+            - bench_realistic_refresh
+            - bench_realistic_mixed
 
   # Runs build and tests (master)
   build_test:
@@ -1155,6 +1191,27 @@ workflows:
           result: app-repeat-view-keyed-string.json
           requires:
             - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_startup
+          command: npm run bench:realistic-startup
+          result: repeat-realistic-startup-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_refresh
+          command: npm run bench:realistic-refresh
+          result: repeat-realistic-refresh-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_mixed
+          command: npm run bench:realistic-mixed
+          result: repeat-realistic-mixed-1000.json
+          requires:
+            - tacho_benchmark_prep
       - benchmark_report:
           <<: *filter_only_master
           name: benchmark_report
@@ -1168,3 +1225,6 @@ workflows:
             - benchmark_update
             - benchmark_repeat_keyed_expression
             - benchmark_repeat_keyed_string
+            - benchmark_realistic_startup
+            - benchmark_realistic_refresh
+            - benchmark_realistic_mixed

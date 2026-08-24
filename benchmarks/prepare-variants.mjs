@@ -22,6 +22,7 @@ const defaultFixtures = [
   'app-repeat-view-big-template',
   'app-repeat-view-keyed-string',
   'app-repeat-view-keyed-expr',
+  'app-repeat-realistic',
 ];
 const npmCli = process.env.npm_execpath;
 if (npmCli === undefined) {

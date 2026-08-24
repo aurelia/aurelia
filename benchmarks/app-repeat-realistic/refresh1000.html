@@ -1,0 +1,40 @@
+<script type="module">
+import {
+  assertRealisticOpenEvent,
+  assertRealisticRows,
+  captureRealisticViewModels,
+} from '../utils/assert-render.js';
+import {
+  createRealisticRecords,
+  createRefreshedRealisticRecords,
+} from '../utils/realistic-data.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { CustomElement, start, tasksSettled } = await loadVariant('app-repeat-realistic');
+
+const host = document.body.appendChild(document.createElement('div'));
+const au = await start(host, createRealisticRecords(1000));
+const app = au.root.controller.viewModel;
+const before = captureRealisticViewModels(host, app.items, CustomElement);
+const nextItems = createRefreshedRealisticRecords(app.items);
+
+performance.mark('realistic-refresh-start');
+app.items = nextItems;
+await tasksSettled();
+performance.mark('realistic-refresh-end');
+
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+const after = assertRealisticRows(host, nextItems, CustomElement);
+for (const item of nextItems) {
+  if (after.viewModels[item.id] !== before[item.id]) {
+    throw new Error(`Realistic refresh replaced retained row ${item.id}.`);
+  }
+}
+assertRealisticOpenEvent(after.hosts[0], after.viewModels[nextItems[0].id]);
+publishMeasurement(
+  'realistic-refresh-1000',
+  'realistic-refresh-start',
+  'realistic-refresh-end',
+  usedJSHeapSizeBytes,
+);
+</script>

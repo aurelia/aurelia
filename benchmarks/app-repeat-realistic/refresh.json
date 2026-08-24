@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "..",
+  "benchmarks": [
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": [
+          "--enable-precise-memory-info",
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
+      },
+      "measurement": [
+        { "name": "perf", "mode": "performance", "entryName": "realistic-refresh-1000" },
+        { "name": "used JS heap", "mode": "expression", "expression": "window.usedJSHeapSizeBytes" }
+      ],
+      "expand": [
+        {
+          "name": "realistic keyed refresh 1000 base",
+          "url": "refresh1000.html?variant=base"
+        },
+        {
+          "name": "realistic keyed refresh 1000 candidate",
+          "url": "refresh1000.html?variant=candidate"
+        }
+      ]
+    }
+  ],
+  "timeout": 0.2
+}

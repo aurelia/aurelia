@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   createBenchmarkReport,
+  expectedResultFiles,
   formatBenchmarkReportMarkdown,
   validateBenchmarkReport,
 } from './benchmark-report.mjs';
@@ -12,7 +13,7 @@ void describe('benchmark report', () => {
   void it('normalizes smoke results and renders an advisory Markdown report', () => {
     const report = createReport();
 
-    assert.equal(report.measurements.length, 5);
+    assert.equal(report.measurements.length, 7);
     const heap = report.measurements.find(measurement => measurement.metric.kind === 'immediate-js-heap');
     assert.deepEqual(heap.base.meanConfidenceInterval95, { low: 81.4 * MiB, high: 81.8 * MiB });
     assert.deepEqual(heap.difference.percentConfidenceInterval95, { low: 0.25, high: 1.48 });
@@ -26,6 +27,7 @@ void describe('benchmark report', () => {
     });
     assert.match(markdown, /## Benchmark comparison/);
     assert.match(markdown, /Startup \| Immediate used JS heap \| `81\.40 MiB` - `81\.80 MiB`/);
+    assert.match(markdown, /Realistic keyed refresh 1000 \| Duration/);
     assert.match(markdown, /\+0\.20 MiB` to `\+1\.20 MiB` \(\+0\.25% to \+1\.48%\)/);
     assert.match(markdown, /app-repeat-view.*209\.51 KiB.*213\.25 KiB.*\+3\.73 KiB/);
     assert.match(markdown, /point-in-time Chrome reading/);
@@ -35,8 +37,8 @@ void describe('benchmark report', () => {
   void it('keeps each result file difference matrix local', () => {
     const report = createReport();
     const heaps = report.measurements.filter(measurement => measurement.metric.kind === 'immediate-js-heap');
-    assert.equal(heaps.length, 2);
-    assert.deepEqual(heaps.map(measurement => measurement.difference.assessment), ['higher', 'higher']);
+    assert.equal(heaps.length, 3);
+    assert.deepEqual(heaps.map(measurement => measurement.difference.assessment), ['higher', 'higher', 'higher']);
     assert.ok(heaps.every(measurement => measurement.difference.percentConfidenceInterval95.low === 0.25));
   });
 
@@ -81,6 +83,12 @@ void describe('benchmark report', () => {
     browserInjection.environment.browsers[0].userAgent = 'HeadlessChrome/1.2.3.4`@team`';
     assert.throws(() => validateBenchmarkReport(browserInjection, expected), /browser metadata is invalid/);
   });
+
+  void it('places the representative workload in every intended profile', () => {
+    assert.equal(expectedResultFiles('smoke').filter(file => file.startsWith('repeat-realistic-')).length, 1);
+    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 3);
+    assert.deepEqual(expectedResultFiles('master'), expectedResultFiles('full'));
+  });
 });
 
 function createReport() {
@@ -93,6 +101,11 @@ function smokeInputs() {
     resultDocuments: [
       timingInput('repeat-view-startup-10k.json', 'startup', 'startup-10k'),
       timingInput('repeat-view-rerender-10k.json', 'rerender', 'rerender-10k'),
+      timingInput(
+        'repeat-realistic-refresh-1000.json',
+        'realistic keyed refresh 1000',
+        'realistic-refresh-1000',
+      ),
       timingInput(
         'repeat-view-startup-100-big-template.json',
         'big-template startup 100',
@@ -131,6 +144,7 @@ function provenance() {
         'app-repeat-view-big-template',
         'app-repeat-view-keyed-string',
         'app-repeat-view-keyed-expr',
+        'app-repeat-realistic',
       ],
     },
     environment: {
@@ -146,6 +160,7 @@ function provenance() {
       'app-repeat-view-big-template',
       'app-repeat-view-keyed-string',
       'app-repeat-view-keyed-expr',
+      'app-repeat-realistic',
     ].map(fixture => ({
       fixture,
       identical: false,

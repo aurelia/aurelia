@@ -18,10 +18,14 @@ const resultContracts = {
   'repeat-view-update-1k.json': { scenario: 'update 1k', entryName: 'update-1k', metrics: ['perf', 'used JS heap'] },
   'app-repeat-view-keyed-expr.json': { scenario: 'keyed expr', entryName: 'keyed-expr', metrics: ['perf', 'used JS heap'] },
   'app-repeat-view-keyed-string.json': { scenario: 'keyed string', entryName: 'keyed-string', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-startup-1000.json': { scenario: 'realistic startup 1000', entryName: 'realistic-startup-1000', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-refresh-1000.json': { scenario: 'realistic keyed refresh 1000', entryName: 'realistic-refresh-1000', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-mixed-1000.json': { scenario: 'realistic mixed reconciliation 1000', entryName: 'realistic-mixed-1000', metrics: ['perf', 'used JS heap'] },
 };
 const smokeFiles = [
   'repeat-view-startup-10k.json',
   'repeat-view-rerender-10k.json',
+  'repeat-realistic-refresh-1000.json',
   'repeat-view-startup-100-big-template.json',
 ];
 const fullFiles = [
@@ -33,6 +37,9 @@ const fullFiles = [
   'repeat-view-update-1k.json',
   'app-repeat-view-keyed-expr.json',
   'app-repeat-view-keyed-string.json',
+  'repeat-realistic-startup-1000.json',
+  'repeat-realistic-refresh-1000.json',
+  'repeat-realistic-mixed-1000.json',
 ];
 
 export function expectedResultFiles(profile) {
@@ -102,6 +109,7 @@ export function validateBenchmarkReport(report, expected) {
     'app-repeat-view-big-template',
     'app-repeat-view-keyed-string',
     'app-repeat-view-keyed-expr',
+    'app-repeat-realistic',
   ];
   if (!Array.isArray(report.bundles) || report.bundles.length !== fixtureOrder.length) {
     throw new Error('Benchmark report has an unexpected bundle count.');

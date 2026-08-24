@@ -175,11 +175,10 @@ export class Aurelia implements IDisposable {
     } catch (error) {
       errors.push(error);
     }
-    try {
-      provider.dispose();
-    } catch (error) {
-      errors.push(error);
-    }
+    // Both standalone paths own a concrete InstanceProvider. Its dispose only
+    // clears the current instance and cannot fail, so it is not part of the
+    // user-code cleanup ledger.
+    provider.dispose();
     throwTransitionErrors(errors, 'Standalone Aurelia root activation failed during rollback');
   }
 
@@ -359,11 +358,7 @@ export class Aurelia implements IDisposable {
   private _finalizeFailedStart(root: IAppRoot, errors: unknown[], quarantine: boolean): never {
     quarantine ||= root instanceof AppRoot && !root._isRecoverable;
     const dispose = quarantine || this._disposeAfterStart;
-    try {
-      Reflect.deleteProperty(root.host, '$aurelia');
-    } catch (error) {
-      errors.push(error);
-    }
+    Reflect.deleteProperty(root.host, '$aurelia');
     if (dispose) {
       try {
         root.dispose();
@@ -376,11 +371,7 @@ export class Aurelia implements IDisposable {
     }
     if (this._root === root) {
       this._root = void 0;
-      try {
-        this._rootProvider.dispose();
-      } catch (error) {
-        errors.push(error);
-      }
+      this._rootProvider.dispose();
     }
     this._stopRequestedWhileStarting = false;
     this._disposeAfterStart = false;
@@ -429,11 +420,7 @@ export class Aurelia implements IDisposable {
 
   /** @internal */
   private _finalizeStop(root: IAppRoot, dispose: boolean, errors: unknown[]): void {
-    try {
-      Reflect.deleteProperty(root.host, '$aurelia');
-    } catch (error) {
-      errors.push(error);
-    }
+    Reflect.deleteProperty(root.host, '$aurelia');
     if (dispose) {
       try {
         root.dispose();
@@ -446,11 +433,7 @@ export class Aurelia implements IDisposable {
     }
     if (this._root === root) {
       this._root = void 0;
-      try {
-        this._rootProvider.dispose();
-      } catch (error) {
-        errors.push(error);
-      }
+      this._rootProvider.dispose();
     }
     this._isStopping = false;
     this._stopPromise = void 0;
@@ -458,11 +441,10 @@ export class Aurelia implements IDisposable {
     // au-stopped remains a successful-transition event. A rejected stop still
     // finalizes the Aurelia instance, while its promise reports the failure.
     if (errors.length === 0) {
-      try {
-        this._dispatchEvent(root, 'au-stopped', root.host);
-      } catch (error) {
-        errors.push(error);
-      }
+      // Dispatch is the last operation after state has been cleared. Let a
+      // custom IAppRoot event target report its own failure directly; wrapping
+      // a single error here cannot improve recovery or error identity.
+      this._dispatchEvent(root, 'au-stopped', root.host);
     }
     if (errors.length > 0) {
       throwTransitionErrors(errors, 'Aurelia stop failed during cleanup');

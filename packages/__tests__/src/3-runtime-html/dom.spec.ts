@@ -29,7 +29,7 @@ describe('3-runtime-html/dom.spec.ts', function () {
       refs.set(appHost, 'duplicate', controller);
       assert.throws(
         () => refs.set(appHost, 'duplicate', controller),
-        /AUR0839: Node already associated with a controller/,
+        /AUR0839: Node already has a controller associated with ref "duplicate"/,
       );
     });
   });

@@ -298,7 +298,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`,
 
   [ErrorNames.app_task_phase_failed]: `Multiple application tasks failed during the "{{0}}" phase.`,
-  [ErrorNames.node_ref_already_associated]: `Node already associated with a controller; remove ref "{{0}}" before associating another controller.`,
+  [ErrorNames.node_ref_already_associated]: `Node already has a controller associated with ref "{{0}}".`,
   [ErrorNames.ssr_missing_nested_template]: `SSR hydration error: missing nested template at index {{0}}.`,
   [ErrorNames.ssr_unknown_instruction_type]: `SSR hydration error: unknown instruction type {{0}}.`,
   [ErrorNames.ssr_expression_not_found]: `SSR hydration error: expression {{0}} was not found.`,

@@ -638,6 +638,25 @@ jobs:
           path: benchmarks/results/<<parameters.result>>
           destination: benchmark-results/<<parameters.result>>
 
+  benchmark_report:
+    executor: docker_circleci_bench
+    parameters:
+      profile:
+        type: string
+    environment:
+      BENCHMARK_REPORT_PROFILE: <<parameters.profile>>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Build benchmark report"
+          working_directory: "benchmarks"
+          command: npm run bench:report
+      - store_artifacts:
+          path: benchmarks/results/report
+          destination: benchmark-report
+
   # on branches that only touches doc
   # there's no need to run the workflow
   check_doc_abort:
@@ -841,6 +860,15 @@ workflows:
           requires:
             - tacho_benchmark_prep
 
+      - benchmark_report:
+          <<: *filter_only_topic
+          name: pr_benchmark_report
+          profile: smoke
+          requires:
+            - pr_benchmark_startup
+            - pr_benchmark_rerender
+            - pr_benchmark_big_template_startup
+
   benchmarks:
     when: << pipeline.parameters.run_bench >>
     jobs:
@@ -917,6 +945,20 @@ workflows:
           result: app-repeat-view-keyed-string.json
           requires:
             - bench_prep
+
+      - benchmark_report:
+          <<: *filter_only_topic
+          name: bench_report
+          profile: full
+          requires:
+            - bench_startup10k
+            - bench_startup10k_ce
+            - bench_rerender10k
+            - bench_rerender10k_ce
+            - bench_startup100_big_template
+            - bench_update1k
+            - bench_repeat_keyed_expression
+            - bench_repeat_keyed_string
 
   # Runs build and tests (master)
   build_test:
@@ -1113,3 +1155,16 @@ workflows:
           result: app-repeat-view-keyed-string.json
           requires:
             - tacho_benchmark_prep
+      - benchmark_report:
+          <<: *filter_only_master
+          name: benchmark_report
+          profile: master
+          requires:
+            - benchmark_startup
+            - benchmark_startup___custom_element
+            - benchmark_rerender
+            - benchmark_rerender__custom_element
+            - benchmark_startup100_big_template
+            - benchmark_update
+            - benchmark_repeat_keyed_expression
+            - benchmark_repeat_keyed_string

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { formatCompactSummary, makeComparisons } from './benchmark-summary.mjs';
+import { adaptTachometerJson, formatCompactSummary, makeComparisons } from './benchmark-summary.mjs';
 
 const MiB = 1024 * 1024;
 const performanceMeasurement = {
@@ -109,6 +109,23 @@ void describe('compact benchmark summary', () => {
     assert.match(formatCompactSummary(results), /Big-template startup 100 perf:[\s\S]*-> faster/);
   });
 
+  void it('adapts Tachometer JSON percentages back to fractional differences', () => {
+    const document = {
+      benchmarks: [
+        jsonResult('startup base [perf]', interval(10, 11), [null, null]),
+        jsonResult(
+          'startup candidate [perf]',
+          interval(11, 12),
+          [{ absolute: interval(0.5, 2), percentChange: interval(0.25, 0.8) }, null],
+        ),
+      ],
+    };
+
+    const [comparison] = makeComparisons(adaptTachometerJson(document));
+    assert.deepEqual(comparison.difference.relative, interval(0.0025, 0.008));
+    assert.match(formatCompactSummary(adaptTachometerJson(document)), /\+0\.25% to \+0\.80%/);
+  });
+
   void it('rejects incomplete or ambiguously named comparisons', () => {
     assert.throws(
       () => makeComparisons([result('startup base [perf]', performanceMeasurement, interval(10, 11), [null])]),
@@ -147,6 +164,17 @@ function result(name, measurement, meanCI, differences) {
     },
     stats: { meanCI },
     differences,
+  };
+}
+
+function jsonResult(name, mean, differences) {
+  return {
+    name,
+    measurement: performanceMeasurement,
+    browser: { name: 'chrome', headless: true, userAgent: 'Chrome/1' },
+    mean,
+    differences,
+    samples: [10, 11],
   };
 }
 

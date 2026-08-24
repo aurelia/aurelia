@@ -2,6 +2,46 @@ export function formatCompactSummary(results) {
   return makeComparisons(results).map(formatComparison).join('\n\n');
 }
 
+export function adaptTachometerJson(document, source = 'Tachometer result') {
+  if (document === null || typeof document !== 'object' || !Array.isArray(document.benchmarks)) {
+    throw new Error(`${source} does not contain a Tachometer benchmarks array.`);
+  }
+  const resultCount = document.benchmarks.length;
+  return document.benchmarks.map((benchmark, resultIndex) => {
+    if (!Array.isArray(benchmark.samples) || benchmark.samples.some(sample => !Number.isFinite(sample))) {
+      throw new Error(`${source} benchmark ${resultIndex} has invalid samples.`);
+    }
+    if (!Array.isArray(benchmark.differences) || benchmark.differences.length !== resultCount) {
+      throw new Error(`${source} benchmark ${resultIndex} has an invalid difference matrix row.`);
+    }
+    return {
+      result: {
+        name: benchmark.name,
+        measurement: benchmark.measurement,
+        browser: benchmark.browser,
+        millis: [...benchmark.samples],
+      },
+      stats: { meanCI: readInterval(benchmark.mean, `${source} benchmark ${resultIndex} mean`) },
+      differences: benchmark.differences.map((difference, differenceIndex) => {
+        if (difference === null) return null;
+        return {
+          absolute: readInterval(
+            difference.absolute,
+            `${source} benchmark ${resultIndex} difference ${differenceIndex} absolute`,
+          ),
+          relative: divideInterval(
+            readInterval(
+              difference.percentChange,
+              `${source} benchmark ${resultIndex} difference ${differenceIndex} percent change`,
+            ),
+            100,
+          ),
+        };
+      }),
+    };
+  });
+}
+
 export function makeComparisons(results) {
   if (!Array.isArray(results)) {
     throw new Error('Expected Tachometer to return an array of benchmark results.');
@@ -56,8 +96,8 @@ function formatComparison(comparison) {
   const { scenario, measurement, kind, base, candidate, difference } = comparison;
   const label = capitalize(`${scenario} ${measurementLabel(measurement)}`);
   return [
-    `${label}: candidate ${formatInterval(candidate.stats.meanCI, kind)} vs base ${formatInterval(base.stats.meanCI, kind)}`,
-    `candidate delta: ${formatDelta(difference.absolute, kind)} (${formatPercentDelta(difference.relative)}) -> ${classifyDifference(difference, kind)}`,
+    `${label}: candidate ${formatMetricInterval(candidate.stats.meanCI, kind)} vs base ${formatMetricInterval(base.stats.meanCI, kind)}`,
+    `candidate delta: ${formatMetricDelta(difference.absolute, kind)} (${formatPercentDelta(difference.relative)}) -> ${classifyDifference(difference, kind)}`,
   ].join('\n');
 }
 
@@ -86,11 +126,11 @@ function measurementIdentity(measurement) {
   throw new Error(`Unsupported benchmark measurement mode "${measurement?.mode}".`);
 }
 
-function measurementLabel(measurement) {
+export function measurementLabel(measurement) {
   return measurement?.name ?? measurement?.mode ?? 'measurement';
 }
 
-function metricKind(measurement) {
+export function metricKind(measurement) {
   if (measurement?.mode === 'performance') return 'duration';
   if (measurement?.mode === 'expression' && measurement.expression === 'usedJSHeapSizeBytes') {
     return 'heap-bytes';
@@ -98,15 +138,15 @@ function metricKind(measurement) {
   return 'number';
 }
 
-function formatInterval(interval, kind) {
+export function formatMetricInterval(interval, kind) {
   return `\`${formatValue(interval.low, kind)}\` - \`${formatValue(interval.high, kind)}\``;
 }
 
-function formatDelta(interval, kind) {
+export function formatMetricDelta(interval, kind) {
   return `\`${formatSignedValue(interval.low, kind)}\` to \`${formatSignedValue(interval.high, kind)}\``;
 }
 
-function formatPercentDelta(interval) {
+export function formatPercentDelta(interval) {
   return `${formatSignedNumber(interval.low * 100, '%')} to ${formatSignedNumber(interval.high * 100, '%')}`;
 }
 
@@ -138,7 +178,7 @@ function normalizeRoundedZero(value) {
   return Math.abs(value) < 0.005 ? 0 : value;
 }
 
-function classifyDifference(difference, kind) {
+export function classifyDifference(difference, kind) {
   if (difference.absolute.low > 0 && difference.relative.low > 0) {
     return kind === 'duration' ? 'slower' : 'higher';
   }
@@ -151,3 +191,16 @@ function classifyDifference(difference, kind) {
 function capitalize(value) {
   return value === '' ? value : `${value[0].toUpperCase()}${value.slice(1)}`;
 }
+
+function readInterval(value, label) {
+  if (value === null || typeof value !== 'object' || !Number.isFinite(value.low) || !Number.isFinite(value.high)) {
+    throw new Error(`${label} is not a finite interval.`);
+  }
+  if (value.low > value.high) throw new Error(`${label} has reversed bounds.`);
+  return { low: value.low, high: value.high };
+}
+
+const divideInterval = (interval, divisor) => ({
+  low: interval.low / divisor,
+  high: interval.high / divisor,
+});

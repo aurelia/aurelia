@@ -7,11 +7,11 @@
       "browser": {
         "name": "chrome",
         "headless": true,
-        "addArguments": ["--js-flags=--expose-gc", "--enable-precise-memory-info"]
+        "addArguments": ["--enable-precise-memory-info"]
       },
       "measurement": [
         { "name": "perf", "mode": "performance", "entryName": "update-1k" },
-        { "name": "memory", "mode": "expression", "expression": "jsHeapSize" }
+        { "name": "used JS heap", "mode": "expression", "expression": "usedJSHeapSizeBytes" }
       ],
       "expand": [
         {

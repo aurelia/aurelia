@@ -1,7 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
   "root": "..",
-  
   "benchmarks": [
     {
       "browser": {
@@ -10,17 +9,16 @@
         "addArguments": ["--enable-precise-memory-info"]
       },
       "measurement": [
-        { "name": "perf", "mode": "performance", "entryName": "keyed-string" },
-        { "name": "used JS heap", "mode": "expression", "expression": "usedJSHeapSizeBytes" }
+        { "name": "perf", "mode": "performance", "entryName": "startup-100-big-template" }
       ],
       "expand": [
         {
-          "name": "keyed string base",
-          "url": "startup.html?variant=base"
+          "name": "big-template startup 100 base",
+          "url": "startup100-big-template.html?variant=base"
         },
         {
-          "name": "keyed string candidate",
-          "url": "startup.html?variant=candidate"
+          "name": "big-template startup 100 candidate",
+          "url": "startup100-big-template.html?variant=candidate"
         }
       ]
     }

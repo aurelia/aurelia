@@ -581,6 +581,10 @@ jobs:
               echo "export BENCHMARK_PR=${pr}"
             } >> "${BASH_ENV}"
       - run:
+          name: "Validate benchmark harness"
+          working_directory: "benchmarks"
+          command: npm run bench:test
+      - run:
           name: "Prepare exact benchmark variants"
           working_directory: "benchmarks"
           command: |
@@ -831,9 +835,9 @@ workflows:
 
       - tacho_benchmark:
           <<: *filter_only_topic
-          name: pr_benchmark_compiler
-          command: npm run bench:startup1k-big
-          result: app-repeat-view-startup-1k-big-template.json
+          name: pr_benchmark_big_template_startup
+          command: npm run bench:startup100-big
+          result: repeat-view-startup-100-big-template.json
           requires:
             - tacho_benchmark_prep
 
@@ -882,20 +886,11 @@ workflows:
           requires:
             - bench_prep
 
-      # the app has been converted to a compiler focused bench
-      # if we wish to bench rerendering a big template, we need to create a new app for that
-      # - tacho_benchmark:
-      #     <<: *filter_only_topic
-      #     name: bench_rerender1k_big
-      #     command: npm run bench:rerender1k-big
-      #     requires:
-      #       - bench_prep
-
       - tacho_benchmark:
           <<: *filter_only_topic
-          name: bench_startup1k_big
-          command: npm run bench:startup1k-big
-          result: app-repeat-view-startup-1k-big-template.json
+          name: bench_startup100_big_template
+          command: npm run bench:startup100-big
+          result: repeat-view-startup-100-big-template.json
           requires:
             - bench_prep
 
@@ -1090,19 +1085,11 @@ workflows:
           result: repeat-ce-rerender-10k.json
           requires:
             - tacho_benchmark_prep
-      # the app has been converted to a compiler focused bench
-      # if we wish to bench rerendering a big template, we need to create a new app for that
-      # - tacho_benchmark:
-      #     <<: *filter_only_master
-      #     name: benchmark_rerender1k-big-template
-      #     command: npm run bench:rerender1k-big
-      #     requires:
-      #       - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
-          name: benchmark_startup1k-big-template
-          command: npm run bench:startup1k-big
-          result: app-repeat-view-startup-1k-big-template.json
+          name: benchmark_startup100_big_template
+          command: npm run bench:startup100-big
+          result: repeat-view-startup-100-big-template.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:

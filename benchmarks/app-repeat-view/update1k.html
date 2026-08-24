@@ -1,17 +1,27 @@
 <script type="module">
+import { assertDirectRows } from '../utils/assert-render.js';
 import { loadVariant } from '../utils/load-variant.js';
-const { start } = await loadVariant('app-repeat-view');
+const { start, tasksSettled } = await loadVariant('app-repeat-view');
 
 const host = document.body.appendChild(document.createElement('div'));
-const au = start(host, 1000);
+const au = await start(host, 1000);
+assertDirectRows(host, 1000, 'div', {
+  0: 'hello item 0 item',
+  500: 'hello item 500 item',
+  999: 'hello item 999 item',
+});
+
 performance.mark('1k-start');
-
 au.root.controller.viewModel.updateItems();
-
+await tasksSettled();
 performance.mark('1k-end');
 
-// measure memory in MBs
-window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
-
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+assertDirectRows(host, 1000, 'div', {
+  0: 'hello updated item 1001 item',
+  500: 'hello updated item 501 item',
+  999: 'hello updated item 2 item',
+});
 performance.measure('update-1k', '1k-start', '1k-end');
+window.usedJSHeapSizeBytes = usedJSHeapSizeBytes;
 </script>

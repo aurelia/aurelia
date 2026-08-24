@@ -9,7 +9,7 @@ description: >-
 
 ## What is Enhancement?
 
-Enhancement allows you to bring Aurelia's data binding, templating, and component features to existing DOM content without replacing it entirely. Instead of starting with an empty element and rendering into it, enhancement takes existing HTML and makes it "Aurelia-aware".
+Enhancement adds Aurelia's data binding, templating, and component features directly to HTML already in the page. The existing DOM stays in place while Aurelia connects it to your data and behavior.
 
 This is perfect for:
 - **Progressive enhancement** of server-rendered pages
@@ -18,7 +18,7 @@ This is perfect for:
 - **Content Management Systems** where you want to add interactivity to generated content
 - **Legacy application modernization** done incrementally
 
-The [startup sections](app-configuration-and-startup.md) showed how to start Aurelia for empty elements. Enhancement lets you work with existing DOM trees instead.
+Standard startup renders an Aurelia application into a host. Enhancement applies Aurelia behavior to markup already present in that host.
 
 > **Before you start:** Review [App configuration and startup](app-configuration-and-startup.md) to understand the standard bootstrap flow; enhancement builds on those concepts.
 
@@ -92,7 +92,7 @@ const enhanceRoot = await Aurelia.enhance({
 
 ### Proper Cleanup
 
-Always clean up enhanced content to prevent memory leaks:
+During permanent cleanup, deactivate the enhanced content and dispose its root:
 
 ```typescript
 const enhanceRoot = await Aurelia.enhance({ host, component });
@@ -261,6 +261,7 @@ export class DynamicContentComponent {
   async unbinding() {
     for (const root of this.enhancedRoots) {
       await root.deactivate();
+      root.dispose();
     }
     this.enhancedRoots = [];
   }
@@ -299,6 +300,7 @@ export class ModalService {
   async closeModal() {
     if (this.currentModal) {
       await this.currentModal.deactivate();
+      this.currentModal.dispose();
       document.querySelector('.modal')?.remove();
       this.currentModal = null;
     }
@@ -385,9 +387,9 @@ const enhanceRoot = await Aurelia.enhance({
 ### Progressive Enhancement Checklist
 
 1. **Identify enhancement targets**: Elements that need interactivity
-2. **Preserve existing functionality**: Don't break existing event handlers
+2. **Preserve existing functionality**: Keep existing event handlers working
 3. **Plan your data flow**: How will data get to enhanced components?
-4. **Handle cleanup**: Always deactivate when done
+4. **Handle permanent cleanup**: Deactivate and dispose each enhancement root
 5. **Test without JavaScript**: Ensure basic functionality works without enhancement
 
 ### Best Practices

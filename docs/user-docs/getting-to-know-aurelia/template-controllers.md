@@ -66,7 +66,7 @@ export class PermissionTemplateController {
   }
 
   public detaching(initiator: IHydratedController) {
-    // The ancestor lifecycle operation owns this descendant transition.
+    // Keep this view in the lifecycle started by its parent.
     void this.view?.deactivate(initiator, this.$controller);
   }
 
@@ -82,7 +82,7 @@ export class PermissionTemplateController {
   private requestVisibilityUpdate() {
     const view = this.view;
     if (view && this.$controller.isActive) {
-      // A value-driven transition starts a new operation owned by the view.
+      // A later bindable change starts from the hosted view itself.
       void this.updateVisibility(view);
     }
   }
@@ -138,7 +138,7 @@ public attaching(initiator: IHydratedController) {
 }
 
 public detaching(initiator: IHydratedController) {
-  // Parent-driven teardown is enrolled in the parent's lifecycle operation.
+  // Keep this view in the lifecycle started by its parent.
   void this.hide(initiator);
 }
 
@@ -164,7 +164,7 @@ private hide(initiator: IHydratedController) {
 }
 ```
 
-Pass the lifecycle `initiator` through parent-driven `attaching` and `detaching` calls. Use the hosted view as initiator for later value-driven transitions. `accept(visitor)` keeps the hosted controller visible to parent traversal while its work is pending. Release the view from `dispose()` after Aurelia has completed teardown.
+A template controller owns the views it creates. Pass the lifecycle `initiator` through `attaching` and `detaching` so the parent and hosted view complete the same transition. Later bindable changes start from the hosted view. `accept(visitor)` lets parent traversal reach it, and `dispose()` releases it after teardown.
 
 Because the same view gets reused, you can cache work (see `If.cache` and `PromiseTemplateController` for examples). If you need a fresh container per instantiation—for example, each repeated row should get a unique dependency graph—set `containerStrategy: 'new'` on the definition so the renderer asks the DI container for a child scope before creating the view.
 
@@ -199,7 +199,7 @@ Use this hook whenever two controllers must share state (think `switch` / `case`
 - **No spread bindings** – `...attrs="bindable"` intentionally skips template controllers since spreading could hide structural markup (`packages/template-compiler/src/errors.ts`, `no_spread_template_controller`). Register them explicitly instead.
 - **One template per controller** – The compiler only emits one `IViewFactory` per controller. If you need secondary content (like the `else` branch), capture another controller's factory in `link()` or build an additional view manually using `ViewFactory`/`CustomElementDefinition` as shown earlier.
 - **Container strategy matters** – Setting `containerStrategy: 'new'` ensures each rendered view gets a fresh child container (see `PromiseTemplateController`); the default `'reuse'` is faster but shares services.
-- **Lifecycle ownership** – Keep each created view owned until its lifecycle work settles. Deactivate it during `detaching`, expose it through `accept(visitor)`, and release it from `dispose()`.
+- **Lifecycle ownership** – A created view remains with its template controller through teardown. Deactivate it during `detaching`, include it in `accept(visitor)`, and release it from `dispose()`.
 
 ## Next Steps
 

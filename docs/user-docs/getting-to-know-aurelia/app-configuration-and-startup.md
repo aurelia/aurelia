@@ -21,10 +21,10 @@ import { RouterConfiguration } from '@aurelia/router';
 import { MyRootComponent } from './my-root-component';
 
 // Simplest startup - hosts to <my-root-component> element, or <body> if not found
-Aurelia.app(MyRootComponent).start();
+await Aurelia.app(MyRootComponent).start();
 
 // Register additional features before startup
-Aurelia
+await Aurelia
   .register(
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
@@ -32,7 +32,7 @@ Aurelia
   .start();
 
 // Specify a custom host element
-Aurelia
+await Aurelia
   .register(
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
@@ -42,7 +42,7 @@ Aurelia
   })
   .start();
 
-// Async startup pattern (recommended)
+// Keep the Aurelia instance for later lifecycle calls
 const app = Aurelia
   .register(
     RouterConfiguration.customize({ useUrlFragmentHash: false })
@@ -76,13 +76,13 @@ au.app({
   component: ShellComponent
 });
 
-// Always await start() for proper error handling
+// Await startup before using the running application
 await au.start();
 ```
 
-## Awaiting lifecycle transitions
+## Awaiting startup and shutdown
 
-`start()` completes with no value. It preserves Aurelia's synchronous fast path, so its return type is `void | Promise<void>` based on the work accepted during startup. `await` handles both forms and gives startup errors one consistent boundary:
+`start()` performs its work synchronously when it can. It returns `void` for fully synchronous startup and `Promise<void>` when startup includes asynchronous work. `await` handles both forms and reports startup errors at the call site:
 
 ```typescript
 const au = new Aurelia()
@@ -92,15 +92,15 @@ const au = new Aurelia()
 await au.start();
 ```
 
-If startup throws or rejects, treat that application transition as terminal. Aurelia preserves the original error so its stack points to the failing app task or component hook. Fix that error before creating and starting another application graph.
+If startup throws or rejects, that Aurelia instance enters a terminal state. Aurelia preserves the original failure. When the value is an `Error`, its stack points to the failing app task or component hook. Fix the cause before creating and starting a new application instance.
 
-On success, `stop()` waits for component deactivation, application tasks, and framework task-queue work. The default `stop()` retains the root for another start. `stop(true)` also disposes it. A stop requested during an asynchronous start joins that transition and runs after activation.
+After a successful start, `stop()` waits for the root component to deactivate. It also waits for application tasks and queued framework work. The default `stop()` retains the root for another start. `stop(true)` also disposes it. A stop requested during asynchronous startup waits for activation to finish and then deactivates the application.
 
 ```typescript
 await au.stop(true);
 ```
 
-A stop failure is terminal for that application graph and preserves the original application error. When several app tasks already started and then fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) with their original values in registration order.
+A stop failure leaves that Aurelia instance in a terminal state and preserves the original application error. When several app tasks already started and then fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) with their original values in registration order.
 
 The `au-started` and `au-stopped` events identify successful transitions. Both events bubble from the application host and expose the Aurelia instance through `event.detail`.
 
@@ -129,7 +129,7 @@ import Aurelia from 'aurelia';
 import { CardCustomElement } from './components/card';
 
 // Quick startup
-Aurelia
+await Aurelia
   .register(CardCustomElement)  // No type casting needed
   .app(MyRootComponent)
   .start();
@@ -161,7 +161,7 @@ import Aurelia from 'aurelia';
 import * as GlobalComponents from './components';
 
 // Register all exported components at once
-Aurelia
+await Aurelia
   .register(GlobalComponents)
   .app(MyRootComponent)
   .start();
@@ -175,7 +175,7 @@ import { MyValueConverter } from './converters/my-value-converter';
 import { MyBindingBehavior } from './behaviors/my-binding-behavior';
 import { MyCustomAttribute } from './attributes/my-custom-attribute';
 
-Aurelia
+await Aurelia
   .register(
     MyValueConverter,
     MyBindingBehavior,
@@ -193,7 +193,7 @@ Aurelia
 import { Registration } from '@aurelia/kernel';
 import { MyService, IMyService } from './services/my-service';
 
-Aurelia
+await Aurelia
   .register(
     Registration.singleton(IMyService, MyService)
   )
@@ -208,7 +208,7 @@ import Aurelia, { LoggerConfiguration, LogLevel } from 'aurelia';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-Aurelia
+await Aurelia
   .register(
     LoggerConfiguration.create({
       level: isProduction ? LogLevel.warn : LogLevel.debug

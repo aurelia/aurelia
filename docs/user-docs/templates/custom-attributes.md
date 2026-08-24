@@ -628,8 +628,8 @@ Custom attributes support a comprehensive set of lifecycle hooks that allow you 
 - `created(controller)`: Called after the attribute instance is created
 - `binding(initiator, parent)`: Called when data binding begins
 - `bound(initiator, parent)`: Called after data binding is complete
-- `attaching(initiator, parent)`: Called after DOM insertion while descendant activation can still be running
-- `attached(initiator)`: Called after the associated controller subtree finishes attaching
+- `attaching(initiator, parent)`: Called after the associated element enters the DOM
+- `attached(initiator)`: Called after the attribute's own attaching work settles
 - `detaching(initiator, parent)`: Called before the element is detached from the DOM
 - `unbinding(initiator, parent)`: Called when data binding is being removed
 

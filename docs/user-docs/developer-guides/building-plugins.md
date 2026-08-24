@@ -40,7 +40,7 @@ export const MySimplePlugin = {
 import Aurelia from 'aurelia';
 import { MySimplePlugin } from './my-simple-plugin';
 
-Aurelia
+await Aurelia
   .register(MySimplePlugin)
   .app(MyApp)
   .start();
@@ -129,7 +129,7 @@ export const MyConfigurablePlugin = createConfiguration(() => {
 import Aurelia from 'aurelia';
 import { MyConfigurablePlugin } from './my-configurable-plugin';
 
-Aurelia
+await Aurelia
   .register(
     MyConfigurablePlugin.customize(options => {
       options.greeting = 'Bonjour';
@@ -164,9 +164,9 @@ export class Greeting {
 }
 ```
 
-## Working with App Tasks (Lifecycle Hooks)
+## Working with App Tasks
 
-App tasks allow you to run code at specific points during the application lifecycle. This is useful for initialization, cleanup, or integration with external libraries.
+App tasks give a plugin a DI-aware way to participate in application startup and shutdown. Aurelia waits for asynchronous task work at the selected phase, so the plugin is ready before the application continues.
 
 ### Available Lifecycle Phases
 
@@ -197,7 +197,7 @@ export const MyLifecyclePlugin = {
         console.log('App is activating');
       }),
 
-      // After root activation; start() waits for this task
+      // After root activation and before start() completes
       AppTask.activated(() => {
         console.log('App is activated and running');
       }),

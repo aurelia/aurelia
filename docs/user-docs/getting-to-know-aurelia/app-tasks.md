@@ -4,7 +4,7 @@ description: Run application-level setup and cleanup at defined points in Aureli
 
 # App Tasks
 
-App tasks run application-level work while Aurelia creates, starts, and stops the root component. Plugins can use them to register services, load configuration, start infrastructure, and release shared resources at a defined lifecycle boundary.
+App tasks give plugins and applications a DI-aware place to coordinate startup and shutdown with the root lifecycle. They keep application-wide setup out of the root component and let Aurelia wait for it at the appropriate phase.
 
 ## Lifecycle Phases
 
@@ -16,9 +16,9 @@ App tasks run at key moments in the Aurelia lifecycle. The table below summarize
 | **hydrating**  | After instantiating the root view, but before compiling the root and its child elements.                                                                       | Ideal for plugins (e.g., routers) to perform initial work before child elements are processed.       |
 | **hydrated**   | After self-hydration of the root controller, but before hydrating child elements.                                                                               | Allows pre-hydration tasks to complete before further initialization.                                |
 | **activating** | Immediately before root activation, after creation and hydration have completed.                                                                                | Load application data or prepare services used during activation.                                   |
-| **activated**  | After the root component and its owned subtree finish activation.                                                                                               | Start work that requires a running application.                                                      |
+| **activated**  | After the root component and its component tree finish activation.                                                                                               | Start work that requires a running application.                                                      |
 | **deactivating**| Before root deactivation while the application remains active.                                                                                                  | Save state or ask a service to prepare for shutdown.                                                 |
-| **deactivated**| After root controller teardown has completed.                                                                                                                   | Finish cleanup that depends on detached and unbound components.                                      |
+| **deactivated**| After the root component finishes deactivation.                                                                                                                 | Finish cleanup that depends on detached and unbound components.                                      |
 
 ---
 
@@ -72,7 +72,7 @@ export function register(container: IContainer) {
 
 ## Asynchronous App Tasks
 
-App tasks can also be asynchronous. This is useful for scenarios where you need to perform asynchronous operations (such as dynamic imports) before the application fully starts.
+Return a Promise when a task must finish asynchronous work, such as a dynamic import, before the application continues.
 
 ### Example – Asynchronous Hydrating Task
 
@@ -96,11 +96,11 @@ In this example, the hydrating task waits for an asynchronous import and registe
 
 ## Ordering and failure behavior
 
-Aurelia invokes app tasks in registration order. Promises returned by accepted tasks may run concurrently, and the lifecycle phase observes every task that already started before reporting an error.
+Aurelia invokes app tasks in registration order. Promises returned by those tasks may remain pending at the same time. Aurelia waits for every task that already started before reporting an error.
 
-A synchronous throw stops admission of later tasks in the phase. When one task fails, Aurelia reports its original thrown or rejected value. When several accepted tasks fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) as an `AggregateError`. Its `errors` array follows task registration order.
+If a callback throws synchronously, later tasks in that phase do not start. Aurelia reports the original thrown or rejected value for one failure. When several started tasks fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) as an `AggregateError`. Its `errors` array follows task registration order.
 
-A task failure is terminal for the affected application transition. App tasks are plugin and application infrastructure, so the useful response is to fix the callback identified by the original error and stack trace.
+A task failure ends the affected application transition and leaves that Aurelia instance in a terminal state. Aurelia preserves the original failure. When the value is an `Error`, its stack helps identify the callback. Fix the cause before creating a new application instance.
 
 Return the complete asynchronous operation from a task so Aurelia can observe its result:
 
@@ -111,7 +111,7 @@ const SaveBeforeStop = AppTask.deactivating(
 );
 ```
 
-If `workspace.save()` rejects, `au.stop()` rejects with that error. Fix the task before starting another application graph.
+If `workspace.save()` rejects, `au.stop()` rejects with that error. Fix the task before creating and starting another Aurelia instance.
 
 ---
 
@@ -203,3 +203,7 @@ export const TelemetrySetupTask = AppTask.hydrated(TelemetryService, telemetrySe
 // Register in main.ts:
 Aurelia.register(TelemetrySetupTask);
 ```
+
+---
+
+App tasks make integrations feel native to Aurelia's lifecycle. A plugin can prepare services before components need them and close shared resources with the application. The same setup remains reusable across root components.

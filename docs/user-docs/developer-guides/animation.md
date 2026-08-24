@@ -445,7 +445,7 @@ Register globally in your app configuration:
 import Aurelia from 'aurelia';
 import { FadeAnimationHooks } from './fade-animation-hooks';
 
-Aurelia
+await Aurelia
   .register(FadeAnimationHooks)
   .app(MyApp)
   .start();
@@ -1149,39 +1149,56 @@ Understanding lifecycle hooks is crucial for timing animations correctly:
 
 ### Best Practices for Lifecycle Animations
 
-1. **Always return promises** from `attaching` and `detaching`:
+1. **Return animation promises** from `attaching` and `detaching`:
    ```typescript
    attaching(): Promise<void> {
-      return this.element.animate(/* ... */).finished.then(() => void 0);
+     return this.element.animate(/* ... */).finished.then(() => void 0);
    }
    ```
 
-2. **Handle interruptions** - Cancel animations if detached early:
+2. **Handle intentional cancellation**: Application code can replace a running Web Animation before `animation.finished` settles. `Animation.cancel()` rejects that Promise with an `AbortError`, so the helper treats the expected cancellation as completion and rethrows genuine animation failures.
    ```typescript
    export class AnimatedComponent {
      private currentAnimation: Animation | null = null;
 
-      attaching(): Promise<void> {
-        this.currentAnimation = this.element.animate(/* ... */);
-        return this.waitForAnimation(this.currentAnimation);
-      }
+     attaching(): Promise<void> {
+       return this.play([
+         { opacity: 0 },
+         { opacity: 1 },
+       ]);
+     }
 
-      detaching(): Promise<void> {
-        this.currentAnimation?.cancel();
-        this.currentAnimation = this.element.animate(/* ... */);
-        return this.waitForAnimation(this.currentAnimation);
-      }
+     detaching(): Promise<void> {
+       return this.play([
+         { opacity: 1 },
+         { opacity: 0 },
+       ]);
+     }
 
-      private waitForAnimation(animation: Animation): Promise<void> {
-        return animation.finished.then(
-          () => void 0,
-          error => {
-            if ((error as DOMException).name === 'AbortError') return;
-            throw error;
-          },
-        );
-      }
-    }
+     public emphasize(): Promise<void> {
+       return this.play([
+         { transform: 'scale(1)' },
+         { transform: 'scale(1.05)' },
+         { transform: 'scale(1)' },
+       ]);
+     }
+
+     private play(keyframes: Keyframe[]): Promise<void> {
+       this.currentAnimation?.cancel();
+       const animation = this.currentAnimation = this.element.animate(keyframes, { duration: 200 });
+       return this.waitForAnimation(animation);
+     }
+
+     private waitForAnimation(animation: Animation): Promise<void> {
+       return animation.finished.then(
+         () => void 0,
+         error => {
+           if ((error as DOMException).name === 'AbortError') return;
+           throw error;
+         },
+       );
+     }
+   }
    ```
 
 3. **Coordinate complex animations**:

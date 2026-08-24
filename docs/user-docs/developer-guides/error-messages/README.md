@@ -17,9 +17,9 @@ Coded errors in Aurelia use the format `AURxxxx:yyyy` where:
 
 ## Errors with multiple causes
 
-An application-task phase can accept more than one asynchronous task before a failure becomes observable. Aurelia reports [AUR0826](runtime-html/aur0826.md) as a native `AggregateError` when several accepted tasks fail.
+An application-task phase can start several asynchronous tasks before any returned Promise rejects. Aurelia reports [AUR0826](runtime-html/aur0826.md) as a native `AggregateError` when several of those tasks fail.
 
-Start with `error.errors[0]`, then inspect each remaining entry. The array contains the original thrown or rejected values in task registration order, with their identities preserved. An entry can be any JavaScript value, including `undefined`, a symbol, or another `AggregateError`, so inspect the value before reading properties such as `message`.
+Inspect each entry in `error.errors`. The array contains the exact thrown or rejected values in task registration order, so check each value before reading a property such as `message`.
 
 ## Enabling development debug information
 

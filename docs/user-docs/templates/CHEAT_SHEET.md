@@ -587,7 +587,7 @@ Using repeat.for with dynamic list?
 | `attaching` | DOM inserted; descendants may still be attaching | Async setup work |
 | `attached` | Owned subtree attached | DOM measurement, third-party libraries |
 | `detaching` | Before DOM removal | Cleanup, save state |
-| `unbinding` | Bindings disconnecting | Cleanup subscriptions |
+| `unbinding` | Before bindings disconnect | Cleanup subscriptions |
 
 ```typescript
 import { resolve } from '@aurelia/kernel';

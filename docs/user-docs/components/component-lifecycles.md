@@ -185,19 +185,19 @@ export class ComponentLogger implements ILifecycleHooks<MyComponent> {
 }
 ```
 
-Multiple lifecycle hook classes can be registered. Aurelia invokes their matching methods **in registration order**, followed by the component's matching hook. Returned Promises share the same phase boundary.
+Multiple lifecycle hook classes can be registered. Aurelia invokes their matching methods **in registration order**, followed by the component's matching hook. Aurelia waits for every Promise returned during that phase.
 
 ## Async completion and errors
 
-A lifecycle phase stays active until every Promise already accepted into that phase settles. This includes component hooks, registered lifecycle-hook classes, and child-controller work. Sibling work can settle in any order while Aurelia preserves lifecycle order when selecting the reported failure.
+Aurelia completes a lifecycle phase after the component and its descendants finish the work they started, including Promises returned by registered lifecycle hooks. Sibling work can settle in any order. If more than one hook fails, Aurelia reports the first according to lifecycle order.
 
-A hook failure ends the affected lifecycle transition and reaches the caller as the original thrown or rejected value. Aurelia observes work that already started so sibling rejections remain attached to their owner. Treat that core controller graph as terminal. Fix the reported application error before running the transition again.
+A hook failure ends the affected lifecycle transition and reaches the caller as the original thrown or rejected value. Aurelia waits for all work that already started. The affected component or application is then in a terminal state. Fix the hook before creating and activating a replacement.
 
-Router navigation is an explicit transactional owner. It can reject a navigation, tear down its failed route candidate, and retain the previous route. That recovery belongs to the [Router lifecycle](../router/routing-lifecycle.md), which owns both sides of the navigation.
+Router navigation is different. The router controls both the current route and its replacement, so it can discard a failed candidate and keep the current route active. See the [Router lifecycle](../router/routing-lifecycle.md) for its navigation behavior.
 
-Ordinary overlapping requests share the active lifecycle operation. Deactivation requested during activation performs the requested cancellation and finishes inactive. Activation requested during teardown starts after successful cleanup. Repeated requests converge on the latest requested active state.
+A controller runs one lifecycle transition at a time. Deactivation requested during activation cancels the remaining activation work and finishes inactive. Activation requested during teardown starts after successful cleanup. After several overlapping requests, the controller reaches the state requested most recently.
 
-A hook failure remains observable when it occurs during cancellation. The shared transition reports that original error rather than presenting the cancellation as successful.
+If a hook fails while activation is being cancelled, the shared transition reports that original error.
 
 Return the Promise created by your hook when Aurelia should wait for that work:
 
@@ -213,7 +213,7 @@ export class AnimatedPanel {
 }
 ```
 
-Low-level controller integrations should let the active lifecycle operation own its subtree. Returning the same controller transition that is currently waiting for the hook creates a dependency cycle and reports [AUR0509](../developer-guides/error-messages/runtime-html/aur0509.md). Controller disposal begins after the owned lifecycle work settles; [AUR0510](../developer-guides/error-messages/runtime-html/aur0510.md) identifies an early disposal request.
+For low-level controller integrations, the Promise returned by a hook should represent only work that hook started. Returning the controller transition that is currently waiting for the hook creates a dependency cycle and reports [AUR0509](../developer-guides/error-messages/runtime-html/aur0509.md). Controller disposal begins after its lifecycle work settles. [AUR0510](../developer-guides/error-messages/runtime-html/aur0510.md) identifies an early disposal request.
 
 ## Special cases
 
@@ -225,5 +225,5 @@ Low-level controller integrations should let the active lifecycle operation own 
 1. **Prefer early exits**—perform checks at the start of hooks and `return` early to minimise nesting.
 2. **Clean up** observers, timeouts, event listeners, or 3rd-party widgets **in the opposite hook** (`unbinding`/`detaching` or `dispose`).
 3. **Avoid heavy work in the constructor.** Move anything needing bindables or DOM to later hooks.
-4. **Return the complete hook-owned Promise** so Aurelia can coordinate the phase. An `async` hook provides this naturally when it awaits all of its work.
+4. **Return the complete Promise for work started by the hook** so Aurelia waits for all of it. An `async` hook provides this naturally when it awaits all of its work.
 5. **Keep hooks fast**—expensive work can block the component hierarchy.

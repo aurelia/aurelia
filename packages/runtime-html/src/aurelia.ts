@@ -76,7 +76,7 @@ export class Aurelia implements IDisposable {
       rootProvider,
       true
     );
-    return onResolve(appRoot.activate(), () => appRoot);
+    return this._activateStandaloneRoot(appRoot, rootProvider);
   }
 
   /**
@@ -113,11 +113,82 @@ export class Aurelia implements IDisposable {
       this._rootProvider,
       false, // not enhance mode
     );
-    return onResolve(appRoot.activate(), () => appRoot);
+    return this._activateStandaloneRoot(appRoot, this._rootProvider);
+  }
+
+  /** @internal */
+  private _activateStandaloneRoot<T extends object>(
+    root: IAppRoot<T>,
+    provider: IDisposable,
+  ): IAppRoot<T> | Promise<IAppRoot<T>> {
+    let activation: void | Promise<void>;
+    try {
+      activation = root.activate();
+    } catch (error) {
+      return this._rollbackStandaloneRoot(root, provider, error);
+    }
+    if (isPromise(activation)) {
+      return activation.then(
+        () => root,
+        error => this._rollbackStandaloneRoot(root, provider, error),
+      );
+    }
+    return root;
+  }
+
+  /** @internal */
+  private _rollbackStandaloneRoot<T extends object>(
+    root: IAppRoot<T>,
+    provider: IDisposable,
+    activationError: unknown,
+  ): never | Promise<never> {
+    // enhance()/hydrate() do not publish through Aurelia._root, so their
+    // rollback owns the AppRoot and its provider directly.
+    const errors = [activationError];
+    let rollback: void | Promise<void>;
+    try {
+      rollback = root instanceof AppRoot ? root._deactivateForRollback() : root.deactivate();
+    } catch (error) {
+      errors.push(error);
+      return this._settleStandaloneRollback(root, provider, errors);
+    }
+    if (isPromise(rollback)) {
+      return rollback.then(
+        () => this._settleStandaloneRollback(root, provider, errors),
+        error => {
+          errors.push(error);
+          return this._settleStandaloneRollback(root, provider, errors);
+        },
+      );
+    }
+    return this._settleStandaloneRollback(root, provider, errors);
+  }
+
+  /** @internal */
+  private _settleStandaloneRollback<T extends object>(
+    root: IAppRoot<T>,
+    provider: IDisposable,
+    errors: unknown[],
+  ): never {
+    try {
+      root.dispose();
+    } catch (error) {
+      errors.push(error);
+    }
+    try {
+      provider.dispose();
+    } catch (error) {
+      errors.push(error);
+    }
+    throwTransitionErrors(errors, 'Standalone Aurelia root activation failed during rollback');
   }
 
   /** @internal */
   private _startPromise: Promise<void> | void = void 0;
+  /** @internal */
+  private _stopRequestedWhileStarting: boolean = false;
+  /** @internal */
+  private _disposeAfterStart: boolean = false;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
     if (root == null) {
       throw createMappedError(ErrorNames.no_composition_root);
@@ -127,52 +198,285 @@ export class Aurelia implements IDisposable {
       return this._startPromise;
     }
 
-    return this._startPromise = onResolve(this.stop(), () => {
-      if (!refs.hideProp) {
-        Reflect.set(root.host, '$aurelia', this);
-      }
-      this._rootProvider.prepare(this._root = root);
-      this._isStarting = true;
+    const result = onResolve(this.stop(), () => this._activateRoot(root));
 
-      return onResolve(root.activate(), () => {
-        this._isRunning = true;
-        this._isStarting = false;
-        this._startPromise = void 0;
-        this._dispatchEvent(root, 'au-started', root.host);
-      });
-    });
+    if (isPromise(result)) {
+      const startPromise = result.then(
+        () => {
+          if (this._startPromise === startPromise) {
+            this._startPromise = void 0;
+          }
+        },
+        error => {
+          // Identity matters when start(B) is queued behind stop(A): only the
+          // latest start may clear shared transition state or consume a stop
+          // request intended for B.
+          if (this._startPromise === startPromise) {
+            this._startPromise = void 0;
+            const dispose = this._disposeAfterStart;
+            this._stopRequestedWhileStarting = false;
+            this._disposeAfterStart = false;
+            this._isStarting = false;
+            if (dispose && this._root !== root) {
+              // The preceding stop can fail before this queued root ever enters
+              // _activateRoot. A stop(true) issued meanwhile still owns and must
+              // dispose that never-started root.
+              const errors = [error];
+              try {
+                root.dispose();
+              } catch (disposeError) {
+                errors.push(disposeError);
+              }
+              if (this.next === root) {
+                this.next = void 0;
+              }
+              throwTransitionErrors(errors, 'Queued Aurelia start failed during disposal');
+            }
+          }
+          throw error;
+        },
+      );
+      return this._startPromise = startPromise;
+    }
   }
 
   /** @internal */
   private _stopPromise: Promise<void> | void = void 0;
   public stop(dispose: boolean = false): void | Promise<void> {
+    // Check the whole start transaction before _stopPromise. A replacement
+    // start can be waiting behind the previous root's stop; callers invoking
+    // stop now intend to stop the replacement too, not merely join stop(A).
+    if (isPromise(this._startPromise)) {
+      this._stopRequestedWhileStarting = true;
+      this._disposeAfterStart ||= dispose;
+      return this._startPromise;
+    }
+
     if (isPromise(this._stopPromise)) {
       return this._stopPromise;
     }
 
-    if (this._isRunning === true) {
-      const root = this._root!;
-      this._isRunning = false;
-      this._isStopping = true;
+    if (this._isStarting) {
+      // A root can call stop re-entrantly before start() has assigned the Promise
+      // returned by root.activate(). Record the request now; this synchronous
+      // stack has no stable drain to return yet.
+      this._stopRequestedWhileStarting = true;
+      this._disposeAfterStart ||= dispose;
+      return this._startPromise;
+    }
 
-      return this._stopPromise = onResolve(root.deactivate(), () => {
-        return onResolve(tasksSettled(), () => {
-          Reflect.deleteProperty(root.host, '$aurelia');
-          if (dispose) {
-            root.dispose();
-          }
-          this._root = void 0;
-          this._rootProvider.dispose();
-          this._isStopping = false;
-          this._stopPromise = void 0;
-          this._dispatchEvent(root, 'au-stopped', root.host);
-        });
-      });
+    if (this._isRunning === true) {
+      return this._beginStop(this._root!, dispose);
+    }
+  }
+
+  /** @internal */
+  private _beginStop(root: IAppRoot, dispose: boolean): Promise<void> {
+    this._isRunning = false;
+    this._isStopping = true;
+
+    let result: void | Promise<void>;
+    try {
+      result = root.deactivate();
+    } catch (error) {
+      if (root instanceof AppRoot && root._consumeDeactivationVeto()) {
+        return this._stopPromise = this._cancelStop(error);
+      }
+      return this._stopPromise = this._settleStop(root, dispose, true, error);
+    }
+
+    if (isPromise(result)) {
+      return this._stopPromise = result.then(
+        () => this._settleStop(root, dispose, false, void 0),
+        error => root instanceof AppRoot && root._consumeDeactivationVeto()
+          ? this._cancelStop(error)
+          : this._settleStop(root, dispose, true, error),
+      );
+    }
+    return this._stopPromise = this._settleStop(root, dispose, false, void 0);
+  }
+
+  /** @internal */
+  private _activateRoot(root: IAppRoot): void | Promise<void> {
+    this._isStarting = true;
+
+    let result: void | Promise<void>;
+    try {
+      if (!refs.hideProp) {
+        Reflect.set(root.host, '$aurelia', this);
+      }
+      this._rootProvider.prepare(this._root = root);
+      result = root.activate();
+    } catch (error) {
+      return this._rollbackStart(root, error);
+    }
+
+    if (isPromise(result)) {
+      return result.then(
+        () => this._completeStart(root),
+        error => this._rollbackStart(root, error),
+      );
+    }
+    return this._completeStart(root);
+  }
+
+  /** @internal */
+  private _completeStart(root: IAppRoot): void | Promise<void> {
+    const stopRequested = this._stopRequestedWhileStarting;
+    const dispose = this._disposeAfterStart;
+    this._stopRequestedWhileStarting = false;
+    this._disposeAfterStart = false;
+    this._isRunning = true;
+    this._isStarting = false;
+    this._dispatchEvent(root, 'au-started', root.host);
+    if (stopRequested) {
+      // Activation still commits before its queued stop. This preserves normal
+      // lifecycle/event order while keeping both calls on one stable Promise.
+      return this._stopPromise ?? this._beginStop(root, dispose);
+    }
+  }
+
+  /** @internal */
+  private _rollbackStart(root: IAppRoot, activationError: unknown): never | Promise<never> {
+    let rollback: void | Promise<void>;
+    try {
+      // Failed-start cleanup cannot be vetoed. AppTask errors are accumulated,
+      // but Controller teardown must still make the unpublished root inert.
+      rollback = root instanceof AppRoot ? root._deactivateForRollback() : root.deactivate();
+    } catch (rollbackError) {
+      return this._finalizeFailedStart(root, [activationError, rollbackError], true);
+    }
+    if (isPromise(rollback)) {
+      return rollback.then(
+        () => this._finalizeFailedStart(root, [activationError], false),
+        rollbackError => this._finalizeFailedStart(root, [activationError, rollbackError], true),
+      );
+    }
+    return this._finalizeFailedStart(root, [activationError], false);
+  }
+
+  /** @internal */
+  private _finalizeFailedStart(root: IAppRoot, errors: unknown[], quarantine: boolean): never {
+    quarantine ||= root instanceof AppRoot && !root._isRecoverable;
+    const dispose = quarantine || this._disposeAfterStart;
+    try {
+      Reflect.deleteProperty(root.host, '$aurelia');
+    } catch (error) {
+      errors.push(error);
+    }
+    if (dispose) {
+      try {
+        root.dispose();
+      } catch (error) {
+        errors.push(error);
+      }
+      if (this.next === root) {
+        this.next = void 0;
+      }
+    }
+    if (this._root === root) {
+      this._root = void 0;
+      try {
+        this._rootProvider.dispose();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    this._stopRequestedWhileStarting = false;
+    this._disposeAfterStart = false;
+    this._isStarting = false;
+    throwTransitionErrors(errors, 'Aurelia start failed during rollback');
+  }
+
+  /** @internal */
+  private _settleStop(
+    root: IAppRoot,
+    dispose: boolean,
+    deactivationFailed: boolean,
+    deactivationError: unknown,
+  ): Promise<void> {
+    // Keep a separate failure bit because Promise rejection and synchronous
+    // throws may carry `undefined`, which is still a real deactivation failure.
+    // Unlike partial startup, a formerly running app has fully connected queue
+    // work. Preserve the established stop boundary before disposing resources.
+    return tasksSettled().then(
+      () => this._finalizeStop(root, dispose, deactivationFailed ? [deactivationError] : []),
+      taskError => this._finalizeStop(
+        root,
+        dispose,
+        deactivationFailed ? [deactivationError, taskError] : [taskError],
+      ),
+    );
+  }
+
+  /** @internal */
+  private _cancelStop(vetoError: unknown): Promise<void> {
+    // Tasks already accepted by the veto phase still quiesce before the app is
+    // published as running again and the stop rejection becomes observable.
+    return tasksSettled().then(
+      () => this._finalizeCancelledStop([vetoError]),
+      taskError => this._finalizeCancelledStop([vetoError, taskError]),
+    );
+  }
+
+  /** @internal */
+  private _finalizeCancelledStop(errors: unknown[]): never {
+    this._isRunning = true;
+    this._isStopping = false;
+    this._stopPromise = void 0;
+    throwTransitionErrors(errors, 'Aurelia stop was vetoed during application deactivation');
+  }
+
+  /** @internal */
+  private _finalizeStop(root: IAppRoot, dispose: boolean, errors: unknown[]): void {
+    try {
+      Reflect.deleteProperty(root.host, '$aurelia');
+    } catch (error) {
+      errors.push(error);
+    }
+    if (dispose) {
+      try {
+        root.dispose();
+      } catch (error) {
+        errors.push(error);
+      }
+      if (this.next === root) {
+        this.next = void 0;
+      }
+    }
+    if (this._root === root) {
+      this._root = void 0;
+      try {
+        this._rootProvider.dispose();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    this._isStopping = false;
+    this._stopPromise = void 0;
+
+    // au-stopped remains a successful-transition event. A rejected stop still
+    // finalizes the Aurelia instance, while its promise reports the failure.
+    if (errors.length === 0) {
+      try {
+        this._dispatchEvent(root, 'au-stopped', root.host);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    if (errors.length > 0) {
+      throwTransitionErrors(errors, 'Aurelia stop failed during cleanup');
     }
   }
 
   public dispose(): void {
-    if (this._isRunning || this._isStopping) {
+    if (
+      this._isRunning
+      || this._isStarting
+      || this._isStopping
+      || isPromise(this._startPromise)
+      || isPromise(this._stopPromise)
+    ) {
       throw createMappedError(ErrorNames.invalid_dispose_call);
     }
     this.container.dispose();
@@ -183,6 +487,13 @@ export class Aurelia implements IDisposable {
     const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
     target.dispatchEvent(ev);
   }
+}
+
+function throwTransitionErrors(errors: unknown[], message: string): never {
+  if (errors.length === 1) {
+    throw errors[0];
+  }
+  throw new AggregateError(errors, message);
 }
 
 export type ISinglePageAppConfig<T extends object = object> = Omit<IAppRootConfig<T>, 'strictBinding'> & {

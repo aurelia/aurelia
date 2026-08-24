@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve, resolve } from '@aurelia/kernel';
+import { isPromise, onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
@@ -50,7 +50,7 @@ export class If implements ICustomAttributeViewModel {
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
       return this._hydrateView(ssrScope);
     }
-    return this._swap(this.value);
+    return this._swap(this.value, true);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -58,7 +58,9 @@ export class If implements ICustomAttributeViewModel {
     return onResolve(this.pending, () => {
       this._wantsDeactivate = false;
       this.pending = void 0;
-      // Promise return values from user VM hooks are awaited by the initiator
+      // The shared Controller operation owns descendant settlement. Returning
+      // this local result would add a self-edge to the operation currently
+      // invoking If.detaching.
       void this.view?.deactivate(initiator, this.$controller);
     });
   }
@@ -72,7 +74,7 @@ export class If implements ICustomAttributeViewModel {
   }
 
   /** @internal */
-  private _swap(value: unknown): void | Promise<void> {
+  private _swap(value: unknown, reportInitialFailure: boolean = false): void | Promise<void> {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -114,21 +116,25 @@ export class If implements ICustomAttributeViewModel {
           view.setLocation(this._location);
 
           const ret = view.activate(view, ctrl, ctrl.scope);
-          if (ret instanceof Promise) {
+          if (isPromise(ret)) {
             return ret.then(
               () => {
                 if (isCurrent()) {
                   this.pending = void 0;
                 }
               },
-              () => {
-                // Activation failed. Deactivate the view to clean up its state
-                // so that subsequent swaps can work correctly.
-                // The error is intentionally swallowed to allow recovery.
+              error => {
+                // Controller has already rolled this self-initiated view back
+                // when its local result rejects. Initial attachment still
+                // belongs to application start and must expose the failure;
+                // later value changes consume their request so a new swap can
+                // recover, preserving If's established update behavior.
                 if (isCurrent()) {
                   this.pending = void 0;
                 }
-                void view!.deactivate(view!, ctrl);
+                if (reportInitialFailure) {
+                  throw error;
+                }
               }
             );
           }

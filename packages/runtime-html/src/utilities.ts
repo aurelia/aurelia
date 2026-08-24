@@ -1,7 +1,7 @@
 import { AccessorType, type ISubscriber } from '@aurelia/runtime';
 import { type ISVGAnalyzer } from './observation/svg-analyzer';
 import { type ISignaler } from './signaler';
-import { createLookup, isString } from '@aurelia/kernel';
+import { createLookup, isPromise, isString } from '@aurelia/kernel';
 
 const O = Object;
 
@@ -38,6 +38,33 @@ const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 };
 
 /** @internal */ export const rethrow = (err: unknown) => { throw err; };
+
+/**
+ * Run mandatory cleanup after an operation failed, preserving the original
+ * error unless cleanup fails too. The cleanup result remains synchronous when
+ * possible and both failures retain their causal order in an AggregateError.
+ *
+ * @internal
+ */
+export const cleanupAfterFailure = (
+  error: unknown,
+  cleanup: () => void | Promise<void>,
+  message: string,
+): never | Promise<never> => {
+  let result: void | Promise<void>;
+  try {
+    result = cleanup();
+  } catch (cleanupError) {
+    throw new AggregateError([error, cleanupError], message);
+  }
+  if (isPromise(result)) {
+    return result.then(
+      () => { throw error; },
+      cleanupError => { throw new AggregateError([error, cleanupError], message); },
+    );
+  }
+  throw error;
+};
 
 /** @internal */
 export const def = Reflect.defineProperty;

@@ -1,5 +1,6 @@
 import {
   isArray,
+  isPromise,
   ILogger,
   onResolve,
   onResolveAll,
@@ -23,6 +24,7 @@ import type { Controller, ICustomAttributeController, ICustomAttributeViewModel,
 import type { INode } from '../../dom.node';
 import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
+import { cleanupAfterFailure } from '../../utilities';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -42,9 +44,13 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */
   public defaultCase?: Case;
   private activeCases: Case[] = [];
+  // The single-case fast path removes a case from desired active state before
+  // async teardown settles. Keep it traversable so disposal preflight still
+  // sees its live Controller operation, then hide it again once inactive.
+  /** @internal */ private readonly retiringCases = new Set<Case>();
   /**
-   * This is kept around here so that changes can be awaited from the tests.
-   * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
+   * Observer callbacks cannot return async work. This stable tail serializes
+   * value/case changes and gives owner teardown one boundary to join.
    */
   public readonly promise: Promise<void> | void = void 0;
 
@@ -89,11 +95,19 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
-    this.queue(() => {
-      const view = this.view;
-      return view.deactivate(initiator, this.$controller);
-    });
-    return this.promise;
+    const pending = this.promise;
+    // Controller state is already inactive, so the value/case guards below close
+    // admission. Clear the captured tail before waiting to make that closure
+    // explicit and prevent stale settlement from remaining publicly observable.
+    (this as Writable<Switch>).promise = void 0;
+    const deactivate = () => this.view.deactivate(initiator, this.$controller);
+    if (!isPromise(pending)) {
+      return deactivate();
+    }
+    return pending.then(
+      deactivate,
+      error => cleanupAfterFailure(error, deactivate, 'Switch activation failed during teardown cleanup'),
+    );
   }
 
   public dispose(): void {
@@ -107,6 +121,7 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public caseChanged($case: Case): void {
+    if (!this.$controller.isActive) { return; }
     this.queue(() => this._handleCaseChange($case));
   }
 
@@ -218,7 +233,7 @@ export class Switch implements ICustomAttributeViewModel {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
         cases.length = 0;
-        return firstCase.deactivate(initiator);
+        return this._retireCase(firstCase, initiator);
       }
       return;
     }
@@ -236,12 +251,36 @@ export class Switch implements ICustomAttributeViewModel {
     );
   }
 
+  /** @internal */
+  private _retireCase($case: Case, initiator: IHydratedController | null): void | Promise<void> {
+    this.retiringCases.add($case);
+    const complete = () => { this.retiringCases.delete($case); };
+    let result: void | Promise<void>;
+    try {
+      result = $case.deactivate(initiator);
+    } catch (error) {
+      complete();
+      throw error;
+    }
+    if (isPromise(result)) {
+      return result.then(
+        complete,
+        error => {
+          complete();
+          throw error;
+        },
+      );
+    }
+    complete();
+  }
+
   private queue(action: () => void | Promise<void>): void {
     const previousPromise = this.promise;
     let promise: void | Promise<void> = void 0;
     promise = (this as Writable<Switch>).promise = onResolve(
       onResolve(previousPromise, action),
       () => {
+        // An older completion cannot clear a newer action appended to the tail.
         if (this.promise === promise) {
           (this as Writable<Switch>).promise = void 0;
         }
@@ -250,11 +289,15 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public accept(visitor: ControllerVisitor): void | true {
-    if (this.$controller.accept(visitor) === true) {
-      return true;
-    }
+    // Do not recurse through this.$controller or the base view: Controller.accept
+    // already delegated here, and the base contains inactive cached cases too.
     if (this.activeCases.some(x => x.accept(visitor))) {
       return true;
+    }
+    for (const $case of this.retiringCases) {
+      if ($case.accept(visitor) === true) {
+        return true;
+      }
     }
   }
 }
@@ -365,13 +408,13 @@ export class Case implements ICustomAttributeViewModel {
     }
     if (view.isActive) { return; }
     const ret = view.activate(initiator ?? view, this.$controller, scope);
-    if (ret instanceof Promise) {
-      return ret.catch(() => {
-        // Activation failed. Deactivate the view to clean up its state
-        // so that subsequent case activations can work correctly.
-        return view.deactivate(view, this.$controller);
-      });
+    if (isPromise(ret) && initiator === null) {
+      // A value change owns this view's activation independently. Controller
+      // has already rolled the failed view back when the local result rejects;
+      // consume that request's failure so the next switch update can proceed.
+      return ret.catch(() => void 0);
     }
+    return ret;
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {

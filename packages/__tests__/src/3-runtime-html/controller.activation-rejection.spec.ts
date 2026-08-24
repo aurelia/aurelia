@@ -645,4 +645,174 @@ describe('3-runtime-html/controller.activation-rejection.spec.ts', function () {
     assert.strictEqual(fixture.appHost.textContent, '');
     await fixture.tearDown();
   });
+
+  it('rejects a lifecycle-hook provider that returns its controller operation from a multi-provider phase', async function () {
+    let laterHookCalls = 0;
+
+    @lifecycleHooks()
+    class SelfAwaitingHook {
+      public attaching(vm: unknown, initiator: IHydratedController, parent: IHydratedController | null): Promise<void> {
+        const controller = (vm as { readonly $controller: IHydratedController }).$controller;
+        return controller.activate(initiator, parent, controller.scope) as Promise<void>;
+      }
+    }
+
+    @lifecycleHooks()
+    class LaterHook {
+      public attaching(): void {
+        ++laterHookCalls;
+      }
+    }
+
+    const Child = CustomElement.define({
+      name: 'provider-self-await-child',
+      template: 'child',
+      dependencies: [SelfAwaitingHook, LaterHook],
+    }, class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public binding(): Promise<void> {
+        // Promote the operation before the attaching providers run, making the
+        // exact controller result available to the first provider.
+        return Promise.resolve();
+      }
+    });
+
+    const fixture = createFixture(
+      '<provider-self-await-child></provider-self-await-child>',
+      class {},
+      [Child],
+      false,
+    );
+
+    await assert.rejects(
+      () => fixture.start() as Promise<void>,
+      /AUR0509:.*cannot await.*operation/i,
+    );
+    assert.strictEqual(laterHookCalls, 0);
+    await fixture.tearDown();
+  });
+
+  it('rejects a view-model hook that returns its controller operation from a multi-provider phase', async function () {
+    @lifecycleHooks()
+    class EarlierHook {
+      public attaching(): void {/* noop */}
+    }
+
+    const Child = CustomElement.define({
+      name: 'view-model-self-await-child',
+      template: 'child',
+      dependencies: [EarlierHook],
+    }, class {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public binding(): Promise<void> {
+        return Promise.resolve();
+      }
+
+      public attaching(initiator: IHydratedController, parent: IHydratedController | null): Promise<void> {
+        return this.$controller.activate(initiator, parent, this.$controller.scope) as Promise<void>;
+      }
+    });
+
+    const fixture = createFixture(
+      '<view-model-self-await-child></view-model-self-await-child>',
+      class {},
+      [Child],
+      false,
+    );
+
+    await assert.rejects(
+      () => fixture.start() as Promise<void>,
+      /AUR0509:.*cannot await.*operation/i,
+    );
+    await fixture.tearDown();
+  });
+
+  it('reports a synchronous view-model failure from a multi-provider phase without manufacturing async work', async function () {
+    const error = new Error('view-model attaching failed');
+
+    @lifecycleHooks()
+    class EarlierHook {
+      public attaching(): void {/* noop */}
+    }
+
+    const Child = CustomElement.define({
+      name: 'view-model-provider-throw-child',
+      template: 'child',
+      dependencies: [EarlierHook],
+    }, class {
+      public attaching(): void {
+        throw error;
+      }
+    });
+
+    const fixture = createFixture(
+      '<view-model-provider-throw-child></view-model-provider-throw-child>',
+      class {},
+      [Child],
+      false,
+    );
+
+    assert.throws(() => fixture.start(), error);
+    assert.strictEqual(fixture.au.isRunning, false);
+    await fixture.tearDown();
+  });
+
+  it('allows a parent hook to return a descendant result from the same operation', async function () {
+    const gate = new Deferred();
+    let child!: Child;
+
+    @lifecycleHooks()
+    class EarlierHook {
+      public attaching(): void {/* noop */}
+    }
+
+    @customElement({ name: 'descendant-result-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public attaching(): Promise<void> {
+        return gate.promise;
+      }
+    }
+
+    const Owner = CustomElement.define({
+      name: 'descendant-result-owner',
+      template: '<descendant-result-child></descendant-result-child>',
+      dependencies: [EarlierHook, Child],
+    }, class {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public attaching(initiator: IHydratedController): Promise<void> {
+        // Dynamic owners commonly start an owned view from their own hook. The
+        // descendant result is safe: it settles before this owner participant.
+        return child.$controller.activate(initiator, this.$controller, this.$controller.scope) as Promise<void>;
+      }
+    });
+
+    const fixture = createFixture(
+      '<descendant-result-owner></descendant-result-owner>',
+      class {},
+      [Owner],
+      false,
+    );
+    const start = fixture.start() as Promise<void>;
+    let settled = false;
+    void start.then(
+      () => { settled = true; },
+      () => { settled = true; },
+    );
+    await Promise.resolve();
+    assert.strictEqual(settled, false);
+
+    gate.resolve();
+    await start;
+    fixture.assertText('child');
+    await fixture.tearDown();
+  });
 });

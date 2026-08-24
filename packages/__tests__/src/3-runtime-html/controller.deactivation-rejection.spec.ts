@@ -7,6 +7,7 @@ import {
   lifecycleHooks,
   Repeat,
 } from '@aurelia/runtime-html';
+import type { IResolver } from '@aurelia/kernel';
 import { assert, createFixture } from '@aurelia/testing';
 
 class Deferred<T = void> {
@@ -719,6 +720,44 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     await fixture.tearDown();
   });
 
+  it('contains descendant node-removal errors during ancestor teardown', async function () {
+    const error = new Error('descendant node removal failed');
+    let child!: Child;
+    let unbindingCalls = 0;
+
+    @customElement({ name: 'descendant-node-cleanup-failure-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public unbinding(): void {
+        ++unbindingCalls;
+      }
+    }
+
+    const fixture = createFixture(
+      '<descendant-node-cleanup-failure-child></descendant-node-cleanup-failure-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const nodes = child.$controller.nodes;
+    const remove = nodes.remove;
+    (nodes as unknown as { remove(): void }).remove = () => { throw error; };
+    const root = fixture.au.root.controller;
+
+    assert.throws(() => root.deactivate(root, null), error);
+    assert.strictEqual(unbindingCalls, 1);
+    assert.strictEqual(child.$controller.isBound, false);
+    assert.strictEqual(root.isActive, false);
+
+    (nodes as unknown as { remove: typeof remove }).remove = remove;
+    await fixture.tearDown();
+  });
+
   it('contains binding-unbind errors and publishes stable inactive state', async function () {
     const error = new Error('binding unbind failed');
     let child!: Child;
@@ -859,6 +898,268 @@ describe('3-runtime-html/controller.deactivation-rejection.spec.ts', function ()
     assert.strictEqual(view.isActive, false);
     assert.strictEqual(view.isBound, false);
 
+    await fixture.tearDown();
+  });
+
+  it('reports disposal failure requested while asynchronous view teardown is pending', async function () {
+    const gate = new Deferred();
+    const error = new Error('deferred view disposal failed');
+
+    @customElement({ name: 'deferred-disposal-child', template: 'child' })
+    class Child {
+      public detaching(): Promise<void> {
+        return gate.promise;
+      }
+
+      public dispose(): void {
+        throw error;
+      }
+    }
+
+    const fixture = createFixture(
+      '<deferred-disposal-child repeat.for="item of items"></deferred-disposal-child>',
+      class { public items = [0]; },
+      [Child],
+    );
+    await fixture.started;
+    const repeat = findRepeat(fixture.au.root.controller);
+    const view = repeat.views[0];
+    const drain = view.deactivate(view, repeat.$controller) as Promise<void>;
+
+    // Dynamic owners cannot synchronously dispose a view whose controller still
+    // owns teardown. They transfer disposal to that local operation boundary.
+    (view as unknown as { _disposeAfterDeactivate(): void })._disposeAfterDeactivate();
+    gate.resolve();
+
+    await assert.rejects(() => drain, error);
+    assert.strictEqual(view.isActive, false);
+    await fixture.tearDown();
+  });
+
+  it('treats repeated ancestor-owned descendant deactivation as the same teardown', async function () {
+    const gate = new Deferred();
+    let child!: Child;
+    let childDetachingCalls = 0;
+
+    @customElement({ name: 'repeated-descendant-deactivation-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public detaching(): Promise<void> {
+        ++childDetachingCalls;
+        return gate.promise;
+      }
+    }
+
+    @customElement({
+      name: 'repeated-descendant-deactivation-owner',
+      template: '<repeated-descendant-deactivation-child></repeated-descendant-deactivation-child>',
+      dependencies: [Child],
+    })
+    class Owner {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public detaching(initiator: IHydratedController): void {
+        // A deeply integrated owner may already have asked an owned child to
+        // stop before its own hook runs. The repeated request must not restart it.
+        void child.$controller.deactivate(initiator, this.$controller);
+      }
+    }
+
+    const fixture = createFixture(
+      '<repeated-descendant-deactivation-owner></repeated-descendant-deactivation-owner>',
+      class {},
+      [Owner],
+    );
+    await fixture.started;
+    const stop = fixture.stop() as Promise<void>;
+    assert.strictEqual(childDetachingCalls, 1);
+
+    gate.resolve();
+    await stop;
+    assert.strictEqual(childDetachingCalls, 1);
+    await fixture.tearDown();
+  });
+
+  it('makes reentrant deactivation from activation compensation a no-op', async function () {
+    const attaching = new Deferred();
+    let child!: Child;
+    let blockActivation = false;
+    let reenter = false;
+    const parentRef = { value: null! as IHydratedController };
+
+    @customElement({ name: 'compensation-reentrant-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public attaching(): void | Promise<void> {
+        return blockActivation ? attaching.promise : void 0;
+      }
+
+      public detaching(): void {
+        if (reenter) {
+          void this.$controller.deactivate(this.$controller, parentRef.value);
+        }
+      }
+    }
+
+    const fixture = createFixture(
+      '<compensation-reentrant-child></compensation-reentrant-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const parent = parentRef.value = fixture.au.root.controller;
+    await child.$controller.deactivate(child.$controller, parent);
+
+    blockActivation = true;
+    reenter = true;
+    const activation = child.$controller.activate(child.$controller, parent, parent.scope) as Promise<void>;
+    const cancellation = child.$controller.deactivate(child.$controller, parent);
+    assert.strictEqual(cancellation, activation);
+
+    attaching.resolve();
+    await activation;
+    assert.strictEqual(child.$controller.isActive, false);
+    await fixture.tearDown();
+  });
+
+  it('rejects the predecessor drain when queued reactivation fails synchronously', async function () {
+    const detaching = new Deferred();
+    const error = new Error('queued synchronous activation failed');
+    let child!: Child;
+    let failActivation = false;
+
+    @customElement({ name: 'sync-failed-reactivation-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public binding(): void {
+        if (failActivation) {
+          throw error;
+        }
+      }
+
+      public detaching(): Promise<void> {
+        return detaching.promise;
+      }
+    }
+
+    const fixture = createFixture(
+      '<sync-failed-reactivation-child></sync-failed-reactivation-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const parent = fixture.au.root.controller;
+    const drain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
+    failActivation = true;
+    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), drain);
+
+    detaching.resolve();
+    await assert.rejects(() => drain, error);
+    assert.strictEqual(child.$controller.isActive, false);
+    failActivation = false;
+    await fixture.tearDown();
+  });
+
+  it('settles predecessor drains with asynchronous queued reactivation success and failure', async function () {
+    let detaching = new Deferred();
+    let attaching = new Deferred();
+    const error = new Error('queued asynchronous activation failed');
+    let child!: Child;
+    let asyncActivation = false;
+
+    @customElement({ name: 'async-failed-reactivation-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+
+      public attaching(): void | Promise<void> {
+        return asyncActivation ? attaching.promise : void 0;
+      }
+
+      public detaching(): Promise<void> {
+        return detaching.promise;
+      }
+    }
+
+    const fixture = createFixture(
+      '<async-failed-reactivation-child></async-failed-reactivation-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const parent = fixture.au.root.controller;
+    asyncActivation = true;
+    const successfulDrain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
+    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), successfulDrain);
+
+    detaching.resolve();
+    await Promise.resolve();
+    attaching.resolve();
+    await successfulDrain;
+    assert.strictEqual(child.$controller.isActive, true);
+
+    detaching = new Deferred();
+    attaching = new Deferred();
+    const failedDrain = child.$controller.deactivate(child.$controller, parent) as Promise<void>;
+    assert.strictEqual(child.$controller.activate(child.$controller, parent, parent.scope), failedDrain);
+
+    detaching.resolve();
+    await Promise.resolve();
+    attaching.reject(error);
+    await assert.rejects(() => failedDrain, error);
+    assert.strictEqual(child.$controller.isActive, false);
+    asyncActivation = false;
+    await fixture.tearDown();
+  });
+
+  it('reports disposable resolver failure after completing controller disposal', async function () {
+    const error = new Error('resolver disposal failed');
+    let child!: Child;
+
+    @customElement({ name: 'resolver-disposal-child', template: 'child' })
+    class Child {
+      public readonly $controller!: ICustomElementController<this>;
+
+      public constructor() {
+        child = this;
+      }
+    }
+
+    const fixture = createFixture(
+      '<resolver-disposal-child></resolver-disposal-child>',
+      class {},
+      [Child],
+    );
+    await fixture.started;
+    const parent = fixture.au.root.controller;
+    await child.$controller.deactivate(child.$controller, parent);
+    const resolver: IResolver = {
+      $isResolver: true,
+      resolve: () => void 0,
+      dispose: () => { throw error; },
+    };
+    child.$controller.container.registerResolver(Symbol('throwing resolver'), resolver, true);
+
+    assert.throws(() => child.$controller.dispose(), error);
+    assert.strictEqual(child.$controller.isActive, false);
     await fixture.tearDown();
   });
 });

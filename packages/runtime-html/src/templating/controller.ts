@@ -635,6 +635,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   ): ControllerStep {
     const current = this._operation;
     if (current !== null && current.operation.mode !== 'settled') {
+      /* istanbul ignore next -- active steps are created only by this operation's captured ancestry */
       if (current.operation.initiator !== initiator) {
         throw createMappedError(ErrorNames.controller_activation_unexpected_state, this.name, stringifyState(this.state));
       }
@@ -741,44 +742,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // without replacing those boundaries with a new .then() chain.
     void promise.then(
       () => {
-        // A successor operation may already own this Controller. Late callbacks
-        // from the previous operation must not mutate its counters or state.
-        if (this._operation !== step) {
-          return;
-        }
-        // Reserve before running framework continuation: it may synchronously
-        // re-enter lifecycle code, whose failures must sort after this cause.
-        const continuationOrder = reserveLifecycleParticipant();
-        try {
-          onFulfilled();
-        } catch (error) {
-          this._recordOperationError(step, continuationOrder, error);
-          try {
-            onFailure();
-          } catch (cleanupError) {
-            this._recordOperationError(step, reserveLifecycleParticipant(), cleanupError);
-          }
-        }
+        // Framework continuations contain their own phase/cleanup errors before
+        // returning; the participant observer only advances their counters.
+        onFulfilled();
       },
       error => {
-        if (this._operation !== step) {
-          return;
-        }
         this._recordOperationError(step, order, error);
-        try {
-          onFailure();
-        } catch (cleanupError) {
-          this._recordOperationError(step, reserveLifecycleParticipant(), cleanupError);
-        }
+        onFailure();
       },
     );
   }
 
   /** @internal */
   private _settleStep(step: ControllerStep): void {
-    if (this._operation !== step) {
-      return;
-    }
     const deferred = step.result;
     if (step.operation.kind === 'activate') this._activatingStack = 0;
     else this._detachingStack = this._unbindingStack = 0;
@@ -859,10 +835,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         {
           const currentInitiator = this.$initiator as Controller;
           const step = this._operation ?? this._ensureStep('deactivate', currentInitiator, this.parent as Controller | null);
+          /* istanbul ignore next -- valid traversal sees the real parent deactivating and fails admission above */
           if (step.operation.initiator !== this) {
-            // A descendant cannot start a successor inside an ancestor-owned
-            // teardown. Return its existing drain when promotion has created
-            // one; re-entry into an inline teardown remains a no-op.
+            // Reject invalid cross-parent re-entry without letting it overwrite
+            // the ancestor operation's desired root with descendant arguments.
             return step.operation.drain?.promise;
           }
           const request: TransitionRequest = {
@@ -1110,20 +1086,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // `attached`.
     if (this.children !== null) {
       for (let i = 0; i < this.children.length; ++i) {
-        try {
-          const child = this.children[i];
-          const childResult = child.activate(initiator, this as IHydratedController, this.scope);
-          const childStep = child._operation;
-          if (isPromise(childResult) && childStep !== null && childStep.operation.initiator !== initiator) {
-            this._joinActivation(childStep, childResult, initiator, parent);
-          }
-          // Normally descendant work already propagates through this initiator's
-          // counters, so its local result needs no second ownership edge here.
-        } catch (error) {
-          const step = this._ensureStep('activate', initiator as Controller, parent as Controller | null);
-          this._recordOperationError(step, void 0, error);
-          break;
+        const child = this.children[i];
+        const childResult = child.activate(initiator, this as IHydratedController, this.scope);
+        const childStep = child._operation;
+        if (isPromise(childResult) && childStep !== null && childStep.operation.initiator !== initiator) {
+          this._joinActivation(childStep, childResult, initiator, parent);
         }
+        // Normally descendant work already propagates through this initiator's
+        // counters, so its local result needs no second ownership edge here.
       }
     }
 
@@ -1422,15 +1392,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
               // A superseded activation error can be hidden from its caller, but
               // the partially activated view is still unsafe to cache as healthy.
               const canCache = step?.firstError === void 0;
-              let cached = false;
-              if (canCache) {
-                try {
-                  cached = this.viewFactory!.tryReturnToCache(this as ISyntheticView);
-                } catch (error) {
-                  const operationStep = step ?? this._ensureStep('deactivate', this, null);
-                  this._recordOperationError(operationStep, void 0, error);
-                }
-              }
+              const cached = canCache && this.viewFactory!.tryReturnToCache(this as ISyntheticView);
               if (!cached) {
                 this._disposeReleasedView(step);
               }
@@ -1502,10 +1464,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     capturedStep?: ControllerStep,
   ): void {
     const step = capturedStep ?? this._operation ?? void 0;
-    if (capturedStep !== void 0 && this._operation !== capturedStep) {
-      // The callback belongs to a settled/superseded generation.
-      return;
-    }
     const operationParent = step?.parent?.controller ?? parent as Controller | null;
     const pending = --this._activatingStack;
     if (this.state !== activating) {
@@ -1772,8 +1730,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _settleDetachedOperation(step: ControllerStep): void {
     // `_completeDeactivation` detached this step before successor activation so
-    // the successor could acquire fresh identity; `_settleStep` would now reject
-    // this callback as stale.
+    // the successor could acquire fresh identity. `_settleStep` would clear the
+    // successor's current identity/counters instead of only settling this old drain.
     const deferred = step.result;
     const error = getOperationError(step);
     if (deferred !== void 0) {

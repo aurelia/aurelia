@@ -126,10 +126,9 @@ export const isLifecycleOperationJoinedInto = (
     if (joinedInto === promise) {
       return true;
     }
-    const ancestorStep = promiseSteps.get(joinedInto);
-    if (ancestorStep === void 0) {
-      return false;
-    }
+    // `joinedInto` is only assigned an operation drain, and every drain is
+    // tagged by createLifecycleDeferred while the operation still owns it.
+    const ancestorStep = promiseSteps.get(joinedInto)!;
     joinedInto = ancestorStep.operation.joinedInto;
   }
   return false;
@@ -216,9 +215,9 @@ export function invokeControllerPhase(
   bestEffort: boolean,
   operation: LifecycleOperation | undefined,
 ): void | Promise<void> {
-  const hooks = controller.vmKind === 'synthetic'
-    ? null
-    : controller.lifecycleHooks![phase] as readonly ActivationHookEntry[] | undefined;
+  // Controller's phase dispatch excludes synthetic views before reaching this
+  // helper; only custom-element and custom-attribute controllers own hooks.
+  const hooks = controller.lifecycleHooks![phase] as readonly ActivationHookEntry[] | undefined;
   const hookCount = hooks?.length ?? 0;
   const hasVmHook = hasControllerVmHook(controller, phase);
   const count = hookCount + (hasVmHook ? 1 : 0);

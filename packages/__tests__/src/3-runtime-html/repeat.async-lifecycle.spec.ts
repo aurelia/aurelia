@@ -173,9 +173,11 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
       fixture.component.items.shift();
       const reconciliation = internals._reconciliation?.promise;
-      assert.instanceOf(reconciliation, Promise);
+      if (!(reconciliation instanceof Promise)) {
+        throw new Error('Expected an asynchronous reconciliation');
+      }
       let settled = false;
-      void reconciliation!.then(
+      void reconciliation.then(
         () => { settled = true; },
         () => { settled = true; },
       );
@@ -221,10 +223,12 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
       fixture.component.items.shift();
       const reconciliation = internals._reconciliation?.promise;
-      assert.instanceOf(reconciliation, Promise);
+      if (!(reconciliation instanceof Promise)) {
+        throw new Error('Expected an asynchronous reconciliation');
+      }
 
       gate.resolve();
-      await assert.rejects(() => reconciliation!, teardownError);
+      await assert.rejects(() => reconciliation, teardownError);
       fixture.assertText('12');
       await fixture.tearDown();
     });
@@ -662,19 +666,21 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
         component.items.splice(1, 2);
         const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
+        if (!(reconciliation instanceof Promise)) {
+          throw new Error('Expected an asynchronous reconciliation');
+        }
         second.reject(secondError);
         await Promise.resolve();
         await Promise.resolve();
         let settled = false;
-        void reconciliation!.then(
+        void reconciliation.then(
           () => { settled = true; },
           () => { settled = true; },
         );
         assert.strictEqual(settled, false);
 
         first.reject(firstError);
-        await assert.rejects(() => reconciliation!, firstError);
+        await assert.rejects(() => reconciliation, firstError);
         await waitFor(() => appHost.textContent === '0');
 
         assert.deepStrictEqual(disposed.sort(), [1, 2]);
@@ -990,10 +996,12 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
         fixture.component.items.push(1, 2);
         const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
+        if (!(reconciliation instanceof Promise)) {
+          throw new Error('Expected an asynchronous reconciliation');
+        }
         assert.deepStrictEqual(attaching, [0, 2, 1]);
         let settled = false;
-        void reconciliation!.then(
+        void reconciliation.then(
           () => { settled = true; },
           () => { settled = true; },
         );
@@ -1001,7 +1009,7 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
         assert.strictEqual(settled, false);
 
         gate.resolve();
-        await assert.rejects(() => reconciliation!, activationError);
+        await assert.rejects(() => reconciliation, activationError);
         fixture.assertText('02');
 
         fail = false;
@@ -1043,19 +1051,21 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
         fixture.component.items.push(1, 2);
         const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
+        if (!(reconciliation instanceof Promise)) {
+          throw new Error('Expected an asynchronous reconciliation');
+        }
         second.reject(secondError);
         await Promise.resolve();
         await Promise.resolve();
         let settled = false;
-        void reconciliation!.then(
+        void reconciliation.then(
           () => { settled = true; },
           () => { settled = true; },
         );
         assert.strictEqual(settled, false);
 
         first.reject(firstError);
-        await assert.rejects(() => reconciliation!, firstError);
+        await assert.rejects(() => reconciliation, firstError);
         fixture.assertText('0');
 
         fail = false;
@@ -1099,7 +1109,9 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
         fixture.component.items.splice(1, 2);
         const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
+        if (!(reconciliation instanceof Promise)) {
+          throw new Error('Expected an asynchronous reconciliation');
+        }
         assert.deepStrictEqual(detaching, [1, 2]);
         sibling.resolve();
 
@@ -1139,19 +1151,21 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
 
         fixture.component.items.splice(1, 2);
         const reconciliation = internals._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
+        if (!(reconciliation instanceof Promise)) {
+          throw new Error('Expected an asynchronous reconciliation');
+        }
         first.reject(lifecycleError);
         await Promise.resolve();
         await Promise.resolve();
         let settled = false;
-        void reconciliation!.then(
+        void reconciliation.then(
           () => { settled = true; },
           () => { settled = true; },
         );
         assert.strictEqual(settled, false);
 
         second.resolve();
-        await assert.rejects(() => reconciliation!, lifecycleError);
+        await assert.rejects(() => reconciliation, lifecycleError);
         fixture.assertText('0');
         await fixture.tearDown();
       });

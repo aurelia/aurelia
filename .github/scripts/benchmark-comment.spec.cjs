@@ -234,6 +234,38 @@ void describe('benchmark PR comment', () => {
     );
   });
 
+  void it('follows CircleCI storage redirects without forwarding its token', async () => {
+    const requests = [];
+    const report = await downloadReport(
+      'https://output.circle-artifacts.com/report.json',
+      'secret',
+      async (value, options) => {
+        requests.push({ value: String(value), headers: options.headers, redirect: options.redirect });
+        return requests.length === 1
+          ? response({}, 302, { location: 'https://storage.example.com/signed-report.json' })
+          : response({ schemaVersion: 1 });
+      },
+    );
+
+    assert.equal(report.schemaVersion, 1);
+    assert.equal(requests.length, 2);
+    assert.equal(requests[0].headers['Circle-Token'], 'secret');
+    assert.equal(requests[0].redirect, 'manual');
+    assert.equal(requests[1].value, 'https://storage.example.com/signed-report.json');
+    assert.equal(requests[1].headers['Circle-Token'], undefined);
+  });
+
+  void it('rejects an insecure artifact redirect', async () => {
+    await assert.rejects(
+      downloadReport(
+        'https://output.circle-artifacts.com/report.json',
+        'secret',
+        async () => response({}, 302, { location: 'http://storage.example.com/report.json' }),
+      ),
+      /invalid-report-artifact/,
+    );
+  });
+
   void it('stops reading a chunked report once it exceeds the size limit', async () => {
     const body = new ReadableStream({
       start(controller) {

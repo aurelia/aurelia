@@ -2,14 +2,22 @@
 /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 const path = require('path');
 const fs = require('fs');
+const { readTestBuildToken } = require('./z-scripts/test-build-contract.cjs');
+const { expandKarmaTestGlobs, readTestPatterns, TEST_PATTERNS_ENV } = require('./z-scripts/test-patterns.cjs');
 
 const basePath = path.resolve(__dirname, '..', '..');
 const smsPath = path.dirname(require.resolve('source-map-support'));
 
 
 const baseKarmaArgs = 'karma start karma.conf.cjs  --browsers=ChromeDebugging --browsers=ChromeHeadlessOpt --browsers=FirefoxHeadless --browsers=Firefox --browsers=Safari --single-run --coverage --watch-extensions js,html --bail --reporter=mocha --no-auto-watch'.split(' ');
-const cliArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
+const commandLineArgs = process.argv.slice(2).filter(arg => !baseKarmaArgs.includes(arg));
+const cliArgs = process.env[TEST_PATTERNS_ENV] === void 0
+  ? commandLineArgs
+  : readTestPatterns([], process.env);
 const hasSingleRun = process.argv.slice(2).includes('--single-run');
+// The dev wrapper refreshes Karma's full file list after each successful compiler marker.
+// Direct JS watches remain enabled for ordinary Karma and CI invocations.
+const coordinatedTestBuild = readTestBuildToken() !== void 0;
 
 // Extract --grep option
 let grep = undefined;
@@ -40,12 +48,7 @@ module.exports =
 
   const baseUrl = 'packages/__tests__/dist';
 
-  const testFilePatterns = cliArgs.length > 0
-    ? cliArgs.flatMap(arg => [
-        `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
-        `${baseUrl}/**/*${arg}*/**/*.spec.js`,
-    ])
-    : [`${baseUrl}/**/*.spec.js`];
+  const testFilePatterns = expandKarmaTestGlobs(cliArgs, baseUrl);
   const circleCiParallelismGlob = fs.existsSync('./tests.txt')
     ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
     : null;
@@ -81,21 +84,21 @@ module.exports =
     // Virtual file - the middleware intercepts this request and serves a dynamically generated import map
     { type: 'script', watched: false,           included: true,  nocache: true,  served: true, pattern: `packages/__tests__/importmap.js` },
     { type: 'script', watched: false,           included: true,  nocache: false,  pattern: path.join(smsPath, 'browser-source-map-support.js') },
-    { type: 'module', watched: true,            included: true,  nocache: true,   pattern: `${baseUrl}/setup-browser.js` }, // 1.1
-    { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1
-    { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-shared.js` }, // 1.2
-    { type: 'module', watched: true,            included: false, nocache: true,   pattern: `${baseUrl}/setup-shared.js.map` }, // 1.2
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/util.js` }, // 1.3
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/util.js.map` }, // 1.3
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js` }, // 1.4
-    { type: 'module', watched: !hasSingleRun,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js.map` }, // 1.4
+    { type: 'module', watched: !coordinatedTestBuild,                    included: true,  nocache: true,   pattern: `${baseUrl}/setup-browser.js` }, // 1.1
+    { type: 'module', watched: !coordinatedTestBuild,                    included: false, nocache: true,   pattern: `${baseUrl}/setup-browser.js.map` }, // 1.1
+    { type: 'module', watched: !coordinatedTestBuild,                    included: false, nocache: true,   pattern: `${baseUrl}/setup-shared.js` }, // 1.2
+    { type: 'module', watched: !coordinatedTestBuild,                    included: false, nocache: true,   pattern: `${baseUrl}/setup-shared.js.map` }, // 1.2
+    { type: 'module', watched: !hasSingleRun && !coordinatedTestBuild,   included: false, nocache: true,   pattern: `${baseUrl}/util.js` }, // 1.3
+    { type: 'module', watched: !hasSingleRun && !coordinatedTestBuild,   included: false, nocache: true,   pattern: `${baseUrl}/util.js.map` }, // 1.3
+    { type: 'module', watched: !hasSingleRun && !coordinatedTestBuild,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js` }, // 1.4
+    { type: 'module', watched: !hasSingleRun && !coordinatedTestBuild,   included: false, nocache: true,   pattern: `${baseUrl}/Spy.js.map` }, // 1.4
     { type: 'none',   watched: false,           included: false, nocache: true,   pattern: 'node_modules/mocha/mocha.js.map' },
     ...(circleCiParallelismGlob
       ? circleCiFiles
         .map(file =>
-          ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: file  })) // 2.1
+          ({ type: 'module', watched: !coordinatedTestBuild, included: true, nocache: coordinatedTestBuild, pattern: file  })) // 2.1
       : testFilePatterns.map(pattern =>
-          ({ type: 'module', watched: true,  included: true,  nocache: false, pattern: pattern }), // 2.1
+          ({ type: 'module', watched: !coordinatedTestBuild, included: true, nocache: coordinatedTestBuild, pattern: pattern }), // 2.1
         )
     ), // 2.1 (new)
     // ...testDirs.flatMap(name => [
@@ -103,7 +106,7 @@ module.exports =
     //   { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/${name}/**/*.js.map` }, // 2.2
     //   { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/${name}/**/*.ts` }, // 2.4
     // ]),
-    { type: 'module', watched: false,         included: false, nocache: false,  pattern: `${baseUrl}/**/*.js` }, // 2.3
+    { type: 'module', watched: false,         included: false, nocache: coordinatedTestBuild, pattern: `${baseUrl}/**/*.js` }, // 2.3
     { type: 'module', watched: false,         included: false, nocache: false,  pattern: `packages/__tests__/src/**/*.ts` }, // 2.4
     ...packageNames.flatMap(name => [
       { type: 'module', watched: !hasSingleRun, included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.dev.mjs` }, // 3.1

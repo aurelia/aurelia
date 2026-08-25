@@ -105,6 +105,7 @@
     "test:ci": "npm ci && npm run test",
     "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
     "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger",
+    "test:dev-utils": "node --require ts-node/register --test scripts/dev-utils.spec.ts",
     "dev": "ts-node scripts/dev.ts",
     "dev:tooling": "ts-node scripts/dev-tooling.ts"
   },
@@ -138,7 +139,6 @@
     "rimraf": "6.0.1",
     "rollup": "4.29.1",
     "rollup-plugin-esbuild": "6.1.1",
-    "tachometer": "0.7.1",
     "ts-node": "10.9.2",
     "turbo": "2.3.3",
     "typescript": "5.7.2",

@@ -1,0 +1,23 @@
+<script type="module">
+import { assertDirectRows } from '../utils/assert-render.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { start, tasksSettled } = await loadVariant('app-repeat-ce');
+
+const host = document.body.appendChild(document.createElement('div'));
+const au = start(host);
+assertDirectRows(host, 0, 'hello', {});
+
+performance.mark('10k-start');
+au.root.controller.viewModel.newItems(10000);
+await tasksSettled();
+performance.mark('10k-end');
+
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+assertDirectRows(host, 10000, 'hello', {
+  0: 'hello item 0 item',
+  5000: 'hello item 5000 item',
+  9999: 'hello item 9999 item',
+});
+publishMeasurement('rerender-10k', '10k-start', '10k-end', usedJSHeapSizeBytes);
+</script>

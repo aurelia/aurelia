@@ -1,5 +1,8 @@
 # Benchmark maintenance guidance
 
+Read `README.md` before preparing variants or interpreting a report. It defines the exact revision model, profile
+commands, metric meanings, and local reproduction workflow used by this directory.
+
 ## Scope
 
 - `app-*` directories own browser fixtures and Tachometer configuration.

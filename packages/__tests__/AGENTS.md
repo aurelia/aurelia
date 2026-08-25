@@ -4,6 +4,11 @@
 This subtree contains the compiled test workspace for core packages. The root `AGENTS.md` still applies; this file adds test-package specifics.
 
 ## Commands
+- For ongoing focused work from the repository root, use
+  `npm run dev -- --test <selector> --node-tests --dev <package>`. Omit `--node-tests` to use Karma and the Chrome
+  debugger. Add `--log-file <path>` to preserve the prefixed output.
+- Selectors are shared by TypeScript, Node, and Karma. They accept substrings or source/output paths using `*`, `?`,
+  and `**`; quote `'*'` in a shell when selecting all specs.
 - After changing tests in this package, run `npm run build` from `packages/__tests__` before running any targeted suite.
 - Use targeted Node suites when possible, such as `npm run test-node:kernel`, `npm run test-node:runtime`, `npm run test-node:runtime-html`, `npm run test-node:router`, `npm run test-node:state`, or `npm run test-node:validation`.
 - Run `npm run test-node:runner` after changing the Node/browser watch wrappers, compiled-test selection, or the shared

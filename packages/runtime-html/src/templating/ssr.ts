@@ -49,7 +49,6 @@ import {
   type Interpolation,
 } from '@aurelia/expression-parser';
 import { FragmentNodeSequence, IRenderLocation, partitionSiblingNodes } from '../dom';
-import { createMappedError, ErrorNames } from '../errors';
 import { IPlatform } from '../platform';
 import type { IViewFactory } from './view';
 import type { ICustomAttributeController, ISyntheticView } from './controller';
@@ -423,7 +422,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
     case itHydrateTemplateController: {
       const nestedDef = ctx.nestedDefs[ins.templateIndex];
       if (!nestedDef) {
-        throw createMappedError(ErrorNames.ssr_missing_nested_template, ins.templateIndex);
+        throw new Error(`Missing nested template at index ${ins.templateIndex}`);
       }
       const props = ins.instructions.map(i => translateInstruction(i, ctx));
       const def = {
@@ -486,14 +485,14 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
     }
 
     default:
-      throw createMappedError(ErrorNames.ssr_unknown_instruction_type, (ins as SerializedInstruction).type);
+      throw new Error(`Unknown instruction type: ${(ins as SerializedInstruction).type}`);
   }
 }
 
 function getExpr(exprMap: Map<ExprId, AnyBindingExpression>, id: ExprId): AnyBindingExpression {
   const expr = exprMap.get(id);
   if (!expr) {
-    throw createMappedError(ErrorNames.ssr_expression_not_found, id);
+    throw new Error(`Expression not found: ${id}`);
   }
   return expr;
 }

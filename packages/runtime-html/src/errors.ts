@@ -4,21 +4,17 @@
 import { safeString } from './utilities';
 
 /** @internal */
-export const createMappedErrorMessage: CreateErrorMessage = __DEV__
+export const createMappedError: CreateError = __DEV__
   ? (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = safeString(code).padStart(4, '0');
     const message = getMessageByCode(code, ...details);
     const link = `https://docs.aurelia.io/developer-guides/error-messages/runtime-html/aur${paddedCode}`;
-    return `AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`;
+    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
   }
   : (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = safeString(code).padStart(4, '0');
-    return `AUR${paddedCode}:${details.map(safeString)}`;
+    return new Error(`AUR${paddedCode}:${details.map(safeString)}`);
   };
-
-/** @internal */
-export const createMappedError: CreateError = (code, ...details) =>
-  new Error(createMappedErrorMessage(code, ...details));
 
 _START_CONST_ENUM();
 /** @internal */
@@ -145,10 +141,9 @@ export const enum ErrorNames {
   slotted_decorator_invalid_usage = 9990,
   children_invalid_query = 9989,
 
-  node_ref_already_associated = 839,
-  ssr_missing_nested_template = 840,
-  ssr_unknown_instruction_type = 841,
-  ssr_expression_not_found = 842,
+  hydration_target_count_mismatch = 822,
+  hydration_node_count_mismatch = 823,
+  hydration_view_count_mismatch = 824,
 }
 _END_CONST_ENUM();
 
@@ -280,10 +275,9 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
   [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`,
 
-  [ErrorNames.node_ref_already_associated]: `Node already has a controller associated with ref "{{0}}".`,
-  [ErrorNames.ssr_missing_nested_template]: `SSR hydration error: missing nested template at index {{0}}.`,
-  [ErrorNames.ssr_unknown_instruction_type]: `SSR hydration error: unknown instruction type {{0}}.`,
-  [ErrorNames.ssr_expression_not_found]: `SSR hydration error: expression {{0}} was not found.`,
+  [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
+  [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
+  [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
@@ -325,7 +319,6 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
 };
 
 type CreateError = (code: ErrorNames, ...details: unknown[]) => Error;
-type CreateErrorMessage = (code: ErrorNames, ...details: unknown[]) => string;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function pleaseHelpCreateAnIssue(title: string, body?: string) {

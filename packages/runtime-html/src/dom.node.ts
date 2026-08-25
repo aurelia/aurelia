@@ -1,6 +1,5 @@
 import type { Writable } from '@aurelia/kernel';
 import type { IHydratedController } from './templating/controller';
-import { createMappedError, ErrorNames } from './errors';
 import { createInterface } from './utilities-di';
 
 class Refs {
@@ -30,7 +29,7 @@ export const refs: INodeControllerRefs = /*@__PURE__*/ (() => {
     public set<T extends IHydratedController>(node: INode, name: string, controller: T): T {
       const ref = refsMap.get(node) ?? (refsMap.set(node, new Refs()), refsMap.get(node)!);
       if (name in ref) {
-        throw createMappedError(ErrorNames.node_ref_already_associated, name);
+        throw new Error(`Node already associated with a controller, remove the ref "${name}" first before associating with another controller`);
       }
       if (!hideProp) {
         (node as Writable<INode>).$au ??= ref;

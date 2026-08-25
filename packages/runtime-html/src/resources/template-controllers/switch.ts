@@ -96,8 +96,9 @@ export class Switch implements ICustomAttributeViewModel {
     // explicit and prevent stale settlement from remaining publicly observable.
     (this as Writable<Switch>).promise = void 0;
     const deactivate = (): void => {
-      // The ancestor initiator tracks descendant async teardown. Switch only
-      // needs to keep its own queued case work ahead of this final deactivation.
+      // Switch awaits the case work it queued itself. Descendant teardown joins
+      // the ancestor transition through `initiator`, whose Controller Promise
+      // owns async settlement.
       void this.view.deactivate(initiator, this.$controller);
     };
     if (!isPromise(pending)) {

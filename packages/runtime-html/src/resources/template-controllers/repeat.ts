@@ -778,6 +778,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const length = views.length;
     for (let i = 0; i < length; ++i) {
       const view = views[i];
+      // Row teardown joins the ancestor transition through `initiator`, whose
+      // Controller Promise owns async settlement. Repeat's local drain covers
+      // reconciliation work initiated by Repeat itself.
+      //
       // Repeat retains these rows for a possible owner restart. Releasing them
       // would let Controller return an ordinary row to the factory cache while
       // it is still referenced by this owner.

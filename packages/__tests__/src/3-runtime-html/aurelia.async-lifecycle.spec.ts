@@ -81,6 +81,52 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       au.dispose();
     });
 
+    it('reports a synchronous queued-stop failure on the stop boundary', async function () {
+      const ctx = TestContext.create();
+      const au = new Aurelia(ctx.container);
+      const activation = createDeferred();
+      const error = Symbol('queued deactivation failed synchronously');
+      const probe = createRootProbe(ctx, {
+        activate() { return activation.promise; },
+        deactivate() { throw error; },
+      });
+
+      const start = au.start(probe.root) as Promise<void>;
+      const stop = au.stop(true) as Promise<void>;
+      const stopFailure = captureRejection(stop);
+
+      activation.resolve();
+      await start;
+      assert.strictEqual(await stopFailure, error);
+      assert.strictEqual(au.stop(true), stop);
+      assert.strictEqual(probe.calls.dispose, 0);
+      assert.strictEqual(au.isStopping, true);
+    });
+
+    it('reports an asynchronous queued-stop failure on the stop boundary', async function () {
+      const ctx = TestContext.create();
+      const au = new Aurelia(ctx.container);
+      const activation = createDeferred();
+      const deactivation = createDeferred();
+      const error = Symbol('queued deactivation failed asynchronously');
+      const probe = createRootProbe(ctx, {
+        activate() { return activation.promise; },
+        deactivate() { return deactivation.promise; },
+      });
+
+      const start = au.start(probe.root) as Promise<void>;
+      const stop = au.stop(true) as Promise<void>;
+      const stopFailure = captureRejection(stop);
+
+      activation.resolve();
+      await start;
+      deactivation.reject(error);
+      assert.strictEqual(await stopFailure, error);
+      assert.strictEqual(au.stop(true), stop);
+      assert.strictEqual(probe.calls.dispose, 0);
+      assert.strictEqual(au.isStopping, true);
+    });
+
     it('records a stop requested synchronously from root activation', async function () {
       const ctx = TestContext.create();
       const host = ctx.createElement('div');

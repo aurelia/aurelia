@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve, resolve } from '@aurelia/kernel';
+import { isPromise, onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
@@ -50,7 +50,7 @@ export class If implements ICustomAttributeViewModel {
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
       return this._hydrateView(ssrScope);
     }
-    return this._swap(this.value);
+    return this._swap(this.value, false);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -58,7 +58,8 @@ export class If implements ICustomAttributeViewModel {
     return onResolve(this.pending, () => {
       this._wantsDeactivate = false;
       this.pending = void 0;
-      // Promise return values from user VM hooks are awaited by the initiator
+      // The ancestor initiator tracks descendant async teardown. If only needs
+      // to keep its own pending swap ahead of this final deactivation.
       void this.view?.deactivate(initiator, this.$controller);
     });
   }
@@ -68,11 +69,11 @@ export class If implements ICustomAttributeViewModel {
 
     newValue = !!newValue;
     oldValue = !!oldValue;
-    if (newValue !== oldValue) return this._swap(newValue);
+    if (newValue !== oldValue) return this._swap(newValue, true);
   }
 
   /** @internal */
-  private _swap(value: unknown): void | Promise<void> {
+  private _swap(value: unknown, recoverAfterFailure: boolean): void | Promise<void> {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -113,28 +114,22 @@ export class If implements ICustomAttributeViewModel {
           //       instead of always of the [if]
           view.setLocation(this._location);
 
-          const ret = view.activate(view, ctrl, ctrl.scope);
-          if (ret instanceof Promise) {
-            return ret.then(
-              () => {
-                if (isCurrent()) {
-                  this.pending = void 0;
-                }
-              },
-              () => {
-                // Activation failed. Deactivate the view to clean up its state
-                // so that subsequent swaps can work correctly.
-                // The error is intentionally swallowed to allow recovery.
-                if (isCurrent()) {
-                  this.pending = void 0;
-                }
-                void view!.deactivate(view!, ctrl);
-              }
-            );
+          const complete = (): void => {
+            if (isCurrent()) {
+              this.pending = void 0;
+            }
+          };
+          const result = view.activate(view, ctrl, ctrl.scope);
+          if (recoverAfterFailure && isPromise(result)) {
+            return result.then(complete, () => {
+              complete();
+              // Value-driven swaps historically remain reusable after an async
+              // branch failure. Initial activation uses the rejecting path so
+              // application start still reports an invalid initial tree.
+              void view!.deactivate(view!, ctrl);
+            });
           }
-          if (isCurrent()) {
-            this.pending = void 0;
-          }
+          return onResolve(result, complete);
         }
       )
     );

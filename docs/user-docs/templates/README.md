@@ -26,7 +26,8 @@ Find what you need quickly with this task-based guide:
 - **Loop through an array?** → [List Rendering](repeats-and-list-rendering.md) - Use `repeat.for="item of items"`
 - **Get the current index?** → [List Rendering: Contextual Properties](repeats-and-list-rendering.md#contextual-properties) - Use `$index`, `$first`, `$last`
 - **Handle empty lists?** → [Conditional Rendering](conditional-rendering.md) - Combine `if.bind="items.length === 0"` with `else`
-- **Optimize large lists?** → [List Rendering: Performance](repeats-and-list-rendering.md#performance-optimization-with-keys) - Use `key.bind` or `key:`
+- **Preserve row state across refreshed records?** → [List Rendering: Stable Item Identity](repeats-and-list-rendering.md#stable-item-identity-with-keys) - Use `key.bind` or `key:`
+- **Optimize very large lists?** → [List Rendering: Performance](repeats-and-list-rendering.md#performance-best-practices) - Consider virtual scrolling or pagination
 
 ### Handle User Input
 

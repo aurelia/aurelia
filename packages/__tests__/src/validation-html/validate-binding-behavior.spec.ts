@@ -700,7 +700,6 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         } catch (e) {
           assert.includes(e.message, code);
         }
-        await au.stop();
         ctx.doc.body.removeChild(host);
 
         // TODO: there's a binding somewhere without a dispose() method, causing this to fail
@@ -1363,10 +1362,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         } catch (e) {
           assert.includes(e.message, 'AUR4200');
         }
-        await au.stop();
         ctx.doc.body.removeChild(host);
-
-        au.dispose();
       });
     }
 

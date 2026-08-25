@@ -83,28 +83,26 @@ export function createFixture<T extends object>(
       try {
         au.app({ host: host, component, ...appConfig });
         fixture.startPromise = startPromise = au.start();
-      } catch (ex) {
-        try {
-          const dispose = () => {
-            root.remove();
-            au.dispose();
-          };
-          const ret = au.stop();
-          if (ret instanceof Promise)
-            void ret.then(dispose);
-          else
-            dispose();
-        } catch {
-          console.warn('(!) corrupted fixture state, should isolate the failing test and restart the run'
-            + 'as it is likely that this failing fixture creation will pollute others.');
+        if (startPromise instanceof Promise) {
+          void startPromise.catch(abandonFailedFixture);
         }
-
+      } catch (ex) {
+        // A failed application lifecycle is terminal. Isolate the fixture by
+        // releasing its test host and keep the original application error;
+        // stop/dispose would start a second transition on the failed graph.
+        abandonFailedFixture();
         throw ex;
       }
     }
   }
 
   let tornCount = 0;
+  const abandonFailedFixture = (): void => {
+    if (tornCount === 0) {
+      tornCount = 1;
+      root.remove();
+    }
+  };
 
   const getBy: Document['querySelector'] = (selector: string): HTMLElement => {
     const elements = host.querySelectorAll<HTMLElement>(selector);
@@ -345,7 +343,16 @@ export function createFixture<T extends object>(
     public hJsx = hJsx.bind(ctx.doc);
 
     public start() {
-      return (app ??= au.app({ host: host, component })).start();
+      try {
+        const result = (app ??= au.app({ host: host, component })).start();
+        if (result instanceof Promise) {
+          void result.catch(abandonFailedFixture);
+        }
+        return result;
+      } catch (error) {
+        abandonFailedFixture();
+        throw error;
+      }
     }
 
     public tearDown() {

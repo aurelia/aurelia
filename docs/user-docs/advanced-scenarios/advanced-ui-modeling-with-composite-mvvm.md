@@ -12,7 +12,7 @@ Advanced UI modeling requires mastery of:
 - **Dynamic composition** - Rendering components chosen at runtime
 - **MVVM architecture** - Clean separation of concerns at scale
 - **Component communication** - Message passing between dynamic parts
-- **Lifecycle management** - Coordinating activate/deactivate across compositions
+- **Lifecycle management** - Coordinating `activate(model)` with the standard component lifecycle
 - **Data-driven UI** - Metadata-to-component mappings
 - **Performance** - Efficient composition and view recycling
 - **Type safety** - TypeScript across dynamic boundaries
@@ -36,7 +36,7 @@ This covers:
 - Component composition vs. template composition
 - Passing data with the `model` bindable
 - Scope inheritance and isolation
-- Lifecycle hooks (`activate`, `deactivate`)
+- The composition `activate(model)` convention and standard component lifecycle hooks
 - Promise-based async composition
 - Performance optimization techniques
 
@@ -340,7 +340,7 @@ The complete dynamic composition guide covers:
 2. **Component Composition** - Using custom element classes
 3. **Template Composition** - Inline HTML templates
 4. **Model Passing** - Data flow to composed components
-5. **Lifecycle Integration** - activate/deactivate hooks
+5. **Lifecycle Integration** - `activate(model)`, `detaching`, `unbinding`, and `dispose`
 6. **Scope Management** - Inheritance vs. isolation
 7. **Async Composition** - Promise-based loading
 8. **Performance** - Caching and optimization
@@ -392,4 +392,3 @@ Key differences:
 - [Event Aggregator](../getting-to-know-aurelia/event-aggregator.md)
 - [Dependency Injection](../getting-to-know-aurelia/dependency-injection.md)
 - [Building Dashboard Tutorial](../tutorials/create-a-dashboard-using-dynamic-composition.md)
-

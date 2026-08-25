@@ -1,5 +1,6 @@
 import {
   isArray,
+  isPromise,
   ILogger,
   onResolve,
   onResolveAll,
@@ -43,8 +44,8 @@ export class Switch implements ICustomAttributeViewModel {
   public defaultCase?: Case;
   private activeCases: Case[] = [];
   /**
-   * This is kept around here so that changes can be awaited from the tests.
-   * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
+   * Observer callbacks cannot return async work. This stable tail serializes
+   * value/case changes and gives owner teardown one boundary to join.
    */
   public readonly promise: Promise<void> | void = void 0;
 
@@ -89,11 +90,21 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
-    this.queue(() => {
-      const view = this.view;
-      return view.deactivate(initiator, this.$controller);
-    });
-    return this.promise;
+    const pending = this.promise;
+    // Controller state is already inactive, so the value/case guards below close
+    // admission. Clear the captured tail before waiting to make that closure
+    // explicit and prevent stale settlement from remaining publicly observable.
+    (this as Writable<Switch>).promise = void 0;
+    const deactivate = (): void => {
+      // Switch awaits the case work it queued itself. Descendant teardown joins
+      // the ancestor transition through `initiator`, whose Controller Promise
+      // owns async settlement.
+      void this.view.deactivate(initiator, this.$controller);
+    };
+    if (!isPromise(pending)) {
+      return deactivate();
+    }
+    return pending.then(deactivate);
   }
 
   public dispose(): void {
@@ -107,6 +118,7 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public caseChanged($case: Case): void {
+    if (!this.$controller.isActive) { return; }
     this.queue(() => this._handleCaseChange($case));
   }
 
@@ -242,6 +254,7 @@ export class Switch implements ICustomAttributeViewModel {
     promise = (this as Writable<Switch>).promise = onResolve(
       onResolve(previousPromise, action),
       () => {
+        // An older completion cannot clear a newer action appended to the tail.
         if (this.promise === promise) {
           (this as Writable<Switch>).promise = void 0;
         }
@@ -250,9 +263,8 @@ export class Switch implements ICustomAttributeViewModel {
   }
 
   public accept(visitor: ControllerVisitor): void | true {
-    if (this.$controller.accept(visitor) === true) {
-      return true;
-    }
+    // Do not recurse through this.$controller or the base view: Controller.accept
+    // already delegated here, and the base contains inactive cached cases too.
     if (this.activeCases.some(x => x.accept(visitor))) {
       return true;
     }
@@ -364,14 +376,16 @@ export class Case implements ICustomAttributeViewModel {
       }
     }
     if (view.isActive) { return; }
-    const ret = view.activate(initiator ?? view, this.$controller, scope);
-    if (ret instanceof Promise) {
-      return ret.catch(() => {
-        // Activation failed. Deactivate the view to clean up its state
-        // so that subsequent case activations can work correctly.
+    const result = view.activate(initiator ?? view, this.$controller, scope);
+    if (initiator === null && isPromise(result)) {
+      return result.catch(() => {
+        // Observer-driven case changes historically remain reusable after an
+        // async activation failure. Initial activation keeps its initiator and
+        // returns the rejection to application start.
         return view.deactivate(view, this.$controller);
       });
     }
+    return result;
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {
@@ -398,9 +412,6 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public accept(visitor: ControllerVisitor): void | true {
-    if (this.$controller.accept(visitor) === true) {
-      return true;
-    }
     return this.view?.accept(visitor);
   }
 }

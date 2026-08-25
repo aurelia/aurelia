@@ -445,7 +445,7 @@ Register globally in your app configuration:
 import Aurelia from 'aurelia';
 import { FadeAnimationHooks } from './fade-animation-hooks';
 
-Aurelia
+await Aurelia
   .register(FadeAnimationHooks)
   .app(MyApp)
   .start();
@@ -768,7 +768,7 @@ export class GSAPExample {
     this.timeline.reverse();
   }
 
-  disposing() {
+  dispose() {
     this.timeline?.kill();
   }
 }
@@ -1012,7 +1012,7 @@ export class AnimatedComponent {
     this.activeAnimations.push(animation);
   }
 
-  disposing() {
+  dispose() {
     this.activeAnimations.forEach(animation => animation.cancel());
     this.activeAnimations = [];
   }
@@ -1139,37 +1139,64 @@ Understanding lifecycle hooks is crucial for timing animations correctly:
 | Hook | When Called | Best For | Return Promise? |
 |------|------------|----------|-----------------|
 | `created` | After construction | Element reference setup | No |
-| `binding` | Before data binding | Pre-animation state setup | No |
-| `bound` | After data binding | Data-dependent setup | No |
-| `attaching` | Before DOM insertion | **Enter animations** | **Yes** |
-| `attached` | After DOM insertion | Animations needing measurements | No |
+| `binding` | Before bindings connect | Pre-animation state setup | Yes |
+| `bound` | After bindings connect | Data-dependent setup | Yes |
+| `attaching` | After DOM insertion | **Enter animations** | **Yes** |
+| `attached` | After the component subtree is mounted | Animations needing measurements | Yes |
 | `detaching` | Before DOM removal | **Exit animations** | **Yes** |
-| `unbinding` | Before unbinding | Cleanup | No |
-| `disposing` | Before disposal | Cancel active animations | No |
+| `unbinding` | After DOM removal, before bindings disconnect | Cleanup | Yes |
+| `dispose` | During permanent cleanup | Cancel active animations | No |
 
 ### Best Practices for Lifecycle Animations
 
-1. **Always return promises** from `attaching` and `detaching`:
+1. **Return animation promises** from `attaching` and `detaching`:
    ```typescript
    attaching(): Promise<void> {
-     return this.element.animate(/* ... */).finished;
+     return this.element.animate(/* ... */).finished.then(() => void 0);
    }
    ```
 
-2. **Handle interruptions** - Cancel animations if detached early:
+2. **Handle intentional cancellation**: Application code can replace a running Web Animation before `animation.finished` settles. `Animation.cancel()` rejects that Promise with an `AbortError`, so the helper treats the expected cancellation as completion and rethrows genuine animation failures.
    ```typescript
    export class AnimatedComponent {
      private currentAnimation: Animation | null = null;
 
      attaching(): Promise<void> {
-       this.currentAnimation = this.element.animate(/* ... */);
-       return this.currentAnimation.finished;
+       return this.play([
+         { opacity: 0 },
+         { opacity: 1 },
+       ]);
      }
 
      detaching(): Promise<void> {
+       return this.play([
+         { opacity: 1 },
+         { opacity: 0 },
+       ]);
+     }
+
+     public emphasize(): Promise<void> {
+       return this.play([
+         { transform: 'scale(1)' },
+         { transform: 'scale(1.05)' },
+         { transform: 'scale(1)' },
+       ]);
+     }
+
+     private play(keyframes: Keyframe[]): Promise<void> {
        this.currentAnimation?.cancel();
-       this.currentAnimation = this.element.animate(/* ... */);
-       return this.currentAnimation.finished;
+       const animation = this.currentAnimation = this.element.animate(keyframes, { duration: 200 });
+       return this.waitForAnimation(animation);
+     }
+
+     private waitForAnimation(animation: Animation): Promise<void> {
+       return animation.finished.then(
+         () => void 0,
+         error => {
+           if ((error as DOMException).name === 'AbortError') return;
+           throw error;
+         },
+       );
      }
    }
    ```

@@ -101,7 +101,7 @@ export class AuCompose {
   private _composition: ICompositionController | undefined = void 0;
   // `_composition` is only the committed public value. A newly created
   // controller is already owned before activation commits, and the old value
-  // remains owned while it retires; traversal/disposal therefore uses this set.
+  // remains owned while it retires; final teardown therefore uses this set.
   /** @internal */
   private readonly _ownedCompositions = new Set<ICompositionController>();
   // Teardown epoch captured by work queued behind `_composing`. Incrementing it
@@ -307,7 +307,7 @@ export class AuCompose {
           return onResolve(this.compose(context), (result) => {
             // Ownership begins when compose inserts/creates the controller, not
             // when activation commits. Pending and stale results must remain
-            // visible to Controller traversal.
+            // reachable for owner-local retirement and final teardown.
             this._ownedCompositions.add(result);
             // Don't activate [stale] controller
             // by always ensuring that the composition context is the latest one

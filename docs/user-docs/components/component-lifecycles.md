@@ -195,7 +195,7 @@ A hook failure ends the affected lifecycle transition and reaches the caller as 
 
 Router navigation is different. The router controls both the current route and its replacement, so it can discard a failed candidate and keep the current route active. See the [Router lifecycle](../router/routing-lifecycle.md) for its navigation behavior.
 
-A controller runs one lifecycle transition at a time. Framework structural owners serialize their own updates. Low-level integrations should await a Controller transition before requesting the next one. Deactivation requested during activation stops later activation phases and proceeds toward the inactive state.
+The low-level Controller API is not a general transition queue. Framework structural owners serialize their own updates, and custom integrations should await a Controller transition before requesting the next one. Deactivation requested during activation stops later activation phases and proceeds toward the inactive state.
 
 Return the Promise created by your hook when Aurelia should wait for that work:
 

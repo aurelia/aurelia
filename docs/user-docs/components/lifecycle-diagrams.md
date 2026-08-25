@@ -114,7 +114,7 @@ A failed hook leaves the affected component or application in a terminal state. 
 
 ## Low-level transition requests
 
-A controller runs one lifecycle transition at a time. Framework features such as Repeat, `if`, Switch, and dynamic composition serialize their own structural updates. Low-level integrations should await the current Controller result before requesting another transition.
+The low-level Controller API is not a general transition queue. Framework features such as Repeat, `if`, Switch, and dynamic composition serialize their own structural updates. Custom integrations should await the current Controller result before requesting another transition.
 
 | Request | Result |
 | --- | --- |

@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { describe, it } = require('node:test');
 const {
   createCircleClient,
@@ -18,6 +20,17 @@ const workflowId = '87654321-4321-4321-8321-cba987654321';
 const comparison = { pullRequest: 2462, base, head, candidate };
 
 void describe('benchmark pipeline trigger', () => {
+  void it('allows both trusted workflows to publish their PR report', () => {
+    for (const filename of ['trigger-circleci-pr-full.yml', 'trigger-circleci-bench.yml']) {
+      const workflow = fs.readFileSync(path.resolve(__dirname, '..', 'workflows', filename), 'utf8');
+      assert.match(
+        workflow,
+        /permissions:\r?\n  contents: read\r?\n  issues: write\r?\n  pull-requests: write/,
+        `${filename} must allow its trusted reporter to update the PR comment`,
+      );
+    }
+  });
+
   void it('passes the verified merge comparison to CircleCI and reporting', async () => {
     const github = comparisonGithub();
     let payload;
@@ -282,7 +295,7 @@ function successfulCircleFetch() {
     }],
     [`/api/v2/workflow/${workflowId}/job`, {
       items: [{
-        name: 'benchmark_report',
+        name: 'benchmark_report-1',
         status: 'success',
         job_number: 123,
         project_slug: 'gh/aurelia/aurelia',

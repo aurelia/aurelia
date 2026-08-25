@@ -7,6 +7,7 @@ const marker = '<!-- aurelia-benchmark-report:v1 -->';
 const statePrefix = '<!-- aurelia-benchmark-state:';
 const terminalFailureStatuses = new Set(['failed', 'error', 'canceled', 'unauthorized', 'not_run']);
 const reportArtifactPath = 'benchmark-report/benchmark-summary.json';
+const reportJobNamePattern = /^benchmark_report(?:-\d+)?$/;
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 // This module runs from the trusted master checkout. Circle data is parsed as untrusted input and
@@ -96,8 +97,11 @@ async function reportBenchmarkRun({
     }
 
     const jobs = await circle.pages(`workflow/${workflow.id}/job`);
+    // CircleCI appends a numeric suffix when it normalizes an aliased workflow job.
+    // Project, status, and single-result checks keep report discovery exact.
     const reportJobs = jobs.filter(job =>
-      job.name === 'benchmark_report'
+      typeof job.name === 'string'
+      && reportJobNamePattern.test(job.name)
       && job.status === 'success'
       && job.project_slug === projectSlug
     );

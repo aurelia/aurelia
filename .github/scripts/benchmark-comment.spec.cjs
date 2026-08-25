@@ -295,7 +295,7 @@ function successfulCircleFetch() {
     }],
     [`/api/v2/workflow/${workflowId}/job`, {
       items: [{
-        name: 'benchmark_report',
+        name: 'benchmark_report-1',
         status: 'success',
         job_number: 123,
         project_slug: 'gh/aurelia/aurelia',

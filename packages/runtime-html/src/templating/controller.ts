@@ -6,6 +6,8 @@ import {
   InstanceProvider,
   LogLevel,
   noop,
+  onResolve,
+  onResolveAll,
   optional,
   optionalResource,
   isFunction,
@@ -26,24 +28,6 @@ import { CustomElementDefinition, elementBaseName, getElementDefinition, isEleme
 import { etIsProperty, getOwnPropertyNames, objectFreeze } from '../utilities';
 import { createInterface, registerResolver } from '../utilities-di';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
-import {
-  createLifecycleDeferred,
-  getActiveLifecycleOperation,
-  getLifecyclePromiseOrder,
-  getOperationError,
-  isLifecycleOperationJoinedInto,
-  invokeControllerPhase,
-  LifecycleSelfAwaitError,
-  OrderedLifecycleFailure,
-  recordStepError,
-  reserveLifecycleParticipant,
-  type ControllerStep,
-  type InvocableLifecyclePhase,
-  type LifecycleErrorRecord,
-  type LifecycleOperationKind,
-  type LifecycleOperation,
-  type TransitionRequest,
-} from './lifecycle-operation';
 import { IRendering } from './rendering';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';
 import { ComputedWatcher, ExpressionWatcher } from './watchers';
@@ -61,7 +45,7 @@ import type {
 } from '@aurelia/runtime';
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
-import { ErrorNames, createMappedError, LifecycleSelfAwaitReason } from '../errors';
+import { ErrorNames, createMappedError } from '../errors';
 import type { ISSRScope, ISSRScopeChild, ISSRTemplateController } from './ssr';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
@@ -105,12 +89,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public state: State = none;
-
-  // No promoted operation currently owns this Controller. Fully synchronous
-  // transitions can remain `null` throughout; a step is also the generation
-  // token once this Controller yields, fails, overlaps, or joins.
-  /** @internal */
-  public _operation: ControllerStep | null = null;
 
   public get isActive(): boolean {
     return (this.state & (activating | activated)) > 0 && (this.state & deactivating) === 0;
@@ -616,199 +594,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   private $initiator: IHydratedController = null!;
-
-  /** @internal */
-  private _ensureStep(
-    kind: LifecycleOperationKind,
-    initiator: Controller,
-    parent: Controller | null,
-  ): ControllerStep {
-    const current = this._operation;
-    if (current !== null && current.operation.mode !== 'settled') {
-      /* istanbul ignore next -- active steps are created only by this operation's captured ancestry */
-      if (current.operation.initiator !== initiator) {
-        throw createMappedError(ErrorNames.controller_activation_unexpected_state, this.name, stringifyState(this.state));
-      }
-      // Activation cancellation may change kind in place. An opposite request
-      // can also reuse a live operation whose kind differs. Initiator identity
-      // owns both forms of reuse.
-      return current;
-    }
-
-    let parentStep: ControllerStep | null = null;
-    let operation: LifecycleOperation;
-    if (this === initiator) {
-      // Promotion snapshots the teardown list before async callbacks can clear
-      // the public list or change parent/$initiator for a successor transition.
-      operation = {
-        initiator,
-        kind,
-        mode: 'running',
-        desired: {
-          active: kind === 'activate',
-          initiator,
-          parent,
-          scope: this.scope,
-        },
-        teardownHead: this.head as Controller | null,
-        teardownTail: this.tail as Controller | null,
-      };
-    } else {
-      // Build immutable operation ancestry alongside the existing counter
-      // propagation path. Async callbacks use this chain instead of mutable
-      // Controller.parent after yielding.
-      parentStep = parent!._ensureStep(kind, initiator, parent!.parent as Controller | null);
-      operation = parentStep.operation;
-    }
-
-    const step: ControllerStep = {
-      operation,
-      controller: this,
-      parent: parentStep,
-      parentController: parent,
-      disposeRequested: false,
-    };
-    this._operation = step;
-    return step;
-  }
-
-  /** @internal */
-  private _ensureOperationResult(step: ControllerStep): Promise<void> {
-    let current: ControllerStep | null = step;
-    while (current !== null) {
-      if (current.result === void 0) {
-        const result = current.result = createLifecycleDeferred(current);
-        if (current.operation.initiator !== current.controller) {
-          // Descendant results mirror their part of the shared operation so a
-          // direct caller can await that path. Ancestor-driven traversal does
-          // not expose every descendant result, however; the initiator's drain
-          // is the public error owner in that case. Observe the local mirror so
-          // it cannot become an orphaned rejection when no direct caller exists.
-          void result.promise.catch(noop);
-        }
-      }
-      current = current.parent;
-    }
-    // `drain` always means the initiator boundary, even when this method was
-    // asked for a descendant-local result.
-    step.operation.drain ??= step.operation.initiator._operation!.result;
-    return step.result!.promise;
-  }
-
-  /** @internal */
-  private _recordOperationError(
-    step: ControllerStep,
-    order: number | undefined,
-    error: unknown,
-  ): void {
-    if (error instanceof OrderedLifecycleFailure) {
-      recordStepError(step, error.order, error.error);
-    } else {
-      recordStepError(step, order ?? reserveLifecycleParticipant(), error);
-    }
-  }
-
-  /** @internal */
-  private _invokePhase(
-    phase: InvocableLifecyclePhase,
-    initiator: IHydratedController,
-    parent: IHydratedController | null,
-  ): void | Promise<void> {
-    return invokeControllerPhase(this, phase, initiator, parent, this._operation?.operation);
-  }
-
-  /** @internal */
-  private _observeOperationParticipant(
-    promise: Promise<void>,
-    step: ControllerStep,
-    order: number,
-    onFulfilled: () => void,
-    onFailure: () => void,
-  ): void {
-    // Operation-result deferreds are the stable Promises exposed by Controller
-    // calls. This observer advances counters and records continuation failures
-    // without replacing those boundaries with a new .then() chain.
-    void promise.then(
-      () => {
-        if (step.operation.mode === 'settled') {
-          return;
-        }
-        // Framework continuations contain their own phase/cleanup errors before
-        // returning; the participant observer only advances their counters.
-        onFulfilled();
-      },
-      error => {
-        if (step.operation.mode === 'settled') {
-          return;
-        }
-        this._recordOperationError(step, order, error);
-        onFailure();
-      },
-    );
-  }
-
-  /** @internal */
-  private _settleStep(step: ControllerStep): void {
-    const deferred = step.result;
-    if (step.operation.kind === 'activate') this._activatingStack = 0;
-    else this._detachingStack = this._unbindingStack = 0;
-    // Release operation identity before resolving/rejecting: Promise reactions
-    // may request the next Controller transition as soon as the deferred settles.
-    this._operation = null;
-    if (step.operation.initiator === this) {
-      // Descendant steps settle locally while ancestors or siblings may still
-      // participate in the shared operation; only its initiator closes it.
-      step.operation.mode = 'settled';
-    }
-    const error = this._finalizeOperationError(step);
-    if (deferred !== void 0) {
-      if (error === void 0) {
-        deferred.resolve();
-      } else {
-        deferred.reject(error.error);
-      }
-    }
-  }
-
-  /** @internal */
-  private _throwSynchronousOperationError(step: ControllerStep): void {
-    // Keep a promoted-but-synchronous failure as a raw synchronous throw. A
-    // Controller should not become async merely because error tracking needed
-    // an operation record while every participant remained synchronous.
-    if (this._operation === step) {
-      this._operation = null;
-    }
-    this._activatingStack = this._detachingStack = this._unbindingStack = 0;
-    step.operation.mode = 'settled';
-    const error = this._finalizeOperationError(step);
-    if (error !== void 0) {
-      throw error.error;
-    }
-  }
-
-  /** @internal */
-  private _finalizeOperationError(step: ControllerStep): LifecycleErrorRecord | undefined {
-    let error = getOperationError(step);
-    // Deferred disposal belongs to a successfully completed teardown. A failed
-    // transition remains available for diagnosis instead of pretending that a
-    // partially completed lifecycle can be repaired by further cleanup.
-    if (error === void 0 && step.disposeRequested) {
-      try {
-        this._disposeCore();
-      } catch (disposeError) {
-        this._recordOperationError(step, void 0, disposeError);
-        error = getOperationError(step);
-      }
-    }
-    return error;
-  }
-
   public activate(
     initiator: IHydratedController,
     parent: IHydratedController | null,
     scope?: Scope | null,
   ): void | Promise<void> {
-    switch ((this.state & ~released)) {
+    switch (this.state) {
       case none:
       case deactivated:
         if (!(parent === null || parent.isActive)) {
@@ -822,30 +613,25 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         // 'deactivated' and 'none' are treated the same because, from an activation perspective, they mean the same thing.
         this.state = activating;
         break;
-      case activating:
-        return this._operation?.result?.promise;
       case deactivating:
+        // Handle the case where a previous deactivation-during-activation was rejected,
+        // leaving the controller stuck in deactivating state.
+        // In this state, the deactivation may have been interrupted before completing.
+        // We need to carefully reset the controller to allow re-activation.
         if (!(parent === null || parent.isActive)) {
           return;
         }
-        {
-          const currentInitiator = this.$initiator as Controller;
-          const step = this._operation ?? this._ensureStep('deactivate', currentInitiator, this.parent as Controller | null);
-          /* istanbul ignore next -- valid traversal sees the real parent deactivating and fails admission above */
-          if (step.operation.initiator !== this) {
-            // Reject invalid cross-parent re-entry without letting it overwrite
-            // the ancestor operation's desired root with descendant arguments.
-            return step.operation.drain?.promise;
-          }
-          const request: TransitionRequest = {
-            active: true,
-            initiator: initiator as Controller,
-            parent: parent as Controller | null,
-            scope,
-          };
-          step.operation.desired = request;
-          return this._ensureOperationResult(step);
-        }
+        // Reset flags that may be in an inconsistent state
+        this._isBindingDone = false;
+        this.isBound = false;
+        // Clear any leftover linked list pointers from interrupted deactivation
+        this.head = this.tail = this.next = null;
+        // Reset all stack counters to ensure clean activation
+        this._activatingStack = 0;
+        this._detachingStack = 0;
+        this._unbindingStack = 0;
+        this.state = activating;
+        break;
       case activated:
         // If we're already activated, no need to do anything.
         return;
@@ -881,121 +667,94 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.$initiator = initiator;
 
-    // One base participant spans binding through child activation and attached;
-    // successful activation, failure, or explicit cancellation closes it.
-    this._enterActivating(initiator, parent);
-    // Hookless views stay on the historical direct path. Besides avoiding
-    // allocations, this keeps large Repeat trees at their established cost.
-    if (
-      this.vmKind === vmkSynth
-      || this._lifecycleHooks!.binding == null && !this._vmHooks._binding
-    ) {
-      this._isBindingDone = true;
-      return this.bind(initiator, parent);
+    // opposing leave is called in attach() (which will trigger attached())
+    this._enterActivating();
+
+    let ret: void | Promise<void> = void 0;
+    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.binding != null) {
+      /* istanbul ignore next */
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
+
+      ret = onResolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
     }
-    return this._runSequentialActivationPhase('binding', initiator, parent);
+
+    if (this._vmHooks._binding) {
+      /* istanbul ignore next */
+      if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
+
+      ret = onResolveAll(ret, this._vm!.binding(this.$initiator, this.parent));
+    }
+
+    if (isPromise(ret)) {
+      this._ensurePromise();
+      ret.then(() => {
+        this._isBindingDone = true;
+        if (this.state !== activating) {
+          // because controller can be deactivated, during a long running promise in the binding phase
+          this._leaveActivating();
+        } else {
+          this.bind();
+        }
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
+      return this.$promise;
+    }
+
+    this._isBindingDone = true;
+    this.bind();
+    return this.$promise;
   }
 
-  /** @internal */
-  private _runSequentialActivationPhase(
-    phase: 'binding' | 'bound',
-    initiator: IHydratedController,
-    parent: IHydratedController | null,
-  ): void | Promise<void> {
-    let result: void | Promise<void>;
-    try {
-      result = this._invokePhase(phase, initiator, parent);
-    } catch (error) {
-      return this._failActivationPhase(initiator, parent, error);
-    }
-    if (isPromise(result)) {
-      const step = this._promoteActivationPhase(initiator, parent);
-      const drain = this._ensureOperationResult(step);
-      this._observeOperationParticipant(
-        result,
-        step,
-        getLifecyclePromiseOrder(result) ?? reserveLifecycleParticipant(),
-        // The next phase enrolls its own participants in this operation.
-        // Chaining its Promise here would count the same work twice.
-        () => { void this._completeActivationPhase(phase, initiator, parent, step); },
-        () => this._leaveActivating(initiator, parent, step),
-      );
-      return drain;
-    }
-    return this._completeActivationPhase(phase, initiator, parent, this._operation ?? void 0);
-  }
-
-  /** @internal */
-  private _promoteActivationPhase(
-    initiator: IHydratedController,
-    parent: IHydratedController | Controller | null,
-  ): ControllerStep {
-    return this._ensureStep('activate', initiator as Controller, parent as Controller | null);
-  }
-
-  /** @internal */
-  private _failActivationPhase(
-    initiator: IHydratedController,
-    parent: IHydratedController | Controller | null,
-    error: unknown,
-  ): void | Promise<void> {
-    const step = this._promoteActivationPhase(initiator, parent);
-    this._recordOperationError(step, void 0, error);
-    this._leaveActivating(initiator, parent as IHydratedController | null, step);
-    return step.result?.promise;
-  }
-
-  /** @internal */
-  private _completeActivationPhase(
-    phase: 'binding' | 'bound',
-    initiator: IHydratedController,
-    parent: IHydratedController | null,
-    step: ControllerStep | undefined,
-  ): void | Promise<void> {
-    // Record phase progress before checking cancellation. Compensation must
-    // undo work that actually committed even when an opposite request arrived
-    // while the phase Promise was pending.
-    if (phase === 'binding') {
-      this._isBindingDone = true;
-    } else {
-      this.isBound = true;
-    }
-    if (this.state !== activating || step !== void 0 && !step.operation.desired.active) {
-      this._leaveActivating(initiator, parent, step);
-      return step?.result?.promise;
-    }
-    return phase === 'binding' ? this.bind(initiator, parent) : this._attach(initiator, parent);
-  }
-
-  private bind(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {
+  private bind(): void {
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`bind()`); }
 
     let i = 0;
     let ii = 0;
+    let ret: void | Promise<void> = void 0;
+
     if (this.bindings !== null) {
       i = 0;
       ii = this.bindings.length;
       while (ii > i) {
-        try {
-          this.bindings[i].bind(this.scope!);
-          ++i;
-        } catch (error) {
-          const step = this._ensureStep('activate', initiator as Controller, parent as Controller | null);
-          this._recordOperationError(step, void 0, error);
-          this._leaveActivating(initiator, parent, step);
-          return step.result?.promise;
-        }
+        this.bindings[i].bind(this.scope!);
+        ++i;
       }
     }
-    if (
-      this.vmKind === vmkSynth
-      || this._lifecycleHooks!.bound == null && !this._vmHooks._bound
-    ) {
-      this.isBound = true;
-      return this._attach(initiator, parent);
+
+    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
+      /* istanbul ignore next */
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
+
+      ret = onResolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
     }
-    return this._runSequentialActivationPhase('bound', initiator, parent);
+
+    if (this._vmHooks._bound) {
+      /* istanbul ignore next */
+      if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
+
+      ret = onResolveAll(ret, this._vm!.bound(this.$initiator, this.parent));
+    }
+
+    if (isPromise(ret)) {
+      this._ensurePromise();
+      ret.then(() => {
+        this.isBound = true;
+        // because controller can be deactivated, during a long running promise in the bound phase
+        if (this.state !== activating) {
+          this._leaveActivating();
+        } else {
+          this._attach();
+        }
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
+      return;
+    }
+
+    this.isBound = true;
+    this._attach();
   }
 
   /** @internal */
@@ -1018,179 +777,89 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   /** @internal */
-  private _attach(initiator: IHydratedController, parent: IHydratedController | null): void | Promise<void> {
+  private _attach(): void {
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
-    /* istanbul ignore next -- native DOM insertion failure requires a hostile DOM implementation */
-    try {
-      switch (this.mountTarget) {
-        case targetHost:
-          this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
-          break;
-        case targetShadowRoot: {
-          const container = this.container;
-          const styles = container.has(IShadowDOMStyles, false)
-            ? container.get(IShadowDOMStyles)
-            : container.get(IShadowDOMGlobalStyles);
-          styles.applyTo(this.shadowRoot!);
-          this.nodes!.appendTo(this.shadowRoot!);
-          break;
-        }
-        case targetLocation:
-          this.nodes!.insertBefore(this.location!);
-          break;
+    switch (this.mountTarget) {
+      case targetHost:
+        this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
+        break;
+      case targetShadowRoot: {
+        const container = this.container;
+        const styles = container.has(IShadowDOMStyles, false)
+          ? container.get(IShadowDOMStyles)
+          : container.get(IShadowDOMGlobalStyles);
+        styles.applyTo(this.shadowRoot!);
+        this.nodes!.appendTo(this.shadowRoot!);
+        break;
       }
-    } catch (error) {
-      const step = this._ensureStep('activate', initiator as Controller, parent as Controller | null);
-      this._recordOperationError(step, void 0, error);
-      this._leaveActivating(initiator, parent, step);
-      return step.result?.promise;
+      case targetLocation:
+        this.nodes!.insertBefore(this.location!);
+        break;
     }
 
+    let i = 0;
     let ret: Promise<void> | void = void 0;
-    if (
-      this.vmKind !== vmkSynth
-      && (this._lifecycleHooks!.attaching != null || this._vmHooks._attaching)
-    ) {
-      try {
-        ret = this._invokePhase('attaching', initiator, parent);
-      } catch (error) {
-        return this._failActivationPhase(initiator, parent, error);
-      }
+
+    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
+      /* istanbul ignore next */
+      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
+
+      ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
+    }
+
+    if (this._vmHooks._attaching) {
+      /* istanbul ignore next */
+      if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
+
+      ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
     }
 
     if (isPromise(ret)) {
-      const step = this._promoteActivationPhase(initiator, parent);
-      // The observer and activation counter own completion; this only exposes
-      // stable result boundaries to direct callers and the initiator.
-      void this._ensureOperationResult(step);
-      // attaching and child activation remain parallel. A counter participant
-      // joins the shared barrier; both outcomes release it because rejection is
-      // recorded separately by the observer.
-      this._enterActivating(initiator, parent, step);
-      this._observeOperationParticipant(
-        ret,
-        step,
-        getLifecyclePromiseOrder(ret) ?? reserveLifecycleParticipant(),
-        () => this._leaveActivating(initiator, parent, step),
-        () => this._leaveActivating(initiator, parent, step),
-      );
+      this._ensurePromise();
+      this._enterActivating();
+      ret.then(() => {
+        this._leaveActivating();
+      }).catch((err: Error) => {
+        this._reject(err);
+      });
     }
 
-    // Attaching and child activation are admitted in parallel. The base
-    // participant below reaches zero only after both are done, then starts
-    // `attached`.
+    // attaching() and child activation run in parallel, and attached() is called when both are finished
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
-        const child = this.children[i];
-        const childResult = child.activate(initiator, this as IHydratedController, this.scope);
-        const childStep = child._operation;
-        if (isPromise(childResult) && childStep !== null && childStep.operation.initiator !== initiator) {
-          this._joinActivation(childStep, childResult, initiator, parent);
-        }
-        // Normally descendant work already propagates through this initiator's
-        // counters, so its local result needs no second ownership edge here.
+      for (; i < this.children.length; ++i) {
+        // Any promises returned from child activation are cumulatively awaited before this.$promise resolves
+        void this.children[i].activate(this.$initiator, this as IHydratedController, this.scope);
       }
     }
 
-    this._leaveActivating(initiator, parent, this._operation ?? void 0);
-    return this._operation?.result?.promise;
-  }
-
-  /** @internal */
-  private _joinActivation(
-    childStep: ControllerStep,
-    childResult: Promise<void>,
-    initiator: IHydratedController,
-    parent: IHydratedController | null,
-  ): void {
-    // A child belonging to a separately initiated operation did not increment
-    // this ancestor's counters. Enroll its drain as one ancestor participant so
-    // activation cannot publish success or honor cancellation while the child is live.
-    const source = this._operation ?? this._ensureStep(
-      'activate',
-      initiator as Controller,
-      parent as Controller | null,
-    );
-    // The caller owns the ancestor operation. Create its drain before storing
-    // that exact identity for cross-operation cycle detection.
-    void this._ensureOperationResult(source);
-    childStep.operation.joinedInto = source.operation.drain!.promise;
-    this._enterActivating(initiator, parent, source);
-    this._observeOperationParticipant(
-      childResult,
-      source,
-      reserveLifecycleParticipant(),
-      () => this._leaveActivating(initiator, parent, source),
-      () => this._leaveActivating(initiator, parent, source),
-    );
+    // attached() is invoked by Controller#leaveActivating when `activatingStack` reaches 0
+    this._leaveActivating();
   }
 
   public deactivate(
     initiator: IHydratedController,
-    parent: IHydratedController | null,
+    _parent: IHydratedController | null,
   ): void | Promise<void> {
+    let prevActivation: void | Promise<void> = void 0;
     switch ((this.state & ~released)) {
       case activated:
-        this.state = (deactivating | (this.state & released)) as State;
+        this.state = deactivating;
         break;
       case activating:
-        {
-          if (this._operation === null && this._activatingStack === 0) {
-            // A previous activation request has already reported its error.
-            // A later explicit stop is a new transition and may tear down the
-            // partially initialized controller without implying automatic recovery.
-            this.state = (deactivating | (this.state & released)) as State;
-            return this._startDeactivation(
-              void 0,
-              parent as Controller | null,
-              initiator as Controller,
-            );
+        this.state = deactivating;
+        // we are about to deactivate, the error from activation can be ignored
+        prevActivation = this.$promise?.catch(__DEV__
+          /* istanbul-ignore-next */
+          ? err => {
+            this.logger?.warn('The activation error will be ignored, as the controller is already scheduled for deactivation. The activation was rejected with: %s', err);
           }
-          const activationInitiator = this.$initiator as Controller;
-          const step = this._operation ?? this._ensureStep('activate', activationInitiator, this.parent as Controller | null);
-          step.operation.desired = {
-            active: false,
-            initiator: initiator as Controller,
-            parent: parent as Controller | null,
-          };
-          // Explicit deactivation supersedes the requested active state, while
-          // every participant already admitted remains observable.
-          this.state = (deactivating | (this.state & released)) as State;
-          if (step.operation.initiator !== initiator) {
-            // A self-activating child is a separate operation. Ancestor teardown
-            // must wait on its local drain through cancellation; merely changing
-            // the child's desired state would let the ancestor settle too early.
-            this._joinDeactivation(step, initiator as Controller, parent as Controller | null);
-            return;
-          }
-          return this._ensureOperationResult(step);
-        }
+          : noop);
+        break;
       case deactivating:
-        {
-          const currentInitiator = this.$initiator as Controller;
-          const step = this._operation ?? this._ensureStep('deactivate', currentInitiator, this.parent as Controller | null);
-          if (step.operation.initiator !== initiator) {
-            this._joinDeactivation(step, initiator as Controller, parent as Controller | null);
-            return;
-          }
-          if (initiator !== this) {
-            return;
-          }
-          if (getActiveLifecycleOperation() === step.operation) {
-            // A hook may re-enter deactivate and return its current operation
-            // Promise. Returning that Promise from the hook would make the
-            // operation wait for itself, so the re-entrant call is a no-op.
-            return;
-          }
-          step.operation.desired = {
-            active: false,
-            initiator: initiator as Controller,
-            parent: parent as Controller | null,
-          };
-          return step.result?.promise ?? this._ensureOperationResult(step);
-        }
+        // Already deactivating, return the existing promise to let caller wait for completion
+        return this.$promise;
       case none:
       case deactivated:
       case disposed:
@@ -1204,187 +873,83 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul-ignore-next */
     if (__DEV__ && this.debug) { this.logger!.trace(`deactivate()`); }
 
-    return this._startDeactivation(
-      this._operation ?? void 0,
-      parent as Controller | null,
-      initiator as Controller,
-    );
-  }
-
-  /** @internal */
-  private _joinDeactivation(
-    childStep: ControllerStep,
-    initiator: Controller,
-    parent: Controller | null,
-  ): void {
-    // The child keeps its own initiator and local result. The later ancestor
-    // operation enrolls that result as one cleanup participant instead of
-    // stealing the child's counters or linking it into teardown twice.
-    childStep.operation.desired = {
-      active: false,
-      initiator: childStep.operation.initiator,
-      parent: childStep.parentController,
-    };
-    const source = parent!._ensureStep('deactivate', initiator, parent!.parent as Controller | null);
-    const result = this._ensureOperationResult(childStep);
-    // The caller owns the ancestor drain; ensure its identity exists before the
-    // child records that drain as a cross-operation self-await boundary.
-    void this._ensureOperationResult(source);
-    childStep.operation.joinedInto = source.operation.drain!.promise;
-    const order = reserveLifecycleParticipant();
-    initiator._enterDetaching();
-    parent!._observeOperationParticipant(
-      result,
-      source,
-      order,
-      () => initiator._leaveDetaching(),
-      () => initiator._leaveDetaching(),
-    );
-  }
-
-  /** @internal */
-  private _startDeactivation(
-    capturedStep: ControllerStep | undefined,
-    parent: Controller | null,
-    initiator: Controller = this,
-  ): void | Promise<void> {
-    this.state = (deactivating | (this.state & released)) as State;
-    this.$initiator = initiator as IHydratedController;
+    this.$initiator = initiator;
 
     if (initiator === this) {
-      // Only the initiator owns the base token. Descendant hooks add/remove
-      // participants from this counter and deliberately return no local drain
-      // to ancestor traversal.
       this._enterDetaching();
     }
 
-    let ret: void | Promise<void> = void 0;
+    // If deactivating during activation, increment initiator's detaching counter
+    // so the initiator waits for this controller's deactivation callback to complete.
+    // This mirrors the pattern used for async detaching hooks (see below).
+    const asyncPrevActivation = isPromise(prevActivation) && initiator !== this;
+    if (asyncPrevActivation) {
+      (initiator as Controller)._ensurePromise();
+      (initiator as Controller)._enterDetaching();
+    }
+
+    let i = 0;
+    let ret: void | Promise<void>;
 
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
-        // Descendant teardown enrolls itself in the initiator barrier. Returning
-        // or awaiting a local mirror here would add a second ownership edge.
-        void this.children[i].deactivate(initiator as IHydratedController, this as IHydratedController);
+      for (i = 0; i < this.children.length; ++i) {
+        // Child promise results are tracked by enter/leave combo's
+        void this.children[i].deactivate(initiator, this as IHydratedController);
       }
     }
 
-    if (
-      this.isBound
-      && this.vmKind !== vmkSynth
-      && (this._lifecycleHooks!.detaching != null || this._vmHooks._detaching)
-    ) {
-      try {
-        ret = this._invokePhase('detaching', this.$initiator, this.parent);
-      } catch (error) {
-        const step = capturedStep ?? this._ensureStep('deactivate', initiator, parent);
-        this._recordOperationError(step, void 0, error);
-        this._abortDeactivation(step);
-        // When earlier async work already created a drain, aborting rejects it.
-        // This hook still failed synchronously, so keep the public call
-        // synchronous and prevent the rejected internal drain from orphaning.
-        void step.operation.drain?.promise.catch(noop);
-        throw getOperationError(step)!.error;
+    return onResolve(prevActivation, () => {
+      if (this.isBound) {
+        if (this.vmKind !== vmkSynth && this._lifecycleHooks!.detaching != null) {
+          if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
+
+          ret = onResolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+        }
+
+        if (this._vmHooks._detaching) {
+          if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
+
+          ret = onResolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+        }
       }
-    }
 
-    // Hook invocation may synchronously re-enter and promote this Controller.
-    // Recapture the step before enrolling the returned Promise.
-    capturedStep ??= this._operation ?? void 0;
-    if (
-      isPromise(ret)
-      && capturedStep !== void 0
-      && isLifecycleOperationJoinedInto(capturedStep.operation, ret)
-    ) {
-      // This is an exact cross-operation ancestor-drain cycle. Continuing to
-      // await it would leave both operations pending.
-      const step = capturedStep;
-      this._recordOperationError(
-        step,
-        getLifecyclePromiseOrder(ret) ?? reserveLifecycleParticipant(),
-        new LifecycleSelfAwaitError(this.name, LifecycleSelfAwaitReason.ancestor),
-      );
-      ret = void 0;
-    }
-
-    if (isPromise(ret)) {
-      const step = capturedStep ?? this._ensureStep('deactivate', initiator, parent);
-      // The observer and detaching counter own completion; this call only makes
-      // the stable local/initiator deferred boundaries available to callers.
-      void this._ensureOperationResult(step);
-      initiator._enterDetaching();
-      this._observeOperationParticipant(
-        ret,
-        step,
-        getLifecyclePromiseOrder(ret) ?? reserveLifecycleParticipant(),
-        () => initiator._leaveDetaching(),
-        () => initiator._leaveDetaching(),
-      );
-      capturedStep = step;
-    }
-
-    // Link synchronously, before any detaching Promise resolves, so traversal
-    // acceptance order—not Promise resolution order—defines DOM/unbind order.
-    const operation = initiator._operation?.operation;
-    const tail = operation?.teardownTail ?? initiator.tail as Controller | null;
-    if (tail === null) {
-      initiator.head = this as IHydratedController;
-      if (operation !== void 0) operation.teardownHead = this;
-    } else {
-      tail.next = this as IHydratedController;
-    }
-    initiator.tail = this as IHydratedController;
-    if (operation !== void 0) operation.teardownTail = this;
-
-    if (initiator !== this) {
-      // The initiator owns the public drain and closes its base token after all
-      // descendants have linked themselves into deterministic teardown order.
-      return;
-    }
-
-    this._leaveDetaching();
-    const step = this._operation ?? capturedStep;
-    const result = step?.result?.promise;
-    if (result === void 0 && step !== void 0) {
-      this._throwSynchronousOperationError(step);
-    }
-    return result;
-  }
-
-  /** @internal */
-  private _abortDeactivation(step: ControllerStep): void {
-    const operation = step.operation;
-    const initiator = operation.initiator;
-    let current = operation.teardownHead ?? initiator.head as Controller | null;
-    while (current !== null) {
-      const next = current.next as Controller | null;
-      const currentStep = current._operation;
-      if (
-        current !== initiator
-        && currentStep !== null
-        && currentStep.operation === operation
-      ) {
-        current._settleStep(currentStep);
+      if (isPromise(ret)) {
+        this._ensurePromise();
+        (initiator as Controller)._enterDetaching();
+        ret.then(() => {
+          (initiator as Controller)._leaveDetaching();
+        }).catch((err: Error) => {
+          (initiator as Controller)._reject(err);
+        });
       }
-      current = next;
-    }
 
-    // The initiator step owns the operation until this method settles it. Only
-    // descendant steps were released by the traversal above.
-    const initiatorStep = initiator._operation!;
-    if (initiatorStep.result === void 0) {
-      initiator._throwSynchronousOperationError(initiatorStep);
-    } else {
-      initiator._settleStep(initiatorStep);
-    }
-  }
+      // Note: if a 3rd party plugin happens to do any async stuff in a template controller before calling deactivate on its view,
+      // then the linking will become out of order.
+      // For framework components, this shouldn't cause issues.
+      // We can only prevent that by linking up after awaiting the detaching promise, which would add an extra tick + a fair bit of
+      // overhead on this hot path, so it's (for now) a deliberate choice to not account for such situation.
+      // Just leaving the note here so that we know to look here if a weird detaching-related timing issue is ever reported.
+      if (initiator.head === null) {
+        initiator.head = this as IHydratedController;
+      } else {
+        initiator.tail!.next = this as IHydratedController;
+      }
+      initiator.tail = this as IHydratedController;
 
-  /** @internal */
-  private _hasBlockingDeactivationError(step: ControllerStep): boolean {
-    const error = getOperationError(step);
-    // AUR0509 replaces a dependency cycle that would otherwise deadlock the
-    // requested transition. Finishing that same transition makes the diagnostic
-    // observable; it is not an attempt to recover from an application hook failure.
-    return error !== void 0 && !(error.error instanceof LifecycleSelfAwaitError);
+      if (initiator !== this) {
+        // Only detaching is called + the linked list is built when any controller that is not the initiator, is deactivated.
+        // The rest is handled by the initiator.
+        // This means that descendant controllers have to make sure to await the initiator's promise before doing any subsequent
+        // controller api calls, or race conditions might occur.
+        if (asyncPrevActivation) {
+          (initiator as Controller)._leaveDetaching();
+        }
+        return;
+      }
+
+      this._leaveDetaching();
+      return this.$promise;
+    });
   }
 
   private removeNodes(): void {
@@ -1396,7 +961,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
   }
 
-  private unbind(settle: boolean = true): void {
+  private unbind(): void {
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
@@ -1416,28 +981,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
       case vmkSynth:
         this.scope = null;
-        {
-          const step = this._operation;
-          // release() is called before deactivate(); every deactivation state
-          // transition preserves this bit until unbind consumes it here.
-          const releaseRequested = (this.state & released) === released;
-          // Ancestor-driven teardown returns no local result and the owner still
-          // holds the view. Only a self-initiated release may transfer ownership
-          // to the factory cache or dispose it here.
-          if (releaseRequested && this.$initiator === this) {
-            const retainForSuccessor = step !== null
-              && step.operation.desired.active
-              && getOperationError(step) === void 0;
-            if (!retainForSuccessor) {
-              // A superseded activation error can be hidden from its caller, but
-              // the partially activated view is still unsafe to cache as healthy.
-              const canCache = step?.firstError === void 0;
-              const cached = canCache && this.viewFactory!.tryReturnToCache(this as ISyntheticView);
-              if (!cached) {
-                this._disposeReleasedView();
-              }
-            }
-          }
+
+        if (
+          (this.state & released) === released &&
+          !this.viewFactory!.tryReturnToCache(this as ISyntheticView) &&
+          this.$initiator === this
+        ) {
+          this.dispose();
         }
         break;
       case vmkCe:
@@ -1445,174 +995,107 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
     }
 
-    this.state = (deactivated | (this.state & disposed)) as State;
+    this.state = deactivated;
     this.$initiator = null!;
-    if (settle) {
-      this._resolve();
-    }
+    this._resolve();
   }
 
+  private $resolve: (() => void) | undefined = void 0;
+  private $reject: ((err: unknown) => void) | undefined = void 0;
+  private $promise: Promise<void> | undefined = void 0;
+
   /** @internal */
-  private _disposeReleasedView(): void {
-    this._disposeCore();
+  private _ensurePromise(): void {
+    if (this.$promise === void 0) {
+      this.$promise = new Promise((resolve, reject) => {
+        this.$resolve = resolve;
+        this.$reject = reject;
+      });
+      if (this.$initiator !== this) {
+        (this.parent as Controller)._ensurePromise();
+      }
+    }
   }
 
   /** @internal */
   private _resolve(): void {
-    const step = this._operation;
-    if (step === null) {
-      return;
+    if (this.$promise !== void 0) {
+      _resolve = this.$resolve!;
+      this.$resolve = this.$reject = this.$promise = void 0;
+      _resolve();
+      _resolve = void 0;
     }
-    if (step.operation.initiator === this && step.result === void 0) {
-      // A promoted synchronous error may still finish synchronously. Its raw
-      // error is thrown by _throwSynchronousOperationError rather than converted
-      // into a Promise merely because an operation record exists.
-      return;
-    }
-    this._settleStep(step);
   }
 
-  // Every enter propagates through the captured operation ancestry and every
-  // leave mirrors it exactly once. Local zero means all accepted work in this
-  // Controller subtree has quiesced; initiator zero means the whole operation.
+  /** @internal */
+  private _reject(err: Error): void {
+    if (this.$promise !== void 0) {
+      _reject = this.$reject!;
+      this.$resolve = this.$reject = this.$promise = void 0;
+      _reject(err);
+      _reject = void 0;
+    }
+    if (this.$initiator !== this) {
+      (this.parent as Controller)._reject(err);
+    }
+  }
+
   /** @internal */
   private _activatingStack: number = 0;
   /** @internal */
-  private _enterActivating(
-    initiator: IHydratedController,
-    parent: IHydratedController | null,
-    capturedStep?: ControllerStep,
-  ): void {
-    const step = capturedStep ?? this._operation;
+  private _enterActivating(): void {
     ++this._activatingStack;
-    if (initiator !== this) {
-      const operationParent = step?.parent?.controller ?? parent as Controller;
-      operationParent._enterActivating(initiator, operationParent.parent, step?.parent ?? void 0);
+    if (this.$initiator !== this) {
+      (this.parent as Controller)._enterActivating();
     }
   }
   /** @internal */
-  private _leaveActivating(
-    initiator: IHydratedController,
-    parent: IHydratedController | null,
-    capturedStep?: ControllerStep,
-  ): void {
-    const step = capturedStep ?? this._operation ?? void 0;
-    const operationParent = step?.parent?.controller ?? parent as Controller | null;
-    const pending = --this._activatingStack;
+  private _leaveActivating(): void {
     if (this.state !== activating) {
-      if (pending === 0 && step !== void 0 && (step.firstError !== void 0 || !step.operation.desired.active)) {
-        this._finishFailedActivation(initiator, operationParent, step);
-        return;
-      } else if (pending === 0) {
-        this._resolve();
-      }
-      if (initiator !== this) {
-        operationParent!._leaveActivating(initiator, operationParent!.parent, step?.parent ?? void 0);
+      --this._activatingStack;
+      // skip doing rest of the work if the controller is deactivated.
+      this._resolve();
+      if (this.$initiator !== this) {
+        (this.parent as Controller)._leaveActivating();
       }
       return;
     }
-    if (pending === 0) {
-      if (step !== void 0 && (step.firstError !== void 0 || !step.operation.desired.active)) {
-        this._finishFailedActivation(initiator, operationParent, step);
-        return;
+    if (--this._activatingStack === 0) {
+      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
+        _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
       }
 
-      let attachedResult: void | Promise<void>;
-      if (
-        this.vmKind === vmkSynth
-        || this._lifecycleHooks!.attached == null && !this._vmHooks._attached
-      ) {
-        attachedResult = void 0;
-      } else {
-        try {
-          attachedResult = this._invokePhase('attached', initiator, null);
-        } catch (error) {
-          const operationStep = step ?? this._promoteActivationPhase(initiator, operationParent);
-          this._recordOperationError(operationStep, void 0, error);
-          this._finishFailedActivation(initiator, operationParent, operationStep);
-          return;
-        }
+      if (this._vmHooks._attached) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
+
+        _retPromise = onResolveAll(_retPromise, this._vm!.attached!(this.$initiator));
       }
 
-      if (isPromise(attachedResult)) {
-        const operationStep = step ?? this._promoteActivationPhase(initiator, operationParent);
-        // The observer owns completion; this only exposes stable result
-        // boundaries for direct callers and the initiator.
-        void this._ensureOperationResult(operationStep);
-        this._observeOperationParticipant(
-          attachedResult,
-          operationStep,
-          getLifecyclePromiseOrder(attachedResult) ?? reserveLifecycleParticipant(),
-          () => this._finishSuccessfulActivation(initiator, operationParent, operationStep),
-          () => this._finishFailedActivation(initiator, operationParent, operationStep),
-        );
+      if (isPromise(_retPromise)) {
+        this._ensurePromise();
+        _retPromise.then(() => {
+          this.state = activated;
+          // Resolve this.$promise, signaling that activation is done (path 1 of 2)
+          this._resolve();
+          if (this.$initiator !== this) {
+            (this.parent as Controller)._leaveActivating();
+          }
+        }).catch((err: Error) => {
+          this._reject(err);
+        });
+        _retPromise = void 0;
         return;
       }
-      this._finishSuccessfulActivation(initiator, operationParent, step);
-    }
-    if (pending !== 0 && initiator !== this) {
-      operationParent!._leaveActivating(initiator, operationParent!.parent, step?.parent ?? void 0);
-    }
-  }
+      _retPromise = void 0;
 
-  /** @internal */
-  private _finishSuccessfulActivation(
-    initiator: IHydratedController,
-    parent: Controller | null,
-    step?: ControllerStep,
-  ): void {
-    if (step !== void 0 && !step.operation.desired.active) {
-      this._finishFailedActivation(initiator, parent, step);
-      return;
+      this.state = activated;
+      // Resolve this.$promise (if present), signaling that activation is done (path 2 of 2)
+      this._resolve();
     }
-    this.state = activated;
-    if (step !== void 0) {
-      this._settleStep(step);
+    if (this.$initiator !== this) {
+      (this.parent as Controller)._leaveActivating();
     }
-    if (initiator !== this) {
-      parent!._leaveActivating(initiator, parent!.parent, step?.parent ?? void 0);
-    }
-  }
-
-  /** @internal */
-  private _finishFailedActivation(
-    initiator: IHydratedController,
-    parent: Controller | null,
-    step: ControllerStep,
-  ): void {
-    if (initiator !== this) {
-      // Local callers may observe this descendant boundary now. The initiator
-      // remains pending until every already-admitted sibling has settled.
-      this._settleStep(step);
-      parent!._leaveActivating(initiator, parent!.parent, step.parent ?? void 0);
-      return;
-    }
-
-    if (step.operation.desired.active) {
-      // A hook failure ends this request with the original application error.
-      // Teardown is a separate, explicit transition; activation failure alone
-      // does not establish a transactional rollback contract.
-      if (step.result === void 0) {
-        this._throwSynchronousOperationError(step);
-      } else {
-        this._settleStep(step);
-      }
-      return;
-    }
-
-    // A real deactivation request superseded this activation. Its teardown is
-    // still part of the same public drain so callers cannot race the partially
-    // completed activation work.
-    step.operation.mode = 'activation-cancellation';
-    step.operation.kind = 'deactivate';
-    step.operation.desired = {
-      active: false,
-      initiator: this,
-      parent,
-    };
-    // Cancellation is already owned by this operation's counters. The existing
-    // drain remains the stable result returned to both transition callers.
-    void this._startDeactivation(step, parent);
   }
 
   /** @internal */
@@ -1623,79 +1106,48 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   /** @internal */
   private _leaveDetaching(): void {
-    const operationStep = this._operation;
     if (--this._detachingStack === 0) {
       // Note: this controller is the initiator (detach is only ever called on the initiator)
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`detach()`); }
 
-      if (operationStep !== null && this._hasBlockingDeactivationError(operationStep)) {
-        this._abortDeactivation(operationStep);
-        return;
-      }
-
-      // Open the base token before structural removal so asynchronous unbinding
-      // hooks admitted below share one operation barrier.
       this._enterUnbinding();
-      /* istanbul ignore next -- native DOM removal failure requires a hostile DOM implementation */
-      try {
-        this.removeNodes();
-      } catch (error) {
-        const step = this._operation ?? this._ensureStep('deactivate', this, this.parent as Controller | null);
-        this._recordOperationError(step, void 0, error);
-        this._abortDeactivation(step);
-        return;
-      }
+      this.removeNodes();
 
-      // A promoted operation owns a stable list captured before cleanup starts;
-      // the public initiator list is fallback storage for the synchronous path.
-      let cur = operationStep?.operation.teardownHead ?? this.$initiator.head as Controller | null;
+      let cur = this.$initiator.head as Controller | null;
+      let ret: void | Promise<void> = void 0;
 
       while (cur !== null) {
         if (cur !== this) {
           /* istanbul ignore next */
           if (cur.debug) { cur.logger!.trace(`detach()`); }
 
-          /* istanbul ignore next -- native DOM removal failure requires a hostile DOM implementation */
-          try {
-            cur.removeNodes();
-          } catch (error) {
-            const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
-            cur._recordOperationError(step, void 0, error);
-            this._abortDeactivation(step);
-            return;
+          cur.removeNodes();
+        }
+
+        if (cur._isBindingDone) {
+          if (cur.vmKind !== vmkSynth && cur._lifecycleHooks!.unbinding != null) {
+            ret = onResolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
+          }
+
+          if (cur._vmHooks._unbinding) {
+            if (cur.debug) { cur.logger!.trace('unbinding()'); }
+
+            ret = onResolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
           }
         }
 
-        if (
-          cur._isBindingDone
-          && cur.vmKind !== vmkSynth
-          && (cur._lifecycleHooks!.unbinding != null || cur._vmHooks._unbinding)
-        ) {
-          let result: void | Promise<void>;
-          try {
-            result = cur._invokePhase('unbinding', cur.$initiator, cur.parent);
-          } catch (error) {
-            const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
-            cur._recordOperationError(step, void 0, error);
-            this._abortDeactivation(step);
-            return;
-          }
-          if (isPromise(result)) {
-            const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
-            // The unbinding counter/observer owns settlement; this only creates
-            // the stable local result that disposal and direct callers may join.
-            void cur._ensureOperationResult(step);
-            this._enterUnbinding();
-            cur._observeOperationParticipant(
-              result,
-              step,
-              getLifecyclePromiseOrder(result) ?? reserveLifecycleParticipant(),
-              () => this._leaveUnbinding(),
-              () => this._leaveUnbinding(),
-            );
-          }
+        if (isPromise(ret)) {
+          this._ensurePromise();
+          this._enterUnbinding();
+          ret.then(() => {
+            this._leaveUnbinding();
+          }).catch((err: Error) => {
+            this._reject(err);
+          });
         }
+
+        ret = void 0;
 
         cur = cur.next as Controller;
       }
@@ -1712,30 +1164,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   /** @internal */
   private _leaveUnbinding(): void {
-    const operationStep = this._operation;
     if (--this._unbindingStack === 0) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`unbind()`); }
 
-      if (operationStep !== null && this._hasBlockingDeactivationError(operationStep)) {
-        this._abortDeactivation(operationStep);
-        return;
-      }
-
-      let cur = operationStep?.operation.teardownHead ?? this.$initiator.head as Controller | null;
+      let cur = this.$initiator.head as Controller | null;
       let next: Controller | null = null;
       while (cur !== null) {
         if (cur !== this) {
           cur._isBindingDone = false;
           cur.isBound = false;
-          try {
-            cur.unbind();
-          } catch (error) {
-            const step = cur._operation ?? cur._ensureStep('deactivate', this, cur.parent as Controller | null);
-            cur._recordOperationError(step, void 0, error);
-            this._abortDeactivation(step);
-            return;
-          }
+          cur.unbind();
         }
         next = cur.next as Controller;
         cur.next = null;
@@ -1743,80 +1182,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
 
       this.head = this.tail = null;
-      if (operationStep !== null) {
-        operationStep.operation.teardownHead = operationStep.operation.teardownTail = null;
-      }
       this._isBindingDone = false;
       this.isBound = false;
-      const step = this._operation;
-      // Delay settlement until _completeDeactivation has decided whether the
-      // latest desired state requires a queued successor activation.
-      try {
-        this.unbind(false);
-      } catch (error) {
-        const operationStep = step ?? this._ensureStep('deactivate', this, this.parent as Controller | null);
-        this._recordOperationError(operationStep, void 0, error);
-        this._abortDeactivation(operationStep);
-        return;
-      }
-      if (step !== null) {
-        this._completeDeactivation(step);
-      }
-    }
-  }
-
-  /** @internal */
-  private _completeDeactivation(step: ControllerStep): void {
-    const operation = step.operation;
-    const successor = operation.desired;
-    if (successor.active && getOperationError(step) === void 0) {
-      // The successor must receive a fresh operation identity, but callers of
-      // the superseded transition keep waiting until that successor settles.
-      this._operation = null;
-      operation.mode = 'settled';
-      let result: void | Promise<void>;
-      try {
-        result = this.activate(
-          successor.initiator as IHydratedController,
-          successor.parent as IHydratedController | null,
-          successor.scope,
-        );
-      } catch (error) {
-        recordStepError(step, reserveLifecycleParticipant(), error);
-        this._settleDetachedOperation(step);
-        return;
-      }
-      if (isPromise(result)) {
-        // The successor owns its own drain. Both reactions settle the detached
-        // predecessor deferred, so the ignored derived Promise cannot reject.
-        void result.then(
-          () => this._settleDetachedOperation(step),
-          error => {
-            recordStepError(step, reserveLifecycleParticipant(), error);
-            this._settleDetachedOperation(step);
-          },
-        );
-      } else {
-        this._settleDetachedOperation(step);
-      }
-      return;
-    }
-    this._resolve();
-  }
-
-  /** @internal */
-  private _settleDetachedOperation(step: ControllerStep): void {
-    // `_completeDeactivation` detached this step before successor activation so
-    // the successor could acquire fresh identity. `_settleStep` would clear the
-    // successor's current identity/counters instead of only settling this old drain.
-    const deferred = step.result;
-    const error = getOperationError(step);
-    if (deferred !== void 0) {
-      if (error === void 0) {
-        deferred.resolve();
-      } else {
-        deferred.reject(error.error);
-      }
+      this.unbind();
     }
   }
 
@@ -1897,68 +1265,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public dispose(): void {
-    if ((this.state & disposed) === disposed) {
-      return;
-    }
-    this._assertDisposableSubtree();
-    this._disposeCore();
-  }
-
-  /**
-   * Dispose as soon as the controller's current transition or cancellation
-   * reaches its local cleanup boundary. Dynamic owners use this after initiating
-   * descendant teardown because an ancestor-driven deactivate call intentionally
-   * does not expose the ancestor's drain.
-   *
-   * @internal
-   */
-  public _disposeAfterDeactivate(): void {
-    const state = this.state & ~released;
-    if (state === activating || state === deactivating) {
-      const initiator = this.$initiator as Controller;
-      const step = this._operation ?? this._ensureStep(
-        state === activating ? 'activate' : 'deactivate',
-        initiator,
-        this.parent as Controller | null,
-      );
-      step.operation.desired = {
-        active: false,
-        initiator: step.operation.initiator,
-        parent: step.operation.desired.parent,
-      };
-      step.disposeRequested = true;
-      return;
-    }
-    this.dispose();
-  }
-
-  /** @internal */
-  private _assertDisposableSubtree(): void {
-    // accept() includes both structural children and controllers exposed by
-    // dynamic owners such as Repeat, Switch, Promise, and AuCompose.
-    let running = false;
-    this.accept(controller => {
-      const candidate = controller as Controller;
-      if (candidate._operation !== null && candidate._operation.operation.mode !== 'settled') {
-        running = true;
-        return true;
-      }
-      return;
-    });
-    if (running) {
-      throw createMappedError(ErrorNames.controller_dispose_active_operation, this.name);
-    }
-  }
-
-  /** @internal */
-  private _disposeCore(): void {
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`dispose()`); }
 
     if ((this.state & disposed) === disposed) {
       return;
     }
-    // Mark first so re-entrant disposal callbacks remain idempotent.
     this.state |= disposed;
 
     if (this._vmHooks._dispose) {
@@ -1966,9 +1278,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     if (this.children !== null) {
-      for (let i = 0; i < this.children.length; ++i) {
-        this.children[i]._disposeCore();
-      }
+      this.children.forEach(callDispose);
       this.children = null;
     }
 
@@ -1980,6 +1290,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.viewFactory = null;
     if (this._vm !== null) {
       controllerLookup.delete(this._vm);
+      this._vm = null;
     }
     this._vm = null;
     this.host = null;
@@ -1988,44 +1299,26 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public accept(visitor: ControllerVisitor): void | true {
-    let visited = activeControllerVisitors.get(visitor);
-    const ownsTraversal = visited === void 0;
-    if (ownsTraversal) {
-      activeControllerVisitors.set(visitor, visited = new Set());
-    } else if (visited!.has(this)) {
-      // Dynamic owners can expose controllers that also occur in the static
-      // child tree. A visitor-level seen set makes that ownership graph safe.
-      return;
+    if (visitor(this as IHydratedController) === true) {
+      return true;
     }
-    visited!.add(this);
 
-    try {
-      if (visitor(this as IHydratedController) === true) {
-        return true;
-      }
+    if (this._vmHooks._accept && this._vm!.accept(visitor) === true) {
+      return true;
+    }
 
-      if (this._vmHooks._accept && this._vm!.accept(visitor) === true) {
-        return true;
-      }
-
-      if (this.children !== null) {
-        const { children } = this;
-        for (let i = 0, ii = children.length; i < ii; ++i) {
-          if (children[i].accept(visitor) === true) {
-            return true;
-          }
+    if (this.children !== null) {
+      const { children } = this;
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+        if (children[i].accept(visitor) === true) {
+          return true;
         }
-      }
-    } finally {
-      if (ownsTraversal) {
-        activeControllerVisitors.delete(visitor);
       }
     }
   }
 }
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
-const activeControllerVisitors: WeakMap<ControllerVisitor, Set<Controller>> = new WeakMap();
 
 export type ControllerBindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -2616,9 +1909,7 @@ export interface IActivationHooks<TParent> {
   dispose?(): void;
   /**
    * If this component controls the instantiation and lifecycles of one or more controllers,
-   * implement this hook to expose those controllers to framework traversal. This is used by
-   * router integrations and by lifecycle/disposal safety checks; omitting an owned controller
-   * can allow its owner to be disposed while that controller still has live lifecycle work.
+   * implement this hook to enable component tree traversal for plugins that use it (such as the router).
    *
    * Return `true` to stop traversal.
    */
@@ -2698,6 +1989,10 @@ export interface IControllerElementHydrationInstruction {
   readonly containerless?: boolean;
 }
 
+function callDispose(disposable: IDisposable): void {
+  disposable.dispose();
+}
+
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {
   l.instance.created(this._vm!, this as IHydratedComponentController);
 }
@@ -2709,5 +2004,34 @@ function callHydratingHook(this: Controller, l: LifecycleHooksEntry<ICompileHook
 function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrated'>) {
   l.instance.hydrated(this._vm!, this as ICompiledCustomElementController<ICompileHooks>);
 }
+
+function callBindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'binding'>) {
+  return l.instance.binding(this._vm!, this['$initiator'], this.parent!);
+}
+
+function callBoundHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'bound'>) {
+  return l.instance.bound(this._vm!, this['$initiator'], this.parent!);
+}
+
+function callAttachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attaching'>) {
+  return l.instance.attaching(this._vm!, this['$initiator'], this.parent!);
+}
+
+function callAttachedHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'attached'>) {
+  return l.instance.attached(this._vm!, this['$initiator']);
+}
+
+function callDetachingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'detaching'>) {
+  return l.instance.detaching(this._vm!, this['$initiator'], this.parent!);
+}
+
+function callUnbindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'unbinding'>) {
+  return l.instance.unbinding(this._vm!, this['$initiator'], this.parent!);
+}
+
+// some reuseable variables to avoid creating nested blocks inside hot paths of controllers
+let _resolve: undefined | (() => unknown);
+let _reject: undefined | ((err: unknown) => unknown);
+let _retPromise: void | Promise<void>;
 
 const setRef = refs.set;

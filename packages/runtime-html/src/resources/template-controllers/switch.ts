@@ -43,10 +43,6 @@ export class Switch implements ICustomAttributeViewModel {
   /** @internal */
   public defaultCase?: Case;
   private activeCases: Case[] = [];
-  // The single-case fast path removes a case from desired active state before
-  // async teardown settles. Keep it traversable so disposal preflight still
-  // sees its live Controller operation, then hide it again once inactive.
-  /** @internal */ private readonly retiringCases = new Set<Case>();
   /**
    * Observer callbacks cannot return async work. This stable tail serializes
    * value/case changes and gives owner teardown one boundary to join.
@@ -100,8 +96,8 @@ export class Switch implements ICustomAttributeViewModel {
     // explicit and prevent stale settlement from remaining publicly observable.
     (this as Writable<Switch>).promise = void 0;
     const deactivate = (): void => {
-      // Descendant async work enrolls in the ancestor Controller operation; the
-      // Switch hook commits only its synchronous owner boundary here.
+      // The ancestor initiator tracks descendant async teardown. Switch only
+      // needs to keep its own queued case work ahead of this final deactivation.
       void this.view.deactivate(initiator, this.$controller);
     };
     if (!isPromise(pending)) {
@@ -233,7 +229,7 @@ export class Switch implements ICustomAttributeViewModel {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
         cases.length = 0;
-        return this._retireCase(firstCase, initiator);
+        return firstCase.deactivate(initiator);
       }
       return;
     }
@@ -249,13 +245,6 @@ export class Switch implements ICustomAttributeViewModel {
         cases.length = 0;
       }
     );
-  }
-
-  /** @internal */
-  private _retireCase($case: Case, initiator: IHydratedController | null): void | Promise<void> {
-    this.retiringCases.add($case);
-    const complete = () => { this.retiringCases.delete($case); };
-    return onResolve($case.deactivate(initiator), complete);
   }
 
   private queue(action: () => void | Promise<void>): void {
@@ -277,11 +266,6 @@ export class Switch implements ICustomAttributeViewModel {
     // already delegated here, and the base contains inactive cached cases too.
     if (this.activeCases.some(x => x.accept(visitor))) {
       return true;
-    }
-    for (const $case of this.retiringCases) {
-      if ($case.accept(visitor) === true) {
-        return true;
-      }
     }
   }
 }
@@ -418,9 +402,6 @@ export class Case implements ICustomAttributeViewModel {
   }
 
   public accept(visitor: ControllerVisitor): void | true {
-    if (this.$controller.accept(visitor) === true) {
-      return true;
-    }
     return this.view?.accept(visitor);
   }
 }

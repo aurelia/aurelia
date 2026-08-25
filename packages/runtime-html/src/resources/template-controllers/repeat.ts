@@ -772,18 +772,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _deactivateAllViews(initiator: IHydratedController): void {
-    const { views, $controller, _adoptedViews } = this;
+    const { views, $controller } = this;
     // A synchronous lifecycle hook may mutate the observed collection. Teardown
     // owns the row set accepted at entry, not whatever length is visible later.
     const length = views.length;
     for (let i = 0; i < length; ++i) {
       const view = views[i];
-      if (_adoptedViews?.has(view) !== true) {
-        view.release();
-      }
-      // Controller enrolls descendant work in the ancestor initiator and
-      // therefore returns no local Promise here. Repeat must not create a
-      // second owner for that same work.
+      // Repeat retains these rows for a possible owner restart. Releasing them
+      // would let Controller return an ordinary row to the factory cache while
+      // it is still referenced by this owner.
       void view.deactivate(initiator, $controller);
     }
   }

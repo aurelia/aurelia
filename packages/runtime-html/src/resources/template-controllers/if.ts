@@ -58,9 +58,8 @@ export class If implements ICustomAttributeViewModel {
     return onResolve(this.pending, () => {
       this._wantsDeactivate = false;
       this.pending = void 0;
-      // The shared Controller operation owns descendant settlement. Returning
-      // this local result would add a self-edge to the operation currently
-      // invoking If.detaching.
+      // The ancestor initiator tracks descendant async teardown. If only needs
+      // to keep its own pending swap ahead of this final deactivation.
       void this.view?.deactivate(initiator, this.$controller);
     });
   }

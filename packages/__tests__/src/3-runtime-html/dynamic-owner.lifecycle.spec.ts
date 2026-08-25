@@ -1,7 +1,6 @@
 import {
   customElement,
   Switch,
-  type ICustomElementController,
 } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
@@ -40,78 +39,6 @@ describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
     const start = fixture.start() as Promise<void>;
     assert.strictEqual(await captureRejection(start), error);
     assert.strictEqual(fixture.torn, true);
-  });
-
-  it('keeps a retiring switch case visible to controller disposal preflight', async function () {
-    const detaching = new Deferred();
-    let detachingCalls = 0;
-    let retiringCase!: RetiringCase;
-
-    @customElement({ name: 'retiring-switch-case', template: 'A' })
-    class RetiringCase {
-      public constructor() {
-        retiringCase = this;
-      }
-
-      public detaching(): Promise<void> {
-        ++detachingCalls;
-        return detaching.promise;
-      }
-    }
-
-    @customElement({ name: 'replacement-switch-case', template: 'B' })
-    class ReplacementCase {}
-
-    const fixture = createFixture(
-      '<div switch.bind="value">'
-      + '<retiring-switch-case case="a"></retiring-switch-case>'
-      + '<replacement-switch-case case="b"></replacement-switch-case>'
-      + '</div>',
-      class App {
-        public value = 'a';
-      },
-      [RetiringCase, ReplacementCase],
-    );
-    await fixture.started;
-
-    let switchVm!: Switch;
-    fixture.au.root.controller.accept(controller => {
-      if (controller.viewModel instanceof Switch) {
-        switchVm = controller.viewModel;
-        return true;
-      }
-    });
-
-    fixture.component.value = 'b';
-    assert.strictEqual(await waitForMicrotasks(() => detachingCalls === 1), true);
-    const transition = switchVm.promise;
-    assert.instanceOf(transition, Promise);
-
-    const root = fixture.au.root.controller;
-    let retiringVisible = false;
-    root.accept(controller => {
-      if (controller.viewModel === retiringCase) {
-        retiringVisible = true;
-        return true;
-      }
-    });
-    assert.strictEqual(retiringVisible, true);
-    assert.throws(() => root.dispose(), /AUR0510:.*lifecycle operation is running/i);
-    assert.strictEqual(root.isActive, true);
-    assert.notStrictEqual(root.viewModel, null);
-
-    detaching.resolve();
-    await transition;
-    assert.strictEqual(fixture.appHost.textContent, 'B');
-    retiringVisible = false;
-    root.accept(controller => {
-      if (controller.viewModel === retiringCase) {
-        retiringVisible = true;
-        return true;
-      }
-    });
-    assert.strictEqual(retiringVisible, false, 'settled inactive cases remain hidden from traversal');
-    await fixture.tearDown();
   });
 
   it('joins a pending case transition before switch teardown', async function () {
@@ -237,64 +164,6 @@ describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
     assert.strictEqual(fixture.torn, true);
   });
 
-  for (const branch of ['pending', 'then', 'catch'] as const) {
-    it(`preflights a live ${branch} view owned by the promise template controller`, async function () {
-      const promise = new Deferred<unknown>();
-      const detaching = new Deferred();
-      let child!: Child;
-      let detachingCalls = 0;
-
-      @customElement({ name: `live-${branch}-promise-disposal-child`, template: 'child' })
-      class Child {
-        public readonly $controller!: ICustomElementController<this>;
-
-        public constructor() {
-          child = this;
-        }
-
-        public detaching(): Promise<void> {
-          ++detachingCalls;
-          return detaching.promise;
-        }
-      }
-
-      const branches = (['pending', 'then', 'catch'] as const).map(name => name === branch
-        ? `<live-${branch}-promise-disposal-child ${name}></live-${branch}-promise-disposal-child>`
-        : `<span ${name}>${name}</span>`
-      ).join('');
-      const fixture = createFixture(
-        `<div promise.resolve="promise">${branches}</div>`,
-        class App { public promise: Promise<unknown> = promise.promise; },
-        [Child],
-      );
-      await fixture.started;
-      if (branch === 'then') {
-        promise.resolve('fulfilled');
-      } else if (branch === 'catch') {
-        promise.reject(new Error('rejected'));
-      }
-      await tasksSettled();
-
-      const root = fixture.au.root.controller;
-      // Drive retirement through the Promise scheduler, then hold the branch's
-      // real detaching hook so disposal preflight must discover the retiring view.
-      if (branch === 'pending') {
-        promise.resolve('fulfilled');
-      } else {
-        fixture.component.promise = new Promise<unknown>(() => { /* intentionally unsettled */ });
-      }
-      assert.strictEqual(await waitForMicrotasks(() => detachingCalls === 1), true);
-
-      assert.throws(() => root.dispose(), /AUR0510:.*lifecycle operation is running/i);
-      assert.strictEqual(root.isActive, true);
-      assert.notStrictEqual(root.viewModel, null);
-      assert.notStrictEqual(child.$controller.viewModel, null);
-
-      detaching.resolve();
-      await tasksSettled();
-      await fixture.tearDown();
-    });
-  }
 });
 
 async function captureRejection(promise: Promise<void>): Promise<unknown> {

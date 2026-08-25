@@ -973,37 +973,6 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       assert.strictEqual(fixture.appHost.textContent, '');
     });
 
-    it('preflights live operations owned by a dynamic controller', async function () {
-      const gate = new Deferred();
-
-      @customElement({ name: 'live-repeat-disposal-child', template: 'child' })
-      class Child {
-        public detaching(): Promise<void> {
-          return gate.promise;
-        }
-      }
-
-      const fixture = createFixture(
-        '<live-repeat-disposal-child repeat.for="item of items"></live-repeat-disposal-child>',
-        class { public items = [0]; },
-        [Child],
-      );
-      await fixture.started;
-      const root = fixture.au.root.controller;
-      const repeat = findRepeat(root);
-      const view = repeat.views[0];
-      const drain = view.deactivate(view, repeat.$controller) as Promise<void>;
-
-      assert.throws(() => root.dispose(), /AUR0510:.*lifecycle operation is running/i);
-      assert.strictEqual(root.isActive, true);
-      assert.notStrictEqual(root.viewModel, null);
-      assert.notStrictEqual(view.nodes, null);
-
-      gate.resolve();
-      await drain;
-      await fixture.tearDown();
-    });
-
     it('disposes adopted-provenance and later ordinary rows together on owner teardown', async function () {
       const gate = new Deferred();
       const disposed: number[] = [];

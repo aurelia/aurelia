@@ -5,7 +5,6 @@ import { INode } from '../../dom.node';
 import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
-  type ControllerVisitor,
   ICustomAttributeController,
   ICustomAttributeViewModel,
   IHydratableController,
@@ -163,10 +162,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     this.view?.dispose();
     this.view = (void 0)!;
   }
-
-  public accept(visitor: ControllerVisitor): void | true {
-    return acceptOwnedView(this.view, visitor);
-  }
 }
 
 export class PendingTemplateController implements ICustomAttributeViewModel {
@@ -219,10 +214,6 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   public dispose(): void {
     this.view?.dispose();
     this.view = (void 0)!;
-  }
-
-  public accept(visitor: ControllerVisitor): void | true {
-    return acceptOwnedView(this.view, visitor);
   }
 }
 
@@ -278,10 +269,6 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
     this.view?.dispose();
     this.view = (void 0)!;
   }
-
-  public accept(visitor: ControllerVisitor): void | true {
-    return acceptOwnedView(this.view, visitor);
-  }
 }
 
 export class RejectedTemplateController implements ICustomAttributeViewModel {
@@ -336,17 +323,6 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     this.view?.dispose();
     this.view = (void 0)!;
   }
-
-  public accept(visitor: ControllerVisitor): void | true {
-    return acceptOwnedView(this.view, visitor);
-  }
-}
-
-// Promise branch views are created dynamically and are not guaranteed to be in
-// Controller.children. Delegate explicitly so traversal still owns pending,
-// fulfilled, and rejected branches.
-function acceptOwnedView(view: ISyntheticView | undefined, visitor: ControllerVisitor): void | true {
-  return view?.accept(visitor);
 }
 
 function getPromiseController(controller: IHydratableController) {

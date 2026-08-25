@@ -1,11 +1,11 @@
-import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, onResolveAll, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
 import { IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
-import { Controller, type ControllerVisitor, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView, vmkCe } from '../../templating/controller';
+import { Controller, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView, vmkCe } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
@@ -151,50 +151,36 @@ export class AuCompose {
     ++this._queueVersion;
     this._contextFactory.invalidate();
     this._composition = this._composing = void 0;
-    const deactivate = (): void => {
-      // Descendant async work enrolls in the ancestor Controller operation; the
-      // AuCompose hook commits only its synchronous owner boundary here.
-      this._disposeOwnedCompositions(initiator);
-    };
+    const deactivate = () => this._disposeOwnedCompositions();
     if (!isPromise(pending)) {
       return deactivate();
     }
     return pending.then(deactivate);
   }
 
-  public accept(visitor: ControllerVisitor): void | true {
-    for (const composition of this._ownedCompositions) {
-      if (composition.controller.accept(visitor) === true) {
-        return true;
-      }
-    }
-  }
-
   /** @internal */
   private _retireComposition(
     composition: ICompositionController,
-    deactivate: () => void | Promise<void>,
     context: CompositionContext,
   ): CompositionContext | Promise<CompositionContext> {
-    return onResolve(this._disposeComposition(composition, deactivate), () => context);
+    return onResolve(this._disposeComposition(composition), () => context);
   }
 
   /** @internal */
   private _disposeComposition(
     composition: ICompositionController,
-    deactivate: () => void | Promise<void>,
   ): void | Promise<void> {
     const dispose = () => {
       try {
-        // Ancestor-driven Controller.deactivate intentionally returns no local
-        // drain. Ask Controller to dispose at this composition's own cleanup
-        // boundary rather than disposing underneath the ancestor operation.
-        (composition.controller as Controller)._disposeAfterDeactivate();
+        composition.controller.dispose();
       } finally {
         this._ownedCompositions.delete(composition);
       }
     };
-    const result = deactivate();
+    // AuCompose owns this dynamically created Controller. Self-initiated
+    // deactivation gives the owner an exact local completion boundary that its
+    // own structural queue or detaching hook can return to the ancestor.
+    const result = composition.deactivate(composition.controller);
     if (isPromise(result)) {
       return result.then(dispose);
     }
@@ -202,15 +188,14 @@ export class AuCompose {
   }
 
   /** @internal */
-  private _disposeOwnedCompositions(initiator: IHydratedController): void {
+  private _disposeOwnedCompositions(): void | Promise<void> {
     // A composed lifecycle can synchronously change AuCompose inputs before the
     // outer queue publishes its tail, so more than one composition may be owned.
     // Snapshot the set because each disposal removes itself from ownership.
-    for (const composition of Array.from(this._ownedCompositions)) {
-      // Descendant async work is enrolled in the ancestor Controller operation;
-      // no second Promise boundary is returned from this owner hook.
-      void this._disposeComposition(composition, () => composition.deactivate(initiator));
-    }
+    return onResolveAll(...Array.from(
+      this._ownedCompositions,
+      composition => this._disposeComposition(composition),
+    ));
   }
 
   /** @internal */
@@ -340,14 +325,12 @@ export class AuCompose {
                   }
                   return this._retireComposition(
                     prevCompositionCtrl,
-                    () => prevCompositionCtrl.deactivate(initiator),
                     context,
                   );
                 } else {
                   // the stale controller should be deactivated
                   return this._retireComposition(
                     result,
-                    () => result.deactivate(result.controller),
                     context,
                   );
                 }
@@ -360,7 +343,6 @@ export class AuCompose {
 
             return this._retireComposition(
               result,
-              () => result.deactivate(result.controller),
               context,
             );
           });

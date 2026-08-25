@@ -2,7 +2,6 @@ import {
   AuCompose,
   customElement,
   CustomElement,
-  type IHydratedController,
 } from '@aurelia/runtime-html';
 import { runTasks, tasksSettled } from '@aurelia/runtime';
 import type { ICompositionController } from '@aurelia/runtime-html/dist/types/resources/custom-elements/au-compose';
@@ -544,88 +543,6 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       assert.strictEqual(fixture.appHost.textContent, '');
       await fixture.tearDown();
     });
-  });
-
-  it('preflights a live controller owned by AuCompose', async function () {
-    const gate = new Deferred();
-
-    @customElement({ name: 'live-compose-disposal-child', template: 'child' })
-    class Child {
-      public detaching(): Promise<void> {
-        return gate.promise;
-      }
-    }
-
-    const fixture = createFixture(
-      '<au-compose component.bind="component" composition.bind="composition"></au-compose>',
-      class App {
-        public component = Child;
-        public composition?: { readonly controller: IHydratedController };
-      },
-      [Child],
-    );
-    await fixture.started;
-    const root = fixture.au.root.controller;
-    let auComposeController: IHydratedController | undefined;
-    root.accept(controller => {
-      if (controller.viewModel instanceof AuCompose) {
-        auComposeController = controller;
-        return true;
-      }
-    });
-    assert.notStrictEqual(auComposeController, void 0);
-    const composed = fixture.component.composition!.controller;
-    const drain = composed.deactivate(composed, auComposeController!) as Promise<void>;
-
-    assert.throws(() => root.dispose(), /AUR0510:.*lifecycle operation is running/i);
-    assert.strictEqual(root.isActive, true);
-    assert.notStrictEqual(root.viewModel, null);
-    assert.notStrictEqual((composed as unknown as { nodes: unknown }).nodes, null);
-
-    gate.resolve();
-    await drain;
-    await fixture.tearDown();
-  });
-
-  it('retains an old AuCompose controller in traversal until recomposition teardown settles', async function () {
-    const gate = new Deferred();
-
-    @customElement({ name: 'retiring-compose-child', template: 'old' })
-    class RetiringChild {
-      public detaching(): Promise<void> {
-        return gate.promise;
-      }
-    }
-
-    @customElement({ name: 'replacement-compose-child', template: 'new' })
-    class ReplacementChild {}
-
-    const fixture = createFixture(
-      '<au-compose component.bind="component" composing.bind="composing" composition.bind="composition"></au-compose>',
-      class App {
-        public component: unknown = RetiringChild;
-        public composing?: Promise<void> | void;
-        public composition?: { readonly controller: IHydratedController };
-      },
-      [RetiringChild, ReplacementChild],
-    );
-    await fixture.started;
-    const root = fixture.au.root.controller;
-    const oldController = fixture.component.composition!.controller;
-
-    fixture.component.component = ReplacementChild;
-    await tasksSettled();
-    const composing = fixture.component.composing;
-    assert.instanceOf(composing, Promise);
-    assert.notStrictEqual(fixture.component.composition!.controller, oldController);
-    assert.throws(() => root.dispose(), /AUR0510:.*lifecycle operation is running/i);
-    assert.strictEqual(root.isActive, true);
-    assert.notStrictEqual((oldController as unknown as { nodes: unknown }).nodes, null);
-
-    gate.resolve();
-    await composing;
-    fixture.assertText('new');
-    await fixture.tearDown();
   });
 
 });

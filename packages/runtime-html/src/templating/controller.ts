@@ -1007,11 +1007,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _ensurePromise(): void {
     if (this.$promise === void 0) {
-      this.$promise = new Promise((resolve, reject) => {
+      const promise = this.$promise = new Promise((resolve, reject) => {
         this.$resolve = resolve;
         this.$reject = reject;
       });
       if (this.$initiator !== this) {
+        // Ancestor traversal owns the public failure boundary. Observe this
+        // descendant-local mirror so the same error is not also host-unhandled.
+        void promise.catch(noop);
         (this.parent as Controller)._ensurePromise();
       }
     }

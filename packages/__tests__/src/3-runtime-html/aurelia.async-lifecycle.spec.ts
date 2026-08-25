@@ -127,6 +127,105 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       assert.strictEqual(au.isStopping, true);
     });
 
+    it('keeps a replacement stop separate from the preceding queued stop', async function () {
+      const ctx = TestContext.create();
+      const au = new Aurelia(ctx.container);
+      const activation = createDeferred();
+      const calls: string[] = [];
+      const rootA = createRootProbe(ctx, {
+        activate() {
+          calls.push('A:activate');
+          return activation.promise;
+        },
+        deactivate() { calls.push('A:deactivate'); },
+        dispose() { calls.push('A:dispose'); },
+      });
+      const rootB = createRootProbe(ctx, {
+        activate() { calls.push('B:activate'); },
+        deactivate() { calls.push('B:deactivate'); },
+        dispose() { calls.push('B:dispose'); },
+      });
+
+      const startA = au.start(rootA.root) as Promise<void>;
+      const stopA = au.stop() as Promise<void>;
+      activation.resolve();
+      await startA;
+
+      const startB = au.start(rootB.root) as Promise<void>;
+      const stopB = au.stop(true) as Promise<void>;
+      assert.notStrictEqual(stopB, stopA);
+      assert.notStrictEqual(stopB, startB);
+
+      await startB;
+      assert.deepStrictEqual(calls, ['A:activate', 'A:deactivate', 'B:activate']);
+      assert.strictEqual(rootA.calls.dispose, 0);
+      assert.strictEqual(rootB.calls.dispose, 0);
+      assert.strictEqual(au.isRunning, true);
+      assertPublished(ctx, au, rootB);
+
+      await stopB;
+      assert.deepStrictEqual(calls, [
+        'A:activate',
+        'A:deactivate',
+        'B:activate',
+        'B:deactivate',
+        'B:dispose',
+      ]);
+      assertIdle(au);
+      assertUnpublished(ctx, rootB.host);
+      au.dispose();
+    });
+
+    it('keeps an au-started replacement separate from a synchronous reentrant stop', async function () {
+      const ctx = TestContext.create();
+      const au = new Aurelia(ctx.container);
+      const calls: string[] = [];
+      let stopA!: Promise<void>;
+      let startB!: Promise<void>;
+      let stopB!: Promise<void>;
+      const rootB = createRootProbe(ctx, {
+        activate() { calls.push('B:activate'); },
+        deactivate() { calls.push('B:deactivate'); },
+        dispose() { calls.push('B:dispose'); },
+      });
+      const rootA = createRootProbe(ctx, {
+        activate() {
+          calls.push('A:activate');
+          stopA = au.stop() as Promise<void>;
+        },
+        deactivate() { calls.push('A:deactivate'); },
+      });
+      rootA.host.addEventListener('au-started', () => {
+        startB = au.start(rootB.root) as Promise<void>;
+        stopB = au.stop(true) as Promise<void>;
+      });
+
+      assert.strictEqual(au.start(rootA.root), void 0);
+      assert.instanceOf(stopA, Promise);
+      assert.instanceOf(startB, Promise);
+      assert.instanceOf(stopB, Promise);
+      assert.notStrictEqual(stopB, stopA);
+      assert.notStrictEqual(stopB, startB);
+
+      await startB;
+      assert.deepStrictEqual(calls, ['A:activate', 'A:deactivate', 'B:activate']);
+      assert.strictEqual(rootB.calls.dispose, 0);
+      assert.strictEqual(au.isRunning, true);
+      assertPublished(ctx, au, rootB);
+
+      await stopB;
+      assert.deepStrictEqual(calls, [
+        'A:activate',
+        'A:deactivate',
+        'B:activate',
+        'B:deactivate',
+        'B:dispose',
+      ]);
+      assertIdle(au);
+      assertUnpublished(ctx, rootB.host);
+      au.dispose();
+    });
+
     it('records a stop requested synchronously from root activation', async function () {
       const ctx = TestContext.create();
       const host = ctx.createElement('div');

@@ -135,9 +135,17 @@ export class Aurelia implements IDisposable {
       throw this._transitionFailure.error;
     }
 
-    let result: void | Promise<void>;
+    let result: QueuedStop | null | Promise<QueuedStop | null>;
     try {
-      result = onResolve(this.stop(), () => this._activateRoot(root));
+      const previousStop = this.stop();
+      const publishedStop = this._queuedStop;
+      if (publishedStop?.promise === previousStop) {
+        // This start now owns the published stop as its prerequisite. Detach the
+        // record so a later stop request can belong to the replacement root;
+        // the preceding start retains the record in its local completion value.
+        this._queuedStop = void 0;
+      }
+      result = onResolve(previousStop, () => this._activateRoot(root)) as QueuedStop | null | Promise<QueuedStop | null>;
     } catch (error) {
       this._transitionFailure = { error };
       this._rejectQueuedStop(error);
@@ -146,11 +154,11 @@ export class Aurelia implements IDisposable {
 
     if (isPromise(result)) {
       const startPromise = result.then(
-        () => {
+        queuedStop => {
           if (this._startPromise === startPromise) {
             this._startPromise = void 0;
           }
-          this._publishQueuedStop(root);
+          this._publishQueuedStop(root, queuedStop ?? void 0);
         },
         error => {
           // A failed root transition is terminal. Keep the operation published
@@ -163,7 +171,7 @@ export class Aurelia implements IDisposable {
       );
       return this._startPromise = startPromise;
     }
-    this._publishQueuedStop(root);
+    this._publishQueuedStop(root, result ?? void 0);
   }
 
   /** @internal */
@@ -234,14 +242,20 @@ export class Aurelia implements IDisposable {
   }
 
   /** @internal */
-  private _activateRoot(root: IAppRoot): void | Promise<void> {
+  private _activateRoot(root: IAppRoot): QueuedStop | null | Promise<QueuedStop | null> {
     this._isStarting = true;
 
     if (!refs.hideProp) {
       Reflect.set(root.host, '$aurelia', this);
     }
     this._rootProvider.prepare(this._root = root);
-    return onResolve(root.activate(), () => this._completeStart(root));
+    return onResolve(root.activate(), () => {
+      // Capture before au-started dispatches: event handlers can synchronously
+      // start a replacement and install a different queued-stop record.
+      const queuedStop = this._queuedStop ?? null;
+      this._completeStart(root);
+      return queuedStop;
+    });
   }
 
   /** @internal */
@@ -259,8 +273,7 @@ export class Aurelia implements IDisposable {
   }
 
   /** @internal */
-  private _publishQueuedStop(root: IAppRoot): void {
-    const queued = this._queuedStop;
+  private _publishQueuedStop(root: IAppRoot, queued: QueuedStop | undefined): void {
     if (queued === void 0) {
       return;
     }

@@ -7,142 +7,91 @@ on:
     types: [labeled]
   workflow_dispatch:
     inputs:
-      branch:
-        description: "Branch to trigger on (defaults to PR head)"
+      pr_number:
+        description: Open same-repository PR number
+        required: true
+        type: number
+      expected_base_sha:
+        description: Optional full base SHA; fail if master has moved
+        required: false
+        type: string
+      expected_head_sha:
+        description: Optional full head SHA; fail if the PR has moved
         required: false
         type: string
 
 permissions:
   contents: read
+  issues: write
   pull-requests: read
 
 jobs:
-  trigger:
+  decide:
     runs-on: ubuntu-latest
-
+    outputs:
+      should: ${{ steps.command.outputs.should }}
+      pr: ${{ steps.command.outputs.pr }}
     steps:
       - name: Decide whether to trigger pr_full
-        id: decide
+        id: command
         uses: actions/github-script@v7
         with:
           script: |
-            const isMember = (assoc) => ['MEMBER','OWNER','COLLABORATOR'].includes((assoc || '').toUpperCase());
-
+            const isMember = association =>
+              ['MEMBER', 'OWNER', 'COLLABORATOR'].includes((association || '').toUpperCase());
             let should = false;
-            let why = 'no match';
-            let source = '';
-            let mode = 'none'; // 'full' when /ci full or ci:full
+            let prNumber = '';
 
             if (context.eventName === 'issue_comment') {
-              const body = (context.payload.comment?.body || '').trim();
-              const assoc = context.payload.comment?.author_association || '';
               const isPR = Boolean(context.payload.issue?.pull_request);
-              if (isPR && isMember(assoc) && body === '/ci full') {
-                should = true;
-                mode = 'full';
-                source = 'issue_comment';
-                why = '/ci full';
-              } else {
-                why = `isPR=${isPR} assoc=${assoc} body="${body}"`;
-              }
-            } else if (context.eventName === 'pull_request_target' &&
-                       context.payload.action === 'labeled') {
-              const label = context.payload.label?.name || '';
-              if (label === 'ci:full') {
-                should = true;
-                mode = 'full';
-                source = 'label';
-                why = 'label=ci:full';
-              } else {
-                why = `label=${label}`;
-              }
+              const body = (context.payload.comment?.body || '').trim();
+              const association = context.payload.comment?.author_association || '';
+              should = isPR && body === '/ci full' && isMember(association);
+              if (should) prNumber = String(context.issue.number);
+            } else if (
+              context.eventName === 'pull_request_target'
+              && context.payload.action === 'labeled'
+              && context.payload.label?.name === 'ci:full'
+            ) {
+              should = true;
+              prNumber = String(context.payload.pull_request?.number || '');
             } else if (context.eventName === 'workflow_dispatch') {
               should = true;
-              mode = 'full';
-              source = 'manual';
-              why = 'manual dispatch';
+              prNumber = String(context.payload.inputs?.pr_number || '');
             }
 
-            core.info(`decision: source=${source} why=${why}`);
             core.setOutput('should', should ? 'true' : 'false');
-            core.setOutput('mode', mode);
+            core.setOutput('pr', prNumber);
 
-            if (!should) core.info('Skipping: conditions not met');
-
-      - name: Resolve PR head (branch/sha)
-        id: head
-        if: steps.decide.outputs.should == 'true'
-        uses: actions/github-script@v7
+  trigger:
+    needs: decide
+    if: needs.decide.outputs.should == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - name: Check out trusted workflow support
+        uses: actions/checkout@v4
         with:
-          script: |
-            const branchInput = core.getInput('branch') || '';
+          ref: master
 
-            if (branchInput) {
-              core.setOutput('branch', branchInput);
-              core.info(`Using manual branch input: ${branchInput}`);
-              return;
-            }
-
-            const prNum =
-              context.payload.pull_request?.number ??
-              context.issue?.number;
-
-            if (!prNum) {
-              core.setFailed('Could not resolve PR number from event payload');
-              return;
-            }
-
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNum
-            });
-
-            const isFork = pr.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`;
-
-            core.setOutput('branch', pr.head.ref);
-            core.setOutput('sha', pr.head.sha);
-            core.setOutput('is_fork', String(isFork));
-            core.setOutput('pr', String(pr.number));
-
-            core.info(`PR #${pr.number}: head ${pr.head.repo.full_name}@${pr.head.ref} (${pr.head.sha}), isFork=${isFork}`)
-
-      - name: Notice for fork PRs
-        if: steps.decide.outputs.should == 'true' && steps.head.outputs.is_fork == 'true'
-        run: |
-          echo "::notice::This PR comes from a fork (${GITHUB_REPOSITORY} != ${{ github.event.pull_request.head.repo.full_name }}).
-          CircleCI requires a branch that exists in the base repo; the trigger may fail unless the branch is mirrored."
-
-      - name: Trigger CircleCI pipeline (pr_full)
-        if: steps.decide.outputs.should == 'true' && steps.decide.outputs.mode == 'full'
+      - name: Trigger and report CircleCI pr_full pipeline
+        uses: actions/github-script@v7
         env:
+          PR_NUMBER: ${{ needs.decide.outputs.pr }}
+          EXPECTED_BASE_SHA: ${{ inputs.expected_base_sha || '' }}
+          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha || '' }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-          BRANCH: ${{ steps.head.outputs.branch }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "${CIRCLECI_TOKEN}" ]; then
-            echo "::error::Missing repository secret CIRCLECI_TOKEN (CircleCI personal API token)."
-            exit 1
-          fi
-
-          PARAMS="{\"run_pr_full\":true,\"run_pr_lite\":false}"
-          DATA="{\"branch\":\"${BRANCH}\",\"parameters\":${PARAMS}}"
-
-          echo "Triggering CircleCI on ${GITHUB_REPOSITORY}@${BRANCH}"
-          echo "Parameters: ${PARAMS}"
-
-          http_code=$(curl -sS -o response.json -w "%{http_code}" -X POST \
-            "https://circleci.com/api/v2/project/gh/${GITHUB_REPOSITORY}/pipeline" \
-            -H "Circle-Token: ${CIRCLECI_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "${DATA}")
-
-          echo "HTTP ${http_code}"
-          echo "Response:"
-          cat response.json || true
-
-          if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
-            echo "::error::Failed to trigger CircleCI pipeline. HTTP ${http_code}"
-            exit 1
-          fi
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const trigger = require('./.github/scripts/trigger-benchmark-pipeline.cjs');
+            await trigger({
+              github,
+              context,
+              core,
+              prNumber: process.env.PR_NUMBER,
+              profile: 'smoke',
+              circleToken: process.env.CIRCLECI_TOKEN,
+              expectedBase: process.env.EXPECTED_BASE_SHA,
+              expectedHead: process.env.EXPECTED_HEAD_SHA,
+            });

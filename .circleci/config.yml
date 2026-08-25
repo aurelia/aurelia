@@ -39,6 +39,21 @@ parameters:
   run_pr_lite:
     type: boolean
     default: true
+  benchmark_profile:
+    type: string
+    default: ""
+  benchmark_pr:
+    type: string
+    default: ""
+  benchmark_base_sha:
+    type: string
+    default: ""
+  benchmark_head_sha:
+    type: string
+    default: ""
+  benchmark_candidate_sha:
+    type: string
+    default: ""
 
 # # # # # # # # # # # # # # # #
 # - Executors -
@@ -193,6 +208,9 @@ jobs:
       generate_native_modules:
         type: boolean
         default: false
+      test_dev_runners:
+        type: boolean
+        default: false
     steps:
       - checkout
       - restore_cache:
@@ -216,6 +234,14 @@ jobs:
           condition: << parameters.generate_native_modules >>
           steps:
             - run: npm run generate-native-modules
+      - when:
+          condition: << parameters.test_dev_runners >>
+          steps:
+            - run:
+                name: "Test development runners"
+                command: |
+                  npm run test:dev-utils
+                  npm run test-node:runner -w @aurelia/__tests__
       - save_cache:
           key: cache-{{ .Revision }}-build-<< parameters.release >>
           paths:
@@ -480,54 +506,172 @@ jobs:
 
   tacho_benchmark_prep:
     executor: docker_circleci_bench
+    environment:
+      BENCHMARK_REQUEST_PROFILE: << pipeline.parameters.benchmark_profile >>
+      BENCHMARK_REQUEST_PR: << pipeline.parameters.benchmark_pr >>
+      BENCHMARK_REQUEST_BASE_SHA: << pipeline.parameters.benchmark_base_sha >>
+      BENCHMARK_REQUEST_HEAD_SHA: << pipeline.parameters.benchmark_head_sha >>
+      BENCHMARK_REQUEST_CANDIDATE_SHA: << pipeline.parameters.benchmark_candidate_sha >>
     steps:
       - checkout
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-true
       - run:
-          name: "bench prep dep"
-          working_directory: "benchmarks/latest"
-          command: npm i
+          name: "Verify benchmark revisions"
+          command: |
+            set -euo pipefail
+
+            candidate=$(git rev-parse HEAD)
+            if [[ -n "${BENCHMARK_REQUEST_PR}" ]]; then
+              if [[ ! "${BENCHMARK_REQUEST_PR}" =~ ^[1-9][0-9]*$ ]]; then
+                echo "Invalid benchmark PR number: ${BENCHMARK_REQUEST_PR}" >&2
+                exit 1
+              fi
+              if [[ "${CIRCLE_BRANCH}" != "pull/${BENCHMARK_REQUEST_PR}/merge" ]]; then
+                echo "Expected CircleCI merge ref pull/${BENCHMARK_REQUEST_PR}/merge, got ${CIRCLE_BRANCH}." >&2
+                exit 1
+              fi
+
+              sha_pattern='^[0-9a-f]{40}$'
+              for value in \
+                "${BENCHMARK_REQUEST_BASE_SHA}" \
+                "${BENCHMARK_REQUEST_HEAD_SHA}" \
+                "${BENCHMARK_REQUEST_CANDIDATE_SHA}"; do
+                if [[ ! "${value}" =~ ${sha_pattern} ]]; then
+                  echo "Benchmark revisions must be full lowercase commit SHAs: ${value}" >&2
+                  exit 1
+                fi
+              done
+              if [[ "${candidate}" != "${BENCHMARK_REQUEST_CANDIDATE_SHA}" ]]; then
+                echo "CircleCI checked out ${candidate}, expected ${BENCHMARK_REQUEST_CANDIDATE_SHA}." >&2
+                exit 1
+              fi
+
+              read -r first_parent second_parent extra < <(git show -s --format=%P "${candidate}")
+              if [[ -n "${extra:-}" \
+                || "${first_parent:-}" != "${BENCHMARK_REQUEST_BASE_SHA}" \
+                || "${second_parent:-}" != "${BENCHMARK_REQUEST_HEAD_SHA}" ]]; then
+                echo "Candidate parents do not match the requested base and head." >&2
+                exit 1
+              fi
+
+              base=${BENCHMARK_REQUEST_BASE_SHA}
+              head=${BENCHMARK_REQUEST_HEAD_SHA}
+              profile=${BENCHMARK_REQUEST_PROFILE}
+              pr=${BENCHMARK_REQUEST_PR}
+            elif [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+              read -r base _ < <(git show -s --format=%P "${candidate}")
+              if [[ -z "${base:-}" ]]; then
+                echo "The master benchmark requires a first-parent baseline." >&2
+                exit 1
+              fi
+              head=''
+              profile='master'
+              pr=''
+            else
+              echo "Benchmark provenance is missing for branch ${CIRCLE_BRANCH}." >&2
+              exit 1
+            fi
+
+            revisions=("${base}" "${candidate}")
+            if [[ -n "${head}" ]]; then
+              revisions+=("${head}")
+            fi
+            for revision in "${revisions[@]}"; do
+              if ! git cat-file -e "${revision}^{commit}"; then
+                git fetch --no-tags origin "${revision}"
+              fi
+            done
+
+            {
+              echo "export BENCHMARK_BASE_SHA=${base}"
+              echo "export BENCHMARK_HEAD_SHA=${head}"
+              echo "export BENCHMARK_CANDIDATE_SHA=${candidate}"
+              echo "export BENCHMARK_PROFILE=${profile}"
+              echo "export BENCHMARK_PR=${pr}"
+            } >> "${BASH_ENV}"
       - run:
-          name: "bench prep build"
+          name: "Validate benchmark harness"
           working_directory: "benchmarks"
-          command: npm run build
-      - save_cache:
-          key: cache-{{ .Revision }}-benchmark-app
+          command: npm run bench:test
+      - run:
+          name: "Prepare exact benchmark variants"
+          working_directory: "benchmarks"
+          command: |
+            set -euo pipefail
+            args=(
+              --base "${BENCHMARK_BASE_SHA}"
+              --candidate "${BENCHMARK_CANDIDATE_SHA}"
+              --output results/variants
+              --profile "${BENCHMARK_PROFILE}"
+            )
+            if [[ -n "${BENCHMARK_PR}" ]]; then
+              args+=(--head "${BENCHMARK_HEAD_SHA}" --pull-request "${BENCHMARK_PR}")
+            fi
+            npm run bench:variants -- "${args[@]}"
+      - persist_to_workspace:
+          root: .
           paths:
-            - benchmarks/app-repeat-ce/dist
-            - benchmarks/app-repeat-view/dist
-            - benchmarks/app-repeat-view-big-template/dist
-            - benchmarks/app-repeat-view-keyed-expr/dist
-            - benchmarks/app-repeat-view-keyed-string/dist
+            - benchmarks/results/variants
+      - store_artifacts:
+          path: benchmarks/results/variants
+          destination: benchmark-variants
 
   tacho_benchmark:
     executor: docker_circleci_bench
     parameters:
       command:
         type: string
+      result:
+        type: string
+      no_output_timeout:
+        type: string
+        default: "30s"
     steps:
       - checkout
+      - attach_workspace:
+          at: .
+      # Tachometer resolves the npm module; Circle installs the executable matched to this job's Chrome.
       - browser-tools/install_chrome
       - browser-tools/install_chromedriver
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - restore_cache:
-          name: "Restore build artifacts"
-          key: cache-{{ .Revision }}-build-true
-      - restore_cache:
-          name: "Restore benchmark artifacts"
-          key: cache-{{ .Revision }}-benchmark-app
       - run:
           name: "benchmark: <<parameters.command>>"
-          command: <<parameters.command>>
+          command: |
+            mkdir -p results
+            <<parameters.command>>
           working_directory: "benchmarks"
-          no_output_timeout: "30s"
+          # Explicit-GC lifecycle samples do more work before Tachometer writes its result table.
+          no_output_timeout: <<parameters.no_output_timeout>>
+      - persist_to_workspace:
+          root: .
+          paths:
+            - benchmarks/results/<<parameters.result>>
+      - store_artifacts:
+          path: benchmarks/results/<<parameters.result>>
+          destination: benchmark-results/<<parameters.result>>
+
+  benchmark_report:
+    executor: docker_circleci_bench
+    parameters:
+      profile:
+        type: string
+    environment:
+      BENCHMARK_REPORT_PROFILE: <<parameters.profile>>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Build benchmark report"
+          working_directory: "benchmarks"
+          command: npm run bench:report
+      - store_artifacts:
+          path: benchmarks/results/report
+          destination: benchmark-report
 
   # on branches that only touches doc
   # there's no need to run the workflow
@@ -594,6 +738,7 @@ workflows:
           <<: *filter_only_topic
           name: pr_lite_build
           release: true
+          test_dev_runners: true
           requires:
             - pr_lite_install
 
@@ -703,22 +848,16 @@ workflows:
           <<: *filter_only_topic
           name: pr_bench_install
 
-      - build_and_cache:
-          <<: *filter_only_topic
-          name: pr_bench_build_release
-          release: true
-          requires:
-            - pr_bench_install
-
       - tacho_benchmark_prep:
           <<: *filter_only_topic
           requires:
-            - pr_bench_build_release
+            - pr_bench_install
 
       - tacho_benchmark:
           <<: *filter_only_topic
           name: pr_benchmark_startup
           command: npm run bench:startup10k
+          result: repeat-view-startup-10k.json
           requires:
             - tacho_benchmark_prep
 
@@ -726,15 +865,35 @@ workflows:
           <<: *filter_only_topic
           name: pr_benchmark_rerender
           command: npm run bench:rerender10k
+          result: repeat-view-rerender-10k.json
           requires:
             - tacho_benchmark_prep
 
       - tacho_benchmark:
           <<: *filter_only_topic
-          name: pr_benchmark_compiler
-          command: npm run bench:startup1k-big
+          name: pr_benchmark_big_template_startup
+          command: npm run bench:startup100-big
+          result: repeat-view-startup-100-big-template.json
           requires:
             - tacho_benchmark_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: pr_benchmark_realistic_refresh
+          command: npm run bench:realistic-refresh
+          result: repeat-realistic-refresh-1000.json
+          requires:
+            - tacho_benchmark_prep
+
+      - benchmark_report:
+          <<: *filter_only_topic
+          name: benchmark_report
+          profile: smoke
+          requires:
+            - pr_benchmark_startup
+            - pr_benchmark_rerender
+            - pr_benchmark_big_template_startup
+            - pr_benchmark_realistic_refresh
 
   benchmarks:
     when: << pipeline.parameters.run_bench >>
@@ -743,23 +902,17 @@ workflows:
           <<: *filter_only_topic
           name: bench_install
 
-      - build_and_cache:
-          <<: *filter_only_topic
-          name: bench_build_release
-          release: true
-          requires:
-            - bench_install
-
       - tacho_benchmark_prep:
           <<: *filter_only_topic
           name: bench_prep
           requires:
-            - bench_build_release
+            - bench_install
 
       - tacho_benchmark:
           <<: *filter_only_topic
           name: bench_startup10k
           command: npm run bench:startup10k
+          result: repeat-view-startup-10k.json
           requires:
             - bench_prep
 
@@ -767,6 +920,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_startup10k_ce
           command: npm run bench:startup10k-ce
+          result: repeat-ce-startup-10k.json
           requires:
             - bench_prep
 
@@ -774,6 +928,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_rerender10k
           command: npm run bench:rerender10k
+          result: repeat-view-rerender-10k.json
           requires:
             - bench_prep
 
@@ -781,22 +936,15 @@ workflows:
           <<: *filter_only_topic
           name: bench_rerender10k_ce
           command: npm run bench:rerender10k-ce
+          result: repeat-ce-rerender-10k.json
           requires:
             - bench_prep
 
-      # the app has been converted to a compiler focused bench
-      # if we wish to bench rerendering a big template, we need to create a new app for that
-      # - tacho_benchmark:
-      #     <<: *filter_only_topic
-      #     name: bench_rerender1k_big
-      #     command: npm run bench:rerender1k-big
-      #     requires:
-      #       - bench_prep
-
       - tacho_benchmark:
           <<: *filter_only_topic
-          name: bench_startup1k_big
-          command: npm run bench:startup1k-big
+          name: bench_startup100_big_template
+          command: npm run bench:startup100-big
+          result: repeat-view-startup-100-big-template.json
           requires:
             - bench_prep
 
@@ -804,6 +952,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_update1k
           command: npm run bench:update1k
+          result: repeat-view-update-1k.json
           requires:
             - bench_prep
 
@@ -811,6 +960,7 @@ workflows:
           <<: *filter_only_topic
           name: bench_repeat_keyed_expression
           command: npm run bench:repeat-expr
+          result: app-repeat-view-keyed-expr.json
           requires:
             - bench_prep
 
@@ -818,8 +968,60 @@ workflows:
           <<: *filter_only_topic
           name: bench_repeat_keyed_string
           command: npm run bench:repeat-string
+          result: app-repeat-view-keyed-string.json
           requires:
             - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_startup
+          command: npm run bench:realistic-startup
+          result: repeat-realistic-startup-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_refresh
+          command: npm run bench:realistic-refresh
+          result: repeat-realistic-refresh-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_mixed
+          command: npm run bench:realistic-mixed
+          result: repeat-realistic-mixed-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          <<: *filter_only_topic
+          name: bench_realistic_heap_lifecycle
+          command: npm run bench:realistic-heap500
+          result: repeat-realistic-heap-lifecycle-500.json
+          no_output_timeout: "2m"
+          requires:
+            - bench_prep
+
+      - benchmark_report:
+          <<: *filter_only_topic
+          name: benchmark_report
+          profile: full
+          requires:
+            - bench_startup10k
+            - bench_startup10k_ce
+            - bench_rerender10k
+            - bench_rerender10k_ce
+            - bench_startup100_big_template
+            - bench_update1k
+            - bench_repeat_keyed_expression
+            - bench_repeat_keyed_string
+            - bench_realistic_startup
+            - bench_realistic_refresh
+            - bench_realistic_mixed
+            - bench_realistic_heap_lifecycle
 
   # Runs build and tests (master)
   build_test:
@@ -964,55 +1166,101 @@ workflows:
           <<: *filter_only_master
           name: benchmark_startup
           command: npm run bench:startup10k
+          result: repeat-view-startup-10k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_startup___custom_element
           command: npm run bench:startup10k-ce
+          result: repeat-ce-startup-10k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_rerender
           command: npm run bench:rerender10k
+          result: repeat-view-rerender-10k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_rerender__custom_element
           command: npm run bench:rerender10k-ce
+          result: repeat-ce-rerender-10k.json
           requires:
             - tacho_benchmark_prep
-      # the app has been converted to a compiler focused bench
-      # if we wish to bench rerendering a big template, we need to create a new app for that
-      # - tacho_benchmark:
-      #     <<: *filter_only_master
-      #     name: benchmark_rerender1k-big-template
-      #     command: npm run bench:rerender1k-big
-      #     requires:
-      #       - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
-          name: benchmark_startup1k-big-template
-          command: npm run bench:startup1k-big
+          name: benchmark_startup100_big_template
+          command: npm run bench:startup100-big
+          result: repeat-view-startup-100-big-template.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_update
           command: npm run bench:update1k
+          result: repeat-view-update-1k.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_repeat_keyed_expression
           command: npm run bench:repeat-expr
+          result: app-repeat-view-keyed-expr.json
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_only_master
           name: benchmark_repeat_keyed_string
           command: npm run bench:repeat-string
+          result: app-repeat-view-keyed-string.json
           requires:
             - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_startup
+          command: npm run bench:realistic-startup
+          result: repeat-realistic-startup-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_refresh
+          command: npm run bench:realistic-refresh
+          result: repeat-realistic-refresh-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_mixed
+          command: npm run bench:realistic-mixed
+          result: repeat-realistic-mixed-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_realistic_heap_lifecycle
+          command: npm run bench:realistic-heap500
+          result: repeat-realistic-heap-lifecycle-500.json
+          no_output_timeout: "2m"
+          requires:
+            - tacho_benchmark_prep
+      - benchmark_report:
+          <<: *filter_only_master
+          name: benchmark_report
+          profile: master
+          requires:
+            - benchmark_startup
+            - benchmark_startup___custom_element
+            - benchmark_rerender
+            - benchmark_rerender__custom_element
+            - benchmark_startup100_big_template
+            - benchmark_update
+            - benchmark_repeat_keyed_expression
+            - benchmark_repeat_keyed_string
+            - benchmark_realistic_startup
+            - benchmark_realistic_refresh
+            - benchmark_realistic_mixed
+            - benchmark_realistic_heap_lifecycle

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "..",
+  "benchmarks": [
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": ["--enable-precise-memory-info"]
+      },
+      "measurement": [
+        { "name": "perf", "mode": "performance", "entryName": "rerender-500-big-template" }
+      ],
+      "expand": [
+        {
+          "name": "big-template rerender 500 base",
+          "url": "rerender500-big-template.html?variant=base"
+        },
+        {
+          "name": "big-template rerender 500 candidate",
+          "url": "rerender500-big-template.html?variant=candidate"
+        }
+      ]
+    }
+  ],
+  "timeout": 0.15
+}

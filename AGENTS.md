@@ -14,6 +14,11 @@ Aurelia core uses npm workspaces. Framework and plugin source lives under `packa
 - `cd packages/<package> && npm run build` - Use the package-local builder when a workspace exposes its own script; run this immediately after editing that package.
 - `npm run lint` - ESLint across all packages plus script utilities; ensures style compliance.
 - `npm run dev` - Launches the development helper script for local experimentation.
+- For a focused live test loop, run `npm run dev -- --test router --node-tests --dev router`. Omit `--node-tests` for
+  the Chrome debugger runner, add `--log-file .tmp/dev.log` when a durable transcript helps, and quote `'*'` when
+  selecting every spec. Selectors accept substrings or paths using `*`, `?`, and `**`.
+- Read `packages/__tests__/AGENTS.md` before changing the compiled test runners. Read `benchmarks/README.md` and
+  `benchmarks/AGENTS.md` before changing or running benchmark comparisons.
 
 ## Coding Style & Naming Conventions
 Write TypeScript with 2-space indentation, trailing commas, and single quotes as enforced by ESLint. Keep filenames kebab-case (for example, `subscriber-batch.ts`), prefer named exports from package entry points, and co-locate reusable helpers in `src/resources/` when a package provides templating resources. Run `npm run lint` before committing to catch formatting drift.

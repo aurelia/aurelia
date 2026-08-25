@@ -1,0 +1,27 @@
+<script type="module">
+import { assertDirectRows } from '../utils/assert-render.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { start, tasksSettled } = await loadVariant('app-repeat-view');
+
+const host = document.body.appendChild(document.createElement('div'));
+const au = start(host, 1000);
+assertDirectRows(host, 1000, 'div', {
+  0: 'hello item 0 item',
+  500: 'hello item 500 item',
+  999: 'hello item 999 item',
+});
+
+performance.mark('1k-start');
+au.root.controller.viewModel.updateItems();
+await tasksSettled();
+performance.mark('1k-end');
+
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+assertDirectRows(host, 1000, 'div', {
+  0: 'hello updated item 1001 item',
+  500: 'hello updated item 501 item',
+  999: 'hello updated item 2 item',
+});
+publishMeasurement('update-1k', '1k-start', '1k-end', usedJSHeapSizeBytes);
+</script>

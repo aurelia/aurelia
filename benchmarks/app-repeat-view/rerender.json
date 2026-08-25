@@ -1,26 +1,31 @@
 {
   "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
-  "root": "../../../",
+  "root": "..",
   
   "benchmarks": [
     {
       "browser": {
         "name": "chrome",
         "headless": true,
-        "addArguments": ["--js-flags=--expose-gc", "--enable-precise-memory-info"]
+        "addArguments": [
+          "--enable-precise-memory-info",
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
       },
       "measurement": [
         { "name": "perf", "mode": "performance", "entryName": "rerender-10k" },
-        { "name": "memory", "mode": "expression", "expression": "jsHeapSize" }
+        { "name": "used JS heap", "mode": "expression", "expression": "window.usedJSHeapSizeBytes" }
       ],
       "expand": [
         {
-          "name": "rerender npm",
-          "url": "rerender10k-latest.html"
+          "name": "rerender base",
+          "url": "rerender10k.html?variant=base"
         },
         {
-          "name": "rerender local",
-          "url": "rerender10k-local.html"
+          "name": "rerender candidate",
+          "url": "rerender10k.html?variant=candidate"
         }
       ]
     }

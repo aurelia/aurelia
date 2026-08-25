@@ -6,6 +6,9 @@
 TESTS-*.xml
 .claude
 .codex
+.tmp
+benchmarks/results/
+benchmarks/se-metadata.json
 
 packages/**/*.txt
 **/node_modules

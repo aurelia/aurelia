@@ -31,7 +31,7 @@ Run `npm run dev` **with at least one `--test` or `--e2e` flag**. The harness ex
 
 ```bash
 # run everything
-npm run dev -- --test *
+npm run dev -- --test '*'
 
 # focus on router specs only
 npm run dev -- --test router
@@ -42,26 +42,36 @@ npm run dev -- --test router --e2e 6-router
 
 When the command succeeds it will:
 
-* build & watch the `runtime`, `runtime-html`, and `template-compiler` packages
+* build & watch the `kernel`, `runtime`, `runtime-html`, and `template-compiler` packages
 * build & watch `packages/__tests__` so that Karma/Mocha reruns the matching specs
 * optionally spin up extra package/tooling/app/e2e watchers based on the flags you pass
 
 | Flag | What it controls | Accepted values (validated in `scripts/dev.ts`) | Example |
 | ---- | ---------------- | ---------------------------------------------- | ------- |
-| `--test`, `-t` | Glob passed to the Karma/Mocha harness | Any glob, or `*` for everything | `--test repeater integration` |
+| `--test`, `-t` | Selects matching specs for the compiler and Karma/Mocha | Substrings or paths with `*`, `?`, and `**`; quote `'*'` for everything | `--test repeater integration` |
 | `--e2e`, `-e` | Starts Playwright watch mode inside selected fixtures | `1-gh-issues`, `2-hmr-vite`, `3-hmr-webpack`, `4-i18n`, `5-router-direct`, `6-router`, `7-select-safari16`, `8-ui-virtualization` | `--e2e 4-i18n --e2e 7-select-safari16` |
 | `--dev`, `-d` | Adds more framework packages to the watch list | Any package from `metadata`, `platform`, `router`, `state`, etc. | `--dev router --dev validation` |
 | `--tooling`, `-l` | Runs tooling packages alongside the core harness | `plugin-conventions`, `plugin-gulp`, `ts-jest`, `babel-jest`, `parcel-transformer`, `vite-plugin`, `webpack-loader`, `http-server`, `au` | `--tooling vite-plugin` |
 | `--app`, `-a` | Launches sample apps for manual QA | `ui-virtualization`, `router-animation`, `router-hooks` | `--app router-hooks` |
+| `--node-tests` | Runs the selected compiled specs through Node and Mocha instead of the Chrome debugger | Boolean; combine with `--test` | `--test eventaggregator --node-tests` |
+| `--log-file` | Mirrors prefixed development output to a file | Any writable path | `--log-file .tmp/dev.log` |
 
 > 💡 Tip: stack the flags. For example, `npm run dev -- --test state --dev state --e2e 8-ui-virtualization` keeps the state package, its specs, and the virtualization e2e harness in sync.
+
+The Node and browser runners wait for a fresh, zero-error compiler cycle before starting. Later test edits publish the
+same completion marker, so Node reruns and Karma refreshes its file list only after the selected output is coherent.
+Active framework package output also triggers focused reruns:
+
+```bash
+npm run dev -- --test eventaggregator --node-tests --log-file .tmp/eventaggregator.log
+```
 
 ### packages-tooling
 
 Tooling development follows the same pattern: `npm run dev:tooling -- --test <pattern>`. Passing a test pattern is mandatory—the script aborts otherwise—so start with:
 
 ```bash
-npm run dev:tooling -- --test *
+npm run dev:tooling -- --test '*'
 ```
 
 Key behaviors:

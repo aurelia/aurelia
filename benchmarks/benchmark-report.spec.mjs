@@ -54,6 +54,10 @@ void describe('benchmark report', () => {
 
     inputs.provenance.harness.dirty = true;
     assert.throws(() => createBenchmarkReport(inputs), /harness must be clean/);
+
+    const missingRecord = smokeInputs();
+    missingRecord.provenance.harness = null;
+    assert.throws(() => createBenchmarkReport(missingRecord), /missing a comparison, harness, base, or candidate record/);
   });
 
   void it('validates the machine report before trusted rendering', () => {

@@ -408,15 +408,23 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
 function validateProvenance(provenance) {
   if (provenance?.schemaVersion !== 1) throw new Error('Unsupported benchmark provenance schema.');
   const { comparison, harness, base, candidate } = provenance;
+  if (
+    comparison === null || typeof comparison !== 'object'
+    || harness === null || typeof harness !== 'object'
+    || base === null || typeof base !== 'object'
+    || candidate === null || typeof candidate !== 'object'
+  ) {
+    throw new Error('Benchmark provenance is missing a comparison, harness, base, or candidate record.');
+  }
   for (const [label, sha] of [
-    ['base', comparison?.base],
-    ['candidate', comparison?.candidate],
-    ['harness', harness?.commit],
+    ['base', comparison.base],
+    ['candidate', comparison.candidate],
+    ['harness', harness.commit],
   ]) requireSha(sha, label);
-  requireSha(harness?.tree, 'harness tree');
-  requireHash(harness?.sha256, 'harness');
+  requireSha(harness.tree, 'harness tree');
+  requireHash(harness.sha256, 'harness');
   if (harness.dirty !== false) throw new Error('Benchmark harness must be clean in an authoritative report.');
-  if (harness.commit !== comparison.candidate || base?.commit !== comparison.base || candidate?.commit !== comparison.candidate) {
+  if (harness.commit !== comparison.candidate || base.commit !== comparison.base || candidate.commit !== comparison.candidate) {
     throw new Error('Benchmark provenance revisions do not agree.');
   }
   if (!Array.isArray(provenance.comparisons) || provenance.comparisons.length === 0) {

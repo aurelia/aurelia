@@ -360,8 +360,9 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
 
   describe('structural activation ownership', function () {
 
-    it('retires every composition created by a reentrant initial update', async function () {
+    it('retains every reentrant async composition in the owner tail', async function () {
       const attaching = new Deferred();
+      const innerAttaching = new Deferred();
       let app!: App;
       let outerDisposeCalls = 0;
       let innerDisposeCalls = 0;
@@ -385,6 +386,10 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
 
       @customElement({ name: 'reentrant-inner-composition', template: 'inner' })
       class InnerComposition {
+        public attaching(): Promise<void> {
+          return innerAttaching.promise;
+        }
+
         public dispose(): void {
           ++innerDisposeCalls;
         }
@@ -409,15 +414,34 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       assert.notStrictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
       assert.notStrictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
 
+      let startSettled = false;
+      void start.then(
+        () => { startSettled = true; },
+        () => { startSettled = true; },
+      );
       attaching.resolve();
-      await start;
+      for (let i = 0; i < 10 && outerDisposeCalls === 0; ++i) {
+        await Promise.resolve();
+      }
 
       assert.strictEqual(outerDisposeCalls, 1);
       assert.strictEqual(innerDisposeCalls, 0);
+      assert.strictEqual(startSettled, false, 'startup retains the reentrant inner activation');
       assert.strictEqual(fixture.appHost.querySelector('reentrant-outer-composition'), null);
       assert.notStrictEqual(fixture.appHost.querySelector('reentrant-inner-composition'), null);
 
-      await fixture.stop(true);
+      const stop = Promise.resolve(fixture.stop(true));
+      let stopSettled = false;
+      void stop.then(
+        () => { stopSettled = true; },
+        () => { stopSettled = true; },
+      );
+      await Promise.resolve();
+      assert.strictEqual(stopSettled, false, 'queued application stop retains the reentrant inner activation');
+
+      innerAttaching.resolve();
+      await start;
+      await stop;
       assert.strictEqual(innerDisposeCalls, 1);
       assert.strictEqual(fixture.appHost.textContent, '');
     });

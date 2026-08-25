@@ -279,6 +279,13 @@ export class AuCompose {
       result = current.then(() => version === this._queueVersion ? work() : void 0);
     } else {
       result = work();
+      const reentrant = this._composing;
+      if (isPromise(reentrant) && reentrant !== result) {
+        // Synchronous lifecycle work can change an AuCompose bindable before
+        // this call publishes its own Promise. Preserve that newer structural
+        // tail instead of overwriting it with the outer operation.
+        result = onResolveAll(result, reentrant);
+      }
     }
     if (!isPromise(result)) {
       return;
@@ -580,11 +587,8 @@ export interface ICompositionController {
   readonly controller: IHydratedController;
   readonly context: CompositionContext;
   activate(initiator?: IHydratedController): void | Promise<void>;
-  // deactivation is done differently, compared to activation
-  // when the `<au-component/>` is deactivated, initiator will be an ancestor controller
-  //
-  // while when the value of the @bindables changes, initiator should be
-  // the controller wrapped in this composition controller
+  // AuCompose self-initiates deactivation through the wrapped controller so its
+  // structural queue owns an exact local completion result.
   deactivate(detachInitator?: IHydratedController): void | Promise<void>;
   update(model: unknown): unknown;
 }

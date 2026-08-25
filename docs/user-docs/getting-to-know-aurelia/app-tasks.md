@@ -1,13 +1,10 @@
 ---
-description: >-
-  App tasks provide injection points to run code at certain points in the
-  compiler lifecycle, allowing you to interface with different parts of the
-  framework and execute code.
+description: Run application-level setup and cleanup at defined points in Aurelia's root lifecycle.
 ---
 
 # App Tasks
 
-Falling between component lifecycles and lifecycle hooks, app tasks offer injection points into Aurelia applications that occur at certain points of the compiler lifecycle. Think of them as higher-level framework hooks.
+App tasks give plugins and applications a DI-aware place to coordinate startup and shutdown with the root lifecycle. They keep application-wide setup out of the root component and let Aurelia wait for it at the appropriate phase.
 
 ## Lifecycle Phases
 
@@ -18,10 +15,10 @@ App tasks run at key moments in the Aurelia lifecycle. The table below summarize
 | **creating**   | Just before DI creates the root component.                                                                                                                   | Last chance to register dependencies that must be injected into the root component.                   |
 | **hydrating**  | After instantiating the root view, but before compiling the root and its child elements.                                                                       | Ideal for plugins (e.g., routers) to perform initial work before child elements are processed.       |
 | **hydrated**   | After self-hydration of the root controller, but before hydrating child elements.                                                                               | Allows pre-hydration tasks to complete before further initialization.                                |
-| **activating** | Right before the root component is activated; at this point, the scope hierarchy is formed and bindings are being bound.                                          | Prepare the application for activation (e.g., feature toggling, initial data loading).              |
-| **activated**  | Immediately after the root component is activated.                                                                                                           | The app is fully running; additional startup logic may be executed here.                             |
-| **deactivating**| Right before the root component is deactivated; scope hierarchy is unlinked and bindings are getting unbound.                                                   | Useful for cleanup or saving state before the application stops.                                    |
-| **deactivated**| Immediately after the root component is deactivated.                                                                                                         | Final cleanup tasks and post-deactivation processing.                                               |
+| **activating** | Immediately before root activation, after creation and hydration have completed.                                                                                | Load application data or prepare services used during activation.                                   |
+| **activated**  | After the root component and its component tree finish activation.                                                                                               | Start work that requires a running application.                                                      |
+| **deactivating**| Before root deactivation while the application remains active.                                                                                                  | Save state or ask a service to prepare for shutdown.                                                 |
+| **deactivated**| After the root component finishes deactivation.                                                                                                                 | Finish cleanup that depends on detached and unbound components.                                      |
 
 ---
 
@@ -75,7 +72,7 @@ export function register(container: IContainer) {
 
 ## Asynchronous App Tasks
 
-App tasks can also be asynchronous. This is useful for scenarios where you need to perform asynchronous operations (such as dynamic imports) before the application fully starts.
+Return a Promise when a task must finish asynchronous work, such as a dynamic import, before the application continues.
 
 ### Example – Asynchronous Hydrating Task
 
@@ -96,6 +93,25 @@ Aurelia.register(
 ```
 
 In this example, the hydrating task waits for an asynchronous import and registers the result with the DI container before the application proceeds.
+
+## Ordering and failure behavior
+
+Aurelia invokes app tasks in registration order. Promises returned by those tasks may remain pending at the same time. A successful phase completes after all returned Promises settle.
+
+If a callback throws synchronously, later tasks in that phase do not start. A rejected Promise ends the phase as soon as Aurelia observes the rejection. Aurelia reports the original thrown or rejected value. Tasks that already started continue independently, and Aurelia observes any later rejection from them.
+
+A task failure ends the affected application transition and leaves that Aurelia instance in a terminal state. Aurelia preserves the original failure. When the value is an `Error`, its stack helps identify the callback. Fix the cause before creating a new application instance.
+
+Return the complete asynchronous operation from a task so Aurelia can observe its result:
+
+```typescript
+const SaveBeforeStop = AppTask.deactivating(
+  IWorkspace,
+  workspace => workspace.save(),
+);
+```
+
+If `workspace.save()` rejects, `au.stop()` rejects with that error. Fix the task before creating and starting another Aurelia instance.
 
 ---
 
@@ -190,4 +206,4 @@ Aurelia.register(TelemetrySetupTask);
 
 ---
 
-By using app tasks, you can inject custom behavior at critical points in your Aurelia application’s lifecycle. Whether you’re setting up global error handling, dynamically loading features, or initializing third-party integrations, app tasks provide a powerful, flexible mechanism to customize the startup (and shutdown) of your application.
+App tasks make integrations feel native to Aurelia's lifecycle. A plugin can prepare services before components need them and close shared resources with the application. The same setup remains reusable across root components.

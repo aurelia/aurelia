@@ -83,6 +83,21 @@ export class MyApp {
 
 In this example, `promise1` is set to resolve after 2 seconds, and `promise2` is set to reject after 3 seconds. The template dynamically updates to reflect each promise's state. Notice in `promise2`'s `then` template, we don't specify a variable, indicating we only care about the resolved state, not the resolved value itself.
 
+## Testing and Lifecycle Timing
+
+`Aurelia.start()` completes independently of Promises bound in templates, so a source may still be pending when startup finishes. Aurelia renders the `pending` branch during startup. After the source settles, Aurelia schedules the switch to the `then` or `catch` branch.
+
+In tests, settle the source and then await Aurelia's task queue before asserting the selected branch:
+
+```typescript
+import { tasksSettled } from '@aurelia/runtime';
+
+request.resolve(result);
+await tasksSettled();
+```
+
+Promise branches participate in the lifecycle of their owning view. When that view is removed, Aurelia waits for branch activation or removal already underway before finishing teardown.
+
 ## Promise Binding with Functions and Parameters
 
 You can directly bind a function call to `promise.bind`. Aurelia is smart enough to re-invoke the function only when its parameters change, treating function calls in templates as pure operations.

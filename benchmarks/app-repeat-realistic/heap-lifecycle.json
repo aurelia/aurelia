@@ -1,0 +1,43 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "..",
+  "sampleSize": 20,
+  "timeout": 0,
+  "benchmarks": [
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": [
+          "--js-flags=--expose-gc",
+          "--enable-precise-memory-info",
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
+      },
+      "measurement": [
+        {
+          "name": "used JS heap after GC (live list)",
+          "mode": "expression",
+          "expression": "window.heapLifecycle?.liveListUsedJSHeapAfterGcBytes"
+        },
+        {
+          "name": "used JS heap after GC (post-teardown)",
+          "mode": "expression",
+          "expression": "window.heapLifecycle?.postTeardownUsedJSHeapAfterGcBytes"
+        }
+      ],
+      "expand": [
+        {
+          "name": "realistic heap lifecycle 500 base",
+          "url": "heapLifecycle500.html?variant=base"
+        },
+        {
+          "name": "realistic heap lifecycle 500 candidate",
+          "url": "heapLifecycle500.html?variant=candidate"
+        }
+      ]
+    }
+  ]
+}

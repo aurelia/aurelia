@@ -1,0 +1,27 @@
+<script type="module">
+import {
+  assertRealisticOpenEvent,
+  assertRealisticRows,
+} from '../utils/assert-render.js';
+import { createRealisticRecords } from '../utils/realistic-data.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { CustomElement, start } = await loadVariant('app-repeat-realistic');
+
+const host = document.body.appendChild(document.createElement('div'));
+const initialItems = createRealisticRecords(1000);
+performance.mark('realistic-startup-start');
+const au = start(host, initialItems);
+performance.mark('realistic-startup-end');
+
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+const app = au.root.controller.viewModel;
+const rendered = assertRealisticRows(host, app.items, CustomElement);
+assertRealisticOpenEvent(rendered.hosts[0], rendered.viewModels[0]);
+publishMeasurement(
+  'realistic-startup-1000',
+  'realistic-startup-start',
+  'realistic-startup-end',
+  usedJSHeapSizeBytes,
+);
+</script>

@@ -7,7 +7,7 @@ description: >-
 
 # List Rendering
 
-The `repeat.for` binding is Aurelia's powerful list rendering mechanism that creates highly optimized, reactive displays of collection data. It intelligently tracks changes, minimizes DOM updates, and provides rich contextual information for sophisticated data presentation.
+The `repeat.for` binding turns collection data into efficient, reactive UI. Aurelia observes changes and reuses row views, keeping DOM work focused on what changed. Built-in values such as `$index` and `$first` keep common list patterns straightforward in the template.
 
 ## Core Concepts
 
@@ -45,27 +45,27 @@ export class MyComponent {
   }
 
   updateFirst() {
-    // This change is also detected
-    this.items[0] = { name: 'Johnny' };
+    // splice reports the replacement to the collection observer
+    this.items.splice(0, 1, { name: 'Johnny' });
   }
 }
 ```
 
-**Important:** Use array mutating methods (`push`, `pop`, `splice`, `reverse`, `sort`) for automatic detection. Direct index assignment works but requires the array reference to change for detection.
+Use observed array methods such as `push`, `pop`, `splice`, `reverse`, and `sort` for in-place updates. You can also assign a new array reference. Native index assignment bypasses the collection observer.
 
-## Performance Optimization with Keys
+## Stable Item Identity with Keys
 
 ### Why Keys Matter
 
-Without keys, Aurelia recreates DOM elements when collections change. With keys, it reuses existing elements:
+By default, `repeat.for` matches object items by reference and primitive items by value. When the same object moves, its DOM and component state move with it. Add a key when refreshed data represents the same logical item with a new object instance:
 
 ```html
-<!-- Without keys: recreates all DOM on reorder -->
+<!-- The object reference identifies this row -->
 <div repeat.for="user of users">
   <input value.bind="user.name">
 </div>
 
-<!-- With keys: preserves DOM and form state -->
+<!-- The user id preserves the row across refreshed objects -->
 <div repeat.for="user of users; key.bind: user.id">
   <input value.bind="user.name">
 </div>
@@ -80,6 +80,8 @@ Without keys, Aurelia recreates DOM elements when collections change. With keys,
   ${product.name}
 </li>
 ```
+
+A stable, unique key identifies one item across collection updates. When keys are duplicated, Aurelia matches their occurrences in order: the first new occurrence reuses the first old occurrence with that key.
 
 **Literal property keys (more efficient):**
 ```html
@@ -99,16 +101,9 @@ Without keys, Aurelia recreates DOM elements when collections change. With keys,
 
 ### When to Use Keys
 
-- **Dynamic collections** where items are added, removed, or reordered
-- **Form inputs** to preserve user input during updates
-- **Stateful components** to maintain component state
-- **Large lists** for performance optimization
-- **Sortable/filterable lists**
+Use a stable key when a data refresh creates new object instances for existing records. The key lets form state and component state remain with the logical item across those replacements.
 
-**Avoid keys when:**
-- Collection is static or append-only
-- Items are simple primitives without DOM state
-- Performance testing shows no benefit
+The default identity is sufficient when object references remain stable. Primitive values also provide their own identity.
 
 ## Contextual Properties
 
@@ -513,6 +508,12 @@ export class AsyncDataExample {
 </div>
 ```
 
+### Asynchronous Row Lifecycles
+
+Components rendered by a repeat use their normal lifecycle hooks. When a row's activation or teardown returns a Promise, Aurelia finishes that list update before beginning the next one. Collection changes made in the meantime are applied from the latest collection once the row lifecycle settles. Rows with synchronous hooks still update immediately.
+
+If a row hook rejects, Aurelia waits for row work already in progress and reports the original lifecycle error. That list update fails, and the affected `repeat` should be treated as terminal.
+
 ### Complex Object Iteration
 
 Use value converters for non-standard collections:
@@ -550,9 +551,9 @@ export class EntriesValueConverter {
 
 ### Optimizing Large Lists
 
-**Use keyed iteration:**
+**Use stable keys when refreshed records are new objects:**
 ```html
-<!-- Enables efficient DOM reuse -->
+<!-- Reuse each row by logical item identity -->
 <div repeat.for="item of largeList; key.bind: item.id">
   ${item.name}
 </div>
@@ -560,7 +561,7 @@ export class EntriesValueConverter {
 
 **Consider virtual scrolling for very large lists:**
 ```html
-<!-- Use ui-virtualization for very large collecitons of items -->
+<!-- Use ui-virtualization for very large collections of items -->
 <div virtual-repeat.for="item of hugeList">
   ${item.name}
 </div>
@@ -667,11 +668,11 @@ this.items.splice(0, 1, newItem);
 this.items = [...this.items.slice(0, 0), newItem, ...this.items.slice(1)];
 ```
 
-### Issue: Form State Lost on Reorder
+### Issue: Form State Resets After a Data Refresh
 
-**Problem:** Input values disappear when list is reordered
+**Problem:** A refresh replaces existing records with new object instances, resetting row state
 ```html
-<!-- No keys = DOM recreation -->
+<!-- New objects have new reference identities -->
 <div repeat.for="item of items">
   <input value.bind="item.name">
 </div>
@@ -679,7 +680,7 @@ this.items = [...this.items.slice(0, 0), newItem, ...this.items.slice(1)];
 
 **Solution:** Use stable keys
 ```html
-<!-- Keys preserve DOM elements -->
+<!-- Row state stays with each item id -->
 <div repeat.for="item of items; key.bind: item.id">
   <input value.bind="item.name">
 </div>
@@ -693,7 +694,7 @@ this.items = [...this.items.slice(0, 0), newItem, ...this.items.slice(1)];
 1. **Use virtual scrolling** for very large lists
 2. **Implement pagination** or infinite scroll
 3. **Optimize templates** - minimize complex expressions
-4. **Use keys** to enable DOM reuse
+4. **Preserve item references**, or add a key when refreshed records are new objects
 
 ### Issue: Memory Leaks
 

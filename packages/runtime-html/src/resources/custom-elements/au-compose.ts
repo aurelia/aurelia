@@ -1,4 +1,4 @@
-import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, onResolveAll, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
@@ -18,8 +18,10 @@ import { SpreadBinding } from '../../binding/spread-binding';
  */
 export interface IDynamicComponentActivate<T> {
   /**
-   * Implement this hook if you want to perform custom logic just before the component is is composed.
-   * The returned value is not used.
+   * Implement this hook to run custom logic before the component is composed.
+   * During structural composition, a returned Promise delays composition until it settles.
+   * Model-only bindable updates invoke the hook directly; Aurelia does not join
+   * the returned work to the structural composition queue.
    */
   activate?(model?: T): unknown;
 }
@@ -97,6 +99,15 @@ export class AuCompose {
 
   /** @internal */
   private _composition: ICompositionController | undefined = void 0;
+  // `_composition` is only the committed public value. A newly created
+  // controller is already owned before activation commits, and the old value
+  // remains owned while it retires; final teardown therefore uses this set.
+  /** @internal */
+  private readonly _ownedCompositions = new Set<ICompositionController>();
+  // Teardown epoch captured by work queued behind `_composing`. Incrementing it
+  // invalidates closures that were accepted before detaching began.
+  /** @internal */
+  private _queueVersion: number = 0;
   public get composition(): ICompositionController | undefined {
     return this._composition;
   }
@@ -128,32 +139,73 @@ export class AuCompose {
   /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    return this._composing = onResolve(
-      this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
-      (context) => {
-        if (this._contextFactory._isCurrent(context)) {
-          this._composing = void 0;
-        }
-      }
+    return this._enqueueComposition(() =>
+      this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator)
     );
   }
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
-    const cmpstn = this._composition;
     const pending = this._composing;
+    // Close admission immediately. The prior tail must still settle, but no
+    // queued bindable callback may publish work outside this teardown snapshot.
+    ++this._queueVersion;
     this._contextFactory.invalidate();
     this._composition = this._composing = void 0;
-    return onResolve(pending, () => cmpstn?.deactivate(initiator));
+    const deactivate = () => this._disposeOwnedCompositions();
+    if (!isPromise(pending)) {
+      return deactivate();
+    }
+    return pending.then(deactivate);
+  }
+
+  /** @internal */
+  private _retireComposition(
+    composition: ICompositionController,
+    context: CompositionContext,
+  ): CompositionContext | Promise<CompositionContext> {
+    return onResolve(this._disposeComposition(composition), () => context);
+  }
+
+  /** @internal */
+  private _disposeComposition(
+    composition: ICompositionController,
+  ): void | Promise<void> {
+    const dispose = () => {
+      try {
+        composition.controller.dispose();
+      } finally {
+        this._ownedCompositions.delete(composition);
+      }
+    };
+    // AuCompose owns this dynamically created Controller. Self-initiated
+    // deactivation gives the owner an exact local completion boundary that its
+    // own structural queue or detaching hook can return to the ancestor.
+    const result = composition.deactivate(composition.controller);
+    if (isPromise(result)) {
+      return result.then(dispose);
+    }
+    dispose();
+  }
+
+  /** @internal */
+  private _disposeOwnedCompositions(): void | Promise<void> {
+    // A composed lifecycle can synchronously change AuCompose inputs before the
+    // outer queue publishes its tail, so more than one composition may be owned.
+    // Snapshot the set because each disposal removes itself from ownership.
+    return onResolveAll(...Array.from(
+      this._ownedCompositions,
+      composition => this._disposeComposition(composition),
+    ));
   }
 
   /** @internal */
   public propertyChanged(name: ChangeSource): void {
-    if (name === 'composing' || name === 'composition') {
+    if (!this.$controller.isActive || name === 'composing' || name === 'composition') {
       return;
     }
     if (this.flushMode === 'sync') {
       if (name === 'model' && this._composition != null) {
-        this._composition.update(this.model);
+        this._updateModel(this.model);
         return;
       }
       // tag change does not affect existing custom element composition
@@ -170,9 +222,18 @@ export class AuCompose {
 
   /** @internal */
   public propertiesChanged(changes: { [key in ChangeSource]: { newValue: AuCompose[key]; oldValue: AuCompose[key] } }): void {
-    if (this.flushMode === 'async') {
-      if ('model' in changes && this._composition != null && Object.keys(changes).length === 1) {
-        this._composition.update(this.model);
+    if (this.$controller.isActive && this.flushMode === 'async') {
+      // `composing` and `composition` are from-view status bindables. They can
+      // share this batched callback with inputs, but must not turn a model-only
+      // update into structural recomposition or trigger work by themselves.
+      const changeCount = Object.keys(changes).length
+        - ('composing' in changes ? 1 : 0)
+        - ('composition' in changes ? 1 : 0);
+      if (changeCount === 0) {
+        return;
+      }
+      if ('model' in changes && this._composition != null && changeCount === 1) {
+        this._updateModel(this.model);
         return;
       }
       // tag change does not affect existing custom element composition
@@ -194,23 +255,56 @@ export class AuCompose {
 
   /** @internal */
   private _handleChangeInfo(info: ChangeInfo): void {
-    this._composing = onResolve(this._composing, () =>
-      onResolve(
-        this.queue(info, void 0),
-        (context) => {
-          if (this._contextFactory._isCurrent(context)) {
-            this._composing = void 0;
-          }
-        }
-      )
-    );
+    // Bindable callbacks cannot return async settlement. `_composing` is the
+    // stable, bindable-visible tail; the ignored return is the same Promise.
+    void this._enqueueComposition(() => this.queue(info, void 0));
+  }
+
+  /** @internal */
+  private _updateModel(model: unknown): void {
+    // Model-only work does not create or retire framework-owned controllers.
+    // Keep its completion policy with the component instead of extending the
+    // structural composition queue or application teardown boundary.
+    void this._composition?.update(model);
+  }
+
+  /** @internal */
+  private _enqueueComposition(work: () => unknown): void | Promise<void> {
+    const current = this._composing;
+    // If teardown invalidated this queued successor, do not run it. A rejected
+    // predecessor also stops its queued successors and remains the public error.
+    let result: unknown;
+    if (isPromise(current)) {
+      const version = this._queueVersion;
+      result = current.then(() => version === this._queueVersion ? work() : void 0);
+    } else {
+      result = work();
+      const reentrant = this._composing;
+      if (isPromise(reentrant) && reentrant !== result) {
+        // Synchronous lifecycle work can change an AuCompose bindable before
+        // this call publishes its own Promise. Preserve that newer structural
+        // tail instead of overwriting it with the outer operation.
+        result = onResolveAll(result, reentrant);
+      }
+    }
+    if (!isPromise(result)) {
+      return;
+    }
+
+    const composing = result.then(() => {
+      // An older tail must not clear a newer queued tail.
+      if (this._composing === composing) {
+        this._composing = void 0;
+      }
+    });
+    this._composing = composing;
+    return composing;
   }
 
   /** @internal */
   private queue(change: ChangeInfo, initiator: IHydratedController | undefined): CompositionContext | Promise<CompositionContext> {
     const factory = this._contextFactory;
     const prevCompositionCtrl = this._composition;
-    // todo: handle consequitive changes that create multiple queues
     return onResolve(
       factory.create(change),
       context => {
@@ -218,33 +312,46 @@ export class AuCompose {
         // by always ensuring that the composition context is the latest one
         if (factory._isCurrent(context)) {
           return onResolve(this.compose(context), (result) => {
+            // Ownership begins when compose inserts/creates the controller, not
+            // when activation commits. Pending and stale results must remain
+            // reachable for owner-local retirement and final teardown.
+            this._ownedCompositions.add(result);
             // Don't activate [stale] controller
             // by always ensuring that the composition context is the latest one
             if (factory._isCurrent(context)) {
-              return onResolve(result.activate(initiator), () => {
+              const activation = result.activate(initiator);
+              const conclude = () => {
                 // Don't conclude the [stale] composition
                 // by always ensuring that the composition context is the latest one
                 if (factory._isCurrent(context)) {
                   // after activation, if the composition context is still the most recent one
                   // then the job is done
                   this._composition = result;
-                  return onResolve(prevCompositionCtrl?.deactivate(initiator), () => context);
+                  if (prevCompositionCtrl === void 0) {
+                    return context;
+                  }
+                  return this._retireComposition(
+                    prevCompositionCtrl,
+                    context,
+                  );
                 } else {
                   // the stale controller should be deactivated
-                  return onResolve(
-                    result.controller.deactivate(result.controller, this.$controller),
-                    // todo: do we need to deactivate?
-                    () => {
-                      result.controller.dispose();
-                      return context;
-                    }
+                  return this._retireComposition(
+                    result,
+                    context,
                   );
                 }
-              });
+              };
+              if (isPromise(activation)) {
+                return activation.then(conclude);
+              }
+              return conclude();
             }
 
-            result.controller.dispose();
-            return context;
+            return this._retireComposition(
+              result,
+              context,
+            );
           });
         }
 
@@ -339,9 +446,9 @@ export class AuCompose {
           controller,
           (attachInitiator) => controller.activate(attachInitiator ?? controller, $controller, $controller.scope.parent!),
           // todo: call deactivate on the component component
-          (deactachInitiator) => onResolve(
-            controller.deactivate(deactachInitiator ?? controller, $controller),
-            removeCompositionHost
+          (deactachInitiator) => finalizeCompositionDeactivation(
+            () => controller.deactivate(deactachInitiator ?? controller, $controller),
+            removeCompositionHost,
           ),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
@@ -379,9 +486,9 @@ export class AuCompose {
           // todo: call deactivate on the component
           // a difference with composing custom element is that we leave render location/host alone
           // as they all share the same host/render location
-          (detachInitiator) => onResolve(
-            controller.deactivate(detachInitiator ?? controller, $controller),
-            removeCompositionHost
+          (detachInitiator) => finalizeCompositionDeactivation(
+            () => controller.deactivate(detachInitiator ?? controller, $controller),
+            removeCompositionHost,
           ),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
@@ -465,17 +572,23 @@ export class AuCompose {
   }
 }
 
+function finalizeCompositionDeactivation(
+  deactivate: () => void | Promise<void>,
+  cleanup: () => void,
+): void | Promise<void> {
+  // AuCompose owns the dynamic host outside the composed Controller's node
+  // sequence and releases it when that controller deactivates successfully.
+  return onResolve(deactivate(), cleanup);
+}
+
 class EmptyComponent { }
 
 export interface ICompositionController {
   readonly controller: IHydratedController;
   readonly context: CompositionContext;
   activate(initiator?: IHydratedController): void | Promise<void>;
-  // deactivation is done differently, compared to activation
-  // when the `<au-component/>` is deactivated, initiator will be an ancestor controller
-  //
-  // while when the value of the @bindables changes, initiator should be
-  // the controller wrapped in this composition controller
+  // AuCompose self-initiates deactivation through the wrapped controller so its
+  // structural queue owns an exact local completion result.
   deactivate(detachInitator?: IHydratedController): void | Promise<void>;
   update(model: unknown): unknown;
 }
@@ -488,7 +601,10 @@ class CompositionContextFactory {
   }
 
   public create(changes: ChangeInfo): MaybePromise<CompositionContext> {
-    return onResolve(changes.load(), (loaded) => new CompositionContext(++this.id, loaded));
+    // Reserve recency before awaiting component/template loads. Otherwise a
+    // slow earlier request could receive the newest id when it resolves late.
+    const id = ++this.id;
+    return onResolve(changes.load(), (loaded) => new CompositionContext(id, loaded));
   }
 
   // simplify increasing the id will invalidate all previously created context
@@ -563,7 +679,10 @@ class CompositionController implements ICompositionController {
       case -1:
         throw createMappedError(ErrorNames.au_compose_duplicate_deactivate);
       default:
+        // Even a never-started stale composition has already inserted its host;
+        // run stop so host/render-location cleanup is not skipped.
         this.state = -1;
+        return this.stop(detachInitator);
     }
   }
 }

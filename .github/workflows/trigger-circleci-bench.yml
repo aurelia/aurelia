@@ -4,81 +4,85 @@ on:
   issue_comment:
     types: [created]
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Open same-repository PR number
+        required: true
+        type: number
+      expected_base_sha:
+        description: Optional full base SHA; fail if master has moved
+        required: false
+        type: string
+      expected_head_sha:
+        description: Optional full head SHA; fail if the PR has moved
+        required: false
+        type: string
 
 permissions:
   contents: read
-  pull-requests: read
+  issues: write
+  pull-requests: write
 
 jobs:
-  trigger:
+  decide:
     runs-on: ubuntu-latest
-
+    outputs:
+      should: ${{ steps.command.outputs.should }}
+      pr: ${{ steps.command.outputs.pr }}
     steps:
       - name: Decide whether to trigger benchmarks
-        id: decide
+        id: command
         uses: actions/github-script@v7
         with:
           script: |
-            const isMember = a => ['MEMBER','OWNER','COLLABORATOR'].includes(a || '');
-            const isPR = Boolean(context.payload.issue?.pull_request);
-            const body = context.payload.comment?.body || '';
-            const assoc = context.payload.comment?.author_association || '';
+            const isMember = association =>
+              ['MEMBER', 'OWNER', 'COLLABORATOR'].includes((association || '').toUpperCase());
+            let should = false;
+            let prNumber = '';
 
-            const ok =
-              (context.eventName === 'issue_comment' &&
-               isPR && /(^|\/)ci bench\b/.test(body) && isMember(assoc))
-              || (context.eventName === 'workflow_dispatch');
-
-            core.setOutput('should', ok ? 'true' : 'false');
-
-      - name: Resolve PR info
-        id: head
-        if: steps.decide.outputs.should == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNum =
-              context.payload.pull_request?.number ??
-              context.issue?.number;
-
-            if (!prNum) {
-              core.setFailed('No PR found for this event');
-              return;
+            if (context.eventName === 'issue_comment') {
+              const isPR = Boolean(context.payload.issue?.pull_request);
+              const body = (context.payload.comment?.body || '').trim();
+              const association = context.payload.comment?.author_association || '';
+              should = isPR && body === '/ci bench' && isMember(association);
+              if (should) prNumber = String(context.issue.number);
+            } else if (context.eventName === 'workflow_dispatch') {
+              should = true;
+              prNumber = String(context.payload.inputs?.pr_number || '');
             }
 
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNum
-            });
+            core.setOutput('should', should ? 'true' : 'false');
+            core.setOutput('pr', prNumber);
 
-            core.setOutput('branch', pr.head.ref);
-            core.setOutput('pr', String(pr.number));
+  trigger:
+    needs: decide
+    if: needs.decide.outputs.should == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - name: Check out trusted workflow support
+        uses: actions/checkout@v4
+        with:
+          ref: master
 
-      - name: Trigger CircleCI pipeline (benchmarks)
-        if: steps.decide.outputs.should == 'true'
+      - name: Trigger and report CircleCI benchmark pipeline
+        uses: actions/github-script@v7
         env:
+          PR_NUMBER: ${{ needs.decide.outputs.pr }}
+          EXPECTED_BASE_SHA: ${{ inputs.expected_base_sha || '' }}
+          EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha || '' }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-          BRANCH: ${{ steps.head.outputs.branch }}
-        run: |
-          if [ -z "${CIRCLECI_TOKEN}" ]; then
-            echo "::error::Missing repository secret CIRCLECI_TOKEN (CircleCI personal API token)."
-            exit 1
-          fi
-
-          echo "Triggering CircleCI pipeline on ${GITHUB_REPOSITORY}@${BRANCH} with run_bench=true and run_pr_lite=false"
-
-          http_code=$(curl -sS -o response.json -w "%{http_code}" -X POST \
-            "https://circleci.com/api/v2/project/gh/${GITHUB_REPOSITORY}/pipeline" \
-            -H "Circle-Token: ${CIRCLECI_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "{\"branch\":\"${BRANCH}\",\"parameters\":{\"run_bench\":true,\"run_pr_lite\":false}}")
-
-          echo "HTTP ${http_code}"
-          echo "Response:"
-          cat response.json || true
-
-          if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
-            echo "::error::Failed to trigger CircleCI pipeline. HTTP ${http_code}"
-            exit 1
-          fi
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const trigger = require('./.github/scripts/trigger-benchmark-pipeline.cjs');
+            await trigger({
+              github,
+              context,
+              core,
+              prNumber: process.env.PR_NUMBER,
+              profile: 'full',
+              circleToken: process.env.CIRCLECI_TOKEN,
+              expectedBase: process.env.EXPECTED_BASE_SHA,
+              expectedHead: process.env.EXPECTED_HEAD_SHA,
+            });

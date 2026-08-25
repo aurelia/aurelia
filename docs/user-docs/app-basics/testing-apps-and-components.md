@@ -188,13 +188,15 @@ assertClass('div', 'active', 'visible');
 
 ### 3. Cleanup
 
-Always clean up after tests:
+Clean up every fixture that started successfully:
 
 ```typescript
 await stop(true);  // true = dispose components
 ```
 
 This prevents memory leaks and ensures test isolation.
+
+Use that shutdown path after a successful start. If startup throws or rejects, `createFixture` preserves the original lifecycle error and removes the failed test host automatically.
 
 ## Testing Common Scenarios
 
@@ -792,6 +794,6 @@ Testing Aurelia applications is straightforward:
 1. **Setup**: Configure Jest and initialize the test platform
 2. **Create Fixtures**: Use `createFixture` to instantiate components
 3. **Assert**: Use assertion helpers to verify behavior
-4. **Cleanup**: Always call `stop(true)` to prevent memory leaks
+4. **Cleanup**: Call `stop(true)` after a successful start; `createFixture` discards a fixture whose startup fails
 
 Testing gives you confidence that your application works correctly and will continue to work as you make changes. Start testing today and build better, more reliable applications!

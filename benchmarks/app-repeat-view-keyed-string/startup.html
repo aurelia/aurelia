@@ -1,0 +1,19 @@
+<script type="module">
+import { assertDirectRows } from '../utils/assert-render.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { start } = await loadVariant('app-repeat-view-keyed-string');
+
+const host = document.body.appendChild(document.createElement('div'));
+performance.mark('start');
+start(host, 10000);
+performance.mark('end');
+
+const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;
+assertDirectRows(host, 10000, 'div', {
+  0: 'hello item 0 item',
+  5000: 'hello item 5000 item',
+  9999: 'hello item 9999 item',
+});
+publishMeasurement('keyed-string', 'start', 'end', usedJSHeapSizeBytes);
+</script>

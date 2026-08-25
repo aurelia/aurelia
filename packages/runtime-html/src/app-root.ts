@@ -1,5 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { InstanceProvider, onResolve, onResolveAll, isFunction } from '@aurelia/kernel';
+import { InstanceProvider, onResolve, onResolveAll, isFunction, isPromise, noop } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
@@ -174,12 +174,25 @@ export class AppRoot<
     const appTasks = this._useOwnAppTasks && !container.has(IAppTask, false)
       ? []
       : container.getAll(IAppTask);
-    return onResolveAll(...appTasks.reduce((results, task) => {
-      if (task.slot === slot) {
-        results.push(task.run());
+    const results: (void | Promise<void>)[] = [];
+    try {
+      for (let i = 0; i < appTasks.length; ++i) {
+        const task = appTasks[i];
+        if (task.slot === slot) {
+          results.push(task.run());
+        }
       }
-      return results;
-    }, [] as (void | Promise<void>)[]));
+    } catch (error) {
+      // A synchronous throw ends the phase immediately. Earlier task Promises
+      // remain application-owned, but observing their rejection keeps a later
+      // failure from escaping after the original error has been reported.
+      const pending = onResolveAll(...results);
+      if (isPromise(pending)) {
+        void pending.catch(noop);
+      }
+      throw error;
+    }
+    return onResolveAll(...results);
   }
 
   /** @internal */

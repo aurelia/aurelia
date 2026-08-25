@@ -1,4 +1,4 @@
-import { isPromise, DI, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { isPromise, DI, InstanceProvider, noop, onResolve } from '@aurelia/kernel';
 import { AppRoot, IAppRoot, IAppRootConfig } from './app-root';
 import { createInterface, registerResolver } from './utilities-di';
 
@@ -38,6 +38,9 @@ export class Aurelia implements IDisposable {
   }
 
   private next: IAppRoot | undefined = void 0;
+
+  /** @internal */
+  private _transitionFailure: { readonly error: unknown } | undefined = void 0;
 
   /** @internal */
   private readonly _rootProvider: InstanceProvider<IAppRoot>;
@@ -118,6 +121,8 @@ export class Aurelia implements IDisposable {
 
   /** @internal */
   private _startPromise: Promise<void> | void = void 0;
+  /** @internal */
+  private _queuedStop: QueuedStop | undefined = void 0;
   public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
     if (root == null) {
       throw createMappedError(ErrorNames.no_composition_root);
@@ -126,53 +131,200 @@ export class Aurelia implements IDisposable {
     if (isPromise(this._startPromise)) {
       return this._startPromise;
     }
+    if (this._transitionFailure !== void 0) {
+      throw this._transitionFailure.error;
+    }
 
-    return this._startPromise = onResolve(this.stop(), () => {
-      if (!refs.hideProp) {
-        Reflect.set(root.host, '$aurelia', this);
+    let result: QueuedStop | null | Promise<QueuedStop | null>;
+    try {
+      const previousStop = this.stop();
+      const publishedStop = this._queuedStop;
+      if (publishedStop?.promise === previousStop) {
+        // This start now owns the published stop as its prerequisite. Detach the
+        // record so a later stop request can belong to the replacement root;
+        // the preceding start retains the record in its local completion value.
+        this._queuedStop = void 0;
       }
-      this._rootProvider.prepare(this._root = root);
-      this._isStarting = true;
+      result = onResolve(previousStop, () => this._activateRoot(root)) as QueuedStop | null | Promise<QueuedStop | null>;
+    } catch (error) {
+      this._transitionFailure = { error };
+      this._rejectQueuedStop(error);
+      throw error;
+    }
 
-      return onResolve(root.activate(), () => {
-        this._isRunning = true;
-        this._isStarting = false;
-        this._startPromise = void 0;
-        this._dispatchEvent(root, 'au-started', root.host);
-      });
-    });
+    if (isPromise(result)) {
+      const startPromise = result.then(
+        queuedStop => {
+          if (this._startPromise === startPromise) {
+            this._startPromise = void 0;
+          }
+          this._publishQueuedStop(root, queuedStop ?? void 0);
+        },
+        error => {
+          // A failed root transition is terminal. Keep the operation published
+          // so later callers observe the same rejection and no second lifecycle
+          // operation starts against a partially transitioned application.
+          this._transitionFailure = { error };
+          this._rejectQueuedStop(error);
+          throw error;
+        },
+      );
+      return this._startPromise = startPromise;
+    }
+    this._publishQueuedStop(root, result ?? void 0);
   }
 
   /** @internal */
   private _stopPromise: Promise<void> | void = void 0;
   public stop(dispose: boolean = false): void | Promise<void> {
+    if (this._transitionFailure !== void 0) {
+      if (this._queuedStop !== void 0) {
+        return this._queuedStop.promise;
+      }
+      if (isPromise(this._stopPromise)) {
+        return this._stopPromise;
+      }
+      throw this._transitionFailure.error;
+    }
+
+    // Check the start operation before _stopPromise. A replacement start can
+    // be waiting behind the previous root's stop; this request belongs to the
+    // replacement and receives its own completion Promise.
+    if (isPromise(this._startPromise)) {
+      return this._queueStop(dispose);
+    }
+
+    if (this._queuedStop !== void 0) {
+      return this._queueStop(dispose);
+    }
+
     if (isPromise(this._stopPromise)) {
       return this._stopPromise;
     }
 
-    if (this._isRunning === true) {
-      const root = this._root!;
-      this._isRunning = false;
-      this._isStopping = true;
+    if (this._isStarting) {
+      // root.activate() can call stop before start() has received its result.
+      // A deferred request gives that re-entrant caller the same stable stop
+      // boundary as a caller observing an asynchronous start.
+      return this._queueStop(dispose);
+    }
 
-      return this._stopPromise = onResolve(root.deactivate(), () => {
-        return onResolve(tasksSettled(), () => {
-          Reflect.deleteProperty(root.host, '$aurelia');
-          if (dispose) {
-            root.dispose();
-          }
-          this._root = void 0;
-          this._rootProvider.dispose();
-          this._isStopping = false;
-          this._stopPromise = void 0;
-          this._dispatchEvent(root, 'au-stopped', root.host);
-        });
-      });
+    if (this._isRunning === true) {
+      return this._beginStop(this._root!, dispose);
     }
   }
 
+  /** @internal */
+  private _beginStop(root: IAppRoot, dispose: boolean, queued?: QueuedStop): void | Promise<void> {
+    this._isRunning = false;
+    this._isStopping = true;
+
+    let stopPromise: Promise<void>;
+    try {
+      // tasksSettled always returns a Promise, so both the synchronous and
+      // asynchronous deactivation paths converge on one asynchronous stop.
+      stopPromise = onResolve(root.deactivate(), () => {
+        return onResolve(tasksSettled(), () => this._completeStop(root, dispose));
+      }) as Promise<void>;
+    } catch (error) {
+      this._transitionFailure = { error };
+      throw error;
+    }
+    const transition = stopPromise.catch(error => {
+      this._transitionFailure = { error };
+      throw error;
+    });
+    if (queued === void 0) {
+      return this._stopPromise = transition;
+    }
+    void transition.then(queued.resolve, queued.reject);
+    return queued.promise;
+  }
+
+  /** @internal */
+  private _activateRoot(root: IAppRoot): QueuedStop | null | Promise<QueuedStop | null> {
+    this._isStarting = true;
+
+    if (!refs.hideProp) {
+      Reflect.set(root.host, '$aurelia', this);
+    }
+    this._rootProvider.prepare(this._root = root);
+    return onResolve(root.activate(), () => {
+      // Capture before au-started dispatches: event handlers can synchronously
+      // start a replacement and install a different queued-stop record.
+      const queuedStop = this._queuedStop ?? null;
+      this._completeStart(root);
+      return queuedStop;
+    });
+  }
+
+  /** @internal */
+  private _completeStart(root: IAppRoot): void {
+    this._isRunning = true;
+    this._isStarting = false;
+    this._dispatchEvent(root, 'au-started', root.host);
+  }
+
+  /** @internal */
+  private _queueStop(dispose: boolean): Promise<void> {
+    const queued = this._queuedStop ??= createQueuedStop(dispose);
+    queued.dispose ||= dispose;
+    return queued.promise;
+  }
+
+  /** @internal */
+  private _publishQueuedStop(root: IAppRoot, queued: QueuedStop | undefined): void {
+    if (queued === void 0) {
+      return;
+    }
+    this._stopPromise = queued.promise;
+
+    // Publish the successful start before beginning its queued stop. The extra
+    // Promise turn lets start() observers run at the au-started boundary while
+    // the distinct stop Promise continues through teardown.
+    void Promise.resolve().then(noop).then(() => {
+      if (this._queuedStop === queued) {
+        this._queuedStop = void 0;
+      }
+      try {
+        void this._beginStop(root, queued.dispose, queued);
+      } catch (error) {
+        queued.reject(error);
+      }
+    });
+  }
+
+  /** @internal */
+  private _rejectQueuedStop(error: unknown): void {
+    this._queuedStop?.reject(error);
+  }
+
+  /** @internal */
+  private _completeStop(root: IAppRoot, dispose: boolean): void {
+    Reflect.deleteProperty(root.host, '$aurelia');
+    if (dispose) {
+      root.dispose();
+      if (this.next === root) {
+        this.next = void 0;
+      }
+    }
+    if (this._root === root) {
+      this._root = void 0;
+      this._rootProvider.dispose();
+    }
+    this._isStopping = false;
+    this._stopPromise = void 0;
+    this._dispatchEvent(root, 'au-stopped', root.host);
+  }
+
   public dispose(): void {
-    if (this._isRunning || this._isStopping) {
+    if (
+      this._isRunning
+      || this._isStarting
+      || this._isStopping
+      || isPromise(this._startPromise)
+      || isPromise(this._stopPromise)
+    ) {
       throw createMappedError(ErrorNames.invalid_dispose_call);
     }
     this.container.dispose();
@@ -183,6 +335,23 @@ export class Aurelia implements IDisposable {
     const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
     target.dispatchEvent(ev);
   }
+}
+
+interface QueuedStop {
+  dispose: boolean;
+  readonly promise: Promise<void>;
+  readonly resolve: () => void;
+  readonly reject: (reason: unknown) => void;
+}
+
+function createQueuedStop(dispose: boolean): QueuedStop {
+  let resolve!: () => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { dispose, promise, resolve, reject };
 }
 
 export type ISinglePageAppConfig<T extends object = object> = Omit<IAppRootConfig<T>, 'strictBinding'> & {

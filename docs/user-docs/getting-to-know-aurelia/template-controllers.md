@@ -22,7 +22,16 @@ A template controller is just a custom attribute whose definition sets `isTempla
 ### 1. `@templateController()` decorator
 
 ```typescript
-import { bindable, ICustomAttributeController, IRenderLocation, ISyntheticView, IViewFactory, templateController } from '@aurelia/runtime-html';
+import {
+  bindable,
+  type ControllerVisitor,
+  type ICustomAttributeController,
+  type IHydratedController,
+  IRenderLocation,
+  type ISyntheticView,
+  IViewFactory,
+  templateController,
+} from '@aurelia/runtime-html';
 import { resolve } from '@aurelia/kernel';
 
 @templateController({
@@ -41,35 +50,49 @@ export class PermissionTemplateController {
   private view?: ISyntheticView;
 
   public binding() {
-    this.view ??= this.factory.create().setLocation(this.location);
+    this.view ??= this.factory.create(this.$controller).setLocation(this.location);
   }
 
-  public bound() {
-    this.updateVisibility();
+  public attaching(initiator: IHydratedController) {
+    return this.updateVisibility(initiator);
   }
 
   public userRoleChanged() {
-    this.updateVisibility();
+    this.requestVisibilityUpdate();
   }
 
   public requiredRoleChanged() {
-    this.updateVisibility();
+    this.requestVisibilityUpdate();
   }
 
-  public detaching() {
-    this.view?.deactivate(this.view, this.$controller);
+  public detaching(initiator: IHydratedController) {
+    // Keep this view in the lifecycle started by its parent.
+    void this.view?.deactivate(initiator, this.$controller);
   }
 
-  private updateVisibility() {
-    if (!this.view) {
-      return;
+  public accept(visitor: ControllerVisitor): void | true {
+    return this.view?.accept(visitor);
+  }
+
+  public dispose() {
+    this.view?.dispose();
+    this.view = undefined;
+  }
+
+  private requestVisibilityUpdate() {
+    const view = this.view;
+    if (view && this.$controller.isActive) {
+      // A later bindable change starts from the hosted view itself.
+      void this.updateVisibility(view);
     }
+  }
+
+  private updateVisibility(initiator: IHydratedController) {
+    const view = this.view!;
     const canSee = this.userRole === this.requiredRole;
-    if (canSee && !this.view.isActive) {
-      void this.view.activate(this.view, this.$controller, this.$controller.scope);
-    } else if (!canSee && this.view.isActive) {
-      void this.view.deactivate(this.view, this.$controller);
-    }
+    return canSee
+      ? view.activate(initiator, this.$controller, this.$controller.scope)
+      : view.deactivate(initiator, this.$controller);
   }
 }
 ```
@@ -107,29 +130,41 @@ The minimal lifecycle looks like this:
 
 ```typescript
 public binding() {
-  this.view ??= this.factory.create().setLocation(this.location);
+  this.view ??= this.factory.create(this.$controller).setLocation(this.location);
 }
 
-public attaching() {
-  return this.show(); // return a promise if activation is async
+public attaching(initiator: IHydratedController) {
+  return this.show(initiator);
 }
 
-public detaching() {
-  return this.hide();
+public detaching(initiator: IHydratedController) {
+  // Keep this view in the lifecycle started by its parent.
+  void this.hide(initiator);
 }
 
-private show() {
-  if (this.condition && this.view && !this.view.isActive) {
-    return this.view.activate(this.view, this.$controller, this.$controller.scope);
+public accept(visitor: ControllerVisitor): void | true {
+  return this.view?.accept(visitor);
+}
+
+public dispose() {
+  this.view?.dispose();
+  this.view = undefined;
+}
+
+private show(initiator: IHydratedController) {
+  if (this.condition && this.view) {
+    return this.view.activate(initiator, this.$controller, this.$controller.scope);
   }
 }
 
-private hide() {
-  if (this.view?.isActive) {
-    return this.view.deactivate(this.view, this.$controller);
+private hide(initiator: IHydratedController) {
+  if (this.view) {
+    return this.view.deactivate(initiator, this.$controller);
   }
 }
 ```
+
+A template controller owns the views it creates. Pass the lifecycle `initiator` through `attaching` and `detaching` so the parent and hosted view complete the same transition. Later bindable changes start from the hosted view. `accept(visitor)` lets parent traversal reach it, and `dispose()` releases it after teardown.
 
 Because the same view gets reused, you can cache work (see `If.cache` and `PromiseTemplateController` for examples). If you need a fresh container per instantiation—for example, each repeated row should get a unique dependency graph—set `containerStrategy: 'new'` on the definition so the renderer asks the DI container for a child scope before creating the view.
 
@@ -186,7 +221,7 @@ The structural rule is strict:
 - **No spread bindings** – `...attrs="bindable"` intentionally skips template controllers since spreading could hide structural markup (`packages/template-compiler/src/errors.ts`, `no_spread_template_controller`). Register them explicitly instead.
 - **One template per controller** – The compiler only emits one `IViewFactory` per controller. If you need secondary content (like the `else` branch), capture another controller's factory in `link()` or build an additional view manually using `ViewFactory`/`CustomElementDefinition` as shown earlier.
 - **Container strategy matters** – Setting `containerStrategy: 'new'` ensures each rendered view gets a fresh child container (see `PromiseTemplateController`); the default `'reuse'` is faster but shares services.
-- **Lifecycle must be balanced** – Always deactivate and dispose views you created. Built-ins call `.dispose()` in `detaching` to release DOM and avoid leaks.
+- **Lifecycle ownership** – A created view remains with its template controller through teardown. Deactivate it during `detaching`, include it in `accept(visitor)`, and release it from `dispose()`.
 
 **Async swaps are phased** “ When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.
 

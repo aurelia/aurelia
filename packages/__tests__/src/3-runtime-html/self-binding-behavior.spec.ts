@@ -23,8 +23,8 @@ describe('3-runtime-html/self-binding-behavior.spec.ts', function () {
   });
 
   it('throws on non listener binding', async function () {
-    const { appHost, start } = createFixture(`<div click.bind="m & self">`, {}, [], false);
-    assert.throws(() => start());
-    appHost.remove();
+    const fixture = createFixture(`<div click.bind="m & self">`, {}, [], false);
+    assert.throws(() => fixture.start());
+    assert.strictEqual(fixture.torn, true);
   });
 });

@@ -584,10 +584,10 @@ Using repeat.for with dynamic list?
 | `created` | After constructor | Access `$controller` |
 | `binding` | Before bindings evaluated | Initialize from bindables |
 | `bound` | Bindings connected | Setup dependent on bound values |
-| `attaching` | Before DOM attachment | Async setup work |
-| `attached` | In DOM | DOM manipulation, third-party libs |
+| `attaching` | DOM inserted; descendants may still be attaching | Async setup work |
+| `attached` | Owned subtree attached | DOM measurement, third-party libraries |
 | `detaching` | Before DOM removal | Cleanup, save state |
-| `unbinding` | Bindings disconnecting | Cleanup subscriptions |
+| `unbinding` | Before bindings disconnect | Cleanup subscriptions |
 
 ```typescript
 import { resolve } from '@aurelia/kernel';

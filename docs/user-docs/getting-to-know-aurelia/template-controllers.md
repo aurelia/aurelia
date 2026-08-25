@@ -213,7 +213,7 @@ The structural rule is strict:
 - `else` must still attach to the immediately preceding branch in the chain
 - `if.bind` must be on the same element as `else`
 - plain attributes or non-template-controller custom attributes may appear between `else` and `if.bind`
-- another template controller between `else` and `if.bind` is invalid and raises `AUR0810`
+- another template controller between `else` and `if.bind` does not form an `else if` branch
 
 ## Restrictions and Gotchas
 
@@ -223,7 +223,7 @@ The structural rule is strict:
 - **Container strategy matters** – Setting `containerStrategy: 'new'` ensures each rendered view gets a fresh child container (see `PromiseTemplateController`); the default `'reuse'` is faster but shares services.
 - **Lifecycle ownership** – A created view remains with its template controller through teardown. Deactivate it during `detaching`, include it in `accept(visitor)`, and release it from `dispose()`.
 
-**Async swaps are phased** “ When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.
+**Async swaps are phased.** When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.
 
 ## Next Steps
 

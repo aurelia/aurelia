@@ -74,7 +74,7 @@ This also works on direct custom elements, not just native elements or explicit 
 - `else` must belong to the immediately preceding conditional branch.
 - `if.bind` must be on the same element as `else` when writing `else if`.
 - Plain attributes and non-template-controller custom attributes may appear between `else` and `if.bind` on that same element.
-- Other template controllers between `else` and `if.bind` on the same element are invalid.
+- Another template controller between `else` and `if.bind` means the attributes do not form an `else if` branch.
 - A plain `else` branch ends the chain. Another `else` after that is invalid.
 
 Valid examples:
@@ -86,13 +86,15 @@ Valid examples:
 <div else>D</div>
 ```
 
-Invalid examples:
+A controller-bearing structure between sibling branches breaks the chain:
 
 ```html
 <div if.bind="step === 0">A</div>
-<p>Breaks the chain</p>
+<p repeat.for="item of items">${item}</p>
 <div else>B</div>
 ```
+
+This same-element combination is unsupported as `else if` because `repeat` separates the two template controllers:
 
 ```html
 <div if.bind="step === 0">A</div>

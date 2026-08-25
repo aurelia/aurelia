@@ -845,10 +845,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let prevActivation: void | Promise<void> = void 0;
     switch ((this.state & ~released)) {
       case activated:
-        this.state = deactivating;
+        // release() is consumed by unbind after teardown settles. Preserve the
+        // bit while moving through deactivating so the factory can recycle it.
+        this.state = (deactivating | (this.state & released)) as State;
         break;
       case activating:
-        this.state = deactivating;
+        this.state = (deactivating | (this.state & released)) as State;
         // we are about to deactivate, the error from activation can be ignored
         prevActivation = this.$promise?.catch(__DEV__
           /* istanbul-ignore-next */

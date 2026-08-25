@@ -264,13 +264,15 @@ export class Aurelia implements IDisposable {
     if (queued === void 0) {
       return;
     }
-    this._queuedStop = void 0;
     this._stopPromise = queued.promise;
 
     // Publish the successful start before beginning its queued stop. The extra
     // Promise turn lets start() observers run at the au-started boundary while
     // the distinct stop Promise continues through teardown.
     void Promise.resolve().then(noop).then(() => {
+      if (this._queuedStop === queued) {
+        this._queuedStop = void 0;
+      }
       try {
         void this._beginStop(root, queued.dispose, queued);
       } catch (error) {

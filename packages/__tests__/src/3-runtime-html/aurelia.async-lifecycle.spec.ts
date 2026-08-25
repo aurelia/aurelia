@@ -55,7 +55,6 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       const stop = au.stop();
       assert.instanceOf(stop, Promise);
       assert.notStrictEqual(stop, start, 'start and stop expose distinct completion boundaries');
-      assert.strictEqual(au.stop(true), stop, 'later callers can request disposal on the queued stop');
       assert.strictEqual(probe.calls.deactivate, 0);
 
       activation.resolve();
@@ -68,6 +67,7 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       assert.strictEqual(stoppedEvents, 0);
       assert.strictEqual(au.isRunning, true);
       assertPublished(ctx, au, probe);
+      assert.strictEqual(au.stop(true), stop, 'later callers can request disposal at the start boundary');
 
       await stop;
 

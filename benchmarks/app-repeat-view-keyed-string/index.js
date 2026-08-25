@@ -1,7 +1,7 @@
 import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
 import { createItems } from '../utils/data.js';
-import { startApplication } from '../utils/start-application.mjs';
-export { tasksSettled } from '../utils/start-application.mjs';
+import { startSynchronousApplication } from '../utils/start-application.mjs';
+export { tasksSettled } from '@aurelia/runtime';
 
 let $count = 0;
 
@@ -29,5 +29,5 @@ export const start = (host, count = 0) => {
         component: App,
         host
     });
-    return startApplication(au);
+    return startSynchronousApplication(au);
 };

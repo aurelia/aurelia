@@ -1,6 +1,6 @@
 import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
-import { startApplication } from '../utils/start-application.mjs';
-export { tasksSettled } from '../utils/start-application.mjs';
+import { startSynchronousApplication } from '../utils/start-application.mjs';
+export { tasksSettled } from '@aurelia/runtime';
 export { CustomElement };
 
 let initialItems;
@@ -52,5 +52,5 @@ export const start = (host, items) => {
   if (!Array.isArray(items)) throw new Error('Realistic benchmark startup requires prepared items.');
   initialItems = items;
   const au = new Aurelia().register(StandardConfiguration).app({ component: App, host });
-  return startApplication(au);
+  return startSynchronousApplication(au);
 };

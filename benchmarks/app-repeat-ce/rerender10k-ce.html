@@ -5,7 +5,7 @@ import { publishMeasurement } from '../utils/publish-measurement.js';
 const { start, tasksSettled } = await loadVariant('app-repeat-ce');
 
 const host = document.body.appendChild(document.createElement('div'));
-const au = await start(host);
+const au = start(host);
 assertDirectRows(host, 0, 'hello', {});
 
 performance.mark('10k-start');

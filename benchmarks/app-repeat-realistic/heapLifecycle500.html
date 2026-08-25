@@ -14,7 +14,7 @@ const { CustomElement, start, tasksSettled } = await loadVariant('app-repeat-rea
 
 async function runLifecycle(measureLiveHeap) {
   let host = document.body.appendChild(document.createElement('div'));
-  let au = await start(host, createRealisticRecords(500));
+  let au = start(host, createRealisticRecords(500));
   let app = au.root.controller.viewModel;
   let before = captureRealisticViewModels(host, app.items, CustomElement);
   let nextItems = createMixedRealisticRecords(app.items);

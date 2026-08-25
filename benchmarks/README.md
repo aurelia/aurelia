@@ -88,8 +88,9 @@ the suite gathers enough history to establish scenario-specific variance and pra
 
 The report uses four kinds of evidence:
 
-- **Duration** ends after the requested Aurelia lifecycle and scheduler work completes. Correctness assertions run
-  outside the measured interval.
+- **Duration** uses the boundary declared by each scenario. Startup fixtures require synchronous `Aurelia.start()`;
+  update and reconciliation scenarios await their scheduled framework work. Correctness assertions run outside the
+  measured interval.
 - **Immediate used JS heap** is Chrome's point-in-time reading after completed work and before assertion traversals. It
   does not force collection.
 - **Used JS heap after GC** belongs to the full and master profiles. The page runs two warm-up lifecycles, then awaits
@@ -110,7 +111,9 @@ the correct byte and MiB presentation.
 Keep the workload small enough to understand and rich enough to exercise the framework behavior under review.
 
 - Generate data and complete setup before the start mark.
-- Await lifecycle and scheduler completion before the end mark.
+- Keep raw startup fixtures synchronous, call their startup helper without `await`, and fail if `Aurelia.start()`
+  returns a Promise.
+- Await scheduled framework work before the end mark in update and reconciliation scenarios.
 - Capture immediate heap before assertion traversals allocate temporary structures. Clear assertion-owned references
   before an after-GC reading.
 - Assert final DOM output. Check controller identity and events when they are part of the workload contract.

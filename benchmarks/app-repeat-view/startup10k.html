@@ -6,7 +6,7 @@ const { start } = await loadVariant('app-repeat-view');
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('10k-start');
-await start(host, 10000);
+start(host, 10000);
 performance.mark('10k-end');
 
 const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;

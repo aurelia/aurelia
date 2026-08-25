@@ -6,7 +6,7 @@ const { start } = await loadVariant('app-repeat-view-keyed-string');
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('start');
-await start(host, 10000);
+start(host, 10000);
 performance.mark('end');
 
 const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;

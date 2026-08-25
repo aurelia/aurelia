@@ -27,7 +27,9 @@
 
 - Expanded benchmark names end in `base` and `candidate`.
 - Pages load Aurelia through `loadVariant()` and publish multi-metric values atomically.
-- Keep preparation outside latency intervals. Await Aurelia lifecycle and scheduler completion before the end mark.
+- Keep preparation outside latency intervals. Startup fixtures call `startSynchronousApplication()` without `await`
+  and reject an async `Aurelia.start()` result. Update scenarios await their scheduled framework work before the end
+  mark.
 - Capture immediate heap before assertion traversals. Correctness must still be proven before publishing a sample.
 - Clear avoidable assertion roots before after-GC readings and use `measureUsedJsHeapAfterGc()`.
 - Assert the behavior the timing represents: DOM count, order, content, controller identity, or event handling as

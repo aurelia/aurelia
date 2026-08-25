@@ -5,7 +5,7 @@ import { publishMeasurement } from '../utils/publish-measurement.js';
 const { start, tasksSettled } = await loadVariant('app-repeat-view');
 
 const host = document.body.appendChild(document.createElement('div'));
-const au = await start(host, 1000);
+const au = start(host, 1000);
 assertDirectRows(host, 1000, 'div', {
   0: 'hello item 0 item',
   500: 'hello item 500 item',

@@ -1,9 +1,6 @@
-import { onResolve } from '@aurelia/kernel';
-import { tasksSettled } from '@aurelia/runtime';
-import { completeApplicationStart } from './complete-application-start.mjs';
-
-export { tasksSettled };
-
-export function startApplication(au) {
-  return completeApplicationStart(au, onResolve, tasksSettled);
+export function startSynchronousApplication(au) {
+  if (typeof au.start()?.then === 'function') {
+    throw new Error('Benchmark application startup must remain synchronous.');
+  }
+  return au;
 }

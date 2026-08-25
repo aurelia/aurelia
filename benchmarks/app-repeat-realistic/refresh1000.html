@@ -13,7 +13,7 @@ import { publishMeasurement } from '../utils/publish-measurement.js';
 const { CustomElement, start, tasksSettled } = await loadVariant('app-repeat-realistic');
 
 const host = document.body.appendChild(document.createElement('div'));
-const au = await start(host, createRealisticRecords(1000));
+const au = start(host, createRealisticRecords(1000));
 const app = au.root.controller.viewModel;
 const before = captureRealisticViewModels(host, app.items, CustomElement);
 const nextItems = createRefreshedRealisticRecords(app.items);

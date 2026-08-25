@@ -11,7 +11,7 @@ const { CustomElement, start } = await loadVariant('app-repeat-realistic');
 const host = document.body.appendChild(document.createElement('div'));
 const initialItems = createRealisticRecords(1000);
 performance.mark('realistic-startup-start');
-const au = await start(host, initialItems);
+const au = start(host, initialItems);
 performance.mark('realistic-startup-end');
 
 const usedJSHeapSizeBytes = performance.memory.usedJSHeapSize;

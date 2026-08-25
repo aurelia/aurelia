@@ -22,9 +22,9 @@ class Deferred<T = void> {
 }
 
 describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
-  describe('model-only async activation', function () {
+  describe('post-start update ownership', function () {
     for (const flushMode of ['sync', 'async'] as const) {
-      it(`serializes model-only activate calls with flush-mode=${flushMode}`, async function () {
+      it(`keeps model-only activate work component-owned with flush-mode=${flushMode}`, async function () {
         const first = new Deferred();
         const second = new Deferred();
         const calls: string[] = [];
@@ -71,27 +71,23 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
 
         component.model = 'first';
         await tasksSettled();
-        const firstOperation = component.composing;
-        assert.instanceOf(firstOperation, Promise);
         assert.deepStrictEqual(calls, ['initial', 'first']);
+        assert.strictEqual(component.composing, void 0);
 
         component.model = 'second';
         await tasksSettled();
-        const allOperations = component.composing;
-        assert.instanceOf(allOperations, Promise);
-        assert.notStrictEqual(allOperations, firstOperation);
-        assert.deepStrictEqual(calls, ['initial', 'first'], 'the second activate call waits for the first');
-
-        first.resolve();
-        await firstOperation;
-        assert.deepStrictEqual(completed, ['first']);
         assert.deepStrictEqual(calls, ['initial', 'first', 'second']);
+        assert.strictEqual(component.composing, void 0);
 
         second.resolve();
-        await allOperations;
-        await tasksSettled();
+        await second.promise;
+        await Promise.resolve();
+        assert.deepStrictEqual(completed, ['second']);
 
-        assert.deepStrictEqual(completed, ['first', 'second']);
+        first.resolve();
+        await first.promise;
+        await Promise.resolve();
+        assert.deepStrictEqual(completed, ['second', 'first']);
         assert.strictEqual(component.composing, void 0);
         assert.strictEqual(component.composition, initialComposition);
         assert.strictEqual(constructorCount, 1);
@@ -106,105 +102,33 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
       });
     }
 
-    it('keeps structural composition behind a pending model update', async function () {
-      const update = new Deferred();
+    it('does not let pending model work delay structural replacement or application teardown', async function () {
+      const modelWork = new Deferred();
       const calls: string[] = [];
 
       const FirstComponent = CustomElement.define({
-        name: 'first-model-update',
-        template: 'first',
-      }, class {
-        public activate(model: string): void | Promise<void> {
-          calls.push(`first:${model}:start`);
-          if (model === 'pending') {
-            return update.promise.then(() => { calls.push(`first:${model}:end`); });
-          }
-        }
-      });
-      const SecondComponent = CustomElement.define({
-        name: 'second-model-update',
-        template: 'second',
-      }, class {
-        public activate(model: string): void {
-          calls.push(`second:${model}`);
-        }
-      });
-
-      const fixture = createFixture(
-        '<au-compose component.bind="component" model.bind="model" composing.bind="composing" composition.bind="composition"></au-compose>',
-        class App {
-          public component: unknown = FirstComponent;
-          public model = 'initial';
-          public composing: void | Promise<void>;
-          public composition: ICompositionController | undefined;
-        },
-        [FirstComponent, SecondComponent],
-      );
-      const { component } = fixture;
-      await tasksSettled();
-
-      const initialComposition = component.composition;
-      component.model = 'pending';
-      await tasksSettled();
-      component.component = SecondComponent;
-      await tasksSettled();
-
-      const composing = component.composing!;
-      assert.instanceOf(composing, Promise);
-      assert.deepStrictEqual(calls, ['first:initial:start', 'first:pending:start']);
-      assert.strictEqual(component.composition, initialComposition);
-
-      update.resolve();
-      await composing;
-      await tasksSettled();
-
-      assert.deepStrictEqual(calls, [
-        'first:initial:start',
-        'first:pending:start',
-        'first:pending:end',
-        'second:pending',
-      ]);
-      assert.notStrictEqual(component.composition, initialComposition);
-      assert.strictEqual(component.composing, void 0);
-
-      await fixture.stop(true);
-    });
-
-    it('drops structural work queued before detaching while a model update is pending', async function () {
-      const update = new Deferred();
-      const calls: string[] = [];
-
-      const FirstComponent = CustomElement.define({
-        name: 'stopping-pending-model-update',
+        name: 'component-with-pending-model-work',
         template: 'first',
       }, class {
         public activate(model: string): void | Promise<void> {
           calls.push(`first:activate:${model}`);
-          return model === 'pending' ? update.promise : void 0;
+          return model === 'pending' ? modelWork.promise : void 0;
         }
 
         public detaching(): void {
           calls.push('first:detaching');
         }
       });
-      const SecondComponent = CustomElement.define({
-        name: 'skipped-queued-composition',
-        template: 'second',
+      const ReplacementComponent = CustomElement.define({
+        name: 'replacement-during-model-work',
+        template: 'replacement',
       }, class {
-        public constructor() {
-          calls.push('second:construct');
-        }
-
-        public activate(): void {
-          calls.push('second:activate');
+        public attaching(): void {
+          calls.push('replacement:attaching');
         }
 
         public detaching(): void {
-          calls.push('second:detaching');
-        }
-
-        public dispose(): void {
-          calls.push('second:dispose');
+          calls.push('replacement:detaching');
         }
       });
 
@@ -215,34 +139,103 @@ describe('3-runtime-html/au-compose.async-lifecycle.spec.ts', function () {
           public model = 'initial';
           public composing: void | Promise<void>;
         },
-        [FirstComponent, SecondComponent],
+        [FirstComponent, ReplacementComponent],
+      );
+      await fixture.started;
+
+      fixture.component.model = 'pending';
+      await tasksSettled();
+      assert.strictEqual(fixture.component.composing, void 0);
+
+      fixture.component.component = ReplacementComponent;
+      await tasksSettled();
+      assert.deepStrictEqual(calls, [
+        'first:activate:initial',
+        'first:activate:pending',
+        'replacement:attaching',
+        'first:detaching',
+      ]);
+      fixture.assertText('replacement');
+
+      await fixture.stop(true);
+      assert.deepStrictEqual(calls, [
+        'first:activate:initial',
+        'first:activate:pending',
+        'replacement:attaching',
+        'first:detaching',
+        'replacement:detaching',
+      ]);
+
+      modelWork.resolve();
+      await modelWork.promise;
+    });
+
+    it('drops structural work queued behind a pending composition when detaching starts', async function () {
+      const componentLoad = new Deferred<unknown>();
+      const calls: string[] = [];
+
+      const FirstComponent = CustomElement.define({
+        name: 'active-before-queued-structural-work',
+        template: 'first',
+      }, class {
+        public detaching(): void {
+          calls.push('first:detaching');
+        }
+      });
+      const LoadedComponent = CustomElement.define({
+        name: 'loaded-after-structural-detach',
+        template: 'loaded',
+      }, class {
+        public constructor() {
+          calls.push('loaded:construct');
+        }
+
+        public attaching(): void {
+          calls.push('loaded:attaching');
+        }
+      });
+      const QueuedComponent = CustomElement.define({
+        name: 'queued-after-pending-composition',
+        template: 'queued',
+      }, class {
+        public constructor() {
+          calls.push('queued:construct');
+        }
+
+        public attaching(): void {
+          calls.push('queued:attaching');
+        }
+      });
+
+      const fixture = createFixture(
+        '<au-compose component.bind="component" composing.bind="composing"></au-compose>',
+        class App {
+          public component: unknown = FirstComponent;
+          public composing: void | Promise<void>;
+        },
+        [FirstComponent, LoadedComponent, QueuedComponent],
       );
       const { component } = fixture;
       await tasksSettled();
 
-      component.model = 'pending';
+      component.component = componentLoad.promise;
       await tasksSettled();
       assert.instanceOf(component.composing, Promise);
 
-      component.component = SecondComponent;
+      component.component = QueuedComponent;
       await tasksSettled();
       const stop = Promise.resolve(fixture.stop(true));
       await Promise.resolve();
 
-      assert.deepStrictEqual(calls, [
-        'first:activate:initial',
-        'first:activate:pending',
-      ]);
+      assert.deepStrictEqual(calls, []);
 
-      update.resolve();
+      componentLoad.resolve(LoadedComponent);
       await stop;
 
-      assert.deepStrictEqual(calls, [
-        'first:activate:initial',
-        'first:activate:pending',
-        'first:detaching',
-      ]);
+      assert.deepStrictEqual(calls, ['first:detaching']);
       assert.strictEqual(component.composing, void 0);
+      assert.strictEqual(fixture.appHost.querySelector('loaded-after-structural-detach'), null);
+      assert.strictEqual(fixture.appHost.querySelector('queued-after-pending-composition'), null);
     });
 
     it('does not compose a promised component that resolves after detaching starts', async function () {

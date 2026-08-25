@@ -25,7 +25,7 @@ Use it for:
 | `scope-behavior` | `'auto' \| 'scoped'` | `'auto'` | Controls scope inheritance for non-custom-element compositions, including template-only compositions and templates backed by plain objects. Has no effect for custom elements. |
 | `tag` | `string \| null` | `null` (containerless) | For non-custom-element compositions, provide a tag name when you need a surrounding element; leave as `null` to keep the default comment boundaries. Ignored for custom elements. |
 | `composition` | `ICompositionController` (from-view) | `undefined` | Exposes the current composition so you can read `composition.controller.viewModel` or call `composition.update(model)`. `<au-compose>` remains responsible for deactivation and disposal. |
-| `composing` | `Promise<void> \| void` (from-view) | `undefined` | Exposes the Promise for the current asynchronous composition or model update. Use it to drive loading UI or await completion. |
+| `composing` | `Promise<void> \| void` (from-view) | `undefined` | Exposes the Promise for the current asynchronous structural composition. Use it to drive loading UI or await component or template replacement. |
 | `flush-mode` | `'sync' \| 'async'` | `'sync'` | Controls whether composition updates are applied immediately or batched into the next change-processing turn. |
 
 > Tip: Bindings placed on `<au-compose>` that match bindables on a composed custom element are forwarded to that element. Other attributes are applied to the generated host element when one exists, unless the custom element captures them with `capture` / `...$attrs`.
@@ -227,14 +227,21 @@ Composed components can implement an `activate` method that runs when the compon
 export class UserWidget {
   user = null;
   posts = [];
+  updateId = 0;
 
   // Called when component is first created and when model changes
   async activate(userData) {
+    const updateId = ++this.updateId;
     this.user = userData;
 
     // Load user's posts when activated
     if (userData?.id) {
-      this.posts = await this.loadUserPosts(userData.id);
+      const posts = await this.loadUserPosts(userData.id);
+      if (updateId === this.updateId) {
+        this.posts = posts;
+      }
+    } else {
+      this.posts = [];
     }
   }
 
@@ -245,7 +252,7 @@ export class UserWidget {
 }
 ```
 
-When `activate(model)` returns a Promise, `<au-compose>` waits for it to settle before applying the next model change. Each model update runs in order on the same component instance.
+Model-only changes invoke `activate(model)` directly. The component owns any Promise started there, including its cancellation and ordering policy.
 
 ### Using Models for Data Passing
 
@@ -480,7 +487,7 @@ export class AdminPanel {
 
 ### Tracking Composition Progress
 
-Bind `composing` when you want to show a loading state or await the current update. Aurelia sets it while asynchronous component or template loading is underway. It also covers component activation and `activate(model)`.
+Bind `composing` when you want to show a loading state or await structural composition. Aurelia sets it while asynchronous component or template loading and the corresponding controller transition are underway.
 
 ```typescript
 // widget-shell.ts
@@ -522,11 +529,9 @@ By default, `<au-compose>` reacts to `component`, `template`, `tag`, and `scope-
 </au-compose>
 ```
 
-A model-only update calls `activate(model)` on the current composition and retains that instance.
+A model-only update calls `activate(model)` on the current composition and retains that instance. Any returned Promise remains component-owned and does not enter `composing`.
 
-Changes to the model or composition settings run in the order Aurelia receives them. An asynchronous `activate(model)` finishes before the next update begins, preserving change order when one model update takes longer. If an update rejects, `composing` rejects with the original error and that `<au-compose>` instance stops processing updates.
-
-When no earlier asynchronous update is pending, a synchronous update happens immediately and leaves `composing` undefined. On successful detachment, Aurelia lets the current update finish. It then disposes the compositions created by `<au-compose>` and drops updates that are still waiting.
+Component and template changes use the structural composition queue. When that work becomes asynchronous, `composing` represents the queue until it settles. On successful detachment, Aurelia lets the current structural composition finish, disposes the controllers it created, and drops structural changes that are still waiting.
 
 ## Real-World Examples
 
@@ -959,7 +964,7 @@ export class TemplateLoaderValueConverter {
 2. **Use `activate(model)` for model data** - Keep model normalization in one place instead of relying on property names to line up.
 3. **Choose scope behavior intentionally** - Use `scoped` when a template should not fall back to parent properties, `auto` when fallback is desired.
 4. **Cache component definitions** - Call `CustomElement.define` once per module and reuse the reference instead of redefining inside constructors.
-5. **Handle loading states** - Bind to `composing` to show a spinner or disable UI while an asynchronous composition or model update settles.
+5. **Handle loading states** - Bind to `composing` to show a spinner or disable UI while an asynchronous structural composition settles.
 6. **Use models efficiently** - Changing models is cheaper than switching components because `activate(model)` re-runs without rehydration.
 
 ## Next steps

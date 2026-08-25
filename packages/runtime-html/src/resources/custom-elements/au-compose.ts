@@ -19,7 +19,9 @@ import { SpreadBinding } from '../../binding/spread-binding';
 export interface IDynamicComponentActivate<T> {
   /**
    * Implement this hook to run custom logic before the component is composed.
-   * A returned Promise delays composition until it settles. Its fulfillment value is ignored.
+   * During structural composition, a returned Promise delays composition until it settles.
+   * Model-only bindable updates invoke the hook directly; Aurelia does not join
+   * the returned work to the structural composition queue.
    */
   activate?(model?: T): unknown;
 }
@@ -275,8 +277,10 @@ export class AuCompose {
 
   /** @internal */
   private _updateModel(model: unknown): void {
-    // As with structural bindable callbacks, `_composing` owns the returned tail.
-    void this._enqueueComposition(() => this._composition?.update(model));
+    // Model-only work does not create or retire framework-owned controllers.
+    // Keep its completion policy with the component instead of extending the
+    // structural composition queue or application teardown boundary.
+    void this._composition?.update(model);
   }
 
   /** @internal */

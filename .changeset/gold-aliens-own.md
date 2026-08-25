@@ -1,7 +1,11 @@
 ---
 "@aurelia/runtime-html": minor
-"@aurelia/plugin-conventions": minor
+"@aurelia/template-compiler": minor
 ---
 
-Add support for else if syntax
-Add an ability to provide file host for plugin conventions for running in browser
+Conditional rendering now supports `else if` chains by placing `else` and `if.bind` on the same element.
+
+- Chains evaluate conditions lazily and stop after the first matching branch.
+- Native elements, custom elements, and explicit `<template>` branches can participate in the same chain.
+
+pr: #2453

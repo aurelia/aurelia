@@ -185,7 +185,7 @@ export class ComponentLogger implements ILifecycleHooks<MyComponent> {
 }
 ```
 
-Multiple lifecycle hook classes can be registered. Aurelia invokes their matching methods **in registration order**, followed by the component's matching hook. Aurelia waits for every Promise returned during that phase.
+Multiple lifecycle hook classes can be registered. Aurelia invokes their matching methods **in registration order**, followed by the component's matching hook. A successful phase completes after every returned Promise settles.
 
 ## Async completion and errors
 

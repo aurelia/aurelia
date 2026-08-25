@@ -53,7 +53,7 @@ This produces the following tree order:
 | `attaching` | parent to child | parent work can overlap descendant activation |
 | `attached` | child to parent | each subtree settles before its own parent runs; ancestor `attaching` work can overlap |
 
-Registered lifecycle-hook providers run in registration order for a controller. The component's matching hook follows them. Aurelia waits for every Promise returned during that phase.
+Registered lifecycle-hook providers run in registration order for a controller. The component's matching hook follows them. A successful phase completes after every returned Promise settles.
 
 ## Deactivation
 

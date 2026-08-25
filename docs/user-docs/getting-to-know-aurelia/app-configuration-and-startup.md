@@ -94,13 +94,13 @@ await au.start();
 
 If startup throws or rejects, that Aurelia instance enters a terminal state. Aurelia preserves the original failure. When the value is an `Error`, its stack points to the failing app task or component hook. Fix the cause before creating and starting a new application instance.
 
-After a successful start, `stop()` waits for the root component to deactivate. It also waits for application tasks and queued framework work. The default `stop()` retains the root for another start. `stop(true)` also disposes it. A stop requested during asynchronous startup waits for activation to finish and then deactivates the application.
+After a successful start, `stop()` waits for the root component to deactivate. It also waits for application tasks and queued framework work. The default `stop()` retains the root for another start. `stop(true)` also disposes it. A stop requested during asynchronous startup waits for activation to finish and then deactivates the application. The `start()` result completes at `au-started`; the queued `stop()` result completes separately at `au-stopped`.
 
 ```typescript
 await au.stop(true);
 ```
 
-A stop failure leaves that Aurelia instance in a terminal state and preserves the original application error. When several app tasks already started and then fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) with their original values in registration order.
+A stop failure leaves that Aurelia instance in a terminal state and preserves the original application error.
 
 The `au-started` and `au-stopped` events identify successful transitions. Both events bubble from the application host and expose the Aurelia instance through `event.detail`.
 

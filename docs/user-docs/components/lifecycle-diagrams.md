@@ -102,31 +102,27 @@ export class ToastMessage {
 
 ## Error reporting
 
-Lifecycle failures are terminal for the affected transition. Aurelia preserves the application error and waits for asynchronous work that already started.
+Lifecycle failures are terminal for the affected transition. Aurelia preserves the original application error and reports it to the caller.
 
 ```mermaid
 flowchart LR
     A[Hook throws synchronously] --> B[Later providers do not start]
-    B --> C[Wait for Promises already returned]
-    C --> D[Report the original application error]
+    B --> C[Report the original application error]
 ```
-
-When several registered providers have already returned Promises, their work can settle in any order. Aurelia uses provider registration order to select the reported failure, so reporting stays deterministic when Promises reject at different times.
 
 A failed hook leaves the affected component or application in a terminal state. Fix the hook before creating and activating a replacement. Router navigation is different: the router can discard a failed route candidate and keep the current route active.
 
-## Overlapping transition requests
+## Low-level transition requests
 
-A controller runs one lifecycle transition at a time. Requests that arrive during that transition either join it or wait for it to finish.
+A controller runs one lifecycle transition at a time. Framework features such as Repeat, `if`, Switch, and dynamic composition serialize their own structural updates. Low-level integrations should await the current Controller result before requesting another transition.
 
 | Request | Result |
 | --- | --- |
-| Deactivate during activation | Aurelia cancels the remaining activation work and finishes inactive. |
-| Activate during deactivation | Aurelia starts activation after successful teardown. |
-| Repeat the current request | The caller joins the in-flight transition. |
-| Alternate several requests | The controller reaches the state requested most recently. |
+| Deactivate during activation | Aurelia stops entering later activation phases and proceeds toward the inactive state. |
+| Repeat an active deactivation request | The caller receives the current deactivation result. |
+| Activate after deactivation settles | Aurelia starts a new activation transition. |
 
-For low-level integrations, return the Promise for work started by the hook. Returning a controller transition that depends on the same hook creates a lifecycle dependency cycle and reports [AUR0509](../developer-guides/error-messages/runtime-html/aur0509.md).
+For low-level integrations, return the Promise for work started by the hook. Returning a controller transition that depends on the same hook creates a lifecycle dependency cycle that cannot settle.
 
 ## Practical lifecycle patterns
 

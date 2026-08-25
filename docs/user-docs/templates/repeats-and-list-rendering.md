@@ -512,7 +512,7 @@ export class AsyncDataExample {
 
 Components rendered by a repeat use their normal lifecycle hooks. When a row's activation or teardown returns a Promise, Aurelia finishes that list update before beginning the next one. Collection changes made in the meantime are applied from the latest collection once the row lifecycle settles. Rows with synchronous hooks still update immediately.
 
-If a row hook rejects, Aurelia waits for the row work already in progress and reports the original error from the lowest row index. That list update fails, and the affected `repeat` should be treated as terminal.
+If a row hook rejects, Aurelia waits for row work already in progress and reports the original lifecycle error. That list update fails, and the affected `repeat` should be treated as terminal.
 
 ### Complex Object Iteration
 

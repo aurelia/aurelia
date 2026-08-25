@@ -189,15 +189,13 @@ Multiple lifecycle hook classes can be registered. Aurelia invokes their matchin
 
 ## Async completion and errors
 
-Aurelia completes a lifecycle phase after the component and its descendants finish the work they started, including Promises returned by registered lifecycle hooks. Sibling work can settle in any order. If more than one hook fails, Aurelia reports the first according to lifecycle order.
+Aurelia completes a successful lifecycle phase after the component and its descendants finish the work they started, including Promises returned by registered lifecycle hooks.
 
-A hook failure ends the affected lifecycle transition and reaches the caller as the original thrown or rejected value. Aurelia waits for all work that already started. The affected component or application is then in a terminal state. Fix the hook before creating and activating a replacement.
+A hook failure ends the affected lifecycle transition and reaches the caller as the original thrown or rejected value. The affected component or application is then in a terminal state. Fix the hook before creating and activating a replacement.
 
 Router navigation is different. The router controls both the current route and its replacement, so it can discard a failed candidate and keep the current route active. See the [Router lifecycle](../router/routing-lifecycle.md) for its navigation behavior.
 
-A controller runs one lifecycle transition at a time. Deactivation requested during activation cancels the remaining activation work and finishes inactive. Activation requested during teardown starts after successful cleanup. After several overlapping requests, the controller reaches the state requested most recently.
-
-If a hook fails while activation is being cancelled, the shared transition reports that original error.
+A controller runs one lifecycle transition at a time. Framework structural owners serialize their own updates. Low-level integrations should await a Controller transition before requesting the next one. Deactivation requested during activation stops later activation phases and proceeds toward the inactive state.
 
 Return the Promise created by your hook when Aurelia should wait for that work:
 
@@ -213,7 +211,7 @@ export class AnimatedPanel {
 }
 ```
 
-For low-level controller integrations, the Promise returned by a hook should represent only work that hook started. Returning the controller transition that is currently waiting for the hook creates a dependency cycle and reports [AUR0509](../developer-guides/error-messages/runtime-html/aur0509.md). Controller disposal begins after its lifecycle work settles. [AUR0510](../developer-guides/error-messages/runtime-html/aur0510.md) identifies an early disposal request.
+For low-level controller integrations, the Promise returned by a hook should represent only work that hook started. Returning a controller transition that depends on the same hook creates a cycle that cannot settle. Await lifecycle completion before disposing the controller.
 
 ## Special cases
 

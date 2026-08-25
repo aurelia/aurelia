@@ -96,9 +96,9 @@ In this example, the hydrating task waits for an asynchronous import and registe
 
 ## Ordering and failure behavior
 
-Aurelia invokes app tasks in registration order. Promises returned by those tasks may remain pending at the same time. Aurelia waits for every task that already started before reporting an error.
+Aurelia invokes app tasks in registration order. Promises returned by those tasks may remain pending at the same time. A successful phase completes after all returned Promises settle.
 
-If a callback throws synchronously, later tasks in that phase do not start. Aurelia reports the original thrown or rejected value for one failure. When several started tasks fail, Aurelia reports [AUR0826](../developer-guides/error-messages/runtime-html/aur0826.md) as an `AggregateError`. Its `errors` array follows task registration order.
+If a callback throws synchronously, later tasks in that phase do not start. A rejected Promise ends the phase as soon as Aurelia observes the rejection. Aurelia reports the original thrown or rejected value. Tasks that already started continue independently, and Aurelia observes any later rejection from them.
 
 A task failure ends the affected application transition and leaves that Aurelia instance in a terminal state. Aurelia preserves the original failure. When the value is an `Error`, its stack helps identify the callback. Fix the cause before creating a new application instance.
 

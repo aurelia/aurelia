@@ -250,11 +250,7 @@ async function downloadReport(value, circleToken, fetchImpl) {
   ) {
     throw new BenchmarkReportError('invalid-report-artifact');
   }
-  const response = await fetchImpl(url, {
-    headers: { 'Circle-Token': circleToken, Accept: 'application/json' },
-    redirect: 'error',
-    signal: AbortSignal.timeout(30_000),
-  });
+  const response = await fetchArtifact(url, circleToken, fetchImpl);
   if (!response.ok) throw new BenchmarkReportError('invalid-report-artifact');
   const length = Number(response.headers.get('content-length'));
   if (Number.isFinite(length) && length > 512 * 1024) throw new BenchmarkReportError('invalid-report-artifact');
@@ -264,6 +260,42 @@ async function downloadReport(value, circleToken, fetchImpl) {
   } catch {
     throw new BenchmarkReportError('invalid-report-artifact');
   }
+}
+
+async function fetchArtifact(url, circleToken, fetchImpl) {
+  let current = url;
+  // CircleCI artifact endpoints redirect to signed storage URLs. Follow a bounded HTTPS
+  // chain without forwarding the Circle token beyond the validated CircleCI origin.
+  for (let redirectCount = 0; redirectCount <= 3; redirectCount++) {
+    let response;
+    try {
+      response = await fetchImpl(current, {
+        headers: redirectCount === 0
+          ? { 'Circle-Token': circleToken, Accept: 'application/json' }
+          : { Accept: 'application/json' },
+        redirect: 'manual',
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch {
+      throw new BenchmarkReportError('invalid-report-artifact');
+    }
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    if (redirectCount === 3) throw new BenchmarkReportError('invalid-report-artifact');
+
+    const location = response.headers.get('location');
+    if (typeof location !== 'string' || location === '') {
+      throw new BenchmarkReportError('invalid-report-artifact');
+    }
+    try {
+      current = new URL(location, current);
+    } catch {
+      throw new BenchmarkReportError('invalid-report-artifact');
+    }
+    if (current.protocol !== 'https:' || current.username !== '' || current.password !== '') {
+      throw new BenchmarkReportError('invalid-report-artifact');
+    }
+  }
+  throw new BenchmarkReportError('invalid-report-artifact');
 }
 
 async function readLimitedBody(response, limit) {

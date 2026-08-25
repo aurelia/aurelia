@@ -3,8 +3,15 @@ import concurrently from 'concurrently';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { Writable } from 'stream';
+import type { Writable } from 'stream';
 import yargs from 'yargs/yargs';
+import {
+  closeDevLogStream,
+  createDevLogStream,
+  createTestBuildToken,
+  createTestCommandConfig,
+  waitForDevProcesses,
+} from './dev-utils';
 import { c } from './logger';
 
 const args = yargs(process.argv.slice(2))
@@ -48,9 +55,7 @@ const args = yargs(process.argv.slice(2))
 
 const envVars = { DEV_MODE: true };
 const rawTestPatterns = (args.t ?? []) as string[];
-const testPatterns = rawTestPatterns.join(' ');
-const hasValidTestPatterns = testPatterns !== '';
-const nodeTestArgs = hasValidTestPatterns ? rawTestPatterns.map(quoteShellArg).join(' ') : '';
+const hasValidTestPatterns = rawTestPatterns.join(' ') !== '';
 
 const e2e = args.e2e;
 const validE2e = [
@@ -71,7 +76,7 @@ const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 if (!hasValidTestPatterns && !hasValidE2e) {
   console.log(
 `There are no test pattern or e2e tests specified. Aborting...
-If it is intended to run all test, then specified --test *
+If it is intended to run all test, then specified --test '*'
 If it is intended to run e2e test, then specified --e2e + one of the following: ${validE2e}`);
   process.exit(0);
 }
@@ -121,6 +126,16 @@ const devPackages = ((args.d ?? []) as string[]).filter(pkg => !alwaysBuildPacka
 if (devPackages.some(d => !validPackages.includes(d))) {
   throw new Error(`Invalid package config, valid packages are: ${validPackages}`);
 }
+// Core tests resolve framework development builds; tooling packages have their own test workspaces.
+const activePackageDistRoots = [...new Set([...alwaysBuildPackages, ...devPackages])]
+  .map(pkg => `packages/${pkg}/dist`);
+const testCommandConfig = createTestCommandConfig(
+  rawTestPatterns,
+  args['node-tests'],
+  activePackageDistRoots,
+  createTestBuildToken(),
+);
+const testEnvVars = { ...envVars, ...testCommandConfig.env };
 
 validPackages
   .filter(pkg => !isEsmBuilt(path.resolve(__dirname, `../packages/${pkg}`)))
@@ -174,22 +189,25 @@ if (apps.length > 0) {
 }
 
 const baseAppPort = 9000;
-const outputStream = logFile === null ? undefined : createTeeStream(logFile);
+const outputStream = logFile === null ? undefined : createDevLogStream(logFile);
+const logFailure = outputStream === undefined
+  ? undefined
+  : new Promise<Error>(resolve => outputStream.once('error', resolve));
 if (logFile !== null) {
   console.log(`Writing dev output to ${c.green(logFile)}`);
 }
 
-concurrently([
+const devProcesses = concurrently([
   { command: devCmd, cwd: 'packages/kernel', name: 'kernel', env: envVars },
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
   { command: devCmd, cwd: 'packages/template-compiler', name: 'template-compiler', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
   hasValidTestPatterns
     ? {
-      command: `npm run dev:tsc ${testPatterns === '*' ? '*' : testPatterns}`,
+      command: testCommandConfig.buildCommand,
       cwd: 'packages/__tests__',
       name: '__tests__(build)',
-      env: envVars
+      env: testEnvVars
     }
     : null!,
   ...devPackages.map((folder: string) => ({
@@ -200,12 +218,10 @@ concurrently([
   })),
   hasValidTestPatterns
     ? {
-      command: args['node-tests']
-        ? `node -e "new Promise(r => setTimeout(r, 6000))" && node z-scripts/run-node-tests.cjs --watch ${nodeTestArgs}`
-        : `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`,
+      command: testCommandConfig.runCommand,
       cwd: 'packages/__tests__',
       name: args['node-tests'] ? '__tests__(run:node)' : '__tests__(run)',
-      env: envVars
+      env: testEnvVars
     }
     : null!,
   ...(e2e ?? []).map(e => ({ command: 'npm run test:watch', cwd: `packages/__e2e__/${e}`, env: envVars, name: `__e2e__(${e})` })),
@@ -237,6 +253,9 @@ concurrently([
   outputStream,
 });
 
+// Concurrently owns signal propagation and child-tree cleanup. Finalize the log only after it settles.
+void settleDevProcesses(devProcesses, outputStream, logFailure);
+
 function isEsmBuilt(pkgPath: string): boolean {
   return fs.existsSync(`${pkgPath}/dist/esm/index.mjs`);
 }
@@ -253,30 +272,21 @@ function getElapsed(now: number, then: number) {
   return ((now - then) / 1000).toFixed(2);
 }
 
-function createTeeStream(filePath: string): Writable {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, `# aurelia dev log\n# started ${new Date().toISOString()}\n\n`);
-  const fileStream = fs.createWriteStream(filePath, { flags: 'a' });
+async function settleDevProcesses(
+  devProcesses: { commands: readonly { kill(): void }[]; result: Promise<unknown> },
+  logStream: Writable | undefined,
+  logFailure: Promise<Error> | undefined,
+): Promise<void> {
+  let failed = await waitForDevProcesses(devProcesses, logFailure);
 
-  const close = () => fileStream.end();
-  process.on('exit', close);
-  process.on('SIGINT', () => {
-    close();
-    process.exit(130);
-  });
-  process.on('SIGTERM', () => {
-    close();
-    process.exit(143);
-  });
+  try {
+    await closeDevLogStream(logStream);
+  } catch (error) {
+    console.error('Failed to finish the development log:', error);
+    failed = true;
+  }
 
-  return new Writable({
-    write(chunk, encoding, callback) {
-      process.stdout.write(chunk, encoding);
-      fileStream.write(chunk, encoding, callback);
-    }
-  });
-}
-
-function quoteShellArg(value: string): string {
-  return `"${value.replace(/"/g, '\\"')}"`;
+  if (failed) {
+    process.exitCode = 1;
+  }
 }

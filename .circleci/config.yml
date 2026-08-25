@@ -208,6 +208,9 @@ jobs:
       generate_native_modules:
         type: boolean
         default: false
+      test_dev_runners:
+        type: boolean
+        default: false
     steps:
       - checkout
       - restore_cache:
@@ -231,6 +234,14 @@ jobs:
           condition: << parameters.generate_native_modules >>
           steps:
             - run: npm run generate-native-modules
+      - when:
+          condition: << parameters.test_dev_runners >>
+          steps:
+            - run:
+                name: "Test development runners"
+                command: |
+                  npm run test:dev-utils
+                  npm run test-node:runner -w @aurelia/__tests__
       - save_cache:
           key: cache-{{ .Revision }}-build-<< parameters.release >>
           paths:
@@ -727,6 +738,7 @@ workflows:
           <<: *filter_only_topic
           name: pr_lite_build
           release: true
+          test_dev_runners: true
           requires:
             - pr_lite_install
 

@@ -105,6 +105,7 @@
     "test:ci": "npm ci && npm run test",
     "test:watch": "cd packages/__tests__ && npm run test-chrome:watch",
     "test:debugger": "cd packages/__tests__ && npm run test-chrome:debugger",
+    "test:dev-utils": "node --require ts-node/register --test scripts/dev-utils.spec.ts",
     "dev": "ts-node scripts/dev.ts",
     "dev:tooling": "ts-node scripts/dev-tooling.ts"
   },

@@ -189,16 +189,24 @@ describe('3-runtime-html/if-view-lifecycle.spec.ts', function () {
     await tasksSettled();
     assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 1, elseCreated: 2, elseDisposed: 1 });
 
-    fixture.component.cache = false;
+    fixture.component.show = true;
     await tasksSettled();
-    await fixture.stop(false);
     assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 1, elseCreated: 2, elseDisposed: 1 });
 
-    await fixture.au.start();
+    fixture.component.cache = false;
+    await tasksSettled();
+    fixture.component.show = false;
+    await tasksSettled();
     assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 2, elseCreated: 3, elseDisposed: 2 });
 
+    await fixture.stop(false);
+    assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 2, elseCreated: 3, elseDisposed: 2 });
+
+    await fixture.au.start();
+    assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 2, elseCreated: 4, elseDisposed: 3 });
+
     await fixture.stop(true);
-    assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 2, elseCreated: 3, elseDisposed: 3 });
+    assert.deepStrictEqual(counts, { ifCreated: 2, ifDisposed: 2, elseCreated: 4, elseDisposed: 4 });
   });
 
   it('disposes nested uncached ownership when its outer view retires', async function () {

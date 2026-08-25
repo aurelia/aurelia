@@ -52,14 +52,25 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
 
       const start = au.start(probe.root);
       assert.instanceOf(start, Promise);
-      const stop = au.stop(true);
-      assert.strictEqual(stop, start, 'stop joins the in-flight start transaction');
+      const stop = au.stop();
+      assert.instanceOf(stop, Promise);
+      assert.notStrictEqual(stop, start, 'start and stop expose distinct completion boundaries');
+      assert.strictEqual(au.stop(true), stop, 'later callers can request disposal on the queued stop');
       assert.strictEqual(probe.calls.deactivate, 0);
 
       activation.resolve();
       await start;
 
       assert.strictEqual(probe.calls.activate, 1);
+      assert.strictEqual(probe.calls.deactivate, 0);
+      assert.strictEqual(probe.calls.dispose, 0);
+      assert.strictEqual(startedEvents, 1);
+      assert.strictEqual(stoppedEvents, 0);
+      assert.strictEqual(au.isRunning, true);
+      assertPublished(ctx, au, probe);
+
+      await stop;
+
       assert.strictEqual(probe.calls.deactivate, 1);
       assert.strictEqual(probe.calls.dispose, 1);
       assert.strictEqual(startedEvents, 1);
@@ -90,9 +101,12 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
 
       const start = au.start();
 
-      assert.strictEqual(stopResult, void 0, 'the re-entrant call has no stable promise until root.activate returns');
-      assert.instanceOf(start, Promise, 'start owns the stop requested from its synchronous activation stack');
-      await start;
+      assert.strictEqual(start, void 0, 'synchronous activation keeps the direct start path');
+      assert.instanceOf(stopResult, Promise, 'the re-entrant stop owns its queued teardown');
+      assert.deepStrictEqual(calls, ['binding', 'attached']);
+      assert.strictEqual(au.isRunning, true);
+
+      await stopResult;
 
       assert.deepStrictEqual(calls, ['binding', 'attached', 'detaching', 'unbinding', 'dispose']);
       assertIdle(au);
@@ -126,11 +140,25 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       const replacement = au.start(rootB.root);
       assert.instanceOf(replacement, Promise);
       const stop = au.stop(true);
-      assert.strictEqual(stop, replacement, 'stop joins the complete queued replacement transition');
+      assert.instanceOf(stop, Promise);
+      assert.notStrictEqual(stop, replacement, 'replacement start and stop have distinct boundaries');
       assert.deepStrictEqual(calls, ['A:activate', 'A:deactivate']);
       await assertPending(stop as Promise<void>, 'the replacement transition remains gated by A stopping');
 
       rootAStop.resolve();
+      await replacement;
+
+      assert.deepStrictEqual(calls, [
+        'A:activate',
+        'A:deactivate',
+        'B:activate',
+      ]);
+      assert.strictEqual(rootB.calls.activate, 1);
+      assert.strictEqual(rootB.calls.deactivate, 0);
+      assert.strictEqual(rootB.calls.dispose, 0);
+      assert.strictEqual(au.isRunning, true);
+      assertPublished(ctx, au, rootB);
+
       await stop;
 
       assert.deepStrictEqual(calls, [
@@ -181,10 +209,16 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
 
       const start = au.start(probe.root);
       assert.instanceOf(start, Promise);
-      assert.strictEqual(au.stop(true), start);
+      const stop = au.stop(true);
+      assert.instanceOf(stop, Promise);
+      assert.notStrictEqual(stop, start);
+
+      const startFailure = captureRejection(start);
+      const stopFailure = captureRejection(stop);
 
       activation.reject(error);
-      await assertRejectsWith(start, error);
+      assert.strictEqual(await startFailure, error);
+      assert.strictEqual(await stopFailure, error);
 
       assert.strictEqual(probe.calls.deactivate, 0);
       assert.strictEqual(probe.calls.dispose, 0);
@@ -192,6 +226,7 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       assert.strictEqual(au.isRunning, false);
       assertPublished(ctx, au, probe);
       assert.strictEqual(au.start(probe.root), start, 'the failed operation remains terminal');
+      assert.strictEqual(au.stop(true), stop, 'the queued stop preserves the failed operation');
     });
 
     it('propagates a failed stop without finalizing the application', async function () {
@@ -222,13 +257,14 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
   });
 
   describe('application task settlement', function () {
-    it('waits for an accepted task and stops admission after a synchronous failure', async function () {
+    it('reports a synchronous task failure without waiting for earlier asynchronous work', async function () {
       const ctx = TestContext.create();
       const host = ctx.createElement('div');
       const gate = createDeferred();
       const error = Symbol('second task failed');
+      const lateError = Symbol('first task failed later');
       const calls: string[] = [];
-      const App = CustomElement.define({ name: 'accepted-app-task-settlement', template: 'app' }, class {});
+      const App = CustomElement.define({ name: 'synchronous-app-task-failure', template: 'app' }, class {});
       const au = new Aurelia(ctx.container);
       au.register(
         AppTask.activating(() => {
@@ -242,17 +278,15 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
         AppTask.activating(() => { calls.push('third'); }),
       ).app({ host, component: App });
 
-      const start = au.start();
-      assert.instanceOf(start, Promise);
+      assert.strictEqual(captureThrow(() => au.start()), error);
       assert.deepStrictEqual(calls, ['first', 'second']);
-      await assertPending(start as Promise<void>, 'the accepted task remains part of the phase');
 
-      gate.resolve();
-      await assertRejectsWith(start, error);
+      gate.reject(lateError);
+      await Promise.resolve();
       assert.deepStrictEqual(calls, ['first', 'second']);
     });
 
-    it('reports concurrent task failures in registration order', async function () {
+    it('reports the first concurrent task rejection without waiting for siblings', async function () {
       const ctx = TestContext.create();
       const host = ctx.createElement('div');
       const first = createDeferred();
@@ -268,14 +302,13 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
 
       const start = au.start();
       assert.instanceOf(start, Promise);
-      second.reject(secondError);
-      await assertPending(start as Promise<void>, 'the phase observes every accepted task');
-      first.reject(firstError);
+      await assertPending(start as Promise<void>, 'both tasks remain pending');
 
-      const error = await captureRejection(start);
-      assert.instanceOf(error, AggregateError);
-      assert.deepStrictEqual((error as AggregateError).errors, [firstError, secondError]);
-      assert.match((error as AggregateError).message, /AUR0826: Multiple application tasks failed during the "activating" phase/);
+      second.reject(secondError);
+      await assertRejectsWith(start, secondError);
+
+      first.reject(firstError);
+      await Promise.resolve();
     });
 
     it('does not treat a deactivating task failure as a stop veto', async function () {

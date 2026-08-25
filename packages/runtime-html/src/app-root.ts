@@ -1,5 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { InstanceProvider, onResolve, isFunction, isPromise } from '@aurelia/kernel';
+import { InstanceProvider, onResolve, onResolveAll, isFunction, isPromise, noop } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
@@ -10,7 +10,7 @@ import type { TaskSlot } from './app-task';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
-import { ErrorNames, createMappedAggregateError, createMappedError } from './errors';
+import { ErrorNames, createMappedError } from './errors';
 
 import type { ISSRScope } from './templating/ssr';
 
@@ -170,54 +170,29 @@ export class AppRoot<
 
   /** @internal */
   private _runAppTasks(slot: TaskSlot): void | Promise<void> {
-    // A synchronous failure stops task admission. Promises from earlier tasks
-    // have already started, so the phase observes them before reporting its
-    // errors. This keeps rejected sibling work from escaping as unhandled.
     const container = this.container;
     const appTasks = this._useOwnAppTasks && !container.has(IAppTask, false)
       ? []
       : container.getAll(IAppTask);
-    let promises: { readonly order: number; readonly promise: Promise<void> }[] | undefined;
-    let errors: AppTaskError[] | undefined;
-    let order = 0;
-
-    for (let i = 0; i < appTasks.length; ++i) {
-      const task = appTasks[i];
-      if (task.slot !== slot) {
-        continue;
-      }
-      let result: void | Promise<void>;
-      try {
-        result = task.run();
-      } catch (error) {
-        (errors ??= []).push({ order, error });
-        break;
-      }
-      if (isPromise(result)) {
-        (promises ??= []).push({ order, promise: result });
-      }
-      ++order;
-    }
-
-    if (promises === void 0) {
-      throwAppTaskErrors(errors, slot);
-      return;
-    }
-    if (promises.length === 1 && errors === void 0) {
-      return promises[0].promise;
-    }
-    const pending = promises;
-    return Promise.allSettled(pending.map(x => x.promise)).then(results => {
-      // Rejection timing must not choose the public error. Restore registration
-      // order after all already accepted tasks have quiesced.
-      for (let i = 0; i < results.length; ++i) {
-        const result = results[i];
-        if (result.status === 'rejected') {
-          (errors ??= []).push({ order: pending[i].order, error: result.reason });
+    const results: (void | Promise<void>)[] = [];
+    try {
+      for (let i = 0; i < appTasks.length; ++i) {
+        const task = appTasks[i];
+        if (task.slot === slot) {
+          results.push(task.run());
         }
       }
-      throwAppTaskErrors(errors, slot);
-    });
+    } catch (error) {
+      // A synchronous throw ends the phase immediately. Earlier task Promises
+      // remain application-owned, but observing their rejection keeps a later
+      // failure from escaping after the original error has been reported.
+      const pending = onResolveAll(...results);
+      if (isPromise(pending)) {
+        void pending.catch(noop);
+      }
+      throw error;
+    }
+    return onResolveAll(...results);
   }
 
   /** @internal */
@@ -238,20 +213,4 @@ export class AppRoot<
   public dispose(): void {
     this._controller?.dispose();
   }
-}
-
-interface AppTaskError {
-  readonly order: number;
-  readonly error: unknown;
-}
-
-function throwAppTaskErrors(errors: AppTaskError[] | undefined, slot: TaskSlot): void {
-  if (errors === void 0) {
-    return;
-  }
-  errors.sort((a, b) => a.order - b.order);
-  if (errors.length === 1) {
-    throw errors[0].error;
-  }
-  throw createMappedAggregateError(ErrorNames.app_task_phase_failed, errors.map(x => x.error), slot);
 }

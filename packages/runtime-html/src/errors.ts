@@ -20,10 +20,6 @@ export const createMappedErrorMessage: CreateErrorMessage = __DEV__
 export const createMappedError: CreateError = (code, ...details) =>
   new Error(createMappedErrorMessage(code, ...details));
 
-/** @internal */
-export const createMappedAggregateError: CreateAggregateError = (code, errors, ...details) =>
-  new AggregateError(errors, createMappedErrorMessage(code, ...details));
-
 _START_CONST_ENUM();
 /** @internal */
 export const enum ErrorNames {
@@ -69,8 +65,6 @@ export const enum ErrorNames {
   controller_watch_invalid_callback = 506,
   controller_property_not_coercible = 507,
   controller_property_no_change_handler = 508,
-  controller_lifecycle_self_await = 509,
-  controller_dispose_active_operation = 510,
 
   node_observer_strategy_not_found = 652,
   node_observer_mapping_existed = 653,
@@ -151,19 +145,10 @@ export const enum ErrorNames {
   slotted_decorator_invalid_usage = 9990,
   children_invalid_query = 9989,
 
-  app_task_phase_failed = 826,
   node_ref_already_associated = 839,
   ssr_missing_nested_template = 840,
   ssr_unknown_instruction_type = 841,
   ssr_expression_not_found = 842,
-}
-_END_CONST_ENUM();
-
-_START_CONST_ENUM();
-/** @internal */
-export const enum LifecycleSelfAwaitReason {
-  operation = 0,
-  ancestor = 1,
 }
 _END_CONST_ENUM();
 
@@ -210,8 +195,6 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.controller_watch_invalid_callback]: `Invalid callback for @watch decorator: {{0}}`,
   [ErrorNames.controller_property_not_coercible]: `Observer for bindable property {{0}} does not support coercion.`,
   [ErrorNames.controller_property_no_change_handler]: `Observer for property {{0}} does not support change handler.`,
-  [ErrorNames.controller_lifecycle_self_await]: `Controller at {{0}} created a lifecycle dependency cycle: {{1:lifecycleCycleReason}}.`,
-  [ErrorNames.controller_dispose_active_operation]: `Cannot dispose controller {{0}} while a lifecycle operation is running in its owned subtree.`,
 
   [ErrorNames.attribute_def_not_found]: `No attribute definition found for type {{0:name}}`,
   [ErrorNames.element_def_not_found]: `No element definition found for type {{0:name}}`,
@@ -297,7 +280,6 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
   [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`,
 
-  [ErrorNames.app_task_phase_failed]: `Multiple application tasks failed during the "{{0}}" phase.`,
   [ErrorNames.node_ref_already_associated]: `Node already has a controller associated with ref "{{0}}".`,
   [ErrorNames.ssr_missing_nested_template]: `SSR hydration error: missing nested template at index {{0}}.`,
   [ErrorNames.ssr_unknown_instruction_type]: `SSR hydration error: unknown instruction type {{0}}.`,
@@ -325,9 +307,6 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
           case 'join(!=)': value = (value as unknown[]).join('!='); break;
           case 'bindingCommandHelp': value = getBindingCommandHelp(value); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
-          case 'lifecycleCycleReason': value = value === LifecycleSelfAwaitReason.operation
-            ? 'a lifecycle hook cannot await the operation that is waiting for that hook'
-            : 'a lifecycle hook cannot await an ancestor drain that is waiting for this child operation'; break;
           default: {
             // property access
             if (method?.startsWith('.')) {
@@ -347,7 +326,6 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
 
 type CreateError = (code: ErrorNames, ...details: unknown[]) => Error;
 type CreateErrorMessage = (code: ErrorNames, ...details: unknown[]) => string;
-type CreateAggregateError = (code: ErrorNames, errors: Iterable<unknown>, ...details: unknown[]) => AggregateError;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function pleaseHelpCreateAnIssue(title: string, body?: string) {

@@ -1,4 +1,4 @@
-import { mergeArrays, firstDefined, fromDefinitionOrDefault, kebabCase, Key, resourceBaseName, getResourceKeyFor, isFunction, isString } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getEffectiveParentNode } from '../dom';
@@ -144,8 +144,8 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       name = nameOrDef;
       def = { name };
     } else {
+      name = nameOrDef.name;
       def = nameOrDef;
-      name = fromDefinitionOrDefault('name', def, () => kebabCase(Type.name));
     }
 
     for(const bindable of Object.values(Bindable.from(def.bindables))) {

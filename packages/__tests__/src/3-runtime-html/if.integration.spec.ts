@@ -20,6 +20,22 @@ import {
   assert, createFixture, TestContext
 } from '@aurelia/testing';
 
+interface VoidDeferred {
+  readonly promise: Promise<void>;
+  resolve(): void;
+  reject(reason: unknown): void;
+}
+
+function createVoidDeferred(): VoidDeferred {
+  let resolve!: () => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 describe(`3-runtime-html/if.integration.spec.ts`, function () {
   class EventLog {
     public readonly events: string[] = [];
@@ -314,6 +330,32 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('a');
     });
 
+    it('supports a containerless custom element else-if branch', async function () {
+      const BranchB = CustomElement.define({
+        name: 'containerless-branch-b',
+        template: '<strong>b</strong>',
+        containerless: true,
+      }, class {});
+
+      const { assertText, component, stop } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<containerless-branch-b else if.bind="step === 1"></containerless-branch-b>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 },
+        [BranchB],
+      );
+
+      assertText('a');
+      component.step = 1;
+      assertText('b');
+      component.step = 2;
+      assertText('c');
+
+      await stop(true);
+    });
+
     it('supports definition-driven else-if chaining for renamed template controllers', function () {
       const When = CustomAttribute.define({
         name: 'when',
@@ -323,7 +365,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       const Otherwise = CustomAttribute.define({
         name: 'otherwise',
         isTemplateController: true,
-        attributeLink: { direction: 'forward', marker: 'when-link', target: 'when' },
+        attributeLink: { marker: 'when-link', target: 'when' },
       }, class Otherwise extends Else {});
 
       const { assertText, component } = createFixture(
@@ -443,40 +485,42 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('c');
     });
 
-    it('supports else after an unrelated plain element sibling', function () {
-      const { assertText, component } = createFixture(
-        [
-          '<div if.bind="step === 0">a</div>',
-          '<p>between</p>',
-          '<div else>b</div>',
-        ].join(''),
-        { step: 0 }
-      );
+    describe('unsupported native-sibling adjacency characterization', function () {
+      // Else linking currently follows Controller adjacency, so a controller-free
+      // native sibling is skipped and branch DOM moves to the preceding if location.
+      // This characterizes the gap without making it a supported authoring contract.
+      it('currently links plain else and else-if across an unrelated native sibling', async function () {
+        const plainElse = createFixture(
+          [
+            '<div if.bind="step === 0">a</div>',
+            '<p>between</p>',
+            '<div else>b</div>',
+          ].join(''),
+          { step: 0 },
+        );
 
-      assertText('abetween');
+        plainElse.assertText('abetween');
+        plainElse.component.step = 1;
+        plainElse.assertText('bbetween');
+        await plainElse.stop(true);
 
-      component.step = 1;
-      assertText('bbetween');
-    });
+        const elseIf = createFixture(
+          [
+            '<div if.bind="step === 0">a</div>',
+            '<p>between</p>',
+            '<div else if.bind="step === 1">b</div>',
+            '<div else>c</div>',
+          ].join(''),
+          { step: 0 },
+        );
 
-    it('supports else-if after an unrelated plain element sibling', function () {
-      const { assertText, component } = createFixture(
-        [
-          '<div if.bind="step === 0">a</div>',
-          '<p>between</p>',
-          '<div else if.bind="step === 1">b</div>',
-          '<div else>c</div>',
-        ].join(''),
-        { step: 0 }
-      );
-
-      assertText('abetween');
-
-      component.step = 1;
-      assertText('bbetween');
-
-      component.step = 2;
-      assertText('cbetween');
+        elseIf.assertText('abetween');
+        elseIf.component.step = 1;
+        elseIf.assertText('bbetween');
+        elseIf.component.step = 2;
+        elseIf.assertText('cbetween');
+        await elseIf.stop(true);
+      });
     });
 
     it('supports else-if chains with custom attributes on the branches', function () {
@@ -626,26 +670,21 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.step = 1;
       await tasksSettled();
-      await tasksSettled();
       assertText('b');
 
       component.step = 2;
-      await tasksSettled();
       await tasksSettled();
       assertText('c');
 
       component.step = 3;
       await tasksSettled();
-      await tasksSettled();
       assertText('d');
 
       component.step = 1;
       await tasksSettled();
-      await tasksSettled();
       assertText('b');
 
       component.step = 0;
-      await tasksSettled();
       await tasksSettled();
       assertText('a');
 
@@ -801,12 +840,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.right.e = true;
       await tasksSettled();
-      await tasksSettled();
       assertText('b');
       assert.deepStrictEqual(evalCounts, { first: 1, left: 1, right: 0, last: 0 });
 
       component.left.c = false;
-      await tasksSettled();
       await tasksSettled();
       assertText('c');
       assert.deepStrictEqual(evalCounts, { first: 1, left: 2, right: 0, last: 1 });
@@ -860,18 +897,15 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.value = 2;
       await tasksSettled();
-      await tasksSettled();
       assertText('b');
       assert.deepStrictEqual(evalCounts, { first: 1, call: 2, last: 0 });
 
       component.value = 0;
       await tasksSettled();
-      await tasksSettled();
       assertText('c');
       assert.deepStrictEqual(evalCounts, { first: 1, call: 3, last: 1 });
 
       component.mode = 'zero';
-      await tasksSettled();
       await tasksSettled();
       assertText('b');
       assert.deepStrictEqual(evalCounts, { first: 1, call: 4, last: 1 });
@@ -928,18 +962,15 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.threshold = 2;
       await tasksSettled();
-      await tasksSettled();
       assertText('b');
       assert.deepStrictEqual(evalCounts, { first: 1, converter: 2, last: 0 });
 
       component.threshold = 3;
       await tasksSettled();
-      await tasksSettled();
       assertText('c');
       assert.deepStrictEqual(evalCounts, { first: 1, converter: 3, last: 1 });
 
       component.middleValue = 4;
-      await tasksSettled();
       await tasksSettled();
       assertText('b');
       assert.deepStrictEqual(evalCounts, { first: 1, converter: 4, last: 1 });
@@ -989,7 +1020,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.step = 1;
       await tasksSettled();
-      await tasksSettled();
       assertText('x');
       assert.deepStrictEqual(evalCounts, { outerA: 2, outerB: 1, inner: 1 });
     });
@@ -1014,21 +1044,17 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.step = 1;
       await tasksSettled();
-      await tasksSettled();
       assertText('b');
 
       component.step = 2;
-      await tasksSettled();
       await tasksSettled();
       assertText('c');
 
       component.step = 3;
       await tasksSettled();
-      await tasksSettled();
       assertText('');
 
       component.step = 0;
-      await tasksSettled();
       await tasksSettled();
       assertText('a');
     });
@@ -1075,12 +1101,10 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.step = 2;
       await tasksSettled();
-      await tasksSettled();
       assertText('c');
       assert.deepStrictEqual(evalCounts, { a: 2, b: 1, c: 1 });
 
       component.step = 3;
-      await tasksSettled();
       await tasksSettled();
       assertText('');
       assert.deepStrictEqual(evalCounts, { a: 3, b: 2, c: 2 });
@@ -1173,6 +1197,180 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching', 'd:attaching:resolved']);
       assert.strictEqual(detachResolved, 1);
       assert.strictEqual(attachResolved, 1);
+    });
+
+    it('propagates the original rejection from an initially selected async else-if branch', async function () {
+      const error = new Error('initial else-if attachment failed');
+      const RejectingBranch = CustomElement.define({ name: 'initial-rejecting-branch', template: 'rejecting' }, class {
+        public attaching(): Promise<void> {
+          return Promise.reject(error);
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<initial-rejecting-branch else if.bind="step === 1"></initial-rejecting-branch>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 1 },
+        [RejectingBranch],
+      );
+
+      assert.instanceOf(fixture.startPromise, Promise);
+      let rejection: unknown;
+      try {
+        await fixture.startPromise;
+      } catch (error_) {
+        rejection = error_;
+      }
+
+      assert.strictEqual(rejection, error);
+      assert.strictEqual(fixture.torn, true);
+    });
+
+    it('recovers from a post-start rejecting else-if branch and activates the later branch', async function () {
+      const error = new Error('post-start else-if attachment failed');
+      const attachment = createVoidDeferred();
+      const rejectedBranchDetachingStarted = createVoidDeferred();
+      const rejectedBranchDetaching = createVoidDeferred();
+      const laterBranchReattached = createVoidDeferred();
+      let attempts = 0;
+      let detachCalls = 0;
+      let laterAttaches = 0;
+      const RejectingBranch = CustomElement.define({ name: 'post-start-rejecting-branch', template: 'rejecting' }, class {
+        public attaching(): Promise<void> {
+          ++attempts;
+          return attachment.promise;
+        }
+        public detaching(): Promise<void> {
+          ++detachCalls;
+          rejectedBranchDetachingStarted.resolve();
+          return rejectedBranchDetaching.promise;
+        }
+      });
+      const LaterBranch = CustomElement.define({ name: 'post-start-later-branch', template: 'later' }, class {
+        public attaching(): void {
+          if (++laterAttaches === 2) {
+            laterBranchReattached.resolve();
+          }
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<post-start-rejecting-branch else if.bind="step === 1"></post-start-rejecting-branch>',
+          '<post-start-later-branch else></post-start-later-branch>',
+        ].join(''),
+        { step: 2 },
+        [RejectingBranch, LaterBranch],
+      );
+
+      fixture.assertText('later');
+      assert.strictEqual(laterAttaches, 1);
+
+      fixture.component.step = 1;
+      fixture.assertText('rejecting');
+      assert.strictEqual(attempts, 1);
+
+      attachment.reject(error);
+      await rejectedBranchDetachingStarted.promise;
+      fixture.assertText('rejecting');
+      assert.strictEqual(detachCalls, 1);
+
+      fixture.component.step = 2;
+      await Promise.resolve();
+      fixture.assertText('rejecting');
+      assert.strictEqual(laterAttaches, 1);
+
+      rejectedBranchDetaching.resolve();
+      await laterBranchReattached.promise;
+      fixture.assertText('later');
+      assert.strictEqual(laterAttaches, 2);
+
+      await fixture.stop(true);
+    });
+
+    it('skips a stale else-if branch when its predecessor settles after rapid supersession', async function () {
+      const detaching = createVoidDeferred();
+      const calls: string[] = [];
+      const BranchA = CustomElement.define({ name: 'superseded-branch-a', template: 'a' }, class {
+        public detaching(): Promise<void> {
+          calls.push('a:detaching');
+          return detaching.promise;
+        }
+      });
+      const BranchB = CustomElement.define({ name: 'superseded-branch-b', template: 'b' }, class {
+        public attaching(): void {
+          calls.push('b:attaching');
+        }
+      });
+      const BranchC = CustomElement.define({ name: 'superseded-branch-c', template: 'c' }, class {
+        public attaching(): void {
+          calls.push('c:attaching');
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<superseded-branch-a if.bind="step === 0"></superseded-branch-a>',
+          '<superseded-branch-b else if.bind="step === 1"></superseded-branch-b>',
+          '<superseded-branch-c else></superseded-branch-c>',
+        ].join(''),
+        { step: 0 },
+        [BranchA, BranchB, BranchC],
+      );
+
+      fixture.assertText('a');
+      fixture.component.step = 1;
+      fixture.component.step = 2;
+      fixture.assertText('a');
+      assert.deepStrictEqual(calls, ['a:detaching']);
+
+      detaching.resolve();
+      await tasksSettled();
+
+      fixture.assertText('c');
+      assert.deepStrictEqual(calls, ['a:detaching', 'c:attaching']);
+      await fixture.stop(true);
+    });
+
+    it('does not activate a pending else-if branch after application teardown takes ownership', async function () {
+      const detaching = createVoidDeferred();
+      let detachCalls = 0;
+      let staleAttaches = 0;
+      const BranchA = CustomElement.define({ name: 'teardown-branch-a', template: 'a' }, class {
+        public detaching(): Promise<void> {
+          ++detachCalls;
+          return detaching.promise;
+        }
+      });
+      const BranchB = CustomElement.define({ name: 'teardown-branch-b', template: 'b' }, class {
+        public attaching(): void {
+          ++staleAttaches;
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<teardown-branch-a if.bind="step === 0"></teardown-branch-a>',
+          '<teardown-branch-b else if.bind="step === 1"></teardown-branch-b>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 },
+        [BranchA, BranchB],
+      );
+
+      fixture.component.step = 1;
+      fixture.assertText('a');
+      assert.strictEqual(detachCalls, 1);
+
+      const stopping = fixture.stop(true);
+      assert.instanceOf(stopping, Promise);
+      detaching.resolve();
+      await stopping;
+
+      fixture.assertText('');
+      assert.strictEqual(detachCalls, 1);
+      assert.strictEqual(staleAttaches, 0);
+      assert.strictEqual(fixture.au.isRunning, false);
     });
 
     it('hydrates an SSR-rendered else-if branch and continues the chain on updates', async function () {
@@ -1289,7 +1487,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       `), /AUR0810/);
     });
 
-    it('throws when another template controller is between else and if on the same element', function () {
+    it('throws at a trailing else after repeat separates else and if on the previous branch', function () {
       assert.throws(() => createFixture(`
         <div if.bind="true">a</div>
         <div else repeat.for="i of 1" if.bind="false">b</div>
@@ -1297,12 +1495,30 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       `), /AUR0810/);
     });
 
-    it('throws when another template controller precedes if after else on the same element', function () {
+    it('throws at a trailing else after with separates else and if on the previous branch', function () {
       assert.throws(() => createFixture(`
         <div if.bind="true">a</div>
         <div else with.bind="{ value: 1 }" if.bind="false">b</div>
         <div else>c</div>
       `), /AUR0810/);
+    });
+
+    // Attribute order is outside the supported else-if form. Keep this as a
+    // characterization so a future change receives deliberate review.
+    it('currently rejects reversed if/else attribute order', async function () {
+      let failure: unknown;
+      try {
+        const fixture = createFixture(`
+          <div if.bind="false">a</div>
+          <div if.bind="true" else>b</div>
+        `);
+        await fixture.startPromise;
+        await fixture.stop(true);
+      } catch (error) {
+        failure = error;
+      }
+
+      assert.match(String(failure), /AUR0810/);
     });
 
     {

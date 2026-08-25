@@ -33,8 +33,14 @@ export type StringBindingMode =
   | 'fromView'
   | 'twoWay';
 
+/**
+ * Semi-private provenance for a template controller that links to the
+ * immediately nested controller with `target` as its canonical name.
+ * When that relationship is present, the compiler writes `true` at `marker`
+ * on the hydrate instruction so runtime linking does not infer source syntax
+ * from the nested view shape.
+ */
 export interface IAttributeLinkDefinition {
-  direction: 'forward' | 'backward';
   marker: string;
   target: string;
 }
@@ -45,7 +51,7 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
   /**
-   * Semi-private compile-time adjacency metadata for linked attributes / template controllers.
+   * Semi-private compile-time adjacency metadata for linked template controllers.
    * Applications should not use this property directly, as it is subject to change without notice.
    */
   attributeLink?: IAttributeLinkDefinition;

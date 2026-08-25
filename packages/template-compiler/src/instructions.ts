@@ -144,11 +144,6 @@ export interface HydrateAttributeInstruction<T extends IAttributeComponentDefini
   readonly res: string | /* Constructable | */ T;
   readonly alias: string | undefined;
   /**
-   * Semi-private compiler/runtime metadata for this instruction.
-   * Applications should not use this property directly, as it is subject to change without notice.
-   */
-  readonly data?: Record<PropertyKey, unknown>;
-  /**
    * Bindable instructions for the custom attribute instance
    */
   readonly props: IInstruction[];
@@ -163,7 +158,7 @@ export interface HydrateTemplateController<T extends IAttributeComponentDefiniti
    * Semi-private compiler/runtime metadata for this instruction.
    * Applications should not use this property directly, as it is subject to change without notice.
    */
-  readonly data?: Record<PropertyKey, unknown>;
+  readonly data?: Record<string, unknown>;
   /**
    * Bindable instructions for the template controller instance
    */

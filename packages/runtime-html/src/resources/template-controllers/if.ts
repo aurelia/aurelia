@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { isPromise, isString, onResolve, resolve } from '@aurelia/kernel';
+import { isPromise, onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
@@ -124,13 +124,14 @@ export class If implements ICustomAttributeViewModel {
           };
           const result = view.activate(view, ctrl, ctrl.scope);
           if (recoverAfterFailure && isPromise(result)) {
-            return result.then(complete, () => {
-              complete();
+            return result.then(complete, () => onResolve(
               // Value-driven swaps historically remain reusable after an async
               // branch failure. Initial activation uses the rejecting path so
-              // application start still reports an invalid initial tree.
-              void view!.deactivate(view!, ctrl);
-            });
+              // application start still reports an invalid initial tree. Keep
+              // teardown in this chain so a successor cannot overlap the failed view.
+              view!.deactivate(view!, ctrl),
+              complete,
+            ));
           }
           return onResolve(result, complete);
         }
@@ -185,6 +186,8 @@ export class If implements ICustomAttributeViewModel {
   }
 }
 
+// Else owns a lazy nested If for each else-if branch. This wrapper installs the
+// following branch on normal or adopted views while delegating cache ownership.
 class ElseIfViewFactory implements IViewFactory {
   public constructor(
     private readonly _factory: IViewFactory,
@@ -251,11 +254,11 @@ export class Else implements ICustomAttributeViewModel {
     type: 'custom-attribute',
     name: 'else',
     isTemplateController: true,
-    attributeLink: { direction: 'forward', marker: elseLinkMarker, target: 'if' },
+    attributeLink: { marker: elseLinkMarker, target: 'if' },
   };
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
-  public isElseIf: boolean = false;
+  private isElseIf: boolean = false;
   /** @internal */ private _effectiveFactory: IViewFactory | undefined = void 0;
   /** @internal */ private _chainedElseFactory: IViewFactory | undefined = void 0;
 
@@ -275,10 +278,12 @@ export class Else implements ICustomAttributeViewModel {
       throw createMappedError(ErrorNames.else_without_if);
     }
     const link = childController.definition.attributeLink;
-    const stampedTarget = link == null
+    const linkState = link == null
       ? void 0
       : (instruction as HydrateTemplateController | null)?.data?.[link.marker];
-    this.isElseIf = isString(stampedTarget) && link?.target === stampedTarget;
+    // Only an adjacent same-element target receives positive provenance.
+    // Other controller combinations retain their existing runtime behavior.
+    this.isElseIf = linkState === true;
     const ownFactory = this.isElseIf
       ? this._effectiveFactory ??= new ElseIfViewFactory(this._factory, () => this._chainedElseFactory)
       : this._factory;

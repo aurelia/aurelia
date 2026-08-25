@@ -562,6 +562,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const tcCount = tcInstructions.length;
       let tcIndex = tcCount - 1;
       let tcInstruction = tcInstructions[tcIndex];
+      let nextTcDefinition = this._getAttributeDefinition(tcInstruction, context);
 
       // Step 1: Create the innermost template containing the actual element
       // Replace element with marker in parent DOM, wrap element in template
@@ -625,6 +626,16 @@ export class TemplateCompiler implements ITemplateCompiler {
       while (tcIndex-- > 0) {
         tcInstruction = tcInstructions[tcIndex];
         const nextTcInstruction = tcInstructions[tcIndex + 1];
+        const tcDefinition = this._getAttributeDefinition(tcInstruction, context);
+        const attributeLink = tcDefinition.attributeLink;
+        // Publish positive provenance only. A missing marker remains ordinary or
+        // unsupported template-controller composition rather than a new error state.
+        if (attributeLink?.target === nextTcDefinition.name) {
+          const data = (tcInstruction as { data?: Record<string, unknown> }).data ??= {};
+          data[attributeLink.marker] = true;
+        }
+        nextTcDefinition = tcDefinition;
+
         tcTemplate = context.t();
         // Each outer TC template has exactly 1 marker at index 0
         appendManyToTemplate(tcTemplate, [
@@ -632,17 +643,6 @@ export class TemplateCompiler implements ITemplateCompiler {
           context._comment(auLocationStart),
           context._comment(auLocationEnd),
         ]);
-
-        const tcDefinition = this._getAttributeDefinition(tcInstruction, context);
-        const nextTcDefinition = this._getAttributeDefinition(nextTcInstruction, context);
-        const attributeLink = tcDefinition.attributeLink;
-        if (
-          attributeLink?.direction === 'forward'
-          && attributeLink.target === nextTcDefinition.name
-        ) {
-          const tcData = (tcInstruction as { data?: Record<PropertyKey, unknown> }).data ??= {};
-          tcData[attributeLink.marker] = nextTcDefinition.name;
-        }
 
         (tcInstruction as { def: IElementComponentDefinition }).def = {
           name: generateElementName(),

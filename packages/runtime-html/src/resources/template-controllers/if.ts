@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { onResolve, resolve } from '@aurelia/kernel';
+import { isPromise, onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
@@ -50,7 +50,7 @@ export class If implements ICustomAttributeViewModel {
     if (ssrScope != null && isSSRTemplateController(ssrScope) && ssrScope.type === 'if') {
       return this._hydrateView(ssrScope);
     }
-    return this._swap(this.value);
+    return this._swap(this.value, false);
   }
 
   public detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void> {
@@ -69,11 +69,11 @@ export class If implements ICustomAttributeViewModel {
 
     newValue = !!newValue;
     oldValue = !!oldValue;
-    if (newValue !== oldValue) return this._swap(newValue);
+    if (newValue !== oldValue) return this._swap(newValue, true);
   }
 
   /** @internal */
-  private _swap(value: unknown): void | Promise<void> {
+  private _swap(value: unknown, recoverAfterFailure: boolean): void | Promise<void> {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
@@ -114,11 +114,22 @@ export class If implements ICustomAttributeViewModel {
           //       instead of always of the [if]
           view.setLocation(this._location);
 
-          return onResolve(view.activate(view, ctrl, ctrl.scope), () => {
+          const complete = (): void => {
             if (isCurrent()) {
               this.pending = void 0;
             }
-          });
+          };
+          const result = view.activate(view, ctrl, ctrl.scope);
+          if (recoverAfterFailure && isPromise(result)) {
+            return result.then(complete, () => {
+              complete();
+              // Value-driven swaps historically remain reusable after an async
+              // branch failure. Initial activation uses the rejecting path so
+              // application start still reports an invalid initial tree.
+              void view!.deactivate(view!, ctrl);
+            });
+          }
+          return onResolve(result, complete);
         }
       )
     );

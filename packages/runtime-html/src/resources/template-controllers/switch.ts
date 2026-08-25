@@ -375,7 +375,16 @@ export class Case implements ICustomAttributeViewModel {
       }
     }
     if (view.isActive) { return; }
-    return view.activate(initiator ?? view, this.$controller, scope);
+    const result = view.activate(initiator ?? view, this.$controller, scope);
+    if (initiator === null && isPromise(result)) {
+      return result.catch(() => {
+        // Observer-driven case changes historically remain reusable after an
+        // async activation failure. Initial activation keeps its initiator and
+        // returns the rejection to application start.
+        return view.deactivate(view, this.$controller);
+      });
+    }
+    return result;
   }
 
   public deactivate(initiator: IHydratedController | null): void | Promise<void> {

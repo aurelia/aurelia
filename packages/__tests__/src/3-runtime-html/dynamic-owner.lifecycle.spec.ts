@@ -1,5 +1,6 @@
 import {
   customElement,
+  If,
   Switch,
 } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
@@ -162,6 +163,47 @@ describe('3-runtime-html/dynamic-owner.lifecycle.spec.ts', function () {
     const start = fixture.start() as Promise<void>;
     assert.strictEqual(await captureRejection(start), error);
     assert.strictEqual(fixture.torn, true);
+  });
+
+  it('preserves recovery for an if branch changed after startup', async function () {
+    const binding = new Deferred();
+    let bindingCalls = 0;
+
+    @customElement({ name: 'recovering-if-branch', template: 'active branch' })
+    class ActiveBranch {
+      public binding(): Promise<void> {
+        ++bindingCalls;
+        return binding.promise;
+      }
+    }
+
+    const fixture = createFixture(
+      '<recovering-if-branch if.bind="show"></recovering-if-branch><span else>fallback branch</span>',
+      class App { public show = false; },
+      [ActiveBranch],
+    );
+    await fixture.started;
+    assert.html.textContent(fixture.appHost, 'fallback branch');
+
+    let ifVm!: If;
+    fixture.au.root.controller.accept(controller => {
+      if (controller.viewModel instanceof If) {
+        ifVm = controller.viewModel;
+        return true;
+      }
+    });
+
+    fixture.component.show = true;
+    assert.strictEqual(await waitForMicrotasks(() => bindingCalls === 1), true);
+
+    binding.reject(new Error('value-driven branch activation failed'));
+    await Promise.allSettled([binding.promise]);
+    assert.strictEqual(await waitForMicrotasks(() => (ifVm as unknown as { pending?: Promise<void> }).pending === void 0), true);
+
+    fixture.component.show = false;
+    assert.strictEqual(await waitForMicrotasks(() => fixture.appHost.textContent === 'fallback branch'), true);
+
+    await fixture.tearDown();
   });
 
 });

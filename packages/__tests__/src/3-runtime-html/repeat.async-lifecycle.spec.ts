@@ -580,12 +580,14 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
         fixture.component.items.push(1, 2);
         const reconciliation = (repeat as unknown as { _reconciliation?: { promise?: Promise<void> } })
           ._reconciliation?.promise;
-        assert.instanceOf(reconciliation, Promise);
+        if (!(reconciliation instanceof Promise)) {
+          assert.fail('Expected inserted rows to publish an active reconciliation');
+        }
 
         second.reject(secondError);
         await Promise.resolve();
         let settled = false;
-        void reconciliation!.then(
+        void reconciliation.then(
           () => { settled = true; },
           () => { settled = true; },
         );
@@ -593,7 +595,7 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
         assert.strictEqual(settled, false);
 
         first.reject(firstError);
-        await assert.rejects(() => reconciliation!, firstError);
+        await assert.rejects(() => reconciliation, firstError);
         abandonTerminalFixture(fixture);
       });
 

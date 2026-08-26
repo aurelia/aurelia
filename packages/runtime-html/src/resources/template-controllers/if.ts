@@ -33,7 +33,7 @@ export class If implements ICustomAttributeViewModel {
 
   public value: unknown = false;
   /**
-   * `false` to always dispose the existing `view` whenever the value of if changes to false
+   * `false` to dispose branch views after deactivation instead of retaining them for reuse.
    */
   public cache: boolean = true;
   private pending: void | Promise<void> = void 0;
@@ -89,6 +89,7 @@ export class If implements ICustomAttributeViewModel {
       () => this.pending = onResolve(
         currView?.isActive ? currView.deactivate(currView, ctrl) : void 0,
         () => {
+          this._disposeViewsIfUncached(currView);
           if (!isCurrent()) {
             return;
           }
@@ -121,13 +122,17 @@ export class If implements ICustomAttributeViewModel {
           };
           const result = view.activate(view, ctrl, ctrl.scope);
           if (recoverAfterFailure && isPromise(result)) {
-            return result.then(complete, () => {
-              complete();
+            return result.then(complete, () => onResolve(
               // Value-driven swaps historically remain reusable after an async
               // branch failure. Initial activation uses the rejecting path so
-              // application start still reports an invalid initial tree.
-              void view!.deactivate(view!, ctrl);
-            });
+              // application start still reports an invalid initial tree. Keep
+              // teardown in this chain so a successor cannot overlap the failed view.
+              view!.deactivate(view!, ctrl),
+              () => {
+                this._disposeViewsIfUncached(view);
+                complete();
+              },
+            ));
           }
           return onResolve(result, complete);
         }
@@ -135,7 +140,29 @@ export class If implements ICustomAttributeViewModel {
     );
   }
 
-  /** @internal SSR hydration: adopt existing DOM instead of creating new views. */
+  /** @internal */
+  private _disposeViewsIfUncached(view: ISyntheticView | undefined): void {
+    if (this.cache) {
+      return;
+    }
+    // `release()` delegates retention to ViewFactory caching. `cache: false`
+    // ends If's ownership instead, so every owned slot is disposed directly.
+    const ifView = this.ifView;
+    const elseView = this.elseView;
+    view?.dispose();
+    if (ifView !== view) {
+      ifView?.dispose();
+    }
+    if (elseView !== view) {
+      elseView?.dispose();
+    }
+    this.ifView = this.elseView = this.view = void 0;
+  }
+
+  /**
+   * SSR hydration: adopt existing DOM instead of creating new views.
+   * @internal
+   */
   private _hydrateView(ssrScope: ISSRTemplateController): void | Promise<void> {
     const ctrl = this.$controller;
     const wasIfBranch = (ssrScope.state as { value?: boolean } | undefined)?.value === true;

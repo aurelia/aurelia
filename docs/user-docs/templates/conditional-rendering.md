@@ -121,6 +121,8 @@ By default, `if.bind` caches views and view models for performance. Disable cach
 <custom-element if="value.bind: canShow; cache: false"></custom-element>
 ```
 
+With caching disabled, Aurelia deactivates and disposes a branch when a conditional change removes it. Returning to that branch creates a new view and view model.
+
 {% hint style="warning" %}
 **When to Use:** Use `if.bind` when elements change infrequently and you want to completely remove them from the DOM to save memory and improve performance.
 {% endhint %}

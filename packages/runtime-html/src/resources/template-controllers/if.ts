@@ -36,7 +36,7 @@ export class If implements ICustomAttributeViewModel {
 
   public value: unknown = false;
   /**
-   * `false` to always dispose the existing `view` whenever the value of if changes to false
+   * `false` to dispose branch views after deactivation instead of retaining them for reuse.
    */
   public cache: boolean = true;
   private pending: void | Promise<void> = void 0;
@@ -92,6 +92,7 @@ export class If implements ICustomAttributeViewModel {
       () => this.pending = onResolve(
         currView?.isActive ? currView.deactivate(currView, ctrl) : void 0,
         () => {
+          this._disposeViewsIfUncached(currView);
           if (!isCurrent()) {
             return;
           }
@@ -130,13 +131,35 @@ export class If implements ICustomAttributeViewModel {
               // application start still reports an invalid initial tree. Keep
               // teardown in this chain so a successor cannot overlap the failed view.
               view!.deactivate(view!, ctrl),
-              complete,
+              () => {
+                this._disposeViewsIfUncached(view);
+                complete();
+              },
             ));
           }
           return onResolve(result, complete);
         }
       )
     );
+  }
+
+  /** @internal */
+  private _disposeViewsIfUncached(view: ISyntheticView | undefined): void {
+    if (this.cache) {
+      return;
+    }
+    // `release()` delegates retention to ViewFactory caching. `cache: false`
+    // ends If's ownership instead, so every owned slot is disposed directly.
+    const ifView = this.ifView;
+    const elseView = this.elseView;
+    view?.dispose();
+    if (ifView !== view) {
+      ifView?.dispose();
+    }
+    if (elseView !== view) {
+      elseView?.dispose();
+    }
+    this.ifView = this.elseView = this.view = void 0;
   }
 
   /**

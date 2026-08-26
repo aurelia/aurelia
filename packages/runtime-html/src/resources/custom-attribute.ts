@@ -24,7 +24,6 @@ import { type IAttributeComponentDefinition } from '@aurelia/template-compiler';
 
 export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IAttributeComponentDefinition, 'type'> & {
   readonly isTemplateController?: boolean;
-  readonly attributeLink?: IAttributeComponentDefinition['attributeLink'];
   readonly bindables?: (Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>>) | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   /**
    * A config that can be used by template compliler to change attr value parsing mode
@@ -125,7 +124,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly aliases: readonly string[],
     public readonly key: string,
     public readonly isTemplateController: boolean,
-    public readonly attributeLink: IAttributeComponentDefinition['attributeLink'],
+    public readonly linkTarget: IAttributeComponentDefinition['linkTarget'],
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
@@ -157,9 +156,9 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
-      getAttributeAnnotation(Type, 'attributeLink')
-        ?? def.attributeLink
-        ?? Type.attributeLink,
+      getAttributeAnnotation(Type, 'linkTarget')
+        ?? def.linkTarget
+        ?? Type.linkTarget,
       Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getDefinitions(Type), Type.watches),

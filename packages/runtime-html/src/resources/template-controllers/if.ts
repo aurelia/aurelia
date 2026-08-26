@@ -12,8 +12,6 @@ import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
 
-const elseLinkMarker = '__au_elseLink';
-
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: attrTypeName,
@@ -225,10 +223,9 @@ export class If implements ICustomAttributeViewModel {
 // Else owns a lazy nested If for each else-if branch. This wrapper installs the
 // following branch on normal or adopted views while delegating cache ownership.
 class ElseIfViewFactory implements IViewFactory {
-  public constructor(
-    private readonly _factory: IViewFactory,
-    private readonly _getElseFactory: () => IViewFactory | undefined,
-  ) {}
+  public elseFactory?: IViewFactory;
+
+  public constructor(private readonly _factory: IViewFactory) {}
 
   public get name(): string {
     return this._factory.name;
@@ -279,7 +276,7 @@ class ElseIfViewFactory implements IViewFactory {
   private _applyElseFactory(view: ISyntheticView): ISyntheticView {
     const child = view.children?.[0];
     if (child != null && child.vmKind === 'customAttribute' && child.viewModel instanceof If) {
-      child.viewModel.elseFactory = this._getElseFactory();
+      child.viewModel.elseFactory = this.elseFactory;
     }
     return view;
   }
@@ -290,17 +287,15 @@ export class Else implements ICustomAttributeViewModel {
     type: 'custom-attribute',
     name: 'else',
     isTemplateController: true,
-    attributeLink: { marker: elseLinkMarker, target: 'if' },
+    linkTarget: 'if',
   };
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
-  private isElseIf: boolean = false;
-  /** @internal */ private _effectiveFactory: IViewFactory | undefined = void 0;
-  /** @internal */ private _chainedElseFactory: IViewFactory | undefined = void 0;
+  /** @internal */ private _elseIfFactory: ElseIfViewFactory | undefined = void 0;
 
   public link(
     controller: IHydratableController,
-    childController: ICustomAttributeController,
+    _childController: ICustomAttributeController,
     _target: INode,
     instruction: IInstruction,
   ): void {
@@ -313,24 +308,16 @@ export class Else implements ICustomAttributeViewModel {
     if (!(prevViewModel instanceof If || prevViewModel instanceof Else)) {
       throw createMappedError(ErrorNames.else_without_if);
     }
-    const link = childController.definition.attributeLink;
-    const linkState = link == null
-      ? void 0
-      : (instruction as HydrateTemplateController | null)?.data?.[link.marker];
+    const target = prevViewModel instanceof If
+      ? prevViewModel
+      : prevViewModel._elseIfFactory;
+    if (target === void 0) {
+      throw createMappedError(ErrorNames.else_without_if);
+    }
     // Only an adjacent same-element target receives positive provenance.
     // Other controller combinations retain their existing runtime behavior.
-    this.isElseIf = linkState === true;
-    const ownFactory = this.isElseIf
-      ? this._effectiveFactory ??= new ElseIfViewFactory(this._factory, () => this._chainedElseFactory)
+    target.elseFactory = (instruction as HydrateTemplateController).linked === true
+      ? this._elseIfFactory ??= new ElseIfViewFactory(this._factory)
       : this._factory;
-
-    if (prevViewModel instanceof If) {
-      prevViewModel.elseFactory = ownFactory;
-    } else if (prevViewModel instanceof Else) {
-      if (!prevViewModel.isElseIf) {
-        throw createMappedError(ErrorNames.else_without_if);
-      }
-      prevViewModel._chainedElseFactory = ownFactory;
-    }
   }
 }

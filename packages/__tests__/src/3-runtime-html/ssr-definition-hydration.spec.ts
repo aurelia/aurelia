@@ -3,7 +3,7 @@ import { itHydrateTemplateController, type HydrateTemplateController } from '@au
 import { assert } from '@aurelia/testing';
 
 describe('3-runtime-html/ssr-definition-hydration.spec.ts', function () {
-  it('keeps data absent for serialized template controllers without metadata', function () {
+  it('keeps linked provenance absent when the serializer did not prove a link', function () {
     const hydrated = hydrateSSRDefinition({
       template: '<!--au-->',
       expressions: [],
@@ -27,11 +27,10 @@ describe('3-runtime-html/ssr-definition-hydration.spec.ts', function () {
     } satisfies ISSRDefinition);
 
     const instruction = hydrated.instructions[0][0] as HydrateTemplateController;
-    assert.strictEqual(Object.prototype.hasOwnProperty.call(instruction, 'data'), false);
+    assert.strictEqual(Object.prototype.hasOwnProperty.call(instruction, 'linked'), false);
   });
 
-  it('restores serialized template-controller data through nested definitions', function () {
-    const elseLinkMarker = '__au_elseLink';
+  it('restores linked provenance through nested serialized definitions', function () {
     const hydrated = hydrateSSRDefinition({
       template: '<!--au-->',
       expressions: [],
@@ -42,7 +41,7 @@ describe('3-runtime-html/ssr-definition-hydration.spec.ts', function () {
           res: 'else',
           templateIndex: 0,
           instructions: [],
-          data: { [elseLinkMarker]: true },
+          linked: true,
         }]],
         nestedTemplates: [{
           name: 'else-if-wrapper',
@@ -51,7 +50,7 @@ describe('3-runtime-html/ssr-definition-hydration.spec.ts', function () {
             res: 'if',
             templateIndex: 0,
             instructions: [],
-            data: { branch: 'nested' },
+            linked: true,
           }]],
           nestedTemplates: [{
             name: 'if-branch',
@@ -70,11 +69,11 @@ describe('3-runtime-html/ssr-definition-hydration.spec.ts', function () {
     } satisfies ISSRDefinition);
 
     const elseInstruction = hydrated.instructions[0][0] as HydrateTemplateController;
-    assert.deepStrictEqual(elseInstruction.data, { [elseLinkMarker]: true });
+    assert.strictEqual(elseInstruction.linked, true);
 
     const ifInstruction = elseInstruction.def.instructions![0][0] as HydrateTemplateController;
     assert.strictEqual(ifInstruction.res, 'if');
-    assert.deepStrictEqual(ifInstruction.data, { branch: 'nested' });
+    assert.strictEqual(ifInstruction.linked, true);
     assert.strictEqual(ifInstruction.def.template, '<div>branch</div>');
   });
 });

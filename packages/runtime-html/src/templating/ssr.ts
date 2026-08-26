@@ -222,7 +222,7 @@ type SerializedInstruction =
   | { type: typeof itSetAttribute; value: string; to: string }
   | { type: typeof itHydrateElement; res: string; instructions: SerializedInstruction[]; containerless?: boolean }
   | { type: typeof itHydrateAttribute; res: string; alias?: string; instructions: SerializedInstruction[] }
-  | { type: typeof itHydrateTemplateController; res: string; templateIndex: number; instructions: SerializedInstruction[]; data?: Record<string, unknown> }
+  | { type: typeof itHydrateTemplateController; res: string; templateIndex: number; instructions: SerializedInstruction[]; linked?: true }
   | { type: typeof itHydrateLetElement; bindings: { exprId: ExprId; to: string }[]; toBindingContext: boolean }
   | { type: typeof itIteratorBinding; exprId: ExprId; to: string; aux?: { exprId: ExprId; name: string }[] };
 
@@ -437,7 +437,7 @@ function translateInstruction(ins: SerializedInstruction, ctx: TranslationContex
         def,
         res: ins.res,
         alias: void 0,
-        ...(ins.data === void 0 ? {} : { data: ins.data }),
+        ...(ins.linked === true ? { linked: true as const } : {}),
         props,
       };
       return instruction;

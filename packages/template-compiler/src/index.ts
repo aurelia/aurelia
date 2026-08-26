@@ -3,7 +3,6 @@ export {
 } from './binding-mode';
 
 export {
-  type IAttributeLinkDefinition,
   type StringBindingMode,
   type IAttributeComponentDefinition,
   type ICompiledElementComponentDefinition,

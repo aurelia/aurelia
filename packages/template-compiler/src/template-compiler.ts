@@ -627,12 +627,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         tcInstruction = tcInstructions[tcIndex];
         const nextTcInstruction = tcInstructions[tcIndex + 1];
         const tcDefinition = this._getAttributeDefinition(tcInstruction, context);
-        const attributeLink = tcDefinition.attributeLink;
-        // Publish positive provenance only. A missing marker remains ordinary or
+        const linkTarget = tcDefinition.linkTarget;
+        // Publish positive provenance only. A missing link remains ordinary or
         // unsupported template-controller composition rather than a new error state.
-        if (attributeLink?.target === nextTcDefinition.name) {
-          const data = (tcInstruction as { data?: Record<string, unknown> }).data ??= {};
-          data[attributeLink.marker] = true;
+        if (linkTarget === nextTcDefinition.name) {
+          (tcInstruction as { linked?: true }).linked = true;
         }
         nextTcDefinition = tcDefinition;
 

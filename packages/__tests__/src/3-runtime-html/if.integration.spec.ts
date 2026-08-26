@@ -365,7 +365,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       const Otherwise = CustomAttribute.define({
         name: 'otherwise',
         isTemplateController: true,
-        attributeLink: { marker: 'when-link', target: 'when' },
+        linkTarget: 'when',
       }, class Otherwise extends Else {});
 
       const { assertText, component } = createFixture(
@@ -483,6 +483,31 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       component.step = 2;
       assertText('c');
+    });
+
+    it('keeps an immediately nested repeat live across else-if branch re-entry', async function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<span else if.bind="step === 1" repeat.for="item of items">${item}</span>',
+          '<div else>d</div>',
+        ].join(''),
+        { step: 1, items: ['b', 'c'] },
+      );
+
+      assertText('bc');
+      component.items.splice(0, 2, 'x', 'y', 'z');
+      await tasksSettled();
+      assertText('xyz');
+
+      component.step = 0;
+      await tasksSettled();
+      assertText('a');
+
+      component.items.splice(0, 3, 'e', 'f');
+      component.step = 1;
+      await tasksSettled();
+      assertText('ef');
     });
 
     describe('unsupported native-sibling adjacency characterization', function () {
@@ -1431,9 +1456,9 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.strictEqual(fixture.au.isRunning, false);
     });
 
-    it('hydrates an SSR-rendered else-if branch and continues the chain on updates', async function () {
+    it('adopts the terminal SSR else branch and reuses it across the full chain', async function () {
       class App {
-        public step = 1;
+        public step = 3;
       }
 
       const AppElement = CustomElement.define({
@@ -1463,7 +1488,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       const clientCtx = TestContext.create();
       const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement('app'));
       clientHost.innerHTML = ssrMarkup;
-      const ssrBranch = clientHost.querySelector('[data-branch="b"]');
+      const ssrBranch = clientHost.querySelector('[data-branch="d"]');
       assert.notStrictEqual(ssrBranch, null);
 
       const ssrScope: ISSRScope = {
@@ -1475,8 +1500,15 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
             nodeCount: 1,
             children: [{
               type: 'if',
-              state: { value: true },
-              views: [{ nodeCount: 1, children: [] }],
+              state: { value: false },
+              views: [{
+                nodeCount: 1,
+                children: [{
+                  type: 'if',
+                  state: { value: false },
+                  views: [{ nodeCount: 1, children: [] }],
+                }],
+              }],
             }],
           }],
         }],
@@ -1489,22 +1521,27 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         const root = await clientAu.hydrate({ host: clientHost, component: AppElement, ssrScope });
         try {
           const component = root.controller.viewModel as App;
-          const hydratedBranch = clientHost.querySelector('[data-branch="b"]');
+          const hydratedBranch = clientHost.querySelector('[data-branch="d"]');
 
-          assert.strictEqual(hydratedBranch, ssrBranch, 'the SSR else-if branch should be adopted, not cloned');
-          assertText('b');
+          assert.strictEqual(hydratedBranch, ssrBranch, 'the terminal SSR branch should be adopted, not cloned');
+          assertText('d');
 
           component.step = 2;
           await tasksSettled();
           assertText('c');
 
-          component.step = 3;
+          component.step = 1;
           await tasksSettled();
-          assertText('d');
+          assertText('b');
 
           component.step = 0;
           await tasksSettled();
           assertText('a');
+
+          component.step = 3;
+          await tasksSettled();
+          assertText('d');
+          assert.strictEqual(clientHost.querySelector('[data-branch="d"]'), ssrBranch);
         } finally {
           await root.deactivate();
           root.dispose();

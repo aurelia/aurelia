@@ -1327,12 +1327,11 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     });
 
     describe('TemplateCompiler - combinations -- nested template controllers (multiple per element)', function () {
-      const linkMarker = 'linked-target';
       const Link = CustomAttribute.define({
         name: 'link',
         aliases: ['link-alias'],
         isTemplateController: true,
-        attributeLink: { marker: linkMarker, target: 'target' },
+        linkTarget: 'target',
       }, class Link { });
       const Middle = CustomAttribute.define({ name: 'middle', isTemplateController: true }, class Middle { });
       const Target = CustomAttribute.define({
@@ -1355,7 +1354,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const [link] = getTemplateControllerChain(result);
 
-          assert.deepStrictEqual(link.data, { [linkMarker]: true });
+          assert.strictEqual(link.linked, true);
         });
 
         it(`leaves link metadata absent when the target is absent (resolveResources=${resolveResources})`, function () {
@@ -1365,7 +1364,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const [link] = getTemplateControllerChain(result);
 
-          assert.strictEqual(link.data, void 0);
+          assert.strictEqual(link.linked, void 0);
         });
 
         it(`leaves link metadata absent when another template controller separates the target (resolveResources=${resolveResources})`, function () {
@@ -1377,7 +1376,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const [link] = getTemplateControllerChain(result);
 
-          assert.strictEqual(link.data, void 0);
+          assert.strictEqual(link.linked, void 0);
         });
 
         it(`leaves link metadata absent when the target appears before the link (resolveResources=${resolveResources})`, function () {
@@ -1388,7 +1387,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const [, link] = getTemplateControllerChain(result);
 
-          assert.strictEqual(link.data, void 0);
+          assert.strictEqual(link.linked, void 0);
         });
 
         it('compiles multiple nested template controllers per element on normal <div/>s', function () {

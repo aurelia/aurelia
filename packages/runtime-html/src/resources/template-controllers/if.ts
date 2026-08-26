@@ -149,22 +149,14 @@ export class If implements ICustomAttributeViewModel {
     // ends If's ownership instead, so every owned slot is disposed directly.
     const ifView = this.ifView;
     const elseView = this.elseView;
-    const currentView = this.view;
-    const ownsView = view !== void 0
-      && (currentView === view || ifView === view || elseView === view);
-    this.ifView = this.elseView = void 0;
-    if (currentView === view || currentView === ifView || currentView === elseView) {
-      this.view = void 0;
+    view?.dispose();
+    if (ifView !== view) {
+      ifView?.dispose();
     }
-    if (ownsView) {
-      view.dispose();
+    if (elseView !== view) {
+      elseView?.dispose();
     }
-    if (ifView !== void 0 && ifView !== view) {
-      ifView.dispose();
-    }
-    if (elseView !== void 0 && elseView !== view && elseView !== ifView) {
-      elseView.dispose();
-    }
+    this.ifView = this.elseView = this.view = void 0;
   }
 
   /**

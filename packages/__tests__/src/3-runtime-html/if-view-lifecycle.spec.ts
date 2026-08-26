@@ -1,5 +1,5 @@
 import { tasksSettled } from '@aurelia/runtime';
-import { CustomElement } from '@aurelia/runtime-html';
+import { CustomElement, If, type IHydratedController } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 class Deferred {
@@ -13,6 +13,23 @@ class Deferred {
       this.reject = reject;
     });
   }
+}
+
+function findIf(controller: IHydratedController): If {
+  let result: If | undefined;
+  controller.accept(current => {
+    if (current.viewModel instanceof If) {
+      result = current.viewModel;
+      return true;
+    }
+  });
+  assert.notStrictEqual(result, void 0);
+  return result;
+}
+
+function abandonTerminalFixture(fixture: { readonly testHost: HTMLElement }): void {
+  Object.defineProperty(fixture, 'torn', { configurable: true, value: true });
+  fixture.testHost.remove();
 }
 
 describe('3-runtime-html/if-view-lifecycle.spec.ts', function () {
@@ -107,6 +124,127 @@ describe('3-runtime-html/if-view-lifecycle.spec.ts', function () {
     assert.strictEqual(fixture.appHost.textContent, 'else');
 
     await fixture.stop(true);
+  });
+
+  it('keeps a later swap behind teardown of a branch superseded during activation', async function () {
+    const attaching = new Deferred();
+    const detaching = new Deferred();
+    const detachingStarted = new Deferred();
+    const reattached = new Deferred();
+    let attachCalls = 0;
+    let attachedCalls = 0;
+    const IfBranch = CustomElement.define({ name: 'superseded-activating-if-branch', template: 'if' }, class {
+      public attaching(): void | Promise<void> {
+        return ++attachCalls === 1 ? attaching.promise : void 0;
+      }
+      public attached(): void {
+        ++attachedCalls;
+        reattached.resolve();
+      }
+      public detaching(): Promise<void> {
+        detachingStarted.resolve();
+        return detaching.promise;
+      }
+    });
+    const fixture = createFixture(
+      '<superseded-activating-if-branch if.bind="show"></superseded-activating-if-branch><div else>else</div>',
+      class App { public show = false; },
+      [IfBranch],
+    );
+    await fixture.started;
+
+    fixture.component.show = true;
+    fixture.component.show = false;
+    fixture.component.show = true;
+    attaching.resolve();
+    await detachingStarted.promise;
+
+    const attachCallsWhileDetaching = attachCalls;
+    const attachedCallsWhileDetaching = attachedCalls;
+    detaching.resolve();
+    assert.strictEqual(attachCallsWhileDetaching, 1);
+    assert.strictEqual(attachedCallsWhileDetaching, 0);
+    await reattached.promise;
+    assert.strictEqual(attachCalls, 2);
+    assert.strictEqual(attachedCalls, 1);
+    fixture.assertText('if');
+
+    await fixture.stop(true);
+  });
+
+  it('throws a synchronous deactivation error when no swap is pending', async function () {
+    const lifecycleError = new Error('synchronous if deactivation failed');
+    const Branch = CustomElement.define({ name: 'synchronous-error-if-branch', template: 'if' }, class {
+      public detaching(): never {
+        throw lifecycleError;
+      }
+    });
+    const fixture = createFixture(
+      '<synchronous-error-if-branch if.bind="show"></synchronous-error-if-branch>',
+      class App { public show = true; },
+      [Branch],
+    );
+    await fixture.started;
+    const sut = findIf(fixture.au.root.controller);
+
+    let failure: unknown;
+    let result: void | Promise<void> = void 0;
+    try {
+      result = sut.valueChanged(false, true);
+    } catch (error) {
+      failure = error;
+    }
+    if (result instanceof Promise) void result.catch(() => { /* assertion below reports the contract failure */ });
+    abandonTerminalFixture(fixture);
+
+    assert.strictEqual(failure, lifecycleError);
+  });
+
+  it('rejects a pending swap when eager deactivation throws synchronously', async function () {
+    const lifecycleError = new Error('pending if deactivation failed');
+    const attaching = new Deferred();
+    const Branch = CustomElement.define({ name: 'pending-error-if-branch', template: 'if' }, class {
+      public attaching(): Promise<void> {
+        return attaching.promise;
+      }
+      public detaching(): never {
+        throw lifecycleError;
+      }
+    });
+    const fixture = createFixture(
+      '<pending-error-if-branch if.bind="show"></pending-error-if-branch><div else>else</div>',
+      class App { public show = false; },
+      [Branch],
+    );
+    await fixture.started;
+    const sut = findIf(fixture.au.root.controller);
+
+    fixture.component.show = true;
+    let result: void | Promise<void> = void 0;
+    let synchronousFailure: unknown;
+    const probe = attaching.promise.then(() => {
+      try {
+        result = sut.valueChanged(false, true);
+      } catch (error) {
+        synchronousFailure = error;
+      }
+    });
+    attaching.resolve();
+    await probe;
+
+    let rejection: unknown;
+    if (result instanceof Promise) {
+      try {
+        await result;
+      } catch (error) {
+        rejection = error;
+      }
+    }
+    abandonTerminalFixture(fixture);
+
+    assert.strictEqual(synchronousFailure, void 0);
+    assert.instanceOf(result, Promise);
+    assert.strictEqual(rejection, lifecycleError);
   });
 
   it('keeps cached views reusable until final disposal', async function () {

@@ -1333,6 +1333,64 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       await fixture.stop(true);
     });
 
+    for (const variant of ['else-if', 'explicit-nesting'] as const) {
+      it(`does not activate a superseded nested branch after async attachment (${variant})`, async function () {
+        const attaching = createVoidDeferred();
+        const aReattached = createVoidDeferred();
+        let aAttaches = 0;
+        let bAttaches = 0;
+        let bAttached = 0;
+        let cAttaches = 0;
+        const BranchA = CustomElement.define({ name: `${variant}-branch-a`, template: 'a' }, class {
+          public attaching(): void {
+            if (++aAttaches === 2) aReattached.resolve();
+          }
+        });
+        const BranchB = CustomElement.define({ name: `${variant}-pending-branch-b`, template: 'b' }, class {
+          public attaching(): Promise<void> {
+            ++bAttaches;
+            return attaching.promise;
+          }
+          public attached(): void {
+            ++bAttached;
+          }
+        });
+        const BranchC = CustomElement.define({ name: `${variant}-stale-branch-c`, template: 'c' }, class {
+          public attaching(): void {
+            ++cAttaches;
+          }
+        });
+        const nestedBranches = [
+          `<${variant}-pending-branch-b if.bind="step === 1"></${variant}-pending-branch-b>`,
+          `<${variant}-stale-branch-c else></${variant}-stale-branch-c>`,
+        ].join('');
+        const fixture = createFixture(
+          variant === 'else-if'
+            ? [
+              `<${variant}-branch-a if.bind="step === 0"></${variant}-branch-a>`,
+              `<${variant}-pending-branch-b else if.bind="step === 1"></${variant}-pending-branch-b>`,
+              `<${variant}-stale-branch-c else></${variant}-stale-branch-c>`,
+            ].join('')
+            : `<${variant}-branch-a if.bind="step === 0"></${variant}-branch-a><template else>${nestedBranches}</template>`,
+          { step: 0 },
+          [BranchA, BranchB, BranchC],
+        );
+
+        fixture.component.step = 1;
+        assert.strictEqual(bAttaches, 1);
+        fixture.component.step = 2;
+        fixture.component.step = 0;
+
+        attaching.resolve();
+        await aReattached.promise;
+
+        assert.strictEqual(bAttached, 0);
+        assert.strictEqual(cAttaches, 0);
+        fixture.assertText('a');
+        await fixture.stop(true);
+      });
+    }
+
     it('does not activate a pending else-if branch after application teardown takes ownership', async function () {
       const detaching = createVoidDeferred();
       let detachCalls = 0;

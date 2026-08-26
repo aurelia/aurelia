@@ -80,6 +80,19 @@ export class If implements ICustomAttributeViewModel {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
+    const pending = this.pending;
+    // Start deactivation immediately, then publish the complete tail so a
+    // later swap cannot overtake an activating branch's teardown.
+    let deactivation: void | Promise<void>;
+    try {
+      deactivation = currView?.isActive ? currView.deactivate(currView, ctrl) : void 0;
+    } catch (error) {
+      // Preserve the existing async error boundary when this swap already had one.
+      if (isPromise(pending)) {
+        return this.pending = pending.then(() => { throw error; });
+      }
+      throw error;
+    }
     /**
      * returns true when
      * 1. entering deactivation of the [if] itself
@@ -88,9 +101,9 @@ export class If implements ICustomAttributeViewModel {
     const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
     let view: ISyntheticView | undefined;
 
-    return onResolve(this.pending,
-      () => this.pending = onResolve(
-        currView?.isActive ? currView.deactivate(currView, ctrl) : void 0,
+    return this.pending = onResolve(pending,
+      () => onResolve(
+        deactivation,
         () => {
           this._disposeViewsIfUncached(currView);
           if (!isCurrent()) {

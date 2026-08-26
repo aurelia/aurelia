@@ -109,6 +109,7 @@ In practice:
 
 - the current branch begins leaving first
 - the replacement branch starts only after the previous branch has finished its async leave work
+- a branch superseded during async attachment begins leaving immediately, with later branch work queued behind its teardown
 - once the replacement branch starts attaching, its DOM may already be present before the async `attaching()` promise resolves
 
 If you assert intermediate DOM state in tests, account for those lifecycle phases rather than assuming the entire swap happens in a single microtask.

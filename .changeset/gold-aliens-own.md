@@ -7,5 +7,6 @@ Conditional rendering now supports `else if` chains by placing `else` and `if.bi
 
 - Chains evaluate conditions lazily and stop after the first matching branch.
 - Native elements, custom elements, and explicit `<template>` branches can participate in the same chain.
+- Rapid condition changes keep nested fallbacks aligned with the latest matching branch, including while an earlier branch is still attaching.
 
 pr: #2453

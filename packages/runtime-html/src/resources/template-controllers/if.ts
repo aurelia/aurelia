@@ -136,17 +136,23 @@ export class If implements ICustomAttributeViewModel {
           };
           const result = view.activate(view, ctrl, ctrl.scope);
           if (recoverAfterFailure && isPromise(result)) {
-            return result.then(complete, () => onResolve(
-              // Value-driven swaps historically remain reusable after an async
-              // branch failure. Initial activation uses the rejecting path so
-              // application start still reports an invalid initial tree. Keep
-              // teardown in this chain so a successor cannot overlap the failed view.
-              view!.deactivate(view!, ctrl),
-              () => {
-                this._disposeViewsIfUncached(view);
-                complete();
-              },
-            ));
+            return result.then(complete, () => {
+              // A successor or owner teardown already owns stale-view cleanup.
+              if (!isCurrent()) {
+                return;
+              }
+              return onResolve(
+                // Value-driven swaps historically remain reusable after an async
+                // branch failure. Initial activation uses the rejecting path so
+                // application start still reports an invalid initial tree. Keep
+                // teardown in this chain so a successor cannot overlap the failed view.
+                view!.deactivate(view!, ctrl),
+                () => {
+                  this._disposeViewsIfUncached(view);
+                  complete();
+                },
+              );
+            });
           }
           return onResolve(result, complete);
         }

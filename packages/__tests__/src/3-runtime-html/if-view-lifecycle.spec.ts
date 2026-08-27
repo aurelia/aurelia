@@ -383,6 +383,7 @@ describe('3-runtime-html/if-view-lifecycle.spec.ts', function () {
     const activation = new Deferred();
     const cleanupStarted = new Deferred();
     const cleanup = new Deferred();
+    const disposed = new Deferred();
     const fallbackReattached = new Deferred();
     let rejectingCreated = 0;
     let rejectingDisposed = 0;
@@ -397,7 +398,10 @@ describe('3-runtime-html/if-view-lifecycle.spec.ts', function () {
         cleanupStarted.resolve();
         return cleanup.promise;
       }
-      public dispose(): void { rejectingDisposed++; }
+      public dispose(): void {
+        rejectingDisposed++;
+        disposed.resolve();
+      }
     });
     const FallbackBranch = CustomElement.define({ name: 'uncached-fallback-branch', template: 'fallback' }, class {
       public constructor() { fallbackCreated++; }
@@ -426,10 +430,16 @@ describe('3-runtime-html/if-view-lifecycle.spec.ts', function () {
       { rejectingCreated: 1, rejectingDisposed: 0, fallbackCreated: 1, fallbackDisposed: 1 },
     );
 
-    activation.reject(new Error('expected activation rejection'));
-    await cleanupStarted.promise;
     fixture.component.show = false;
-    await Promise.resolve();
+    activation.reject(new Error('expected activation rejection'));
+    const cleanupOwner = await Promise.race([
+      cleanupStarted.promise.then(() => 'successor' as const),
+      disposed.promise.then(() => 'stale activation' as const),
+    ]);
+    if (cleanupOwner !== 'successor') {
+      abandonTerminalFixture(fixture);
+    }
+    assert.strictEqual(cleanupOwner, 'successor');
     assert.deepStrictEqual(
       { rejectingCreated, rejectingDisposed, fallbackCreated, fallbackDisposed },
       { rejectingCreated: 1, rejectingDisposed: 0, fallbackCreated: 1, fallbackDisposed: 1 },

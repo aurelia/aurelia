@@ -311,18 +311,22 @@ export class Else implements ICustomAttributeViewModel {
       throw createMappedError(ErrorNames.else_without_if);
     }
     const prevViewModel = prevBehavior.viewModel;
-    if (!(prevViewModel instanceof If || prevViewModel instanceof Else)) {
+    let chainTarget: If | ElseIfViewFactory;
+    if (prevViewModel instanceof If) {
+      chainTarget = prevViewModel;
+    } else if (prevViewModel instanceof Else) {
+      const elseIfFactory = prevViewModel._elseIfFactory;
+      if (elseIfFactory === void 0) {
+        throw createMappedError(ErrorNames.else_without_if);
+      }
+      chainTarget = elseIfFactory;
+    } else {
       throw createMappedError(ErrorNames.else_without_if);
     }
-    const target = prevViewModel instanceof If
-      ? prevViewModel
-      : prevViewModel._elseIfFactory;
-    if (target === void 0) {
-      throw createMappedError(ErrorNames.else_without_if);
-    }
+
     // Only an adjacent same-element target receives positive provenance.
     // Other controller combinations retain their existing runtime behavior.
-    target.elseFactory = (instruction as HydrateTemplateController).linked === true
+    chainTarget.elseFactory = (instruction as HydrateTemplateController).linked === true
       ? this._elseIfFactory ??= new ElseIfViewFactory(this._factory)
       : this._factory;
   }

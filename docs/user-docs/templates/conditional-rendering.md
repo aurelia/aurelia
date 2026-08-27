@@ -72,7 +72,7 @@ This also works on direct custom elements, not just native elements or explicit 
 `else if` is still an `else` chain. The branch rules are:
 
 - `else` must belong to the immediately preceding conditional branch.
-- `if.bind` must be on the same element as `else` when writing `else if`.
+- `else` must appear before `if.bind` on the same element.
 - Plain attributes and non-template-controller custom attributes may appear between `else` and `if.bind` on that same element.
 - Another template controller between `else` and `if.bind` means the attributes do not form an `else if` branch.
 - A plain `else` branch ends the chain. Another `else` after that is invalid.

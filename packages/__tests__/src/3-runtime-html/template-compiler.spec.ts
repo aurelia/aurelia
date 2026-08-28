@@ -1327,6 +1327,18 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     });
 
     describe('TemplateCompiler - combinations -- nested template controllers (multiple per element)', function () {
+      const Link = CustomAttribute.define({
+        name: 'link',
+        aliases: ['link-alias'],
+        isTemplateController: true,
+        linkTarget: 'target',
+      }, class Link { });
+      const Middle = CustomAttribute.define({ name: 'middle', isTemplateController: true }, class Middle { });
+      const Target = CustomAttribute.define({
+        name: 'target',
+        aliases: ['target-alias'],
+        isTemplateController: true,
+      }, class Target { });
       const Foo = CustomAttribute.define({ name: 'foo', isTemplateController: true }, class Foo { });
       const Bar = CustomAttribute.define({ name: 'bar', isTemplateController: true }, class Bar { });
       const Baz = CustomAttribute.define({ name: 'baz', isTemplateController: true }, class Baz { });
@@ -1334,6 +1346,50 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       const Quux = CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux { });
 
       for (const resolveResources of [true, false]) {
+        it(`stamps true when an aliased link target is immediately inner (resolveResources=${resolveResources})`, function () {
+          const { result } = compileTemplate(
+            { template: '<div link-alias target-alias></div>', resolveResources },
+            Link,
+            Target,
+          );
+          const [link] = getTemplateControllerChain(result);
+
+          assert.strictEqual(link.linked, true);
+        });
+
+        it(`leaves link metadata absent when the target is absent (resolveResources=${resolveResources})`, function () {
+          const { result } = compileTemplate(
+            { template: '<div link-alias></div>', resolveResources },
+            Link,
+          );
+          const [link] = getTemplateControllerChain(result);
+
+          assert.strictEqual(link.linked, void 0);
+        });
+
+        it(`leaves link metadata absent when another template controller separates the target (resolveResources=${resolveResources})`, function () {
+          const { result } = compileTemplate(
+            { template: '<div link-alias middle target-alias></div>', resolveResources },
+            Link,
+            Middle,
+            Target,
+          );
+          const [link] = getTemplateControllerChain(result);
+
+          assert.strictEqual(link.linked, void 0);
+        });
+
+        it(`leaves link metadata absent when the target appears before the link (resolveResources=${resolveResources})`, function () {
+          const { result } = compileTemplate(
+            { template: '<div target-alias link-alias></div>', resolveResources },
+            Link,
+            Target,
+          );
+          const [, link] = getTemplateControllerChain(result);
+
+          assert.strictEqual(link.linked, void 0);
+        });
+
         it('compiles multiple nested template controllers per element on normal <div/>s', function () {
           const { createIterateProp, result } = compileTemplate(
             {
@@ -1486,6 +1542,16 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             }]]
           });
         });
+      }
+
+      function getTemplateControllerChain(definition: IElementComponentDefinition): HydrateTemplateController[] {
+        const chain: HydrateTemplateController[] = [];
+        let instruction = definition.instructions?.[0]?.[0] as HydrateTemplateController | undefined;
+        while (instruction?.type === itHydrateTemplateController) {
+          chain.push(instruction);
+          instruction = instruction.def.instructions?.[0]?.[0] as HydrateTemplateController | undefined;
+        }
+        return chain;
       }
     });
 

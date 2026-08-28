@@ -38,6 +38,11 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
   type: 'custom-attribute';
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
+  /**
+   * Canonical name of the immediately nested template controller this attribute links to.
+   * Applications should not use this property directly, as it is subject to change without notice.
+   */
+  linkTarget?: string;
   aliases?: readonly string[];
   /**
    * The name of the property that receives the value when the attribute is used without multi-binding syntax.

@@ -39,6 +39,81 @@ Use `else` immediately after an `if.bind` element to create branching logic:
 </div>
 ```
 
+### Else-If Chains
+
+You can chain additional conditions by combining `else` and `if.bind` on the same element:
+
+```html
+<div if.bind="status === 'loading'">
+  Loading...
+</div>
+<div else if.bind="status === 'error'">
+  Something went wrong.
+</div>
+<div else if.bind="status === 'empty'">
+  No results found.
+</div>
+<div else>
+  Content is ready.
+</div>
+```
+
+This also works on direct custom elements, not just native elements or explicit `<template>` nodes:
+
+```html
+<loading-screen if.bind="status === 'loading'"></loading-screen>
+<error-screen else if.bind="status === 'error'"></error-screen>
+<empty-state else if.bind="status === 'empty'"></empty-state>
+<results-grid else></results-grid>
+```
+
+### Ordering Rules for `else if`
+
+`else if` is still an `else` chain. The branch rules are:
+
+- `else` must belong to the immediately preceding conditional branch.
+- `else` must appear before `if.bind` on the same element.
+- Plain attributes and non-template-controller custom attributes may appear between `else` and `if.bind` on that same element.
+- Another template controller between `else` and `if.bind` means the attributes do not form an `else if` branch.
+- A plain `else` branch ends the chain. Another `else` after that is invalid.
+
+Valid examples:
+
+```html
+<div if.bind="step === 0">A</div>
+<div else class="branch" if.bind="step === 1">B</div>
+<div else marker if.bind="step === 2">C</div>
+<div else>D</div>
+```
+
+A controller-bearing structure between sibling branches breaks the chain:
+
+```html
+<div if.bind="step === 0">A</div>
+<p repeat.for="item of items">${item}</p>
+<div else>B</div>
+```
+
+This same-element combination is unsupported as `else if` because `repeat` separates the two template controllers:
+
+```html
+<div if.bind="step === 0">A</div>
+<div else repeat.for="item of items" if.bind="step === 1">B</div>
+```
+
+### Async Branch Transitions
+
+If a leaving branch has async deactivation or an entering branch has async activation, Aurelia waits for those lifecycle promises as part of the branch swap.
+
+In practice:
+
+- the current branch begins leaving first
+- the replacement branch starts only after the previous branch has finished its async leave work
+- a branch superseded during async attachment begins leaving immediately, with later branch work queued behind its teardown
+- once the replacement branch starts attaching, its DOM may already be present before the async `attaching()` promise resolves
+
+If you assert intermediate DOM state in tests, account for those lifecycle phases rather than assuming the entire swap happens in a single microtask.
+
 ### Caching Behavior
 
 By default, `if.bind` caches views and view models for performance. Disable caching when you need fresh instances:

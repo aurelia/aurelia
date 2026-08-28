@@ -193,6 +193,28 @@ export class ElseTemplateController {
 
 Use this hook whenever two controllers must share state (think `switch` / `case` / `default-case`).
 
+For `if` / `else`, Aurelia also supports `else if` chains by placing `else` and `if.bind` on the same element:
+
+```html
+<div if.bind="step === 0">A</div>
+<div else if.bind="step === 1">B</div>
+<div else if.bind="step === 2">C</div>
+<div else>D</div>
+```
+
+This works with:
+
+- native elements
+- direct custom elements such as `<my-branch else if.bind="...">`
+- explicit `<template>` branches
+
+The structural rule is strict:
+
+- `else` must still attach to the immediately preceding branch in the chain
+- `if.bind` must be on the same element as `else`
+- plain attributes or non-template-controller custom attributes may appear between `else` and `if.bind`
+- another template controller between `else` and `if.bind` does not form an `else if` branch
+
 ## Restrictions and Gotchas
 
 - **No surrogate usage** – Placing a template controller on `<template as-element="foo">` throws `compiler_no_tc_on_surrogate` because surrogates do not own render locations.
@@ -200,6 +222,8 @@ Use this hook whenever two controllers must share state (think `switch` / `case`
 - **One template per controller** – The compiler only emits one `IViewFactory` per controller. If you need secondary content (like the `else` branch), capture another controller's factory in `link()` or build an additional view manually using `ViewFactory`/`CustomElementDefinition` as shown earlier.
 - **Container strategy matters** – Setting `containerStrategy: 'new'` ensures each rendered view gets a fresh child container (see `PromiseTemplateController`); the default `'reuse'` is faster but shares services.
 - **Lifecycle ownership** – A created view remains with its template controller through teardown. Deactivate it during `detaching`, include it in `accept(visitor)`, and release it from `dispose()`.
+
+**Async swaps are phased.** When one branch returns a promise from `detaching()` and the next returns a promise from `attaching()`, Aurelia processes the swap in stages. The old branch leaves first, then the new branch starts attaching, and the new DOM can be present before the async attach promise resolves.
 
 ## Next Steps
 

@@ -155,6 +155,11 @@ export interface HydrateTemplateController<T extends IAttributeComponentDefiniti
   readonly res: string | /* Constructable | */ T;
   readonly alias: string | undefined;
   /**
+   * Positive provenance that this controller's configured link target is immediately nested.
+   * Applications should not use this property directly, as it is subject to change without notice.
+   */
+  readonly linked?: true;
+  /**
    * Bindable instructions for the template controller instance
    */
   readonly props: IInstruction[];

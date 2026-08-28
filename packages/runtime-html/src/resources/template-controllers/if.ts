@@ -4,12 +4,13 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { IPlatform } from '../../platform';
 
-import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
-import type { IInstruction } from '@aurelia/template-compiler';
+import type { INodeSequence } from '../../dom';
+import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, ICustomElementController, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
+import { type HydrateTemplateController, type IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { isSSRTemplateController, adoptSSRView, type ISSRTemplateController } from '../../templating/ssr';
+import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -77,6 +78,19 @@ export class If implements ICustomAttributeViewModel {
     const currView = this.view;
     const ctrl = this.$controller;
     const swapId = this._swapId++;
+    const pending = this.pending;
+    // Start deactivation immediately, then publish the complete tail so a
+    // later swap cannot overtake an activating branch's teardown.
+    let deactivation: void | Promise<void>;
+    try {
+      deactivation = currView?.isActive ? currView.deactivate(currView, ctrl) : void 0;
+    } catch (error) {
+      // Preserve the existing async error boundary when this swap already had one.
+      if (isPromise(pending)) {
+        return this.pending = pending.then(() => { throw error; });
+      }
+      throw error;
+    }
     /**
      * returns true when
      * 1. entering deactivation of the [if] itself
@@ -85,9 +99,9 @@ export class If implements ICustomAttributeViewModel {
     const isCurrent = () => !this._wantsDeactivate && this._swapId === swapId + 1;
     let view: ISyntheticView | undefined;
 
-    return onResolve(this.pending,
-      () => this.pending = onResolve(
-        currView?.isActive ? currView.deactivate(currView, ctrl) : void 0,
+    return this.pending = onResolve(pending,
+      () => onResolve(
+        deactivation,
         () => {
           this._disposeViewsIfUncached(currView);
           if (!isCurrent()) {
@@ -122,17 +136,23 @@ export class If implements ICustomAttributeViewModel {
           };
           const result = view.activate(view, ctrl, ctrl.scope);
           if (recoverAfterFailure && isPromise(result)) {
-            return result.then(complete, () => onResolve(
-              // Value-driven swaps historically remain reusable after an async
-              // branch failure. Initial activation uses the rejecting path so
-              // application start still reports an invalid initial tree. Keep
-              // teardown in this chain so a successor cannot overlap the failed view.
-              view!.deactivate(view!, ctrl),
-              () => {
-                this._disposeViewsIfUncached(view);
-                complete();
-              },
-            ));
+            return result.then(complete, () => {
+              // A successor or owner teardown already owns stale-view cleanup.
+              if (!isCurrent()) {
+                return;
+              }
+              return onResolve(
+                // Value-driven swaps historically remain reusable after an async
+                // branch failure. Initial activation uses the rejecting path so
+                // application start still reports an invalid initial tree. Keep
+                // teardown in this chain so a successor cannot overlap the failed view.
+                view!.deactivate(view!, ctrl),
+                () => {
+                  this._disposeViewsIfUncached(view);
+                  complete();
+                },
+              );
+            });
           }
           return onResolve(result, complete);
         }
@@ -206,29 +226,108 @@ export class If implements ICustomAttributeViewModel {
   }
 }
 
+// Else owns a lazy nested If for each else-if branch. This wrapper installs the
+// following branch on normal or adopted views while delegating cache ownership.
+class ElseIfViewFactory implements IViewFactory {
+  public elseFactory?: IViewFactory;
+
+  public constructor(private readonly _factory: IViewFactory) {}
+
+  public get name(): string {
+    return this._factory.name;
+  }
+
+  public get container() {
+    return this._factory.container;
+  }
+
+  public get def() {
+    return this._factory.def;
+  }
+
+  public set def(value) {
+    this._factory.def = value;
+  }
+
+  public get isCaching(): boolean {
+    return this._factory.isCaching;
+  }
+
+  public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
+    this._factory.setCacheSize(size, doNotOverrideIfAlreadySet);
+  }
+
+  public canReturnToCache(controller: ISyntheticView): boolean {
+    return this._factory.canReturnToCache(controller);
+  }
+
+  public tryReturnToCache(controller: ISyntheticView): boolean {
+    return this._factory.tryReturnToCache(controller);
+  }
+
+  public create(
+    parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+  ): ISyntheticView {
+    return this._applyElseFactory(this._factory.create(parentController));
+  }
+
+  public createAdopted(
+    parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined,
+    adoptedNodes: INodeSequence,
+    ssrScope?: ISSRScope,
+  ): ISyntheticView {
+    return this._applyElseFactory(this._factory.createAdopted(parentController, adoptedNodes, ssrScope));
+  }
+
+  private _applyElseFactory(view: ISyntheticView): ISyntheticView {
+    const child = view.children?.[0];
+    if (child != null && child.vmKind === 'customAttribute' && child.viewModel instanceof If) {
+      child.viewModel.elseFactory = this.elseFactory;
+    }
+    return view;
+  }
+}
+
 export class Else implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
     name: 'else',
     isTemplateController: true,
+    linkTarget: 'if',
   };
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
+  /** @internal */ private _elseIfFactory: ElseIfViewFactory | undefined = void 0;
 
   public link(
     controller: IHydratableController,
     _childController: ICustomAttributeController,
     _target: INode,
-    _instruction: IInstruction,
+    instruction: IInstruction,
   ): void {
-    const children = controller.children!;
-    const ifBehavior: If | ICustomAttributeController = children[children.length - 1] as If | ICustomAttributeController;
-    if (ifBehavior instanceof If) {
-      ifBehavior.elseFactory = this._factory;
-    } else if (ifBehavior.viewModel instanceof If) {
-      ifBehavior.viewModel.elseFactory = this._factory;
+    const children = controller.children;
+    const prevBehavior = children?.[children.length - 1] as ICustomAttributeController | undefined;
+    if (prevBehavior == null) {
+      throw createMappedError(ErrorNames.else_without_if);
+    }
+    const prevViewModel = prevBehavior.viewModel;
+    let chainTarget: If | ElseIfViewFactory;
+    if (prevViewModel instanceof If) {
+      chainTarget = prevViewModel;
+    } else if (prevViewModel instanceof Else) {
+      const elseIfFactory = prevViewModel._elseIfFactory;
+      if (elseIfFactory === void 0) {
+        throw createMappedError(ErrorNames.else_without_if);
+      }
+      chainTarget = elseIfFactory;
     } else {
       throw createMappedError(ErrorNames.else_without_if);
     }
+
+    // Only an adjacent same-element target receives positive provenance.
+    // Other controller combinations retain their existing runtime behavior.
+    chainTarget.elseFactory = (instruction as HydrateTemplateController).linked === true
+      ? this._elseIfFactory ??= new ElseIfViewFactory(this._factory)
+      : this._factory;
   }
 }

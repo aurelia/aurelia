@@ -562,6 +562,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const tcCount = tcInstructions.length;
       let tcIndex = tcCount - 1;
       let tcInstruction = tcInstructions[tcIndex];
+      let nextTcDefinition = this._getAttributeDefinition(tcInstruction, context);
 
       // Step 1: Create the innermost template containing the actual element
       // Replace element with marker in parent DOM, wrap element in template
@@ -624,6 +625,16 @@ export class TemplateCompiler implements ITemplateCompiler {
       // Each outer TC gets a template with just a marker; its instruction is the next-inner TC
       while (tcIndex-- > 0) {
         tcInstruction = tcInstructions[tcIndex];
+        const nextTcInstruction = tcInstructions[tcIndex + 1];
+        const tcDefinition = this._getAttributeDefinition(tcInstruction, context);
+        const linkTarget = tcDefinition.linkTarget;
+        // Publish positive provenance only. A missing link remains ordinary or
+        // unsupported template-controller composition rather than a new error state.
+        if (linkTarget === nextTcDefinition.name) {
+          (tcInstruction as { linked?: true }).linked = true;
+        }
+        nextTcDefinition = tcDefinition;
+
         tcTemplate = context.t();
         // Each outer TC template has exactly 1 marker at index 0
         appendManyToTemplate(tcTemplate, [
@@ -637,7 +648,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           type: definitionTypeElement,
           template: tcTemplate,
           needsCompile: false,
-          instructions: [[tcInstructions[tcIndex + 1]]],
+          instructions: [[nextTcInstruction]],
         };
       }
 
@@ -1462,6 +1473,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     }
 
     return projections;
+  }
+
+  /** @internal */
+  private _getAttributeDefinition(
+    instruction: HydrateTemplateController,
+    context: CompilationContext,
+  ): IAttributeComponentDefinition {
+    return typeof instruction.res === 'string'
+      ? context._findAttr(instruction.res)!
+      : instruction.res;
   }
 }
 

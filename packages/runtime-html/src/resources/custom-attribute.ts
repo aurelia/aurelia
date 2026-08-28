@@ -20,7 +20,7 @@ import type { ICustomAttributeViewModel, ICustomAttributeController, Controller 
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtAttribute, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
-import { IAttributeComponentDefinition } from '@aurelia/template-compiler';
+import { type IAttributeComponentDefinition } from '@aurelia/template-compiler';
 
 export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IAttributeComponentDefinition, 'type'> & {
   readonly isTemplateController?: boolean;
@@ -124,6 +124,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly aliases: readonly string[],
     public readonly key: string,
     public readonly isTemplateController: boolean,
+    public readonly linkTarget: IAttributeComponentDefinition['linkTarget'],
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
@@ -155,6 +156,9 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
+      getAttributeAnnotation(Type, 'linkTarget')
+        ?? def.linkTarget
+        ?? Type.linkTarget,
       Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getDefinitions(Type), Type.watches),

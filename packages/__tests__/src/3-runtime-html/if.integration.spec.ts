@@ -1,13 +1,40 @@
-import {
-  CustomAttribute,
-  ICustomElementViewModel,
-  IHydratedController,
-  customElement,
-} from '@aurelia/runtime-html';
+import { Registration } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
-  assert, createFixture
+  Aurelia,
+  CustomAttribute,
+  CustomElement,
+  Else,
+  If,
+  ICustomElementViewModel,
+  IHydratedController,
+  ISSRContext,
+  type ISSRScope,
+  ValueConverter,
+  customAttribute,
+  customElement,
+  IHydratableController,
+  ICustomAttributeController,
+} from '@aurelia/runtime-html';
+import {
+  assert, createFixture, TestContext
 } from '@aurelia/testing';
+
+interface VoidDeferred {
+  readonly promise: Promise<void>;
+  resolve(): void;
+  reject(reason: unknown): void;
+}
+
+function createVoidDeferred(): VoidDeferred {
+  let resolve!: () => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
 
 describe(`3-runtime-html/if.integration.spec.ts`, function () {
   class EventLog {
@@ -132,17 +159,21 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       // change to false
       component.condition2 = false;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       // then true again
       component.condition2 = true;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       // wouldn't create another view
       assert.strictEqual(callCount, 2);
 
       component.condition = false;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       assert.strictEqual(callCount, 4);
 
@@ -239,6 +270,1350 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       void tearDown();
 
       assertText('');
+    });
+
+    it('supports else-if chains followed by else', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else if.bind="step === 2">c</div>',
+          '<div else>d</div>',
+        ].join(''),
+        { step: 0 }
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 3;
+      assertText('d');
+
+      component.step = 0;
+      assertText('a');
+    });
+
+    it('supports else-if chains on direct custom element branches', function () {
+      const BranchA = CustomElement.define({ name: 'branch-a', template: 'a' }, class {});
+      const BranchB = CustomElement.define({ name: 'branch-b', template: 'b' }, class {});
+      const BranchC = CustomElement.define({ name: 'branch-c', template: 'c' }, class {});
+      const BranchD = CustomElement.define({ name: 'branch-d', template: 'd' }, class {});
+
+      const { assertText, component } = createFixture(
+        [
+          '<branch-a if.bind="step === 0"></branch-a>',
+          '<branch-b else if.bind="step === 1"></branch-b>',
+          '<branch-c else if.bind="step === 2"></branch-c>',
+          '<branch-d else></branch-d>',
+        ].join(''),
+        { step: 0 },
+        [BranchA, BranchB, BranchC, BranchD]
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 3;
+      assertText('d');
+
+      component.step = 0;
+      assertText('a');
+    });
+
+    it('supports a containerless custom element else-if branch', async function () {
+      const BranchB = CustomElement.define({
+        name: 'containerless-branch-b',
+        template: '<strong>b</strong>',
+        containerless: true,
+      }, class {});
+
+      const { assertText, component, stop } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<containerless-branch-b else if.bind="step === 1"></containerless-branch-b>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 },
+        [BranchB],
+      );
+
+      assertText('a');
+      component.step = 1;
+      assertText('b');
+      component.step = 2;
+      assertText('c');
+
+      await stop(true);
+    });
+
+    it('supports definition-driven else-if chaining for renamed template controllers', function () {
+      const When = CustomAttribute.define({
+        name: 'when',
+        isTemplateController: true,
+        bindables: If.$au.bindables,
+      }, class When extends If {});
+      const Otherwise = CustomAttribute.define({
+        name: 'otherwise',
+        isTemplateController: true,
+        linkTarget: 'when',
+      }, class Otherwise extends Else {});
+
+      const { assertText, component } = createFixture(
+        [
+          '<div when.bind="step === 0">a</div>',
+          '<div otherwise when.bind="step === 1">b</div>',
+          '<div otherwise>c</div>',
+        ].join(''),
+        { step: 0 },
+        [When, Otherwise]
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+    });
+
+    it('does not let a nested if-else inside the if branch affect the outer else-if chain', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a',
+          '<span if.bind="inner">x</span>',
+          '<span else>y</span>',
+          '</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0, inner: true }
+      );
+
+      assertText('ax');
+
+      component.inner = false;
+      assertText('ay');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 0;
+      assertText('ay');
+    });
+
+    it('does not let a nested if-else inside an else-if branch affect the outer chain', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b',
+          '<span if.bind="inner">x</span>',
+          '<span else>y</span>',
+          '</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 1, inner: true }
+      );
+
+      assertText('bx');
+
+      component.inner = false;
+      assertText('by');
+
+      component.step = 0;
+      assertText('a');
+
+      component.step = 2;
+      assertText('c');
+
+      component.step = 1;
+      assertText('by');
+    });
+
+    it('supports else-if when a plain attribute is between else and if on the same element', function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else data-branch="b" if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 }
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+    });
+
+    it('supports else-if when a non-template custom attribute is between else and if on the same element', function () {
+      @customAttribute('marker')
+      class Marker {}
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else marker if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 },
+        [Marker]
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      assertText('b');
+
+      component.step = 2;
+      assertText('c');
+    });
+
+    it('keeps an immediately nested repeat live across else-if branch re-entry', async function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<span else if.bind="step === 1" repeat.for="item of items">${item}</span>',
+          '<div else>d</div>',
+        ].join(''),
+        { step: 1, items: ['b', 'c'] },
+      );
+
+      assertText('bc');
+      component.items.splice(0, 2, 'x', 'y', 'z');
+      await tasksSettled();
+      assertText('xyz');
+
+      component.step = 0;
+      await tasksSettled();
+      assertText('a');
+
+      component.items.splice(0, 3, 'e', 'f');
+      component.step = 1;
+      await tasksSettled();
+      assertText('ef');
+    });
+
+    describe('unsupported native-sibling adjacency characterization', function () {
+      // Else linking currently follows Controller adjacency, so a controller-free
+      // native sibling is skipped and branch DOM moves to the preceding if location.
+      // This characterizes the gap without making it a supported authoring contract.
+      it('currently links plain else and else-if across an unrelated native sibling', async function () {
+        const plainElse = createFixture(
+          [
+            '<div if.bind="step === 0">a</div>',
+            '<p>between</p>',
+            '<div else>b</div>',
+          ].join(''),
+          { step: 0 },
+        );
+
+        plainElse.assertText('abetween');
+        plainElse.component.step = 1;
+        plainElse.assertText('bbetween');
+        await plainElse.stop(true);
+
+        const elseIf = createFixture(
+          [
+            '<div if.bind="step === 0">a</div>',
+            '<p>between</p>',
+            '<div else if.bind="step === 1">b</div>',
+            '<div else>c</div>',
+          ].join(''),
+          { step: 0 },
+        );
+
+        elseIf.assertText('abetween');
+        elseIf.component.step = 1;
+        elseIf.assertText('bbetween');
+        elseIf.component.step = 2;
+        elseIf.assertText('cbetween');
+        await elseIf.stop(true);
+      });
+    });
+
+    it('supports else-if chains with custom attributes on the branches', function () {
+      const counts = { a: 0, b: 0, c: 0 };
+      const FlagA = CustomAttribute.define('flag-a', class {
+        public attaching() { counts.a++; }
+      });
+      const FlagB = CustomAttribute.define('flag-b', class {
+        public attaching() { counts.b++; }
+      });
+      const FlagC = CustomAttribute.define('flag-c', class {
+        public attaching() { counts.c++; }
+      });
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0" flag-a>a</div>',
+          '<div else if.bind="step === 1" flag-b>b</div>',
+          '<div else flag-c>c</div>',
+        ].join(''),
+        { step: 0 },
+        [FlagA, FlagB, FlagC]
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(counts, { a: 1, b: 0, c: 0 });
+
+      component.step = 1;
+      assertText('b');
+      assert.deepStrictEqual(counts, { a: 1, b: 1, c: 0 });
+
+      component.step = 2;
+      assertText('c');
+      assert.deepStrictEqual(counts, { a: 1, b: 1, c: 1 });
+    });
+
+    it('exposes the wrapped else-if factory through the IViewFactory surface', function () {
+      const { au } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        class App {
+          public step = 0;
+        }
+      );
+
+      const app = au.root.controller.viewModel as ICustomElementViewModel;
+      const ifCtrl = app.$controller.children.find(c => c.viewModel instanceof If)!;
+      const elseFactory = (ifCtrl.viewModel as If).elseFactory!;
+      const def = elseFactory.def;
+
+      assert.strictEqual(typeof elseFactory.name, 'string');
+      assert.notStrictEqual(elseFactory.container, null);
+      assert.strictEqual(elseFactory.def, def);
+
+      elseFactory.def = def;
+      elseFactory.setCacheSize(1, false);
+      assert.strictEqual(elseFactory.isCaching, true);
+
+      const view = elseFactory.create(ifCtrl as any);
+      assert.strictEqual(elseFactory.canReturnToCache(view), true);
+      assert.strictEqual(elseFactory.tryReturnToCache(view), true);
+    });
+
+    it('rejects unrelated preceding view models during else linking', function () {
+      const { au } = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<div else if.bind="step === 1">b</div>',
+          '<div else>c</div>',
+        ].join(''),
+        class App {
+          public step = 0;
+        }
+      );
+
+      const app = au.root.controller.viewModel as ICustomElementViewModel;
+      const elseCtrl = app.$controller.children.find(c => c.viewModel instanceof Else);
+      const elseVm = elseCtrl.viewModel as Else;
+
+      assert.throws(() => elseVm.link(
+        { children: [{ viewModel: {} }] } as unknown as IHydratableController,
+        elseCtrl as ICustomAttributeController,
+        null,
+        null,
+      ), /AUR0810/);
+    });
+
+    it('evaluates and activates long else-if chains as expected', async function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+      const createdCounts = { a: 0, b: 0, c: 0, d: 0 };
+      const attachingCounts = { a: 0, b: 0, c: 0, d: 0 };
+
+      const CountA = CustomAttribute.define('count-a', class {
+        public created() { createdCounts.a++; }
+        public attaching() { attachingCounts.a++; }
+      });
+      const CountB = CustomAttribute.define('count-b', class {
+        public created() { createdCounts.b++; }
+        public attaching() { attachingCounts.b++; }
+      });
+      const CountC = CustomAttribute.define('count-c', class {
+        public created() { createdCounts.c++; }
+        public attaching() { attachingCounts.c++; }
+      });
+      const CountD = CustomAttribute.define('count-d', class {
+        public created() { createdCounts.d++; }
+        public attaching() { attachingCounts.d++; }
+      });
+
+      class App {
+        public step = 0;
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.step === 1;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.step === 2;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<template if.bind="isA"><div count-a>a</div></template>',
+          '<template else if.bind="isB"><div count-b>b</div></template>',
+          '<template else if.bind="isC"><div count-c>c</div></template>',
+          '<template else><div count-d>d</div></template>',
+        ].join(''),
+        App,
+        [CountA, CountB, CountC, CountD]
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
+      assert.deepStrictEqual(createdCounts, { a: 1, b: 0, c: 0, d: 0 });
+      assert.deepStrictEqual(attachingCounts, { a: 1, b: 0, c: 0, d: 0 });
+
+      component.step = 1;
+      await tasksSettled();
+      assertText('b');
+
+      component.step = 2;
+      await tasksSettled();
+      assertText('c');
+
+      component.step = 3;
+      await tasksSettled();
+      assertText('d');
+
+      component.step = 1;
+      await tasksSettled();
+      assertText('b');
+
+      component.step = 0;
+      await tasksSettled();
+      assertText('a');
+
+      assert.deepStrictEqual(createdCounts, { a: 1, b: 1, c: 1, d: 1 });
+      assert.deepStrictEqual(attachingCounts, { a: 2, b: 2, c: 1, d: 1 });
+    });
+
+    it('lazily skips later else-if expressions when the first branch matches', function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+
+      class App {
+        public step = 0;
+        public left = true;
+        public right = false;
+        public details = { value: 2 };
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.left ? this.step === 1 : this.right;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.details.value > 1 && this.step === 2;
+        }
+      }
+
+      const { assertText } = createFixture(
+        [
+          '<div if.bind="isA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isB">',
+          'b',
+          '</div>',
+          '<div else if.bind="isC">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
+    });
+
+    it('lazily stops after the matching middle else-if expression', function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+
+      class App {
+        public step = 1;
+        public left = true;
+        public right = false;
+        public details = { value: 2 };
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.left ? this.step === 1 : this.right;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.details.value > 1 && this.step === 2;
+        }
+      }
+
+      const { assertText } = createFixture(
+        [
+          '<div if.bind="isA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isB">',
+          'b',
+          '</div>',
+          '<div else if.bind="isC">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 1, c: 0 });
+    });
+
+    it('reacts to active ternary else-if changes without observing the inactive side or later branches', async function () {
+      const evalCounts = { first: 0, left: 0, right: 0, last: 0 };
+
+      class App {
+        public step = 1;
+        public useLeft = true;
+        public left = { c: true };
+        public right = { e: false };
+        public allowLast = true;
+
+        public get isFirst() {
+          evalCounts.first++;
+          return this.step === 0;
+        }
+
+        public get leftValue() {
+          evalCounts.left++;
+          return this.left.c;
+        }
+
+        public get rightValue() {
+          evalCounts.right++;
+          return this.right.e;
+        }
+
+        public get isLast() {
+          evalCounts.last++;
+          return this.allowLast;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isFirst">',
+          'a',
+          '</div>',
+          '<div else if.bind="useLeft ? leftValue : rightValue">',
+          'b',
+          '</div>',
+          '<div else if.bind="isLast">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, left: 1, right: 0, last: 0 });
+
+      component.right.e = true;
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, left: 1, right: 0, last: 0 });
+
+      component.left.c = false;
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { first: 1, left: 2, right: 0, last: 1 });
+    });
+
+    it('re-evaluates active function-call else-if expressions when parameters change and only checks later branches when falsy', async function () {
+      const evalCounts = { first: 0, call: 0, last: 0 };
+
+      class App {
+        public step = 1;
+        public mode = 'positive';
+        public value = 1;
+        public allowLast = true;
+
+        public get isFirst() {
+          evalCounts.first++;
+          return this.step === 0;
+        }
+
+        public matches(mode: string, value: number) {
+          evalCounts.call++;
+          return mode === 'positive' ? value > 0 : value === 0;
+        }
+
+        public get isLast() {
+          evalCounts.last++;
+          return this.allowLast;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isFirst">',
+          'a',
+          '</div>',
+          '<div else if.bind="matches(mode, value)">',
+          'b',
+          '</div>',
+          '<div else if.bind="isLast">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 1, last: 0 });
+
+      component.value = 2;
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 2, last: 0 });
+
+      component.value = 0;
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 3, last: 1 });
+
+      component.mode = 'zero';
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, call: 4, last: 1 });
+    });
+
+    it('re-evaluates active value-converter else-if expressions and only evaluates later branches when the converter returns falsy', async function () {
+      const evalCounts = { first: 0, converter: 0, last: 0 };
+
+      const IsAtLeastValueConverter = ValueConverter.define('isAtLeast', class {
+        public toView(value: number, threshold: number) {
+          evalCounts.converter++;
+          return value >= threshold;
+        }
+      });
+
+      class App {
+        public step = 1;
+        public middleValue = 2;
+        public threshold = 1;
+        public allowLast = true;
+
+        public get isFirst() {
+          evalCounts.first++;
+          return this.step === 0;
+        }
+
+        public get isLast() {
+          evalCounts.last++;
+          return this.allowLast;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isFirst">',
+          'a',
+          '</div>',
+          '<div else if.bind="middleValue | isAtLeast:threshold">',
+          'b',
+          '</div>',
+          '<div else if.bind="isLast">',
+          'c',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+        [IsAtLeastValueConverter],
+      );
+
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 1, last: 0 });
+
+      component.threshold = 2;
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 2, last: 0 });
+
+      component.threshold = 3;
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 3, last: 1 });
+
+      component.middleValue = 4;
+      await tasksSettled();
+      assertText('b');
+      assert.deepStrictEqual(evalCounts, { first: 1, converter: 4, last: 1 });
+    });
+
+    it('does not evaluate nested if-else expressions inside an inactive else-if branch', async function () {
+      const evalCounts = { outerA: 0, outerB: 0, inner: 0 };
+
+      class App {
+        public step = 0;
+        public flag = true;
+
+        public get isOuterA() {
+          evalCounts.outerA++;
+          return this.step === 0;
+        }
+
+        public get isOuterB() {
+          evalCounts.outerB++;
+          return this.step === 1;
+        }
+
+        public get isInner() {
+          evalCounts.inner++;
+          return this.flag;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isOuterA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isOuterB">',
+          '<span if.bind="isInner">x</span>',
+          '<span else>y</span>',
+          '</div>',
+          '<div else>',
+          'd',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { outerA: 1, outerB: 0, inner: 0 });
+
+      component.step = 1;
+      await tasksSettled();
+      assertText('x');
+      assert.deepStrictEqual(evalCounts, { outerA: 2, outerB: 1, inner: 1 });
+    });
+
+    it('supports non-terminating else-if chains and renders nothing when no branch matches', async function () {
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="step === 0">',
+          'a',
+          '</div>',
+          '<div else if.bind="step === 1">',
+          'b',
+          '</div>',
+          '<div else if.bind="step === 2">',
+          'c',
+          '</div>',
+        ].join(''),
+        { step: 0 },
+      );
+
+      assertText('a');
+
+      component.step = 1;
+      await tasksSettled();
+      assertText('b');
+
+      component.step = 2;
+      await tasksSettled();
+      assertText('c');
+
+      component.step = 3;
+      await tasksSettled();
+      assertText('');
+
+      component.step = 0;
+      await tasksSettled();
+      assertText('a');
+    });
+
+    it('lazily skips later checks in a non-terminating else-if chain', async function () {
+      const evalCounts = { a: 0, b: 0, c: 0 };
+
+      class App {
+        public step = 0;
+
+        public get isA() {
+          evalCounts.a++;
+          return this.step === 0;
+        }
+
+        public get isB() {
+          evalCounts.b++;
+          return this.step === 1;
+        }
+
+        public get isC() {
+          evalCounts.c++;
+          return this.step === 2;
+        }
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<div if.bind="isA">',
+          'a',
+          '</div>',
+          '<div else if.bind="isB">',
+          'b',
+          '</div>',
+          '<div else if.bind="isC">',
+          'c',
+          '</div>',
+        ].join(''),
+        App,
+      );
+
+      assertText('a');
+      assert.deepStrictEqual(evalCounts, { a: 1, b: 0, c: 0 });
+
+      component.step = 2;
+      await tasksSettled();
+      assertText('c');
+      assert.deepStrictEqual(evalCounts, { a: 2, b: 1, c: 1 });
+
+      component.step = 3;
+      await tasksSettled();
+      assertText('');
+      assert.deepStrictEqual(evalCounts, { a: 3, b: 2, c: 2 });
+    });
+
+    it('waits for async custom element branch lifecycle on long jumps', async function () {
+      const resolvers: (() => void)[] = [];
+      const logs: string[] = [];
+      let detachResolved = 0;
+      let attachResolved = 0;
+      const createDeferred = () => new Promise<void>(resolve => { resolvers.push(resolve); });
+
+      const JumpA = CustomElement.define({ name: 'jump-a', template: 'a' }, class {
+        public detaching() {
+          logs.push('a:detaching');
+          return createDeferred().then(() => {
+            detachResolved++;
+            logs.push('a:detaching:resolved');
+          });
+        }
+      });
+      const JumpB = CustomElement.define({ name: 'jump-b', template: 'b' }, class {
+        public attaching() {
+          logs.push('b:attaching');
+        }
+      });
+      const JumpC = CustomElement.define({ name: 'jump-c', template: 'c' }, class {
+        public attaching() {
+          logs.push('c:attaching');
+        }
+      });
+      const JumpD = CustomElement.define({ name: 'jump-d', template: 'd' }, class {
+        public attaching() {
+          logs.push('d:attaching');
+          return createDeferred().then(() => {
+            attachResolved++;
+            logs.push('d:attaching:resolved');
+          });
+        }
+      });
+
+      class App {
+        public step = 0;
+      }
+
+      const { assertText, component } = createFixture(
+        [
+          '<jump-a if.bind="step === 0"></jump-a>',
+          '<jump-b else if.bind="step === 1"></jump-b>',
+          '<jump-c else if.bind="step === 2"></jump-c>',
+          '<jump-d else></jump-d>',
+        ].join(''),
+        App,
+        [JumpA, JumpB, JumpC, JumpD]
+      );
+
+      assertText('a');
+
+      component.step = 3;
+      assertText('a');
+      assert.deepStrictEqual(logs, ['a:detaching']);
+      assert.strictEqual(resolvers.length, 1);
+
+      resolvers.shift()!();
+      await Promise.resolve();
+      assertText('a');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 0);
+      assert.strictEqual(resolvers.length, 0);
+
+      await Promise.resolve();
+      assertText('');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 0);
+      assert.strictEqual(resolvers.length, 0);
+
+      const settling = tasksSettled();
+      await Promise.resolve();
+      assertText('d');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 0);
+      assert.strictEqual(resolvers.length, 1);
+
+      resolvers.shift()!();
+      await settling;
+      assertText('d');
+      assert.deepStrictEqual(logs, ['a:detaching', 'a:detaching:resolved', 'd:attaching', 'd:attaching:resolved']);
+      assert.strictEqual(detachResolved, 1);
+      assert.strictEqual(attachResolved, 1);
+    });
+
+    it('propagates the original rejection from an initially selected async else-if branch', async function () {
+      const error = new Error('initial else-if attachment failed');
+      const RejectingBranch = CustomElement.define({ name: 'initial-rejecting-branch', template: 'rejecting' }, class {
+        public attaching(): Promise<void> {
+          return Promise.reject(error);
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<initial-rejecting-branch else if.bind="step === 1"></initial-rejecting-branch>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 1 },
+        [RejectingBranch],
+      );
+
+      assert.instanceOf(fixture.startPromise, Promise);
+      let rejection: unknown;
+      try {
+        await fixture.startPromise;
+      } catch (error_) {
+        rejection = error_;
+      }
+
+      assert.strictEqual(rejection, error);
+      assert.strictEqual(fixture.torn, true);
+    });
+
+    it('recovers from a post-start rejecting else-if branch and activates the later branch', async function () {
+      const error = new Error('post-start else-if attachment failed');
+      const attachment = createVoidDeferred();
+      const rejectedBranchDetachingStarted = createVoidDeferred();
+      const rejectedBranchDetaching = createVoidDeferred();
+      const laterBranchReattached = createVoidDeferred();
+      let attempts = 0;
+      let detachCalls = 0;
+      let laterAttaches = 0;
+      const RejectingBranch = CustomElement.define({ name: 'post-start-rejecting-branch', template: 'rejecting' }, class {
+        public attaching(): Promise<void> {
+          ++attempts;
+          return attachment.promise;
+        }
+        public detaching(): Promise<void> {
+          ++detachCalls;
+          rejectedBranchDetachingStarted.resolve();
+          return rejectedBranchDetaching.promise;
+        }
+      });
+      const LaterBranch = CustomElement.define({ name: 'post-start-later-branch', template: 'later' }, class {
+        public attaching(): void {
+          if (++laterAttaches === 2) {
+            laterBranchReattached.resolve();
+          }
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<div if.bind="step === 0">a</div>',
+          '<post-start-rejecting-branch else if.bind="step === 1"></post-start-rejecting-branch>',
+          '<post-start-later-branch else></post-start-later-branch>',
+        ].join(''),
+        { step: 2 },
+        [RejectingBranch, LaterBranch],
+      );
+
+      fixture.assertText('later');
+      assert.strictEqual(laterAttaches, 1);
+
+      fixture.component.step = 1;
+      fixture.assertText('rejecting');
+      assert.strictEqual(attempts, 1);
+
+      attachment.reject(error);
+      await rejectedBranchDetachingStarted.promise;
+      fixture.assertText('rejecting');
+      assert.strictEqual(detachCalls, 1);
+
+      fixture.component.step = 2;
+      await Promise.resolve();
+      fixture.assertText('rejecting');
+      assert.strictEqual(laterAttaches, 1);
+
+      rejectedBranchDetaching.resolve();
+      await laterBranchReattached.promise;
+      fixture.assertText('later');
+      assert.strictEqual(laterAttaches, 2);
+
+      await fixture.stop(true);
+    });
+
+    it('skips a stale else-if branch when its predecessor settles after rapid supersession', async function () {
+      const detaching = createVoidDeferred();
+      const calls: string[] = [];
+      const BranchA = CustomElement.define({ name: 'superseded-branch-a', template: 'a' }, class {
+        public detaching(): Promise<void> {
+          calls.push('a:detaching');
+          return detaching.promise;
+        }
+      });
+      const BranchB = CustomElement.define({ name: 'superseded-branch-b', template: 'b' }, class {
+        public attaching(): void {
+          calls.push('b:attaching');
+        }
+      });
+      const BranchC = CustomElement.define({ name: 'superseded-branch-c', template: 'c' }, class {
+        public attaching(): void {
+          calls.push('c:attaching');
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<superseded-branch-a if.bind="step === 0"></superseded-branch-a>',
+          '<superseded-branch-b else if.bind="step === 1"></superseded-branch-b>',
+          '<superseded-branch-c else></superseded-branch-c>',
+        ].join(''),
+        { step: 0 },
+        [BranchA, BranchB, BranchC],
+      );
+
+      fixture.assertText('a');
+      fixture.component.step = 1;
+      fixture.component.step = 2;
+      fixture.assertText('a');
+      assert.deepStrictEqual(calls, ['a:detaching']);
+
+      detaching.resolve();
+      await tasksSettled();
+
+      fixture.assertText('c');
+      assert.deepStrictEqual(calls, ['a:detaching', 'c:attaching']);
+      await fixture.stop(true);
+    });
+
+    for (const variant of ['else-if', 'explicit-nesting'] as const) {
+      it(`does not activate a superseded nested branch after async attachment (${variant})`, async function () {
+        const attaching = createVoidDeferred();
+        const aReattached = createVoidDeferred();
+        let aAttaches = 0;
+        let bAttaches = 0;
+        let bAttached = 0;
+        let cAttaches = 0;
+        const BranchA = CustomElement.define({ name: `${variant}-branch-a`, template: 'a' }, class {
+          public attaching(): void {
+            if (++aAttaches === 2) aReattached.resolve();
+          }
+        });
+        const BranchB = CustomElement.define({ name: `${variant}-pending-branch-b`, template: 'b' }, class {
+          public attaching(): Promise<void> {
+            ++bAttaches;
+            return attaching.promise;
+          }
+          public attached(): void {
+            ++bAttached;
+          }
+        });
+        const BranchC = CustomElement.define({ name: `${variant}-stale-branch-c`, template: 'c' }, class {
+          public attaching(): void {
+            ++cAttaches;
+          }
+        });
+        const nestedBranches = [
+          `<${variant}-pending-branch-b if.bind="step === 1"></${variant}-pending-branch-b>`,
+          `<${variant}-stale-branch-c else></${variant}-stale-branch-c>`,
+        ].join('');
+        const fixture = createFixture(
+          variant === 'else-if'
+            ? [
+              `<${variant}-branch-a if.bind="step === 0"></${variant}-branch-a>`,
+              `<${variant}-pending-branch-b else if.bind="step === 1"></${variant}-pending-branch-b>`,
+              `<${variant}-stale-branch-c else></${variant}-stale-branch-c>`,
+            ].join('')
+            : `<${variant}-branch-a if.bind="step === 0"></${variant}-branch-a><template else>${nestedBranches}</template>`,
+          { step: 0 },
+          [BranchA, BranchB, BranchC],
+        );
+
+        fixture.component.step = 1;
+        assert.strictEqual(bAttaches, 1);
+        fixture.component.step = 2;
+        fixture.component.step = 0;
+
+        attaching.resolve();
+        await aReattached.promise;
+
+        assert.strictEqual(bAttached, 0);
+        assert.strictEqual(cAttaches, 0);
+        fixture.assertText('a');
+        await fixture.stop(true);
+      });
+    }
+
+    it('does not activate a pending else-if branch after application teardown takes ownership', async function () {
+      const detaching = createVoidDeferred();
+      let detachCalls = 0;
+      let staleAttaches = 0;
+      const BranchA = CustomElement.define({ name: 'teardown-branch-a', template: 'a' }, class {
+        public detaching(): Promise<void> {
+          ++detachCalls;
+          return detaching.promise;
+        }
+      });
+      const BranchB = CustomElement.define({ name: 'teardown-branch-b', template: 'b' }, class {
+        public attaching(): void {
+          ++staleAttaches;
+        }
+      });
+      const fixture = createFixture(
+        [
+          '<teardown-branch-a if.bind="step === 0"></teardown-branch-a>',
+          '<teardown-branch-b else if.bind="step === 1"></teardown-branch-b>',
+          '<div else>c</div>',
+        ].join(''),
+        { step: 0 },
+        [BranchA, BranchB],
+      );
+
+      fixture.component.step = 1;
+      fixture.assertText('a');
+      assert.strictEqual(detachCalls, 1);
+
+      const stopping = fixture.stop(true);
+      assert.instanceOf(stopping, Promise);
+      detaching.resolve();
+      await stopping;
+
+      fixture.assertText('');
+      assert.strictEqual(detachCalls, 1);
+      assert.strictEqual(staleAttaches, 0);
+      assert.strictEqual(fixture.au.isRunning, false);
+    });
+
+    it('adopts the terminal SSR else branch and reuses it across the full chain', async function () {
+      class App {
+        public step = 3;
+      }
+
+      const AppElement = CustomElement.define({
+        name: 'app',
+        template: [
+          '<div if.bind="step === 0" data-branch="a">a</div>',
+          '<div else if.bind="step === 1" data-branch="b">b</div>',
+          '<div else if.bind="step === 2" data-branch="c">c</div>',
+          '<div else data-branch="d">d</div>',
+        ].join(''),
+      }, App);
+
+      const serverCtx = TestContext.create();
+      serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+      const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('app'));
+      const serverAu = new Aurelia(serverCtx.container).app({ host: serverHost, component: AppElement });
+      let ssrMarkup: string;
+      try {
+        await serverAu.start();
+        ssrMarkup = serverHost.innerHTML;
+      } finally {
+        await serverAu.stop(true);
+        serverAu.dispose();
+        serverHost.remove();
+      }
+
+      const clientCtx = TestContext.create();
+      const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement('app'));
+      clientHost.innerHTML = ssrMarkup;
+      const ssrBranch = clientHost.querySelector('[data-branch="d"]');
+      assert.notStrictEqual(ssrBranch, null);
+
+      const ssrScope: ISSRScope = {
+        name: 'app',
+        children: [{
+          type: 'if',
+          state: { value: false },
+          views: [{
+            nodeCount: 1,
+            children: [{
+              type: 'if',
+              state: { value: false },
+              views: [{
+                nodeCount: 1,
+                children: [{
+                  type: 'if',
+                  state: { value: false },
+                  views: [{ nodeCount: 1, children: [] }],
+                }],
+              }],
+            }],
+          }],
+        }],
+      };
+
+      const clientAu = new Aurelia(clientCtx.container);
+      const assertText = (text: string) => assert.strictEqual(clientHost.textContent, text);
+
+      try {
+        const root = await clientAu.hydrate({ host: clientHost, component: AppElement, ssrScope });
+        try {
+          const component = root.controller.viewModel as App;
+          const hydratedBranch = clientHost.querySelector('[data-branch="d"]');
+
+          assert.strictEqual(hydratedBranch, ssrBranch, 'the terminal SSR branch should be adopted, not cloned');
+          assertText('d');
+
+          component.step = 2;
+          await tasksSettled();
+          assertText('c');
+
+          component.step = 1;
+          await tasksSettled();
+          assertText('b');
+
+          component.step = 0;
+          await tasksSettled();
+          assertText('a');
+
+          component.step = 3;
+          await tasksSettled();
+          assertText('d');
+          assert.strictEqual(clientHost.querySelector('[data-branch="d"]'), ssrBranch);
+        } finally {
+          await root.deactivate();
+          root.dispose();
+        }
+      } finally {
+        clientAu.dispose();
+        clientHost.remove();
+      }
+    });
+
+    it('throws when else has no preceding if', function () {
+      assert.throws(() => createFixture(`
+        <div else>b</div>
+      `), /AUR0810/);
+    });
+
+    it('throws when else follows a plain else', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else>b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    it('throws when else follows a plain else containing one nested if', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="outer">a</div>
+        <div else><span if.bind="inner">b</span></div>
+        <div else>c</div>
+      `, { outer: false, inner: false }), /AUR0810/);
+    });
+
+    it('throws when else follows a non-if template controller', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else repeat.for="i of 1">b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    it('throws at a trailing else after repeat separates else and if on the previous branch', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else repeat.for="i of 1" if.bind="false">b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    it('throws at a trailing else after with separates else and if on the previous branch', function () {
+      assert.throws(() => createFixture(`
+        <div if.bind="true">a</div>
+        <div else with.bind="{ value: 1 }" if.bind="false">b</div>
+        <div else>c</div>
+      `), /AUR0810/);
+    });
+
+    // Attribute order is outside the supported else-if form. Keep this as a
+    // characterization so a future change receives deliberate review.
+    it('currently rejects reversed if/else attribute order', async function () {
+      let failure: unknown;
+      try {
+        const fixture = createFixture(`
+          <div if.bind="false">a</div>
+          <div if.bind="true" else>b</div>
+        `);
+        await fixture.startPromise;
+        await fixture.stop(true);
+      } catch (error) {
+        failure = error;
+      }
+
+      assert.match(String(failure), /AUR0810/);
     });
 
     {

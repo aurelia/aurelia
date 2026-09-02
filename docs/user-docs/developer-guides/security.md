@@ -128,7 +128,7 @@ npm install --save-dev @types/dompurify
 
 ```typescript
 // src/services/html-sanitizer.ts
-import { DI } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import { ISanitizer } from '@aurelia/runtime-html';
 import DOMPurify from 'dompurify';
 
@@ -142,11 +142,7 @@ export class HtmlSanitizer implements ISanitizer {
   }
 }
 
-// Register as the ISanitizer implementation
-export const HtmlSanitizerRegistration = DI.createInterface<ISanitizer>(
-  'ISanitizer',
-  x => x.singleton(HtmlSanitizer)
-);
+export const HtmlSanitizerRegistration = Registration.singleton(ISanitizer, HtmlSanitizer);
 ```
 
 **Step 3: Register the sanitizer**

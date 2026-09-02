@@ -144,7 +144,6 @@ npx changeset pre enter rc  # Creates new pre.json with tag="rc"
 | `@latest` | Default install, typically stable or promoted prerelease |
 | `@beta` | Beta prereleases |
 | `@rc` | Release candidate prereleases |
-| `@dev` | Development prereleases |
 
 Changesets publishes to tag based on `pre.json.tag`. Use `add-latest-tags.yml` to also tag as @latest.
 

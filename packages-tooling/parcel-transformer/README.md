@@ -14,12 +14,6 @@ For the latest stable version:
 npm i -D @aurelia/parcel-transformer
 ```
 
-For our nightly builds:
-
-```bash
-npm i -D @aurelia/parcel-transformer@dev
-```
-
 ## Usage
 
 In `.parcelrc`:

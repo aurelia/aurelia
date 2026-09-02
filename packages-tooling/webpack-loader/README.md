@@ -12,12 +12,6 @@ For the latest stable version:
 npm i -D @aurelia/webpack-loader
 ```
 
-For our nightly builds:
-
-```bash
-npm i -D @aurelia/webpack-loader@dev
-```
-
 ## Usage
 
 In `webpack.config.js`:

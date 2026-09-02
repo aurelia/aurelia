@@ -11,9 +11,3 @@ For the latest stable version:
 ```bash
 npm i -D @aurelia/plugin-conventions
 ```
-
-For our nightly builds:
-
-```bash
-npm i -D @aurelia/plugin-conventions@dev
-```

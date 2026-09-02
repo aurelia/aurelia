@@ -12,12 +12,6 @@ For the latest stable version:
 npm i -D @aurelia/ts-jest
 ```
 
-For our nightly builds:
-
-```bash
-npm i -D @aurelia/ts-jest@dev
-```
-
 ## Usage
 
 In `jest.config.js` or `package.json`:

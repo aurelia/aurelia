@@ -12,12 +12,6 @@ For the latest stable version:
 npm i -D @aurelia/plugin-gulp
 ```
 
-For our nightly builds:
-
-```bash
-npm i -D @aurelia/plugin-gulp@dev
-```
-
 ## Usage
 
 In gulp file:

@@ -51,11 +51,20 @@ describe('vite-plugin', function () {
     } as unknown as import('vite').ResolvedConfig;
   }
 
-  function createConfig(mode: string) {
+  function createConfig(mode?: string) {
     return {
-      mode,
+      ...(mode === void 0 ? {} : { mode }),
       resolve: { alias: [], dedupe: [], conditions: [] },
     } as unknown as import('vite').UserConfig;
+  }
+
+  function createConfigEnv(mode: string, command: 'build' | 'serve' = 'build') {
+    return {
+      mode,
+      command,
+      isSsrBuild: false,
+      isPreview: false,
+    } as import('vite').ConfigEnv;
   }
 
   function createPluginContext() {
@@ -94,6 +103,14 @@ describe('vite-plugin', function () {
 
     assert.equal(thirdParty, null);
     assert.equal(subpath, null);
+  });
+
+  it('does not rewrite Aurelia package imports for production builds when config.mode is omitted', async function () {
+    const [devPlugin, resourcePlugin] = au();
+    getHook(devPlugin.config)?.call({}, createConfig(), createConfigEnv('production'));
+
+    const resolved = await getHook(resourcePlugin.resolveId)?.call(createPluginContext(), '@aurelia/kernel', '/src/app.ts', {});
+    assert.equal(resolved, null);
   });
 
   it('rewrites conventional html imports for literal production mode', async function () {

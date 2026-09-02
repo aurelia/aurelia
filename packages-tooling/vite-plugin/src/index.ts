@@ -54,8 +54,9 @@ export default function au(options: AureliaPluginOptions = {}) {
 
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
-    config(config) {
-      useDevImports = useDev === true || (useDev == null && config.mode !== 'production');
+    config(config, env) {
+      const mode = config.mode ?? env.mode;
+      useDevImports = useDev === true || (useDev == null && mode !== 'production');
     },
   };
 

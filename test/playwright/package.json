@@ -5,7 +5,7 @@
   "devDependencies": {
     "@types/mocha": "10.0.6",
     "@types/node": "22.20.1",
-    "mocha": "10.3.0",
+    "mocha": "10.8.2",
     "playwright": "1.62.1",
     "typescript": "5.9.2"
   },

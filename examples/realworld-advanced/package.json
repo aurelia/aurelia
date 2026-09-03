@@ -19,7 +19,7 @@
     "@types/node": "22.20.1",
     "css-loader": "^6.7.1",
     "html-webpack-plugin": "^5.5.0",
-    "mocha": "10.3.0",
+    "mocha": "10.8.2",
     "playwright": "1.62.1",
     "rimraf": "^3.0.0",
     "style-loader": "^3.3.1",

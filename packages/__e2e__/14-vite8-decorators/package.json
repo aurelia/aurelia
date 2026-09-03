@@ -19,6 +19,7 @@
   "devDependencies": {
     "@aurelia/vite-plugin": "2.0.0-rc.2",
     "@playwright/test": "1.62.1",
+    "playwright": "1.62.1",
     "@types/node": "^20.16.10",
     "vite": "^8.0.0"
   },

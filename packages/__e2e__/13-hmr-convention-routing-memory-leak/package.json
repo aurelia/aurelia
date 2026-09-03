@@ -25,6 +25,7 @@
   "devDependencies": {
     "@aurelia/webpack-loader": "2.0.0-rc.2",
     "@playwright/test": "1.62.1",
+    "playwright": "1.62.1",
     "@types/node": "^20.16.10",
     "array-flatten": "^3.0.0",
     "playwright-watch": "1.3.23",

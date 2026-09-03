@@ -27,6 +27,7 @@
   "devDependencies": {
     "@aurelia/webpack-loader": "2.0.0-rc.2",
     "@playwright/test": "1.62.1",
+    "playwright": "1.62.1",
     "@types/node": "^20.16.10",
     "@typescript/native": "npm:typescript@~7.0.2",
     "concurrently": "9.1.2",

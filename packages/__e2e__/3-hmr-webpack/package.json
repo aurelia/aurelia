@@ -11,8 +11,8 @@
   "scripts": {
     "dev": "webpack serve",
     "test:e2e": "cross-env APP_PORT=9003 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
-    "test:e2e:watch": "cross-env APP_PORT=9003 concurrently \"npm run dev\" \"playwright-watch test\"",
-    "test:e2e:debugger": "cross-env APP_PORT=9003 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:watch": "cross-env APP_PORT=9003 concurrently \"npm run dev\" \"playwright test --ui\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9003 concurrently \"npm run dev\" \"playwright test --debug\"",
     "test": "npm run test:e2e",
     "test:watch": "npm run test:e2e:watch"
   },
@@ -33,9 +33,8 @@
     "playwright": "1.62.1",
     "@types/node": "22.20.1",
     "array-flatten": "^3.0.0",
-    "playwright-watch": "1.3.23",
     "webpack": "^5.90.3",
-    "webpack-dev-server": "^5.0.4",
+    "webpack-dev-server": "^5.2.6",
     "webpack-cli": "^5.1.4",
     "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^9.3.0"

@@ -118,7 +118,7 @@
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-node-resolve": "16.0.0",
     "@rollup/plugin-replace": "6.0.2",
-    "@rollup/plugin-terser": "0.4.4",
+    "@rollup/plugin-terser": "1.0.0",
     "@rollup/plugin-typescript": "12.1.2",
     "@types/fancy-log": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "6.10.0",

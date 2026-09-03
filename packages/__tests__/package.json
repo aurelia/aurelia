@@ -83,7 +83,6 @@
     "@types/node": "22.20.1",
     "cross-env": "^7.0.2",
     "full-icu": "^1.4.0",
-    "istanbul": "^0.4.5",
     "karma": "^6.4.3",
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",

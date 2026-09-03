@@ -50,7 +50,7 @@
     "@aurelia/platform": "2.0.0-rc.2",
     "@aurelia/plugin-conventions": "2.0.0-rc.2",
     "@aurelia/runtime": "2.0.0-rc.2",
-    "ts-jest": "^29.1.2"
+    "ts-jest": "^29.4.12"
   },
   "devDependencies": {
     "@jest/transform": "^29.7.0",

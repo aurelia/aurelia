@@ -49,4 +49,4 @@ When a task is **documentation-only** (for example, changes under `docs/` or upd
 Follow Conventional Commits enforced by Commitlint: `type(scope): subject` with lower-case types such as `feat`, `fix`, `docs`, or `test`, a 100-character subject limit, and no trailing period. Scope names should mirror npm package names (for example, `feat(router): add fallback pipeline`). Each PR should include a clear summary, linked issues, confirmation of validation commands (`build`, `lint`, `test`), and screenshots or recordings for UI-affecting work. Update README and `docs/user-docs/` when user-facing behavior changes.
 
 ## Environment & Tooling
-Target Node 22.12.x and npm 10.9.x as pinned in `package.json` and the Volta config. Use `npm ci` for clean installs. Husky hooks run linting and tests on commit; if they fail, resolve locally rather than bypassing the hook.
+Target Node 22.22.2 and npm 10.9.x as pinned in `package.json` and the Volta config. Use `npm ci` for clean installs. Husky hooks run linting and tests on commit; if they fail, resolve locally rather than bypassing the hook.

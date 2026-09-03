@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   browser-tools: circleci/browser-tools@2.4.0
+  codecov: codecov/codecov@4.0.1
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -321,10 +322,8 @@ jobs:
       - when:
           condition: << parameters.coverage >>
           steps:
-            - run:
-                name: "Process coverage for Codecov"
-                command: |
-                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
+            - codecov/upload:
+                file: packages/__tests__/coverage/coverage-final.json
 
   unit_test_esm_node:
     executor: docker_circleci

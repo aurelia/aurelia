@@ -54,11 +54,11 @@
     "@types/jsdom": "^21.1.7",
     "@types/karma": "^6.3.8",
     "@types/mocha": "10.0.6",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
     "@types/vinyl": "^2.0.6",
     "mocha": "10.3.0",
     "source-map": "^0.7.3",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "vinyl": "^2.2.0"
   },
   "volta": {

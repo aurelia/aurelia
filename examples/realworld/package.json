@@ -16,7 +16,7 @@
   "devDependencies": {
     "@aurelia/testing": "2.0.0-rc.2",
     "@types/mocha": "10.0.0",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
     "css-loader": "^6.7.1",
     "html-webpack-plugin": "^5.5.0",
     "mocha": "10.3.0",

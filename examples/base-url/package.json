@@ -14,7 +14,7 @@
   "devDependencies": {
     "@aurelia/testing": "2.0.0-rc",
     "@aurelia/webpack-loader": "2.0.0-rc",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
     "autoprefixer": "^10.4.5",

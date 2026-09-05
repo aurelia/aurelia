@@ -115,6 +115,14 @@ Scopes form a hierarchy. Each component creates its own scope, and child compone
 <p>Parent's title: ${$parent.title}</p>
 ```
 
+Use optional access when a template may render without a parent scope:
+
+```html
+<p>${$parent?.title ?? title}</p>
+```
+
+The expression uses `title` as a fallback when the parent scope is absent or its `title` is null or undefined. For the scope options available to `<au-compose>`, see [Scope Behavior Control](../getting-to-know-aurelia/dynamic-composition.md#scope-behavior-control).
+
 ### 4. Component Boundaries
 
 Component boundaries are important to understand. When you create a custom element, Aurelia marks that scope as a **boundary**. This affects how property resolution works:

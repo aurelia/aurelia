@@ -108,19 +108,20 @@ Root-relative public paths such as `/logo.svg`, external URLs, data URLs, and ha
 
 Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are not supported and are handled as unresolved relative assets.
 
-Use `transformTemplateAssets` to control processing and missing relative assets:
+Use `templateAssets` to control processing and configure missing relative assets:
 
 | Value | Behavior |
 |---|---|
-| `true` or `'warn'` | Transform assets; warn and preserve URLs that cannot be resolved. This is the default. |
-| `'error'` | Transform assets; stop the Vite transform when a relative asset cannot be resolved. |
+| `true` | Process assets; warn and preserve URLs that cannot be resolved. This is the default. |
+| `{ onMissing: 'warn' }` | Process assets with the default missing-asset behavior. |
+| `{ onMissing: 'error' }` | Process assets; stop the Vite transform when a relative asset cannot be resolved. |
 | `false` | Disable template asset processing and leave every URL unchanged. |
 
 For example, to require every relative template asset to resolve:
 
 ```ts
 export default defineConfig({
-  plugins: [aurelia({ transformTemplateAssets: 'error' })],
+  plugins: [aurelia({ templateAssets: { onMissing: 'error' } })],
 });
 ```
 

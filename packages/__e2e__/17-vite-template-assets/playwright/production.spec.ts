@@ -32,7 +32,7 @@ test('fails a production build when missing template assets are errors', async f
       assetsInlineLimit: 0,
       write: false,
     },
-    plugins: [aurelia({ transformTemplateAssets: 'error' })],
+    plugins: [aurelia({ templateAssets: { onMissing: 'error' } })],
   })).rejects.toThrow(/Unable to resolve template asset "\.\/missing-logo\.svg"/);
 });
 

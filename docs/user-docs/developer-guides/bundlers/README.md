@@ -360,7 +360,7 @@ Add `au-vite-ignore` to an element to leave its asset URLs unchanged and bypass 
 
 Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are handled as unresolved relative assets.
 
-Set `transformTemplateAssets: 'error'` to stop the Vite transform when a relative asset cannot be resolved. `true` and `'warn'` use the default warning behavior; set the option to `false` to opt out and leave all template asset URLs unchanged.
+Set `templateAssets: { onMissing: 'error' }` to stop the Vite transform when a relative asset cannot be resolved. The default value, `true`, warns and preserves unresolved URLs; set `templateAssets: false` to opt out and leave all template asset URLs unchanged.
 
 ## Performance Optimization
 

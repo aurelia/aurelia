@@ -421,7 +421,7 @@ await build({
     const fixture = createFixture();
     const [, resourcePlugin] = au({
       include: /\.(ts|js|html)$/,
-      transformTemplateAssets: false,
+      templateAssets: false,
     });
 
     fs.mkdirSync(fixture.srcDir, { recursive: true });
@@ -446,7 +446,7 @@ await build({
     const fixture = createFixture();
     const [, resourcePlugin] = au({
       include: /\.(ts|js|html)$/,
-      transformTemplateAssets: 'error',
+      templateAssets: { onMissing: 'error' },
     });
 
     fs.mkdirSync(fixture.srcDir, { recursive: true });

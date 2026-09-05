@@ -7,7 +7,14 @@ import { promises } from 'fs';
 import { createStandardDecoratorPlugin, normalizeFilterId } from './standard-decorators';
 import { transformTemplateAssetUrls } from './template-assets';
 
-export type TemplateAssetMode = 'warn' | 'error';
+export interface TemplateAssetOptions {
+  /**
+   * Control how unresolved relative template assets are handled.
+   *
+   * Defaults to `'warn'`.
+   */
+  onMissing?: 'warn' | 'error';
+}
 
 export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
   include?: FilterPattern;
@@ -18,13 +25,12 @@ export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
    */
   useDev?: boolean;
   /**
-   * Transform static asset URLs in HTML templates and
-   * control how missing relative assets are handled.
+   * Process static asset URLs in HTML templates through Vite.
    *
-   * `true` is equivalent to `'warn'`; `false` disables the transform.
-   * Defaults to `'warn'`.
+   * Set to `false` to disable processing, or pass options to configure it.
+   * Defaults to `true`.
    */
-  transformTemplateAssets?: boolean | TemplateAssetMode;
+  templateAssets?: boolean | TemplateAssetOptions;
   /**
    * Transform TC39 standard decorators before Vite compiles application modules.
    *
@@ -54,13 +60,17 @@ export default function au(options: AureliaPluginOptions = {}) {
     exclude,
     pre = true,
     useDev,
-    transformTemplateAssets = 'warn',
+    templateAssets = true,
     transformStandardDecorators,
     standardDecoratorInclude,
     standardDecoratorExclude,
     transformHtml,
     ...additionalOptions
   } = options;
+  const processTemplateAssets = templateAssets !== false;
+  const onMissingTemplateAsset = typeof templateAssets === 'object'
+    ? templateAssets.onMissing ?? 'warn'
+    : 'warn';
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
   const isAureliaBareImport = (id: string) => id === 'aurelia' || /^@aurelia\/[^/]+$/.test(id);
@@ -84,12 +94,12 @@ export default function au(options: AureliaPluginOptions = {}) {
     },
   ) => {
     const transformedHtml = transformHtml?.(html, unit) ?? html;
-    if (transformTemplateAssets === false || typeof transformedHtml !== 'string') {
+    if (!processTemplateAssets || typeof transformedHtml !== 'string') {
       return transformedHtml;
     }
     return transformTemplateAssetUrls(transformedHtml, unit, nodeFileUnitHost, (specifier) => {
       const message = `Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(unit.path)}.`;
-      if (transformTemplateAssets === 'error') {
+      if (onMissingTemplateAsset === 'error') {
         context.error(message);
       }
       context.warn(`${message} The URL will be left unchanged.`);

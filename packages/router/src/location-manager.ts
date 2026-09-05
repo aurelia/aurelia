@@ -86,6 +86,9 @@ export class BrowserLocationManager {
 
   public getPath(): string {
     const { pathname, search, hash } = this._location;
+    // Keep the hash marker until instruction normalization so a route segment
+    // matching the deployment base cannot be stripped a second time.
+    if (this._useUrlFragmentHash && hash.length > 0) return hash;
     return this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
   }
 
@@ -109,7 +112,20 @@ export class BrowserLocationManager {
   }
 
   public removeBaseHref(path: string): string {
-    path = removeBasePath(path, this._baseHref.pathname);
+    const basePath = this._baseHref.pathname;
+    if (this._useUrlFragmentHash && path.startsWith('/')) {
+      const hashStart = path.indexOf('#');
+      if (hashStart >= 0) {
+        const queryStart = path.indexOf('?');
+        const documentEnd = queryStart >= 0 && queryStart < hashStart ? queryStart : hashStart;
+        // An explicit link to the entry document may have its own query before
+        // the hash route. Recognize that address before removing its base path.
+        if (normalizePath(path.slice(0, documentEnd)) === normalizePath(basePath)) {
+          path = path.slice(hashStart);
+        }
+      }
+    }
+    path = removeBasePath(path, basePath);
 
     if (this._useUrlFragmentHash && path.startsWith('#')) {
       path = path.slice(1);

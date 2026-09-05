@@ -85,16 +85,12 @@ export const pathUrlParser: IUrlParser = Object.freeze({
 
 export const fragmentUrlParser: IUrlParser = Object.freeze({
   parse(value: string): ParsedUrl {
-    /**
-     * Look for the fragment; if found then take it and discard the rest.
-     * Otherwise, the entire value is the fragment.
-     * Next, look for the query string and strip it away.
-     * Construct the serialized URL, with the fragment as path, the query and null fragment.
-     */
-    const start = value.indexOf('#');
-    if (start >= 0) {
-      const rawFragment = value.slice(start + 1);
-      value = decodeURIComponent(rawFragment);
+    // Accept hash-prefixed URLs as well as route expressions. A later '#' belongs
+    // to the route fragment; each field's parser owns its percent-decoding.
+    if (value.startsWith('/#')) {
+      value = value.slice(2);
+    } else if (value.startsWith('#')) {
+      value = value.slice(1);
     }
     // Normalize '/' to '' since they represent the same root path semantically in hash routing
     if (value === '/') {

@@ -11,12 +11,39 @@ import {
   ParameterExpression,
   NavigationOptions,
   RouterOptions,
+  fragmentUrlParser,
   pathUrlParser,
 } from '@aurelia/router';
 
 const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 
 describe('router/ast.spec.ts', function () {
+  describe('hash route URLs', function () {
+    for (const [input, path] of [
+      ['items/a', 'items/a'],
+      ['#items/a', 'items/a'],
+      ['#/items/a', '/items/a'],
+      ['/#/items/a', '/items/a'],
+    ]) {
+      it(`preserves field boundaries in ${input}`, function () {
+        const parsed = fragmentUrlParser.parse(`${input}?filter=x%26y%23z%25#part%23two%25`);
+        assert.strictEqual(parsed.path, path);
+        assert.strictEqual(parsed.query.get('filter'), 'x&y#z%');
+        assert.strictEqual(parsed.query.size, 1);
+        assert.strictEqual(parsed.fragment, 'part#two%');
+      });
+    }
+
+    for (const input of ['', '/', '#', '#/', '/#', '/#/']) {
+      it(`normalizes the hash root ${JSON.stringify(input)}`, function () {
+        const parsed = fragmentUrlParser.parse(input);
+        assert.strictEqual(parsed.path, '');
+        assert.strictEqual(parsed.query.size, 0);
+        assert.strictEqual(parsed.fragment, null);
+      });
+    }
+  });
+
   const specs: Record<string, [RouteExpression, string]> = {};
 
   const emptyQuerystring: Readonly<URLSearchParams> = Object.freeze(new URLSearchParams());

@@ -1,7 +1,7 @@
 import { Registration, resolve } from '@aurelia/kernel';
 import { ILocationManager, INavigationOptions, IRouter, IRouterEvents, Params, route, RouteNode, ServerLocationManager } from '@aurelia/router';
-import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
-import { assert } from '@aurelia/testing';
+import { AppTask, customElement, IHistory, ILocation, IWindow } from '@aurelia/runtime-html';
+import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { getLocationChangeHandlerRegistration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
@@ -588,6 +588,56 @@ describe('router/location-manager.spec.ts', function () {
   }
 
   describe('router/BrowserLocationManager', function () {
+    for (const [basePath, routePath] of [
+      ['/', 'items'],
+      ['/app/', 'items'],
+      ['/', 'app/items'],
+      ['/app/', 'app/items'],
+    ]) {
+      it(`starts from a hash route after the document path and query (base: ${basePath}, route: ${routePath})`, async function () {
+        @customElement({ name: 'item-details', template: '${id}|${query}|${fragment}' })
+        class ItemDetails {
+          public id: string;
+          public query: string;
+          public fragment: string;
+
+          public loading(params: Params, next: RouteNode): void {
+            this.id = params.id;
+            this.query = next.queryParams.toString();
+            this.fragment = next.fragment;
+          }
+        }
+
+        @route({ routes: [{ path: `${routePath}/:id`, component: ItemDetails }] })
+        @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })
+        class AppRoot { }
+
+        const baseUrl = `https://example.test${basePath}`;
+        const { au, host } = await start({
+          appRoot: AppRoot,
+          useHash: true,
+          registrations: [
+            // Seed the fixture's shared Location/History before initial navigation.
+            AppTask.creating(ILocation, location => {
+              (location as unknown as MockBrowserHistoryLocation)
+                .replaceState({}, '', `${baseUrl}index.html?document=1#/${routePath}/a?ref=list#details`);
+            }),
+            Registration.instance(IWindow, {
+              document: { baseURI: baseUrl },
+              addEventListener() { /* noop */ },
+              removeEventListener() { /* noop */ },
+            }),
+          ],
+        });
+
+        try {
+          assert.html.textContent(host, 'a|ref=list|details');
+        } finally {
+          await au.stop(true);
+        }
+      });
+    }
+
     it('removes only a complete deployment-base path segment', async function () {
       @customElement({ name: 'app-root', template: '' })
       class Root { }

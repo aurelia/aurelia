@@ -19,6 +19,112 @@ describe('router/resources/load.spec.ts', function () {
     }
   }
 
+  for (const useHash of [false, true]) {
+    it(`preserves the query and fragment when generating and following a load link (hash: ${useHash})`, async function () {
+      @customElement({ name: 'item-details', template: '${id}|${query}|${fragment}' })
+      class ItemDetails implements IRouteViewModel {
+        public id: string;
+        public query: string;
+        public fragment: string;
+
+        public loading(params: Params, next: RouteNode): void {
+          this.id = params.id;
+          this.query = next.queryParams.toString();
+          this.fragment = next.fragment;
+        }
+      }
+
+      @route({ routes: [{ path: 'items/:id', component: ItemDetails }] })
+      @customElement({
+        name: 'app-root',
+        template: '<a load="items/a?ref=list#details">Details</a><au-viewport></au-viewport>',
+      })
+      class AppRoot { }
+
+      const { au, host, container } = await start({
+        appRoot: AppRoot,
+        useHash,
+        registrations: [Registration.instance(IWindow, {
+          document: { baseURI: 'https://example.test/app/' },
+          addEventListener() { /* noop */ },
+          removeEventListener() { /* noop */ },
+        })],
+      });
+
+      try {
+        const expectedUrl = `https://example.test/app/${useHash ? '#/' : ''}items/a?ref=list#details`;
+        const anchor = host.querySelector('a');
+        assert.strictEqual(anchor.getAttribute('href'), expectedUrl);
+
+        anchor.click();
+        await tasksSettled();
+        assert.html.textContent(host.querySelector('item-details'), 'a|ref=list|details');
+        assert.strictEqual((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, expectedUrl);
+      } finally {
+        await au.stop(true);
+      }
+    });
+  }
+
+  for (const attribute of ['load', 'href']) {
+    it(`preserves encoded query and fragment values through ${attribute} hash links`, async function () {
+      @customElement({ name: 'item-details', template: '${id}|${filter}|${fragment}' })
+      class ItemDetails implements IRouteViewModel {
+        public id: string;
+        public filter: string;
+        public fragment: string;
+
+        public loading(params: Params, next: RouteNode): void {
+          this.id = params.id;
+          this.filter = next.queryParams.get('filter');
+          this.fragment = next.fragment;
+        }
+      }
+
+      const suffix = '?filter=x%26y%23z%25#part%23two%25';
+      const paths = [
+        'items/a',
+        '#/items/b',
+        '/#/items/c',
+        '/app/?document=1#/items/d',
+        '/app/index.html?document=1#/items/e',
+        '/app/items/f',
+      ];
+      @route({ routes: [{ path: 'items/:id', component: ItemDetails }] })
+      @customElement({
+        name: 'app-root',
+        template: `${paths.map(path => `<a ${attribute}="${path}${suffix}">Details</a>`).join('')}<au-viewport></au-viewport>`,
+      })
+      class AppRoot { }
+
+      const { au, host, container } = await start({
+        appRoot: AppRoot,
+        useHash: true,
+        registrations: [Registration.instance(IWindow, {
+          document: { baseURI: 'https://example.test/app/' },
+          addEventListener() { /* noop */ },
+          removeEventListener() { /* noop */ },
+        })],
+      });
+
+      try {
+        const anchors = host.querySelectorAll('a');
+        for (let i = 0; i < anchors.length; i++) {
+          const id = ['a', 'b', 'c', 'd', 'e', 'f'][i];
+          const expectedUrl = `https://example.test/app/#/items/${id}${suffix}`;
+          assert.strictEqual(anchors[i].getAttribute('href'), expectedUrl);
+          anchors[i].click();
+          await tasksSettled();
+          // Encoded delimiters remain data, and the literal percent is decoded exactly once.
+          assert.html.textContent(host.querySelector('item-details'), `${id}|x&y#z%|part#two%`);
+          assert.strictEqual((container.get(ILocation) as unknown as MockBrowserHistoryLocation).path, expectedUrl);
+        }
+      } finally {
+        await au.stop(true);
+      }
+    });
+  }
+
   it('active status works correctly', async function () {
     @customElement({ name: 'fo-o', template: '' })
     class Foo { }

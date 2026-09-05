@@ -176,10 +176,14 @@ export interface AccessScopeExpression {
   readonly $kind: 'AccessScope';
   readonly name: string;
   readonly ancestor: number;
+  /** The deepest ancestor guarded by `?.`; earlier guards are redundant along the same scope path. */
+  readonly optionalAncestor?: number;
 }
 
-export function createAccessScopeExpression(name: string, ancestor: number = 0): AccessScopeExpression {
-  return { $kind: ekAccessScope, name, ancestor };
+export function createAccessScopeExpression(name: string, ancestor: number = 0, optionalAncestor: number | undefined = void 0): AccessScopeExpression {
+  return optionalAncestor === void 0
+    ? { $kind: ekAccessScope, name, ancestor }
+    : { $kind: ekAccessScope, name, ancestor, optionalAncestor };
 }
 
 export interface AccessMemberExpression {
@@ -226,10 +230,14 @@ export interface CallScopeExpression {
   readonly args: readonly IsAssign[];
   readonly ancestor: number;
   readonly optional: boolean;
+  /** Guards the scope receiver independently of an optional function call. */
+  readonly optionalAncestor?: number;
 }
 
-export function createCallScopeExpression(name: string, args: readonly IsAssign[], ancestor: number = 0, optional: boolean = false): CallScopeExpression {
-  return { $kind: ekCallScope, name, args, ancestor, optional };
+export function createCallScopeExpression(name: string, args: readonly IsAssign[], ancestor: number = 0, optional: boolean = false, optionalAncestor: number | undefined = void 0): CallScopeExpression {
+  return optionalAncestor === void 0
+    ? { $kind: ekCallScope, name, args, ancestor, optional }
+    : { $kind: ekCallScope, name, args, ancestor, optional, optionalAncestor };
 }
 
 export interface CallMemberExpression {

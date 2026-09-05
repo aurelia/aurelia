@@ -126,6 +126,11 @@ You can use these operators to safely handle null or undefined values:
 
 This helps avoid lengthy if-statements or ternary checks in your view model when dealing with potentially undefined data.
 
+Optional access also works with an explicit parent scope. For example, a composed template can use
+`${$parent?.title ?? title}` to read its parent's title and fall back to its own title when composed with
+`scope-behavior="scoped"`. Named parent access includes that scope's contextual properties, so
+`$parent?.$index` still reads the outer row's index in a nested repeat.
+
 ## HTMLElement Interpolation
 
 Aurelia supports passing HTMLElement objects directly to template interpolations. This allows you to dynamically create and insert DOM elements into your templates at runtime.

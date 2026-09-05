@@ -453,6 +453,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   $optional = false;
   $accessGlobal = Precedence.LeftHandSide > minPrecedence;
   let optionalThisTail = false;
+  let optionalAncestor: number | undefined;
   let result = void 0 as unknown as IsExpressionOrStatement;
   let ancestor = 0;
 
@@ -530,6 +531,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
               throw expectedIdentifier();
             case Token.QuestionDot:
               $optional = true;
+              optionalAncestor = ancestor;
               nextToken();
               if (($currentToken & Token.IdentifierName) === 0) {
                 result = ancestor === 0 ? $this : ancestor === 1 ? $parent : createAccessThisExpression(ancestor);
@@ -555,7 +557,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         } else if ($accessGlobal && id === 'import') {
           throw unexpectedImportKeyword();
         } else {
-          result = createAccessScopeExpression(id, ancestor);
+          result = createAccessScopeExpression(id, ancestor, optionalAncestor);
         }
         $assignable = !$optional;
         nextToken();
@@ -682,7 +684,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           }
 
           if ($currentToken & Token.IdentifierName) {
-            result = createAccessScopeExpression($tokenValue as string, result.ancestor);
+            // The current scope always exists, so `$this?.name` keeps the ordinary named-access shape.
+            result = createAccessScopeExpression($tokenValue as string, result.ancestor, result.ancestor === 0 ? void 0 : result.ancestor);
             nextToken();
           } else if (($currentToken as Token) === Token.OpenParen) {
             result = createCallFunctionExpression(result as IsLeftHandSide, parseArguments(), true);
@@ -765,7 +768,9 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             return result as any;
           }
           if (result.$kind === ekAccessScope) {
-            result = createCallScopeExpression(result.name, parseArguments(), result.ancestor, false);
+            // Parentheses end the receiver's optional chain: `(scope?.method)()` still attempts the call.
+            const callOptionalAncestor = $optional ? result.optionalAncestor : void 0;
+            result = createCallScopeExpression(result.name, parseArguments(), result.ancestor, false, callOptionalAncestor);
           } else if (result.$kind === ekAccessMember) {
             result = createCallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
           } else if (result.$kind === ekAccessGlobal) {
@@ -1054,7 +1059,7 @@ function parseOptionalChainLHS(lhs: IsLeftHandSide) {
 
   if (($currentToken as Token) === Token.OpenParen) {
     if (lhs.$kind === ekAccessScope) {
-      return createCallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true);
+      return createCallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true, lhs.optionalAncestor);
     } else if (lhs.$kind === ekAccessMember) {
       return createCallMemberExpression(lhs.object, lhs.name, parseArguments(), lhs.optional, true);
     } else {

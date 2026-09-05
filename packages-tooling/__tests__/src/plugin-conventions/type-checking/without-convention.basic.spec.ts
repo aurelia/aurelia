@@ -2094,6 +2094,47 @@ export class Foo {}
       assertSuccess(entry, result.code);
     });
 
+    for (const expression of ['$this?.label', '$this?.record.label', 'format($this?.label)']) {
+      it(`interpolation - optional current scope - ${expression} - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const result = preprocessResource({
+          path: entry,
+          contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+@customElement({ name: 'example', template })
+export class Example {
+  label = 'local';
+  record = { label: 'nested' };
+  ${isTs ? '' : '/** @param {string} value */'}
+  format(value${isTs ? ': string' : ''}) { return value; }
+}
+`,
+          readFile: createMarkupReader(markupFile, `\${${expression}}`),
+        }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+    }
+
+    it(`interpolation - optional current scope still checks the property - language: ${lang}`, function () {
+      const entry = `entry.${extn}`;
+      const markupFile = 'entry.html';
+      const result = preprocessResource({
+        path: entry,
+        contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+@customElement({ name: 'example', template })
+export class Example { label = 'local'; }
+`,
+        readFile: createMarkupReader(markupFile, '${$this?.missing}'),
+      }, nonConventionalOptions);
+
+      assertFailure(entry, result.code, [/Property 'missing' does not exist on type '.*Example.*'\./]);
+    });
+
     it(`interpolation - with pre-/postfix - pass - language: ${lang}`, function () {
       const entry = `entry.${extn}`;
       const markupFile = 'entry.html';

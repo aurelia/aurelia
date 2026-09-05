@@ -8,7 +8,7 @@ import {
 } from '@aurelia/expression-parser';
 import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction, Constructable } from '@aurelia/kernel';
 import { type IConnectable, type IObservable } from './interfaces';
-import { Scope, type IBindingContext, type IOverrideContext } from './scope';
+import { Scope, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
 import { rtSafeString as safeString } from './utilities';
 import { wrap } from './proxy-observation';
@@ -90,6 +90,21 @@ export const {
   const ekCustom = 'Custom';
   const getContext = Scope.getContext;
 
+  function isOptionalAncestorMissing(scope: Scope, ancestor: number, optionalAncestor: number | undefined): boolean {
+    if (optionalAncestor === void 0) {
+      return false;
+    }
+    // The requested context is already missing. Only a guard on an earlier ancestor needs another walk.
+    if (optionalAncestor === ancestor) {
+      return true;
+    }
+    let current: Scope | null = scope;
+    while (optionalAncestor-- > 0 && current !== null) {
+      current = current.parent;
+    }
+    return current === null;
+  }
+
   type TrackableFunctionOptions = {
     deps?: string[] | ((instance: unknown) => unknown);
   };
@@ -146,7 +161,13 @@ export const {
         return currentScope ? currentScope.bindingContext : void 0;
       }
       case ekAccessScope: {
-        const obj = getContext(s, ast.name, ast.ancestor) as IBindingContext;
+        const obj = getContext(s, ast.name, ast.ancestor);
+        if (obj == null) {
+          if (e?.strict && !isOptionalAncestorMissing(s, ast.ancestor, ast.optionalAncestor)) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, obj);
+          }
+          return void 0;
+        }
         if (c !== null) {
           c.observe(obj, ast.name);
         }
@@ -226,7 +247,7 @@ export const {
       case ekCallScope: {
         const context = getContext(s, ast.name, ast.ancestor)!;
         if (context == null) {
-          if (e?.strict) {
+          if (e?.strict && !isOptionalAncestorMissing(s, ast.ancestor, ast.optionalAncestor)) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, context);
           }
           return void 0;

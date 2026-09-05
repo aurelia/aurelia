@@ -4,6 +4,7 @@ import {
   type TaggedTemplateExpression,
 } from '@aurelia/expression-parser';
 import { TestContext, assert } from '@aurelia/testing';
+import { Scope, astEvaluate } from '@aurelia/runtime';
 import { Deserializer, Serializer } from '@aurelia/validation';
 
 describe('validation/expression-serialization.spec.ts', function () {
@@ -49,6 +50,9 @@ describe('validation/expression-serialization.spec.ts', function () {
     { name: 'binding behavior', strExpr: 'value & bb', expressionType: 'None', expectedKind: 'BindingBehavior' },
     { name: 'binding behavior with value converter', strExpr: 'value | vc & bb', expressionType: 'None', expectedKind: 'BindingBehavior' },
     { name: 'access scope', strExpr: 'value', expressionType: 'None', expectedKind: 'AccessScope' },
+    { name: 'optional current scope', strExpr: '$this?.value', expressionType: 'None', expectedKind: 'AccessScope' },
+    { name: 'optional parent scope', strExpr: '$parent?.value', expressionType: 'None', expectedKind: 'AccessScope' },
+    { name: 'optional earlier ancestor', strExpr: '$parent?.$parent.value', expressionType: 'None', expectedKind: 'AccessScope' },
     { name: 'access member', strExpr: 'value.prop', expressionType: 'None', expectedKind: 'AccessMember' },
     { name: 'access keyed (string)', strExpr: 'value.prop["a"]', expressionType: 'None', expectedKind: 'AccessKeyed' },
     { name: 'access keyed (number)', strExpr: 'value.prop[0]', expressionType: 'None', expectedKind: 'AccessKeyed' },
@@ -57,6 +61,10 @@ describe('validation/expression-serialization.spec.ts', function () {
     { name: 'array literal', strExpr: '[0]', expressionType: 'None', expectedKind: 'ArrayLiteral' },
     { name: 'object literal', strExpr: '{}', expressionType: 'None', expectedKind: 'ObjectLiteral' },
     { name: 'call scope', strExpr: 'fn()', expressionType: 'None', expectedKind: 'CallScope' },
+    { name: 'optional scope function', strExpr: 'fn?.()', expressionType: 'None', expectedKind: 'CallScope' },
+    { name: 'optional parent receiver', strExpr: '$parent?.fn()', expressionType: 'None', expectedKind: 'CallScope' },
+    { name: 'optional parent function', strExpr: '$parent.fn?.()', expressionType: 'None', expectedKind: 'CallScope' },
+    { name: 'optional parent receiver and function', strExpr: '$parent?.fn?.()', expressionType: 'None', expectedKind: 'CallScope' },
     { name: 'call member', strExpr: 'obj.fn()', expressionType: 'None', expectedKind: 'CallMember' },
     { name: 'call function', strExpr: '$this()', expressionType: 'None', expectedKind: 'CallFunction' },
     { name: 'template', strExpr: '``', expressionType: 'None', expectedKind: 'Template' },
@@ -79,6 +87,25 @@ describe('validation/expression-serialization.spec.ts', function () {
       assert.deepStrictEqual(deserialized, expr);
     });
   }
+
+  it('keeps legacy scope payloads and optional receivers distinct', function () {
+    const parser = createParser();
+    const legacyAccess = '{"$TYPE":"AccessScopeExpression","name":"value","ancestor":1}';
+    const legacyCall = '{"$TYPE":"CallScopeExpression","name":"fn","ancestor":1,"args":[]}';
+    assert.deepStrictEqual(Deserializer.deserialize(legacyAccess), parser.parse('$parent.value', 'None'));
+    assert.deepStrictEqual(Deserializer.deserialize(legacyCall), parser.parse('$parent.fn()', 'None'));
+    assert.strictEqual(Serializer.serialize(Deserializer.deserialize(legacyAccess)), legacyAccess);
+    assert.strictEqual(Serializer.serialize(Deserializer.deserialize(legacyCall)), legacyCall);
+
+    const scope = Scope.create({});
+    for (const text of ['$parent?.value', '$parent?.fn()', '$parent?.fn?.()']) {
+      const expression = Deserializer.deserialize(Serializer.serialize(parser.parse(text, 'None')));
+      assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), void 0);
+    }
+    const optionalFunction = Deserializer.deserialize(Serializer.serialize(parser.parse('$parent.fn?.()', 'None')));
+    assert.throws(() => astEvaluate(optionalFunction, scope, { strict: true }, null), /AUR0114/);
+    assert.strictEqual(astEvaluate(optionalFunction, Scope.fromParent(scope, {}), { strict: true }, null), void 0);
+  });
 
   it(`works for for of with binding identifier expression`, function () {
     const parser = createParser();

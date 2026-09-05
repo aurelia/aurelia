@@ -11,6 +11,7 @@ const MIME_TYPES = {
   '.css': 'text/css',
   '.json': 'application/json',
   '.png': 'image/png',
+  '.jpeg': 'image/jpeg',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
@@ -38,7 +39,14 @@ const server = http.createServer((req, res) => {
   fs.readFile(targetPath, (err, data) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        // File not found - serve index.html for SPA routing
+        // Missing files with extensions are real asset misses and should be 404.
+        if (ext) {
+          res.writeHead(404);
+          res.end('Not Found');
+          return;
+        }
+
+        // Non-file paths are SPA routes: serve index.html.
         fs.readFile(path.join(DIST_DIR, 'index.html'), (err, data) => {
           if (err) {
             res.writeHead(500);

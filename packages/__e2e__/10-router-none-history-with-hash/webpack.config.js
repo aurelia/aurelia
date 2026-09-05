@@ -1,6 +1,5 @@
 const { resolve } = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 /** @returns {import('webpack').Configuration} */
 module.exports = function () {
@@ -48,11 +47,7 @@ module.exports = function () {
       ]
     },
     plugins: [
-      new HtmlWebpackPlugin({ template: 'index.ejs' }),
-      new BundleAnalyzerPlugin({
-        analyzerMode: 'static',
-        openAnalyzer: false
-      })
+      new HtmlWebpackPlugin({ template: 'index.ejs' })
     ]
   };
 };

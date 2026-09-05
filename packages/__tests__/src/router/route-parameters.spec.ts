@@ -7,6 +7,45 @@ import { start } from './_shared/create-fixture.js';
 
 describe('router/route-parameters.spec.ts', function () {
   describe('RouteContext.getRouteParameters', function () {
+    it('allows a computed label to read a route parameter snapshot', async function () {
+      @customElement({ name: 'item-details', template: '<div>${label}</div>' })
+      class ItemDetails {
+        public readonly params = resolve(IRouteContext)
+          .getRouteParameters<{ id: string; tag: readonly string[] }, 'child-first'>({ includeQueryParams: true });
+
+        // Derived display values read the same snapshot that direct template bindings can use.
+        public get label(): string {
+          return `Item ${this.params.id}: ${this.params.tag.join(',')}`;
+        }
+      }
+
+      @customElement({ name: 'empty-view', template: '' })
+      class EmptyView { }
+
+      @route({ routes: [
+        { path: '', component: EmptyView },
+        { path: 'items/:id', component: ItemDetails },
+      ] })
+      @customElement({ name: 'app-root', template: '<au-viewport></au-viewport>' })
+      class AppRoot { }
+
+      const { host, au, container } = await start({ appRoot: AppRoot });
+      const router = container.get(IRouter);
+      try {
+        // Repeated query values are frozen arrays; reading the snapshot must preserve their identity.
+        await router.load('items/a?tag=x&tag=y');
+        assert.html.textContent(host, 'Item a: x,y');
+
+        await router.load('');
+        assert.html.textContent(host, '');
+
+        await router.load('items/b?tag=y&tag=z');
+        assert.html.textContent(host, 'Item b: y,z');
+      } finally {
+        await au.stop(true);
+      }
+    });
+
     it('aggregates parameters from ancestor contexts', async function () {
       @customElement({ name: 'details-view', template: `<div>company:\${params.companyId};project:\${params.projectId};user:\${params.userId};detail:\${params.detailId}</div>` })
       class DetailsView {

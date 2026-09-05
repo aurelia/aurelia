@@ -14,6 +14,8 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     // can do
     { title: 'proxy', v: new Proxy({}, {}), canWrap: true },
     { title: 'normal object', v: {}, canWrap: true },
+    { title: 'null-prototype object', v: Object.create(null), canWrap: true },
+    { title: 'frozen null-prototype object', v: Object.freeze(Object.create(null)), canWrap: true },
     { title: 'Array', v: [], canWrap: true },
     { title: 'Array subclass', v: new class extends Array { }(), canWrap: true },
     { title: 'Map', v: new Map(), canWrap: true },
@@ -25,6 +27,7 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
       const wrapped = ProxyObservable.wrap(v);
       if (canWrap) {
         assert.notStrictEqual(wrapped, v);
+        assert.strictEqual(ProxyObservable.unwrap(wrapped), v);
       } else {
         assert.strictEqual(wrapped, v);
       }

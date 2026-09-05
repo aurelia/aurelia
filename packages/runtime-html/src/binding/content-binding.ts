@@ -112,7 +112,9 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
       const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
       this.obs.clear();
 
-      if (newValue !== this._value) {
+      // Reconnect array results even when their identity is unchanged. This update also
+      // covers array mutations that arrived while the property change was queued.
+      if (newValue !== this._value || isArray(newValue)) {
         if (isArray(newValue)) {
           this.observeCollection(newValue);
         }

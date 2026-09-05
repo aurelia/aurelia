@@ -14,7 +14,7 @@ import {
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
+import { type ArrayObserver, tasksSettled } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
 
 type CaseType = {
@@ -520,6 +520,126 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
       });
     });
+  });
+
+  it('keeps observing tags after refreshing a project with the same tag list', async function () {
+    const { component, appHost, tearDown } = await createFixture(
+      '<span title="${project.tags}">${project.tags}</span>',
+      class {
+        public project = { name: 'Launch', tags: ['a'] };
+      },
+    ).started;
+    const span = appHost.querySelector('span');
+
+    try {
+      component.project.tags.push('b');
+      await tasksSettled();
+      assert.strictEqual(span.textContent, 'a,b');
+
+      // Saving another project field replaces the record but retains its tag list.
+      component.project = { ...component.project, name: 'Release' };
+      await tasksSettled();
+      assert.strictEqual(span.textContent, 'a,b');
+
+      component.project.tags.push('c');
+      await tasksSettled();
+      assert.strictEqual(span.title, 'a,b,c', 'attribute interpolation observes the tag list');
+      assert.strictEqual(span.textContent, 'a,b,c', 'content interpolation still observes the tag list');
+    } finally {
+      await tearDown();
+    }
+  });
+
+  for (const collectionFirst of [false, true]) {
+    it(`renders tag edits queued ${collectionFirst ? 'before' : 'after'} a project refresh`, async function () {
+      const { component, assertText, tearDown } = await createFixture(
+        '${project.tags}',
+        class {
+          public project = { name: 'Launch', tags: ['a'] };
+        },
+      ).started;
+
+      try {
+        // Both notifications share one queued evaluation. Its result is still the same array.
+        if (collectionFirst) {
+          component.project.tags.push('b');
+          component.project = { ...component.project, name: 'Release' };
+        } else {
+          component.project = { ...component.project, name: 'Release' };
+          component.project.tags.push('b');
+        }
+        assertText('a');
+        await tasksSettled();
+        assertText('a,b');
+
+        component.project.tags.push('c');
+        await tasksSettled();
+        assertText('a,b,c');
+      } finally {
+        await tearDown();
+      }
+    });
+  }
+
+  it('releases replaced tag lists and observes the current list when a cached view rebinds', async function () {
+    const fixture = await createFixture(
+      '<span if.bind="show">${project.tags}</span>',
+      class {
+        public show = true;
+        public project = { name: 'Launch', tags: ['a'] as string[] | null };
+      },
+    ).started;
+    const { component, observerLocator, assertText } = fixture;
+    const originalTags = component.project.tags;
+    const originalObserver = observerLocator.getArrayObserver(originalTags) as ArrayObserver;
+    const replacementTags = ['b'];
+    const replacementObserver = observerLocator.getArrayObserver(replacementTags) as ArrayObserver;
+
+    try {
+      component.project = { ...component.project, name: 'Release' };
+      await tasksSettled();
+      assert.strictEqual(originalObserver.subs.count, 1, 'the refreshed result is observed once');
+
+      component.project.tags = replacementTags;
+      await tasksSettled();
+      assertText('b');
+      assert.strictEqual(originalObserver.subs.count, 0, 'the old list is detached');
+      assert.strictEqual(replacementObserver.subs.count, 1, 'the replacement list is observed');
+
+      component.project.tags = null;
+      await tasksSettled();
+      assertText('');
+      assert.strictEqual(replacementObserver.subs.count, 0, 'a non-array result detaches the list');
+
+      component.project.tags = replacementTags;
+      await tasksSettled();
+      assertText('b');
+
+      // Hide the view while its project refresh is still queued. It must remain detached after the queue drains.
+      component.project = { ...component.project, name: 'Archived' };
+      component.show = false;
+      await tasksSettled();
+      assertText('');
+      assert.strictEqual(replacementObserver.subs.count, 0, 'unbinding releases the list');
+      replacementTags.push('c');
+      await tasksSettled();
+      assertText('');
+
+      component.show = true;
+      await tasksSettled();
+      assertText('b,c');
+      assert.strictEqual(replacementObserver.subs.count, 1, 'rebind creates one subscription');
+
+      component.project = { ...component.project, name: 'Reopened' };
+      await tasksSettled();
+      replacementTags.push('a');
+      await tasksSettled();
+      assertText('b,c,a');
+    } finally {
+      await fixture.tearDown();
+    }
+    assert.strictEqual(originalObserver.subs.count, 0);
+    assert.strictEqual(replacementObserver.subs.count, 0, 'application teardown releases the list');
   });
 
   it('works with strict mode', async function () {

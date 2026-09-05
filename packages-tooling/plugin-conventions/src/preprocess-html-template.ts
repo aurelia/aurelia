@@ -136,11 +136,15 @@ export function preprocessHtmlTemplate(
     viewDeps.push(`cssModules(${cssModuleDeps.join(', ')})`);
   }
   statements.forEach(st => m.append(st));
-  const transformedHtml = options.transformHtml?.(html) ?? html;
-  const transformedTemplate = options.transformHtmlTemplate?.(transformedHtml, unit);
-  transformedTemplate?.imports?.forEach(st => m.append(st));
+  const htmlTransformResult = options.transformHtml?.(html, unit) ?? html;
+  const template = typeof htmlTransformResult === 'string'
+    ? s(htmlTransformResult)
+    : htmlTransformResult.template;
+  if (typeof htmlTransformResult !== 'string') {
+    htmlTransformResult.imports?.forEach(st => m.append(st));
+  }
   m.append(`export const name = ${s(name)};
-export const template = ${transformedTemplate?.template ?? s(transformedHtml)};
+export const template = ${template};
 export default template;
 export const dependencies = [ ${viewDeps.join(', ')} ];
 `);

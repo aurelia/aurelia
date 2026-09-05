@@ -47,7 +47,7 @@ export default function au(options: AureliaPluginOptions = {}) {
     transformStandardDecorators,
     standardDecoratorInclude,
     standardDecoratorExclude,
-    transformHtmlTemplate,
+    transformHtml,
     ...additionalOptions
   } = options;
   const filter = createFilter(include, exclude);
@@ -64,9 +64,12 @@ export default function au(options: AureliaPluginOptions = {}) {
   };
 
   let $config!: import('vite').ResolvedConfig;
-  const transformHtmlTemplateForVite = (html: string, unit: IFileUnit) => {
-    return transformHtmlTemplate?.(html, unit)
-      ?? ($config.command === 'build' ? transformTemplateAssetUrls(html, unit.path) : void 0);
+  const transformHtmlForVite = (html: string, unit: IFileUnit) => {
+    const transformedHtml = transformHtml?.(html, unit) ?? html;
+    if (typeof transformedHtml !== 'string' || $config.command !== 'build') {
+      return transformedHtml;
+    }
+    return transformTemplateAssetUrls(transformedHtml, unit.path) ?? transformedHtml;
   };
 
   const auPlugin: import('vite').Plugin = {
@@ -93,7 +96,7 @@ export default function au(options: AureliaPluginOptions = {}) {
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
-        transformHtmlTemplate: transformHtmlTemplateForVite,
+        transformHtml: transformHtmlForVite,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
@@ -136,7 +139,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       }, {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
-        transformHtmlTemplate: transformHtmlTemplateForVite,
+        transformHtml: transformHtmlForVite,
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',

@@ -195,6 +195,32 @@ describe('vite-plugin', function () {
     }
   });
 
+  it('processes assets after a string transformHtml result', async function () {
+    const fixture = createFixture();
+    const [, resourcePlugin] = au({
+      include: /\.(ts|js|html)$/,
+      transformHtml: (html, unit) => {
+        assert.equal(unit.path, fixture.htmlFile);
+        return html.replace('</template>', '<img src="./logo.png"></template>');
+      },
+    });
+
+    fs.mkdirSync(fixture.srcDir, { recursive: true });
+    fs.writeFileSync(path.join(fixture.srcDir, 'logo.png'), 'logo', 'utf8');
+    fs.writeFileSync(fixture.htmlFile, '<template></template>', 'utf8');
+
+    try {
+      getHook(resourcePlugin.configResolved)?.call({}, createResolvedConfig('production'));
+      const result = await getHook(resourcePlugin.load)?.call(createPluginContext(), fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
+      const code = typeof result === 'string' ? result : result?.code;
+
+      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png";/);
+      assert.match(String(code), /export const template = .*__auViteAsset0/s);
+    } finally {
+      fs.rmSync(fixture.root, { recursive: true, force: true });
+    }
+  });
+
   it('imports Vue-style static template asset attributes during production builds', async function () {
     const fixture = createFixture();
     const [, resourcePlugin] = au({ include: /\.(ts|js|html)$/ });

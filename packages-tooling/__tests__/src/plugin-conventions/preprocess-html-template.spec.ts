@@ -1244,10 +1244,11 @@ export function register(container) {
       assert.equal(result.code, expected);
     });
 
-    it('preprocesses templates with transformHtmlTemplate option', function () {
+    it('preprocesses templates with a structured transformHtml result', function () {
       const html = [
         '<template><img src="./logo.png"></template>'
       ].join('');
+      const unit = { path: path.join('lo', 'foo-bar', 'index.html'), contents: html };
       const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import assetUrl from "./logo.png";
 export const name = "foo-bar";
@@ -1264,13 +1265,16 @@ export function register(container) {
 }
 `;
       const result = preprocessHtmlTemplate(
-        { path: path.join('lo', 'foo-bar', 'index.html'), contents: html },
+        unit,
         preprocessOptions({
           hmr: false,
-          transformHtmlTemplate: () => ({
-            imports: ['import assetUrl from "./logo.png";\n'],
-            template: '"<template><img src=\\"" + assetUrl + "\\"></template>"',
-          }),
+          transformHtml: (_html, receivedUnit) => {
+            assert.equal(receivedUnit, unit);
+            return {
+              imports: ['import assetUrl from "./logo.png";\n'],
+              template: '"<template><img src=\\"" + assetUrl + "\\"></template>"',
+            };
+          },
         }),
         false,
         () => false

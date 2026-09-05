@@ -23,7 +23,7 @@ export interface IFileUnitHost {
   readFile(unit: IFileUnit, path: string): string;
 }
 
-export interface IHtmlTemplateTransformResult {
+export interface IHtmlTransformResult {
   imports?: readonly string[];
   template: string;
 }
@@ -61,12 +61,10 @@ export interface IOptionalPreprocessOptions {
   transformHtmlImportSpecifier?: (specifier: string) => string;
   /**
    * Used to transform the HTML content of a template file during preprocessing.
+   * Return a string to replace the HTML, or a result containing imports and a
+   * JavaScript expression for the generated template module.
    */
-  transformHtml?: (html: string) => string;
-  /**
-   * Used to transform the final HTML content into a JavaScript template expression.
-   */
-  transformHtmlTemplate?: (html: string, unit: IFileUnit) => IHtmlTemplateTransformResult | undefined;
+  transformHtml?: (html: string, unit: IFileUnit) => string | IHtmlTransformResult | undefined;
   /**
    * This gets the generated HMR code for the specified class
    *
@@ -107,12 +105,10 @@ export interface IPreprocessOptions {
   transformHtmlImportSpecifier?: (specifier: string) => string;
   /**
    * Used to transform the HTML content of a template file during preprocessing.
+   * Return a string to replace the HTML, or a result containing imports and a
+   * JavaScript expression for the generated template module.
    */
-  transformHtml?: (html: string) => string;
-  /**
-   * Used to transform the final HTML content into a JavaScript template expression.
-   */
-  transformHtmlTemplate?: (html: string, unit: IFileUnit) => IHtmlTemplateTransformResult | undefined;
+  transformHtml?: (html: string, unit: IFileUnit) => string | IHtmlTransformResult | undefined;
   /**
    * This gets the generated HMR code for the specified class
    *

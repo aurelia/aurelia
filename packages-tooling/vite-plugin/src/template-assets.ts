@@ -1,5 +1,5 @@
 import { statSync } from 'fs';
-import type { IHtmlTemplateTransformResult } from '@aurelia/plugin-conventions';
+import type { IHtmlTransformResult } from '@aurelia/plugin-conventions';
 import { dirname, resolve } from 'path';
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
@@ -29,7 +29,7 @@ interface AssetToken {
   specifier: string;
 }
 
-export function transformTemplateAssetUrls(html: string, htmlId: string): IHtmlTemplateTransformResult | undefined {
+export function transformTemplateAssetUrls(html: string, htmlId: string): IHtmlTransformResult | undefined {
   const replacements: Replacement[] = [];
   const assets: AssetToken[] = [];
   const tree = parseFragment(html, { sourceCodeLocationInfo: true });

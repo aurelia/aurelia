@@ -639,8 +639,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         if (($currentToken as Token) === Token.OpenParen) {
           args = parseArguments();
         } else {
+          // The next token belongs to the enclosing expression, e.g. ')' in `add(new Item)`.
           args = [];
-          nextToken();
         }
         result = createNewExpression(callee, args);
         $assignable = false;

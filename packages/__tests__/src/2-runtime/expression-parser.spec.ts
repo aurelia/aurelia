@@ -229,10 +229,8 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ...AccessScopeList,
     ...SimpleLiteralList,
     ...SimpleParenthesizedList,
-    // todo: this line adds 3.904 tests, 1.278 of which fail due to specific early errors and restriction in complex variadic expressions, nested tagged templates, etc.
-    // Most of the work in correcting this is to put the correct test cases from "passing" to "failing" and vice versa, that is, the parser itself works correctly but the tests are too generic.
-    // We will need a fairly significant review of the tests to make all edge cases pass.
-    // Examples include things like this: new new a()`${a}`&a:new new a()`${a}`:new new a()`${a}`
+    // Constructor expressions need separate precedence expectations: `new a.b` constructs a.b,
+    // whereas `(new a).b` reads the instance's property. Cover them in the focused new-expression cases.
     // ...SimpleNewList
   ];
   // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]
@@ -579,6 +577,28 @@ describe('2-runtime/expression-parser.spec.ts', function () {
         for (const [input, expected] of SimpleNewList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, exprType, name);
+          });
+        }
+
+        for (const [input, withArguments] of [
+          ['collect(new a, b)', 'collect(new a(), b)'],
+          ['[new a]', '[new a()]'],
+          ['[new a, b]', '[new a(), b]'],
+          ['{entry: new a}', '{entry: new a()}'],
+          ['a ? new b : c', 'a ? new b() : c'],
+          ['(new a).b', '(new a()).b'],
+          ['new a < b', 'new a() < b'],
+          ['new a instanceof b', 'new a() instanceof b'],
+          ['new a | b', 'new a() | b'],
+        ]) {
+          it(`preserves the surrounding expression in ${input}`, function () {
+            verifyResultOrError(input, parseExpression(withArguments, 'IsProperty'), null, exprType, name);
+          });
+        }
+
+        for (const input of ['new a extra', 'new a +', 'new a )']) {
+          it(`rejects the malformed constructor tail in ${input}`, function () {
+            assert.throws(() => parseExpression(input, exprType));
           });
         }
       });

@@ -11,6 +11,68 @@ import {
 import { bindable, BindingMode, customElement } from '@aurelia/runtime-html';
 
 describe('3-runtime-html/computed-observer.spec.ts', function () {
+  it('observes a null-prototype dictionary through a computed getter across replacement and rebind', async function () {
+    let evaluations = 0;
+    const fixture = await createFixture(
+      '<span if.bind="show">${total}</span>',
+      class {
+        public show = true;
+        public counts: Record<string, number> = Object.assign(Object.create(null), { a: 1, b: 2 });
+
+        public get total(): number {
+          evaluations++;
+          return this.counts.a + this.counts.b;
+        }
+      },
+    ).started;
+    const { component, assertText } = fixture;
+    const original = component.counts;
+
+    try {
+      assertText('3');
+      original.a = 4;
+      await tasksSettled();
+      assertText('6');
+
+      component.counts = Object.assign(Object.create(null), { a: 10, b: 20 });
+      await tasksSettled();
+      assertText('30');
+
+      const afterReplacement = evaluations;
+      original.a = 7;
+      await tasksSettled();
+      assert.strictEqual(evaluations, afterReplacement, 'the replaced dictionary is no longer observed');
+
+      component.counts.b = 25;
+      await tasksSettled();
+      assertText('35');
+
+      // Unbind with a dictionary update still queued, then edit the detached source.
+      component.counts.a = 11;
+      component.show = false;
+      await tasksSettled();
+      assertText('');
+      const afterUnbind = evaluations;
+      component.counts.a = 12;
+      await tasksSettled();
+      assert.strictEqual(evaluations, afterUnbind, 'the inactive getter releases its dictionary dependencies');
+
+      component.show = true;
+      await tasksSettled();
+      assertText('37');
+      component.counts.b = 30;
+      await tasksSettled();
+      assertText('42');
+    } finally {
+      await fixture.tearDown();
+    }
+
+    const afterTeardown = evaluations;
+    component.counts.a = 13;
+    await tasksSettled();
+    assert.strictEqual(evaluations, afterTeardown, 'application teardown releases the dictionary dependencies');
+  });
+
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;

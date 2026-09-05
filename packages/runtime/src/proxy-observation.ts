@@ -23,8 +23,8 @@ export const nowrapPropKey = '__au_nw';
 function canWrap(obj: unknown): obj is object {
   switch (toStringTag.call(obj)) {
     case '[object Object]':
-      // enable inheritance decoration
-      return ((obj as object).constructor as IIndexable<() => unknown>)[nowrapClassKey] !== true;
+      // Null-prototype records have no constructor; ordinary instances retain inherited @nowrap metadata.
+      return ((obj as object).constructor as IIndexable<() => unknown> | undefined)?.[nowrapClassKey] !== true;
     case '[object Array]':
     case '[object Map]':
     case '[object Set]':
@@ -74,7 +74,7 @@ function doNotCollect(object: object, key: PropertyKey): boolean {
     // limit to string first
     // symbol can be added later
     // looking up from the constructor means inheritance is supported
-    || (object.constructor as IIndexable<() => unknown>)[`${nowrapPropKey}_${rtSafeString(key)}__`] === true
+    || (object.constructor as IIndexable<() => unknown> | undefined)?.[`${nowrapPropKey}_${rtSafeString(key)}__`] === true
   ) {
     return true;
   }

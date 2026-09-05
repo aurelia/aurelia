@@ -25,7 +25,7 @@ export interface IFileUnitHost {
 
 export interface IHtmlTransformResult {
   imports?: readonly string[];
-  template: string;
+  templateExpression: string;
 }
 
 export interface IOptionalPreprocessOptions {

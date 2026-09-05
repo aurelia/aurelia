@@ -1272,7 +1272,7 @@ export function register(container) {
             assert.equal(receivedUnit, unit);
             return {
               imports: ['import assetUrl from "./logo.png";\n'],
-              template: '"<template><img src=\\"" + assetUrl + "\\"></template>"',
+              templateExpression: '"<template><img src=\\"" + assetUrl + "\\"></template>"',
             };
           },
         }),

@@ -351,8 +351,13 @@ With `@aurelia/vite-plugin`, static relative asset URLs in conventional HTML tem
 ```
 
 Relative URLs are resolved from the HTML template file, so same-directory paths, `./`, `../`, and nested relative paths are supported.
+The supported elements and attributes match Vite's standard HTML asset sources.
 
-Use binding for dynamic URLs. Root-relative public paths, external URLs, data URLs, hashes, and missing files are left unchanged.
+Use binding for dynamic URLs. Root-relative public paths, external URLs, data URLs, and hashes are left unchanged. Missing relative assets are left unchanged with a build warning.
+
+Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are left unchanged and reported as unresolved.
+
+Set `transformTemplateAssets: false` in the Aurelia Vite plugin options to opt out and leave all template asset URLs unchanged.
 
 ## Performance Optimization
 

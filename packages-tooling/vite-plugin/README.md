@@ -89,6 +89,7 @@ During production builds, the plugin processes static relative asset URLs in con
 ```
 
 Relative URLs are resolved from the HTML template file, so same-directory paths, `./`, `../`, and nested relative paths are supported.
+The supported elements and attributes match Vite's standard HTML asset sources, including images and source sets, audio, video, embedded content, links, and asset metadata.
 
 Use binding for dynamic URLs as usual:
 
@@ -96,7 +97,17 @@ Use binding for dynamic URLs as usual:
 <img src.bind="logoUrl" alt="Logo">
 ```
 
-Root-relative public paths such as `/logo.svg`, external URLs, data URLs, hashes, and missing files are left unchanged.
+Root-relative public paths such as `/logo.svg`, external URLs, data URLs, and hashes are left unchanged. Missing relative assets are also left unchanged and produce a build warning.
+
+Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are not supported; their URLs are left unchanged and reported as unresolved.
+
+Set `transformTemplateAssets` to `false` to leave every template asset URL unchanged:
+
+```ts
+export default defineConfig({
+  plugins: [aurelia({ transformTemplateAssets: false })],
+});
+```
 
 ### Development builds
 

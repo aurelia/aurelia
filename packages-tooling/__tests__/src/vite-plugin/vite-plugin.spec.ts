@@ -69,8 +69,13 @@ describe('vite-plugin', function () {
   }
 
   function createPluginContext() {
+    const warnings: string[] = [];
     return {
+      warnings,
       meta: { watchMode: false },
+      warn(message: string) {
+        warnings.push(message);
+      },
       async resolve(id: string) {
         return { id: `/resolved/${id}` };
       },
@@ -172,6 +177,7 @@ describe('vite-plugin', function () {
         '<img src.bind="dynamicLogo">',
         '<img src="/public-logo.png">',
         '<img src="./missing.png">',
+        '<img src="./missing.png?size=2">',
         '</template>',
       ].join('\n'),
       'utf8'
@@ -179,7 +185,8 @@ describe('vite-plugin', function () {
 
     try {
       getHook(resourcePlugin.configResolved)?.call({}, createResolvedConfig('production'));
-      const result = await getHook(resourcePlugin.load)?.call(createPluginContext(), fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
+      const context = createPluginContext();
+      const result = await getHook(resourcePlugin.load)?.call(context, fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
       const code = typeof result === 'string' ? result : result?.code;
 
       assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png";/);
@@ -190,6 +197,10 @@ describe('vite-plugin', function () {
       assert.match(String(code), /src\.bind=\\"dynamicLogo\\"/);
       assert.match(String(code), /src=\\"\/public-logo\.png\\"/);
       assert.match(String(code), /src=\\"\.\/missing\.png\\"/);
+      assert.match(String(code), /src=\\"\.\/missing\.png\?size=2\\"/);
+      assert.deepEqual(context.warnings, [
+        `Unable to resolve template asset "./missing.png" referenced by ${JSON.stringify(fixture.htmlFile)}. The URL will be left unchanged.`,
+      ]);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
     }
@@ -221,7 +232,7 @@ describe('vite-plugin', function () {
     }
   });
 
-  it('imports Vue-style static template asset attributes during production builds', async function () {
+  it('imports Vite asset source attributes during production builds', async function () {
     const fixture = createFixture();
     const [, resourcePlugin] = au({ include: /\.(ts|js|html)$/ });
 
@@ -233,6 +244,16 @@ describe('vite-plugin', function () {
       'source-2x.webm',
       'image.svg',
       'symbol.svg',
+      'audio.mp3',
+      'embed.svg',
+      'input.png',
+      'link.png',
+      'link-2x.png',
+      'object.pdf',
+      'track.vtt',
+      'meta-name.png',
+      'meta-property.png',
+      'non-asset-meta.png',
     ].forEach(file => fs.writeFileSync(path.join(fixture.srcDir, file), file, 'utf8'));
     fs.writeFileSync(
       fixture.htmlFile,
@@ -245,6 +266,15 @@ describe('vite-plugin', function () {
         '  <image href="./image.svg" xlink:href="./image.svg"></image>',
         '  <use href="./symbol.svg" xlink:href="./symbol.svg"></use>',
         '</svg>',
+        '<audio src="./audio.mp3"></audio>',
+        '<embed src="./embed.svg">',
+        '<input type="image" src="./input.png">',
+        '<link rel="icon" href="./link.png" imagesrcset="./link.png 1x, ./link-2x.png 2x">',
+        '<object data="./object.pdf"></object>',
+        '<track src="./track.vtt">',
+        '<meta name="twitter:image" content="./meta-name.png">',
+        '<meta property="og:image" content="./meta-property.png">',
+        '<meta name="description" content="./non-asset-meta.png">',
         '</template>',
       ].join('\n'),
       'utf8'
@@ -261,7 +291,17 @@ describe('vite-plugin', function () {
       assert.match(String(code), /import __auViteAsset3 from "\.\/source-2x\.webm";/);
       assert.match(String(code), /import __auViteAsset4 from "\.\/image\.svg";/);
       assert.match(String(code), /import __auViteAsset5 from "\.\/symbol\.svg";/);
-      assert.match(String(code), /export const template = .*__auViteAsset0.*__auViteAsset1.*__auViteAsset2.*__auViteAsset2.*__auViteAsset3.*__auViteAsset4.*__auViteAsset4.*__auViteAsset5.*__auViteAsset5/s);
+      assert.match(String(code), /import __auViteAsset6 from "\.\/audio\.mp3";/);
+      assert.match(String(code), /import __auViteAsset7 from "\.\/embed\.svg";/);
+      assert.match(String(code), /import __auViteAsset8 from "\.\/input\.png";/);
+      assert.match(String(code), /import __auViteAsset9 from "\.\/link\.png";/);
+      assert.match(String(code), /import __auViteAsset10 from "\.\/link-2x\.png";/);
+      assert.match(String(code), /import __auViteAsset11 from "\.\/object\.pdf";/);
+      assert.match(String(code), /import __auViteAsset12 from "\.\/track\.vtt";/);
+      assert.match(String(code), /import __auViteAsset13 from "\.\/meta-name\.png";/);
+      assert.match(String(code), /import __auViteAsset14 from "\.\/meta-property\.png";/);
+      assert.doesNotMatch(String(code), /import .*non-asset-meta/);
+      assert.match(String(code), /content=\\"\.\/non-asset-meta\.png\\"/);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
     }
@@ -368,6 +408,31 @@ await build({
 
       assert.doesNotMatch(String(code), /__auViteAsset/);
       assert.match(String(code), /export const template = "<img src=\\"\.\/logo\.png\\" alt=\\"Logo\\">";/);
+    } finally {
+      fs.rmSync(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('can disable static template asset transforms', async function () {
+    const fixture = createFixture();
+    const [, resourcePlugin] = au({
+      include: /\.(ts|js|html)$/,
+      transformTemplateAssets: false,
+    });
+
+    fs.mkdirSync(fixture.srcDir, { recursive: true });
+    fs.writeFileSync(path.join(fixture.srcDir, 'logo.png'), 'logo', 'utf8');
+    fs.writeFileSync(fixture.htmlFile, '<img src="./logo.png"><img src="./missing.png">', 'utf8');
+
+    try {
+      getHook(resourcePlugin.configResolved)?.call({}, createResolvedConfig('production'));
+      const context = createPluginContext();
+      const result = await getHook(resourcePlugin.load)?.call(context, fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
+      const code = typeof result === 'string' ? result : result?.code;
+
+      assert.doesNotMatch(String(code), /__auViteAsset/);
+      assert.match(String(code), /export const template = "<img src=\\"\.\/logo\.png\\"><img src=\\"\.\/missing\.png\\">";/);
+      assert.deepEqual(context.warnings, []);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
     }

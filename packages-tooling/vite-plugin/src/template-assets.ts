@@ -9,10 +9,41 @@ type DefaultTreeElement = DefaultTreeAdapterMap['element'];
 type DefaultTreeTemplate = DefaultTreeAdapterMap['template'];
 type AttributeLocation = Token.Location;
 
-const htmlAssetAttributes: Record<string, { src?: readonly string[]; srcset?: readonly string[] }> = {
+interface HtmlAssetAttributes {
+  src?: readonly string[];
+  srcset?: readonly string[];
+  filter?: (attributes: ReadonlyMap<string, string>) => boolean;
+}
+
+const allowedMetaNames = new Set([
+  'msapplication-tileimage',
+  'msapplication-square70x70logo',
+  'msapplication-square150x150logo',
+  'msapplication-wide310x150logo',
+  'msapplication-square310x310logo',
+  'msapplication-config',
+  'twitter:image',
+]);
+const allowedMetaProperties = new Set([
+  'og:image',
+  'og:image:url',
+  'og:image:secure_url',
+  'og:audio',
+  'og:audio:secure_url',
+  'og:video',
+  'og:video:secure_url',
+]);
+const htmlAssetAttributes: Record<string, HtmlAssetAttributes> = {
+  audio: { src: ['src'] },
+  embed: { src: ['src'] },
   img: { src: ['src'], srcset: ['srcset'] },
   image: { src: ['href', 'xlink:href'] },
+  input: { src: ['src'] },
+  link: { src: ['href'], srcset: ['imagesrcset'] },
+  meta: { src: ['content'], filter: isAssetMeta },
+  object: { src: ['data'] },
   source: { src: ['src'], srcset: ['srcset'] },
+  track: { src: ['src'] },
   use: { src: ['href', 'xlink:href'] },
   video: { src: ['src', 'poster'] },
 };
@@ -29,22 +60,29 @@ interface AssetToken {
   specifier: string;
 }
 
-export function transformTemplateAssetUrls(html: string, htmlId: string): IHtmlTransformResult | undefined {
+export function transformTemplateAssetUrls(
+  html: string,
+  htmlId: string,
+  warn: (message: string) => void,
+): IHtmlTransformResult | undefined {
   const replacements: Replacement[] = [];
   const assets: AssetToken[] = [];
+  const fileExistsCache = new Map<string, boolean>();
   const tree = parseFragment(html, { sourceCodeLocationInfo: true });
 
   visitElements(tree.childNodes, (node) => {
     const assetAttrs = htmlAssetAttributes[node.nodeName];
+    if (assetAttrs == null) return;
+
     const attrs = getAttributes(node);
-    if (assetAttrs == null || attrs.has('vite-ignore')) return;
+    if (attrs.has('vite-ignore') || assetAttrs.filter?.(attrs) === false) return;
 
     assetAttrs.src?.forEach((name) => {
       const value = attrs.get(name);
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
 
-      const token = createAssetToken(value, htmlId, assets);
+      const token = createAssetToken(value, htmlId, assets, fileExistsCache, warn);
       if (token == null) return;
       const valueLocation = getAttributeValueLocation(html, loc);
       if (valueLocation == null) return;
@@ -55,7 +93,7 @@ export function transformTemplateAssetUrls(html: string, htmlId: string): IHtmlT
       const value = attrs.get(name);
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
-      replaceSrcset(value, loc, html, htmlId, replacements, assets);
+      replaceSrcset(value, loc, html, htmlId, replacements, assets, fileExistsCache, warn);
     });
   });
 
@@ -65,7 +103,7 @@ export function transformTemplateAssetUrls(html: string, htmlId: string): IHtmlT
   const imports = assets.map(asset => `import ${asset.variable} from ${JSON.stringify(asset.specifier)};\n`);
   return {
     imports,
-    template: createTemplateExpression(transformedHtml, assets),
+    templateExpression: createTemplateExpression(transformedHtml, assets),
   };
 }
 
@@ -91,6 +129,14 @@ function getAttributes(node: DefaultTreeElement): Map<string, string> {
   return attrs;
 }
 
+function isAssetMeta(attributes: ReadonlyMap<string, string>): boolean {
+  const name = attributes.get('name')?.trim().toLowerCase();
+  if (name != null && allowedMetaNames.has(name)) return true;
+
+  const property = attributes.get('property')?.trim().toLowerCase();
+  return property != null && allowedMetaProperties.has(property);
+}
+
 function replaceSrcset(
   value: string,
   attrLocation: AttributeLocation,
@@ -98,13 +144,15 @@ function replaceSrcset(
   htmlId: string,
   replacements: Replacement[],
   assets: AssetToken[],
+  fileExistsCache: Map<string, boolean>,
+  warn: (message: string) => void,
 ): void {
   const valueLocation = getAttributeValueLocation(html, attrLocation);
   if (valueLocation == null) return;
 
   let changed = false;
   const srcset = value.replace(/(^|,)(\s*)([^,\s]+)([^,]*)/g, (match, separator: string, whitespace: string, url: string, descriptor: string) => {
-    const token = createAssetToken(url, htmlId, assets);
+    const token = createAssetToken(url, htmlId, assets, fileExistsCache, warn);
     if (token == null) return match;
     changed = true;
     return `${separator}${whitespace}${token.token}${descriptor}`;
@@ -115,11 +163,17 @@ function replaceSrcset(
   }
 }
 
-function createAssetToken(specifier: string, htmlId: string, assets: AssetToken[]): AssetToken | undefined {
-  if (!shouldBundleAsset(specifier, htmlId)) return void 0;
+function createAssetToken(
+  specifier: string,
+  htmlId: string,
+  assets: AssetToken[],
+  fileExistsCache: Map<string, boolean>,
+  warn: (message: string) => void,
+): AssetToken | undefined {
   const importSpecifier = specifier.startsWith('.') ? specifier : `./${specifier}`;
   const existingAsset = assets.find(asset => asset.specifier === importSpecifier);
   if (existingAsset != null) return existingAsset;
+  if (!shouldBundleAsset(specifier, htmlId, fileExistsCache, warn)) return void 0;
 
   const token = `__au_vite_asset_${assets.length}__`;
   const asset = {
@@ -131,7 +185,12 @@ function createAssetToken(specifier: string, htmlId: string, assets: AssetToken[
   return asset;
 }
 
-function shouldBundleAsset(specifier: string, htmlId: string): boolean {
+function shouldBundleAsset(
+  specifier: string,
+  htmlId: string,
+  fileExistsCache: Map<string, boolean>,
+  warn: (message: string) => void,
+): boolean {
   if (
     specifier === ''
     || specifier.includes('${')
@@ -147,11 +206,20 @@ function shouldBundleAsset(specifier: string, htmlId: string): boolean {
   if (filePath == null) return false;
 
   const resolved = resolve(dirname(htmlId), filePath);
+  const cached = fileExistsCache.get(resolved);
+  if (cached != null) return cached;
+
+  let exists = false;
   try {
-    return statSync(resolved).isFile();
+    exists = statSync(resolved).isFile();
   } catch {
-    return false;
+    // The unresolved URL remains in the template for backwards compatibility.
   }
+  fileExistsCache.set(resolved, exists);
+  if (!exists) {
+    warn(`Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(htmlId)}. The URL will be left unchanged.`);
+  }
+  return exists;
 }
 
 function getFilePath(specifier: string): string | undefined {

@@ -139,7 +139,7 @@ export function preprocessHtmlTemplate(
   const htmlTransformResult = options.transformHtml?.(html, unit) ?? html;
   const template = typeof htmlTransformResult === 'string'
     ? s(htmlTransformResult)
-    : htmlTransformResult.template;
+    : htmlTransformResult.templateExpression;
   if (typeof htmlTransformResult !== 'string') {
     htmlTransformResult.imports?.forEach(st => m.append(st));
   }

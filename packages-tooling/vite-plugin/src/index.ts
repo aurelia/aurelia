@@ -16,6 +16,12 @@ export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
    */
   useDev?: boolean;
   /**
+   * Transform static asset URLs in HTML templates during production builds.
+   *
+   * Defaults to true.
+   */
+  transformTemplateAssets?: boolean;
+  /**
    * Transform TC39 standard decorators before Vite compiles application modules.
    *
    * Defaults to true on Vite 8 and false on Vite 7. Set this to false when a
@@ -44,6 +50,7 @@ export default function au(options: AureliaPluginOptions = {}) {
     exclude,
     pre = true,
     useDev,
+    transformTemplateAssets = true,
     transformStandardDecorators,
     standardDecoratorInclude,
     standardDecoratorExclude,
@@ -64,12 +71,12 @@ export default function au(options: AureliaPluginOptions = {}) {
   };
 
   let $config!: import('vite').ResolvedConfig;
-  const transformHtmlForVite = (html: string, unit: IFileUnit) => {
+  const transformHtmlForVite = (html: string, unit: IFileUnit, warn: (message: string) => void) => {
     const transformedHtml = transformHtml?.(html, unit) ?? html;
-    if (typeof transformedHtml !== 'string' || $config.command !== 'build') {
+    if (!transformTemplateAssets || typeof transformedHtml !== 'string' || $config.command !== 'build') {
       return transformedHtml;
     }
-    return transformTemplateAssetUrls(transformedHtml, unit.path) ?? transformedHtml;
+    return transformTemplateAssetUrls(transformedHtml, unit.path, warn) ?? transformedHtml;
   };
 
   const auPlugin: import('vite').Plugin = {
@@ -96,7 +103,7 @@ export default function au(options: AureliaPluginOptions = {}) {
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
-        transformHtml: transformHtmlForVite,
+        transformHtml: (html, unit) => transformHtmlForVite(html, unit, warning => this.warn(warning)),
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
@@ -139,7 +146,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       }, {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
-        transformHtml: transformHtmlForVite,
+        transformHtml: (html, unit) => transformHtmlForVite(html, unit, warning => this.warn(warning)),
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',

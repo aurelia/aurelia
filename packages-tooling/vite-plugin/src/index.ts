@@ -76,7 +76,7 @@ export default function au(options: AureliaPluginOptions = {}) {
     if (!transformTemplateAssets || typeof transformedHtml !== 'string' || $config.command !== 'build') {
       return transformedHtml;
     }
-    return transformTemplateAssetUrls(transformedHtml, unit.path, warn) ?? transformedHtml;
+    return transformTemplateAssetUrls(transformedHtml, unit, nodeFileUnitHost, warn) ?? transformedHtml;
   };
 
   const auPlugin: import('vite').Plugin = {

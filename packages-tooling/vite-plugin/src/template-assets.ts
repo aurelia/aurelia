@@ -1,6 +1,4 @@
-import { statSync } from 'fs';
-import type { IHtmlTransformResult } from '@aurelia/plugin-conventions';
-import { dirname, resolve } from 'path';
+import type { IFileUnit, IFileUnitHost, IHtmlTransformResult } from '@aurelia/plugin-conventions';
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
 
@@ -63,7 +61,8 @@ interface AssetToken {
 
 export function transformTemplateAssetUrls(
   html: string,
-  htmlId: string,
+  unit: IFileUnit,
+  host: IFileUnitHost,
   warn: (message: string) => void,
 ): IHtmlTransformResult | undefined {
   const replacements: Replacement[] = [];
@@ -90,7 +89,7 @@ export function transformTemplateAssetUrls(
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
 
-      const token = createAssetToken(value, htmlId, assets, fileExistsCache, warn);
+      const token = createAssetToken(value, unit, host, assets, fileExistsCache, warn);
       if (token == null) return;
       const valueLocation = getAttributeValueLocation(html, loc);
       if (valueLocation == null) return;
@@ -101,7 +100,7 @@ export function transformTemplateAssetUrls(
       const value = attrs.get(name);
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
-      replaceSrcset(value, loc, html, htmlId, replacements, assets, fileExistsCache, warn);
+      replaceSrcset(value, loc, html, unit, host, replacements, assets, fileExistsCache, warn);
     });
   });
 
@@ -149,7 +148,8 @@ function replaceSrcset(
   value: string,
   attrLocation: AttributeLocation,
   html: string,
-  htmlId: string,
+  unit: IFileUnit,
+  host: IFileUnitHost,
   replacements: Replacement[],
   assets: AssetToken[],
   fileExistsCache: Map<string, boolean>,
@@ -160,7 +160,7 @@ function replaceSrcset(
 
   let changed = false;
   const srcset = value.replace(/(^|,)(\s*)([^,\s]+)([^,]*)/g, (match, separator: string, whitespace: string, url: string, descriptor: string) => {
-    const token = createAssetToken(url, htmlId, assets, fileExistsCache, warn);
+    const token = createAssetToken(url, unit, host, assets, fileExistsCache, warn);
     if (token == null) return match;
     changed = true;
     return `${separator}${whitespace}${token.token}${descriptor}`;
@@ -173,7 +173,8 @@ function replaceSrcset(
 
 function createAssetToken(
   specifier: string,
-  htmlId: string,
+  unit: IFileUnit,
+  host: IFileUnitHost,
   assets: AssetToken[],
   fileExistsCache: Map<string, boolean>,
   warn: (message: string) => void,
@@ -181,7 +182,7 @@ function createAssetToken(
   const importSpecifier = specifier.startsWith('.') ? specifier : `./${specifier}`;
   const existingAsset = assets.find(asset => asset.specifier === importSpecifier);
   if (existingAsset != null) return existingAsset;
-  if (!shouldBundleAsset(specifier, htmlId, fileExistsCache, warn)) return void 0;
+  if (!shouldBundleAsset(specifier, unit, host, fileExistsCache, warn)) return void 0;
 
   const token = `__au_vite_asset_${assets.length}__`;
   const asset = {
@@ -195,7 +196,8 @@ function createAssetToken(
 
 function shouldBundleAsset(
   specifier: string,
-  htmlId: string,
+  unit: IFileUnit,
+  host: IFileUnitHost,
   fileExistsCache: Map<string, boolean>,
   warn: (message: string) => void,
 ): boolean {
@@ -213,19 +215,14 @@ function shouldBundleAsset(
   const filePath = getFilePath(specifier);
   if (filePath == null) return false;
 
-  const resolved = resolve(dirname(htmlId), filePath);
-  const cached = fileExistsCache.get(resolved);
+  const relativePath = filePath.startsWith('.') ? filePath : `./${filePath}`;
+  const cached = fileExistsCache.get(relativePath);
   if (cached != null) return cached;
 
-  let exists = false;
-  try {
-    exists = statSync(resolved).isFile();
-  } catch {
-    // The unresolved URL remains in the template for backwards compatibility.
-  }
-  fileExistsCache.set(resolved, exists);
+  const exists = host.fileExists(unit, relativePath);
+  fileExistsCache.set(relativePath, exists);
   if (!exists) {
-    warn(`Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(htmlId)}. The URL will be left unchanged.`);
+    warn(`Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(unit.path)}. The URL will be left unchanged.`);
   }
   return exists;
 }

@@ -11,9 +11,12 @@ export interface TemplateAssetOptions {
   /**
    * Control how unresolved relative template assets are handled.
    *
+   * `'ignore'` preserves the URL silently, `'warn'` preserves it with a warning,
+   * and `'error'` stops the Vite transform.
+   *
    * Defaults to `'warn'`.
    */
-  onMissing?: 'warn' | 'error';
+  onMissing?: 'ignore' | 'warn' | 'error';
 }
 
 export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
@@ -102,7 +105,9 @@ export default function au(options: AureliaPluginOptions = {}) {
       if (onMissingTemplateAsset === 'error') {
         context.error(message);
       }
-      context.warn(`${message} The URL will be left unchanged.`);
+      if (onMissingTemplateAsset === 'warn') {
+        context.warn(`${message} The URL will be left unchanged.`);
+      }
     }) ?? transformedHtml;
   };
 

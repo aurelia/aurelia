@@ -442,6 +442,31 @@ await build({
     }
   });
 
+  it('can silently preserve missing relative template assets', async function () {
+    const fixture = createFixture();
+    const [, resourcePlugin] = au({
+      include: /\.(ts|js|html)$/,
+      templateAssets: { onMissing: 'ignore' },
+    });
+
+    fs.mkdirSync(fixture.srcDir, { recursive: true });
+    fs.writeFileSync(path.join(fixture.srcDir, 'logo.png'), 'logo', 'utf8');
+    fs.writeFileSync(fixture.htmlFile, '<img src="./logo.png"><img src="./missing.png">', 'utf8');
+
+    try {
+      getHook(resourcePlugin.configResolved)?.call({}, createResolvedConfig('production'));
+      const context = createPluginContext();
+      const result = await getHook(resourcePlugin.load)?.call(context, fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
+      const code = String(typeof result === 'string' ? result : result?.code);
+
+      assert.match(code, /import __auViteAsset0 from "\.\/logo\.png";/);
+      assert.match(code, /src=\\"\.\/missing\.png\\"/);
+      assert.deepEqual(context.warnings, []);
+    } finally {
+      fs.rmSync(fixture.root, { recursive: true, force: true });
+    }
+  });
+
   it('can fail production builds for missing relative template assets', async function () {
     const fixture = createFixture();
     const [, resourcePlugin] = au({

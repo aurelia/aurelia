@@ -113,6 +113,7 @@ Use `templateAssets` to control processing and configure missing relative assets
 | Value | Behavior |
 |---|---|
 | `true` | Process assets; warn and preserve URLs that cannot be resolved. This is the default. |
+| `{ onMissing: 'ignore' }` | Process assets; silently preserve URLs that cannot be resolved. |
 | `{ onMissing: 'warn' }` | Process assets with the default missing-asset behavior. |
 | `{ onMissing: 'error' }` | Process assets; stop the Vite transform when a relative asset cannot be resolved. |
 | `false` | Disable template asset processing and leave every URL unchanged. |

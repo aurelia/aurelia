@@ -11,8 +11,8 @@
   "scripts": {
     "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
-    "test:e2e:watch": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright-watch test\"",
-    "test:e2e:debugger": "cross-env APP_PORT=9004 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:watch": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright test --ui\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9004 concurrently \"npm run dev\" \"playwright test --debug\"",
     "test": "npm run test:e2e",
     "test:watch": "npm run test:e2e:watch"
   },
@@ -31,10 +31,10 @@
   },
   "devDependencies": {
     "@aurelia/vite-plugin": "2.0.0-rc.2",
-    "@playwright/test": "1.39.0",
+    "@playwright/test": "1.62.1",
     "@types/mocha": "10.0.6",
-    "@types/node": "^20.16.10",
-    "playwright": "1.39.0",
+    "@types/node": "22.20.1",
+    "playwright": "1.62.1",
     "typescript": "5.9.2"
   }
 }

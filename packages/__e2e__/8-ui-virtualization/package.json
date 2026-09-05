@@ -11,8 +11,8 @@
   "scripts": {
     "dev": "vite dev --force",
     "test:e2e": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test\" --kill-others --success first",
-    "test:e2e:watch": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
-    "test:e2e:debugger": "cross-env APP_PORT=9008 PWDEBUG=1 concurrently -n app,test \"npm run dev\" \"playwright-watch test\"",
+    "test:e2e:watch": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test --ui\"",
+    "test:e2e:debugger": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test --debug\"",
     "test": "npm run test:e2e",
     "test:watch": "npm run test:e2e:watch"
   },
@@ -28,13 +28,14 @@
     "@aurelia/ui-virtualization": "2.0.0-rc.2"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "webpack-cli": "^5.1.4",
     "webpack": "^5.90.3",
-    "webpack-bundle-analyzer": "^4.10.1",
     "html-webpack-plugin": "^5.5.0",
     "@aurelia/webpack-loader": "2.0.0-rc.2",
     "ts-loader": "^9.3.0",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
+    "playwright": "1.62.1",
     "typescript": "5.9.2"
   }
 }

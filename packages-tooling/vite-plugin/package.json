@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@types/loader-utils": "^2.0.3",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
     "@types/webpack": "^4.41.30",
     "typescript": "5.9.2",
     "vite": "^7.0.2 || ^8.0.0"

@@ -12,9 +12,3 @@ For the latest stable version:
 ```bash
 npm i @aurelia/addons
 ```
-
-For our nightly builds:
-
-```bash
-npm i @aurelia/addons@dev
-```

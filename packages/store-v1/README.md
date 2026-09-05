@@ -16,9 +16,3 @@ For the latest stable version:
 ```bash
 npm i @aurelia/store-v1
 ```
-
-For our nightly builds:
-
-```bash
-npm i @aurelia/store-v1@dev
-```

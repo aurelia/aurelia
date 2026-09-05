@@ -13,12 +13,6 @@ For the latest stable version:
 npm i @aurelia/web-components
 ```
 
-For our nightly builds:
-
-```bash
-npm i @aurelia/addons@web-components
-```
-
 ## Usage
 
 Here is an example configuration for webcomponents.js to show how to register aurelia custom elements into web components:

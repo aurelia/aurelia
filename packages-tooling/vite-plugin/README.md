@@ -12,12 +12,6 @@ For the latest stable version:
 npm i -D @aurelia/vite-plugin
 ```
 
-For our nightly builds:
-
-```bash
-npm i -D @aurelia/vite-plugin
-```
-
 ## Usage
 
 In `vite.config.js`:

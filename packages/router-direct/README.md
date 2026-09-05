@@ -11,9 +11,3 @@ For the latest stable version:
 ```bash
 npm i @aurelia/router-direct
 ```
-
-For our nightly builds:
-
-```bash
-npm i @aurelia/router-direct@dev
-```

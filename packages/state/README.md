@@ -12,12 +12,6 @@ For the latest stable version:
 npm i @aurelia/state
 ```
 
-For our nightly builds:
-
-```bash
-npm i @aurelia/state@dev
-```
-
 ## Multiple Stores
 
 Register additional stores by providing a `storeName` or `storeKey` when initializing the configuration:

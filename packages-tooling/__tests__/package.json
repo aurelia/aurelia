@@ -48,17 +48,17 @@
     "jsdom": "24.1.0",
     "typescript": "5.9.2",
     "vinyl": "^2.2.0",
-    "ts-jest": "^29.1.2"
+    "ts-jest": "^29.4.12"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/karma": "^6.3.8",
     "@types/mocha": "10.0.6",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
     "@types/vinyl": "^2.0.6",
-    "mocha": "10.3.0",
+    "mocha": "10.8.2",
     "source-map": "^0.7.3",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "vinyl": "^2.2.0"
   },
   "volta": {

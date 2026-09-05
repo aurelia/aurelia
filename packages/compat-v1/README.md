@@ -11,9 +11,3 @@ For the latest stable version:
 ```bash
 npm i @aurelia/compat-v1
 ```
-
-For our nightly builds:
-
-```bash
-npm i @aurelia/compat-v1@dev
-```

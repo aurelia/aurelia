@@ -12,7 +12,7 @@ A monorepo \(mono repository\) is a single repository that stores all of your co
 
 ### How modern npm helps us?
 
-With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. npm v7 and above include workspaces by default; the versions bundled with contemporary Node.js releases (for example Node.js 22.12.0 ships with npm 10.9.0) provide everything we need.
+With `workspaces`. Workspaces are a set of features in the npm CLI that offer support for managing multiple packages within a single top-level, root package. npm v7 and above include workspaces by default; the versions bundled with contemporary Node.js releases (for example Node.js 22.22.2 ships with npm 10.9.0) provide everything we need.
 
 ### What is the scenario?
 

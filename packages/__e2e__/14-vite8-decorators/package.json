@@ -18,11 +18,12 @@
   },
   "devDependencies": {
     "@aurelia/vite-plugin": "2.0.0-rc.2",
-    "@playwright/test": "1.39.0",
-    "@types/node": "^20.16.10",
+    "@playwright/test": "1.62.1",
+    "playwright": "1.62.1",
+    "@types/node": "22.20.1",
     "vite": "^8.0.0"
   },
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.22.2"
   }
 }

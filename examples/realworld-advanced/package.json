@@ -16,18 +16,18 @@
   "devDependencies": {
     "@aurelia/testing": "2.0.0-rc.2",
     "@types/mocha": "10.0.0",
-    "@types/node": "^20.16.10",
+    "@types/node": "22.20.1",
     "css-loader": "^6.7.1",
     "html-webpack-plugin": "^5.5.0",
-    "mocha": "10.3.0",
-    "playwright": "1.39.0",
+    "mocha": "10.8.2",
+    "playwright": "1.62.1",
     "rimraf": "^3.0.0",
     "style-loader": "^3.3.1",
     "ts-loader": "^9.3.0",
     "typescript": "5.9.2",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.4"
+    "webpack-dev-server": "^6.0.0"
   },
   "scripts": {
     "start": "webpack-dev-server",

@@ -16,7 +16,7 @@ If you're looking to contribute directly to Aurelia or its test suite, you've co
 
 ## Setup
 
-In order to build Aurelia, ensure that you have [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/) `22.12.0`, and `npm@10.9.0` installed (these versions match the repository's Volta configuration).
+In order to build Aurelia, ensure that you have [Git](https://git-scm.com/downloads), [Node.js](https://nodejs.org/) `22.22.2`, and `npm@10.9.0` installed (these versions match the repository's Volta configuration).
 
 Run the following commands to clone, install:
 

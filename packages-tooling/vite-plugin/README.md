@@ -75,6 +75,57 @@ declare module '*.html' {
 }
 ```
 
+### Template assets
+
+During development and production builds, the plugin processes static relative asset URLs in conventional HTML templates so Vite can serve, emit, and rewrite them:
+
+```html
+<template>
+  <img src="logo.svg" alt="Logo">
+  <img src="./logo.svg" alt="Logo">
+  <img src="../shared/shared-logo.svg" alt="Shared logo">
+  <img srcset="./logo.png 1x, ./logo@2x.png 2x" alt="Logo">
+</template>
+```
+
+Relative URLs are resolved from the HTML template file, so same-directory paths, `./`, `../`, and nested relative paths are supported.
+The supported elements and attributes match Vite's standard HTML asset sources, including images and source sets, audio, video, embedded content, links, and asset metadata.
+The plugin hands each transformed URL to Vite, so the final URL follows Vite's `base`, `assetsDir`, asset file naming, hashing, and other plugin transformations.
+
+Add `au-vite-ignore` to an element to leave its asset URLs unchanged. The marker is removed from the compiled template:
+
+```html
+<img au-vite-ignore src="./logo.svg" alt="Logo">
+```
+
+Use binding for dynamic URLs as usual:
+
+```html
+<img src.bind="logoUrl" alt="Logo">
+```
+
+Root-relative public paths such as `/logo.svg`, external URLs, data URLs, and hashes are left unchanged. Missing relative assets produce a build warning by default and are left unchanged.
+
+Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are not supported and are handled as unresolved relative assets.
+
+Use `transformTemplateAssets` to control processing and missing relative assets:
+
+| Value | Behavior |
+|---|---|
+| `true` or `'warn'` | Transform assets; warn and preserve URLs that cannot be resolved. This is the default. |
+| `'error'` | Transform assets; stop the Vite transform when a relative asset cannot be resolved. |
+| `false` | Disable template asset processing and leave every URL unchanged. |
+
+For example, to require every relative template asset to resolve:
+
+```ts
+export default defineConfig({
+  plugins: [aurelia({ transformTemplateAssets: 'error' })],
+});
+```
+
+Elements marked with `au-vite-ignore` bypass both missing-asset warnings and errors.
+
 ### Development builds
 
 By default, the Aurelia Vite plugin aliases Aurelia packages to their development builds when Vite runs in development mode. Set `useDev` explicitly when you need to override Vite's automatic mode detection:

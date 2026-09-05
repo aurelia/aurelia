@@ -90,6 +90,13 @@ During production builds, the plugin processes static relative asset URLs in con
 
 Relative URLs are resolved from the HTML template file, so same-directory paths, `./`, `../`, and nested relative paths are supported.
 The supported elements and attributes match Vite's standard HTML asset sources, including images and source sets, audio, video, embedded content, links, and asset metadata.
+The plugin hands each transformed URL to Vite, so the final URL follows Vite's `base`, `assetsDir`, asset file naming, hashing, and other plugin transformations.
+
+Add `au-vite-ignore` to an element to leave its asset URLs unchanged. The marker is removed from the compiled template:
+
+```html
+<img au-vite-ignore src="./logo.svg" alt="Logo">
+```
 
 Use binding for dynamic URLs as usual:
 

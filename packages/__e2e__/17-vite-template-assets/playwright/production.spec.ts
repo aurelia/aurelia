@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('emits and serves an asset referenced from a conventional template', async function ({ page, baseURL }) {
+test('rewrites template assets and strips ignored asset markers', async function ({ page, baseURL }) {
   await page.goto(baseURL!, { waitUntil: 'networkidle' });
 
   const asset = page.locator('#template-asset');
@@ -8,4 +8,10 @@ test('emits and serves an asset referenced from a conventional template', async 
   await expect(asset).toHaveJSProperty('complete', true);
   expect(await asset.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
   await expect(asset).toHaveAttribute('src', /\/assets\/aurelia-logo-[\w-]+\.svg$/);
+
+  const ignoredAsset = page.locator('#ignored-template-asset');
+  await expect(ignoredAsset).toBeVisible();
+  await expect(ignoredAsset).not.toHaveAttribute('au-vite-ignore');
+  await expect(ignoredAsset).toHaveAttribute('src', './ignored-logo.svg');
+  expect(await ignoredAsset.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
 });

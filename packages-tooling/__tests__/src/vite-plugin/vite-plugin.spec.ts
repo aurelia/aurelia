@@ -363,7 +363,7 @@ await build({
       fixture.htmlFile,
       [
         '<template>',
-        '<img vite-ignore src="./ignored.png">',
+        '<img au-vite-ignore src="./ignored.png">',
         '<img src="/public-logo.png">',
         '<img src="https://example.com/logo.png">',
         '<img src="//example.com/logo.png">',
@@ -381,6 +381,7 @@ await build({
       const code = String(typeof result === 'string' ? result : result?.code);
 
       assert.doesNotMatch(code, /__auViteAsset/);
+      assert.doesNotMatch(code, /au-vite-ignore/);
       assert.match(code, /src=\\"\.\/ignored\.png\\"/);
       assert.match(code, /src=\\"\/public-logo\.png\\"/);
       assert.match(code, /src=\\"https:\/\/example\.com\/logo\.png\\"/);

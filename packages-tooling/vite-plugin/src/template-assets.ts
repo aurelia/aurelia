@@ -33,6 +33,7 @@ const allowedMetaProperties = new Set([
   'og:video',
   'og:video:secure_url',
 ]);
+const ignoreAttribute = 'au-vite-ignore';
 const htmlAssetAttributes: Record<string, HtmlAssetAttributes> = {
   audio: { src: ['src'] },
   embed: { src: ['src'] },
@@ -71,11 +72,18 @@ export function transformTemplateAssetUrls(
   const tree = parseFragment(html, { sourceCodeLocationInfo: true });
 
   visitElements(tree.childNodes, (node) => {
+    const attrs = getAttributes(node);
+    if (attrs.has(ignoreAttribute)) {
+      const loc = node.sourceCodeLocation?.attrs?.[ignoreAttribute];
+      if (loc != null) {
+        replacements.push({ start: loc.startOffset, end: loc.endOffset, value: '' });
+      }
+      return;
+    }
+
     const assetAttrs = htmlAssetAttributes[node.nodeName];
     if (assetAttrs == null) return;
-
-    const attrs = getAttributes(node);
-    if (attrs.has('vite-ignore') || assetAttrs.filter?.(attrs) === false) return;
+    if (assetAttrs.filter?.(attrs) === false) return;
 
     assetAttrs.src?.forEach((name) => {
       const value = attrs.get(name);
@@ -97,13 +105,13 @@ export function transformTemplateAssetUrls(
     });
   });
 
-  if (assets.length === 0) return void 0;
+  if (replacements.length === 0) return void 0;
 
   const transformedHtml = applyReplacements(html, replacements);
   const imports = assets.map(asset => `import ${asset.variable} from ${JSON.stringify(asset.specifier)};\n`);
   return {
     imports,
-    templateExpression: createTemplateExpression(transformedHtml, assets),
+    templateExpression: assets.length === 0 ? JSON.stringify(transformedHtml) : createTemplateExpression(transformedHtml, assets),
   };
 }
 

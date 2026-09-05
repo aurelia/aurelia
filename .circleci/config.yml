@@ -194,11 +194,6 @@ jobs:
             - packages-tooling/ts-jest/node_modules
             - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
-            - packages/__e2e__/3-hmr-webpack/node_modules
-            - packages/__e2e__/6-router/node_modules
-            - packages/__e2e__/11-validation/node_modules
-            - packages/__e2e__/12-type-check/node_modules
-            - packages/__e2e__/13-hmr-convention-routing-memory-leak/node_modules
             - packages/__e2e__/15-ts6-webpack-smoke/node_modules
             - packages/__e2e__/16-ts7-webpack-smoke/node_modules
 

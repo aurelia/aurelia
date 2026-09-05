@@ -77,7 +77,7 @@ declare module '*.html' {
 
 ### Template assets
 
-During production builds, the plugin processes static relative asset URLs in conventional HTML templates so Vite can emit and rewrite them:
+During development and production builds, the plugin processes static relative asset URLs in conventional HTML templates so Vite can serve, emit, and rewrite them:
 
 ```html
 <template>
@@ -104,17 +104,27 @@ Use binding for dynamic URLs as usual:
 <img src.bind="logoUrl" alt="Logo">
 ```
 
-Root-relative public paths such as `/logo.svg`, external URLs, data URLs, and hashes are left unchanged. Missing relative assets are also left unchanged and produce a build warning.
+Root-relative public paths such as `/logo.svg`, external URLs, data URLs, and hashes are left unchanged. Missing relative assets produce a build warning by default and are left unchanged.
 
-Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are not supported; their URLs are left unchanged and reported as unresolved.
+Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are not supported and are handled as unresolved relative assets.
 
-Set `transformTemplateAssets` to `false` to leave every template asset URL unchanged:
+Use `transformTemplateAssets` to control processing and missing relative assets:
+
+| Value | Behavior |
+|---|---|
+| `true` or `'warn'` | Transform assets; warn and preserve URLs that cannot be resolved. This is the default. |
+| `'error'` | Transform assets; stop the Vite transform when a relative asset cannot be resolved. |
+| `false` | Disable template asset processing and leave every URL unchanged. |
+
+For example, to require every relative template asset to resolve:
 
 ```ts
 export default defineConfig({
-  plugins: [aurelia({ transformTemplateAssets: false })],
+  plugins: [aurelia({ transformTemplateAssets: 'error' })],
 });
 ```
+
+Elements marked with `au-vite-ignore` bypass both missing-asset warnings and errors.
 
 ### Development builds
 

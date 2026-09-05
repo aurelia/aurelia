@@ -63,7 +63,7 @@ export function transformTemplateAssetUrls(
   html: string,
   unit: IFileUnit,
   host: IFileUnitHost,
-  warn: (message: string) => void,
+  reportMissingAsset: (specifier: string) => void,
 ): IHtmlTransformResult | undefined {
   const replacements: Replacement[] = [];
   const assets: AssetToken[] = [];
@@ -89,7 +89,7 @@ export function transformTemplateAssetUrls(
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
 
-      const token = createAssetToken(value, unit, host, assets, fileExistsCache, warn);
+      const token = createAssetToken(value, unit, host, assets, fileExistsCache, reportMissingAsset);
       if (token == null) return;
       const valueLocation = getAttributeValueLocation(html, loc);
       if (valueLocation == null) return;
@@ -100,7 +100,7 @@ export function transformTemplateAssetUrls(
       const value = attrs.get(name);
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
-      replaceSrcset(value, loc, html, unit, host, replacements, assets, fileExistsCache, warn);
+      replaceSrcset(value, loc, html, unit, host, replacements, assets, fileExistsCache, reportMissingAsset);
     });
   });
 
@@ -153,14 +153,14 @@ function replaceSrcset(
   replacements: Replacement[],
   assets: AssetToken[],
   fileExistsCache: Map<string, boolean>,
-  warn: (message: string) => void,
+  reportMissingAsset: (specifier: string) => void,
 ): void {
   const valueLocation = getAttributeValueLocation(html, attrLocation);
   if (valueLocation == null) return;
 
   let changed = false;
   const srcset = value.replace(/(^|,)(\s*)([^,\s]+)([^,]*)/g, (match, separator: string, whitespace: string, url: string, descriptor: string) => {
-    const token = createAssetToken(url, unit, host, assets, fileExistsCache, warn);
+    const token = createAssetToken(url, unit, host, assets, fileExistsCache, reportMissingAsset);
     if (token == null) return match;
     changed = true;
     return `${separator}${whitespace}${token.token}${descriptor}`;
@@ -177,12 +177,12 @@ function createAssetToken(
   host: IFileUnitHost,
   assets: AssetToken[],
   fileExistsCache: Map<string, boolean>,
-  warn: (message: string) => void,
+  reportMissingAsset: (specifier: string) => void,
 ): AssetToken | undefined {
   const importSpecifier = specifier.startsWith('.') ? specifier : `./${specifier}`;
   const existingAsset = assets.find(asset => asset.specifier === importSpecifier);
   if (existingAsset != null) return existingAsset;
-  if (!shouldBundleAsset(specifier, unit, host, fileExistsCache, warn)) return void 0;
+  if (!shouldBundleAsset(specifier, unit, host, fileExistsCache, reportMissingAsset)) return void 0;
 
   const token = `__au_vite_asset_${assets.length}__`;
   const asset = {
@@ -199,7 +199,7 @@ function shouldBundleAsset(
   unit: IFileUnit,
   host: IFileUnitHost,
   fileExistsCache: Map<string, boolean>,
-  warn: (message: string) => void,
+  reportMissingAsset: (specifier: string) => void,
 ): boolean {
   if (
     specifier === ''
@@ -222,7 +222,7 @@ function shouldBundleAsset(
   const exists = host.fileExists(unit, relativePath);
   fileExistsCache.set(relativePath, exists);
   if (!exists) {
-    warn(`Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(unit.path)}. The URL will be left unchanged.`);
+    reportMissingAsset(specifier);
   }
   return exists;
 }

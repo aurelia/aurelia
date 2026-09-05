@@ -76,6 +76,9 @@ describe('vite-plugin', function () {
       warn(message: string) {
         warnings.push(message);
       },
+      error(message: string): never {
+        throw new Error(message);
+      },
       async resolve(id: string) {
         return { id: `/resolved/${id}` };
       },
@@ -394,7 +397,7 @@ await build({
     }
   });
 
-  it('does not import static relative template assets during dev server transforms', async function () {
+  it('imports static relative template assets during dev server transforms', async function () {
     const fixture = createFixture();
     const [, resourcePlugin] = au({ include: /\.(ts|js|html)$/ });
 
@@ -407,8 +410,8 @@ await build({
       const result = await getHook(resourcePlugin.transform)?.call({}, '<img src="./logo.png" alt="Logo">', fixture.htmlFile);
       const code = typeof result === 'string' ? result : result?.code;
 
-      assert.doesNotMatch(String(code), /__auViteAsset/);
-      assert.match(String(code), /export const template = "<img src=\\"\.\/logo\.png\\" alt=\\"Logo\\">";/);
+      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png";/);
+      assert.match(String(code), /export const template = .*__auViteAsset0/s);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
     }
@@ -433,6 +436,34 @@ await build({
 
       assert.doesNotMatch(String(code), /__auViteAsset/);
       assert.match(String(code), /export const template = "<img src=\\"\.\/logo\.png\\"><img src=\\"\.\/missing\.png\\">";/);
+      assert.deepEqual(context.warnings, []);
+    } finally {
+      fs.rmSync(fixture.root, { recursive: true, force: true });
+    }
+  });
+
+  it('can fail production builds for missing relative template assets', async function () {
+    const fixture = createFixture();
+    const [, resourcePlugin] = au({
+      include: /\.(ts|js|html)$/,
+      transformTemplateAssets: 'error',
+    });
+
+    fs.mkdirSync(fixture.srcDir, { recursive: true });
+    fs.writeFileSync(fixture.htmlFile, '<img src="./missing.png">', 'utf8');
+
+    try {
+      getHook(resourcePlugin.configResolved)?.call({}, createResolvedConfig('production'));
+      const context = createPluginContext();
+
+      await assert.rejects(
+        getHook(resourcePlugin.load)?.call(context, fixture.htmlFile.replace(/\.html$/, '.$au.ts')),
+        (error: unknown) => {
+          assert.ok(error instanceof Error);
+          assert.equal(error.message, `Unable to resolve template asset "./missing.png" referenced by ${JSON.stringify(fixture.htmlFile)}.`);
+          return true;
+        },
+      );
       assert.deepEqual(context.warnings, []);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });

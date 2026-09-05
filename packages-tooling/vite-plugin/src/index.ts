@@ -7,6 +7,8 @@ import { promises } from 'fs';
 import { createStandardDecoratorPlugin, normalizeFilterId } from './standard-decorators';
 import { transformTemplateAssetUrls } from './template-assets';
 
+export type TemplateAssetMode = 'warn' | 'error';
+
 export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
   include?: FilterPattern;
   exclude?: FilterPattern;
@@ -16,11 +18,13 @@ export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
    */
   useDev?: boolean;
   /**
-   * Transform static asset URLs in HTML templates during production builds.
+   * Transform static asset URLs in HTML templates and
+   * control how missing relative assets are handled.
    *
-   * Defaults to true.
+   * `true` is equivalent to `'warn'`; `false` disables the transform.
+   * Defaults to `'warn'`.
    */
-  transformTemplateAssets?: boolean;
+  transformTemplateAssets?: boolean | TemplateAssetMode;
   /**
    * Transform TC39 standard decorators before Vite compiles application modules.
    *
@@ -50,7 +54,7 @@ export default function au(options: AureliaPluginOptions = {}) {
     exclude,
     pre = true,
     useDev,
-    transformTemplateAssets = true,
+    transformTemplateAssets = 'warn',
     transformStandardDecorators,
     standardDecoratorInclude,
     standardDecoratorExclude,
@@ -71,12 +75,25 @@ export default function au(options: AureliaPluginOptions = {}) {
   };
 
   let $config!: import('vite').ResolvedConfig;
-  const transformHtmlForVite = (html: string, unit: IFileUnit, warn: (message: string) => void) => {
+  const transformHtmlForVite = (
+    html: string,
+    unit: IFileUnit,
+    context: {
+      warn(message: string): void;
+      error(message: string): never;
+    },
+  ) => {
     const transformedHtml = transformHtml?.(html, unit) ?? html;
-    if (!transformTemplateAssets || typeof transformedHtml !== 'string' || $config.command !== 'build') {
+    if (transformTemplateAssets === false || typeof transformedHtml !== 'string') {
       return transformedHtml;
     }
-    return transformTemplateAssetUrls(transformedHtml, unit, nodeFileUnitHost, warn) ?? transformedHtml;
+    return transformTemplateAssetUrls(transformedHtml, unit, nodeFileUnitHost, (specifier) => {
+      const message = `Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(unit.path)}.`;
+      if (transformTemplateAssets === 'error') {
+        context.error(message);
+      }
+      context.warn(`${message} The URL will be left unchanged.`);
+    }) ?? transformedHtml;
   };
 
   const auPlugin: import('vite').Plugin = {
@@ -103,7 +120,7 @@ export default function au(options: AureliaPluginOptions = {}) {
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
-        transformHtml: (html, unit) => transformHtmlForVite(html, unit, warning => this.warn(warning)),
+        transformHtml: (html, unit) => transformHtmlForVite(html, unit, this),
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
@@ -146,7 +163,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       }, {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
-        transformHtml: (html, unit) => transformHtmlForVite(html, unit, warning => this.warn(warning)),
+        transformHtml: (html, unit) => transformHtmlForVite(html, unit, this),
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',

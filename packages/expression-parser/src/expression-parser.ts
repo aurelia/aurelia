@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  ArrayBindingPattern,
   ArrayLiteralExpression,
   BindingIdentifier,
   CustomExpression,
@@ -29,7 +28,6 @@ import {
   ekAccessMember,
   ekAccessScope,
   ekArrayDestructuring,
-  ekArrayBindingPattern,
   ekObjectBindingPattern,
   ekBindingIdentifier,
   ekObjectDestructuring,
@@ -57,7 +55,6 @@ import {
   createObjectLiteralExpression,
   createTaggedTemplateExpression,
   createBindingIdentifier,
-  createArrayBindingPattern,
   createObjectBindingPattern,
   createForOfStatement,
   createInterpolation as createInterpolationAst,
@@ -605,7 +602,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         result = parseCoverParenthesizedExpressionAndArrowParameterList(expressionType);
         break;
       case Token.OpenBracket:
-        result = $input.search(/\s+of\s+/) > $index ? parseArrayDestructuring() : parseArrayLiteralExpression(expressionType);
+        // Only an iterator declaration is a binding pattern; text elsewhere in the expression is unrelated.
+        result = expressionType === etIsIterator ? parseArrayDestructuring() : parseArrayLiteralExpression(expressionType);
         break;
       case Token.OpenBrace:
         result = parseObjectLiteralExpression(expressionType);
@@ -1329,7 +1327,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
  * ,
  * Elision ,
  */
-function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindingPattern | ArrayLiteralExpression {
+function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayLiteralExpression {
   const _optional = $optional;
 
   nextToken();
@@ -1341,7 +1339,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
         break;
       }
     } else {
-      elements.push(parse(Precedence.Assign, expressionType === etIsIterator ? etNone : expressionType) as IsAssign);
+      elements.push(parse(Precedence.Assign, expressionType) as IsAssign);
       if (consumeOpt(Token.Comma)) {
         if (($currentToken as Token) === Token.CloseBracket) {
           break;
@@ -1355,15 +1353,11 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
   $optional = _optional;
 
   consume(Token.CloseBracket);
-  if (expressionType === etIsIterator) {
-    return createArrayBindingPattern(elements);
-  } else {
-    $assignable = false;
-    return createArrayLiteralExpression(elements);
-  }
+  $assignable = false;
+  return createArrayLiteralExpression(elements);
 }
 
-const allowedForExprKinds: ExpressionKind[] = [ekArrayBindingPattern, ekObjectBindingPattern, ekBindingIdentifier, ekArrayDestructuring, ekObjectDestructuring];
+const allowedForExprKinds: ExpressionKind[] = [ekObjectBindingPattern, ekBindingIdentifier, ekArrayDestructuring, ekObjectDestructuring];
 // Repeat scope lookup gives override-context and Object.prototype properties
 // precedence over binding-context locals. Keep those names out of newly
 // projected object-pattern locals instead of changing scope lookup globally.

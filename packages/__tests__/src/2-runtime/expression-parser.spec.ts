@@ -1477,7 +1477,6 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       [`[a,,b]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a'), dase(2, 'b')], void 0, void 0)],
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ForOfStatements: [string, any][] = [
       ...SimpleForDeclarations.map(([decInput, decExpr]) => [
         ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, createForOfStatement(decExpr, forExpr, -1)])
@@ -1486,6 +1485,30 @@ describe('2-runtime/expression-parser.spec.ts', function () {
         ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, createForOfStatement(decExpr, forExpr, -1)])
       ] as [string, any][]).reduce((a, c) => a.concat(c))
     ];
+
+    for (const [input, expected] of ForOfStatements) {
+      it(input, function () {
+        assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
+      });
+    }
+
+    for (const [declaration, expected] of [...SimpleForDeclarations.slice(1), ...ForDeclarations]) {
+      for (const separator of ['of ', '\tof\n']) {
+        const input = `${declaration}${separator}a`;
+        it(input, function () {
+          assert.deepStrictEqual(parseExpression(input, 'IsIterator'), createForOfStatement(expected, $a, -1));
+        });
+      }
+    }
+
+    for (const declaration of ['[[a]]', '[a = fallback]', '[...rest]']) {
+      for (const separator of [' of ', 'of ']) {
+        const input = `${declaration}${separator}items`;
+        it(`rejects unsupported array binding pattern "${input}"`, function () {
+          verifyResultOrError(input, null, 'AUR0170', 'IsIterator');
+        });
+      }
+    }
 
     for (const [input, expected] of [
       [
@@ -1544,15 +1567,6 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ]) {
       it(`rejects unsupported object binding pattern "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0177', 'IsIterator');
-      });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [input, expected] of SimpleForDeclarations.map(([decInput, decExpr]) => [
-
-    ] as [string, any][]).reduce((a, c) => a.concat(c))) {
-      it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
       });
     }
   });

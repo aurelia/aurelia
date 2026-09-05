@@ -1393,6 +1393,20 @@ describe('2-runtime/ast.spec.ts', function () {
       assert.strictEqual(binding.calls.length, 0);
     });
 
+    it('treats a handler returned by a registry as a free function', function () {
+      const handlers = new Map<string, unknown>();
+      const scope = Scope.create({ handlers, action: 'run' });
+      const invoke = (expression: string) => astEvaluate(parse(expression), scope, { strict: true }, null);
+      assert.throws(() => invoke('handlers.get(action)()'), /AUR0107/);
+      assert.strictEqual(invoke('handlers.get(action)?.()'), void 0);
+      handlers.set('run', 42);
+      assert.throws(() => invoke('handlers.get(action)?.()'), /AUR0107/);
+      let calls = 0;
+      handlers.set('run', function (this: unknown) { ++calls; return this; });
+      assert.strictEqual(invoke('handlers.get(action)()'), void 0);
+      assert.strictEqual(calls, 1);
+    });
+
     // Optional invocation guards the function; optional keyed access guards its receiver.
     // General optional-chain continuation is a separate parser/evaluator contract.
     for (const strict of [false, true]) {

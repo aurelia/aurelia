@@ -5,7 +5,6 @@ import {
   type DestructuringAssignmentExpression,
   type DestructuringAssignmentRestExpression,
   type IsExpressionOrStatement,
-  type IsAssign,
 } from '@aurelia/expression-parser';
 import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction, Constructable } from '@aurelia/kernel';
 import { type IConnectable, type IObservable } from './interfaces';
@@ -120,26 +119,6 @@ export const {
         exitConnectable(connectable);
       }
     }
-  }
-
-  // Dot and keyed calls share tracking and collection observation once their receiver and method are resolved.
-  function callMember(instance: IIndexable, fn: AnyFunction, name: string, args: readonly IsAssign[], s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
-    if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
-      const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
-      observeTrackableMethodDependencies(c, instance, options);
-      const useProxy = options?.deps == null;
-      try {
-        enterConnectable(c);
-        return fn.apply(useProxy ? wrap(instance) : instance, args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));
-      } finally {
-        exitConnectable(c);
-      }
-    }
-    const ret = fn.apply(instance, args.map(a => astEvaluate(a, s, e, c)));
-    if (isArray(instance) && autoObserveArrayMethods.includes(name)) {
-      c?.observeCollection(instance);
-    }
-    return ret;
   }
 
   // eslint-disable-next-line max-lines-per-function
@@ -276,59 +255,69 @@ export const {
         }
         throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
       }
-      case ekCallMember: {
-        const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
-        if (instance == null) {
-          if (e?.strict && !ast.optionalMember) {
-            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
-          }
-        }
-        const fn = instance?.[ast.name];
-        if (fn == null) {
-          if (!ast.optionalCall && e?.strict) {
-            throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
-          }
-          return void 0;
-        }
-        if (!isFunction<AnyFunction>(fn)) {
-          throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
-        }
-        return callMember(instance, fn, ast.name, ast.args, s, e, c);
-      }
+      case ekCallMember:
       case ekCallFunction: {
-        let instance: IIndexable | undefined;
-        let name = '';
-        let func: unknown;
-        if (ast.func.$kind === ekAccessKeyed) {
-          // Resolve the reference once. Binding the extracted function would allocate and hide its tracking metadata.
+        let instance: IIndexable;
+        let name: string;
+        if (ast.$kind === ekCallMember) {
+          instance = astEvaluate(ast.object, s, e, c) as IIndexable;
+          name = ast.name;
+          if (instance == null && e?.strict && !ast.optionalMember) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, name, instance);
+          }
+        } else {
           const access = ast.func;
+          if (access.$kind !== ekAccessKeyed) {
+            // Method dependency tracking requires a receiver; free functions retain their own invocation path.
+            const func = astEvaluate(access, s, e, c);
+            if (isFunction(func)) {
+              return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+            }
+            if (func == null) {
+              if (!ast.optional && e?.strict) {
+                throw createMappedError(ErrorNames.ast_not_a_function);
+              }
+              return void 0;
+            }
+            throw createMappedError(ErrorNames.ast_not_a_function);
+          }
+          // A keyed callee is a reference too. Resolve it once without binding away its tracking metadata.
           instance = astEvaluate(access.object, s, e, c) as IIndexable;
           name = astEvaluate(access.key, s, e, c) as string;
           if (instance == null) {
             if (!access.optional && e?.strict) {
               throw createMappedError(ErrorNames.ast_nullish_keyed_access, name, instance);
             }
-          } else {
-            if (c !== null && !access.accessGlobal) {
-              c.observe(instance, name);
-            }
-            func = instance[name];
+          } else if (c !== null && !access.accessGlobal) {
+            c.observe(instance, name);
           }
-        } else {
-          func = astEvaluate(ast.func, s, e, c);
         }
-        if (isFunction<AnyFunction>(func)) {
-          return instance === void 0
-            ? func(...ast.args.map(a => astEvaluate(a, s, e, c)))
-            : callMember(instance, func, name, ast.args, s, e, c);
-        }
-        if (func == null) {
-          if (!ast.optional && e?.strict) {
-            throw createMappedError(ErrorNames.ast_not_a_function);
-          }
+        const fn = instance?.[name];
+        if (fn == null && (!e?.strict || (ast.$kind === ekCallMember ? ast.optionalCall : ast.optional))) {
           return void 0;
         }
-        throw createMappedError(ErrorNames.ast_not_a_function);
+        if (!isFunction<AnyFunction>(fn)) {
+          throw ast.$kind === ekCallMember
+            ? createMappedError(ErrorNames.ast_name_is_not_a_function, name)
+            : createMappedError(ErrorNames.ast_not_a_function);
+        }
+        // Receiver-aware calls share computed tracking and array observation through the same invocation path.
+        if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
+          const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
+          observeTrackableMethodDependencies(c, instance, options);
+          const useProxy = options?.deps == null;
+          try {
+            enterConnectable(c);
+            return fn.apply(useProxy ? wrap(instance) : instance, ast.args.map(a => useProxy ? wrap(astEvaluate(a, s, e, c)) : astEvaluate(a, s, e, c)));
+          } finally {
+            exitConnectable(c);
+          }
+        }
+        const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
+        if (isArray(instance) && autoObserveArrayMethods.includes(name)) {
+          c?.observeCollection(instance);
+        }
+        return ret;
       }
       case ekArrowFunction: {
         const func = (...args: unknown[]) => {

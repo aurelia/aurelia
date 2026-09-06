@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import {
   createBenchmarkReport,
@@ -90,8 +91,11 @@ void describe('benchmark report', () => {
 
   void it('places the representative workload in every intended profile', () => {
     assert.equal(expectedResultFiles('smoke').filter(file => file.startsWith('repeat-realistic-')).length, 1);
-    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 4);
+    assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 5);
     assert.equal(expectedResultFiles('smoke').includes('repeat-realistic-heap-lifecycle-500.json'), false);
+    assert.equal(expectedResultFiles('smoke').includes('repeat-realistic-refresh-loop-20x1000.json'), false);
+    assert.equal(expectedResultFiles('smoke').includes('binding-dependency-rotation.json'), false);
+    assert.equal(expectedResultFiles('full').includes('binding-dependency-rotation.json'), true);
     assert.deepEqual(expectedResultFiles('master'), expectedResultFiles('full'));
   });
 
@@ -100,7 +104,7 @@ void describe('benchmark report', () => {
     const report = createBenchmarkReport(inputs);
     const afterGc = report.measurements.filter(measurement => measurement.metric.kind === 'used-js-heap-after-gc');
 
-    assert.equal(report.measurements.length, 23);
+    assert.equal(report.measurements.length, 27);
     assert.deepEqual(afterGc.map(measurement => measurement.metric.state), ['live-list', 'post-teardown']);
     assert.deepEqual(afterGc.map(measurement => measurement.metric.unit), ['byte', 'byte']);
     assert.deepEqual(afterGc.map(measurement => measurement.difference.assessment), ['lower', 'lower']);
@@ -164,6 +168,78 @@ void describe('benchmark report', () => {
   });
 });
 
+void describe('focused benchmark reports', () => {
+  void it('reports loop and fresh/cached connection timings with their own boundaries and millisecond units', () => {
+    const report = createBenchmarkReport(fullInputs());
+    const focused = report.measurements.filter(measurement =>
+      measurement.source === 'repeat-realistic-refresh-loop-20x1000.json'
+      || measurement.source === 'binding-dependency-rotation.json',
+    );
+    assert.deepEqual(focused.map(measurement => [measurement.scenario, measurement.metric.measurement.entryName]), [
+      ['realistic keyed refresh loop 20x1000', 'realistic-refresh-loop-20x1000'],
+      ['realistic keyed refresh loop 20x1000', 'realistic-refresh-median-1000'],
+      ['fresh binding dependency rotation 250000', 'dependency-rotation-250000'],
+      ['cached binding dependency rotation 1000000', 'dependency-rotation-cached-1000000'],
+    ]);
+    assert.ok(focused.every(measurement => measurement.metric.unit === 'millisecond'));
+    assert.ok(focused.every(measurement => measurement.difference.assessment === 'faster'));
+
+    const markdown = formatBenchmarkReportMarkdown(report);
+    assert.match(markdown, /Realistic keyed refresh loop 20x1000 \| Median single refresh \| `90\.00ms`/);
+    assert.match(markdown, /Fresh binding dependency rotation 250000 \| Duration/);
+    assert.match(markdown, /Cached binding dependency rotation 1000000 \| Duration/);
+    assert.match(markdown, /20 settled updates after 20 warm-ups/);
+
+    for (const profile of ['full', 'master']) {
+      const inputs = fullInputs();
+      inputs.provenance.comparison.profile = profile;
+      if (profile === 'master') {
+        inputs.provenance.comparison.pullRequest = null;
+        inputs.provenance.comparison.head = null;
+        inputs.provenance.comparison.mergeParentsVerified = false;
+      }
+      const complete = createBenchmarkReport(inputs);
+      if (profile === 'full') assert.equal(validateBenchmarkReport(complete, complete.comparison), complete);
+      assert.equal(complete.measurements.length, 27);
+    }
+  });
+
+  void it('rejects missing, reordered or mislabeled focused timing boundaries', () => {
+    const wrongBoundary = fullInputs();
+    const loop = wrongBoundary.resultDocuments.find(input => input.file === 'repeat-realistic-refresh-loop-20x1000.json');
+    // Even mutually consistent base/candidate metadata must match the authored timing boundary.
+    for (const benchmark of loop.document.benchmarks) {
+      if (benchmark.measurement.name === 'median refresh') {
+        benchmark.measurement.entryName = 'realistic-refresh-loop-20x1000';
+      }
+    }
+    assert.throws(() => createBenchmarkReport(wrongBoundary), /invalid Median single refresh metadata/);
+
+    const reversed = fullInputs();
+    const rotation = reversed.resultDocuments.find(input => input.file === 'binding-dependency-rotation.json');
+    for (const benchmark of rotation.document.benchmarks) {
+      benchmark.name = benchmark.name.startsWith('fresh')
+        ? benchmark.name.replace('fresh binding dependency rotation 250000', 'cached binding dependency rotation 1000000')
+        : benchmark.name.replace('cached binding dependency rotation 1000000', 'fresh binding dependency rotation 250000');
+    }
+    assert.throws(() => createBenchmarkReport(reversed), /unexpected scenario/);
+
+    const missingCached = fullInputs();
+    const freshOnly = missingCached.resultDocuments.find(input => input.file === 'binding-dependency-rotation.json');
+    freshOnly.document.benchmarks = freshOnly.document.benchmarks.slice(0, 2);
+    for (const benchmark of freshOnly.document.benchmarks) benchmark.differences.length = 2;
+    assert.throws(() => createBenchmarkReport(missingCached), /unexpected measurement count/);
+
+    const missing = fullInputs();
+    missing.resultDocuments = missing.resultDocuments.filter(input => input.file !== 'binding-dependency-rotation.json');
+    assert.throws(() => createBenchmarkReport(missing), /result set for full is incomplete/);
+
+    const tampered = createBenchmarkReport(fullInputs());
+    tampered.measurements.find(measurement => measurement.metric.id === 'median-refresh-duration').metric.unit = 'byte';
+    assert.throws(() => validateBenchmarkReport(tampered, tampered.comparison), /invalid metric metadata/);
+  });
+});
+
 function createReport() {
   return createBenchmarkReport(smokeInputs());
 }
@@ -224,9 +300,39 @@ function fullInputs() {
       'realistic mixed reconciliation 1000',
       'realistic-mixed-1000',
     ),
+    timingConfigInput('repeat-realistic-refresh-loop-20x1000.json', 'app-repeat-realistic/refresh-loop.json'),
+    timingConfigInput('binding-dependency-rotation.json', 'app-repeat-realistic/dependency-rotation.json'),
     heapLifecycleInput(),
   ];
   return inputs;
+}
+
+function timingConfigInput(file, configFile) {
+  const config = JSON.parse(readFileSync(new URL(configFile, import.meta.url), 'utf8'));
+  const browser = { name: 'chrome', headless: true, userAgent: 'HeadlessChrome/140.0.0.0' };
+  const measurements = config.benchmarks.flatMap(benchmark => benchmark.expand.flatMap(expansion =>
+    [benchmark.measurement].flat().map(measurement => ({ name: expansion.name, measurement })),
+  ));
+  const benchmarks = measurements.map(({ name, measurement }, index) => {
+    const candidate = name.endsWith('candidate');
+    const differences = Array(measurements.length).fill(null);
+    if (candidate) {
+      const baseIndex = measurements.findIndex(entry =>
+        entry.name === name.replace(/candidate$/, 'base')
+        && entry.measurement.entryName === measurement.entryName,
+      );
+      assert.ok(baseIndex < index && baseIndex >= 0);
+      differences[baseIndex] = rawDifference(-4, -1, -4, -1);
+    }
+    return row(
+      `${name} [${measurement.name}]`,
+      { ...measurement },
+      candidate ? { low: 88, high: 89 } : { low: 90, high: 92 },
+      differences,
+      browser,
+    );
+  });
+  return { file, document: { benchmarks }, sha256: hash('8') };
 }
 
 function provenance() {

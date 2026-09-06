@@ -10,7 +10,14 @@ import {
 
 const shaPattern = /^[0-9a-f]{40}$/;
 const metricDefinitions = {
-  perf: { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', mode: 'performance' },
+  'perf': { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', mode: 'performance' },
+  'median refresh': {
+    id: 'median-refresh-duration',
+    label: 'Median single refresh',
+    kind: 'duration',
+    unit: 'millisecond',
+    mode: 'performance',
+  },
   'used JS heap': {
     id: 'immediate-used-js-heap',
     label: 'Immediate used JS heap',
@@ -60,6 +67,14 @@ const resultContracts = {
   'app-repeat-view-keyed-string.json': { scenario: 'keyed string', entryName: 'keyed-string', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-startup-1000.json': { scenario: 'realistic startup 1000', entryName: 'realistic-startup-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-refresh-1000.json': { scenario: 'realistic keyed refresh 1000', entryName: 'realistic-refresh-1000', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-refresh-loop-20x1000.json': [
+    { scenario: 'realistic keyed refresh loop 20x1000', entryName: 'realistic-refresh-loop-20x1000', metrics: ['perf'] },
+    { scenario: 'realistic keyed refresh loop 20x1000', entryName: 'realistic-refresh-median-1000', metrics: ['median refresh'] },
+  ],
+  'binding-dependency-rotation.json': [
+    { scenario: 'fresh binding dependency rotation 250000', entryName: 'dependency-rotation-250000', metrics: ['perf'] },
+    { scenario: 'cached binding dependency rotation 1000000', entryName: 'dependency-rotation-cached-1000000', metrics: ['perf'] },
+  ],
   'repeat-realistic-mixed-1000.json': { scenario: 'realistic mixed reconciliation 1000', entryName: 'realistic-mixed-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-heap-lifecycle-500.json': {
     scenario: 'realistic heap lifecycle 500',
@@ -87,6 +102,8 @@ const fullFiles = [
   'repeat-realistic-startup-1000.json',
   'repeat-realistic-refresh-1000.json',
   'repeat-realistic-mixed-1000.json',
+  'repeat-realistic-refresh-loop-20x1000.json',
+  'binding-dependency-rotation.json',
   'repeat-realistic-heap-lifecycle-500.json',
 ];
 
@@ -134,16 +151,7 @@ export function validateBenchmarkReport(report, expected) {
     throw new Error('Benchmark report toolchain metadata is invalid.');
   }
 
-  const expectedMeasurements = expectedResultFiles(expected.profile).flatMap(file => {
-    const contract = resultContracts[file];
-    return contract.metrics.map(metric => ({
-      id: `${slug(contract.scenario)}/${metricDefinition(metric).id}/chrome-headless`,
-      source: file,
-      scenario: contract.scenario,
-      metric,
-      entryName: contract.entryName,
-    }));
-  });
+  const expectedMeasurements = expectedResultFiles(expected.profile).flatMap(expectedMeasurementsForFile);
   if (!Array.isArray(report.measurements) || report.measurements.length !== expectedMeasurements.length) {
     throw new Error('Benchmark report has an unexpected measurement count.');
   }
@@ -398,6 +406,15 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
         + 'rows are independent base-to-candidate comparisons, not a live-minus-teardown calculation.',
     );
   }
+  if (report.measurements.some(measurement => measurement.metric.id === 'median-refresh-duration')) {
+    lines.push(
+      '',
+      'The refresh loop measures 20 settled updates after 20 warm-ups. Its duration includes the full loop; '
+        + 'the median row summarizes a typical update within each sample. Dependency rotation isolates '
+        + 'binding work with fresh records and a warmed observer pool. Use the real-DOM refresh rows '
+        + 'alongside these focused measurements when assessing an application-facing improvement.',
+    );
+  }
   const footerLinks = [];
   if (links.circleWorkflow !== undefined) footerLinks.push(`[CircleCI workflow](${links.circleWorkflow})`);
   if (links.artifacts !== undefined) footerLinks.push(`[Artifacts](${links.artifacts})`);
@@ -445,26 +462,42 @@ function validateProvenance(provenance) {
 }
 
 function validateResultContract(file, comparisons) {
-  const contract = resultContracts[file];
-  if (contract === undefined) throw new Error(`No benchmark result contract exists for "${file}".`);
-  if (comparisons.some(comparison => comparison.scenario !== contract.scenario)) {
+  const expected = expectedMeasurementsForFile(file);
+  if (comparisons.length !== expected.length) {
+    throw new Error(`Benchmark result "${file}" contains an unexpected measurement count.`);
+  }
+  if (comparisons.some((comparison, index) => comparison.scenario !== expected[index].scenario)) {
     throw new Error(`Benchmark result "${file}" contains an unexpected scenario.`);
   }
   const metrics = comparisons.map(comparison => measurementLabel(comparison.measurement));
-  if (JSON.stringify(metrics) !== JSON.stringify(contract.metrics)) {
+  if (JSON.stringify(metrics) !== JSON.stringify(expected.map(measurement => measurement.metric))) {
     throw new Error(`Benchmark result "${file}" contains metrics ${metrics.join(', ')}.`);
   }
   for (let index = 0; index < comparisons.length; index++) {
     const measurement = comparisons[index].measurement;
-    const definition = metricDefinition(contract.metrics[index]);
+    const definition = metricDefinition(expected[index].metric);
     if (
       measurement?.mode !== definition.mode
-      || (definition.mode === 'performance' && measurement.entryName !== contract.entryName)
+      || (definition.mode === 'performance' && measurement.entryName !== expected[index].entryName)
       || (definition.mode === 'expression' && measurement.expression !== definition.expression)
     ) {
       throw new Error(`Benchmark result "${file}" has invalid ${definition.label} metadata.`);
     }
   }
+}
+
+function expectedMeasurementsForFile(file) {
+  const contract = resultContracts[file];
+  if (contract === undefined) throw new Error(`No benchmark result contract exists for "${file}".`);
+  // One Tachometer run can compare multiple workloads or timing boundaries. Validate the complete
+  // ordered set, including each entry name, before any candidate-owned result reaches a PR comment.
+  return [contract].flat().flatMap(({ scenario, entryName, metrics }) => metrics.map(metric => ({
+    id: `${slug(scenario)}/${metricDefinition(metric).id}/chrome-headless`,
+    source: file,
+    scenario,
+    metric,
+    entryName,
+  })));
 }
 
 function validateReportMeasurement(measurement, expected) {

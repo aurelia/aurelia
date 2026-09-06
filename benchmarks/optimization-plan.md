@@ -28,7 +28,7 @@ names end in `base` and `candidate`. Select the scenario according to the mechan
 | --- | --- |
 | `app-repeat-realistic/startup.json` | Controller creation, hydration, initial activation, binding creation/bind, initial AST evaluation, and DOM creation. |
 | `app-repeat-realistic/refresh.json` | Keyed Repeat reconciliation, retained binding reevaluation, observer notification, target writes, and settled scheduling. |
-| `app-repeat-realistic/refresh-loop.json` | Local diagnostic: five warm-ups, then total and median latency across 20 keyed refreshes per sample. |
+| `app-repeat-realistic/refresh-loop.json` | Warmed diagnostic: 20 warm-ups, then total and median latency across 20 keyed refreshes per sample; also available in full/master CI. |
 | `app-repeat-realistic/dependency-rotation.json` | Browser-engine isolation of AST evaluation and one-retained/one-replaced observer rotation, with fresh records and a warmed observer pool, without measured DOM work. |
 | `app-repeat-realistic/mixed.json` | Keyed insertion/deletion/movement, controller activation/deactivation, binding bind/unbind, and DOM movement. |
 | `app-repeat-realistic/heap-lifecycle.json` | Live and post-teardown retained heap across controller, binding, observer, and DOM lifecycle. |
@@ -623,8 +623,8 @@ Copy this block for each attempt:
 - Heap summary: immediate post-startup used heap was +1.06 to +1.13 MiB first and +0.52 to +1.22 MiB on
   confirmation. This measurement is taken without forced GC and may reflect the faster candidate reaching the
   measurement sooner; validate retained live-list and post-teardown heap with `heap-lifecycle.json`.
-- Decision: retain the reproducible startup-time improvement. The dedicated forced-GC lifecycle result below rules
-  out a retained-memory regression.
+- Decision: retain the reproducible startup-time improvement. The dedicated forced-GC lifecycle result below found
+  no clear retained-memory difference at its measured precision.
 - Follow-up: expand the fast lifecycle guard to interpolation parts only if profiling supports it.
 
 ### B1 / forced-GC validation
@@ -640,8 +640,8 @@ Copy this block for each attempt:
   finalized B1 baseline, so there is no clear retained-heap change.
 - Post-teardown heap summary: candidate without B1 was -0.07 to +0.06 MiB (-2.58% to +2.23%) relative to the
   finalized B1 baseline, so there is no clear retained-heap change after teardown.
-- Decision: adopted. Forced GC rules out the apparent immediate-startup heap increase as retained memory, while
-  the startup benchmark's reproducible time improvement remains. The fast dispatch explicitly retains lifecycle
+- Decision: adopted. Forced GC found no clear retained-memory increase, and the startup benchmark's reproducible
+  time improvement remains. The fast dispatch explicitly retains lifecycle
   binding for `CustomExpression`, `ForOfStatement`, value converters, and binding behaviors.
 
 ### C2 / attempt 1

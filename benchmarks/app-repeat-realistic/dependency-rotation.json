@@ -19,11 +19,11 @@
       },
       "expand": [
         {
-          "name": "binding dependency rotation 250000 base",
+          "name": "fresh binding dependency rotation 250000 base",
           "url": "dependencyRotation250000.html?variant=base"
         },
         {
-          "name": "binding dependency rotation 250000 candidate",
+          "name": "fresh binding dependency rotation 250000 candidate",
           "url": "dependencyRotation250000.html?variant=candidate"
         }
       ]
@@ -39,7 +39,7 @@
         ]
       },
       "measurement": {
-        "name": "cached perf",
+        "name": "perf",
         "mode": "performance",
         "entryName": "dependency-rotation-cached-1000000"
       },

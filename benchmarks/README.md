@@ -32,7 +32,7 @@ set for their profile.
 | Profile | Trigger | Purpose |
 | --- | --- | --- |
 | `smoke` | `/ci full` | A stable subset, including the realistic keyed refresh workload. |
-| `full` | `/ci bench` | The complete PR comparison, including startup, reconciliation, and after-GC heap scenarios. |
+| `full` | `/ci bench` | The complete PR comparison, including warmed refresh, dependency rotation, and after-GC heap scenarios. |
 | `master` | Push to `master` | The complete suite against the current commit's first parent. |
 
 PR reporting currently supports same-repository PRs targeting `master`. The trusted GitHub workflow updates one
@@ -65,8 +65,13 @@ byte-for-byte identical.
 
 Completed results are written to `benchmarks/live-results/results/latest.json`, with previous completed runs appended to
 `history.jsonl`. `status.json` reports whether the runner is active, complete, or failed. Use `--bench-output <folder>`
-to select another output directory. Each Tachometer run copies its base and candidate bundles to an immutable active
-snapshot first, so an edit made during sampling is deferred to the next run instead of mixing builds.
+to select another output directory. Timing and CPU profiling use the outputs of the same completed Rollup build. A
+framework rebuild queues the latest completed build for the next run. Editing the fixture or its shared browser
+helpers cancels the current run and resets the baseline; the previous complete result is preserved.
+
+The result's `live` field records the session, bundle/profile hashes, fixture and config hashes, and selected settings.
+The paired profile summary contains the same metadata. This identifies local experiments without treating a live
+workspace build as an exact-revision release comparison.
 
 Changing the fixture resets the session baseline automatically. Restart the command when an explicit new baseline is
 preferred. Live results are intended for optimization feedback; confirm promising changes with the exact-revision
@@ -91,7 +96,8 @@ real-DOM refreshes. Override either count with `--profile-iterations <count>`.
 The latest raw Chrome profile is written to
 `benchmarks/live-results/profiles/<mode>-latest.cpuprofile`. The corresponding
 `<mode>-summary-latest.json` ranks frames by self time and includes inclusive time, sample count, source location,
-and a framework-only ranking. `status.json` reports capture state. Use `--profile-output <folder>` to select another
+and a ranking of frames in the benchmark bundle. That bundle includes both framework and fixture code. `status.json`
+reports capture state. Use `--profile-output <folder>` to select another
 directory. Chrome DevTools can open the `.cpuprofile` directly.
 
 The profiler identifies expensive functions; it is not comparative performance evidence. After changing a measured
@@ -103,7 +109,7 @@ npm run dev -- --bench app-repeat-realistic/refresh.json --bench-samples 10 --pr
 ```
 
 When a likely refresh optimization is smaller than the confidence interval of the single-refresh scenario, use the
-local diagnostic loop. It performs five warm-up refreshes, then reports both total time and the median of 20
+warmed diagnostic loop. It performs 20 warm-up refreshes, then reports both total time and the median of 20
 individually timed settled refreshes per Tachometer sample. The median isolates typical hot-path latency while total
 time retains GC and allocation costs; record creation and correctness assertions remain outside both intervals:
 
@@ -111,8 +117,8 @@ time retains GC and allocation costs; record creation and correctness assertions
 npm run dev -- --bench app-repeat-realistic/refresh-loop.json --bench-samples 20 --profile refresh --profile-iterations 100
 ```
 
-This loop is intended to distinguish small hot-path changes locally. Keep `refresh.json` as the authoritative
-single-interaction result and confirm any candidate there before adoption.
+The loop also runs in the full and master CI profiles. Keep `refresh.json` as the single-interaction result and use
+the loop to investigate smaller hot-path changes.
 
 For changes to AST dependency connection, observer lookup, or stale subscription rotation, remove DOM-write noise
 with the focused browser-engine scenario:
@@ -147,6 +153,8 @@ Run an individual scenario after preparing `results/variants`:
 ```sh
 npm run bench:realistic-refresh
 npm run bench:realistic-heap500
+npm run bench:realistic-refresh-loop
+npm run bench:dependency-rotation
 ```
 
 `npm run bench` is a convenience batch of common local scenarios. It is not the formal `full` profile. Once every
@@ -212,9 +220,12 @@ profile.
 the raw Tachometer JSON, and adds Aurelia's unit-aware compact summary.
 
 On Windows, Tachometer 0.7.1's public CLI invokes `npm.cmd` through `execFile`. That path fails with `spawn EINVAL` on
-the supported Node 22 runtime and on Node 24. The small wrapper keeps local Windows runs usable without changing
-benchmark semantics. It imports private Tachometer modules, so the dependency stays exactly pinned. Validate the
-runner on Windows and CI before changing Tachometer or replacing the wrapper.
+the supported Node 22 runtime and on Node 24. The wrapper also owns browser-session cleanup on success, failure, and
+cancellation. The live loop calls the same runner directly, so stopping a measurement can close its browser and
+server before starting another one. Sampling and statistics remain Tachometer's implementation.
+
+These integrations use private Tachometer modules, so the dependency stays exactly pinned. Validate the runner on
+Windows and CI before upgrading or replacing it.
 
 The exact `chromedriver` npm dependency satisfies Tachometer's module check. Repository installs disable dependency
 scripts, so this package does not supply the executable. CircleCI installs a ChromeDriver matched to its Chrome build;

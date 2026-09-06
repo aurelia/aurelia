@@ -47,7 +47,6 @@ const medianRefreshDuration = (
   refreshDurations[refreshCount / 2 - 1]
   + refreshDurations[refreshCount / 2]
 ) / 2;
-performance.measure('realistic-refresh-median-1000', { start: 0, duration: medianRefreshDuration });
 
 const after = assertRealisticRows(host, nextItems, CustomElement);
 for (const item of nextItems) {
@@ -56,6 +55,8 @@ for (const item of nextItems) {
   }
 }
 assertRealisticOpenEvent(after.hosts[0], after.viewModels[nextItems[0].id]);
+// Publish both timing boundaries only after this sample has passed its correctness checks.
+performance.measure('realistic-refresh-median-1000', { start: 0, duration: medianRefreshDuration });
 publishMeasurement(
   'realistic-refresh-loop-20x1000',
   'realistic-refresh-loop-start',

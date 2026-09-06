@@ -90,7 +90,9 @@ export const {
   const ekCustom = 'Custom';
   const getContext = Scope.getContext;
 
-  function isOptionalAncestorMissing(scope: Scope, ancestor: number, optionalAncestor: number | undefined): boolean {
+  // A failed strict lookup can return undefined when `?.` guards the missing scope.
+  // `$parent?.$parent.name` still requires the second parent when the first exists.
+  function isMissingScopeGuarded(scope: Scope, ancestor: number, optionalAncestor: number | undefined): boolean {
     if (optionalAncestor === void 0) {
       return false;
     }
@@ -163,7 +165,7 @@ export const {
       case ekAccessScope: {
         const obj = getContext(s, ast.name, ast.ancestor);
         if (obj == null) {
-          if (e?.strict && !isOptionalAncestorMissing(s, ast.ancestor, ast.optionalAncestor)) {
+          if (e?.strict && !isMissingScopeGuarded(s, ast.ancestor, ast.optionalAncestor)) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, obj);
           }
           return void 0;
@@ -247,7 +249,7 @@ export const {
       case ekCallScope: {
         const context = getContext(s, ast.name, ast.ancestor)!;
         if (context == null) {
-          if (e?.strict && !isOptionalAncestorMissing(s, ast.ancestor, ast.optionalAncestor)) {
+          if (e?.strict && !isMissingScopeGuarded(s, ast.ancestor, ast.optionalAncestor)) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, context);
           }
           return void 0;

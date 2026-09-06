@@ -642,6 +642,21 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.strictEqual(replacementObserver.subs.count, 0, 'application teardown releases the list');
   });
 
+  it('treats words inside an array literal as text rather than a repeat declaration', async function () {
+    const { component, assertText, tearDown } = await createFixture(
+      '${["part of group", label].join(": ")}',
+      class { public label = 'a'; },
+    ).started;
+    try {
+      assertText('part of group: a');
+      component.label = 'b';
+      await tasksSettled();
+      assertText('part of group: b');
+    } finally {
+      await tearDown();
+    }
+  });
+
   it('works with strict mode', async function () {
     const { assertText, component } = createFixture(
       'hey ${id}',

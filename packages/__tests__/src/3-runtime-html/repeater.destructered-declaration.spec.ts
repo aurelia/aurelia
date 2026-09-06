@@ -34,6 +34,27 @@ import {
 } from '../validation/_test-resources.js';
 
 describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function () {
+  it('supports compact tuple declarations with holes and a nested array literal as the iterable', async function () {
+    const { component, assertText, tearDown } = await createFixture(
+      '<span repeat.for="[key,,value,]of[[label,0,count]]">${key}:${value}</span>',
+      class {
+        public label = 'a';
+        public count = 1;
+      },
+    ).started;
+    try {
+      assertText('a:1');
+      component.count = 2;
+      await tasksSettled();
+      assertText('a:2');
+      component.label = 'b';
+      await tasksSettled();
+      assertText('b:2');
+    } finally {
+      await tearDown();
+    }
+  });
+
   interface TestSetupContext<TApp> {
     template: string;
     registrations: any[];
@@ -78,11 +99,11 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
     assert.html.innerEqual(ctx.host, expectedHtml);
   }
 
-  {
+  for (const separator of [' of ', 'of ']) {
     class App {
       public map: Map<string, number> = new Map<string, number>([['a', 1], ['b', 2], ['c', 3]]);
     }
-    $it('[k,v] of Map<string, number>', async function (ctx: TestExecutionContext<App>) {
+    $it(`[k,v]${separator}Map<string, number>`, async function (ctx: TestExecutionContext<App>) {
       let expected: string;
       assert.html.innerEqual(ctx.host, expected = '<div>a - 1</div><div>b - 2</div><div>c - 3</div>');
       let map = ctx.app.map;
@@ -94,7 +115,7 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
       await changeAndAssert(ctx, () => map.set('d', 4), `${expected}<div>d - 4</div>`);
       await changeAndAssert(ctx, () => map.set('d', 44), `${expected}<div>d - 44</div>`);
       await changeAndAssert(ctx, () => map.delete('d'), expected);
-    }, { app: App, template: `<div repeat.for="[k,v] of map">\${k} - \${v}</div>` });
+    }, { app: App, template: `<div repeat.for="[k,v]${separator}map">\${k} - \${v}</div>` });
   }
 
   {

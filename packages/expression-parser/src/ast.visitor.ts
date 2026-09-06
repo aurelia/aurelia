@@ -176,11 +176,7 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitAccessScope(expr: AccessScopeExpression): void {
-    let i = expr.ancestor;
-    while (i--) {
-      this.text += '$parent.';
-    }
-    this.text += expr.name;
+    this.writeScope(expr);
   }
 
   public visitArrayLiteral(expr: ArrayLiteralExpression): void {
@@ -256,12 +252,16 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitCallScope(expr: CallScopeExpression): void {
-    let i = expr.ancestor;
-    while (i--) {
-      this.text += '$parent.';
-    }
-    this.text += `${expr.name}${expr.optional ? '?.' : ''}`;
+    this.writeScope(expr);
+    this.text += expr.optional ? '?.' : '';
     this.writeArgs(expr.args);
+  }
+
+  private writeScope(expr: AccessScopeExpression | CallScopeExpression): void {
+    for (let i = 1; i <= expr.ancestor; ++i) {
+      this.text += `$parent${i === expr.optionalAncestor ? '?.' : '.'}`;
+    }
+    this.text += expr.name;
   }
 
   public visitTemplate(expr: TemplateExpression): void {

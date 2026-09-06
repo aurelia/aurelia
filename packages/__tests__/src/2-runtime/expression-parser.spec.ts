@@ -229,10 +229,8 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ...AccessScopeList,
     ...SimpleLiteralList,
     ...SimpleParenthesizedList,
-    // todo: this line adds 3.904 tests, 1.278 of which fail due to specific early errors and restriction in complex variadic expressions, nested tagged templates, etc.
-    // Most of the work in correcting this is to put the correct test cases from "passing" to "failing" and vice versa, that is, the parser itself works correctly but the tests are too generic.
-    // We will need a fairly significant review of the tests to make all edge cases pass.
-    // Examples include things like this: new new a()`${a}`&a:new new a()`${a}`:new new a()`${a}`
+    // Constructor expressions need separate precedence expectations: `new a.b` constructs a.b,
+    // whereas `(new a).b` reads the instance's property. Cover them in the focused new-expression cases.
     // ...SimpleNewList
   ];
   // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]
@@ -579,6 +577,28 @@ describe('2-runtime/expression-parser.spec.ts', function () {
         for (const [input, expected] of SimpleNewList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, exprType, name);
+          });
+        }
+
+        for (const [input, withArguments] of [
+          ['collect(new a, b)', 'collect(new a(), b)'],
+          ['[new a]', '[new a()]'],
+          ['[new a, b]', '[new a(), b]'],
+          ['{entry: new a}', '{entry: new a()}'],
+          ['a ? new b : c', 'a ? new b() : c'],
+          ['(new a).b', '(new a()).b'],
+          ['new a < b', 'new a() < b'],
+          ['new a instanceof b', 'new a() instanceof b'],
+          ['new a | b', 'new a() | b'],
+        ]) {
+          it(`preserves the surrounding expression in ${input}`, function () {
+            verifyResultOrError(input, parseExpression(withArguments, 'IsProperty'), null, exprType, name);
+          });
+        }
+
+        for (const input of ['new a extra', 'new a +', 'new a )']) {
+          it(`rejects the malformed constructor tail in ${input}`, function () {
+            assert.throws(() => parseExpression(input, exprType));
           });
         }
       });
@@ -1477,7 +1497,6 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       [`[a,,b]`,                         createDestructuringAssignmentExpression('ArrayDestructuring', [dase(0, 'a'), dase(2, 'b')], void 0, void 0)],
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ForOfStatements: [string, any][] = [
       ...SimpleForDeclarations.map(([decInput, decExpr]) => [
         ...SimpleIsBindingBehaviorList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, createForOfStatement(decExpr, forExpr, -1)])
@@ -1486,6 +1505,30 @@ describe('2-runtime/expression-parser.spec.ts', function () {
         ...AccessScopeList.map(([forInput, forExpr]) => [`${decInput} of ${forInput}`, createForOfStatement(decExpr, forExpr, -1)])
       ] as [string, any][]).reduce((a, c) => a.concat(c))
     ];
+
+    for (const [input, expected] of ForOfStatements) {
+      it(input, function () {
+        assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
+      });
+    }
+
+    for (const [declaration, expected] of [...SimpleForDeclarations.slice(1), ...ForDeclarations]) {
+      for (const separator of ['of ', '\tof\n']) {
+        const input = `${declaration}${separator}a`;
+        it(input, function () {
+          assert.deepStrictEqual(parseExpression(input, 'IsIterator'), createForOfStatement(expected, $a, -1));
+        });
+      }
+    }
+
+    for (const declaration of ['[[a]]', '[a = fallback]', '[...rest]']) {
+      for (const separator of [' of ', 'of ']) {
+        const input = `${declaration}${separator}items`;
+        it(`rejects unsupported array binding pattern "${input}"`, function () {
+          verifyResultOrError(input, null, 'AUR0170', 'IsIterator');
+        });
+      }
+    }
 
     for (const [input, expected] of [
       [
@@ -1544,15 +1587,6 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ]) {
       it(`rejects unsupported object binding pattern "${input}"`, function () {
         verifyResultOrError(input, null, 'AUR0177', 'IsIterator');
-      });
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [input, expected] of SimpleForDeclarations.map(([decInput, decExpr]) => [
-
-    ] as [string, any][]).reduce((a, c) => a.concat(c))) {
-      it(input, function () {
-        assert.deepStrictEqual(parseExpression(input, 'IsIterator'), expected);
       });
     }
   });

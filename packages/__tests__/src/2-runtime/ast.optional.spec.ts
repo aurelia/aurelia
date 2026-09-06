@@ -1,8 +1,214 @@
 import { Constructable } from '@aurelia/kernel';
+import { ExpressionParser, Unparser, createAccessScopeExpression, createCallScopeExpression } from '@aurelia/expression-parser';
+import { Scope, astEvaluate, computed, tasksSettled } from '@aurelia/runtime';
 import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/ast.optional.spec.ts', function () {
+
+  for (const mode of ['auto', 'scoped']) {
+    it(`uses the local fallback when a composed view has no parent scope (${mode})`, async function () {
+      class Details {
+        public title = 'local';
+        @computed('title')
+        public format() { return `[${this.title}]`; }
+      }
+      const { assertText, component, tearDown } = await createFixture(
+        '<au-compose template.bind="view" component.bind="details" scope-behavior.bind="mode"></au-compose>',
+        class {
+          public mode = mode;
+          public title = 'outer';
+          public details = new Details();
+          public view = '<span>${$parent?.title ?? title}</span><strong>${$parent?.format() ?? format()}</strong>';
+          @computed('title')
+          public format() { return `[${this.title}]`; }
+        },
+      ).started;
+      try {
+        assertText(mode === 'auto' ? 'outer[outer]' : 'local[local]');
+        component.title = 'updated outer';
+        component.details.title = 'updated local';
+        await tasksSettled();
+        assertText(mode === 'auto' ? 'updated outer[updated outer]' : 'updated local[updated local]');
+      } finally {
+        await tearDown();
+      }
+    });
+  }
+
+  describe('optional named scope lookup', function () {
+    const parser = new ExpressionParser();
+    const parse = (text: string) => parser.parse(text, 'IsProperty');
+
+    it('uses the local fallback in a strict root template', async function () {
+      const { assertText, component, tearDown } = createFixture
+        .html('${$parent?.label ?? label}')
+        .component({ label: 'local' }, { strict: true })
+        .build();
+      try {
+        assertText('local');
+        component.label = 'updated';
+        await tasksSettled();
+        assertText('updated');
+      } finally {
+        await tearDown();
+      }
+    });
+
+    // Named `$parent` access selects an exact scope and includes its override context.
+    // A normal AccessMember(AccessThis) replacement would silently lose repeat and let locals.
+    it('retains parent repeat metadata as rows are reordered', async function () {
+      const { assertText, component, tearDown } = createFixture(
+        '<div repeat.for="group of groups"><span repeat.for="value of group">${$parent?.$index}:${$index}:${value};</span></div>',
+        { groups: [['a', 'b'], ['c']] },
+      );
+      try {
+        assertText('0:0:a;0:1:b;1:0:c;');
+        component.groups.reverse();
+        await tasksSettled();
+        assertText('0:0:c;1:0:a;1:1:b;');
+      } finally {
+        await tearDown();
+      }
+    });
+
+    const ancestorCases = [
+      { text: '$parent.$parent.label', guard: void 0 },
+      { text: '$parent?.$parent.label', guard: 1 },
+      { text: '$parent.$parent?.label', guard: 2 },
+      { text: '$parent?.$parent?.label', guard: 2 },
+      { text: '($parent?.$parent).label', guard: void 0 },
+    ];
+    for (const { text, guard } of ancestorCases) {
+      it(`retains the effective guard and round-trips ${text}`, function () {
+        const expression = parse(text);
+        assert.deepStrictEqual(expression, createAccessScopeExpression('label', 2, guard));
+        assert.deepStrictEqual(parse(Unparser.unparse(expression)), expression);
+      });
+      for (const strict of [false, true]) {
+        for (const depth of [0, 1, 2]) {
+          it(`evaluates ${text} with ${depth} ancestors (strict=${strict})`, function () {
+            let scope = Scope.create({ label: 'target' });
+            for (let i = 0; i < depth; ++i) {
+              scope = Scope.fromParent(scope, {});
+            }
+            const evaluate = () => astEvaluate(parse(text), scope, { strict }, null);
+            if (strict && depth < 2 && (guard === void 0 || guard <= depth)) {
+              assert.throws(evaluate, /AUR0114/);
+            } else {
+              assert.strictEqual(evaluate(), depth === 2 ? 'target' : void 0);
+            }
+          });
+        }
+      }
+    }
+
+    it('preserves ordinary AST shapes and optional current-scope access', function () {
+      assert.deepStrictEqual(parse('label'), { $kind: 'AccessScope', name: 'label', ancestor: 0 });
+      assert.deepStrictEqual(parse('run()'), { $kind: 'CallScope', name: 'run', ancestor: 0, args: [], optional: false });
+      for (const [text, implicit] of [
+        ['$this?.label', 'label'],
+        ['$this?.run()', 'run()'],
+        ['$this?.run?.()', 'run?.()'],
+      ]) {
+        const expression = parse(text);
+        assert.deepStrictEqual(expression, parse(implicit));
+        assert.deepStrictEqual(parse(Unparser.unparse(expression)), expression);
+      }
+    });
+
+    it('uses forgiving scope access when no evaluator is supplied', function () {
+      const scope = Scope.create({});
+      for (const text of ['$parent.label', '$parent?.label', '$parent?.run()']) {
+        assert.strictEqual(astEvaluate(parse(text), scope, null, null), void 0);
+      }
+    });
+
+    it('selects the exact ancestor and preserves override-context precedence across boundaries', function () {
+      const outer = Scope.create({ label: 'outer' });
+      const boundary = Scope.create({ label: 'component' }, { label: 'local' }, true);
+      boundary.parent = outer;
+      const scope = Scope.fromParent(boundary, {});
+      assert.strictEqual(astEvaluate(parse('$parent?.label'), scope, { strict: true }, null), 'local');
+      delete boundary.overrideContext.label;
+      assert.strictEqual(astEvaluate(parse('$parent?.label'), scope, { strict: true }, null), 'component');
+      delete boundary.bindingContext.label;
+      assert.strictEqual(astEvaluate(parse('$parent?.label'), scope, { strict: true }, null), void 0);
+      assert.strictEqual(astEvaluate(parse('$this?.label'), scope, { strict: true }, null), void 0);
+      assert.strictEqual(astEvaluate(parse('$parent.$parent?.label'), scope, { strict: true }, null), 'outer');
+    });
+
+    it('accounts for the function scope introduced by a lambda', function () {
+      const expression = parse('(value => $parent?.label ?? value)("fallback")');
+      assert.strictEqual(astEvaluate(expression, Scope.create({}), { strict: true }, null), 'fallback');
+      const scope = Scope.fromParent(Scope.create({ label: 'outer' }), {});
+      assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'outer');
+    });
+
+    const callCases = [
+      { text: '$parent?.run()', guard: 1, optional: false },
+      { text: '$parent.run?.()', guard: void 0, optional: true },
+      { text: '$parent?.run?.()', guard: 1, optional: true },
+      { text: '($parent?.run)()', guard: void 0, optional: false },
+      { text: '($parent?.run)?.()', guard: 1, optional: true },
+    ];
+    for (const { text, guard, optional } of callCases) {
+      it(`keeps receiver and callee guards independent for ${text}`, function () {
+        const expression = parse(text);
+        assert.deepStrictEqual(expression, createCallScopeExpression('run', [], 1, optional, guard));
+        assert.deepStrictEqual(parse(Unparser.unparse(expression)), expression);
+        const withoutParent = Scope.create({});
+        const evaluate = (scope: Scope) => astEvaluate(expression, scope, { strict: true }, null);
+        if (guard === void 0) {
+          assert.throws(() => evaluate(withoutParent), /AUR0114/);
+        } else {
+          assert.strictEqual(evaluate(withoutParent), void 0);
+        }
+        const parent = Scope.create({ run: null });
+        const scope = Scope.fromParent(parent, {});
+        if (optional) {
+          assert.strictEqual(evaluate(scope), void 0);
+        } else {
+          assert.throws(() => evaluate(scope), /AUR0111/);
+        }
+        parent.bindingContext.run = 1;
+        assert.throws(() => evaluate(scope), /AUR0111/);
+      });
+    }
+
+    it('skips arguments for an absent receiver and binds calls to the chosen override context', function () {
+      let argumentsEvaluated = 0;
+      const child = { argument() { ++argumentsEvaluated; return 'argument'; } };
+      const expression = parse('$parent?.run(argument())');
+      assert.strictEqual(astEvaluate(expression, Scope.create(child), { strict: true }, null), void 0);
+      assert.strictEqual(argumentsEvaluated, 0);
+      const override = { label: 'local', run(value: string) { return `${this.label}:${value}`; } };
+      const scope = Scope.fromParent(Scope.create({ label: 'component' }, override), child);
+      assert.strictEqual(astEvaluate(expression, scope, { strict: true }, null), 'local:argument');
+      assert.strictEqual(argumentsEvaluated, 1);
+      const bound = astEvaluate(parse('$parent?.run'), scope, { strict: true, boundFn: true }, null) as (value: string) => string;
+      assert.strictEqual(bound('bound'), 'local:bound');
+    });
+
+    it('does not let an optional function hide a missing unguarded ancestor', function () {
+      const expression = parse('$parent?.$parent.run?.()');
+      assert.strictEqual(astEvaluate(expression, Scope.create({}), { strict: true }, null), void 0);
+      const scope = Scope.fromParent(Scope.create({}), {});
+      assert.throws(() => astEvaluate(expression, scope, { strict: true }, null), /AUR0114/);
+      assert.strictEqual(astEvaluate(expression, scope, { strict: false }, null), void 0);
+    });
+
+    it('stops checking an earlier guard when its scope path runs out', function () {
+      const expression = parse('$parent.$parent?.$parent.label');
+      assert.strictEqual(astEvaluate(expression, Scope.create({}), { strict: true }, null), void 0);
+    });
+
+    for (const text of ['$parent?.label = 1', '($parent?.label) = 1', '$this?.label = 1', '$parent?.$parent.label = 1']) {
+      it(`rejects assignment through ${text}`, function () {
+        assert.throws(() => parse(text));
+      });
+    }
+  });
 
   describe('non-strict mode', function () {
     it('[text] does not throw on access member', function () {

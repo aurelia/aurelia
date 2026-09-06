@@ -65,8 +65,8 @@ export class Deserializer implements IExpressionHydrator {
         return AST.createAccessBoundaryExpression();
       }
       case ASTExpressionTypes.AccessScopeExpression: {
-        const expr: Pick<AST.AccessScopeExpression, 'name' | 'ancestor'> = raw;
-        return AST.createAccessScopeExpression(expr.name, expr.ancestor);
+        const expr: Pick<AST.AccessScopeExpression, 'name' | 'ancestor' | 'optionalAncestor'> = raw;
+        return AST.createAccessScopeExpression(expr.name, expr.ancestor, expr.optionalAncestor);
       }
       case ASTExpressionTypes.ArrayLiteralExpression: {
         const expr: Pick<AST.ArrayLiteralExpression, 'elements'> = raw;
@@ -89,8 +89,8 @@ export class Deserializer implements IExpressionHydrator {
         return AST.createCallMemberExpression(this.hydrate(expr.object), expr.name, this.hydrate(expr.args));
       }
       case ASTExpressionTypes.CallScopeExpression: {
-        const expr: Pick<AST.CallScopeExpression, 'name' | 'args' | 'ancestor'> = raw;
-        return AST.createCallScopeExpression(expr.name, this.hydrate(expr.args), expr.ancestor);
+        const expr: Pick<AST.CallScopeExpression, 'name' | 'args' | 'ancestor' | 'optional' | 'optionalAncestor'> = raw;
+        return AST.createCallScopeExpression(expr.name, this.hydrate(expr.args), expr.ancestor, expr.optional, expr.optionalAncestor);
       }
       case ASTExpressionTypes.TemplateExpression: {
         const expr: Pick<AST.TemplateExpression, 'cooked' | 'expressions'> = raw;
@@ -204,7 +204,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.AccessBoundaryExpression}"}`;
   }
   public visitAccessScope(expr: AST.AccessScopeExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}${expr.optionalAncestor === void 0 ? '' : `,"optionalAncestor":${expr.optionalAncestor}`}}`;
   }
   public visitArrayLiteral(expr: AST.ArrayLiteralExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.ArrayLiteralExpression}","elements":${this.serializeExpressions(expr.elements)}}`;
@@ -222,7 +222,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.CallMemberExpression}","name":"${expr.name}","object":${astVisit(expr.object, this)},"args":${this.serializeExpressions(expr.args)}}`;
   }
   public visitCallScope(expr: AST.CallScopeExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.CallScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.CallScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor},"args":${this.serializeExpressions(expr.args)}${expr.optional ? ',"optional":true' : ''}${expr.optionalAncestor === void 0 ? '' : `,"optionalAncestor":${expr.optionalAncestor}`}}`;
   }
   public visitTemplate(expr: AST.TemplateExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.TemplateExpression}","cooked":${serializePrimitives(expr.cooked)},"expressions":${this.serializeExpressions(expr.expressions)}}`;

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 import {
-  ArrayBindingPattern,
   ArrayLiteralExpression,
   BindingIdentifier,
   CustomExpression,
@@ -29,7 +28,6 @@ import {
   ekAccessMember,
   ekAccessScope,
   ekArrayDestructuring,
-  ekArrayBindingPattern,
   ekObjectBindingPattern,
   ekBindingIdentifier,
   ekObjectDestructuring,
@@ -57,7 +55,6 @@ import {
   createObjectLiteralExpression,
   createTaggedTemplateExpression,
   createBindingIdentifier,
-  createArrayBindingPattern,
   createObjectBindingPattern,
   createForOfStatement,
   createInterpolation as createInterpolationAst,
@@ -456,6 +453,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   $optional = false;
   $accessGlobal = Precedence.LeftHandSide > minPrecedence;
   let optionalThisTail = false;
+  let optionalAncestor: number | undefined;
   let result = void 0 as unknown as IsExpressionOrStatement;
   let ancestor = 0;
 
@@ -533,6 +531,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
               throw expectedIdentifier();
             case Token.QuestionDot:
               $optional = true;
+              optionalAncestor = ancestor;
               nextToken();
               if (($currentToken & Token.IdentifierName) === 0) {
                 result = ancestor === 0 ? $this : ancestor === 1 ? $parent : createAccessThisExpression(ancestor);
@@ -558,7 +557,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         } else if ($accessGlobal && id === 'import') {
           throw unexpectedImportKeyword();
         } else {
-          result = createAccessScopeExpression(id, ancestor);
+          result = createAccessScopeExpression(id, ancestor, optionalAncestor);
         }
         $assignable = !$optional;
         nextToken();
@@ -605,7 +604,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         result = parseCoverParenthesizedExpressionAndArrowParameterList(expressionType);
         break;
       case Token.OpenBracket:
-        result = $input.search(/\s+of\s+/) > $index ? parseArrayDestructuring() : parseArrayLiteralExpression(expressionType);
+        // Only an iterator declaration is a binding pattern; text elsewhere in the expression is unrelated.
+        result = expressionType === etIsIterator ? parseArrayDestructuring() : parseArrayLiteralExpression(expressionType);
         break;
       case Token.OpenBrace:
         result = parseObjectLiteralExpression(expressionType);
@@ -639,8 +639,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         if (($currentToken as Token) === Token.OpenParen) {
           args = parseArguments();
         } else {
+          // The next token belongs to the enclosing expression, e.g. ')' in `add(new Item)`.
           args = [];
-          nextToken();
         }
         result = createNewExpression(callee, args);
         $assignable = false;
@@ -684,7 +684,8 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
           }
 
           if ($currentToken & Token.IdentifierName) {
-            result = createAccessScopeExpression($tokenValue as string, result.ancestor);
+            // The current scope always exists, so `$this?.name` keeps the ordinary named-access shape.
+            result = createAccessScopeExpression($tokenValue as string, result.ancestor, result.ancestor === 0 ? void 0 : result.ancestor);
             nextToken();
           } else if (($currentToken as Token) === Token.OpenParen) {
             result = createCallFunctionExpression(result as IsLeftHandSide, parseArguments(), true);
@@ -767,7 +768,9 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             return result as any;
           }
           if (result.$kind === ekAccessScope) {
-            result = createCallScopeExpression(result.name, parseArguments(), result.ancestor, false);
+            // Parentheses end the receiver's optional chain: `(scope?.method)()` still attempts the call.
+            const callOptionalAncestor = $optional ? result.optionalAncestor : void 0;
+            result = createCallScopeExpression(result.name, parseArguments(), result.ancestor, false, callOptionalAncestor);
           } else if (result.$kind === ekAccessMember) {
             result = createCallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
           } else if (result.$kind === ekAccessGlobal) {
@@ -1056,7 +1059,7 @@ function parseOptionalChainLHS(lhs: IsLeftHandSide) {
 
   if (($currentToken as Token) === Token.OpenParen) {
     if (lhs.$kind === ekAccessScope) {
-      return createCallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true);
+      return createCallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true, lhs.optionalAncestor);
     } else if (lhs.$kind === ekAccessMember) {
       return createCallMemberExpression(lhs.object, lhs.name, parseArguments(), lhs.optional, true);
     } else {
@@ -1329,7 +1332,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
  * ,
  * Elision ,
  */
-function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindingPattern | ArrayLiteralExpression {
+function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayLiteralExpression {
   const _optional = $optional;
 
   nextToken();
@@ -1341,7 +1344,7 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
         break;
       }
     } else {
-      elements.push(parse(Precedence.Assign, expressionType === etIsIterator ? etNone : expressionType) as IsAssign);
+      elements.push(parse(Precedence.Assign, expressionType) as IsAssign);
       if (consumeOpt(Token.Comma)) {
         if (($currentToken as Token) === Token.CloseBracket) {
           break;
@@ -1355,15 +1358,11 @@ function parseArrayLiteralExpression(expressionType: ExpressionType): ArrayBindi
   $optional = _optional;
 
   consume(Token.CloseBracket);
-  if (expressionType === etIsIterator) {
-    return createArrayBindingPattern(elements);
-  } else {
-    $assignable = false;
-    return createArrayLiteralExpression(elements);
-  }
+  $assignable = false;
+  return createArrayLiteralExpression(elements);
 }
 
-const allowedForExprKinds: ExpressionKind[] = [ekArrayBindingPattern, ekObjectBindingPattern, ekBindingIdentifier, ekArrayDestructuring, ekObjectDestructuring];
+const allowedForExprKinds: ExpressionKind[] = [ekObjectBindingPattern, ekBindingIdentifier, ekArrayDestructuring, ekObjectDestructuring];
 // Repeat scope lookup gives override-context and Object.prototype properties
 // precedence over binding-context locals. Keep those names out of newly
 // projected object-pattern locals instead of changing scope lookup globally.

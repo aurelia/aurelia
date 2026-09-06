@@ -1,6 +1,51 @@
 import { assert, createFixture } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('2-runtime/new-expression.spec.ts', function () {
+  for (const expression of ['new Entry', 'new Entry()', 'new types.Entry', 'new types.Entry()']) {
+    it(`adds a constructed entry from an event handler: ${expression}`, async function () {
+      class Entry { public value = 'item'; }
+      const { component, trigger, assertText, tearDown } = createFixture(
+        `<button click.trigger="entries.push(${expression})">add</button><span repeat.for="entry of entries">\${entry.value}</span>`,
+        class {
+          public Entry = Entry;
+          public types = { Entry };
+          public entries: Entry[] = [];
+        },
+      );
+      try {
+        trigger.click('button');
+        await tasksSettled();
+        assert.strictEqual(component.entries.length, 1);
+        assert.instanceOf(component.entries[0], Entry);
+        assertText('additem');
+      } finally {
+        await tearDown();
+      }
+    });
+  }
+
+  it('constructs a collection inside an array expression', async function () {
+    const { component, assertText, tearDown } = createFixture(
+      '${describe([new Map, label])}',
+      class {
+        public label = 'initial';
+        public describe([entries, label]: [Map<string, string>, string]) {
+          assert.instanceOf(entries, Map);
+          return `${entries.size}:${label}`;
+        }
+      },
+    );
+    try {
+      assertText('0:initial');
+      component.label = 'updated';
+      await tasksSettled();
+      assertText('0:updated');
+    } finally {
+      await tearDown();
+    }
+  });
+
   it('new Array', function () {
     const { component } = createFixture(
       '${a = new Array()}',

@@ -136,7 +136,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
   public set viewModel(v: ControllerBindingContext<C> | null) {
     this._vm = v;
-    this._vmHooks = v == null || this.vmKind === vmkSynth ? HooksDefinition.none : new HooksDefinition(v);
+    this._vmHooks = v == null || this.vmKind === vmkSynth ? HooksDefinition.none : HooksDefinition.create(v);
   }
 
   public get strict() {
@@ -169,7 +169,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     location: IRenderLocation | null,
   ) {
     this._vm = viewModel;
-    this._vmHooks = vmKind === vmkSynth ? HooksDefinition.none : new HooksDefinition(viewModel!);
+    this._vmHooks = vmKind === vmkSynth ? HooksDefinition.none : HooksDefinition.create(viewModel!);
     if (__DEV__) {
       this.logger = null!;
       this.debug = false;
@@ -1349,6 +1349,7 @@ export type MountTarget = typeof MountTarget[keyof typeof MountTarget];
 
 // const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
+const bindableNamesLookup = new WeakMap<object, string[]>();
 
 function createObservers(
   controller: Controller,
@@ -1356,7 +1357,10 @@ function createObservers(
   instance: IIndexable<ICustomElementViewModel | ICustomAttributeViewModel>,
 ): void {
   const bindables = definition.bindables;
-  const observableNames = getOwnPropertyNames(bindables);
+  let observableNames = bindableNamesLookup.get(bindables);
+  if (observableNames == null) {
+    bindableNamesLookup.set(bindables, observableNames = getOwnPropertyNames(bindables));
+  }
   const length = observableNames.length;
 
   if (length === 0) return;
@@ -1499,7 +1503,8 @@ export function isCustomElementViewModel(value: unknown): value is ICustomElemen
 }
 
 class HooksDefinition {
-  public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
+  private static readonly cache: HooksDefinition[] = [];
+  public static readonly none: Readonly<HooksDefinition> = HooksDefinition.create({});
 
   public readonly _hydrating: boolean;
   public readonly _hydrated: boolean;
@@ -1516,21 +1521,34 @@ class HooksDefinition {
   public readonly _dispose: boolean;
   public readonly _accept: boolean;
 
-  public constructor(target: object) {
-    this._hydrating = 'hydrating' in target;
-    this._hydrated = 'hydrated' in target;
-    this._created = 'created' in target;
+  public static create(target: object): Readonly<HooksDefinition> {
+    let flags = 0;
+    if ('hydrated' in target) flags |= 2;
+    if ('hydrating' in target) flags |= 1;
+    if ('created' in target) flags |= 4;
+    if ('binding' in target) flags |= 8;
+    if ('bound' in target) flags |= 16;
+    if ('attaching' in target) flags |= 32;
+    if ('attached' in target) flags |= 64;
+    if ('detaching' in target) flags |= 128;
+    if ('unbinding' in target) flags |= 256;
+    if ('dispose' in target) flags |= 512;
+    if ('accept' in target) flags |= 1024;
+    return this.cache[flags] ??= new HooksDefinition(flags);
+  }
 
-    this._binding = 'binding' in target;
-    this._bound = 'bound' in target;
-    this._attaching = 'attaching' in target;
-    this._attached = 'attached' in target;
-
-    this._detaching = 'detaching' in target;
-    this._unbinding = 'unbinding' in target;
-
-    this._dispose = 'dispose' in target;
-    this._accept = 'accept' in target;
+  private constructor(flags: number) {
+    this._hydrating = (flags & 1) > 0;
+    this._hydrated = (flags & 2) > 0;
+    this._created = (flags & 4) > 0;
+    this._binding = (flags & 8) > 0;
+    this._bound = (flags & 16) > 0;
+    this._attaching = (flags & 32) > 0;
+    this._attached = (flags & 64) > 0;
+    this._detaching = (flags & 128) > 0;
+    this._unbinding = (flags & 256) > 0;
+    this._dispose = (flags & 512) > 0;
+    this._accept = (flags & 1024) > 0;
   }
 }
 

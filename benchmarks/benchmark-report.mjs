@@ -7,10 +7,18 @@ import {
   makeComparisons,
   measurementLabel,
 } from './benchmark-summary.mjs';
+import { comparisonHarness, comparisonsEqual, validateComparison } from './benchmark-comparison.cjs';
 
 const shaPattern = /^[0-9a-f]{40}$/;
 const metricDefinitions = {
-  perf: { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', mode: 'performance' },
+  'perf': { id: 'duration', label: 'Duration', kind: 'duration', unit: 'millisecond', mode: 'performance' },
+  'median refresh': {
+    id: 'median-refresh-duration',
+    label: 'Median single refresh',
+    kind: 'duration',
+    unit: 'millisecond',
+    mode: 'performance',
+  },
   'used JS heap': {
     id: 'immediate-used-js-heap',
     label: 'Immediate used JS heap',
@@ -60,6 +68,14 @@ const resultContracts = {
   'app-repeat-view-keyed-string.json': { scenario: 'keyed string', entryName: 'keyed-string', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-startup-1000.json': { scenario: 'realistic startup 1000', entryName: 'realistic-startup-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-refresh-1000.json': { scenario: 'realistic keyed refresh 1000', entryName: 'realistic-refresh-1000', metrics: ['perf', 'used JS heap'] },
+  'repeat-realistic-refresh-loop-20x1000.json': [
+    { scenario: 'realistic keyed refresh loop 20x1000', entryName: 'realistic-refresh-loop-20x1000', metrics: ['perf'] },
+    { scenario: 'realistic keyed refresh loop 20x1000', entryName: 'realistic-refresh-median-1000', metrics: ['median refresh'] },
+  ],
+  'binding-dependency-rotation.json': [
+    { scenario: 'fresh binding dependency rotation 250000', entryName: 'dependency-rotation-250000', metrics: ['perf'] },
+    { scenario: 'cached binding dependency rotation 1000000', entryName: 'dependency-rotation-cached-1000000', metrics: ['perf'] },
+  ],
   'repeat-realistic-mixed-1000.json': { scenario: 'realistic mixed reconciliation 1000', entryName: 'realistic-mixed-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-heap-lifecycle-500.json': {
     scenario: 'realistic heap lifecycle 500',
@@ -87,6 +103,8 @@ const fullFiles = [
   'repeat-realistic-startup-1000.json',
   'repeat-realistic-refresh-1000.json',
   'repeat-realistic-mixed-1000.json',
+  'repeat-realistic-refresh-loop-20x1000.json',
+  'binding-dependency-rotation.json',
   'repeat-realistic-heap-lifecycle-500.json',
 ];
 
@@ -98,18 +116,13 @@ export function expectedResultFiles(profile) {
 
 export function validateBenchmarkReport(report, expected) {
   if (report?.schemaVersion !== 1) throw new Error('Unsupported benchmark report schema.');
-  if (
-    report.comparison?.profile !== expected.profile
-    || report.comparison?.pullRequest !== expected.pullRequest
-    || report.comparison?.base !== expected.base
-    || report.comparison?.head !== expected.head
-    || report.comparison?.candidate !== expected.candidate
-    || report.comparison?.mergeParentsVerified !== true
-  ) {
-    throw new Error('Benchmark report comparison does not match the requested PR revisions.');
+  validateComparison(report.comparison);
+  if ((report.comparison.pullRequest !== null && typeof report.comparison.pullRequest !== 'number')
+    || !comparisonsEqual(report.comparison, expected)) {
+    throw new Error('Benchmark report comparison does not match the requested revisions.');
   }
-  if (report.harness?.dirty !== false || report.harness?.commit !== expected.candidate) {
-    throw new Error('Benchmark report harness does not match the requested candidate.');
+  if (report.harness?.dirty !== false || report.harness?.commit !== comparisonHarness(expected)) {
+    throw new Error('Benchmark report harness does not match the requested harness.');
   }
   requireSha(report.harness?.tree, 'report harness tree');
   requireHash(report.harness?.sha256, 'report harness');
@@ -134,16 +147,7 @@ export function validateBenchmarkReport(report, expected) {
     throw new Error('Benchmark report toolchain metadata is invalid.');
   }
 
-  const expectedMeasurements = expectedResultFiles(expected.profile).flatMap(file => {
-    const contract = resultContracts[file];
-    return contract.metrics.map(metric => ({
-      id: `${slug(contract.scenario)}/${metricDefinition(metric).id}/chrome-headless`,
-      source: file,
-      scenario: contract.scenario,
-      metric,
-      entryName: contract.entryName,
-    }));
-  });
+  const expectedMeasurements = expectedResultFiles(expected.profile).flatMap(expectedMeasurementsForFile);
   if (!Array.isArray(report.measurements) || report.measurements.length !== expectedMeasurements.length) {
     throw new Error('Benchmark report has an unexpected measurement count.');
   }
@@ -340,7 +344,11 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
     '',
     `${comparison}${pullRequest}`,
     '',
-    `Profile: \`${report.comparison.profile}\` · Harness: \`${shortSha(report.harness.commit)}\``,
+    `Profile: \`${report.comparison.profile}\` · Harness: `
+      + `[\`${shortSha(report.harness.commit)}\`](${commitLink(report.harness.commit)})`,
+    ...(report.comparison.kind === 'revisions'
+      ? ['Explicit framework revisions, measured with the same frozen harness.']
+      : []),
     `Environment: Node \`${report.environment.bundleToolchain?.node ?? 'unknown'}\` · `
       + `${formatBrowsers(report.environment.browsers)} · Tachometer \`${report.statistics.producerVersion}\``,
     '',
@@ -398,6 +406,15 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
         + 'rows are independent base-to-candidate comparisons, not a live-minus-teardown calculation.',
     );
   }
+  if (report.measurements.some(measurement => measurement.metric.id === 'median-refresh-duration')) {
+    lines.push(
+      '',
+      'The refresh loop measures 20 settled updates after 20 warm-ups. Its duration includes the full loop; '
+        + 'the median row summarizes a typical update within each sample. Dependency rotation isolates '
+        + 'binding work with fresh records and a warmed observer pool. Use the real-DOM refresh rows '
+        + 'alongside these focused measurements when assessing an application-facing improvement.',
+    );
+  }
   const footerLinks = [];
   if (links.circleWorkflow !== undefined) footerLinks.push(`[CircleCI workflow](${links.circleWorkflow})`);
   if (links.artifacts !== undefined) footerLinks.push(`[Artifacts](${links.artifacts})`);
@@ -416,55 +433,56 @@ function validateProvenance(provenance) {
   ) {
     throw new Error('Benchmark provenance is missing a comparison, harness, base, or candidate record.');
   }
-  for (const [label, sha] of [
-    ['base', comparison.base],
-    ['candidate', comparison.candidate],
-    ['harness', harness.commit],
-  ]) requireSha(sha, label);
+  validateComparison(comparison);
+  requireSha(harness.commit, 'harness');
   requireSha(harness.tree, 'harness tree');
   requireHash(harness.sha256, 'harness');
   if (harness.dirty !== false) throw new Error('Benchmark harness must be clean in an authoritative report.');
-  if (harness.commit !== comparison.candidate || base.commit !== comparison.base || candidate.commit !== comparison.candidate) {
+  if (harness.commit !== comparisonHarness(comparison) || base.commit !== comparison.base || candidate.commit !== comparison.candidate) {
     throw new Error('Benchmark provenance revisions do not agree.');
   }
   if (!Array.isArray(provenance.comparisons) || provenance.comparisons.length === 0) {
     throw new Error('Benchmark provenance does not contain bundle comparisons.');
   }
-  if (comparison.profile === 'smoke' || comparison.profile === 'full') {
-    requireSha(comparison.head, 'head');
-    if (!/^[1-9]\d*$/.test(String(comparison.pullRequest)) || comparison.mergeParentsVerified !== true) {
-      throw new Error('PR benchmark provenance does not contain a verified merge comparison.');
-    }
-  } else if (comparison.profile === 'master') {
-    if (comparison.pullRequest !== null || comparison.head !== null || comparison.mergeParentsVerified !== false) {
-      throw new Error('Master benchmark provenance has PR comparison fields.');
-    }
-  } else {
-    throw new Error(`Unsupported benchmark provenance profile "${comparison.profile}".`);
-  }
 }
 
 function validateResultContract(file, comparisons) {
-  const contract = resultContracts[file];
-  if (contract === undefined) throw new Error(`No benchmark result contract exists for "${file}".`);
-  if (comparisons.some(comparison => comparison.scenario !== contract.scenario)) {
+  const expected = expectedMeasurementsForFile(file);
+  if (comparisons.length !== expected.length) {
+    throw new Error(`Benchmark result "${file}" contains an unexpected measurement count.`);
+  }
+  if (comparisons.some((comparison, index) => comparison.scenario !== expected[index].scenario)) {
     throw new Error(`Benchmark result "${file}" contains an unexpected scenario.`);
   }
   const metrics = comparisons.map(comparison => measurementLabel(comparison.measurement));
-  if (JSON.stringify(metrics) !== JSON.stringify(contract.metrics)) {
+  if (JSON.stringify(metrics) !== JSON.stringify(expected.map(measurement => measurement.metric))) {
     throw new Error(`Benchmark result "${file}" contains metrics ${metrics.join(', ')}.`);
   }
   for (let index = 0; index < comparisons.length; index++) {
     const measurement = comparisons[index].measurement;
-    const definition = metricDefinition(contract.metrics[index]);
+    const definition = metricDefinition(expected[index].metric);
     if (
       measurement?.mode !== definition.mode
-      || (definition.mode === 'performance' && measurement.entryName !== contract.entryName)
+      || (definition.mode === 'performance' && measurement.entryName !== expected[index].entryName)
       || (definition.mode === 'expression' && measurement.expression !== definition.expression)
     ) {
       throw new Error(`Benchmark result "${file}" has invalid ${definition.label} metadata.`);
     }
   }
+}
+
+function expectedMeasurementsForFile(file) {
+  const contract = resultContracts[file];
+  if (contract === undefined) throw new Error(`No benchmark result contract exists for "${file}".`);
+  // One Tachometer run can compare multiple workloads or timing boundaries. Validate the complete
+  // ordered set, including each entry name, before any candidate-owned result reaches a PR comment.
+  return [contract].flat().flatMap(({ scenario, entryName, metrics }) => metrics.map(metric => ({
+    id: `${slug(scenario)}/${metricDefinition(metric).id}/chrome-headless`,
+    source: file,
+    scenario,
+    metric,
+    entryName,
+  })));
 }
 
 function validateReportMeasurement(measurement, expected) {

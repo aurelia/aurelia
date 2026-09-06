@@ -8,6 +8,7 @@ TESTS-*.xml
 .codex
 .tmp
 benchmarks/results/
+benchmarks/live-results/
 benchmarks/se-metadata.json
 
 packages/**/*.txt

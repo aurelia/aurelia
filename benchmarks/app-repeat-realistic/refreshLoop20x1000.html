@@ -1,0 +1,65 @@
+<script type="module">
+import {
+  assertRealisticOpenEvent,
+  assertRealisticRows,
+  captureRealisticViewModels,
+} from '../utils/assert-render.js';
+import {
+  createRealisticRecords,
+  createRefreshedRealisticRecords,
+} from '../utils/realistic-data.js';
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { CustomElement, start, tasksSettled } = await loadVariant('app-repeat-realistic');
+
+const refreshCount = 20;
+const host = document.body.appendChild(document.createElement('div'));
+const au = start(host, createRealisticRecords(1000));
+const app = au.root.controller.viewModel;
+
+// Stabilize generated code and observer shapes before measuring the refresh hot path.
+for (let index = 0; index < refreshCount; ++index) {
+  app.items = createRefreshedRealisticRecords(app.items);
+  await tasksSettled();
+}
+const before = captureRealisticViewModels(host, app.items, CustomElement);
+
+// Preparing records is application work, so exclude it from the framework timing interval.
+const refreshPlans = [];
+let nextItems = app.items;
+for (let index = 0; index < refreshCount; ++index) {
+  nextItems = createRefreshedRealisticRecords(nextItems);
+  refreshPlans.push(nextItems);
+}
+
+const refreshDurations = [];
+performance.mark('realistic-refresh-loop-start');
+for (const items of refreshPlans) {
+  const refreshStart = performance.now();
+  app.items = items;
+  await tasksSettled();
+  refreshDurations.push(performance.now() - refreshStart);
+}
+performance.mark('realistic-refresh-loop-end');
+
+refreshDurations.sort((a, b) => a - b);
+const medianRefreshDuration = (
+  refreshDurations[refreshCount / 2 - 1]
+  + refreshDurations[refreshCount / 2]
+) / 2;
+
+const after = assertRealisticRows(host, nextItems, CustomElement);
+for (const item of nextItems) {
+  if (after.viewModels[item.id] !== before[item.id]) {
+    throw new Error(`Realistic refresh loop replaced retained row ${item.id}.`);
+  }
+}
+assertRealisticOpenEvent(after.hosts[0], after.viewModels[nextItems[0].id]);
+// Publish both timing boundaries only after this sample has passed its correctness checks.
+performance.measure('realistic-refresh-median-1000', { start: 0, duration: medianRefreshDuration });
+publishMeasurement(
+  'realistic-refresh-loop-20x1000',
+  'realistic-refresh-loop-start',
+  'realistic-refresh-loop-end',
+);
+</script>

@@ -21,7 +21,7 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';
-import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
+import { type CustomExpression, type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 import { activated, activating } from '../templating/controller';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -44,10 +44,10 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   private _targetObserver?: AccessorOrObserver = void 0;
 
   /** @internal */
-  private _isQueued: boolean = false;
+  private _isQueued?: boolean;
 
   /** @internal */
-  private _targetSubscriber: ISubscriber | null = null;
+  private _targetSubscriber?: ISubscriber | null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -70,7 +70,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public ast: IsBindingBehavior | ForOfStatement,
+    public ast: IsBindingBehavior | ForOfStatement | CustomExpression,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
@@ -131,7 +131,13 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     }
     this._scope = scope;
 
-    astBind(this.ast, scope, this);
+    switch (this.ast.$kind) {
+      case 'ForOfStatement':
+      case 'ValueConverter':
+      case 'BindingBehavior':
+      case 'Custom':
+        astBind(this.ast, scope, this);
+    }
 
     const observerLocator = this.oL;
     const $mode = this.mode;

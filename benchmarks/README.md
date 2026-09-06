@@ -57,7 +57,7 @@ bundles the selected fixture against the workspace production entry points, capt
 session baseline, and reruns Tachometer after relevant package or fixture changes. The default minimum is 20 samples;
 override it with `--bench-samples <count>`.
 
-The mini-app bundler waits for eight seconds without another input change before rebuilding. This coalesces the
+The mini-app bundler waits for 15 seconds without another input change before rebuilding. This coalesces the
 JavaScript, declaration, and dependent-package output phases before Rollup performs its bundle and minification work.
 Use `--bench-debounce <milliseconds>` to tune this quiet period (minimum 250ms) for a local build with a longer burst.
 The runner also fingerprints the executable bundle and suppresses benchmark runs when a later rebuild is
@@ -113,6 +113,18 @@ npm run dev -- --bench app-repeat-realistic/refresh-loop.json --bench-samples 20
 
 This loop is intended to distinguish small hot-path changes locally. Keep `refresh.json` as the authoritative
 single-interaction result and confirm any candidate there before adoption.
+
+For changes to AST dependency connection, observer lookup, or stale subscription rotation, remove DOM-write noise
+with the focused browser-engine scenario:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/dependency-rotation.json --bench-samples 20
+```
+
+It reports both fresh-record rotation, which includes observer creation and disposal, and cached rotation through a
+warmed observer pool, which isolates repeated AST connection and subscription cleanup. The focused result establishes
+whether the binding/observation mechanism improved. A retained candidate must still pass `refresh-loop.json` or the
+authoritative real-DOM `refresh.json` as a regression guard.
 
 Run the harness tests:
 

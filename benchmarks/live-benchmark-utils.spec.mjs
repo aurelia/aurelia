@@ -15,7 +15,7 @@ void describe('live benchmark utilities', () => {
   });
 
   void it('waits for a complete development-build burst by default', () => {
-    assert.equal(parseLiveDebounce(undefined), 8000);
+    assert.equal(parseLiveDebounce(undefined), 15000);
     assert.equal(parseLiveDebounce('7500'), 7500);
     assert.throws(() => parseLiveDebounce('249'), /at least 250 milliseconds/);
     assert.throws(() => parseLiveDebounce('1.5'), /at least 250 milliseconds/);

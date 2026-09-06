@@ -245,4 +245,37 @@ describe('2-runtime/subscriber-collection.spec.ts', function () {
 
     assert.strictEqual(observer.subs.remove({} as any), false, `observer.subs.remove({} as any)`);
   });
+
+  it('removes and re-adds a sole subscriber', function () {
+    const observer = new Test();
+    const subscriber = { handleChange: createSpy() };
+
+    observer.subs.add(subscriber);
+    assert.strictEqual(observer.subs.remove(subscriber), true);
+    assert.strictEqual(observer.subs.count, 0);
+    assert.strictEqual(observer.subs.remove(subscriber), false);
+
+    observer.subs.add(subscriber);
+    observer.subs.notify('new value', 'old value');
+
+    assert.strictEqual(observer.subs.count, 1);
+    assert.deepStrictEqual(subscriber.handleChange.calls, [['new value', 'old value']]);
+  });
+
+  it('clears dirty state when removing a sole dirty subscriber', function () {
+    const observer = new Test();
+    const subscriber = {
+      handleChange() {},
+      handleDirty: createSpy(),
+    };
+
+    observer.subs.add(subscriber);
+    assert.strictEqual(observer.subs.remove(subscriber), true);
+    observer.subs.notifyDirty();
+    assert.strictEqual(subscriber.handleDirty.calls.length, 0);
+
+    observer.subs.add(subscriber);
+    observer.subs.notifyDirty();
+    assert.strictEqual(subscriber.handleDirty.calls.length, 1);
+  });
 });

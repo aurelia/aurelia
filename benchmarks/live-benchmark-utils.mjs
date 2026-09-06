@@ -6,7 +6,7 @@ export function fingerprintLiveBundle(contents) {
 }
 
 export function parseLiveDebounce(value) {
-  if (value === undefined) return 8000;
+  if (value === undefined) return 15000;
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 250) {
     throw new Error('AURELIA_LIVE_BENCH_DEBOUNCE must be an integer of at least 250 milliseconds.');

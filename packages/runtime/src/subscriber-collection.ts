@@ -73,6 +73,18 @@ export const subscriberCollection = /*@__PURE__*/(() => {
     }
 
     public remove(subscriber: T): boolean {
+      if (this._subs.length === 1) {
+        if (this._subs[0] !== subscriber) {
+          return false;
+        }
+        this._subs.pop();
+        if (this._hasDirtySubs) {
+          this._requestDirtySubs.pop();
+          this._hasDirtySubs = false;
+        }
+        this.count = 0;
+        return true;
+      }
       let idx = this._subs.indexOf(subscriber);
       if (idx !== -1) {
         this._subs.splice(idx, 1);

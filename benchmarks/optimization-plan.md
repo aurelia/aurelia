@@ -29,6 +29,7 @@ names end in `base` and `candidate`. Select the scenario according to the mechan
 | `app-repeat-realistic/startup.json` | Controller creation, hydration, initial activation, binding creation/bind, initial AST evaluation, and DOM creation. |
 | `app-repeat-realistic/refresh.json` | Keyed Repeat reconciliation, retained binding reevaluation, observer notification, target writes, and settled scheduling. |
 | `app-repeat-realistic/refresh-loop.json` | Local diagnostic: five warm-ups, then total and median latency across 20 keyed refreshes per sample. |
+| `app-repeat-realistic/dependency-rotation.json` | Browser-engine isolation of AST evaluation and one-retained/one-replaced observer rotation, with fresh records and a warmed observer pool, without measured DOM work. |
 | `app-repeat-realistic/mixed.json` | Keyed insertion/deletion/movement, controller activation/deactivation, binding bind/unbind, and DOM movement. |
 | `app-repeat-realistic/heap-lifecycle.json` | Live and post-teardown retained heap across controller, binding, observer, and DOM lifecycle. |
 
@@ -92,6 +93,7 @@ Do not delete rejected or inconclusive entries: their experiment records prevent
 | O2 | Observation | inconclusive | refresh, mixed | Multi-subscriber notification can snapshot lazily only when subscription mutation occurs during dispatch. | Each row `item` observer fans out to seven property bindings, and `SubscriberRecord` eagerly slices its subscriber array before every notification. | Add/remove, nested notification, thrown handlers, value/collection/dirty ordering, and batching semantics must remain exact. |
 | O3 | Observation/property | inconclusive | refresh, mixed | Setter notification can skip its post-notification equality check when no callback is installed. | `SetterObserver.setValue` always compares the notified value again before optional-calling `_callback`, including ordinary observed scope properties without callbacks. | Reentrant subscriber writes must still suppress callbacks for stale values when a callback exists. |
 | O4 | Binding/observation | inconclusive | refresh loop, refresh | Dependency connection can use the stored observer version as the membership lookup instead of probing a `Map` twice. | The refresh profile attributes 606ms self time to `observe`; `BindingObserverRecord.add` calls `Map.has` and then `Map.set` for every dependency, while stored versions are always numbers so `undefined` identifies absence. | Subscription counts and dependency-version refresh must remain exact across reconnect, branch changes, unbind, and rebind. |
+| O10 | Observation/subscribers | adopted | dependency rotation, refresh | Removing the sole subscriber can bypass two searches and array splicing while retaining efficient array reuse. | Stale dependency cleanup commonly removes the only binding from an observer; the general path searches both subscriber arrays and splices the value-subscriber array. | Dirty-subscriber state, failed removal, re-subscription, fan-out mutation, and repeatedly reused observers must remain exact. |
 | D1 | DOM | queued | startup, mixed | Node-sequence insertion and movement can reduce repeated DOM calls for contiguous row blocks. | Rendering and Repeat sorting ultimately insert or move node sequences through render locations. | Containerless views, multi-node templates, projection, and SSR-adopted nodes must remain correct. |
 | D2 | DOM/rendering | inconclusive | startup, mixed | Cached node creation can avoid redundant template-cache work before cloning a view. | `Rendering.createNodes` performs both `WeakMap.has` and `WeakMap.get` for every cached row view. | `null` cached templates and definitions without templates must retain empty-sequence behavior. |
 | D3 | DOM/hydration | rejected | startup, mixed | Repeated clones can reuse compiled target-location metadata instead of tree-walking every cloned fragment for `<!--au-->` markers. | Every `FragmentNodeSequence` constructor performs native comment traversal even though clones of one compiled definition have identical marker locations. | Containerless marker pairs, marker preservation, enhanced templates, and SSR adoption have different ownership rules. |
@@ -795,3 +797,24 @@ Copy this block for each attempt:
 - Decision: adopted because the allocation reduction reproduced and framework definitions are immutable once consumed;
   the cache is weakly keyed by the exact bindables record.
 - Follow-up: confirm the cumulative reduction in the forced-GC lifecycle fixture.
+
+### O10 / attempts 1-2
+
+- State: adopted
+- Commit/worktree description: sole-subscriber removal fast path using `Array.pop`.
+- Mechanism changed: when the requested subscriber is the only value subscriber, remove it directly and clear the
+  corresponding sole dirty subscriber when present; retain the existing search/splice path for zero, mismatched, and
+  multi-subscriber records.
+- Profile evidence: stale dependency unsubscribe was prominent in the refresh CPU profile. The focused benchmark
+  exercises one retained and one replaced dependency per evaluation.
+- Rejected variant: assigning `length = 0` made fresh/discarded observers 11.04% to 20.99% faster but made a warmed,
+  repeatedly reused observer pool 10.57% to 19.23% slower. It was rejected as a lifecycle tradeoff.
+- Focused result: the `pop` candidate improved warmed cached rotation by 13.80% to 19.19%; confirmation improved it
+  by 13.82% to 17.64%. Fresh-record rotation was inconclusive in both runs (-0.16% to +4.41%, then -0.87% to +2.72%).
+- Realistic guard: keyed refresh latency was inconclusive at -6.30% to +6.24%, and immediate heap was neutral at
+  -0.06% to +0.07%.
+- Correctness validation: the runtime package build and lint passed; all 49,388 Node runtime tests passed, including
+  focused coverage for sole ordinary removal/re-add, dirty-state cleanup/re-add, mismatched removal,
+  multi-subscriber removal, and mutation during value, dirty, and collection notifications.
+- Decision: adopted because the focused cached-observer improvement reproduced without a fresh-observer, real-DOM,
+  or heap regression.

@@ -1,0 +1,37 @@
+<script type="module">
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { createDependencyRotationBenchmark } = await loadVariant('app-repeat-realistic');
+
+const host = document.body.appendChild(document.createElement('div'));
+const benchmark = createDependencyRotationBenchmark(host);
+const records = Array.from(
+  { length: 1_000 },
+  (_, index) => ({ label: `record-${index}` }),
+);
+
+benchmark.runPool(records, 20_000);
+const iterations = 1_000_000;
+const expectedValue = records[(iterations - 1) % records.length].label;
+
+performance.mark('dependency-rotation-cached-start');
+const result = benchmark.runPool(records, iterations);
+performance.mark('dependency-rotation-cached-end');
+
+if (result.value !== expectedValue) {
+  throw new Error(`Cached dependency rotation evaluated ${result.value}, expected ${expectedValue}.`);
+}
+if (result.notifications !== result.expectedNotifications) {
+  throw new Error(
+    `Cached dependency rotation notified ${result.notifications} times, expected ${result.expectedNotifications}.`,
+  );
+}
+if (result.dependencyCount !== 2) {
+  throw new Error(`Cached dependency rotation retained ${result.dependencyCount} dependencies, expected 2.`);
+}
+publishMeasurement(
+  'dependency-rotation-cached-1000000',
+  'dependency-rotation-cached-start',
+  'dependency-rotation-cached-end',
+);
+</script>

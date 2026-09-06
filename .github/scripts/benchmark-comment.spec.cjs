@@ -233,30 +233,61 @@ void describe('benchmark PR comment', () => {
     assert.doesNotMatch(github.comments[0].body, /did not complete successfully|@everyone/);
   });
 
-  void it('reports failed CircleCI jobs without copying job output', async () => {
-    const github = commentGithub();
-    const fetchImpl = circleFetch(new Map([
-      ['/api/v2/pipeline/12345678-1234-4123-8123-123456789abc/workflow', {
-        items: [{
+  for (const status of ['failed', 'error', 'unauthorized']) {
+    void it(`reports preparation status ${status} without blaming its unrun dependants`, async () => {
+      const github = commentGithub();
+      const fetchImpl = circleFetch(new Map([
+        ['/api/v2/pipeline/12345678-1234-4123-8123-123456789abc/workflow', {
+          items: [{
+            id: workflowId,
+            name: 'benchmarks',
+            pipeline_id: pipeline.id,
+            project_slug: 'gh/aurelia/aurelia',
+          }],
+          next_page_token: null,
+        }],
+        [`/api/v2/workflow/${workflowId}`, {
           id: workflowId,
-          name: 'benchmarks',
           pipeline_id: pipeline.id,
           project_slug: 'gh/aurelia/aurelia',
+          status: 'failed',
         }],
-        next_page_token: null,
-      }],
-      [`/api/v2/workflow/${workflowId}`, {
-        id: workflowId,
-        pipeline_id: pipeline.id,
-        project_slug: 'gh/aurelia/aurelia',
-        status: 'failed',
-      }],
-      [`/api/v2/workflow/${workflowId}/job`, {
-        items: [{ name: 'bench_prep', status: 'failed' }],
-        next_page_token: null,
-      }],
-    ]));
+        [`/api/v2/workflow/${workflowId}/job`, {
+          // The failed /ci bench on #2473 stopped in prep; none of its measurements ran.
+          items: [
+            { name: 'install', status: 'success' },
+            { name: 'bench_prep', status },
+            { name: 'bench_realistic_refresh', status: 'not_run' },
+            { name: 'bench_dependency_rotation', status: 'not_run' },
+            { name: 'benchmark_report', status: 'not_run' },
+            { name: 'canceled_job', status: 'canceled' },
+          ],
+          next_page_token: null,
+        }],
+      ]));
 
+      await assert.rejects(reportBenchmarkRun({
+        github,
+        context: context(),
+        core: core(),
+        circleToken: 'secret',
+        pipeline,
+        comparison,
+        profile: 'full',
+        resolveCurrentComparison: async () => comparison,
+        fetchImpl,
+        sleep: async () => {},
+      }), /workflow-failed/);
+      assert.match(github.comments[0].body, /Failed jobs: `bench_prep`/);
+      assert.doesNotMatch(
+        github.comments[0].body,
+        /`install`|`bench_realistic_refresh`|`bench_dependency_rotation`|`benchmark_report`|`canceled_job`/,
+      );
+    });
+  }
+
+  void it('reports cancellation without claiming that a job failed', async () => {
+    const github = commentGithub();
     await assert.rejects(reportBenchmarkRun({
       github,
       context: context(),
@@ -266,10 +297,12 @@ void describe('benchmark PR comment', () => {
       comparison,
       profile: 'full',
       resolveCurrentComparison: async () => comparison,
-      fetchImpl,
+      fetchImpl: successfulCircleFetch({ workflowStatus: 'canceled' }),
       sleep: async () => {},
     }), /workflow-failed/);
-    assert.match(github.comments[0].body, /Failed jobs: `bench_prep`/);
+
+    assert.match(github.comments[0].body, /benchmark workflow did not complete successfully/);
+    assert.doesNotMatch(github.comments[0].body, /Failed jobs:/);
   });
 
   void it('does not let an older pipeline overwrite a newer owner', async () => {

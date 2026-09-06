@@ -6,6 +6,7 @@ const { comparisonsEqual, validateComparison } = require('../../benchmarks/bench
 
 const marker = '<!-- aurelia-benchmark-report:v1 -->';
 const statePrefix = '<!-- aurelia-benchmark-state:';
+const failedJobStatuses = new Set(['failed', 'error', 'unauthorized']);
 const terminalFailureStatuses = new Set(['failed', 'error', 'canceled', 'unauthorized', 'not_run']);
 const reportArtifactPath = 'benchmark-report/benchmark-summary.json';
 const reportJobNamePattern = /^benchmark_report(?:-\d+)?$/;
@@ -89,8 +90,9 @@ async function reportBenchmarkRun({
     }
     if (completed.status !== 'success') {
       const jobs = await circle.pages(`workflow/${workflow.id}/job`);
+      // A failed prerequisite leaves its dependants not_run. Only name jobs that actually failed.
       const failures = jobs
-        .filter(job => terminalFailureStatuses.has(job.status))
+        .filter(job => failedJobStatuses.has(job.status))
         .map(job => safeJobName(job.name));
       throw new BenchmarkReportError('workflow-failed', failures);
     }

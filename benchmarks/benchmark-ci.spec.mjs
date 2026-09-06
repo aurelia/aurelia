@@ -138,7 +138,9 @@ void describe('benchmark revision bootstrap', () => {
   function preparedArguments(result) {
     assert.equal(result.status, 0, result.stderr);
     // The shell constructs the production argv; only the expensive npm invocation is substituted.
-    return execFileSync(bash, ['-c', `npm() { printf '%s\\n' "$@"; }\n${prepare}`], {
+    // Node's piped stdin can trigger Bash's remote-shell startup on Linux, which skips BASH_ENV.
+    // Load the fixture exports explicitly so an enclosing CI job cannot supply its revisions here.
+    return execFileSync(bash, ['-ec', `source "$BASH_ENV"\nnpm() { printf '%s\\n' "$@"; }\n${prepare}`], {
       cwd: checkout,
       env: result.env,
       encoding: 'utf8',
@@ -147,6 +149,28 @@ void describe('benchmark revision bootstrap', () => {
 
   void it('keeps the current PR merge harness independent of both framework revisions', () => {
     assert.deepEqual(preparedArguments(run()), [
+      'run', 'bench:variants', '--', '--base', base, '--candidate', candidate,
+      '--output', 'results/variants', '--profile', 'full',
+      '--head', head, '--pull-request', '2475', '--comparison', 'revisions',
+      '--harness', harness, '--pr-base', prBase,
+    ]);
+  });
+
+  void it('loads fixture exports when shell startup skips BASH_ENV and CI values are inherited', () => {
+    // POSIX startup skips BASH_ENV on both platforms, reproducing the missing startup hook without
+    // depending on Linux's socket-backed stdin or the developer's current shell nesting level.
+    const result = run({
+      POSIXLY_CORRECT: '1',
+      BENCHMARK_BASE_SHA: 'a'.repeat(40),
+      BENCHMARK_CANDIDATE_SHA: 'b'.repeat(40),
+      BENCHMARK_HARNESS_SHA: 'b'.repeat(40),
+      BENCHMARK_PROFILE: 'master',
+      BENCHMARK_PR: '',
+      BENCHMARK_HEAD_SHA: '',
+      BENCHMARK_PR_BASE_SHA: '',
+      BENCHMARK_COMPARISON: '',
+    });
+    assert.deepEqual(preparedArguments(result), [
       'run', 'bench:variants', '--', '--base', base, '--candidate', candidate,
       '--output', 'results/variants', '--profile', 'full',
       '--head', head, '--pull-request', '2475', '--comparison', 'revisions',

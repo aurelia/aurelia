@@ -196,6 +196,10 @@ Variant preparation intentionally performs two clean installs and release builds
 existing output directory. Keep the top level of `results/` free of extra JSON result files because the report builder
 rejects unexpected artifacts. `results/variants/provenance.json` is required.
 
+Keep each comparison's variants and timing JSON together. Archive the existing `results/` directory before preparing
+a different revision pair so its report contains only freshly measured results. Raw Tachometer files do not carry
+revision identities; CI keeps them together in a separate workspace for each workflow.
+
 Run an individual scenario after preparing `results/variants`:
 
 ```sh

@@ -91,6 +91,8 @@ Run the live-session, profiler, and managed-runner tests when changing rebuild o
 - Run an A/A byte-identical proof after changing source preparation, package isolation, or bundling.
 - Generate and strictly validate a complete report after changing result files, profiles, metrics, or artifacts.
 - Validate CircleCI configuration and GitHub Actions syntax after changing CI.
+- Run shell-backed CI tests under Linux as well as Windows. Node's Linux stdin pipes can change Bash startup;
+  source fixture environment files explicitly instead of relying on implicit `BASH_ENV` loading.
 - Run `git diff --check` before committing.
 
 ## Version-coupled runner

@@ -176,6 +176,180 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
+  for (const expression of ['model.format(item)', 'model[action](item)']) {
+    for (const tracking of ['proxy', 'strings', 'function'] as const) {
+      it(`preserves ${tracking} dependencies and receiver lifetime in ${expression}`, async function () {
+        let callCount = 0;
+        class Model {
+          constructor(public label: string) {}
+
+          @computed({
+            deps: tracking === 'proxy'
+              ? void 0
+              : tracking === 'strings'
+                ? ['label']
+                : (model: Model) => model.label,
+          })
+          public format(item: { label: string }) {
+            callCount++;
+            return `${this.label}: ${item.label}`;
+          }
+        }
+
+        const { component, assertText, tearDown } = createFixture(
+          `<div if.bind="show">\${${expression}}</div>`,
+          class {
+            show = true;
+            model = new Model('summary');
+            action = 'format';
+            item = { label: 'draft' };
+          },
+        );
+
+        assertText('summary: draft');
+        assert.strictEqual(callCount, 1);
+
+        // Only proxy tracking follows reads inside parameter objects. Explicit dependencies
+        // belong to the receiver and must keep the same contract for keyed calls.
+        component.item.label = 'ready';
+        await Promise.resolve();
+        assertText(tracking === 'proxy' ? 'summary: ready' : 'summary: draft');
+        assert.strictEqual(callCount, tracking === 'proxy' ? 2 : 1);
+
+        component.model.label = 'details';
+        await Promise.resolve();
+        assertText('details: ready');
+        assert.strictEqual(callCount, tracking === 'proxy' ? 3 : 2);
+
+        const previous = component.model;
+        component.model = new Model('replacement');
+        await Promise.resolve();
+        assertText('replacement: ready');
+        const replacementCalls = callCount;
+
+        previous.label = 'unused';
+        await Promise.resolve();
+        assertText('replacement: ready');
+        assert.strictEqual(callCount, replacementCalls, 'the previous receiver is no longer observed');
+
+        component.model.label = 'current';
+        await Promise.resolve();
+        assertText('current: ready');
+        assert.strictEqual(callCount, replacementCalls + 1);
+
+        component.show = false;
+        await Promise.resolve();
+        assertText('');
+
+        component.model.label = 'hidden';
+        component.item.label = 'hidden';
+        await Promise.resolve();
+        assert.strictEqual(callCount, replacementCalls + 1, 'unmounting releases the method dependencies');
+
+        await tearDown();
+      });
+    }
+  }
+
+  it('replaces computed dependencies when the selected method changes', async function () {
+    let callCount = 0;
+    class Model {
+      summary = 'summary';
+      description = 'description';
+
+      @computed
+      public compact() {
+        callCount++;
+        return this.summary;
+      }
+
+      @computed
+      public expanded() {
+        callCount++;
+        return this.description;
+      }
+    }
+
+    const { component, assertText, tearDown } = createFixture(
+      '<div>${model[action]()}</div>',
+      class {
+        model = new Model();
+        action = 'compact';
+      },
+    );
+
+    assertText('summary');
+    assert.strictEqual(callCount, 1);
+
+    component.action = 'expanded';
+    await Promise.resolve();
+    assertText('description');
+    assert.strictEqual(callCount, 2);
+
+    component.model.summary = 'unused';
+    await Promise.resolve();
+    assertText('description');
+    assert.strictEqual(callCount, 2, 'the previous method dependencies are no longer observed');
+
+    component.model.description = 'updated description';
+    await Promise.resolve();
+    assertText('updated description');
+    assert.strictEqual(callCount, 3);
+
+    await tearDown();
+  });
+
+  it('reconnects computed dependencies when the function at the selected key is replaced', async function () {
+    let callCount = 0;
+    class Model {
+      summary = 'summary';
+      description = 'description';
+      format = this.compact;
+
+      @computed
+      public compact() {
+        callCount++;
+        return this.summary;
+      }
+
+      @computed
+      public expanded() {
+        callCount++;
+        return this.description;
+      }
+    }
+
+    const { component, assertText, tearDown } = createFixture(
+      '<div>${model[action]()}</div>',
+      class {
+        model = new Model();
+        action = 'format';
+      },
+    );
+
+    assertText('summary');
+    assert.strictEqual(callCount, 1);
+
+    // The key and receiver stay the same: replacing a configurable formatter must
+    // reconnect both the function property and the dependencies of its new value.
+    component.model.format = component.model.expanded;
+    await Promise.resolve();
+    assertText('description');
+    assert.strictEqual(callCount, 2);
+
+    component.model.summary = 'unused';
+    await Promise.resolve();
+    assertText('description');
+    assert.strictEqual(callCount, 2);
+
+    component.model.description = 'updated description';
+    await Promise.resolve();
+    assertText('updated description');
+    assert.strictEqual(callCount, 3);
+
+    await tearDown();
+  });
+
   it('does not track parameter property reads in deps mode', async function () {
     let callCount = 0;
     const { component, assertText } = createFixture('<div>${method(obj)}</div>', class {

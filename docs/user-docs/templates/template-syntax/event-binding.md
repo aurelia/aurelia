@@ -42,6 +42,14 @@ To bind a click event on a button to a method named `handleClick` in your view m
 
 When a user clicks the "Click Me" button, Aurelia will execute the `handleClick` method defined in your associated view model.
 
+You can also select a method by name:
+
+```html
+<button click.trigger="model[action]()">Run action</button>
+```
+
+Here, `action` supplies the method name and `this` inside the method refers to `model`. The function-reference form, `click.trigger="model[action]"`, preserves the same receiver and passes the event to the method automatically.
+
 ### Shorthand syntax for events (`@event`)
 
 To make it easier for teams migrating from Vue or other frameworks, Aurelia also understands the `@event="handler"` shorthand. The compiler converts it to the equivalent `event.trigger` binding, including modifiers after a colon.

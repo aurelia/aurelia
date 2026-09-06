@@ -278,22 +278,54 @@ export const {
         }
         throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
       }
-      case ekCallMember: {
-        const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
-        if (instance == null) {
-          if (e?.strict && !ast.optionalMember) {
-            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
+      case ekCallMember:
+      case ekCallFunction: {
+        // Resolve receivers in one call-kind branch; ordinary function calls return early.
+        // Only the optional-call flag and error code differ after resolution.
+        // Sharing invocation inline avoids duplicate observation logic and helper-call overhead.
+        let instance: IIndexable;
+        let name: string;
+        if (ast.$kind === ekCallMember) {
+          instance = astEvaluate(ast.object, s, e, c) as IIndexable;
+          name = ast.name;
+          if (instance == null && e?.strict && !ast.optionalMember) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, name, instance);
+          }
+        } else {
+          const access = ast.func;
+          if (access.$kind !== ekAccessKeyed) {
+            // Method dependency tracking requires a receiver; free functions retain their own invocation path.
+            const func = astEvaluate(access, s, e, c);
+            if (isFunction(func)) {
+              return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+            }
+            if (func == null) {
+              if (!ast.optional && e?.strict) {
+                throw createMappedError(ErrorNames.ast_not_a_function);
+              }
+              return void 0;
+            }
+            throw createMappedError(ErrorNames.ast_not_a_function);
+          }
+          // A keyed callee is a reference too. Resolve it once without binding away its tracking metadata.
+          instance = astEvaluate(access.object, s, e, c) as IIndexable;
+          name = astEvaluate(access.key, s, e, c) as string;
+          if (instance == null) {
+            if (!access.optional && e?.strict) {
+              throw createMappedError(ErrorNames.ast_nullish_keyed_access, name, instance);
+            }
+          } else if (c !== null && !access.accessGlobal) {
+            c.observe(instance, name);
           }
         }
-        const fn = instance?.[ast.name];
-        if (fn == null) {
-          if (!ast.optionalCall && e?.strict) {
-            throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
-          }
+        const fn = instance?.[name];
+        if (fn == null && (!e?.strict || (ast.$kind === ekCallMember ? ast.optionalCall : ast.optional))) {
           return void 0;
         }
-        if (!isFunction(fn)) {
-          throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
+        if (!isFunction<AnyFunction>(fn)) {
+          throw ast.$kind === ekCallMember
+            ? createMappedError(ErrorNames.ast_name_is_not_a_function, name)
+            : createMappedError(ErrorNames.ast_not_a_function);
         }
         if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
           const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
@@ -305,26 +337,12 @@ export const {
           } finally {
             exitConnectable(c);
           }
-        } else {
-          const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
-          if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
-            c?.observeCollection(instance);
-          }
-          return ret;
         }
-      }
-      case ekCallFunction: {
-        const func = astEvaluate(ast.func, s, e, c);
-        if (isFunction(func)) {
-          return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+        const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
+        if (isArray(instance) && autoObserveArrayMethods.includes(name)) {
+          c?.observeCollection(instance);
         }
-        if (func == null) {
-          if (!ast.optional && e?.strict) {
-            throw createMappedError(ErrorNames.ast_not_a_function);
-          }
-          return void 0;
-        }
-        throw createMappedError(ErrorNames.ast_not_a_function);
+        return ret;
       }
       case ekArrowFunction: {
         const func = (...args: unknown[]) => {
@@ -377,7 +395,9 @@ export const {
           c.observe(instance, key);
         }
 
-        return instance[key];
+        const ret = instance[key];
+        // Event listeners request a bound callback; ordinary keyed reads retain the original function.
+        return e?.boundFn && isFunction(ret) ? ret.bind(instance) : ret;
       }
       case ekTaggedTemplate: {
         const results = ast.expressions.map(expr => astEvaluate(expr, s, e, c));

@@ -2,7 +2,9 @@ import { strict as assert } from 'node:assert';
 import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { runInNewContext } from 'node:vm';
 import au from '@aurelia/vite-plugin';
+import { JSDOM } from 'jsdom';
 
 describe('vite-plugin', function () {
   function getHook<T extends Function>(hook: T | { handler: T } | undefined): T | undefined {
@@ -192,10 +194,10 @@ describe('vite-plugin', function () {
       const result = await getHook(resourcePlugin.load)?.call(context, fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
       const code = typeof result === 'string' ? result : result?.code;
 
-      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png";/);
-      assert.match(String(code), /import __auViteAsset1 from "\.\.\/shared\/shared-logo\.png";/);
-      assert.match(String(code), /import __auViteAsset2 from "\.\/nested\/nested-logo\.png";/);
-      assert.match(String(code), /import __auViteAsset3 from "\.\/larger\.png";/);
+      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset1 from "\.\.\/shared\/shared-logo\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset2 from "\.\/nested\/nested-logo\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset3 from "\.\/larger\.png\?url";/);
       assert.match(String(code), /export const template = .*__auViteAsset0.*__auViteAsset1.*__auViteAsset2.*__auViteAsset0.*__auViteAsset3/s);
       assert.match(String(code), /src\.bind=\\"dynamicLogo\\"/);
       assert.match(String(code), /src=\\"\/public-logo\.png\\"/);
@@ -228,7 +230,7 @@ describe('vite-plugin', function () {
       const result = await getHook(resourcePlugin.load)?.call(createPluginContext(), fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
       const code = typeof result === 'string' ? result : result?.code;
 
-      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png";/);
+      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png\?url";/);
       assert.match(String(code), /export const template = .*__auViteAsset0/s);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
@@ -288,26 +290,178 @@ describe('vite-plugin', function () {
       const result = await getHook(resourcePlugin.load)?.call(createPluginContext(), fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
       const code = typeof result === 'string' ? result : result?.code;
 
-      assert.match(String(code), /import __auViteAsset0 from "\.\/clip\.mp4";/);
-      assert.match(String(code), /import __auViteAsset1 from "\.\/poster\.png";/);
-      assert.match(String(code), /import __auViteAsset2 from "\.\/source\.webm";/);
-      assert.match(String(code), /import __auViteAsset3 from "\.\/source-2x\.webm";/);
-      assert.match(String(code), /import __auViteAsset4 from "\.\/image\.svg";/);
-      assert.match(String(code), /import __auViteAsset5 from "\.\/symbol\.svg";/);
-      assert.match(String(code), /import __auViteAsset6 from "\.\/audio\.mp3";/);
-      assert.match(String(code), /import __auViteAsset7 from "\.\/embed\.svg";/);
-      assert.match(String(code), /import __auViteAsset8 from "\.\/input\.png";/);
-      assert.match(String(code), /import __auViteAsset9 from "\.\/link\.png";/);
-      assert.match(String(code), /import __auViteAsset10 from "\.\/link-2x\.png";/);
-      assert.match(String(code), /import __auViteAsset11 from "\.\/object\.pdf";/);
-      assert.match(String(code), /import __auViteAsset12 from "\.\/track\.vtt";/);
-      assert.match(String(code), /import __auViteAsset13 from "\.\/meta-name\.png";/);
-      assert.match(String(code), /import __auViteAsset14 from "\.\/meta-property\.png";/);
+      assert.match(String(code), /import __auViteAsset0 from "\.\/clip\.mp4\?url";/);
+      assert.match(String(code), /import __auViteAsset1 from "\.\/poster\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset2 from "\.\/source\.webm\?url";/);
+      assert.match(String(code), /import __auViteAsset3 from "\.\/source-2x\.webm\?url";/);
+      assert.match(String(code), /import __auViteAsset4 from "\.\/image\.svg\?url";/);
+      assert.match(String(code), /import __auViteAsset5 from "\.\/symbol\.svg\?url";/);
+      assert.match(String(code), /import __auViteAsset6 from "\.\/audio\.mp3\?url";/);
+      assert.match(String(code), /import __auViteAsset7 from "\.\/embed\.svg\?url";/);
+      assert.match(String(code), /import __auViteAsset8 from "\.\/input\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset9 from "\.\/link\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset10 from "\.\/link-2x\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset11 from "\.\/object\.pdf\?url";/);
+      assert.match(String(code), /import __auViteAsset12 from "\.\/track\.vtt\?url";/);
+      assert.match(String(code), /import __auViteAsset13 from "\.\/meta-name\.png\?url";/);
+      assert.match(String(code), /import __auViteAsset14 from "\.\/meta-property\.png\?url";/);
       assert.doesNotMatch(String(code), /import .*non-asset-meta/);
       assert.match(String(code), /content=\\"\.\/non-asset-meta\.png\\"/);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
     }
+  });
+
+  describe('template asset attribute values', function () {
+    async function transform(html: string, urls: string[], onMissing: 'ignore' | 'error' = 'error') {
+      const fixture = createFixture();
+      fs.mkdirSync(fixture.srcDir, { recursive: true });
+      for (const file of [
+        'logo.svg', 'wide image.svg', 'percent%icon.svg', 'icons,large.svg', 'icon#wide.svg',
+        'theme.css', 'manifest.json', 'document.html',
+      ]) {
+        fs.writeFileSync(path.join(fixture.srcDir, file), '', 'utf8');
+      }
+      try {
+        fs.writeFileSync(fixture.htmlFile, html, 'utf8');
+        const [, plugin] = au({ include: /\.(ts|js|html)$/, templateAssets: { onMissing } });
+        getHook(plugin.configResolved)?.call({}, createResolvedConfig('production'));
+        const code = String(await getHook(plugin.load)?.call(createPluginContext(), fixture.htmlFile.replace(/\.html$/, '.$au.ts')));
+        const imports = [...code.matchAll(/import (__auViteAsset\d+) from (".*");/g)];
+        assert.equal(imports.length, urls.length);
+        // Supply bundler URLs to the actual generated expression, then parse the HTML
+        // as the runtime does. Import-string snapshots cannot detect attribute corruption.
+        const template = runInNewContext(/export const template = (.*);/.exec(code)![1],
+          Object.fromEntries(imports.map((match, i) => [match[1], urls[i]])));
+        return { document: JSDOM.fragment(template), specifiers: imports.map(match => JSON.parse(match[2])) };
+      } finally {
+        fs.rmSync(fixture.root, { recursive: true, force: true });
+      }
+    }
+
+    for (const quote of ['"', "'", '']) {
+      it(`preserves an imported URL in a ${quote === '' ? 'bare' : quote} attribute`, async function () {
+        const url = `data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eA%20&amp;%20B%3c/title%3e%3c/svg%3e`;
+        const { document } = await transform(`<img src=${quote}./logo.svg${quote} alt="logo">`, [url]);
+        const img = document.querySelector('img')!;
+        assert.equal(img.getAttribute('src'), url);
+        assert.deepEqual(img.getAttributeNames(), ['src', 'alt']);
+      });
+    }
+
+    it('escapes quotes and ampersands supplied by asset plugins', async function () {
+      const url = '/assets/logo.svg?label="wide"&amp;variant=1';
+      const { document } = await transform('<img src="./logo.svg">', [url]);
+      assert.equal(document.querySelector('img')!.getAttribute('src'), url);
+    });
+
+    it('handles whitespace around the attribute assignment', async function () {
+      const { document } = await transform('<img src = \n \'./logo.svg\'>', ['/assets/logo.svg']);
+      assert.equal(document.querySelector('img')!.getAttribute('src'), '/assets/logo.svg');
+    });
+
+    for (const url of ['./bad%logo.svg', '?variant=1']) {
+      it(`leaves ${url} unchanged when it cannot identify an asset filename`, async function () {
+        const { document } = await transform(`<img src="${url}">`, []);
+        assert.equal(document.querySelector('img')!.getAttribute('src'), url);
+      });
+    }
+
+    for (const value of [
+      'data:image/png;base64,AA== 1x, ./logo.svg 2x',
+      'data:image/png;base64,AA==, ./logo.svg 2x',
+      './icons,large.svg 1x, https://example.com/logo.svg 2x',
+      './logo.svg, https://example.com/logo.svg 2x',
+      'https://example.com/logo.svg?label=&quot;small&quot; 1x, ./logo.svg 2x',
+    ]) {
+      it(`preserves the candidate boundaries in srcset=${JSON.stringify(value)}`, async function () {
+        const url = '/assets/bundled.svg';
+        const { document } = await transform(`<img srcset="${value}">`, [url]);
+        assert.equal(document.querySelector('img')!.getAttribute('srcset'), value.replace(/\.\/(?:logo|icons,large)\.svg/, url).replace(/&quot;/g, '"'));
+      });
+    }
+
+    it('leaves a source set of external and data URLs unchanged', async function () {
+      const value = 'data:image/png;base64,AA== 1x, https://example.com/large.svg 2x';
+      const { document } = await transform(`<img srcset="${value}">`, []);
+      assert.equal(document.querySelector('img')!.getAttribute('srcset'), value);
+    });
+
+    it('handles a source set ending with a descriptorless candidate', async function () {
+      const { document } = await transform(
+        '<img srcset="./wide%20image.svg 2x, ./logo.svg">',
+        ['/assets/wide.svg', '/assets/logo.svg'],
+      );
+      assert.equal(document.querySelector('img')!.getAttribute('srcset'), '/assets/wide.svg 2x, /assets/logo.svg');
+    });
+
+    it('requests URLs for CSS, JSON and HTML resources', async function () {
+      const { specifiers } = await transform(
+        '<link rel="stylesheet" href="./theme.css"><link rel="manifest" href="./manifest.json"><object data="./document.html"></object>',
+        ['/assets/theme.css', '/assets/manifest.json', '/assets/document.html'],
+      );
+      assert.deepEqual(specifiers, ['./theme.css?url', './manifest.json?url', './document.html?url']);
+    });
+
+    for (const [encoded, decoded] of [['wide%20image', 'wide image'], ['percent%25icon', 'percent%icon']]) {
+      it(`decodes ${encoded} once and retains its query and fragment`, async function () {
+        const { specifiers, document } = await transform(
+          `<img src="./${encoded}.svg?variant=2#icon">`,
+          [`/assets/${decoded}.svg?variant=2`],
+        );
+        assert.deepEqual(specifiers, [`./${decoded}.svg?url&variant=2&no-inline`]);
+        assert.equal(document.querySelector('img')!.getAttribute('src'), `/assets/${decoded}.svg?variant=2#icon`);
+      });
+    }
+
+    it('shares one import for different fragments of the same SVG', async function () {
+      const { specifiers, document } = await transform('<svg><use href="./logo.svg#check"></use><use href="./logo.svg#close"></use></svg>', ['/assets/logo.svg']);
+      assert.deepEqual(specifiers, ['./logo.svg?url&no-inline']);
+      assert.deepEqual([...document.querySelectorAll('use')].map(use => use.getAttribute('href')), ['/assets/logo.svg#check', '/assets/logo.svg#close']);
+    });
+
+    for (const query of ['?url', '?no-inline', '?inline', '?raw=true']) {
+      it(`preserves explicit Vite flags and ordinary query data in ${query}`, async function () {
+        const { specifiers } = await transform(`<img src="./logo.svg${query}">`, ['/assets/logo.svg']);
+        assert.deepEqual(specifiers, [`./logo.svg${query === '?url' ? query : `?url&${query.slice(1)}`}`]);
+      });
+    }
+
+    for (const flag of ['inline', 'no-inline']) {
+      it(`preserves an explicit ${flag} choice on an SVG fragment`, async function () {
+        const { specifiers, document } = await transform(`<img src="./logo.svg?${flag}#check">`, ['/assets/logo.svg']);
+        assert.deepEqual(specifiers, [`./logo.svg?url&${flag}`]);
+        assert.equal(document.querySelector('img')!.getAttribute('src'), '/assets/logo.svg#check');
+      });
+    }
+
+    for (const url of ['./icon%23wide.svg', './logo.svg?raw', './logo.svg?variant=1&raw']) {
+      it(`gives actionable guidance for ${url}`, async function () {
+        await assert.rejects(transform(`<img src="${url}">`, []), (error: Error) => {
+          assert.ok(error.message.includes(JSON.stringify(url)));
+          assert.match(error.message, /foo-bar\.html/);
+          assert.match(error.message, /Rename the file|Remove "raw"/);
+          return true;
+        });
+      });
+    }
+
+    it('preserves server-provided URLs when missing local assets are ignored', async function () {
+      const { document, specifiers } = await transform('<img src="./thumbnail?raw"><img src="./remote%23icon.svg">', [], 'ignore');
+      assert.deepEqual(specifiers, []);
+      assert.deepEqual([...document.querySelectorAll('img')].map(img => img.getAttribute('src')), ['./thumbnail?raw', './remote%23icon.svg']);
+    });
+
+    it('preserves line breaks in authored fragments', async function () {
+      const { document } = await transform('<img src="./logo.svg#logo\n">', ['/assets/logo.svg']);
+      assert.equal(document.querySelector('img')!.getAttribute('src'), '/assets/logo.svg#logo\n');
+    });
+
+    it('leaves descriptor parsing to the browser without treating its tokens as URLs', async function () {
+      const value = './logo.svg invalid(1, 2), https://example.com/large.svg 2x';
+      const { document } = await transform(`<img srcset="${value}">`, ['/assets/logo.svg']);
+      assert.equal(document.querySelector('img')!.getAttribute('srcset'), value.replace('./logo.svg', '/assets/logo.svg'));
+    });
   });
 
   it('emits static relative template assets in Vite production builds', async function () {
@@ -410,7 +564,7 @@ await build({
       const result = await getHook(resourcePlugin.transform)?.call({}, '<img src="./logo.png" alt="Logo">', fixture.htmlFile);
       const code = typeof result === 'string' ? result : result?.code;
 
-      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png";/);
+      assert.match(String(code), /import __auViteAsset0 from "\.\/logo\.png\?url";/);
       assert.match(String(code), /export const template = .*__auViteAsset0/s);
     } finally {
       fs.rmSync(fixture.root, { recursive: true, force: true });
@@ -459,7 +613,7 @@ await build({
       const result = await getHook(resourcePlugin.load)?.call(context, fixture.htmlFile.replace(/\.html$/, '.$au.ts'));
       const code = String(typeof result === 'string' ? result : result?.code);
 
-      assert.match(code, /import __auViteAsset0 from "\.\/logo\.png";/);
+      assert.match(code, /import __auViteAsset0 from "\.\/logo\.png\?url";/);
       assert.match(code, /src=\\"\.\/missing\.png\\"/);
       assert.deepEqual(context.warnings, []);
     } finally {

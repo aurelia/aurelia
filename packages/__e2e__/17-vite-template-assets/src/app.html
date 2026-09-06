@@ -1,6 +1,15 @@
 <main>
   <h1>Vite template asset</h1>
   <img id="template-asset" src="./assets/aurelia-logo.svg" alt="Aurelia logo">
+  <img id="single-quoted-template-asset" src='./assets/aurelia-logo.svg' alt="Single-quoted logo">
+  <img id="emitted-template-asset" src="./assets/aurelia-logo.svg?no-inline#logo" alt="Emitted logo">
+  <img id="encoded-template-asset" src="./assets/sample%20icon.svg" alt="Encoded filename">
+  <img id="responsive-template-asset" srcset="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1'%20height='1'%3E%3C/svg%3E 1x, ./assets/aurelia-logo.svg 2x" alt="Responsive logo">
+  <svg width="24" height="12" viewBox="0 0 12 6"><use id="template-sprite" href="./assets/icons.svg#marker"></use></svg>
+  <link id="template-stylesheet" rel="stylesheet" href="./assets/card.css">
+  <link id="template-manifest" rel="manifest" href="./assets/manifest.json">
+  <object id="template-document" data="./assets/card.html" type="text/html"></object>
+  <div id="styled-asset">Styled by a template stylesheet</div>
   <img id="ignored-template-asset" au-vite-ignore src="./ignored-logo.svg" alt="Ignored Aurelia logo">
   <img id="missing-template-asset" src="./missing-logo.svg" alt="Missing logo">
 </main>

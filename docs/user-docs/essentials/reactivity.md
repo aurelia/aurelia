@@ -215,6 +215,8 @@ export class ProductList {
 }
 ```
 
+Methods selected by name, such as `list[method](product)`, use the same tracking rules as `list.matches(product)`.
+
 Behavior:
 - `deps` omitted (or `undefined`) uses proxy-based tracking.
 - `deps: []` explicitly disables tracking for the decorated method/getter.

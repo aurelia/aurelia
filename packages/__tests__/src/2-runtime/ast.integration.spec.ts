@@ -7,7 +7,7 @@ import {
   LetBinding,
   PropertyBinding,
 } from '@aurelia/runtime-html';
-import { runTasks } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import {
   assert,
   createContainer,
@@ -20,6 +20,127 @@ describe('2-runtime/ast.integration.spec.ts', function () {
   // well maybe should just delete these tests
   (PropertyBinding as any).mix();
   (LetBinding as any).mix();
+
+  describe('keyed method receivers', function () {
+    for (const keyed of [false, true]) {
+      it(`calls a string method with its receiver (keyed=${keyed})`, async function () {
+        const { component, assertText, tearDown } = createFixture(
+          keyed ? '${text[method]()}' : '${text.toUpperCase()}',
+          { text: 'label', method: 'toUpperCase' },
+        );
+
+        try {
+          assertText('LABEL');
+
+          component.text = 'updated';
+          await tasksSettled();
+          assertText('UPDATED');
+
+          if (keyed) {
+            component.method = 'toLowerCase';
+            await tasksSettled();
+            assertText('updated');
+          }
+        } finally {
+          await tearDown();
+        }
+      });
+
+      for (const call of [false, true]) {
+        it(`dispatches an action on its model (keyed=${keyed}, call=${call})`, async function () {
+          const action = keyed ? 'model[action]' : 'model.add';
+          const { component, trigger, assertText, tearDown } = createFixture(
+            `<button click.trigger="${action}${call ? '()' : ''}">add</button><span>\${model.items.join(',')}</span>`,
+            {
+              action: 'add',
+              model: {
+                items: [] as string[],
+                add() {
+                  this.items.push('item');
+                },
+              },
+            },
+          );
+
+          try {
+            trigger.click('button');
+            await tasksSettled();
+            assert.deepStrictEqual(component.model.items, ['item']);
+            assertText('additem');
+          } finally {
+            await tearDown();
+          }
+        });
+      }
+
+      it(`observes an array method through mutations and replacement (keyed=${keyed})`, async function () {
+        const { component, assertText, tearDown } = createFixture(
+          keyed ? '${items[method](", ")}' : '${items.join(", ")}',
+          { items: ['a'], method: 'join' },
+        );
+
+        try {
+          assertText('a');
+
+          component.items.push('b');
+          await tasksSettled();
+          assertText('a, b');
+
+          component.items.splice(0, 1);
+          await tasksSettled();
+          assertText('b');
+
+          const previous = component.items;
+          component.items = ['c'];
+          await tasksSettled();
+          assertText('c');
+
+          previous.push('old');
+          component.items.push('d');
+          await tasksSettled();
+          assertText('c, d');
+        } finally {
+          await tearDown();
+        }
+      });
+
+      it(`updates a filtered repeat after source changes (keyed=${keyed})`, async function () {
+        const filter = keyed ? 'items[method]' : 'items.filter';
+        const { component, assertText, tearDown } = createFixture(
+          `<span repeat.for="item of ${filter}(item => item.visible)">\${item.label}</span>`,
+          {
+            items: [
+              { label: 'a', visible: true },
+              { label: 'b', visible: false },
+            ],
+            method: 'filter',
+          },
+        );
+
+        try {
+          assertText('a');
+
+          component.items[1].visible = true;
+          await tasksSettled();
+          assertText('ab');
+
+          component.items.push({ label: 'c', visible: true });
+          await tasksSettled();
+          assertText('abc');
+
+          component.items.splice(0, 1);
+          await tasksSettled();
+          assertText('bc');
+
+          component.items = [{ label: 'd', visible: true }];
+          await tasksSettled();
+          assertText('d');
+        } finally {
+          await tearDown();
+        }
+      });
+    }
+  });
 
   describe('[[AccessScope]]', function () {
     describe('PropertyBinding', function () {

@@ -56,6 +56,7 @@ import {
   createDestructuringAssignmentRestExpression,
   createBindingIdentifier,
   createArrowFunction,
+  ExpressionParser,
 } from '@aurelia/expression-parser';
 import {
   IObserverLocatorBasedConnectable,
@@ -1337,6 +1338,149 @@ describe('2-runtime/ast.spec.ts', function () {
       assert.throws(() => astEvaluate(expression, s3, { strict: true }, null));
       assert.throws(() => astEvaluate(expression, s4, { strict: true }, null));
     });
+  });
+
+  describe('CallFunctionExpression with a keyed receiver', function () {
+    const parser = new ExpressionParser();
+    const parse = (expression: string) => parser.parse(expression, 'IsProperty');
+
+    for (const expression of [
+      'receiver()[key()](argument())',
+      '(receiver()[key()])(argument())',
+      'receiver()[key()]?.(argument())',
+    ]) {
+      it(`evaluates each part once, in order: ${expression}`, function () {
+        const calls: string[] = [];
+        const model = {
+          get method() {
+            calls.push('getter');
+            return function (this: unknown, value: string) {
+              calls.push('call');
+              assert.strictEqual(this, model);
+              return value;
+            };
+          },
+        };
+        const scope = Scope.create({
+          receiver() {
+            calls.push('receiver');
+            return model;
+          },
+          key() {
+            calls.push('key');
+            return 'method';
+          },
+          argument() {
+            calls.push('argument');
+            return 'result';
+          },
+        });
+
+        assert.strictEqual(astEvaluate(parse(expression), scope, { strict: true }, null), 'result');
+        assert.deepStrictEqual(calls, ['receiver', 'key', 'getter', 'argument', 'call']);
+      });
+    }
+
+    it('keeps ordinary function reads unbound and binds only when requested by the consumer', function () {
+      const model = {
+        method(this: unknown) {
+          return this;
+        },
+        value: 42,
+      };
+      const scope = Scope.create({ model, key: 'method' });
+      const access = parse('model[key]');
+
+      const fn = astEvaluate(access, scope, null, null) as () => unknown;
+      assert.strictEqual(fn, model.method);
+      assert.strictEqual(fn(), void 0);
+
+      const bound = astEvaluate(access, scope, { boundFn: true }, null) as () => unknown;
+      assert.strictEqual(bound(), model);
+      assert.strictEqual(astEvaluate(parse('model["value"]'), scope, { boundFn: true }, null), 42);
+      assert.strictEqual(astEvaluate(parse('(true ? model[key] : null)()'), scope, null, null), void 0);
+    });
+
+    for (const key of [0, Symbol('method')]) {
+      it(`retains the receiver for a ${typeof key} key`, function () {
+        const model = {
+          [key]() {
+            return this;
+          },
+        };
+
+        assert.strictEqual(astEvaluate(parse('model[key]()'), Scope.create({ model, key }), null, null), model);
+      });
+    }
+
+    it('does not observe global method properties', function () {
+      const binding = new MockBinding();
+      assert.strictEqual(astEvaluate(parse('Math["max"](1, 2)'), Scope.create({}), null, binding), 2);
+      assert.strictEqual(binding.calls.length, 0);
+    });
+
+    it('treats a handler returned by a registry as a free function', function () {
+      const handlers = new Map<string, unknown>();
+      const scope = Scope.create({ handlers, action: 'run' });
+      const invoke = (expression: string) => astEvaluate(parse(expression), scope, { strict: true }, null);
+
+      assert.throws(() => invoke('handlers.get(action)()'), /AUR0107/);
+      assert.strictEqual(invoke('handlers.get(action)?.()'), void 0);
+
+      handlers.set('run', 42);
+      assert.throws(() => invoke('handlers.get(action)?.()'), /AUR0107/);
+
+      let calls = 0;
+      handlers.set('run', function (this: unknown) {
+        ++calls;
+        return this;
+      });
+
+      assert.strictEqual(invoke('handlers.get(action)()'), void 0);
+      assert.strictEqual(calls, 1);
+    });
+
+    // Optional invocation guards the function; optional keyed access guards its receiver.
+    // General optional-chain continuation is a separate parser/evaluator contract.
+    for (const strict of [false, true]) {
+      for (const [expression, optionalAccess, optionalCall] of [
+        ['model[key](argument())', false, false],
+        ['model[key]?.(argument())', false, true],
+        ['model?.[key]?.(argument())', true, true],
+      ] as const) {
+        for (const value of ['receiver-null', 'missing', 'null', 'non-function', 'method'] as const) {
+          it(`${expression} with ${value} (strict=${strict})`, function () {
+            let argumentsEvaluated = 0;
+            const method = value === 'null'
+              ? null
+              : value === 'non-function'
+                ? 1
+                : value === 'method'
+                  ? () => 'result'
+                  : void 0;
+            const scope = Scope.create({
+              model: value === 'receiver-null' ? null : { method },
+              key: 'method',
+              argument() {
+                ++argumentsEvaluated;
+                return 'argument';
+              },
+            });
+            const evaluate = () => astEvaluate(parse(expression), scope, { strict }, null);
+
+            if (strict && value === 'receiver-null' && !optionalAccess) {
+              assert.throws(evaluate, /AUR0115/);
+            } else if (value === 'non-function' || (strict && !optionalCall && value !== 'method')) {
+              assert.throws(evaluate, /AUR0107/);
+            } else {
+              assert.strictEqual(evaluate(), value === 'method' ? 'result' : void 0);
+            }
+
+            assert.strictEqual(argumentsEvaluated, value === 'method' ? 1 : 0);
+          });
+        }
+      }
+    }
   });
 
   describe('CallScopeExpression', function () {

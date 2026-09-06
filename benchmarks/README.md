@@ -44,6 +44,76 @@ never receives the GitHub write token.
 Use the repository's pinned Node and npm versions. Install the root workspace and make sure Chrome is available.
 Commands below run from `benchmarks/`.
 
+### Live optimization loop
+
+For fast local iteration against the workspace package watchers, run from the repository root:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/refresh.json
+```
+
+This mode skips exact-revision preparation, clean installs, release builds, and package packing. It incrementally
+bundles the selected fixture against the workspace production entry points, captures the first settled bundle as the
+session baseline, and reruns Tachometer after relevant package or fixture changes. The default minimum is 20 samples;
+override it with `--bench-samples <count>`.
+
+The mini-app bundler waits for eight seconds without another input change before rebuilding. This coalesces the
+JavaScript, declaration, and dependent-package output phases before Rollup performs its bundle and minification work.
+Use `--bench-debounce <milliseconds>` to tune this quiet period (minimum 250ms) for a local build with a longer burst.
+The runner also fingerprints the executable bundle and suppresses benchmark runs when a later rebuild is
+byte-for-byte identical.
+
+Completed results are written to `benchmarks/live-results/results/latest.json`, with previous completed runs appended to
+`history.jsonl`. `status.json` reports whether the runner is active, complete, or failed. Use `--bench-output <folder>`
+to select another output directory. Each Tachometer run copies its base and candidate bundles to an immutable active
+snapshot first, so an edit made during sampling is deferred to the next run instead of mixing builds.
+
+Changing the fixture resets the session baseline automatically. Restart the command when an explicit new baseline is
+preferred. Live results are intended for optimization feedback; confirm promising changes with the exact-revision
+workflow below before treating them as benchmark evidence. Chrome and a compatible ChromeDriver must be locally
+available, as with the other Tachometer commands.
+
+### Live CPU profiles
+
+Use Chrome's sampling profiler to rank measured hotspots before selecting an optimization theory:
+
+```sh
+npm run dev -- --profile startup
+npm run dev -- --profile refresh
+```
+
+Profiling uses the same package watchers and a second, unminified source-mapped output from the same Rollup build.
+It does not run Tachometer unless `--bench` is also supplied. Startup profiling prepares modules and deterministic
+records before capture, then profiles one real-DOM application start by default. Refresh profiling creates and warms
+the application first, prepares every replacement collection outside the measured region, then profiles 50 settled
+real-DOM refreshes. Override either count with `--profile-iterations <count>`.
+
+The latest raw Chrome profile is written to
+`benchmarks/live-results/profiles/<mode>-latest.cpuprofile`. The corresponding
+`<mode>-summary-latest.json` ranks frames by self time and includes inclusive time, sample count, source location,
+and a framework-only ranking. `status.json` reports capture state. Use `--profile-output <folder>` to select another
+directory. Chrome DevTools can open the `.cpuprofile` directly.
+
+The profiler identifies expensive functions; it is not comparative performance evidence. After changing a measured
+hotspot, keep the profile watcher running for diagnostic feedback and use the matching live Tachometer configuration
+to decide whether end-to-end duration improved. Both can run after each rebuild when requested together:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/refresh.json --bench-samples 10 --profile refresh
+```
+
+When a likely refresh optimization is smaller than the confidence interval of the single-refresh scenario, use the
+local diagnostic loop. It performs five warm-up refreshes, then reports both total time and the median of 20
+individually timed settled refreshes per Tachometer sample. The median isolates typical hot-path latency while total
+time retains GC and allocation costs; record creation and correctness assertions remain outside both intervals:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/refresh-loop.json --bench-samples 20 --profile refresh --profile-iterations 100
+```
+
+This loop is intended to distinguish small hot-path changes locally. Keep `refresh.json` as the authoritative
+single-interaction result and confirm any candidate there before adoption.
+
 Run the harness tests:
 
 ```sh

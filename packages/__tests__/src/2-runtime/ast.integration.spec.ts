@@ -1,4 +1,5 @@
 import {
+  CustomExpression,
   createAccessScopeExpression,
   createConditionalExpression,
 } from '@aurelia/expression-parser';
@@ -23,6 +24,42 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
   describe('[[AccessScope]]', function () {
     describe('PropertyBinding', function () {
+      it('binds and unbinds a custom expression', function () {
+        class TestExpression extends CustomExpression {
+          public bindCallCount = 0;
+          public unbindCallCount = 0;
+
+          public override bind(): void {
+            ++this.bindCallCount;
+          }
+
+          public override unbind(): void {
+            ++this.unbindCallCount;
+          }
+        }
+
+        const container = createContainer();
+        const expression = new TestExpression('custom value');
+        const target = { value: '' };
+        const binding = new PropertyBinding(
+          { state: 0 },
+          container,
+          createObserverLocator(container),
+          expression,
+          target,
+          'value',
+          BindingMode.toView,
+          false,
+        );
+
+        binding.bind(createScopeForTest({}));
+        assert.strictEqual(expression.bindCallCount, 1);
+        assert.strictEqual(target.value, 'custom value');
+
+        binding.unbind();
+        assert.strictEqual(expression.unbindCallCount, 1);
+      });
+
       it('auto connects when evaluates', function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);

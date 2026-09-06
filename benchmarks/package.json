@@ -5,8 +5,9 @@
   "scripts": {
     "bench:variants": "node prepare-variants.mjs",
     "bench:variants:test": "node --test variant-utils.spec.mjs",
-    "bench:test": "node --test variant-utils.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs realistic-data.spec.mjs measure-used-heap.spec.mjs ../.github/scripts/benchmark-comment.spec.cjs",
+    "bench:test": "node --test variant-utils.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs live-benchmark-utils.spec.mjs live-profile-utils.spec.mjs realistic-data.spec.mjs measure-used-heap.spec.mjs ../.github/scripts/benchmark-comment.spec.cjs",
     "bench:report": "node write-benchmark-report.mjs --results results --output results/report",
+    "bench:live": "node live-benchmark.mjs",
     "bench": "npm run bench:rerender10k && npm run bench:startup10k && npm run bench:update1k && npm run bench:rerender500-big && npm run bench:startup100-big && npm run bench:realistic-startup && npm run bench:realistic-refresh && npm run bench:realistic-mixed",
     "bench:rerender10k": "node run-tachometer.mjs --config app-repeat-view/rerender.json --json-file results/repeat-view-rerender-10k.json",
     "bench:startup10k": "node run-tachometer.mjs --config app-repeat-view/startup.json --json-file results/repeat-view-startup-10k.json",

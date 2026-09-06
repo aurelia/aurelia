@@ -1,0 +1,25 @@
+{
+  "name": "@__e2e__/17-vite-template-assets",
+  "license": "MIT",
+  "private": true,
+  "version": "2.0.0-rc.2",
+  "port": 9017,
+  "scripts": {
+    "build": "vite build",
+    "test:e2e": "npm run build && playwright test",
+    "test": "npm run test:e2e"
+  },
+  "dependencies": {
+    "aurelia": "2.0.0-rc.2"
+  },
+  "devDependencies": {
+    "@aurelia/vite-plugin": "2.0.0-rc.2",
+    "@playwright/test": "1.62.1",
+    "playwright": "1.62.1",
+    "@types/node": "22.20.1",
+    "vite": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=22.22.2"
+  }
+}

@@ -1,9 +1,23 @@
-import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
+import { preprocess } from '@aurelia/plugin-conventions';
+import type { IFileUnit, IOptionalPreprocessOptions } from '@aurelia/plugin-conventions';
 import { nodeFileUnitHost } from '@aurelia/plugin-conventions/node';
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
 import { createStandardDecoratorPlugin, normalizeFilterId } from './standard-decorators';
+import { transformTemplateAssetUrls } from './template-assets';
+
+export interface TemplateAssetOptions {
+  /**
+   * Control how unresolved relative template assets are handled.
+   *
+   * `'ignore'` preserves the URL silently, `'warn'` preserves it with a warning,
+   * and `'error'` stops the Vite transform.
+   *
+   * Defaults to `'warn'`.
+   */
+  onMissing?: 'ignore' | 'warn' | 'error';
+}
 
 export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
   include?: FilterPattern;
@@ -13,6 +27,13 @@ export interface AureliaPluginOptions extends IOptionalPreprocessOptions {
    * Indiciates whether the plugin should alias aurelia packages to the dev bundle.
    */
   useDev?: boolean;
+  /**
+   * Process static asset URLs in HTML templates through Vite.
+   *
+   * Set to `false` to disable processing, or pass options to configure it.
+   * Defaults to `true`.
+   */
+  templateAssets?: boolean | TemplateAssetOptions;
   /**
    * Transform TC39 standard decorators before Vite compiles application modules.
    *
@@ -42,11 +63,17 @@ export default function au(options: AureliaPluginOptions = {}) {
     exclude,
     pre = true,
     useDev,
+    templateAssets = true,
     transformStandardDecorators,
     standardDecoratorInclude,
     standardDecoratorExclude,
+    transformHtml,
     ...additionalOptions
   } = options;
+  const processTemplateAssets = templateAssets !== false;
+  const onMissingTemplateAsset = typeof templateAssets === 'object'
+    ? templateAssets.onMissing ?? 'warn'
+    : 'warn';
   const filter = createFilter(include, exclude);
   const isVirtualTsFileFromHtml = (id: string) => id.endsWith('.$au.ts');
   const isAureliaBareImport = (id: string) => id === 'aurelia' || /^@aurelia\/[^/]+$/.test(id);
@@ -61,6 +88,28 @@ export default function au(options: AureliaPluginOptions = {}) {
   };
 
   let $config!: import('vite').ResolvedConfig;
+  const transformHtmlForVite = (
+    html: string,
+    unit: IFileUnit,
+    context: {
+      warn(message: string): void;
+      error(message: string): never;
+    },
+  ) => {
+    const transformedHtml = transformHtml?.(html, unit) ?? html;
+    if (!processTemplateAssets || typeof transformedHtml !== 'string') {
+      return transformedHtml;
+    }
+    return transformTemplateAssetUrls(transformedHtml, unit, nodeFileUnitHost, (specifier) => {
+      const message = `Unable to resolve template asset ${JSON.stringify(specifier)} referenced by ${JSON.stringify(unit.path)}.`;
+      if (onMissingTemplateAsset === 'error') {
+        context.error(message);
+      }
+      if (onMissingTemplateAsset === 'warn') {
+        context.warn(`${message} The URL will be left unchanged.`);
+      }
+    }) ?? transformedHtml;
+  };
 
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
@@ -86,6 +135,7 @@ export default function au(options: AureliaPluginOptions = {}) {
             ? s.replace(/\.html$/, '.$au.ts')
             : s;
         },
+        transformHtml: (html, unit) => transformHtmlForVite(html, unit, this),
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',
@@ -128,6 +178,7 @@ export default function au(options: AureliaPluginOptions = {}) {
       }, {
         hmrModule: 'import.meta',
         transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
+        transformHtml: (html, unit) => transformHtmlForVite(html, unit, this),
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions,
         isDev: $config.command !== 'build',

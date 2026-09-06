@@ -9,6 +9,9 @@ commands, metric meanings, and local reproduction workflow used by this director
 - `utils/` owns browser-side loading, assertions, data, measurement publication, and GC helpers.
 - `prepare-variants.mjs`, `rollup.variant.mjs`, and `variant-utils.mjs` own exact source builds and package isolation.
 - `run-tachometer.mjs` owns execution and the local compact summary.
+- `live-benchmark.mjs` captures complete Rollup outputs and owns live result publication. Its session coordinator
+  serializes browser work and resets the baseline when fixture inputs change. Live profiles carry the same snapshot
+  metadata as paired timings; they remain diagnostic, not exact-revision evidence.
 - `benchmark-report.mjs` owns result contracts, strict validation, and trusted Markdown rendering.
 - `.circleci/config.yml` owns benchmark jobs. `.github/workflows/trigger-circleci-bench.yml`,
   `.github/workflows/trigger-circleci-pr-full.yml`, and `.github/scripts/benchmark-comment.cjs` own trusted dispatch
@@ -51,6 +54,10 @@ When adding a result file, update:
 - `resultContracts` and profile membership in `benchmark-report.mjs`;
 - report fixtures and strict validation tests.
 
+The PR comment formatter comes from trusted master, not the candidate. An expanded report can be published only after
+its formatter/schema support lands there. Keep existing smoke contracts compatible during such a rollout; do not
+weaken validation to let the candidate supply its own trusted formatter.
+
 When adding a metric, update compact-summary classification and formatting, the report metric definition and
 validator, the human explanation, and tests for units and confidence-interval assessment.
 
@@ -66,6 +73,11 @@ cd benchmarks
 npm run bench:test
 ```
 
+For focused local optimization, use `npm run dev -- --bench <config>` and optionally `--profile startup|refresh`.
+The live loop watches the selected fixture and shared browser helpers as well as Rollup's package inputs. Check
+`status.json` and the recorded hashes before using a result; cancelled/failed runs preserve the last complete output.
+Run the live-session, profiler, and managed-runner tests when changing rebuild or shutdown behavior.
+
 - Run the changed page through its real Tachometer command against prepared exact variants.
 - Run an A/A byte-identical proof after changing source preparation, package isolation, or bundling.
 - Generate and strictly validate a complete report after changing result files, profiles, metrics, or artifacts.
@@ -75,8 +87,9 @@ npm run bench:test
 ## Version-coupled runner
 
 `run-tachometer.mjs` intentionally retains Tachometer's config, server, runner, JSON output, and cleanup path while
-avoiding the public CLI's broken Windows `npm.cmd` launch. Its imports are private and version-coupled. Keep Tachometer
-exactly pinned and verify the public CLI on supported Windows Node before removing the wrapper.
+avoiding the public CLI's broken Windows `npm.cmd` launch. It also owns driver acquisition and cleanup because
+Tachometer 0.7.1 does not always quit browser sessions. Its imports are private and version-coupled. Keep Tachometer
+exactly pinned; verify upstream launch, cancellation, and cleanup before removing the corresponding overrides.
 
 Keep ChromeDriver's two roles separate. The exact benchmark dependency satisfies Tachometer's module resolution, and
 CircleCI owns the executable matched to its Chrome build. Repository-wide `ignore-scripts=true` prevents the npm

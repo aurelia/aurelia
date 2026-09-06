@@ -42,6 +42,34 @@ const args = yargs(process.argv.slice(2))
     type: 'string',
     array: true,
   })
+  .option('bench', {
+    describe: 'run a live Tachometer benchmark config against workspace builds',
+    type: 'string',
+  })
+  .option('bench-samples', {
+    describe: 'minimum sample count for a live benchmark run',
+    type: 'number',
+  })
+  .option('bench-output', {
+    describe: 'directory for live benchmark result files',
+    type: 'string',
+  })
+  .option('bench-debounce', {
+    describe: 'quiet time in milliseconds before running a rebuilt live benchmark',
+    type: 'number',
+  })
+  .option('profile', {
+    describe: 'capture a live Chrome CPU profile for a realistic benchmark phase',
+    choices: ['startup', 'refresh'] as const,
+  })
+  .option('profile-iterations', {
+    describe: 'number of measured operations in each live CPU profile',
+    type: 'number',
+  })
+  .option('profile-output', {
+    describe: 'directory for live CPU profile files',
+    type: 'string',
+  })
   .option('node-tests', {
     describe: 'run node test watcher instead of the chrome debugger runner',
     type: 'boolean',
@@ -56,6 +84,8 @@ const args = yargs(process.argv.slice(2))
 const envVars = { DEV_MODE: true };
 const rawTestPatterns = (args.t ?? []) as string[];
 const hasValidTestPatterns = rawTestPatterns.join(' ') !== '';
+const hasLiveBenchmark = typeof args.bench === 'string' && args.bench.trim() !== '';
+const hasLiveProfile = args.profile !== undefined;
 
 const e2e = args.e2e;
 const validE2e = [
@@ -73,12 +103,33 @@ const validE2e = [
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 
-if (!hasValidTestPatterns && !hasValidE2e) {
+if (!hasValidTestPatterns && !hasValidE2e && !hasLiveBenchmark && !hasLiveProfile) {
   console.log(
-`There are no test pattern or e2e tests specified. Aborting...
+`There are no test patterns, e2e tests, or live benchmark specified. Aborting...
 If it is intended to run all test, then specified --test '*'
-If it is intended to run e2e test, then specified --e2e + one of the following: ${validE2e}`);
+If it is intended to run e2e test, then specified --e2e + one of the following: ${validE2e}
+If it is intended to run a live benchmark, then specify --bench <benchmark-config>
+If it is intended to capture a CPU profile, then specify --profile startup|refresh`);
   process.exit(0);
+}
+
+if (args['bench-samples'] !== undefined && (!Number.isInteger(args['bench-samples']) || args['bench-samples'] < 2)) {
+  throw new Error('--bench-samples must be an integer greater than 1.');
+}
+if (args['bench-debounce'] !== undefined && (!Number.isInteger(args['bench-debounce']) || args['bench-debounce'] < 250)) {
+  throw new Error('--bench-debounce must be an integer of at least 250 milliseconds.');
+}
+if (args['profile-iterations'] !== undefined && (!Number.isInteger(args['profile-iterations']) || args['profile-iterations'] < 1)) {
+  throw new Error('--profile-iterations must be a positive integer.');
+}
+if (args['profile-iterations'] !== undefined && !hasLiveProfile) {
+  throw new Error('--profile-iterations requires --profile startup|refresh.');
+}
+if (args['profile-output'] !== undefined && !hasLiveProfile) {
+  throw new Error('--profile-output requires --profile startup|refresh.');
+}
+if (hasLiveProfile && hasLiveBenchmark && !args.bench!.replace(/\\/gu, '/').startsWith('app-repeat-realistic/')) {
+  throw new Error('--profile currently requires an app-repeat-realistic benchmark config.');
 }
 
 const devCmd = 'npm run dev';
@@ -136,6 +187,34 @@ const testCommandConfig = createTestCommandConfig(
   createTestBuildToken(),
 );
 const testEnvVars = { ...envVars, ...testCommandConfig.env };
+const liveWorkloadConfig = hasLiveBenchmark
+  ? args.bench
+  : `app-repeat-realistic/${args.profile}.json`;
+const benchmarkEnvVars = hasLiveBenchmark || hasLiveProfile
+  ? {
+    ...envVars,
+    AURELIA_LIVE_BENCH_CONFIG: liveWorkloadConfig,
+    AURELIA_LIVE_BENCH_ENABLED: String(hasLiveBenchmark),
+    ...(args['bench-samples'] === undefined
+      ? {}
+      : { AURELIA_LIVE_BENCH_SAMPLES: String(args['bench-samples']) }),
+    ...(args['bench-output'] === undefined
+      ? {}
+      : { AURELIA_LIVE_BENCH_OUTPUT: path.resolve(process.cwd(), args['bench-output']) }),
+    ...(args['bench-debounce'] === undefined
+      ? {}
+      : { AURELIA_LIVE_BENCH_DEBOUNCE: String(args['bench-debounce']) }),
+    ...(args.profile === undefined
+      ? {}
+      : { AURELIA_LIVE_PROFILE: args.profile }),
+    ...(args['profile-iterations'] === undefined
+      ? {}
+      : { AURELIA_LIVE_PROFILE_ITERATIONS: String(args['profile-iterations']) }),
+    ...(args['profile-output'] === undefined
+      ? {}
+      : { AURELIA_LIVE_PROFILE_OUTPUT: path.resolve(process.cwd(), args['profile-output']) }),
+  }
+  : envVars;
 
 validPackages
   .filter(pkg => !isEsmBuilt(path.resolve(__dirname, `../packages/${pkg}`)))
@@ -176,9 +255,8 @@ validToolingPackages
 
 const apps = (args.a ?? []) as string[];
 const validApps = [
-  'ui-virtualization',
-  'router-animation',
-  'router-hooks',
+  'router-direct-animation',
+  'router-direct-hooks',
 ];
 const toolings = args.l;
 
@@ -236,7 +314,15 @@ const devProcesses = concurrently([
     cwd: `packages-tooling/${tl}`,
     env: envVars,
     name: `${tl}`
-  }))
+  })),
+  hasLiveBenchmark || hasLiveProfile
+    ? {
+      command: 'npm run bench:live',
+      cwd: 'benchmarks',
+      env: benchmarkEnvVars,
+      name: hasLiveBenchmark && hasLiveProfile ? 'bench+profile(live)' : hasLiveProfile ? 'profile(live)' : 'bench(live)',
+    }
+    : null!,
 ].filter(Boolean), {
   prefix: '[{name}]',
   killOthers: ['failure', 'success'],

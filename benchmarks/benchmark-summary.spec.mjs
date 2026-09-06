@@ -73,6 +73,24 @@ void describe('compact benchmark summary', () => {
     assert.match(formatCompactSummary(results), /-> no clear change/);
   });
 
+  void it('formats median refresh and cached dependency timings as durations', () => {
+    for (const [scenario, name, entryName] of [
+      ['realistic keyed refresh loop 20x1000', 'median refresh', 'realistic-refresh-median-1000'],
+      ['cached binding dependency rotation 1000000', 'perf', 'dependency-rotation-cached-1000000'],
+    ]) {
+      const results = pairResults(
+        scenario,
+        { name, mode: 'performance', entryName },
+        interval(10, 11),
+        interval(8, 9),
+        difference(-3, -1, -0.3, -0.1),
+      );
+      const summary = formatCompactSummary(results);
+      assert.match(summary, /candidate `8\.00ms` - `9\.00ms` vs base `10\.00ms` - `11\.00ms`/);
+      assert.match(summary, /-> faster/);
+    }
+  });
+
   void it('classifies and formats a lower after-GC heap interval', () => {
     const results = pairResults(
       'realistic heap lifecycle 500',

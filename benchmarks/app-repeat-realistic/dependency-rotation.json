@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "..",
+  "benchmarks": [
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": [
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
+      },
+      "measurement": {
+        "name": "perf",
+        "mode": "performance",
+        "entryName": "dependency-rotation-250000"
+      },
+      "expand": [
+        {
+          "name": "fresh binding dependency rotation 250000 base",
+          "url": "dependencyRotation250000.html?variant=base"
+        },
+        {
+          "name": "fresh binding dependency rotation 250000 candidate",
+          "url": "dependencyRotation250000.html?variant=candidate"
+        }
+      ]
+    },
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": [
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
+      },
+      "measurement": {
+        "name": "perf",
+        "mode": "performance",
+        "entryName": "dependency-rotation-cached-1000000"
+      },
+      "expand": [
+        {
+          "name": "cached binding dependency rotation 1000000 base",
+          "url": "dependencyRotationCached1000000.html?variant=base"
+        },
+        {
+          "name": "cached binding dependency rotation 1000000 candidate",
+          "url": "dependencyRotationCached1000000.html?variant=candidate"
+        }
+      ]
+    }
+  ],
+  "timeout": 0.5
+}

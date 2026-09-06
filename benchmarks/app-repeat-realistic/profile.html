@@ -1,0 +1,79 @@
+<script type="module">
+import { assertRealisticRows, captureRealisticViewModels } from '../utils/assert-render.js';
+import { createRealisticRecords, createRefreshedRealisticRecords } from '../utils/realistic-data.js';
+
+const parameters = new URLSearchParams(location.search);
+const mode = parameters.get('mode');
+const iterations = Number(parameters.get('iterations'));
+if (mode !== 'startup' && mode !== 'refresh') throw new Error(`Unknown profile mode "${mode}".`);
+if (!Number.isInteger(iterations) || iterations < 1) throw new Error(`Invalid profile iteration count ${iterations}.`);
+
+const { CustomElement, start, tasksSettled } = await import('../live-results/profile/app-repeat-realistic/app.js');
+let refreshApp;
+let refreshHost;
+let startupItems;
+let refreshPlans;
+let refreshViewModels;
+if (mode === 'startup') {
+  startupItems = Array.from({ length: iterations }, (_, index) => createRealisticRecords(1000, index));
+}
+if (mode === 'refresh') {
+  refreshHost = document.body.appendChild(document.createElement('div'));
+  const au = start(refreshHost, createRealisticRecords(1000));
+  refreshApp = au.root.controller.viewModel;
+  for (let index = 0; index < 5; ++index) {
+    refreshApp.items = createRefreshedRealisticRecords(refreshApp.items);
+    await tasksSettled();
+  }
+  assertRealisticRows(refreshHost, refreshApp.items, CustomElement);
+  refreshViewModels = captureRealisticViewModels(refreshHost, refreshApp.items, CustomElement);
+  refreshPlans = [];
+  let items = refreshApp.items;
+  for (let index = 0; index < iterations; ++index) {
+    items = createRefreshedRealisticRecords(items);
+    refreshPlans.push(items);
+  }
+}
+
+window.__aureliaProfile = {
+  ready: true,
+  async run() {
+    const startupRuns = [];
+    performance.mark(`aurelia-${mode}-profile-start`);
+    if (mode === 'startup') {
+      for (let index = 0; index < iterations; ++index) {
+        const host = document.body.appendChild(document.createElement('div'));
+        startupRuns.push({ host, au: start(host, startupItems[index]) });
+      }
+    } else {
+      for (let index = 0; index < iterations; ++index) {
+        refreshApp.items = refreshPlans[index];
+        await tasksSettled();
+      }
+    }
+    performance.mark(`aurelia-${mode}-profile-end`);
+    const measure = performance.measure(
+      `aurelia-${mode}-profile`,
+      `aurelia-${mode}-profile-start`,
+      `aurelia-${mode}-profile-end`,
+    );
+    window.__aureliaProfile.startupRuns = startupRuns;
+    return { durationMilliseconds: measure.duration, rowCount: 1000 };
+  },
+  validate() {
+    if (this.startupRuns.length > 0) {
+      for (const { host, au } of this.startupRuns) {
+        assertRealisticRows(host, au.root.controller.viewModel.items, CustomElement);
+      }
+    } else {
+      const rendered = assertRealisticRows(refreshHost, refreshApp.items, CustomElement);
+      for (const item of refreshApp.items) {
+        if (rendered.viewModels[item.id] !== refreshViewModels[item.id]) {
+          throw new Error(`Profile refresh replaced retained row ${item.id}.`);
+        }
+      }
+    }
+    return true;
+  },
+};
+</script>

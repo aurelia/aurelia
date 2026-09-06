@@ -1,0 +1,41 @@
+<script type="module">
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { createDependencyRotationBenchmark } = await loadVariant('app-repeat-realistic');
+
+const host = document.body.appendChild(document.createElement('div'));
+const benchmark = createDependencyRotationBenchmark(host);
+
+const createRecords = (count, offset) => Array.from(
+  { length: count },
+  (_, index) => ({ label: `record-${offset + index}` }),
+);
+
+benchmark.run(createRecords(10_000, 0));
+const records = createRecords(250_000, 10_000);
+const expectedValue = records[records.length - 1].label;
+
+performance.mark('dependency-rotation-start');
+const result = benchmark.run(records);
+performance.mark('dependency-rotation-end');
+
+if (result.value !== expectedValue) {
+  throw new Error(`Dependency rotation evaluated ${result.value}, expected ${expectedValue}.`);
+}
+if (result.notifications !== result.expectedNotifications) {
+  throw new Error(
+    `Dependency rotation notified ${result.notifications} times, expected ${result.expectedNotifications}.`,
+  );
+}
+if (result.dependencyCount !== 2) {
+  throw new Error(`Dependency rotation retained ${result.dependencyCount} dependencies, expected 2.`);
+}
+if (records.some(record => record !== null)) {
+  throw new Error('Dependency rotation did not release every consumed input record.');
+}
+publishMeasurement(
+  'dependency-rotation-250000',
+  'dependency-rotation-start',
+  'dependency-rotation-end',
+);
+</script>

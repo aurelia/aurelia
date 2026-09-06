@@ -73,6 +73,18 @@ export const subscriberCollection = /*@__PURE__*/(() => {
     }
 
     public remove(subscriber: T): boolean {
+      if (this._subs.length === 1) {
+        if (this._subs[0] !== subscriber) {
+          return false;
+        }
+        this._subs.pop();
+        if (this._hasDirtySubs) {
+          this._requestDirtySubs.pop();
+          this._hasDirtySubs = false;
+        }
+        this.count = 0;
+        return true;
+      }
       let idx = this._subs.indexOf(subscriber);
       if (idx !== -1) {
         this._subs.splice(idx, 1);
@@ -93,6 +105,12 @@ export const subscriberCollection = /*@__PURE__*/(() => {
         return;
       }
 
+      const subs = this._subs;
+      if (subs.length === 1) {
+        (subs[0] as ISubscriber).handleChange(val, oldVal);
+        return;
+      }
+
       /**
        * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
        * callSubscribers invocation, so we're caching them all before invoking any.
@@ -100,13 +118,18 @@ export const subscriberCollection = /*@__PURE__*/(() => {
        * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
        * however this is accounted for via $isBound and similar flags on the subscriber objects)
        */
-      for (const sub of this._subs.slice(0) as ISubscriber[]) {
+      for (const sub of subs.slice(0) as ISubscriber[]) {
         sub.handleChange(val, oldVal);
       }
     }
 
     public notifyCollection(collection: Collection, indexMap: IndexMap): void {
-      const _subs = this._subs.slice(0) as ICollectionSubscriber[];
+      const subs = this._subs;
+      if (subs.length === 1) {
+        (subs[0] as ICollectionSubscriber).handleCollectionChange(collection, indexMap);
+        return;
+      }
+      const _subs = subs.slice(0) as ICollectionSubscriber[];
       const len = _subs.length;
       let i = 0;
       for (; i < len; ++i) {
@@ -117,7 +140,12 @@ export const subscriberCollection = /*@__PURE__*/(() => {
 
     public notifyDirty() {
       if (this._hasDirtySubs) {
-        for (const dirtySub of this._requestDirtySubs.slice(0)) {
+        const dirtySubs = this._requestDirtySubs;
+        if (dirtySubs.length === 1) {
+          dirtySubs[0].handleDirty();
+          return;
+        }
+        for (const dirtySub of dirtySubs.slice(0)) {
           dirtySub.handleDirty();
         }
       }

@@ -32,7 +32,7 @@ set for their profile.
 | Profile | Trigger | Purpose |
 | --- | --- | --- |
 | `smoke` | `/ci full` | A stable subset, including the realistic keyed refresh workload. |
-| `full` | `/ci bench` | The complete PR comparison, including startup, reconciliation, and after-GC heap scenarios. |
+| `full` | `/ci bench` | The complete PR comparison, including warmed refresh, dependency rotation, and after-GC heap scenarios. |
 | `master` | Push to `master` | The complete suite against the current commit's first parent. |
 
 PR reporting currently supports same-repository PRs targeting `master`. The trusted GitHub workflow updates one
@@ -43,6 +43,94 @@ never receives the GitHub write token.
 
 Use the repository's pinned Node and npm versions. Install the root workspace and make sure Chrome is available.
 Commands below run from `benchmarks/`.
+
+### Live optimization loop
+
+For fast local iteration against the workspace package watchers, run from the repository root:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/refresh.json
+```
+
+This mode skips exact-revision preparation, clean installs, release builds, and package packing. It incrementally
+bundles the selected fixture against the workspace production entry points, captures the first settled bundle as the
+session baseline, and reruns Tachometer after relevant package or fixture changes. The default minimum is 20 samples;
+override it with `--bench-samples <count>`.
+
+The mini-app bundler waits for 15 seconds without another input change before rebuilding. This coalesces the
+JavaScript, declaration, and dependent-package output phases before Rollup performs its bundle and minification work.
+Use `--bench-debounce <milliseconds>` to tune this quiet period (minimum 250ms) for a local build with a longer burst.
+The runner also fingerprints the executable bundle and suppresses benchmark runs when a later rebuild is
+byte-for-byte identical.
+
+Completed results are written to `benchmarks/live-results/results/latest.json`, with previous completed runs appended to
+`history.jsonl`. `status.json` reports whether the runner is active, complete, or failed. Use `--bench-output <folder>`
+to select another output directory. Timing and CPU profiling use the outputs of the same completed Rollup build. A
+framework rebuild queues the latest completed build for the next run. Editing the fixture or its shared browser
+helpers cancels the current run and resets the baseline; the previous complete result is preserved.
+
+The result's `live` field records the session, bundle/profile hashes, fixture and config hashes, and selected settings.
+The paired profile summary contains the same metadata. This identifies local experiments without treating a live
+workspace build as an exact-revision release comparison.
+
+Changing the fixture resets the session baseline automatically. Restart the command when an explicit new baseline is
+preferred. Live results are intended for optimization feedback; confirm promising changes with the exact-revision
+workflow below before treating them as benchmark evidence. Chrome and a compatible ChromeDriver must be locally
+available, as with the other Tachometer commands.
+
+### Live CPU profiles
+
+Use Chrome's sampling profiler to rank measured hotspots before selecting an optimization theory:
+
+```sh
+npm run dev -- --profile startup
+npm run dev -- --profile refresh
+```
+
+Profiling uses the same package watchers and a second, unminified source-mapped output from the same Rollup build.
+It does not run Tachometer unless `--bench` is also supplied. Startup profiling prepares modules and deterministic
+records before capture, then profiles one real-DOM application start by default. Refresh profiling creates and warms
+the application first, prepares every replacement collection outside the measured region, then profiles 50 settled
+real-DOM refreshes. Override either count with `--profile-iterations <count>`.
+
+The latest raw Chrome profile is written to
+`benchmarks/live-results/profiles/<mode>-latest.cpuprofile`. The corresponding
+`<mode>-summary-latest.json` ranks frames by self time and includes inclusive time, sample count, source location,
+and a ranking of frames in the benchmark bundle. That bundle includes both framework and fixture code. `status.json`
+reports capture state. Use `--profile-output <folder>` to select another
+directory. Chrome DevTools can open the `.cpuprofile` directly.
+
+The profiler identifies expensive functions; it is not comparative performance evidence. After changing a measured
+hotspot, keep the profile watcher running for diagnostic feedback and use the matching live Tachometer configuration
+to decide whether end-to-end duration improved. Both can run after each rebuild when requested together:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/refresh.json --bench-samples 10 --profile refresh
+```
+
+When a likely refresh optimization is smaller than the confidence interval of the single-refresh scenario, use the
+warmed diagnostic loop. It performs 20 warm-up refreshes, then reports both total time and the median of 20
+individually timed settled refreshes per Tachometer sample. The median isolates typical hot-path latency while total
+time retains GC and allocation costs; record creation and correctness assertions remain outside both intervals:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/refresh-loop.json --bench-samples 20 --profile refresh --profile-iterations 100
+```
+
+The loop also runs in the full and master CI profiles. Keep `refresh.json` as the single-interaction result and use
+the loop to investigate smaller hot-path changes.
+
+For changes to AST dependency connection, observer lookup, or stale subscription rotation, remove DOM-write noise
+with the focused browser-engine scenario:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/dependency-rotation.json --bench-samples 20
+```
+
+It reports both fresh-record rotation, which includes observer creation and disposal, and cached rotation through a
+warmed observer pool, which isolates repeated AST connection and subscription cleanup. The focused result establishes
+whether the binding/observation mechanism improved. A retained candidate must still pass `refresh-loop.json` or the
+authoritative real-DOM `refresh.json` as a regression guard.
 
 Run the harness tests:
 
@@ -65,6 +153,8 @@ Run an individual scenario after preparing `results/variants`:
 ```sh
 npm run bench:realistic-refresh
 npm run bench:realistic-heap500
+npm run bench:realistic-refresh-loop
+npm run bench:dependency-rotation
 ```
 
 `npm run bench` is a convenience batch of common local scenarios. It is not the formal `full` profile. Once every
@@ -130,9 +220,12 @@ profile.
 the raw Tachometer JSON, and adds Aurelia's unit-aware compact summary.
 
 On Windows, Tachometer 0.7.1's public CLI invokes `npm.cmd` through `execFile`. That path fails with `spawn EINVAL` on
-the supported Node 22 runtime and on Node 24. The small wrapper keeps local Windows runs usable without changing
-benchmark semantics. It imports private Tachometer modules, so the dependency stays exactly pinned. Validate the
-runner on Windows and CI before changing Tachometer or replacing the wrapper.
+the supported Node 22 runtime and on Node 24. The wrapper also owns browser-session cleanup on success, failure, and
+cancellation. The live loop calls the same runner directly, so stopping a measurement can close its browser and
+server before starting another one. Sampling and statistics remain Tachometer's implementation.
+
+These integrations use private Tachometer modules, so the dependency stays exactly pinned. Validate the runner on
+Windows and CI before upgrading or replacing it.
 
 The exact `chromedriver` npm dependency satisfies Tachometer's module check. Repository installs disable dependency
 scripts, so this package does not supply the executable. CircleCI installs a ChromeDriver matched to its Chrome build;

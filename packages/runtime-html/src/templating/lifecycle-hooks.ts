@@ -80,10 +80,14 @@ export const LifecycleHooks = /*@__PURE__*/(() => {
      * @param Type - The constructor of the Custom element/ Custom attribute with lifecycle metadata
      */
     resolve(ctx: IContainer): LifecycleHooksLookup {
+      const root = ctx.root;
+      if (ctx !== root && !ctx.has(ILifecycleHooks, false)) {
+        return LifecycleHooks.resolve(root);
+      }
+
       let lookup = containerLookup.get(ctx);
       if (lookup === void 0) {
         containerLookup.set(ctx, lookup = new LifecycleHooksLookupImpl());
-        const root = ctx.root;
         const instances = root === ctx
           ? ctx.getAll(ILifecycleHooks)
           // if it's not root, only resolve it from the current context when it has the resolver

@@ -2,6 +2,7 @@
 
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { comparisonsEqual, validateComparison } = require('../../benchmarks/benchmark-comparison.cjs');
 
 const marker = '<!-- aurelia-benchmark-report:v1 -->';
 const statePrefix = '<!-- aurelia-benchmark-state:';
@@ -31,22 +32,31 @@ async function reportBenchmarkRun({
   if (!Number.isSafeInteger(requestId) || requestId <= 0) {
     throw new Error('Benchmark report request id is invalid.');
   }
+  if (comparison.kind === 'revisions') validateComparison({ ...comparison, profile });
   const state = {
+    ...comparison,
     requestId,
     pipelineId: pipeline.id,
     pipelineNumber: pipeline.number,
-    pullRequest: Number(comparison.pullRequest),
     profile,
-    base: comparison.base,
-    head: comparison.head,
-    candidate: comparison.candidate,
   };
   const pipelineUrl = circlePipelineUrl(context, pipeline.number);
-  const claim = await claimComment(github, context, state, runningBody(state, pipelineUrl));
-  if (!claim.claimed) return { status: 'superseded' };
-  const commentId = claim.commentId;
+  let commentId;
+  if (comparison.pullRequest !== null) {
+    const claim = await claimComment(github, context, state, runningBody(state, pipelineUrl));
+    if (!claim.claimed) return { status: 'superseded' };
+    commentId = claim.commentId;
+  }
+  // A manual revision pair has no PR owner. Keep the same trusted validation/rendering path,
+  // then publish to this Actions run instead of manufacturing a PR or borrowing its comment.
+  const publish = async content => {
+    if (commentId !== undefined) return updateOwnedComment(github, context, commentId, state, content);
+    await core.summary.addRaw(content).write();
+    return true;
+  };
   const circle = createCircleClient({ circleToken, fetchImpl, sleep });
   let workflowUrl = pipelineUrl;
+  let workflowSucceeded = false;
 
   try {
     const workflowName = profile === 'smoke' ? 'pr_bench' : 'benchmarks';
@@ -84,15 +94,10 @@ async function reportBenchmarkRun({
         .map(job => safeJobName(job.name));
       throw new BenchmarkReportError('workflow-failed', failures);
     }
+    workflowSucceeded = true;
 
     if (!await comparisonIsCurrent(resolveCurrentComparison, comparison)) {
-      await updateOwnedComment(
-        github,
-        context,
-        commentId,
-        state,
-        supersededBody(state, workflowUrl),
-      );
+      await publish(supersededBody(state, workflowUrl));
       return { status: 'superseded', workflowId: workflow.id };
     }
 
@@ -123,39 +128,25 @@ async function reportBenchmarkRun({
     const report = await downloadReport(reports[0].url, circleToken, fetchImpl);
     const reportModule = await loadReportModule();
     reportModule.validateBenchmarkReport(report, {
+      ...comparison,
       profile,
-      pullRequest: Number(comparison.pullRequest),
-      base: comparison.base,
-      head: comparison.head,
-      candidate: comparison.candidate,
     });
     const markdown = reportModule.formatBenchmarkReportMarkdown(report, {
       circleWorkflow: workflowUrl,
       artifacts: circleJobUrl(context, reportJobs[0].job_number),
     });
     if (!await comparisonIsCurrent(resolveCurrentComparison, comparison)) {
-      await updateOwnedComment(
-        github,
-        context,
-        commentId,
-        state,
-        supersededBody(state, workflowUrl),
-      );
+      await publish(supersededBody(state, workflowUrl));
       return { status: 'superseded', workflowId: workflow.id };
     }
-    const updated = await updateOwnedComment(github, context, commentId, state, markdown);
+    const updated = await publish(markdown);
     return { status: updated ? 'success' : 'superseded', workflowId: workflow.id };
   } catch (error) {
     core.warning(`Benchmark reporting failed: ${error instanceof Error ? error.message : String(error)}`);
     const failures = error instanceof BenchmarkReportError ? error.failures : [];
     const code = error instanceof BenchmarkReportError ? error.code : 'reporting-failed';
-    await updateOwnedComment(
-      github,
-      context,
-      commentId,
-      state,
-      failedBody(state, workflowUrl, failures, code),
-    ).catch(updateError => core.warning(`Unable to update benchmark failure comment: ${updateError}`));
+    await publish(failedBody(state, workflowUrl, failures, code, workflowSucceeded))
+      .catch(updateError => core.warning(`Unable to publish benchmark failure status: ${updateError}`));
     throw error;
   }
 }
@@ -163,9 +154,7 @@ async function reportBenchmarkRun({
 async function comparisonIsCurrent(resolveCurrentComparison, expected) {
   try {
     const current = await resolveCurrentComparison();
-    return current.base === expected.base
-      && current.head === expected.head
-      && current.candidate === expected.candidate;
+    return comparisonsEqual(current, expected);
   } catch {
     return false;
   }
@@ -398,6 +387,7 @@ function runningBody(state, pipelineUrl) {
     '## Benchmark comparison',
     '',
     `Running the \`${state.profile}\` profile for \`${state.base.slice(0, 7)}\` → \`${state.candidate.slice(0, 7)}\`.`,
+    ...(state.kind === 'revisions' ? ['', `Harness: \`${state.harness.slice(0, 7)}\`.`] : []),
     '',
     `[CircleCI pipeline](${pipelineUrl})`,
   ].join('\n');
@@ -407,17 +397,24 @@ function supersededBody(state, workflowUrl) {
   return [
     '## Benchmark comparison',
     '',
-    'This comparison completed after the PR base, head, or test merge changed. Run the benchmark command again for current results.',
+    state.kind === 'revisions'
+      ? 'This comparison completed after its PR context or benchmark harness changed. Run the benchmark command again for current results.'
+      : 'This comparison completed after the PR base, head, or test merge changed. Run the benchmark command again for current results.',
     '',
     `[Completed CircleCI workflow](${workflowUrl})`,
   ].join('\n');
 }
 
-function failedBody(state, workflowUrl, failures, code) {
+function failedBody(state, workflowUrl, failures, code, workflowSucceeded) {
   const jobs = failures.length === 0 ? '' : `\n\nFailed jobs: ${failures.map(job => `\`${job}\``).join(', ')}`;
-  const message = code === 'workflow-timeout'
-    ? 'The benchmark reporter timed out while CircleCI may still be running.'
-    : `The \`${state.profile}\` benchmark workflow did not complete successfully.`;
+  let message = 'The benchmark reporter could not confirm the CircleCI result. See the Actions log and CircleCI workflow for details.';
+  if (workflowSucceeded) {
+    message = 'The benchmark workflow completed successfully, but its report could not be validated or published. See the Actions log for the reporting error.';
+  } else if (code === 'workflow-timeout') {
+    message = 'The benchmark reporter timed out while CircleCI may still be running.';
+  } else if (code === 'workflow-failed') {
+    message = `The \`${state.profile}\` benchmark workflow did not complete successfully.`;
+  }
   return [
     '## Benchmark comparison',
     '',

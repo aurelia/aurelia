@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "..",
+  "benchmarks": [
+    {
+      "browser": {
+        "name": "chrome",
+        "headless": true,
+        "addArguments": [
+          "--enable-precise-memory-info",
+          "--disable-gpu",
+          "--disable-dev-shm-usage",
+          "--no-sandbox"
+        ]
+      },
+      "measurement": [
+        {
+          "name": "perf",
+          "mode": "performance",
+          "entryName": "realistic-refresh-loop-20x1000"
+        },
+        {
+          "name": "median refresh",
+          "mode": "performance",
+          "entryName": "realistic-refresh-median-1000"
+        }
+      ],
+      "expand": [
+        {
+          "name": "realistic keyed refresh loop 20x1000 base",
+          "url": "refreshLoop20x1000.html?variant=base"
+        },
+        {
+          "name": "realistic keyed refresh loop 20x1000 candidate",
+          "url": "refreshLoop20x1000.html?variant=candidate"
+        }
+      ]
+    }
+  ],
+  "timeout": 0.5
+}

@@ -1,7 +1,30 @@
+import { parseExpression } from '@aurelia/expression-parser';
+import {
+  astEvaluate,
+  connectable,
+  IObserverLocator,
+  Scope,
+} from '@aurelia/runtime';
 import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
 import { startSynchronousApplication } from '../utils/start-application.mjs';
 export { tasksSettled } from '@aurelia/runtime';
 export { CustomElement };
+
+class DependencyRotationProbe {
+  constructor(observerLocator) {
+    this.oL = observerLocator;
+    this.notifications = 0;
+  }
+
+  handleChange() {
+    ++this.notifications;
+  }
+
+  handleCollectionChange() {
+    ++this.notifications;
+  }
+}
+connectable(DependencyRotationProbe, null);
 
 let initialItems;
 
@@ -53,4 +76,53 @@ export const start = (host, items) => {
   initialItems = items;
   const au = new Aurelia().register(StandardConfiguration).app({ component: App, host });
   return startSynchronousApplication(au);
+};
+
+export const createDependencyRotationBenchmark = host => {
+  const au = start(host, []);
+  const bindingContext = { item: { label: 'initial' } };
+  const scope = Scope.create(bindingContext);
+  const probe = new DependencyRotationProbe(au.container.get(IObserverLocator));
+  const ast = parseExpression('item.label', 'IsProperty');
+
+  const evaluate = () => {
+    ++probe.obs.version;
+    const value = astEvaluate(ast, scope, null, probe);
+    probe.obs.clear();
+    return value;
+  };
+  evaluate();
+
+  return {
+    run(records) {
+      const expectedNotifications = probe.notifications + records.length;
+      let value;
+      for (let index = 0; index < records.length; ++index) {
+        const record = records[index];
+        records[index] = null;
+        bindingContext.item = record;
+        value = evaluate();
+      }
+      return {
+        dependencyCount: probe.obs.count,
+        expectedNotifications,
+        notifications: probe.notifications,
+        value,
+      };
+    },
+    runPool(records, iterations) {
+      const expectedNotifications = probe.notifications + iterations;
+      let value;
+      for (let index = 0; index < iterations; ++index) {
+        bindingContext.item = records[index % records.length];
+        value = evaluate();
+      }
+      return {
+        dependencyCount: probe.obs.count,
+        expectedNotifications,
+        notifications: probe.notifications,
+        value,
+      };
+    },
+  };
 };

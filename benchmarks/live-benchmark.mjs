@@ -1,8 +1,7 @@
-import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { watch as watchDirectory } from 'node:fs';
 import {
   appendFile,
-  copyFile,
   mkdir,
   readFile,
   rename,
@@ -14,12 +13,15 @@ import { fileURLToPath } from 'node:url';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import { watch as watchRollup } from 'rollup';
-import { adaptTachometerJson, formatCompactSummary } from './benchmark-summary.mjs';
 import {
   createLiveBenchmarkConfig,
   fingerprintLiveBundle,
+  fingerprintLiveFixture,
+  isLiveFixtureInput,
   parseLiveDebounce,
 } from './live-benchmark-utils.mjs';
+import { createLiveBenchmarkSession } from './live-benchmark-session.mjs';
+import { runTachometer } from './run-tachometer.mjs';
 import { parseProfileIterations, parseProfileMode } from './live-profile-utils.mjs';
 import { isPathInside } from './variant-utils.mjs';
 
@@ -40,7 +42,6 @@ const postBundleDelay = 250;
 const liveConfigPath = path.join(liveRoot, 'tachometer.config.json');
 const workingBundle = path.join(liveRoot, 'working', fixture, 'app.js');
 const workingProfileBundle = path.join(liveRoot, 'working-profile', fixture, 'app.js');
-const baselineBundle = path.join(liveRoot, 'baseline', fixture, 'app.js');
 const activeBaseBundle = path.join(liveRoot, 'active', 'base', fixture, 'app.js');
 const activeCandidateBundle = path.join(liveRoot, 'active', 'candidate', fixture, 'app.js');
 const activeProfileBundle = path.join(liveRoot, 'profile', fixture, 'app.js');
@@ -50,19 +51,19 @@ const nextResult = path.join(outputRoot, 'latest.next.json');
 const historyResult = path.join(outputRoot, 'history.jsonl');
 const statusResult = path.join(outputRoot, 'status.json');
 
-let baselineReady = false;
-let fixtureChanged = false;
-let runActive = false;
-let rerunRequested = false;
-let lastRequestedBundleFingerprint;
+const sessionId = randomUUID();
+let fixtureVersion = 0;
+let buildReady = false;
+let output;
+let latestBuild;
 let settleTimer;
-let tachometerProcess;
 let stopping = false;
+let statusWrite = Promise.resolve();
+const session = createLiveBenchmarkSession(runSnapshot, error => console.error('Live benchmark run failed:', error));
 
 await Promise.all([
   mkdir(path.dirname(workingBundle), { recursive: true }),
   ...(profileMode === undefined ? [] : [mkdir(path.dirname(workingProfileBundle), { recursive: true })]),
-  mkdir(path.dirname(baselineBundle), { recursive: true }),
   mkdir(path.dirname(activeBaseBundle), { recursive: true }),
   mkdir(path.dirname(activeCandidateBundle), { recursive: true }),
   ...(profileMode === undefined ? [] : [mkdir(path.dirname(activeProfileBundle), { recursive: true })]),
@@ -81,12 +82,15 @@ if (profileMode !== undefined) {
   console.log(`Live CPU profile output: ${profileOutputRoot}`);
 }
 
-const fixtureWatcher = watchDirectory(fixtureRoot, { recursive: true }, (_event, filename) => {
-  if (filename === null || !/\.(?:html|js|json|mjs|ts)$/u.test(filename.toString())) return;
-  console.log(`Profiling fixture changed: ${filename}`);
-  fixtureChanged = true;
-  scheduleSettledBundle();
-});
+const fixtureWatchers = [fixtureRoot, path.join(benchmarkRoot, 'utils')].map(directory =>
+  watchDirectory(directory, { recursive: true }, (_event, filename) => {
+    if (filename !== null && !isLiveFixtureInput(filename.toString())) return;
+    console.log(`Benchmark fixture changed: ${filename ?? directory}`);
+    ++fixtureVersion;
+    session.invalidate();
+    scheduleSettledBundle();
+  }),
+);
 
 const bundleWatcher = watchRollup({
   input: fixtureEntry,
@@ -96,8 +100,17 @@ const bundleWatcher = watchRollup({
     buildDelay: debounce,
   },
   plugins: [
-    nodeResolve({ exportConditions: ['import', 'default'] }),
+    nodeResolve({ exportConditions: ['production'] }),
     ...(profileMode === undefined ? [terser()] : []),
+    {
+      name: 'capture-live-output',
+      writeBundle(options, bundle) {
+        // Capture both outputs of this Rollup build in memory. A subsequent
+        // rebuild may replace working files while timing/profile capture runs.
+        const code = Object.values(bundle).find(chunk => chunk.type === 'chunk' && chunk.isEntry).code;
+        output[options.file === workingBundle ? 'code' : 'profile'] = code;
+      },
+    },
   ],
   output: profileMode === undefined
     ? {
@@ -120,17 +133,28 @@ const bundleWatcher = watchRollup({
     ],
 });
 
+bundleWatcher.on('change', () => {
+  buildReady = false;
+  clearTimeout(settleTimer);
+});
+
 bundleWatcher.on('event', event => {
   switch (event.code) {
     case 'BUNDLE_START':
+      buildReady = false;
+      output = {};
       clearTimeout(settleTimer);
       break;
     case 'BUNDLE_END':
+      latestBuild = output;
+      buildReady = true;
       console.log(`Profiling bundle rebuilt in ${event.duration}ms.`);
       scheduleSettledBundle(postBundleDelay);
       break;
     case 'ERROR':
+      buildReady = false;
       console.error('Profiling bundle failed:', event.error);
+      void writeStatus({ state: 'failed', error: String(event.error) });
       break;
   }
 });
@@ -146,57 +170,74 @@ function scheduleSettledBundle(delay = debounce) {
 }
 
 async function handleSettledBundle() {
-  if (stopping) return;
+  if (stopping || !buildReady) return;
   try {
-    const resetBaseline = !baselineReady || fixtureChanged;
-    if (resetBaseline) {
-      await copyFile(workingBundle, baselineBundle);
-      baselineReady = true;
-      if (fixtureChanged) {
-        console.log('Profiling fixture changed; reset the live baseline.');
-      } else {
-        console.log('Captured the initial live baseline.');
-      }
-      fixtureChanged = false;
-    }
-    const fingerprint = fingerprintLiveBundle(await readFile(workingBundle));
-    if (!resetBaseline && fingerprint === lastRequestedBundleFingerprint) {
-      console.log('Profiling bundle is unchanged; skipped duplicate benchmark run.');
-      return;
-    }
-    lastRequestedBundleFingerprint = fingerprint;
-    requestRun();
+    const build = latestBuild;
+    const version = fixtureVersion;
+    const source = JSON.parse(await readFile(sourceConfigPath, 'utf8'));
+    const config = createLiveBenchmarkConfig(source, sourceConfigPath, liveConfigPath, sampleSize);
+    const fixtureSha256 = await fingerprintLiveFixture(benchmarkRoot, fixture);
+    if (stopping || !buildReady || build !== latestBuild || version !== fixtureVersion) return;
+    const metadata = {
+      sessionId,
+      fixtureSha256,
+      configSha256: fingerprintLiveBundle(JSON.stringify(config)),
+      bundleSha256: fingerprintLiveBundle(build.code),
+      profileSha256: build.profile === undefined ? null : fingerprintLiveBundle(build.profile),
+      node: process.version,
+      config: path.relative(benchmarkRoot, sourceConfigPath).replace(/\\/gu, '/'),
+      sampleSize: config.sampleSize,
+      profileMode,
+      profileIterations,
+    };
+    await session.submit({ ...build, config, metadata, key: fingerprintLiveBundle(JSON.stringify(metadata)) });
   } catch (error) {
     console.error('Failed to settle the live benchmark bundle:', error);
-  }
-}
-
-function requestRun() {
-  if (runActive) {
-    rerunRequested = true;
-    return;
-  }
-  void runBenchmarkLoop();
-}
-
-async function runBenchmarkLoop() {
-  runActive = true;
-  try {
-    do {
-      rerunRequested = false;
-      if (benchmarkEnabled) await runBenchmark();
-      if (profileMode !== undefined) await runProfile();
-    } while (rerunRequested && !stopping);
-  } catch (error) {
-    console.error('Live benchmark run failed:', error);
     await writeStatus({ state: 'failed', error: String(error) });
-  } finally {
-    runActive = false;
   }
 }
 
-async function runProfile() {
-  await copyFile(workingProfileBundle, activeProfileBundle);
+async function runSnapshot({ base, candidate }, signal) {
+  const started = new Date().toISOString();
+  const metadata = { ...candidate.metadata, baseSha256: base.metadata.bundleSha256 };
+  try {
+    await Promise.all([
+      writeFile(activeBaseBundle, base.code),
+      writeFile(activeCandidateBundle, candidate.code),
+      ...(profileMode === undefined ? [] : [writeFile(activeProfileBundle, candidate.profile)]),
+      writeFile(liveConfigPath, JSON.stringify(candidate.config, null, 2)),
+    ]);
+    signal.throwIfAborted();
+    await writeStatus({ state: 'running', started, metadata });
+    let document;
+    if (benchmarkEnabled) {
+      await rm(nextResult, { force: true });
+      // The existing runner owns browser/server cleanup and prints the summary.
+      await runTachometer(['--config', liveConfigPath, '--json-file', nextResult], { signal });
+      document = JSON.parse(await readFile(nextResult, 'utf8'));
+    }
+    signal.throwIfAborted();
+    if (profileMode !== undefined) await runProfile(metadata, signal);
+    if (await fingerprintLiveFixture(benchmarkRoot, fixture) !== candidate.metadata.fixtureSha256) {
+      session.invalidate();
+    }
+    signal.throwIfAborted();
+    if (document !== undefined) {
+      document.live = metadata;
+      await writeFile(nextResult, `${JSON.stringify(document, null, 2)}\n`);
+      signal.throwIfAborted();
+      await rename(nextResult, latestResult);
+      await appendFile(historyResult, `${JSON.stringify({ started, completed: new Date().toISOString(), document })}\n`);
+      console.log(`Live benchmark result written to ${latestResult}`);
+    }
+    await writeStatus({ state: 'complete', started, completed: new Date().toISOString(), latestResult: benchmarkEnabled ? latestResult : undefined, metadata });
+  } catch (error) {
+    await writeStatus({ state: signal.aborted ? 'cancelled' : 'failed', started, metadata, error: String(error) });
+    throw error;
+  }
+}
+
+async function runProfile(metadata, signal) {
   const { captureLiveProfile } = await import('./live-profile.mjs');
   const result = await captureLiveProfile({
     benchmarkRoot,
@@ -204,12 +245,14 @@ async function runProfile() {
     mode: profileMode,
     iterations: profileIterations,
     outputRoot: profileOutputRoot,
+    metadata,
+    signal,
   });
   console.log(`Live CPU profile written to ${result.profilePath}`);
   console.log(`Ranked CPU summary written to ${result.summaryPath}`);
-  const top = result.summary.topFrameworkFunctions.slice(0, 10);
+  const top = result.summary.topBundleFunctions.slice(0, 10);
   if (top.length > 0) {
-    console.log('\nTop framework functions by self time:');
+    console.log('\nTop bundle functions by self time:');
     for (const frame of top) {
       console.log(`  ${frame.selfPercent.toFixed(2)}%  ${frame.selfMilliseconds.toFixed(2)}ms  ${frame.functionName} (${frame.line}:${frame.column})`);
     }
@@ -217,73 +260,23 @@ async function runProfile() {
   }
 }
 
-async function runBenchmark() {
-  await Promise.all([
-    copyFile(baselineBundle, activeBaseBundle),
-    copyFile(workingBundle, activeCandidateBundle),
-  ]);
-  await writeLiveConfig();
-  await rm(nextResult, { force: true });
-
-  const started = new Date().toISOString();
-  await writeStatus({ state: 'running', started });
-  const args = [
-    path.join(benchmarkRoot, 'run-tachometer.mjs'),
-    '--config',
-    liveConfigPath,
-    '--json-file',
-    nextResult,
-  ];
-  const exitCode = await spawnTachometer(args);
-  if (exitCode !== 0) {
-    throw new Error(`Tachometer exited with code ${exitCode}.`);
-  }
-
-  const document = JSON.parse(await readFile(nextResult, 'utf8'));
-  const summary = formatCompactSummaryFromJson(document);
-  await rename(nextResult, latestResult);
-  await appendFile(historyResult, `${JSON.stringify({ started, completed: new Date().toISOString(), document })}\n`);
-  await writeStatus({ state: 'complete', started, completed: new Date().toISOString(), latestResult });
-  console.log(`Live benchmark result written to ${latestResult}`);
-  if (summary !== '') console.log(`\n${summary}\n`);
-}
-
-async function writeStatus(status) {
-  await writeFile(statusResult, `${JSON.stringify(status, null, 2)}\n`);
-}
-
-async function writeLiveConfig() {
-  const source = JSON.parse(await readFile(sourceConfigPath, 'utf8'));
-  const config = createLiveBenchmarkConfig(source, sourceConfigPath, liveConfigPath, sampleSize);
-  await writeFile(liveConfigPath, `${JSON.stringify(config, null, 2)}\n`);
-}
-
-function spawnTachometer(args) {
-  return new Promise((resolve, reject) => {
-    tachometerProcess = spawn(process.execPath, args, {
-      cwd: benchmarkRoot,
-      env: process.env,
-      stdio: 'inherit',
-    });
-    tachometerProcess.once('error', reject);
-    tachometerProcess.once('exit', code => {
-      tachometerProcess = undefined;
-      resolve(code ?? 1);
-    });
+function writeStatus(status) {
+  // Build errors and sampling completion can arrive together. Serialize atomic
+  // publication so readers always see one complete status document.
+  statusWrite = statusWrite.then(async () => {
+    await writeFile(`${statusResult}.next`, `${JSON.stringify(status, null, 2)}\n`);
+    await rename(`${statusResult}.next`, statusResult);
   });
-}
-
-function formatCompactSummaryFromJson(document) {
-  return formatCompactSummary(adaptTachometerJson(document, 'Live Tachometer result'));
+  return statusWrite;
 }
 
 async function stop() {
   if (stopping) return;
   stopping = true;
   clearTimeout(settleTimer);
-  fixtureWatcher.close();
-  tachometerProcess?.kill();
-  await bundleWatcher.close();
+  fixtureWatchers.forEach(watcher => watcher.close());
+  await Promise.all([session.stop(), bundleWatcher.close()]);
+  await statusWrite;
   process.emit('aurelia-live-benchmark-stopped');
 }
 

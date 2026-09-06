@@ -1,11 +1,10 @@
 import { createServer } from 'node:http';
-import { access, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Builder } from 'selenium-webdriver';
 // Selenium's CommonJS package requires this explicit extension under Node ESM.
 // eslint-disable-next-line import/extensions
 import chrome from 'selenium-webdriver/chrome.js';
-import chromedriver from 'chromedriver';
 import { isPathInside } from './variant-utils.mjs';
 import { summarizeCpuProfile } from './live-profile-utils.mjs';
 
@@ -17,43 +16,42 @@ const contentTypes = new Map([
   ['.map', 'application/json; charset=utf-8'],
 ]);
 
-export async function captureLiveProfile({ benchmarkRoot, fixture, mode, iterations, outputRoot }) {
-  await access(chromedriver.path).catch(() => {
-    throw new Error(
-      `ChromeDriver executable was not found at ${chromedriver.path}. `
-      + 'Install a driver compatible with the local Chrome build or copy it to that location.',
-    );
-  });
+export async function captureLiveProfile(
+  { benchmarkRoot, fixture, mode, iterations, outputRoot, metadata, signal },
+  createDriver = options => new Builder().forBrowser('chrome').setChromeOptions(options).build(),
+) {
+  signal?.throwIfAborted();
   await mkdir(outputRoot, { recursive: true });
+  const started = new Date().toISOString();
+  const statusPath = path.join(outputRoot, 'status.json');
+  await writeJson(statusPath, { state: 'running', mode, iterations, started, metadata });
+  let driver;
+  let server;
+  let quitting;
+  // A fixture edit or shutdown may arrive during a WebDriver command. Close the
+  // session immediately; final cleanup awaits that same request instead of closing it twice.
+  const quit = () => quitting ??= driver?.quit().catch(() => void 0);
+  signal?.addEventListener('abort', quit, { once: true });
 
-  const server = createStaticServer(benchmarkRoot);
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolve);
-  });
-  const address = server.address();
-  if (address === null || typeof address === 'string') throw new Error('Unable to determine profile server port.');
-
-  const options = new chrome.Options()
-    .addArguments(
+  try {
+    // Use the same Selenium discovery as Tachometer. Repository installs omit
+    // the npm package's driver download; CI and developers supply their own driver.
+    driver = await createDriver(new chrome.Options().addArguments(
       '--headless',
       '--window-size=1024,768',
       '--disable-gpu',
       '--disable-dev-shm-usage',
       '--no-sandbox',
-    );
-  const service = new chrome.ServiceBuilder(chromedriver.path);
-  const driver = await new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(options)
-    .setChromeService(service)
-    .build();
+    ));
+    signal?.throwIfAborted();
+    server = createStaticServer(benchmarkRoot);
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', resolve);
+    });
+    const address = server.address();
+    if (address === null || typeof address === 'string') throw new Error('Unable to determine profile server port.');
 
-  const started = new Date().toISOString();
-  const statusPath = path.join(outputRoot, 'status.json');
-  await writeJson(statusPath, { state: 'running', mode, iterations, started });
-
-  try {
     await driver.manage().setTimeouts({ pageLoad: 60_000, script: 180_000 });
     const parameters = new URLSearchParams({ mode, iterations: String(iterations) });
     const pageUrl = `http://127.0.0.1:${address.port}/${fixture}/profile.html?${parameters}`;
@@ -79,19 +77,28 @@ export async function captureLiveProfile({ benchmarkRoot, fixture, mode, iterati
     await driver.executeScript('return window.__aureliaProfile.validate();');
 
     const profile = stopped.profile;
-    const frameworkUrlFragment = `/live-results/profile/${fixture}/app.js`;
+    const bundleUrlFragment = `/live-results/profile/${fixture}/app.js`;
     const summary = {
       generatedAt: new Date().toISOString(),
       mode,
       iterations,
+      metadata,
       workload: workload.result,
-      ...summarizeCpuProfile(profile, frameworkUrlFragment),
+      ...summarizeCpuProfile(profile, bundleUrlFragment),
     };
     const profilePath = path.join(outputRoot, `${mode}-latest.cpuprofile`);
     const summaryPath = path.join(outputRoot, `${mode}-summary-latest.json`);
+    signal?.throwIfAborted();
+    // Serialization and disk writes can outlive a fixture edit. Stage both files
+    // before the last cancellation check so an obsolete capture keeps the previous result intact.
     await Promise.all([
-      writeJsonAtomic(profilePath, profile),
-      writeJsonAtomic(summaryPath, summary),
+      writeJson(`${profilePath}.next`, profile),
+      writeJson(`${summaryPath}.next`, summary),
+    ]);
+    signal?.throwIfAborted();
+    await Promise.all([
+      rename(`${profilePath}.next`, profilePath),
+      rename(`${summaryPath}.next`, summaryPath),
     ]);
     await writeJson(statusPath, {
       state: 'complete',
@@ -101,14 +108,19 @@ export async function captureLiveProfile({ benchmarkRoot, fixture, mode, iterati
       completed: new Date().toISOString(),
       profilePath,
       summaryPath,
+      metadata,
     });
     return { profilePath, summaryPath, summary };
   } catch (error) {
-    await writeJson(statusPath, { state: 'failed', mode, iterations, started, error: String(error) });
+    await writeJson(statusPath, {
+      state: signal?.aborted === true ? 'cancelled' : 'failed',
+      mode, iterations, started, metadata, error: String(error),
+    });
     throw error;
   } finally {
-    await driver.quit().catch(() => void 0);
-    await new Promise(resolve => server.close(resolve));
+    signal?.removeEventListener('abort', quit);
+    await quit();
+    if (server !== undefined) await new Promise(resolve => server.close(resolve));
   }
 }
 
@@ -138,12 +150,6 @@ async function serveStaticFile(root, request, response) {
 
 function normalizeDevToolsResult(result) {
   return typeof result === 'string' ? JSON.parse(result) : result;
-}
-
-async function writeJsonAtomic(file, value) {
-  const next = `${file}.next`;
-  await writeJson(next, value);
-  await rename(next, file);
 }
 
 async function writeJson(file, value) {

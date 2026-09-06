@@ -18,7 +18,7 @@ export function parseProfileIterations(value, mode) {
   return parsed;
 }
 
-export function summarizeCpuProfile(profile, frameworkUrlFragment, limit = 50) {
+export function summarizeCpuProfile(profile, bundleUrlFragment, limit = 50) {
   if (!Array.isArray(profile?.nodes) || !Array.isArray(profile?.samples) || !Array.isArray(profile?.timeDeltas)) {
     throw new Error('Chrome returned an invalid CPU profile.');
   }
@@ -75,7 +75,7 @@ export function summarizeCpuProfile(profile, frameworkUrlFragment, limit = 50) {
     sampledMilliseconds: toMilliseconds(sampledMicroseconds),
     sampleCount: profile.samples.length,
     topFunctions: ranked.slice(0, limit),
-    topFrameworkFunctions: ranked.filter(frame => frame.url.includes(frameworkUrlFragment)).slice(0, limit),
+    topBundleFunctions: ranked.filter(frame => frame.url.includes(bundleUrlFragment)).slice(0, limit),
   };
 }
 

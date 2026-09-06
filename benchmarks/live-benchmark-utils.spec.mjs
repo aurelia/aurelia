@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { describe, it } from 'node:test';
 import {
   createLiveBenchmarkConfig,
   fingerprintLiveBundle,
+  fingerprintLiveFixture,
   makeLiveUrl,
   parseLiveDebounce,
 } from './live-benchmark-utils.mjs';
@@ -57,5 +60,31 @@ void describe('live benchmark utilities', () => {
       () => makeLiveUrl('https://example.com/bench.html', 'source', 'live'),
       /require a local page/,
     );
+  });
+
+  void it('fingerprints page-only and shared-helper changes, including added or deleted files', async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'aurelia-live-inputs-'));
+    try {
+      await mkdir(path.join(root, 'app-test'));
+      await mkdir(path.join(root, 'utils'));
+      const page = path.join(root, 'app-test', 'page.html');
+      const helper = path.join(root, 'utils', 'data.js');
+      await writeFile(page, '<p>first</p>');
+      await writeFile(helper, 'export const rows = 10;');
+      const first = await fingerprintLiveFixture(root, 'app-test');
+      await writeFile(page, '<p>second</p>');
+      const second = await fingerprintLiveFixture(root, 'app-test');
+      assert.notEqual(second, first);
+      await writeFile(helper, 'export const rows = 20;');
+      const third = await fingerprintLiveFixture(root, 'app-test');
+      assert.notEqual(third, second);
+      const added = path.join(root, 'app-test', 'extra.mjs');
+      await writeFile(added, 'export const count = 1;');
+      assert.notEqual(await fingerprintLiveFixture(root, 'app-test'), third);
+      await rm(added);
+      assert.equal(await fingerprintLiveFixture(root, 'app-test'), third);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

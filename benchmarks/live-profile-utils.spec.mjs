@@ -18,7 +18,7 @@ void describe('live CPU profile utilities', () => {
     assert.throws(() => parseProfileIterations('0', 'refresh'), /positive integer/u);
   });
 
-  void it('ranks self and inclusive time and selects framework frames', () => {
+  void it('ranks self and inclusive time and selects bundle frames', () => {
     const summary = summarizeCpuProfile({
       nodes: [
         { id: 1, callFrame: { functionName: '(root)', url: '', lineNumber: -1, columnNumber: -1 }, children: [2] },
@@ -36,6 +36,6 @@ void describe('live CPU profile utilities', () => {
     assert.equal(summary.topFunctions[0].totalMilliseconds, 5);
     assert.equal(summary.topFunctions[1].selfMilliseconds, 1);
     assert.equal(summary.topFunctions[1].totalMilliseconds, 6);
-    assert.equal(summary.topFrameworkFunctions.length, 2);
+    assert.equal(summary.topBundleFunctions.length, 2);
   });
 });

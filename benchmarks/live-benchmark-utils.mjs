@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { readdir } from 'node:fs/promises';
+import { hashFiles } from './variant-utils.mjs';
 
 export function fingerprintLiveBundle(contents) {
   return createHash('sha256').update(contents).digest('hex');
@@ -18,20 +20,16 @@ export function createLiveBenchmarkConfig(source, sourceConfigPath, liveConfigPa
   const sourceDirectory = path.dirname(sourceConfigPath);
   const liveDirectory = path.dirname(liveConfigPath);
   const sourceRoot = path.resolve(sourceDirectory, source.root ?? '.');
+  const rewriteUrl = entry => entry.url === undefined ? entry : {
+    ...entry,
+    url: makeLiveUrl(entry.url, sourceDirectory, liveDirectory),
+  };
   const benchmarks = source.benchmarks.map(benchmark => ({
-    ...benchmark,
-    ...(benchmark.url === undefined
-      ? {}
-      : { url: makeLiveUrl(benchmark.url, sourceDirectory, liveDirectory) }),
+    ...rewriteUrl(benchmark),
     ...(benchmark.expand === undefined
       ? {}
       : {
-        expand: benchmark.expand.map(expansion => ({
-          ...expansion,
-          ...(expansion.url === undefined
-            ? {}
-            : { url: makeLiveUrl(expansion.url, sourceDirectory, liveDirectory) }),
-        })),
+        expand: benchmark.expand.map(rewriteUrl),
       }),
   }));
 
@@ -41,6 +39,22 @@ export function createLiveBenchmarkConfig(source, sourceConfigPath, liveConfigPa
     sampleSize: sampleSize ?? source.sampleSize ?? 20,
     benchmarks,
   };
+}
+
+export const isLiveFixtureInput = filename => /\.(?:html|[cm]?js|json|ts|css|svg)$/u.test(filename);
+
+export async function fingerprintLiveFixture(benchmarkRoot, fixture) {
+  const files = [];
+  // Helpers imported directly by HTML never enter Rollup's module graph. Include
+  // the shared helper directory in both invalidation and recorded workload identity.
+  for (const directory of [fixture, 'utils']) {
+    for (const entry of await readdir(path.join(benchmarkRoot, directory), { recursive: true, withFileTypes: true })) {
+      if (entry.isFile() && isLiveFixtureInput(entry.name)) {
+        files.push(path.relative(benchmarkRoot, path.join(entry.parentPath, entry.name)));
+      }
+    }
+  }
+  return hashFiles(benchmarkRoot, files);
 }
 
 export function makeLiveUrl(url, sourceDirectory, liveDirectory) {

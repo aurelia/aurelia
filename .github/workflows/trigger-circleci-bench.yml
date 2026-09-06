@@ -6,9 +6,17 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: Open same-repository PR number
-        required: true
-        type: number
+        description: Optional open same-repository PR number (omit for a standalone comparison)
+        required: false
+        type: string
+      base_sha:
+        description: Baseline commit SHA (7–40 hex characters); required without a PR
+        required: false
+        type: string
+      candidate_sha:
+        description: Optional candidate SHA; defaults to the PR test merge or current master
+        required: false
+        type: string
       expected_base_sha:
         description: Optional full base SHA; fail if master has moved
         required: false
@@ -29,6 +37,8 @@ jobs:
     outputs:
       should: ${{ steps.command.outputs.should }}
       pr: ${{ steps.command.outputs.pr }}
+      base: ${{ steps.command.outputs.base }}
+      candidate: ${{ steps.command.outputs.candidate }}
     steps:
       - name: Decide whether to trigger benchmarks
         id: command
@@ -39,20 +49,32 @@ jobs:
               ['MEMBER', 'OWNER', 'COLLABORATOR'].includes((association || '').toUpperCase());
             let should = false;
             let prNumber = '';
+            let base = '';
+            let candidate = '';
 
             if (context.eventName === 'issue_comment') {
               const isPR = Boolean(context.payload.issue?.pull_request);
               const body = (context.payload.comment?.body || '').trim();
               const association = context.payload.comment?.author_association || '';
-              should = isPR && body === '/ci bench' && isMember(association);
-              if (should) prNumber = String(context.issue.number);
+              should = isPR && /^\/ci bench(?:\s|$)/.test(body) && isMember(association);
+              if (should) {
+                const command = /^\/ci bench(?:\s+([0-9a-f]{7,40}))?(?:\s+([0-9a-f]{7,40}))?$/i.exec(body);
+                if (command === null) throw new Error('Use /ci bench [base SHA] [candidate SHA], with 7–40 hex characters per SHA.');
+                prNumber = String(context.issue.number);
+                base = command[1] || '';
+                candidate = command[2] || '';
+              }
             } else if (context.eventName === 'workflow_dispatch') {
               should = true;
               prNumber = String(context.payload.inputs?.pr_number || '');
+              base = context.payload.inputs?.base_sha || '';
+              candidate = context.payload.inputs?.candidate_sha || '';
             }
 
             core.setOutput('should', should ? 'true' : 'false');
             core.setOutput('pr', prNumber);
+            core.setOutput('base', base);
+            core.setOutput('candidate', candidate);
 
   trigger:
     needs: decide
@@ -69,6 +91,8 @@ jobs:
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ needs.decide.outputs.pr }}
+          BASE_SHA: ${{ needs.decide.outputs.base }}
+          CANDIDATE_SHA: ${{ needs.decide.outputs.candidate }}
           EXPECTED_BASE_SHA: ${{ inputs.expected_base_sha || '' }}
           EXPECTED_HEAD_SHA: ${{ inputs.expected_head_sha || '' }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
@@ -83,6 +107,8 @@ jobs:
               prNumber: process.env.PR_NUMBER,
               profile: 'full',
               circleToken: process.env.CIRCLECI_TOKEN,
+              baseSha: process.env.BASE_SHA,
+              candidateSha: process.env.CANDIDATE_SHA,
               expectedBase: process.env.EXPECTED_BASE_SHA,
               expectedHead: process.env.EXPECTED_HEAD_SHA,
             });

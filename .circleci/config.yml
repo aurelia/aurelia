@@ -43,6 +43,16 @@ parameters:
   benchmark_profile:
     type: string
     default: ""
+  benchmark_comparison:
+    type: enum
+    enum: ["", "revisions"]
+    default: ""
+  benchmark_harness_sha:
+    type: string
+    default: ""
+  benchmark_pr_base_sha:
+    type: string
+    default: ""
   benchmark_pr:
     type: string
     default: ""
@@ -80,6 +90,22 @@ executors:
 # - Commands -
 # # # # # # # # # # # # # # # #
 commands:
+  verify_benchmark_harness:
+    steps:
+      - run:
+          name: "Verify frozen benchmark harness"
+          environment:
+            BENCHMARK_REQUEST_HARNESS_SHA: << pipeline.parameters.benchmark_harness_sha >>
+          command: |
+            set -euo pipefail
+            if [[ -n "${BENCHMARK_REQUEST_HARNESS_SHA}" ]]; then
+              if [[ ! "${BENCHMARK_REQUEST_HARNESS_SHA}" =~ ^[0-9a-f]{40}$ \
+                || "$(git rev-parse HEAD)" != "${BENCHMARK_REQUEST_HARNESS_SHA}" ]]; then
+                echo "CircleCI checkout does not match the requested benchmark harness ${BENCHMARK_REQUEST_HARNESS_SHA}." >&2
+                exit 1
+              fi
+            fi
+
   setup_verdaccio:
     parameters:
       email:
@@ -507,12 +533,16 @@ jobs:
     executor: docker_circleci_bench
     environment:
       BENCHMARK_REQUEST_PROFILE: << pipeline.parameters.benchmark_profile >>
+      BENCHMARK_REQUEST_COMPARISON: << pipeline.parameters.benchmark_comparison >>
+      BENCHMARK_REQUEST_HARNESS_SHA: << pipeline.parameters.benchmark_harness_sha >>
+      BENCHMARK_REQUEST_PR_BASE_SHA: << pipeline.parameters.benchmark_pr_base_sha >>
       BENCHMARK_REQUEST_PR: << pipeline.parameters.benchmark_pr >>
       BENCHMARK_REQUEST_BASE_SHA: << pipeline.parameters.benchmark_base_sha >>
       BENCHMARK_REQUEST_HEAD_SHA: << pipeline.parameters.benchmark_head_sha >>
       BENCHMARK_REQUEST_CANDIDATE_SHA: << pipeline.parameters.benchmark_candidate_sha >>
     steps:
       - checkout
+      - verify_benchmark_harness
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
@@ -521,7 +551,23 @@ jobs:
           command: |
             set -euo pipefail
 
-            candidate=$(git rev-parse HEAD)
+            harness=$(git rev-parse HEAD)
+            candidate=${harness}
+            comparison=${BENCHMARK_REQUEST_COMPARISON}
+            pr_base=''
+            sha_pattern='^[0-9a-f]{40}$'
+            if [[ "${comparison}" == 'revisions' ]]; then
+              if [[ ! "${BENCHMARK_REQUEST_HARNESS_SHA}" =~ ${sha_pattern} ]]; then
+                echo "An explicit revision comparison requires a frozen harness SHA." >&2
+                exit 1
+              fi
+              candidate=${BENCHMARK_REQUEST_CANDIDATE_SHA}
+              pr_base=${BENCHMARK_REQUEST_PR_BASE_SHA}
+            elif [[ -n "${comparison}" ]]; then
+              echo "Unknown benchmark comparison: ${comparison}." >&2
+              exit 1
+            fi
+
             if [[ -n "${BENCHMARK_REQUEST_PR}" ]]; then
               if [[ ! "${BENCHMARK_REQUEST_PR}" =~ ^[1-9][0-9]*$ ]]; then
                 echo "Invalid benchmark PR number: ${BENCHMARK_REQUEST_PR}" >&2
@@ -532,26 +578,28 @@ jobs:
                 exit 1
               fi
 
-              sha_pattern='^[0-9a-f]{40}$'
+              if [[ "${comparison}" != 'revisions' ]]; then
+                pr_base=${BENCHMARK_REQUEST_BASE_SHA}
+              fi
               for value in \
-                "${BENCHMARK_REQUEST_BASE_SHA}" \
                 "${BENCHMARK_REQUEST_HEAD_SHA}" \
-                "${BENCHMARK_REQUEST_CANDIDATE_SHA}"; do
+                "${pr_base}"; do
                 if [[ ! "${value}" =~ ${sha_pattern} ]]; then
                   echo "Benchmark revisions must be full lowercase commit SHAs: ${value}" >&2
                   exit 1
                 fi
               done
-              if [[ "${candidate}" != "${BENCHMARK_REQUEST_CANDIDATE_SHA}" ]]; then
+              if [[ -z "${comparison}" && "${candidate}" != "${BENCHMARK_REQUEST_CANDIDATE_SHA}" ]]; then
                 echo "CircleCI checked out ${candidate}, expected ${BENCHMARK_REQUEST_CANDIDATE_SHA}." >&2
                 exit 1
               fi
 
-              read -r first_parent second_parent extra < <(git show -s --format=%P "${candidate}")
+              # The PR merge owns the harness even when both framework revisions are older commits.
+              read -r first_parent second_parent extra < <(git show -s --format=%P "${harness}")
               if [[ -n "${extra:-}" \
-                || "${first_parent:-}" != "${BENCHMARK_REQUEST_BASE_SHA}" \
+                || "${first_parent:-}" != "${pr_base}" \
                 || "${second_parent:-}" != "${BENCHMARK_REQUEST_HEAD_SHA}" ]]; then
-                echo "Candidate parents do not match the requested base and head." >&2
+                echo "Harness parents do not match the requested PR base and head." >&2
                 exit 1
               fi
 
@@ -559,7 +607,16 @@ jobs:
               head=${BENCHMARK_REQUEST_HEAD_SHA}
               profile=${BENCHMARK_REQUEST_PROFILE}
               pr=${BENCHMARK_REQUEST_PR}
-            elif [[ "${CIRCLE_BRANCH}" == "master" ]]; then
+            elif [[ "${comparison}" == 'revisions' && "${CIRCLE_BRANCH}" == 'master' ]]; then
+              if [[ -n "${BENCHMARK_REQUEST_HEAD_SHA}${pr_base}" ]]; then
+                echo "Standalone revision comparisons cannot carry PR parents." >&2
+                exit 1
+              fi
+              base=${BENCHMARK_REQUEST_BASE_SHA}
+              head=''
+              profile=${BENCHMARK_REQUEST_PROFILE}
+              pr=''
+            elif [[ -z "${comparison}" && "${CIRCLE_BRANCH}" == "master" ]]; then
               read -r base _ < <(git show -s --format=%P "${candidate}")
               if [[ -z "${base:-}" ]]; then
                 echo "The master benchmark requires a first-parent baseline." >&2
@@ -578,15 +635,28 @@ jobs:
               revisions+=("${head}")
             fi
             for revision in "${revisions[@]}"; do
+              if [[ ! "${revision}" =~ ${sha_pattern} ]]; then
+                echo "Benchmark revisions must be full lowercase commit SHAs: ${revision}" >&2
+                exit 1
+              fi
               if ! git cat-file -e "${revision}^{commit}"; then
                 git fetch --no-tags origin "${revision}"
+                git cat-file -e "${revision}^{commit}"
               fi
             done
+
+            if [[ "${profile}" != 'smoke' && "${profile}" != 'full' && "${profile}" != 'master' ]]; then
+              echo "Unknown benchmark profile: ${profile}." >&2
+              exit 1
+            fi
 
             {
               echo "export BENCHMARK_BASE_SHA=${base}"
               echo "export BENCHMARK_HEAD_SHA=${head}"
               echo "export BENCHMARK_CANDIDATE_SHA=${candidate}"
+              echo "export BENCHMARK_HARNESS_SHA=${harness}"
+              echo "export BENCHMARK_COMPARISON=${comparison}"
+              echo "export BENCHMARK_PR_BASE_SHA=${pr_base}"
               echo "export BENCHMARK_PROFILE=${profile}"
               echo "export BENCHMARK_PR=${pr}"
             } >> "${BASH_ENV}"
@@ -607,6 +677,12 @@ jobs:
             )
             if [[ -n "${BENCHMARK_PR}" ]]; then
               args+=(--head "${BENCHMARK_HEAD_SHA}" --pull-request "${BENCHMARK_PR}")
+            fi
+            if [[ "${BENCHMARK_COMPARISON}" == 'revisions' ]]; then
+              args+=(--comparison revisions --harness "${BENCHMARK_HARNESS_SHA}")
+              if [[ -n "${BENCHMARK_PR}" ]]; then
+                args+=(--pr-base "${BENCHMARK_PR_BASE_SHA}")
+              fi
             fi
             npm run bench:variants -- "${args[@]}"
       - persist_to_workspace:
@@ -629,6 +705,7 @@ jobs:
         default: "30s"
     steps:
       - checkout
+      - verify_benchmark_harness
       - attach_workspace:
           at: .
       # Tachometer resolves the npm module; Circle installs the executable matched to this job's Chrome.
@@ -662,6 +739,7 @@ jobs:
       BENCHMARK_REPORT_PROFILE: <<parameters.profile>>
     steps:
       - checkout
+      - verify_benchmark_harness
       - attach_workspace:
           at: .
       - run:
@@ -898,17 +976,14 @@ workflows:
     when: << pipeline.parameters.run_bench >>
     jobs:
       - checkout_install_cache:
-          <<: *filter_only_topic
           name: bench_install
 
       - tacho_benchmark_prep:
-          <<: *filter_only_topic
           name: bench_prep
           requires:
             - bench_install
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_startup10k
           command: npm run bench:startup10k
           result: repeat-view-startup-10k.json
@@ -916,7 +991,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_startup10k_ce
           command: npm run bench:startup10k-ce
           result: repeat-ce-startup-10k.json
@@ -924,7 +998,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_rerender10k
           command: npm run bench:rerender10k
           result: repeat-view-rerender-10k.json
@@ -932,7 +1005,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_rerender10k_ce
           command: npm run bench:rerender10k-ce
           result: repeat-ce-rerender-10k.json
@@ -940,7 +1012,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_startup100_big_template
           command: npm run bench:startup100-big
           result: repeat-view-startup-100-big-template.json
@@ -948,7 +1019,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_update1k
           command: npm run bench:update1k
           result: repeat-view-update-1k.json
@@ -956,7 +1026,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_repeat_keyed_expression
           command: npm run bench:repeat-expr
           result: app-repeat-view-keyed-expr.json
@@ -964,7 +1033,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_repeat_keyed_string
           command: npm run bench:repeat-string
           result: app-repeat-view-keyed-string.json
@@ -972,7 +1040,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_realistic_startup
           command: npm run bench:realistic-startup
           result: repeat-realistic-startup-1000.json
@@ -980,7 +1047,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_realistic_refresh
           command: npm run bench:realistic-refresh
           result: repeat-realistic-refresh-1000.json
@@ -988,7 +1054,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_realistic_mixed
           command: npm run bench:realistic-mixed
           result: repeat-realistic-mixed-1000.json
@@ -996,7 +1061,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_realistic_heap_lifecycle
           command: npm run bench:realistic-heap500
           result: repeat-realistic-heap-lifecycle-500.json
@@ -1005,7 +1069,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_realistic_refresh_loop
           command: npm run bench:realistic-refresh-loop
           result: repeat-realistic-refresh-loop-20x1000.json
@@ -1015,7 +1078,6 @@ workflows:
             - bench_prep
 
       - tacho_benchmark:
-          <<: *filter_only_topic
           name: bench_dependency_rotation
           command: npm run bench:dependency-rotation
           result: binding-dependency-rotation.json
@@ -1024,7 +1086,6 @@ workflows:
             - bench_prep
 
       - benchmark_report:
-          <<: *filter_only_topic
           name: benchmark_report
           profile: full
           requires:
@@ -1045,6 +1106,9 @@ workflows:
 
   # Runs build and tests (master)
   build_test:
+    # A manually requested comparison on master runs the full benchmark workflow only.
+    when:
+      not: << pipeline.parameters.run_bench >>
     jobs:
       - check_doc_abort:
           <<: *filter_only_master

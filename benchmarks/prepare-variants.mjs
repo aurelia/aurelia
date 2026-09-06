@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundleBenchmarkVariant } from './rollup.variant.mjs';
+import { prepareComparison } from './prepare-comparison.mjs';
 import {
   discoverInternalClosure,
   discoverWorkspacePackages,
@@ -30,21 +31,9 @@ if (npmCli === undefined) {
 }
 
 const options = parseArguments(process.argv.slice(2));
-// Local runs may compare any exact revisions. CI also supplies the PR head so this script can prove
-// that the candidate is the test merge of the requested base and head before doing expensive work.
-const baseCommit = await resolveCommit(options.base);
-const headCommit = options.head === undefined ? undefined : await resolveCommit(options.head);
-const candidateCommit = await resolveCommit(options.candidate);
-if (headCommit !== undefined) {
-  await verifyMergeCandidate(baseCommit, headCommit, candidateCommit);
-}
-const harnessCommit = await runCapture('git', ['rev-parse', 'HEAD'], repositoryRoot);
+const { comparison, harnessCommit } = await prepareComparison(options, repositoryRoot);
+const { base: baseCommit, candidate: candidateCommit } = comparison;
 const harnessTree = await runCapture('git', ['rev-parse', 'HEAD^{tree}'], repositoryRoot);
-if (options.pullRequest !== undefined && harnessCommit !== candidateCommit) {
-  throw new Error(
-    `PR benchmark harness is ${harnessCommit}, expected the verified candidate ${candidateCommit}.`
-  );
-}
 const outputRoot = path.resolve(
   options.output ?? path.join(benchmarksRoot, 'results', `comparison-${baseCommit.slice(0, 7)}-${candidateCommit.slice(0, 7)}`)
 );
@@ -101,14 +90,7 @@ try {
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
     repository: await runCapture('git', ['remote', 'get-url', 'origin'], repositoryRoot),
-    comparison: {
-      profile: options.profile ?? null,
-      pullRequest: options.pullRequest ?? null,
-      base: baseCommit,
-      head: headCommit ?? null,
-      candidate: candidateCommit,
-      mergeParentsVerified: headCommit !== undefined,
-    },
+    comparison,
     harness: {
       commit: harnessCommit,
       tree: harnessTree,
@@ -134,7 +116,7 @@ try {
 
   await writeFile(path.join(outputRoot, 'provenance.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
-  console.log('\nA/A bundle comparison');
+  console.log('\nBenchmark bundle comparison');
   for (const comparison of comparisons) {
     console.log(
       `${comparison.identical ? 'IDENTICAL' : 'DIFFERENT'} ${comparison.fixture}: `
@@ -358,6 +340,8 @@ async function getHarnessFileSet() {
     'package-lock.json',
   ], repositoryRoot)).split('\n').filter(Boolean);
   const liveFiles = [
+    'benchmarks/benchmark-comparison.cjs',
+    'benchmarks/prepare-comparison.mjs',
     'benchmarks/prepare-variants.mjs',
     'benchmarks/rollup.variant.mjs',
     'benchmarks/variant-utils.mjs',
@@ -371,22 +355,6 @@ async function getInstalledToolVersion(root, packageName) {
   return (await readJson(manifestPath)).version;
 }
 
-async function resolveCommit(revision) {
-  return runCapture('git', ['rev-parse', '--verify', `${revision}^{commit}`], repositoryRoot);
-}
-
-async function verifyMergeCandidate(base, head, candidate) {
-  const [resolvedCandidate, ...parents] = (
-    await runCapture('git', ['rev-list', '--parents', '-n', '1', candidate], repositoryRoot)
-  ).split(' ');
-  if (resolvedCandidate !== candidate || parents.length !== 2 || parents[0] !== base || parents[1] !== head) {
-    throw new Error(
-      `Benchmark candidate ${candidate} is not the test merge of base ${base} and head ${head}. `
-      + `Found parents: ${parents.join(', ') || '<none>'}.`
-    );
-  }
-}
-
 function parseArguments(argv) {
   const parsed = { fixtures: [], expectIdentical: false, keepWorkdir: false };
   for (let index = 0; index < argv.length; index++) {
@@ -395,6 +363,9 @@ function parseArguments(argv) {
       case '--base': parsed.base = requireValue(argv, ++index, argument); break;
       case '--head': parsed.head = requireValue(argv, ++index, argument); break;
       case '--candidate': parsed.candidate = requireValue(argv, ++index, argument); break;
+      case '--comparison': parsed.comparison = requireValue(argv, ++index, argument); break;
+      case '--harness': parsed.harness = requireValue(argv, ++index, argument); break;
+      case '--pr-base': parsed.prBase = requireValue(argv, ++index, argument); break;
       case '--pull-request': parsed.pullRequest = requireValue(argv, ++index, argument); break;
       case '--profile': parsed.profile = requireValue(argv, ++index, argument); break;
       case '--fixture': parsed.fixtures.push(requireValue(argv, ++index, argument)); break;
@@ -407,7 +378,8 @@ function parseArguments(argv) {
   if (parsed.base === undefined || parsed.candidate === undefined) {
     throw new Error(
       'Usage: node benchmarks/prepare-variants.mjs --base <revision> --candidate <revision> '
-      + '[--head <revision> --pull-request <number>] [--expect-identical]'
+      + '[--head <revision> --pull-request <number>] '
+      + '[--comparison revisions --harness <revision> --pr-base <revision>] [--expect-identical]'
     );
   }
   if (parsed.pullRequest !== undefined) {
@@ -420,6 +392,12 @@ function parseArguments(argv) {
   }
   if (parsed.profile !== undefined && !['smoke', 'full', 'master'].includes(parsed.profile)) {
     throw new Error(`Unknown benchmark profile "${parsed.profile}".`);
+  }
+  if (parsed.comparison !== undefined && parsed.comparison !== 'revisions') {
+    throw new Error(`Unknown benchmark comparison "${parsed.comparison}".`);
+  }
+  if (parsed.comparison !== 'revisions' && (parsed.harness !== undefined || parsed.prBase !== undefined)) {
+    throw new Error('--harness and --pr-base require --comparison revisions.');
   }
   if (parsed.fixtures.length === 0) parsed.fixtures = [...defaultFixtures];
   for (const fixture of parsed.fixtures) {

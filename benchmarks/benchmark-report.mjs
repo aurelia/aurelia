@@ -7,6 +7,7 @@ import {
   makeComparisons,
   measurementLabel,
 } from './benchmark-summary.mjs';
+import { comparisonHarness, comparisonsEqual, validateComparison } from './benchmark-comparison.cjs';
 
 const shaPattern = /^[0-9a-f]{40}$/;
 const metricDefinitions = {
@@ -115,18 +116,13 @@ export function expectedResultFiles(profile) {
 
 export function validateBenchmarkReport(report, expected) {
   if (report?.schemaVersion !== 1) throw new Error('Unsupported benchmark report schema.');
-  if (
-    report.comparison?.profile !== expected.profile
-    || report.comparison?.pullRequest !== expected.pullRequest
-    || report.comparison?.base !== expected.base
-    || report.comparison?.head !== expected.head
-    || report.comparison?.candidate !== expected.candidate
-    || report.comparison?.mergeParentsVerified !== true
-  ) {
-    throw new Error('Benchmark report comparison does not match the requested PR revisions.');
+  validateComparison(report.comparison);
+  if ((report.comparison.pullRequest !== null && typeof report.comparison.pullRequest !== 'number')
+    || !comparisonsEqual(report.comparison, expected)) {
+    throw new Error('Benchmark report comparison does not match the requested revisions.');
   }
-  if (report.harness?.dirty !== false || report.harness?.commit !== expected.candidate) {
-    throw new Error('Benchmark report harness does not match the requested candidate.');
+  if (report.harness?.dirty !== false || report.harness?.commit !== comparisonHarness(expected)) {
+    throw new Error('Benchmark report harness does not match the requested harness.');
   }
   requireSha(report.harness?.tree, 'report harness tree');
   requireHash(report.harness?.sha256, 'report harness');
@@ -348,7 +344,11 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
     '',
     `${comparison}${pullRequest}`,
     '',
-    `Profile: \`${report.comparison.profile}\` · Harness: \`${shortSha(report.harness.commit)}\``,
+    `Profile: \`${report.comparison.profile}\` · Harness: `
+      + `[\`${shortSha(report.harness.commit)}\`](${commitLink(report.harness.commit)})`,
+    ...(report.comparison.kind === 'revisions'
+      ? ['Explicit framework revisions, measured with the same frozen harness.']
+      : []),
     `Environment: Node \`${report.environment.bundleToolchain?.node ?? 'unknown'}\` · `
       + `${formatBrowsers(report.environment.browsers)} · Tachometer \`${report.statistics.producerVersion}\``,
     '',
@@ -433,31 +433,16 @@ function validateProvenance(provenance) {
   ) {
     throw new Error('Benchmark provenance is missing a comparison, harness, base, or candidate record.');
   }
-  for (const [label, sha] of [
-    ['base', comparison.base],
-    ['candidate', comparison.candidate],
-    ['harness', harness.commit],
-  ]) requireSha(sha, label);
+  validateComparison(comparison);
+  requireSha(harness.commit, 'harness');
   requireSha(harness.tree, 'harness tree');
   requireHash(harness.sha256, 'harness');
   if (harness.dirty !== false) throw new Error('Benchmark harness must be clean in an authoritative report.');
-  if (harness.commit !== comparison.candidate || base.commit !== comparison.base || candidate.commit !== comparison.candidate) {
+  if (harness.commit !== comparisonHarness(comparison) || base.commit !== comparison.base || candidate.commit !== comparison.candidate) {
     throw new Error('Benchmark provenance revisions do not agree.');
   }
   if (!Array.isArray(provenance.comparisons) || provenance.comparisons.length === 0) {
     throw new Error('Benchmark provenance does not contain bundle comparisons.');
-  }
-  if (comparison.profile === 'smoke' || comparison.profile === 'full') {
-    requireSha(comparison.head, 'head');
-    if (!/^[1-9]\d*$/.test(String(comparison.pullRequest)) || comparison.mergeParentsVerified !== true) {
-      throw new Error('PR benchmark provenance does not contain a verified merge comparison.');
-    }
-  } else if (comparison.profile === 'master') {
-    if (comparison.pullRequest !== null || comparison.head !== null || comparison.mergeParentsVerified !== false) {
-      throw new Error('Master benchmark provenance has PR comparison fields.');
-    }
-  } else {
-    throw new Error(`Unsupported benchmark provenance profile "${comparison.profile}".`);
   }
 }
 

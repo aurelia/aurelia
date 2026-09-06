@@ -7,6 +7,8 @@ commands, metric meanings, and local reproduction workflow used by this director
 
 - `app-*` directories own browser fixtures and Tachometer configuration.
 - `utils/` owns browser-side loading, assertions, data, measurement publication, and GC helpers.
+- `benchmark-comparison.cjs` owns comparison identity shared with trusted dispatch/reporting; `prepare-comparison.mjs`
+  resolves local revisions and verifies the harness's PR parents.
 - `prepare-variants.mjs`, `rollup.variant.mjs`, and `variant-utils.mjs` own exact source builds and package isolation.
 - `run-tachometer.mjs` owns execution and the local compact summary.
 - `live-benchmark.mjs` captures complete Rollup outputs and owns live result publication. Its session coordinator
@@ -19,13 +21,15 @@ commands, metric meanings, and local reproduction workflow used by this director
 
 ## Comparison invariants
 
-- Use full immutable SHAs. A PR candidate is the verified GitHub test merge with the requested base and head parents.
+- Resolve selectors to full immutable SHAs once. Ordinary PR comparisons measure the verified GitHub test merge.
+  Explicit comparisons select framework base/candidate independently; the harness remains the frozen PR test merge
+  or current master for a standalone run. Verify PR parents against `prBase`/`head`, not a historical framework pair.
 - Build each revision from its own source snapshot, lockfile, release output, and packed package graph.
 - Resolve every bundled `@aurelia/*` module inside the selected variant root. Never fall back to workspace packages,
   npm `dev`, or another moving label.
 - Run base and candidate with identical fixture source, filenames, bundler configuration, browser, and interleaved
   sampling order.
-- Keep the authoritative harness clean and owned by the candidate revision.
+- Keep the authoritative harness clean and at its recorded revision. Dirty local preparation is diagnostic only.
 - Treat CircleCI artifacts as untrusted input. Do not weaken hashes, revision checks, schemas, artifact limits, or the
   final staleness check to accept a new result.
 
@@ -57,6 +61,11 @@ When adding a result file, update:
 The PR comment formatter comes from trusted master, not the candidate. An expanded report can be published only after
 its formatter/schema support lands there. Keep existing smoke contracts compatible during such a rollout; do not
 weaken validation to let the candidate supply its own trusted formatter.
+
+Use `/ci bench <base SHA> [candidate SHA]` for an explicit comparison on a PR. The manual Actions workflow accepts
+`base_sha` and optional `candidate_sha` without `pr_number`, then publishes to its run summary. README explains
+defaults and local reproduction. New dispatch syntax and trusted report contracts become usable after landing on
+master; validate the feature locally before that rollout.
 
 When adding a metric, update compact-summary classification and formatting, the report metric definition and
 validator, the human explanation, and tests for units and confidence-interval assessment.

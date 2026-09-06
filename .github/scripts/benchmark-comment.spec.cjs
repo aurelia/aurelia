@@ -18,6 +18,23 @@ const candidate = 'c'.repeat(40);
 const pipeline = { id: '12345678-1234-4123-8123-123456789abc', number: 16145 };
 const workflowId = '87654321-4321-4321-8321-cba987654321';
 const comparison = { pullRequest: 2462, base, head, candidate };
+const revisionComparison = {
+  kind: 'revisions',
+  pullRequest: 2462,
+  base,
+  candidate,
+  head,
+  prBase: 'd'.repeat(40),
+  harness: 'e'.repeat(40),
+  mergeParentsVerified: true,
+};
+const standaloneComparison = {
+  ...revisionComparison,
+  pullRequest: null,
+  head: null,
+  prBase: null,
+  mergeParentsVerified: false,
+};
 
 void describe('benchmark pipeline trigger', () => {
   void it('allows both trusted workflows to publish their PR report', () => {
@@ -133,6 +150,87 @@ void describe('benchmark PR comment', () => {
 
     assert.equal(result.status, 'superseded');
     assert.doesNotMatch(github.comments[0].body, /STALE NUMBERS/);
+  });
+
+  for (const field of ['harness', 'prBase', 'head', 'base', 'candidate']) {
+    void it(`discards an explicit comparison when its ${field} changed during report download`, async () => {
+      const github = commentGithub();
+      let checks = 0;
+      const result = await reportBenchmarkRun({
+        github,
+        context: context(),
+        core: core(),
+        circleToken: 'secret',
+        pipeline,
+        comparison: revisionComparison,
+        profile: 'full',
+        resolveCurrentComparison: async () => ++checks === 1
+          ? revisionComparison
+          : { ...revisionComparison, [field]: 'f'.repeat(40) },
+        fetchImpl: successfulCircleFetch(),
+        sleep: async () => {},
+        loadReportModule: async () => ({
+          validateBenchmarkReport(_report, expected) {
+            assert.deepEqual(expected, { ...revisionComparison, profile: 'full' });
+          },
+          formatBenchmarkReportMarkdown: () => 'STALE NUMBERS',
+        }),
+      });
+
+      assert.equal(result.status, 'superseded');
+      assert.match(github.comments[0].body, /PR context or benchmark harness changed/);
+      assert.doesNotMatch(github.comments[0].body, /STALE NUMBERS/);
+    });
+  }
+
+  void it('publishes an explicit comparison with its complete comparison identity', async () => {
+    const github = commentGithub();
+    await reportBenchmarkRun({
+      github,
+      context: context(),
+      core: core(),
+      circleToken: 'secret',
+      pipeline,
+      comparison: revisionComparison,
+      profile: 'full',
+      resolveCurrentComparison: async () => revisionComparison,
+      fetchImpl: successfulCircleFetch(),
+      sleep: async () => {},
+      loadReportModule: async () => ({
+        validateBenchmarkReport(_report, expected) {
+          assert.deepEqual(expected, { ...revisionComparison, profile: 'full' });
+        },
+        formatBenchmarkReportMarkdown: () => 'TRUSTED REVISION REPORT',
+      }),
+    });
+
+    assert.match(github.comments[0].body, /TRUSTED REVISION REPORT/);
+    const state = readState(github.comments[0].body);
+    for (const [field, value] of Object.entries(revisionComparison)) assert.equal(state[field], value);
+  });
+
+  void it('distinguishes report validation failure from successful CircleCI execution', async () => {
+    const github = commentGithub();
+    await assert.rejects(reportBenchmarkRun({
+      github,
+      context: context(),
+      core: core(),
+      circleToken: 'secret',
+      pipeline,
+      comparison,
+      profile: 'full',
+      resolveCurrentComparison: async () => comparison,
+      fetchImpl: successfulCircleFetch(),
+      sleep: async () => {},
+      loadReportModule: async () => ({
+        validateBenchmarkReport() { throw new Error('untrusted @everyone payload'); },
+        formatBenchmarkReportMarkdown() { assert.fail('invalid reports must not be formatted'); },
+      }),
+    }), /untrusted/);
+
+    assert.match(github.comments[0].body, /benchmark workflow completed successfully/);
+    assert.match(github.comments[0].body, /could not be validated or published/);
+    assert.doesNotMatch(github.comments[0].body, /did not complete successfully|@everyone/);
   });
 
   void it('reports failed CircleCI jobs without copying job output', async () => {
@@ -308,7 +406,86 @@ void describe('benchmark PR comment', () => {
   });
 });
 
-function successfulCircleFetch() {
+void describe('standalone benchmark summary', () => {
+  void it('publishes trusted results and artifact links without any GitHub issue API', async () => {
+    const actions = core();
+    const result = await reportBenchmarkRun({
+      // No issue context or GitHub methods exist on a manual two-revision dispatch.
+      github: {},
+      context: { repo: context().repo },
+      core: actions,
+      circleToken: 'secret',
+      pipeline,
+      comparison: standaloneComparison,
+      profile: 'full',
+      resolveCurrentComparison: async () => standaloneComparison,
+      fetchImpl: successfulCircleFetch(),
+      sleep: async () => {},
+      loadReportModule: async () => ({
+        validateBenchmarkReport(report, expected) {
+          assert.equal(report.schemaVersion, 1);
+          assert.deepEqual(expected, { ...standaloneComparison, profile: 'full' });
+        },
+        formatBenchmarkReportMarkdown(_report, links) {
+          assert.equal(links.artifacts, 'https://circleci.com/gh/aurelia/aurelia/123');
+          assert.match(links.circleWorkflow, new RegExp(`/workflows/${workflowId}$`));
+          return `TRUSTED REPORT\n[Artifacts](${links.artifacts})`;
+        },
+      }),
+    });
+
+    assert.equal(result.status, 'success');
+    assert.equal(actions.summaries.length, 1);
+    assert.match(actions.summaries[0], /TRUSTED REPORT\n\[Artifacts\]/);
+  });
+
+  void it('reports a failed manual workflow without any GitHub issue API', async () => {
+    const actions = core();
+    await assert.rejects(reportBenchmarkRun({
+      github: {},
+      context: { repo: context().repo },
+      core: actions,
+      circleToken: 'secret',
+      pipeline,
+      comparison: standaloneComparison,
+      profile: 'full',
+      resolveCurrentComparison: async () => standaloneComparison,
+      fetchImpl: successfulCircleFetch({ workflowStatus: 'failed' }),
+      sleep: async () => {},
+    }), /workflow-failed/);
+
+    assert.equal(actions.summaries.length, 1);
+    assert.match(actions.summaries[0], /benchmark workflow did not complete successfully/);
+    assert.doesNotMatch(actions.summaries[0], /benchmark workflow completed successfully/);
+  });
+
+  void it('rejects a spoofed report identity before rendering or publishing its numbers', async () => {
+    const actions = core();
+    await assert.rejects(reportBenchmarkRun({
+      github: {},
+      context: { repo: context().repo },
+      core: actions,
+      circleToken: 'secret',
+      pipeline,
+      comparison: standaloneComparison,
+      profile: 'full',
+      resolveCurrentComparison: async () => standaloneComparison,
+      fetchImpl: successfulCircleFetch({ report: {
+        schemaVersion: 1,
+        comparison: { ...standaloneComparison, profile: 'full', harness: 'f'.repeat(40) },
+      } }),
+      sleep: async () => {},
+      // Exercise the real trusted validator: matching framework SHAs alone are insufficient.
+      loadReportModule: () => import('../../benchmarks/benchmark-report.mjs'),
+    }), /comparison does not match the requested revisions/);
+
+    assert.equal(actions.summaries.length, 1);
+    assert.match(actions.summaries[0], /benchmark workflow completed successfully/);
+    assert.doesNotMatch(actions.summaries[0], /comparison does not match/);
+  });
+});
+
+function successfulCircleFetch({ workflowStatus = 'success', report = { schemaVersion: 1 } } = {}) {
   return circleFetch(new Map([
     ['/api/v2/pipeline/12345678-1234-4123-8123-123456789abc/workflow', {
         items: [{
@@ -323,7 +500,7 @@ function successfulCircleFetch() {
       id: workflowId,
       pipeline_id: pipeline.id,
       project_slug: 'gh/aurelia/aurelia',
-      status: 'success',
+      status: workflowStatus,
     }],
     [`/api/v2/workflow/${workflowId}/job`, {
       items: [{
@@ -342,7 +519,7 @@ function successfulCircleFetch() {
       }],
       next_page_token: null,
     }],
-    ['/report.json', { schemaVersion: 1 }],
+    ['/report.json', report],
   ]));
 }
 
@@ -373,7 +550,14 @@ function context() {
 }
 
 function core(outputs = {}) {
+  const summaries = [];
+  let pendingSummary = '';
   return {
+    summaries,
+    summary: {
+      addRaw(value) { pendingSummary += value; return this; },
+      async write() { summaries.push(pendingSummary); pendingSummary = ''; },
+    },
     info() {},
     setSecret() {},
     warning() {},

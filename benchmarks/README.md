@@ -5,7 +5,7 @@ maintainers without turning noisy browser measurements into an automatic merge g
 
 ## Comparison model
 
-A pull-request run freezes three revisions:
+An ordinary pull-request run freezes the base, PR head, and verified test merge:
 
 ```text
 base SHA ──────── clean install → release build → packed package graph → base bundles
@@ -16,15 +16,19 @@ candidate harness ────────────────────�
 ```
 
 The candidate is GitHub's test merge of the frozen base and PR head. CircleCI verifies both merge parents before it
-builds anything. A master run compares the current commit with its first parent.
+builds anything. An automatic master run compares the current commit with its first parent.
+
+An explicit revision comparison selects the two framework commits independently of the harness. The harness comes
+from the current PR test merge, or current master for a standalone run. Its revision is frozen when the run is
+requested. This lets maintainers measure older framework code with today's fixtures and runner.
 
 Each revision gets its own source snapshot, clean install, and release build. The builder discovers the internal
 `@aurelia/runtime-html` package closure, packs those packages, and installs them into an isolated graph. Both graphs
-are then bundled with the same candidate-owned fixture source and Rollup configuration. This prevents workspace links
+are then bundled with the same harness-owned fixture source and Rollup configuration. This prevents workspace links
 or root dependencies from mixing the two revisions.
 
 `results/variants/provenance.json` records the revisions, source trees, package graph, tool versions, resolved entry
-points, bundle hashes, and harness hash. Authoritative reports require a clean candidate harness and the exact result
+points, bundle hashes, and harness hash. Authoritative reports require a clean frozen harness and the exact result
 set for their profile.
 
 ## CI profiles
@@ -32,12 +36,42 @@ set for their profile.
 | Profile | Trigger | Purpose |
 | --- | --- | --- |
 | `smoke` | `/ci full` | A stable subset, including the realistic keyed refresh workload. |
-| `full` | `/ci bench` | The complete PR comparison, including warmed refresh, dependency rotation, and after-GC heap scenarios. |
+| `full` | `/ci bench` or manual Actions dispatch | The complete comparison, including warmed refresh, dependency rotation, and after-GC heap scenarios. |
 | `master` | Push to `master` | The complete suite against the current commit's first parent. |
 
 PR reporting currently supports same-repository PRs targeting `master`. The trusted GitHub workflow updates one
 marker comment. It discards results when the PR base, head, or test merge changes while CircleCI is running. PR code
 never receives the GitHub write token.
+
+### Choose framework revisions
+
+Maintainers can use these commands on a same-repository PR targeting `master`:
+
+| Command | Framework comparison |
+| --- | --- |
+| `/ci bench` | Current master → verified PR test merge |
+| `/ci bench <base SHA>` | Selected baseline → verified PR test merge |
+| `/ci bench <base SHA> <candidate SHA>` | Selected baseline → selected candidate |
+
+SHA arguments accept 7–40 hexadecimal characters and resolve to full commits before dispatch. Branch names and tags
+are not command arguments. Both sides run with the same frozen PR harness, including when the selected framework
+commits predate its fixtures. The PR comment links the measured commits and harness separately. A subsequent command
+updates the same comment.
+
+For a comparison without a PR, open **Actions → Trigger benchmarks on /ci bench → Run workflow** on `master`:
+
+1. Leave `pr_number` empty.
+2. Enter `base_sha`.
+3. Enter `candidate_sha`, or leave it empty to compare against current master.
+
+The results appear in that Actions run's summary with links to the CircleCI workflow and artifacts. Supplying
+`pr_number` instead uses that PR's verified harness and comment. `expected_base_sha` and `expected_head_sha` remain
+optional PR freshness checks; use `base_sha` to choose a historical performance baseline.
+
+CircleCI checks the harness checkout before preparation, measurement, and reporting. If it has moved since dispatch,
+rerun the command. Standalone reports retain their frozen revisions when master later advances. An older source
+revision must still install from its own lockfile and build with the selected toolchain; a preparation failure needs
+investigation before that revision can be compared.
 
 ## Run locally
 
@@ -143,6 +177,20 @@ Prepare exact bundles for the checked-out commit and its parent:
 ```sh
 npm run bench:variants -- --base HEAD~1 --candidate HEAD --profile master --output results/variants
 ```
+
+To compare any two framework commits using the checked-out harness:
+
+```sh
+npm run bench:variants -- --comparison revisions --base <base SHA> --candidate <candidate SHA> --profile full --output results/variants
+```
+
+Local preparation also accepts Git revision expressions such as `HEAD~2` and records their resolved SHAs. The harness
+defaults to the current checkout; `--harness <SHA>` asserts that it matches an expected revision. For an explicit PR
+comparison, check out its test merge and also supply `--pull-request <number> --pr-base <SHA> --head <SHA>`. These
+identify the merge parents independently of the two measured framework revisions.
+
+Local edits are permitted for diagnostic preparation and recorded as a dirty harness. Authoritative report generation
+requires a clean harness.
 
 Variant preparation intentionally performs two clean installs and release builds. It refuses to overwrite an
 existing output directory. Keep the top level of `results/` free of extra JSON result files because the report builder

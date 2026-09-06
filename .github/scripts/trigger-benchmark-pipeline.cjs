@@ -1,6 +1,7 @@
 'use strict';
 
 const { reportBenchmarkRun } = require('./benchmark-comment.cjs');
+const { comparisonHarness, validateComparison } = require('../../benchmarks/benchmark-comparison.cjs');
 
 const shaPattern = /^[0-9a-f]{40}$/;
 
@@ -13,11 +14,13 @@ module.exports = async function triggerBenchmarkPipeline({
   circleToken,
   expectedBase = '',
   expectedHead = '',
+  baseSha = '',
+  candidateSha = '',
   fetchImpl = fetch,
   reporter = reportBenchmarkRun,
 }) {
-  const pullRequest = Number(prNumber);
-  if (!Number.isSafeInteger(pullRequest) || pullRequest <= 0) {
+  const pullRequest = prNumber === '' || prNumber === undefined ? null : Number(prNumber);
+  if (pullRequest !== null && (!Number.isSafeInteger(pullRequest) || pullRequest <= 0)) {
     throw new Error(`Invalid PR number "${prNumber}".`);
   }
   if (profile !== 'smoke' && profile !== 'full') {
@@ -35,27 +38,65 @@ module.exports = async function triggerBenchmarkPipeline({
     base: validateOptionalSha('expected_base_sha', expectedBase),
     head: validateOptionalSha('expected_head_sha', expectedHead),
   };
-  const comparison = await resolveComparison({ github, context, pullRequest, expected });
+  const baseSelector = validateSelector('base_sha', baseSha);
+  const candidateSelector = validateSelector('candidate_sha', candidateSha);
+  if (baseSelector === '' && (candidateSelector !== '' || pullRequest === null)) {
+    throw new Error('Supply base_sha for an explicit comparison; candidate_sha is optional.');
+  }
+  if (baseSelector !== '' && profile !== 'full') {
+    throw new Error('Explicit revision selection uses the full benchmark profile.');
+  }
+  if (pullRequest === null && (expected.base !== '' || expected.head !== '')) {
+    throw new Error('expected_base_sha and expected_head_sha are PR freshness guards and require pr_number.');
+  }
+
+  const prComparison = pullRequest === null ? null : await resolveComparison({ github, context, pullRequest, expected });
+  let comparison = prComparison;
+  if (baseSelector !== '') {
+    // Resolve source selectors once. A later PR check refreshes only its harness/parents, never the
+    // historical revisions requested by the maintainer. Both variants use this one frozen harness.
+    const [base, candidate, harness] = await Promise.all([
+      resolveCommit(github, context, baseSelector),
+      candidateSelector === '' ? null : resolveCommit(github, context, candidateSelector),
+      prComparison === null ? resolveCommit(github, context, 'master') : prComparison.candidate,
+    ]);
+    comparison = {
+      kind: 'revisions',
+      base,
+      candidate: candidate ?? harness,
+      harness,
+      pullRequest,
+      head: prComparison?.head ?? null,
+      prBase: prComparison?.base ?? null,
+      mergeParentsVerified: pullRequest !== null,
+    };
+  }
+  validateComparison({ ...comparison, profile, mergeParentsVerified: pullRequest !== null });
   const payload = {
-    // CircleCI understands GitHub's test-merge ref and will therefore load and check out the same
-    // immutable candidate whose parents were verified below.
-    branch: `pull/${pullRequest}/merge`,
+    // CircleCI loads configuration from the harness branch. Its jobs verify the frozen checkout
+    // before running; a moving branch must fail rather than change the requested experiment.
+    branch: pullRequest === null ? 'master' : `pull/${pullRequest}/merge`,
     parameters: {
       run_pr_full: profile === 'smoke',
       run_bench: profile === 'full',
       run_pr_lite: false,
       benchmark_profile: profile,
-      benchmark_pr: String(pullRequest),
+      benchmark_pr: pullRequest === null ? '' : String(pullRequest),
       benchmark_base_sha: comparison.base,
-      benchmark_head_sha: comparison.head,
+      benchmark_head_sha: comparison.head ?? '',
       benchmark_candidate_sha: comparison.candidate,
+      ...(comparison.kind === 'revisions' ? {
+        benchmark_comparison: 'revisions',
+        benchmark_harness_sha: comparison.harness,
+        benchmark_pr_base_sha: comparison.prBase ?? '',
+      } : {}),
     },
   };
 
   core.setSecret(circleToken);
   core.info(
-    `Triggering ${profile} benchmarks for PR #${pullRequest}: `
-    + `${comparison.base} + ${comparison.head} -> ${comparison.candidate}`
+    `Triggering ${profile} benchmarks${pullRequest === null ? '' : ` for PR #${pullRequest}`}: `
+    + `${comparison.base} -> ${comparison.candidate}; harness ${comparisonHarness(comparison)}`
   );
   const response = await fetchImpl(
     `https://circleci.com/api/v2/project/gh/${context.repo.owner}/${context.repo.repo}/pipeline`,
@@ -78,8 +119,9 @@ module.exports = async function triggerBenchmarkPipeline({
   const pipeline = parsePipelineResponse(responseText);
   core.info(`CircleCI pipeline #${pipeline.number}: ${pipeline.id}`);
   core.setOutput('base_sha', comparison.base);
-  core.setOutput('head_sha', comparison.head);
+  core.setOutput('head_sha', comparison.head ?? '');
   core.setOutput('candidate_sha', comparison.candidate);
+  core.setOutput('harness_sha', comparisonHarness(comparison));
   core.setOutput('pipeline_id', pipeline.id);
   await reporter({
     github,
@@ -91,12 +133,13 @@ module.exports = async function triggerBenchmarkPipeline({
     profile,
     requestId,
     fetchImpl,
-    resolveCurrentComparison: () => resolveComparison({
-      github,
-      context,
-      pullRequest,
-      expected: { base: '', head: '' },
-    }),
+    resolveCurrentComparison: async () => {
+      if (pullRequest === null) return comparison;
+      const current = await resolveComparison({ github, context, pullRequest, expected: { base: '', head: '' } });
+      return comparison.kind === 'revisions'
+        ? { ...comparison, harness: current.candidate, prBase: current.base, head: current.head }
+        : current;
+    },
   });
 };
 
@@ -192,6 +235,24 @@ function validateOptionalSha(name, value) {
     throw new Error(`${name} must be a full 40-character SHA.`);
   }
   return normalized;
+}
+
+function validateSelector(name, value) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized !== '' && !/^[0-9a-f]{7,40}$/.test(normalized)) {
+    throw new Error(`${name} must be a commit SHA (7–40 hexadecimal characters).`);
+  }
+  return normalized;
+}
+
+async function resolveCommit(github, context, ref) {
+  const { data: commit } = await github.rest.repos.getCommit({ ...context.repo, ref });
+  const sha = commit.sha?.toLowerCase();
+  // GitHub's endpoint also accepts names. A hex-looking branch must not override a SHA selector.
+  if (!shaPattern.test(sha ?? '') || (ref !== 'master' && !sha.startsWith(ref))) {
+    throw new Error(`GitHub did not resolve commit SHA "${ref}" to a matching full SHA.`);
+  }
+  return sha;
 }
 
 function parsePipelineResponse(value) {

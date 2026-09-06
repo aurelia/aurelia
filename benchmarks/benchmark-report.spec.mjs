@@ -72,6 +72,10 @@ void describe('benchmark report', () => {
     };
     assert.equal(validateBenchmarkReport(report, expected), report);
 
+    const unnormalized = structuredClone(report);
+    unnormalized.comparison.pullRequest = '2462';
+    assert.throws(() => validateBenchmarkReport(unnormalized, expected), /requested revisions/);
+
     const tampered = structuredClone(report);
     tampered.measurements[0].difference.assessment = 'faster';
     assert.throws(() => validateBenchmarkReport(tampered, expected), /invalid assessment/);
@@ -89,6 +93,59 @@ void describe('benchmark report', () => {
     assert.throws(() => validateBenchmarkReport(browserInjection, expected), /browser metadata is invalid/);
   });
 
+});
+
+void describe('explicit revision reports', () => {
+  void it('reports historical revisions under the same separately identified PR harness', () => {
+    const inputs = fullInputs();
+    Object.assign(inputs.provenance.comparison, {
+      kind: 'revisions', harness: 'd'.repeat(40), prBase: 'e'.repeat(40),
+    });
+    inputs.provenance.harness.commit = inputs.provenance.comparison.harness;
+    const report = createBenchmarkReport(inputs);
+    const expected = { ...report.comparison };
+    assert.equal(validateBenchmarkReport(report, expected), report);
+    assert.notEqual(report.comparison.candidate, report.harness.commit);
+    const markdown = formatBenchmarkReportMarkdown(report);
+    assert.match(markdown, /Harness: \[`ddddddd`\]\(https:\/\/github.com\/aurelia\/aurelia\/commit\/d{40}\)/);
+    assert.match(markdown, /Explicit framework revisions, measured with the same frozen harness/);
+    assert.match(markdown, /for \[#2462\]/);
+
+    // Matching measured commits alone cannot authenticate which workload ran or which PR was frozen.
+    for (const field of ['base', 'candidate', 'head', 'harness', 'prBase']) {
+      const tampered = structuredClone(report);
+      tampered.comparison[field] = 'f'.repeat(40);
+      assert.throws(() => validateBenchmarkReport(tampered, expected), /requested revisions/);
+    }
+    const wrongCheckout = structuredClone(report);
+    wrongCheckout.harness.commit = report.comparison.candidate;
+    assert.throws(() => validateBenchmarkReport(wrongCheckout, expected), /requested harness/);
+    inputs.provenance.harness.commit = inputs.provenance.comparison.candidate;
+    assert.throws(() => createBenchmarkReport(inputs), /revisions do not agree/);
+  });
+
+  void it('validates standalone explicit results without a PR or a fabricated test merge', () => {
+    const inputs = fullInputs();
+    Object.assign(inputs.provenance.comparison, {
+      kind: 'revisions', harness: 'd'.repeat(40), pullRequest: null, head: null, prBase: null, mergeParentsVerified: false,
+    });
+    inputs.provenance.harness.commit = inputs.provenance.comparison.harness;
+    const report = createBenchmarkReport(inputs);
+    assert.equal(validateBenchmarkReport(report, report.comparison), report);
+    assert.equal(report.comparison.pullRequest, null);
+    assert.doesNotMatch(formatBenchmarkReportMarkdown(report), /for \[#/);
+    for (const patch of [{ head: 'b'.repeat(40) }, { prBase: 'e'.repeat(40) }, { mergeParentsVerified: true }]) {
+      const tampered = structuredClone(report);
+      Object.assign(tampered.comparison, patch);
+      assert.throws(() => validateBenchmarkReport(tampered, report.comparison), /Standalone/);
+    }
+    inputs.provenance.harness.dirty = true;
+    assert.throws(() => createBenchmarkReport(inputs), /harness must be clean/);
+  });
+
+});
+
+void describe('benchmark report profiles', () => {
   void it('places the representative workload in every intended profile', () => {
     assert.equal(expectedResultFiles('smoke').filter(file => file.startsWith('repeat-realistic-')).length, 1);
     assert.equal(expectedResultFiles('full').filter(file => file.startsWith('repeat-realistic-')).length, 5);

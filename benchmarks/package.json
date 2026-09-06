@@ -5,7 +5,7 @@
   "scripts": {
     "bench:variants": "node prepare-variants.mjs",
     "bench:variants:test": "node --test variant-utils.spec.mjs",
-    "bench:test": "node --test variant-utils.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs benchmark-ci.spec.mjs live-benchmark-utils.spec.mjs live-benchmark-session.spec.mjs live-profile-utils.spec.mjs live-profile.spec.mjs run-tachometer.spec.mjs realistic-data.spec.mjs measure-used-heap.spec.mjs ../.github/scripts/benchmark-comment.spec.cjs",
+    "bench:test": "node --test variant-utils.spec.mjs benchmark-comparison.spec.cjs prepare-comparison.spec.mjs benchmark-page.spec.mjs benchmark-summary.spec.mjs benchmark-report.spec.mjs benchmark-ci.spec.mjs live-benchmark-utils.spec.mjs live-benchmark-session.spec.mjs live-profile-utils.spec.mjs live-profile.spec.mjs run-tachometer.spec.mjs realistic-data.spec.mjs measure-used-heap.spec.mjs ../.github/scripts/benchmark-comment.spec.cjs ../.github/scripts/trigger-benchmark-pipeline.spec.cjs",
     "bench:report": "node write-benchmark-report.mjs --results results --output results/report",
     "bench:live": "node live-benchmark.mjs",
     "bench": "npm run bench:rerender10k && npm run bench:startup10k && npm run bench:update1k && npm run bench:rerender500-big && npm run bench:startup100-big && npm run bench:realistic-startup && npm run bench:realistic-refresh && npm run bench:realistic-mixed",

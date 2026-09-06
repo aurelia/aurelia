@@ -183,19 +183,28 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
         class Model {
           constructor(public label: string) {}
 
-          @computed({ deps: tracking === 'proxy' ? void 0 : tracking === 'strings' ? ['label'] : (model: Model) => model.label })
+          @computed({
+            deps: tracking === 'proxy'
+              ? void 0
+              : tracking === 'strings'
+                ? ['label']
+                : (model: Model) => model.label,
+          })
           public format(item: { label: string }) {
             callCount++;
             return `${this.label}: ${item.label}`;
           }
         }
 
-        const { component, assertText, tearDown } = createFixture(`<div if.bind="show">\${${expression}}</div>`, class {
-          show = true;
-          model = new Model('summary');
-          action = 'format';
-          item = { label: 'draft' };
-        });
+        const { component, assertText, tearDown } = createFixture(
+          `<div if.bind="show">\${${expression}}</div>`,
+          class {
+            show = true;
+            model = new Model('summary');
+            action = 'format';
+            item = { label: 'draft' };
+          },
+        );
 
         assertText('summary: draft');
         assert.strictEqual(callCount, 1);
@@ -231,10 +240,12 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
         component.show = false;
         await Promise.resolve();
         assertText('');
+
         component.model.label = 'hidden';
         component.item.label = 'hidden';
         await Promise.resolve();
         assert.strictEqual(callCount, replacementCalls + 1, 'unmounting releases the method dependencies');
+
         await tearDown();
       });
     }
@@ -259,10 +270,13 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
       }
     }
 
-    const { component, assertText, tearDown } = createFixture('<div>${model[action]()}</div>', class {
-      model = new Model();
-      action = 'compact';
-    });
+    const { component, assertText, tearDown } = createFixture(
+      '<div>${model[action]()}</div>',
+      class {
+        model = new Model();
+        action = 'compact';
+      },
+    );
 
     assertText('summary');
     assert.strictEqual(callCount, 1);
@@ -281,6 +295,7 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
     await Promise.resolve();
     assertText('updated description');
     assert.strictEqual(callCount, 3);
+
     await tearDown();
   });
 
@@ -304,10 +319,13 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
       }
     }
 
-    const { component, assertText, tearDown } = createFixture('<div>${model[action]()}</div>', class {
-      model = new Model();
-      action = 'format';
-    });
+    const { component, assertText, tearDown } = createFixture(
+      '<div>${model[action]()}</div>',
+      class {
+        model = new Model();
+        action = 'format';
+      },
+    );
 
     assertText('summary');
     assert.strictEqual(callCount, 1);
@@ -328,6 +346,7 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
     await Promise.resolve();
     assertText('updated description');
     assert.strictEqual(callCount, 3);
+
     await tearDown();
   });
 

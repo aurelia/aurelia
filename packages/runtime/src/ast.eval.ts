@@ -257,6 +257,9 @@ export const {
       }
       case ekCallMember:
       case ekCallFunction: {
+        // Resolve receivers in one call-kind branch; ordinary function calls return early.
+        // Only the optional-call flag and error code differ after resolution.
+        // Sharing invocation inline avoids duplicate observation logic and helper-call overhead.
         let instance: IIndexable;
         let name: string;
         if (ast.$kind === ekCallMember) {
@@ -301,7 +304,6 @@ export const {
             ? createMappedError(ErrorNames.ast_name_is_not_a_function, name)
             : createMappedError(ErrorNames.ast_not_a_function);
         }
-        // Receiver-aware calls share computed tracking and array observation through the same invocation path.
         if (c != null && (fn as TrackableFunction)[astTrackableMethodMarker] != null) {
           const options = (fn as TrackableFunction)[astTrackableMethodMarker]!;
           observeTrackableMethodDependencies(c, instance, options);

@@ -1344,7 +1344,11 @@ describe('2-runtime/ast.spec.ts', function () {
     const parser = new ExpressionParser();
     const parse = (expression: string) => parser.parse(expression, 'IsProperty');
 
-    for (const expression of ['receiver()[key()](argument())', '(receiver()[key()])(argument())', 'receiver()[key()]?.(argument())']) {
+    for (const expression of [
+      'receiver()[key()](argument())',
+      '(receiver()[key()])(argument())',
+      'receiver()[key()]?.(argument())',
+    ]) {
       it(`evaluates each part once, in order: ${expression}`, function () {
         const calls: string[] = [];
         const model = {
@@ -1358,22 +1362,39 @@ describe('2-runtime/ast.spec.ts', function () {
           },
         };
         const scope = Scope.create({
-          receiver() { calls.push('receiver'); return model; },
-          key() { calls.push('key'); return 'method'; },
-          argument() { calls.push('argument'); return 'result'; },
+          receiver() {
+            calls.push('receiver');
+            return model;
+          },
+          key() {
+            calls.push('key');
+            return 'method';
+          },
+          argument() {
+            calls.push('argument');
+            return 'result';
+          },
         });
+
         assert.strictEqual(astEvaluate(parse(expression), scope, { strict: true }, null), 'result');
         assert.deepStrictEqual(calls, ['receiver', 'key', 'getter', 'argument', 'call']);
       });
     }
 
     it('keeps ordinary function reads unbound and binds only when requested by the consumer', function () {
-      const model = { method(this: unknown) { return this; }, value: 42 };
+      const model = {
+        method(this: unknown) {
+          return this;
+        },
+        value: 42,
+      };
       const scope = Scope.create({ model, key: 'method' });
       const access = parse('model[key]');
+
       const fn = astEvaluate(access, scope, null, null) as () => unknown;
       assert.strictEqual(fn, model.method);
       assert.strictEqual(fn(), void 0);
+
       const bound = astEvaluate(access, scope, { boundFn: true }, null) as () => unknown;
       assert.strictEqual(bound(), model);
       assert.strictEqual(astEvaluate(parse('model["value"]'), scope, { boundFn: true }, null), 42);
@@ -1382,7 +1403,12 @@ describe('2-runtime/ast.spec.ts', function () {
 
     for (const key of [0, Symbol('method')]) {
       it(`retains the receiver for a ${typeof key} key`, function () {
-        const model = { [key]() { return this; } };
+        const model = {
+          [key]() {
+            return this;
+          },
+        };
+
         assert.strictEqual(astEvaluate(parse('model[key]()'), Scope.create({ model, key }), null, null), model);
       });
     }
@@ -1397,12 +1423,19 @@ describe('2-runtime/ast.spec.ts', function () {
       const handlers = new Map<string, unknown>();
       const scope = Scope.create({ handlers, action: 'run' });
       const invoke = (expression: string) => astEvaluate(parse(expression), scope, { strict: true }, null);
+
       assert.throws(() => invoke('handlers.get(action)()'), /AUR0107/);
       assert.strictEqual(invoke('handlers.get(action)?.()'), void 0);
+
       handlers.set('run', 42);
       assert.throws(() => invoke('handlers.get(action)?.()'), /AUR0107/);
+
       let calls = 0;
-      handlers.set('run', function (this: unknown) { ++calls; return this; });
+      handlers.set('run', function (this: unknown) {
+        ++calls;
+        return this;
+      });
+
       assert.strictEqual(invoke('handlers.get(action)()'), void 0);
       assert.strictEqual(calls, 1);
     });
@@ -1418,12 +1451,23 @@ describe('2-runtime/ast.spec.ts', function () {
         for (const value of ['receiver-null', 'missing', 'null', 'non-function', 'method'] as const) {
           it(`${expression} with ${value} (strict=${strict})`, function () {
             let argumentsEvaluated = 0;
-            const method = value === 'null' ? null : value === 'non-function' ? 1 : value === 'method' ? () => 'result' : void 0;
+            const method = value === 'null'
+              ? null
+              : value === 'non-function'
+                ? 1
+                : value === 'method'
+                  ? () => 'result'
+                  : void 0;
             const scope = Scope.create({
-              model: value === 'receiver-null' ? null : { method }, key: 'method',
-              argument() { ++argumentsEvaluated; return 'argument'; },
+              model: value === 'receiver-null' ? null : { method },
+              key: 'method',
+              argument() {
+                ++argumentsEvaluated;
+                return 'argument';
+              },
             });
             const evaluate = () => astEvaluate(parse(expression), scope, { strict }, null);
+
             if (strict && value === 'receiver-null' && !optionalAccess) {
               assert.throws(evaluate, /AUR0115/);
             } else if (value === 'non-function' || (strict && !optionalCall && value !== 'method')) {
@@ -1431,6 +1475,7 @@ describe('2-runtime/ast.spec.ts', function () {
             } else {
               assert.strictEqual(evaluate(), value === 'method' ? 'result' : void 0);
             }
+
             assert.strictEqual(argumentsEvaluated, value === 'method' ? 1 : 0);
           });
         }

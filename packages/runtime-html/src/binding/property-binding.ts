@@ -44,10 +44,10 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   private _targetObserver?: AccessorOrObserver = void 0;
 
   /** @internal */
-  private _isQueued?: boolean;
+  private _isQueued: boolean = false;
 
   /** @internal */
-  private _targetSubscriber?: ISubscriber | null;
+  private _targetSubscriber: ISubscriber | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -131,13 +131,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     }
     this._scope = scope;
 
-    switch (this.ast.$kind) {
-      case 'ForOfStatement':
-      case 'ValueConverter':
-      case 'BindingBehavior':
-      case 'Custom':
-        astBind(this.ast, scope, this);
-    }
+    astBind(this.ast, scope, this);
 
     const observerLocator = this.oL;
     const $mode = this.mode;

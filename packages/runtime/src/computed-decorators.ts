@@ -17,7 +17,7 @@ export type ComputedDependencyFn<T = unknown> = (instance: T) => unknown;
 export type ComputedDependency = string | symbol | ComputedDependencyFn;
 
 export type ComputedMethodOptions = {
-  deps?: string[] | ComputedDependencyFn;
+  deps?: (string | symbol)[] | ComputedDependencyFn;
 };
 
 /* eslint-disable @typescript-eslint/ban-types */
@@ -86,7 +86,7 @@ function createGetterOptions<TThis extends object>(
  *   (template binding, computed observation). Normal calls are unaffected.
  * - `deps` omitted (or `undefined`) falls back to proxy-based auto-tracking.
  * - `deps: []` explicitly disables tracking.
- * - `deps` with strings or a getter function enables explicit dependency tracking.
+ * - `deps` with strings, symbols, or a getter function enables explicit dependency tracking.
  * - Stacking `\@computed` overrides prior metadata (last applied wins).
  */
 export function computed(target: Function, context: ClassMethodDecoratorContext): void;
@@ -126,7 +126,7 @@ export function computed<TThis extends object>(
       const methodOptions: ComputedMethodOptions = {};
 
       if (typeof targetOrOptionsOrDependency === 'string' || typeof targetOrOptionsOrDependency === 'symbol') {
-        methodOptions.deps = [targetOrOptionsOrDependency, ...rest] as string[];
+        methodOptions.deps = [targetOrOptionsOrDependency, ...rest] as (string | symbol)[];
       } else if (isFunction(targetOrOptionsOrDependency)) {
         methodOptions.deps = targetOrOptionsOrDependency as ComputedDependencyFn;
       } else if (targetOrOptionsOrDependency != null && typeof targetOrOptionsOrDependency === 'object') {

@@ -58,6 +58,11 @@ const args = yargs(process.argv.slice(2))
     describe: 'quiet time in milliseconds before running a rebuilt live benchmark',
     type: 'number',
   })
+  .option('bench-control', {
+    describe: 'watch benchmarks/live-results/control.json and switch live benchmark configs without restarting dev',
+    type: 'boolean',
+    default: false,
+  })
   .option('profile', {
     describe: 'capture a live Chrome CPU profile for a realistic benchmark phase',
     choices: ['startup', 'refresh'] as const,
@@ -204,6 +209,9 @@ const benchmarkEnvVars = hasLiveBenchmark || hasLiveProfile
     ...(args['bench-debounce'] === undefined
       ? {}
       : { AURELIA_LIVE_BENCH_DEBOUNCE: String(args['bench-debounce']) }),
+    ...(args['bench-control']
+      ? { AURELIA_LIVE_BENCH_CONTROL: path.resolve(process.cwd(), 'benchmarks/live-results/control.json') }
+      : {}),
     ...(args.profile === undefined
       ? {}
       : { AURELIA_LIVE_PROFILE: args.profile }),

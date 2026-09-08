@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { readdir } from 'node:fs/promises';
-import { hashFiles } from './variant-utils.mjs';
+import { hashFiles, isPathInside } from './variant-utils.mjs';
 
 export function fingerprintLiveBundle(contents) {
   return createHash('sha256').update(contents).digest('hex');
@@ -14,6 +14,17 @@ export function parseLiveDebounce(value) {
     throw new Error('AURELIA_LIVE_BENCH_DEBOUNCE must be an integer of at least 250 milliseconds.');
   }
   return parsed;
+}
+
+export function resolveLiveBenchmarkConfig(benchmarkRoot, value) {
+  if (value === undefined || value.trim() === '') {
+    throw new Error('AURELIA_LIVE_BENCH_CONFIG must identify a benchmark config.');
+  }
+  const resolved = path.resolve(benchmarkRoot, value);
+  if (!isPathInside(benchmarkRoot, resolved) || path.extname(resolved) !== '.json') {
+    throw new Error(`Live benchmark config must be a JSON file below ${benchmarkRoot}: ${value}`);
+  }
+  return resolved;
 }
 
 export function createLiveBenchmarkConfig(source, sourceConfigPath, liveConfigPath, sampleSize) {

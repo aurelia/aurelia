@@ -107,6 +107,19 @@ The result's `live` field records the session, bundle/profile hashes, fixture an
 The paired profile summary contains the same metadata. This identifies local experiments without treating a live
 workspace build as an exact-revision release comparison.
 
+To switch scenarios without restarting the package watchers, opt into the ignored control file:
+
+```sh
+npm run dev -- --bench app-repeat-realistic/startup.json --bench-samples 20 --bench-control
+```
+
+The command initializes `benchmarks/live-results/control.json` from `--bench`, so a stale file can never choose the
+initial baseline. Replace its `config` value with another path below `benchmarks/`, for example
+`app-repeat-realistic/refresh.json`. The supervisor cancels and cleans up the current browser run, starts the new
+fixture, and gives it a fresh session and baseline. `--bench-samples` and profiling options remain fixed until the dev
+command is restarted. Wait for `status.json` to report `complete` with the requested `metadata.config` before reading
+`latest.json`.
+
 Changing the fixture resets the session baseline automatically. Restart the command when an explicit new baseline is
 preferred. Live results are intended for optimization feedback; confirm promising changes with the exact-revision
 workflow below before treating them as benchmark evidence. Chrome and a compatible ChromeDriver must be locally

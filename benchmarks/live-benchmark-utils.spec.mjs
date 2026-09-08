@@ -9,6 +9,7 @@ import {
   fingerprintLiveFixture,
   makeLiveUrl,
   parseLiveDebounce,
+  resolveLiveBenchmarkConfig,
 } from './live-benchmark-utils.mjs';
 
 void describe('live benchmark utilities', () => {
@@ -22,6 +23,16 @@ void describe('live benchmark utilities', () => {
     assert.equal(parseLiveDebounce('7500'), 7500);
     assert.throws(() => parseLiveDebounce('249'), /at least 250 milliseconds/);
     assert.throws(() => parseLiveDebounce('1.5'), /at least 250 milliseconds/);
+  });
+
+  void it('resolves only JSON benchmark configs below the benchmark root', () => {
+    const root = path.resolve('benchmarks');
+    assert.equal(
+      resolveLiveBenchmarkConfig(root, 'app-example/startup.json'),
+      path.join(root, 'app-example', 'startup.json'),
+    );
+    assert.throws(() => resolveLiveBenchmarkConfig(root, '../outside.json'), /below/);
+    assert.throws(() => resolveLiveBenchmarkConfig(root, 'app-example/startup.js'), /JSON file/);
   });
 
   void it('relocates local benchmark pages and selects live bundles', () => {

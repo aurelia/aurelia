@@ -354,11 +354,17 @@ Relative URLs are resolved from the HTML template file, so same-directory paths,
 The supported elements and attributes match Vite's standard HTML asset sources.
 Final asset URLs follow Vite's configured base path, output directory, file naming, hashing, and plugin transformations.
 
+Stylesheet links, JSON manifests, and embedded HTML documents are imported as URLs. Percent-encoded filenames such as `./wide%20image.svg` resolve to the corresponding file on disk. SVG references such as `./icons.svg#check` keep their fragment and stay external by default so `<use>` can load the selected symbol.
+
 Use binding for dynamic URLs. Root-relative public paths, external URLs, data URLs, and hashes are left unchanged. Missing relative assets are left unchanged with a build warning by default.
 
 Add `au-vite-ignore` to an element to leave its asset URLs unchanged and bypass missing-asset warnings or errors. The marker attribute is removed from the compiled template.
 
 Only assets backed by files on disk are transformed for now. Virtual assets provided exclusively by Vite plugins are handled as unresolved relative assets.
+
+Use source-text imports such as `?raw` and Vite's `?inline` form for CSS in component code instead of static asset attributes. These references need a URL.
+
+Rename files whose names contain literal `#` or `?`. Vite cannot resolve those characters in imported filenames, even when they are percent-encoded. Fragments after a filename, such as `icons.svg#check`, are supported.
 
 Set `templateAssets: { onMissing: 'error' }` to stop the Vite transform when a relative asset cannot be resolved, or use `'ignore'` to preserve unresolved URLs without warnings. The default value, `true`, warns and preserves unresolved URLs; set `templateAssets: false` to opt out and leave all template asset URLs unchanged.
 

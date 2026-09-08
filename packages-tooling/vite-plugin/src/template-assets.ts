@@ -50,11 +50,11 @@ const htmlAssetAttributes: Record<string, HtmlAssetAttributes> = {
 interface Replacement {
   start: number;
   end: number;
+  // A JavaScript string expression, rather than already-serialized HTML.
   value: string;
 }
 
-interface AssetToken {
-  token: string;
+interface AssetImport {
   variable: string;
   specifier: string;
 }
@@ -66,7 +66,7 @@ export function transformTemplateAssetUrls(
   reportMissingAsset: (specifier: string) => void,
 ): IHtmlTransformResult | undefined {
   const replacements: Replacement[] = [];
-  const assets: AssetToken[] = [];
+  const assets: AssetImport[] = [];
   const fileExistsCache = new Map<string, boolean>();
   const tree = parseFragment(html, { sourceCodeLocationInfo: true });
 
@@ -75,7 +75,7 @@ export function transformTemplateAssetUrls(
     if (attrs.has(ignoreAttribute)) {
       const loc = node.sourceCodeLocation?.attrs?.[ignoreAttribute];
       if (loc != null) {
-        replacements.push({ start: loc.startOffset, end: loc.endOffset, value: '' });
+        replacements.push({ start: loc.startOffset, end: loc.endOffset, value: '""' });
       }
       return;
     }
@@ -89,11 +89,11 @@ export function transformTemplateAssetUrls(
       const loc = node.sourceCodeLocation?.attrs?.[name];
       if (value == null || loc == null) return;
 
-      const token = createAssetToken(value, unit, host, assets, fileExistsCache, reportMissingAsset);
-      if (token == null) return;
+      const expression = createAssetExpression(value, unit, host, assets, fileExistsCache, reportMissingAsset);
+      if (expression == null) return;
       const valueLocation = getAttributeValueLocation(html, loc);
       if (valueLocation == null) return;
-      replacements.push({ ...valueLocation, value: token.token });
+      replacements.push({ ...valueLocation, value: quoteAttribute(expression) });
     });
 
     assetAttrs.srcset?.forEach((name) => {
@@ -106,11 +106,10 @@ export function transformTemplateAssetUrls(
 
   if (replacements.length === 0) return void 0;
 
-  const transformedHtml = applyReplacements(html, replacements);
   const imports = assets.map(asset => `import ${asset.variable} from ${JSON.stringify(asset.specifier)};\n`);
   return {
     imports,
-    templateExpression: assets.length === 0 ? JSON.stringify(transformedHtml) : createTemplateExpression(transformedHtml, assets),
+    templateExpression: createStringExpression(html, replacements),
   };
 }
 
@@ -151,90 +150,103 @@ function replaceSrcset(
   unit: IFileUnit,
   host: IFileUnitHost,
   replacements: Replacement[],
-  assets: AssetToken[],
+  assets: AssetImport[],
   fileExistsCache: Map<string, boolean>,
   reportMissingAsset: (specifier: string) => void,
 ): void {
   const valueLocation = getAttributeValueLocation(html, attrLocation);
   if (valueLocation == null) return;
 
-  let changed = false;
-  const srcset = value.replace(/(^|,)(\s*)([^,\s]+)([^,]*)/g, (match, separator: string, whitespace: string, url: string, descriptor: string) => {
-    const token = createAssetToken(url, unit, host, assets, fileExistsCache, reportMissingAsset);
-    if (token == null) return match;
-    changed = true;
-    return `${separator}${whitespace}${token.token}${descriptor}`;
-  });
+  const urls: Replacement[] = [];
+  // HTML collects a URL up to ASCII whitespace, then strips trailing commas.
+  // Commas inside a data URL or filename belong to that URL, not a new candidate.
+  // Only find boundaries here; descriptor validity remains the browser's concern.
+  const candidates = /[^\t\n\f\r ,][^\t\n\f\r ]*/g;
+  let match: RegExpExecArray | null;
+  while ((match = candidates.exec(value)) !== null) {
+    const url = match[0].replace(/,+$/, '');
+    const expression = createAssetExpression(url, unit, host, assets, fileExistsCache, reportMissingAsset);
+    if (expression != null) {
+      urls.push({ start: match.index, end: match.index + url.length, value: expression });
+    }
+    if (url.length === match[0].length) {
+      // Parenthesized descriptors may contain commas. Skip the descriptor as a
+      // unit so its contents cannot be mistaken for another relative asset.
+      let inParens = false;
+      while (candidates.lastIndex < value.length) {
+        const char = value[candidates.lastIndex++];
+        if (char === '(') inParens = true;
+        else if (char === ')') inParens = false;
+        else if (char === ',' && !inParens) break;
+      }
+    }
+  }
 
-  if (changed) {
-    replacements.push({ ...valueLocation, value: srcset });
+  if (urls.length > 0) {
+    replacements.push({ ...valueLocation, value: quoteAttribute(createStringExpression(value, urls)) });
   }
 }
 
-function createAssetToken(
+function createAssetExpression(
   specifier: string,
   unit: IFileUnit,
   host: IFileUnitHost,
-  assets: AssetToken[],
+  assets: AssetImport[],
   fileExistsCache: Map<string, boolean>,
   reportMissingAsset: (specifier: string) => void,
-): AssetToken | undefined {
-  const importSpecifier = specifier.startsWith('.') ? specifier : `./${specifier}`;
-  const existingAsset = assets.find(asset => asset.specifier === importSpecifier);
-  if (existingAsset != null) return existingAsset;
-  if (!shouldBundleAsset(specifier, unit, host, fileExistsCache, reportMissingAsset)) return void 0;
-
-  const token = `__au_vite_asset_${assets.length}__`;
-  const asset = {
-    token,
-    variable: `__auViteAsset${assets.length}`,
-    specifier: importSpecifier,
-  };
-  assets.push(asset);
-  return asset;
-}
-
-function shouldBundleAsset(
-  specifier: string,
-  unit: IFileUnit,
-  host: IFileUnitHost,
-  fileExistsCache: Map<string, boolean>,
-  reportMissingAsset: (specifier: string) => void,
-): boolean {
+): string | undefined {
   if (
     specifier === ''
     || specifier.includes('${')
     || specifier.startsWith('/')
     || specifier.startsWith('#')
     || /^[a-z][a-z\d+.-]*:/i.test(specifier)
-    || specifier.startsWith('//')
   ) {
-    return false;
+    return void 0;
   }
 
-  const filePath = getFilePath(specifier);
-  if (filePath == null) return false;
-
-  const relativePath = filePath.startsWith('.') ? filePath : `./${filePath}`;
-  const cached = fileExistsCache.get(relativePath);
-  if (cached != null) return cached;
-
-  const exists = host.fileExists(unit, relativePath);
-  fileExistsCache.set(relativePath, exists);
-  if (!exists) {
-    reportMissingAsset(specifier);
-  }
-  return exists;
-}
-
-function getFilePath(specifier: string): string | undefined {
-  const [filePath] = specifier.split(/[?#]/, 1);
-  if (filePath === '') return void 0;
+  const [, encodedPath, query = '', hash = ''] = /^([^?#]*)(\?[^#]*)?(#.*)?$/s.exec(specifier)!;
+  let filePath: string;
   try {
-    return decodeURI(filePath);
+    filePath = decodeURIComponent(encodedPath);
   } catch {
     return void 0;
   }
+  if (filePath === '') return void 0;
+  const relativePath = filePath.startsWith('.') ? filePath : `./${filePath}`;
+  let exists = fileExistsCache.get(relativePath);
+  if (exists == null) {
+    exists = host.fileExists(unit, relativePath);
+    fileExistsCache.set(relativePath, exists);
+    if (!exists) reportMissingAsset(specifier);
+  }
+  if (!exists) {
+    return void 0;
+  }
+
+  // Vite module ids use these characters as delimiters even after URL decoding.
+  // This restriction can be removed when Vite supports them in filename imports.
+  if (/[?#]/.test(filePath)) {
+    throw new Error(`Template asset ${JSON.stringify(specifier)} in ${JSON.stringify(unit.path)} has a filename containing "?" or "#", which Vite cannot resolve. Rename the file to remove these characters.`);
+  }
+  if (/(?:^\?|&)raw(?:&|$)/.test(query)) {
+    throw new Error(`Template asset ${JSON.stringify(specifier)} in ${JSON.stringify(unit.path)} uses "?raw", which imports source text instead of a URL. Remove "raw" to load the file as an asset. For source text, import it explicitly in your component code.`);
+  }
+
+  // These are HTML URLs, including CSS/JSON/HTML files, not module values.
+  // A fragment selects part of the returned resource, not a different module.
+  // SVG fragments need an external file (e.g. <use href="icons.svg#check">).
+  let importQuery = /(?:^\?|&)url(?:&|$)/.test(query) ? query : `?url${query === '' ? '' : `&${query.slice(1)}`}`;
+  if (hash !== '' && /\.svg$/i.test(filePath) && !/(?:^\?|&)(?:inline|no-inline)(?:&|$)/.test(query)) {
+    importQuery += '&no-inline';
+  }
+  const importSpecifier = `${relativePath}${importQuery}`;
+  let asset = assets.find(asset => asset.specifier === importSpecifier);
+  if (asset == null) {
+    asset = { variable: `__auViteAsset${assets.length}`, specifier: importSpecifier };
+    assets.push(asset);
+  }
+  return hash === '' ? asset.variable : `${asset.variable} + ${JSON.stringify(hash)}`;
 }
 
 function getAttributeValueLocation(html: string, attrLocation: AttributeLocation): { start: number; end: number } | undefined {
@@ -247,40 +259,29 @@ function getAttributeValueLocation(html: string, attrLocation: AttributeLocation
     start++;
   }
 
-  const quote = html[start];
-  if (quote === '"' || quote === "'") {
-    return { start: start + 1, end: attrLocation.endOffset - 1 };
-  }
-
+  // Replace the quotes too, so bare and single-quoted attributes use the same
+  // escaping as double-quoted attributes after Vite supplies their final URL.
   return { start, end: attrLocation.endOffset };
 }
 
-function applyReplacements(html: string, replacements: Replacement[]): string {
-  return replacements
-    .sort((a, b) => b.start - a.start)
-    .reduce((output, replacement) => {
-      return `${output.slice(0, replacement.start)}${replacement.value}${output.slice(replacement.end)}`;
-    }, html);
+function quoteAttribute(expression: string): string {
+  // URLs can contain quotes or HTML entities (notably inlined SVG). Escape after
+  // resolving imports so parsing the template recovers the exact original URL.
+  return `'"' + (${expression}).replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"'`;
 }
 
-function createTemplateExpression(html: string, assets: AssetToken[]): string {
-  const tokenToVariable = new Map(assets.map(asset => [asset.token, asset.variable]));
-  const tokenPattern = new RegExp(assets.map(asset => asset.token).join('|'), 'g');
+function createStringExpression(value: string, replacements: Replacement[]): string {
   const parts: string[] = [];
   let offset = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = tokenPattern.exec(html)) !== null) {
-    if (match.index > offset) {
-      parts.push(JSON.stringify(html.slice(offset, match.index)));
+  for (const replacement of replacements.sort((a, b) => a.start - b.start)) {
+    if (replacement.start > offset) {
+      parts.push(JSON.stringify(value.slice(offset, replacement.start)));
     }
-    parts.push(tokenToVariable.get(match[0])!);
-    offset = match.index + match[0].length;
+    parts.push(replacement.value);
+    offset = replacement.end;
   }
-
-  if (offset < html.length) {
-    parts.push(JSON.stringify(html.slice(offset)));
+  if (offset < value.length) {
+    parts.push(JSON.stringify(value.slice(offset)));
   }
-
   return parts.join(' + ');
 }

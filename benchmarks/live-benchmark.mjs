@@ -19,16 +19,16 @@ import {
   fingerprintLiveFixture,
   isLiveFixtureInput,
   parseLiveDebounce,
+  resolveLiveBenchmarkConfig,
 } from './live-benchmark-utils.mjs';
 import { createLiveBenchmarkSession } from './live-benchmark-session.mjs';
 import { runTachometer } from './run-tachometer.mjs';
 import { parseProfileIterations, parseProfileMode } from './live-profile-utils.mjs';
-import { isPathInside } from './variant-utils.mjs';
 
 const benchmarkRoot = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(benchmarkRoot, '..');
 const liveRoot = path.join(benchmarkRoot, 'live-results');
-const sourceConfigPath = resolveSourceConfig(process.env.AURELIA_LIVE_BENCH_CONFIG);
+const sourceConfigPath = resolveLiveBenchmarkConfig(benchmarkRoot, process.env.AURELIA_LIVE_BENCH_CONFIG);
 const fixtureRoot = path.dirname(sourceConfigPath);
 const fixture = path.basename(fixtureRoot);
 const fixtureEntry = path.join(fixtureRoot, 'index.js');
@@ -161,6 +161,9 @@ bundleWatcher.on('event', event => {
 
 process.once('SIGINT', () => void stop());
 process.once('SIGTERM', () => void stop());
+process.on('message', message => {
+  if (message?.type === 'aurelia-live-benchmark-stop') void stop();
+});
 
 await new Promise(resolve => process.once('aurelia-live-benchmark-stopped', resolve));
 
@@ -277,18 +280,8 @@ async function stop() {
   fixtureWatchers.forEach(watcher => watcher.close());
   await Promise.all([session.stop(), bundleWatcher.close()]);
   await statusWrite;
+  if (process.connected) process.disconnect();
   process.emit('aurelia-live-benchmark-stopped');
-}
-
-function resolveSourceConfig(value) {
-  if (value === undefined || value.trim() === '') {
-    throw new Error('AURELIA_LIVE_BENCH_CONFIG must identify a benchmark config.');
-  }
-  const resolved = path.resolve(benchmarkRoot, value);
-  if (!isPathInside(benchmarkRoot, resolved) || path.extname(resolved) !== '.json') {
-    throw new Error(`Live benchmark config must be a JSON file below ${benchmarkRoot}: ${value}`);
-  }
-  return resolved;
 }
 
 function resolveOutputRoot(value) {

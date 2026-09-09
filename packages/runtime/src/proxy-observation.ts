@@ -3,14 +3,17 @@ import { Collection, IConnectable } from './interfaces';
 import { rtObjectFreeze, rtSafeString } from './utilities';
 import { connecting, currentConnectable, _currentConnectable } from './connectable-switcher';
 import { astTrackableMethodMarker } from './ast.eval';
-import { type ComputedMethodOptions } from './computed-decorators';
 
 const R$get = Reflect.get;
 const toStringTag = Object.prototype.toString;
 const proxyMap = new WeakMap<object, object>();
 
+type TrackableFunctionOptions = {
+  deps?: string[] | ((instance: unknown) => unknown);
+};
+
 type TrackableFunction = ((...args: unknown[]) => unknown) & {
-  [astTrackableMethodMarker]?: ComputedMethodOptions;
+  [astTrackableMethodMarker]?: TrackableFunctionOptions;
 };
 /** @internal */
 export const nowrapClassKey = '__au_nw__';
@@ -97,7 +100,7 @@ function createProxy<T extends object>(obj: T): T {
   return proxiedObj as T;
 }
 
-function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: ComputedMethodOptions): void {
+function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
   if (instance == null || typeof instance !== 'object') {
     return;
   }
@@ -109,8 +112,6 @@ function observeTrackableMethodDependencies(connectable: IConnectable, instance:
   for (const dependency of dependencies) {
     if (typeof dependency === 'string') {
       connectable.observeExpression(instance, dependency);
-    } else if (typeof dependency === 'symbol') {
-      connectable.observe(instance, dependency);
     } else {
       dependency(wrap(instance));
     }

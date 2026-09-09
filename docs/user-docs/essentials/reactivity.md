@@ -218,19 +218,17 @@ export class ProductList {
 Methods selected by name, such as `list[method](product)`, use the same tracking rules as `list.matches(product)`.
 
 Behavior:
-
 - `deps` omitted (or `undefined`) uses proxy-based tracking.
 - `deps: []` explicitly disables tracking for the decorated method/getter.
-- Strings in `deps` identify dependency paths; symbols identify properties on the method's receiver. Both can appear in the same declaration, such as `@computed({ deps: [statusKey, 'details.label'] })`.
+- `deps` with strings enables explicit string-based dependency tracking.
 - `deps` with a getter function enables function-based dependency tracking.
-- Use either an array of string/symbol dependencies or one dependency function.
+- Strings and functions cannot be mixed in the same `deps` declaration.
 - Stacking `@computed` on the same method overrides prior tracking metadata (last applied wins).
-
-The `deep` and `flush` options configure computed getters. Computed methods contribute dependencies to their caller's observation context and follow its scheduling.
 
 #### Flush timing with `flush`
 
-The `flush` option controls when a computed getter is reevaluated after a dependency changes. Use `flush: 'sync'` for immediate reevaluation:
+Like how you can specify flush mode of computed getter with `@computed({ flush: 'sync' })`, flush mode of `@computed` can also be done in a similar way,
+like the following example:
 
 ```ts
 import { computed } from 'aurelia';

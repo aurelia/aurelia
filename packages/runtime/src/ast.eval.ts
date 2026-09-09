@@ -13,7 +13,6 @@ import { ErrorNames, createMappedError } from './errors';
 import { rtSafeString as safeString } from './utilities';
 import { wrap } from './proxy-observation';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
-import { type ComputedMethodOptions } from './computed-decorators';
 
 // -----------------------------------
 // this interface causes issues to sourcemap mapping in devtool
@@ -108,11 +107,15 @@ export const {
     return current === null;
   }
 
-  type TrackableFunction = AnyFunction & {
-    [astTrackableMethodMarker]?: ComputedMethodOptions;
+  type TrackableFunctionOptions = {
+    deps?: string[] | ((instance: unknown) => unknown);
   };
 
-  function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: ComputedMethodOptions): void {
+  type TrackableFunction = AnyFunction & {
+    [astTrackableMethodMarker]?: TrackableFunctionOptions;
+  };
+
+  function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
     if (instance == null) {
       return;
     }
@@ -124,10 +127,6 @@ export const {
     for (const dependency of dependencies) {
       if (typeof dependency === 'string') {
         connectable.observeExpression(instance as object, dependency);
-        continue;
-      }
-      if (typeof dependency === 'symbol') {
-        connectable.observe(instance as object, dependency);
         continue;
       }
       try {

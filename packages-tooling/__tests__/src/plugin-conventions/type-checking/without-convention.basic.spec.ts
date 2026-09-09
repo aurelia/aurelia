@@ -2135,6 +2135,63 @@ export class Example { label = 'local'; }
       assertFailure(entry, result.code, [/Property 'missing' does not exist on type '.*Example.*'\./]);
     });
 
+    for (const expression of [
+      'record?.details.label',
+      '(record?.details).label',
+      '(record?.details)?.label',
+      '(record?.format()).label',
+      '(this.record?.details).label',
+      'format?.()',
+      'format((record?.details)?.label)',
+    ]) {
+      it(`interpolation - optional chain continuation - ${expression} - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const result = preprocessResource({
+          path: entry,
+          contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+@customElement({ name: 'example', template })
+export class Example {
+  ${isTs ? '' : '/** @type {{ details: { label: string }, format(): { label: string } }} */'}
+  record = { details: { label: 'loaded' }, format() { return this.details; } };
+  format(value = '') { return value; }
+}
+`,
+          readFile: createMarkupReader(markupFile, `\${${expression}}`),
+        }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+        // The generated type-checking expression must retain optional-call and grouping
+        // syntax even when the example's current field initializer happens to be present.
+        if (expression === 'format?.()') {
+          assert.includes(result.code, 'o => o.format?.()');
+        } else if (expression === '(record?.details)?.label') {
+          assert.includes(result.code, 'o => (o.record?.details)?.label');
+        }
+      });
+    }
+
+    it(`interpolation - grouped optional chain still checks its tail - language: ${lang}`, function () {
+      const entry = `entry.${extn}`;
+      const markupFile = 'entry.html';
+      const result = preprocessResource({
+        path: entry,
+        contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+@customElement({ name: 'example', template })
+export class Example {
+${prop('record', '{ details: { label: string } }', isTs)}
+}
+`,
+        readFile: createMarkupReader(markupFile, '${(record?.details).missing}'),
+      }, nonConventionalOptions);
+
+      assertFailure(entry, result.code, [/Property 'missing' does not exist on type/]);
+    });
+
     it(`interpolation - with pre-/postfix - pass - language: ${lang}`, function () {
       const entry = `entry.${extn}`;
       const markupFile = 'entry.html';

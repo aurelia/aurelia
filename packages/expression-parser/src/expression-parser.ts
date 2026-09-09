@@ -771,7 +771,7 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             // Parentheses end the receiver's optional chain: `(scope?.method)()` still attempts the call.
             const callOptionalAncestor = $optional ? result.optionalAncestor : void 0;
             result = createCallScopeExpression(result.name, parseArguments(), result.ancestor, false, callOptionalAncestor);
-          } else if (result.$kind === ekAccessMember) {
+          } else if (result.$kind === ekAccessMember && !result.parenthesized) {
             result = createCallMemberExpression(result.object, result.name, parseArguments(), result.optional, false);
           } else if (result.$kind === ekAccessGlobal) {
             result = createCallGlobalExpression(result.name, parseArguments());
@@ -1060,7 +1060,7 @@ function parseOptionalChainLHS(lhs: IsLeftHandSide) {
   if (($currentToken as Token) === Token.OpenParen) {
     if (lhs.$kind === ekAccessScope) {
       return createCallScopeExpression(lhs.name, parseArguments(), lhs.ancestor, true, lhs.optionalAncestor);
-    } else if (lhs.$kind === ekAccessMember) {
+    } else if (lhs.$kind === ekAccessMember && !lhs.parenthesized) {
       return createCallMemberExpression(lhs.object, lhs.name, parseArguments(), lhs.optional, true);
     } else {
       return createCallFunctionExpression(lhs, parseArguments(), true);
@@ -1297,6 +1297,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
 
   const _optional = $optional;
   const expr = parse(Precedence.Assign, expressionType) as IsAssign;
+  const optional = $optional;
   $optional = _optional;
   consume(Token.CloseParen);
 
@@ -1312,6 +1313,23 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
     }
   }
 
+  // Ordinary parentheses are redundant in the AST. Optional chains need their boundary retained:
+  // `value?.child.name` can skip the tail, but `(value?.child).name` must access the grouped result.
+  if (optional) {
+    switch (expr.$kind) {
+      case ekAccessScope:
+        if (expr.optionalAncestor === void 0) break;
+        return { ...expr, parenthesized: true };
+      case 'CallScope':
+        if (!expr.optional && expr.optionalAncestor === void 0) break;
+        return { ...expr, parenthesized: true };
+      case ekAccessMember:
+      case 'AccessKeyed':
+      case 'CallMember':
+      case 'CallFunction':
+        return { ...expr, parenthesized: true };
+    }
+  }
   return expr;
 }
 

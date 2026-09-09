@@ -90,6 +90,13 @@ export const {
   const ekCustom = 'Custom';
   const getContext = Scope.getContext;
 
+  // Only receiver/callee recursion may carry this value. Arguments and other expressions evaluate
+  // independently; a grouped or public result converts it back to undefined, including on reentry.
+  const shortCircuit = {};
+  function skipChain(ast: { parenthesized?: true }, chain: boolean | undefined): unknown {
+    return chain && !ast.parenthesized ? shortCircuit : void 0;
+  }
+
   // A failed strict lookup can return undefined when `?.` guards the missing scope.
   // `$parent?.$parent.name` still requires the second parent when the first exists.
   function isMissingScopeGuarded(scope: Scope, ancestor: number, optionalAncestor: number | undefined): boolean {
@@ -139,7 +146,7 @@ export const {
   }
 
   // eslint-disable-next-line max-lines-per-function
-  function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
+  function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null, chain?: boolean): unknown {
     switch (ast.$kind) {
       case ekAccessThis: {
         let oc: IOverrideContext | null = s.overrideContext;
@@ -165,7 +172,10 @@ export const {
       case ekAccessScope: {
         const obj = getContext(s, ast.name, ast.ancestor);
         if (obj == null) {
-          if (e?.strict && !isMissingScopeGuarded(s, ast.ancestor, ast.optionalAncestor)) {
+          if (isMissingScopeGuarded(s, ast.ancestor, ast.optionalAncestor)) {
+            return skipChain(ast, chain);
+          }
+          if (e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, obj);
           }
           return void 0;
@@ -249,7 +259,10 @@ export const {
       case ekCallScope: {
         const context = getContext(s, ast.name, ast.ancestor)!;
         if (context == null) {
-          if (e?.strict && !isMissingScopeGuarded(s, ast.ancestor, ast.optionalAncestor)) {
+          if (isMissingScopeGuarded(s, ast.ancestor, ast.optionalAncestor)) {
+            return skipChain(ast, chain);
+          }
+          if (e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, context);
           }
           return void 0;
@@ -271,7 +284,10 @@ export const {
           }
         }
         if (fn == null) {
-          if (e?.strict && !ast.optional) {
+          if (ast.optional) {
+            return skipChain(ast, chain);
+          }
+          if (e?.strict) {
             throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
           }
           return void 0;
@@ -283,44 +299,66 @@ export const {
         // Resolve receivers in one call-kind branch; ordinary function calls return early.
         // Only the optional-call flag and error code differ after resolution.
         // Sharing invocation inline avoids duplicate observation logic and helper-call overhead.
-        let instance: IIndexable;
-        let name: string;
+        let instance: IIndexable | undefined;
+        let name!: string;
         if (ast.$kind === ekCallMember) {
-          instance = astEvaluate(ast.object, s, e, c) as IIndexable;
+          instance = astEvaluate(ast.object, s, e, c, true) as IIndexable;
           name = ast.name;
-          if (instance == null && e?.strict && !ast.optionalMember) {
+          if (instance === shortCircuit || instance == null && ast.optionalMember) {
+            return skipChain(ast, chain);
+          }
+          if (instance == null && e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, name, instance);
           }
         } else {
           const access = ast.func;
-          if (access.$kind !== ekAccessKeyed) {
+          if (access.$kind !== ekAccessKeyed && access.$kind !== ekAccessMember) {
             // Method dependency tracking requires a receiver; free functions retain their own invocation path.
-            const func = astEvaluate(access, s, e, c);
+            const func = astEvaluate(access, s, e, c, true);
+            if (func === shortCircuit) {
+              return skipChain(ast, chain);
+            }
             if (isFunction(func)) {
               return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
             }
             if (func == null) {
-              if (!ast.optional && e?.strict) {
+              if (ast.optional) {
+                return skipChain(ast, chain);
+              }
+              if (e?.strict) {
                 throw createMappedError(ErrorNames.ast_not_a_function);
               }
               return void 0;
             }
             throw createMappedError(ErrorNames.ast_not_a_function);
           }
-          // A keyed callee is a reference too. Resolve it once without binding away its tracking metadata.
-          instance = astEvaluate(access.object, s, e, c) as IIndexable;
-          name = astEvaluate(access.key, s, e, c) as string;
-          if (instance == null) {
-            if (!access.optional && e?.strict) {
-              throw createMappedError(ErrorNames.ast_nullish_keyed_access, name, instance);
+          // Keyed and grouped named callees retain their reference. A grouped short circuit skips
+          // the property/key read but still reaches the outer call's own null/function check.
+          instance = astEvaluate(access.object, s, e, c, true) as IIndexable;
+          if (instance === shortCircuit || instance == null && access.optional) {
+            if (!access.parenthesized) {
+              return skipChain(ast, chain);
             }
-          } else if (c !== null && !access.accessGlobal) {
-            c.observe(instance, name);
+            instance = void 0;
+          } else {
+            name = access.$kind === ekAccessKeyed ? astEvaluate(access.key, s, e, c) as string : access.name;
+            if (instance == null) {
+              if (e?.strict) {
+                throw access.$kind === ekAccessKeyed
+                  ? createMappedError(ErrorNames.ast_nullish_keyed_access, name, instance)
+                  : createMappedError(ErrorNames.ast_nullish_member_access, name, instance);
+              }
+            } else if (access.$kind === ekAccessKeyed && c !== null && !access.accessGlobal) {
+              c.observe(instance, name);
+            }
           }
         }
         const fn = instance?.[name];
-        if (fn == null && (!e?.strict || (ast.$kind === ekCallMember ? ast.optionalCall : ast.optional))) {
-          return void 0;
+        if (fn == null) {
+          if (ast.$kind === ekCallMember ? ast.optionalCall : ast.optional) {
+            return skipChain(ast, chain);
+          }
+          if (!e?.strict) return void 0;
         }
         if (!isFunction<AnyFunction>(fn)) {
           throw ast.$kind === ekCallMember
@@ -363,9 +401,12 @@ export const {
         return func;
       }
       case ekAccessMember: {
-        const instance = astEvaluate(ast.object, s, e, c) as IIndexable | null;
+        const instance = astEvaluate(ast.object, s, e, c, true) as IIndexable | null;
+        if (instance === shortCircuit || instance == null && ast.optional) {
+          return skipChain(ast, chain);
+        }
         if (instance == null) {
-          if (!ast.optional && e?.strict) {
+          if (e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
           return void 0;
@@ -381,11 +422,14 @@ export const {
           : ret;
       }
       case ekAccessKeyed: {
-        const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
+        const instance = astEvaluate(ast.object, s, e, c, true) as IIndexable;
+        if (instance === shortCircuit || instance == null && ast.optional) {
+          return skipChain(ast, chain);
+        }
         const key = astEvaluate(ast.key, s, e, c) as string;
 
         if (instance == null) {
-          if (!ast.optional && e?.strict) {
+          if (e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_keyed_access, key, instance);
           }
           return void 0;
@@ -752,7 +796,8 @@ export const {
   // entries, // not meaningful in template
 
   return {
-    astEvaluate,
+    // The continuation flag is private; public evaluation always returns a normal expression value.
+    astEvaluate: astEvaluate as (ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null) => unknown,
     astAssign,
     astBind,
     astUnbind,

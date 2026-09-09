@@ -172,7 +172,12 @@ export function createAccessBoundaryExpression(): AccessBoundaryExpression {
   return AccessBoundary;
 }
 
-export interface AccessScopeExpression {
+interface OptionalChainBoundary {
+  /** Parentheses end optional short-circuiting while retaining a method's receiver. */
+  readonly parenthesized?: true;
+}
+
+export interface AccessScopeExpression extends OptionalChainBoundary {
   readonly $kind: 'AccessScope';
   readonly name: string;
   readonly ancestor: number;
@@ -186,7 +191,7 @@ export function createAccessScopeExpression(name: string, ancestor: number = 0, 
     : { $kind: ekAccessScope, name, ancestor, optionalAncestor };
 }
 
-export interface AccessMemberExpression {
+export interface AccessMemberExpression extends OptionalChainBoundary {
   readonly $kind: 'AccessMember';
   readonly accessGlobal: boolean;
   readonly object: IsLeftHandSide;
@@ -202,7 +207,7 @@ export function createAccessMemberExpression(object: IsLeftHandSide, name: strin
   return { $kind: ekAccessMember, accessGlobal: isAccessGlobal(object), object, name, optional };
 }
 
-export interface AccessKeyedExpression {
+export interface AccessKeyedExpression extends OptionalChainBoundary {
   readonly $kind: 'AccessKeyed';
   readonly accessGlobal: boolean;
   readonly object: IsLeftHandSide;
@@ -224,7 +229,7 @@ export function createNewExpression(func: IsLeftHandSide, args: readonly IsAssig
   return { $kind: ekNew, func, args };
 }
 
-export interface CallScopeExpression {
+export interface CallScopeExpression extends OptionalChainBoundary {
   readonly $kind: 'CallScope';
   readonly name: string;
   readonly args: readonly IsAssign[];
@@ -240,7 +245,7 @@ export function createCallScopeExpression(name: string, args: readonly IsAssign[
     : { $kind: ekCallScope, name, args, ancestor, optional, optionalAncestor };
 }
 
-export interface CallMemberExpression {
+export interface CallMemberExpression extends OptionalChainBoundary {
   readonly $kind: 'CallMember';
   readonly object: IsLeftHandSide;
   readonly name: string;
@@ -253,7 +258,7 @@ export function createCallMemberExpression(object: IsLeftHandSide, name: string,
   return { $kind: ekCallMember, object, name, args, optionalMember, optionalCall };
 }
 
-export interface CallFunctionExpression {
+export interface CallFunctionExpression extends OptionalChainBoundary {
   readonly $kind: 'CallFunction';
   readonly func: IsLeftHandSide;
   readonly args: readonly IsAssign[];

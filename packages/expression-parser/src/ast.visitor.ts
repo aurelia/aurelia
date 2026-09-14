@@ -148,15 +148,19 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitAccessMember(expr: AccessMemberExpression): void {
+    if (expr.parenthesized) this.text += '(';
     astVisit(expr.object, this);
     this.text += `${expr.optional ? '?' : ''}.${expr.name}`;
+    if (expr.parenthesized) this.text += ')';
   }
 
   public visitAccessKeyed(expr: AccessKeyedExpression): void {
+    if (expr.parenthesized) this.text += '(';
     astVisit(expr.object, this);
     this.text += `${expr.optional ? '?.' : ''}[`;
     astVisit(expr.key, this);
     this.text += ']';
+    if (expr.parenthesized) this.text += ')';
   }
 
   public visitAccessThis(expr: AccessThisExpression): void {
@@ -176,7 +180,9 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitAccessScope(expr: AccessScopeExpression): void {
+    if (expr.parenthesized) this.text += '(';
     this.writeScope(expr);
+    if (expr.parenthesized) this.text += ')';
   }
 
   public visitArrayLiteral(expr: ArrayLiteralExpression): void {
@@ -238,23 +244,30 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitCallFunction(expr: CallFunctionExpression): void {
-    this.text += '(';
+    if (expr.parenthesized) this.text += '(';
+    const arrow = (expr.func as IsExpressionOrStatement).$kind === 'ArrowFunction';
+    if (arrow) this.text += '(';
     astVisit(expr.func, this);
+    if (arrow) this.text += ')';
     this.text += expr.optional ? '?.' : '';
     this.writeArgs(expr.args);
-    this.text += ')';
+    if (expr.parenthesized) this.text += ')';
   }
 
   public visitCallMember(expr: CallMemberExpression): void {
+    if (expr.parenthesized) this.text += '(';
     astVisit(expr.object, this);
-    this.text += `${expr.optionalMember ? '?.' : ''}.${expr.name}${expr.optionalCall ? '?.' : ''}`;
+    this.text += `${expr.optionalMember ? '?.' : '.'}${expr.name}${expr.optionalCall ? '?.' : ''}`;
     this.writeArgs(expr.args);
+    if (expr.parenthesized) this.text += ')';
   }
 
   public visitCallScope(expr: CallScopeExpression): void {
+    if (expr.parenthesized) this.text += '(';
     this.writeScope(expr);
     this.text += expr.optional ? '?.' : '';
     this.writeArgs(expr.args);
+    if (expr.parenthesized) this.text += ')';
   }
 
   private writeScope(expr: AccessScopeExpression | CallScopeExpression): void {

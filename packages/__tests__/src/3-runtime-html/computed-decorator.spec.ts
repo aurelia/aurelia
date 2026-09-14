@@ -1024,6 +1024,144 @@ describe('3-runtime-html/computed-decorator.spec.ts', function () {
     });
   });
 
+  describe('nullable deep dependencies', function () {
+    type Model = { details: { status: string } };
+    const modelKey = Symbol('model');
+
+    for (const flush of ['async', 'sync'] as const) {
+      for (const dependency of ['string', 'symbol', 'function'] as const) {
+        for (const empty of [null, undefined]) {
+          it(`observes ${dependency} dependencies through ${empty} model transitions (${flush})`, function () {
+            const key = dependency === 'symbol' ? modelKey : 'model';
+            let evaluations = 0;
+            const { component, assertText, observerLocator, stop } = createFixture(
+              '${summary}',
+              class App {
+                public model: Model | null | undefined = empty;
+                public [modelKey]: Model | null | undefined = empty;
+
+                @computed({
+                  deps: dependency === 'function' ? (vm: App) => vm.model : [key],
+                  deep: true,
+                  flush,
+                })
+                public get summary(): string {
+                  evaluations++;
+                  return this[key]?.details.status ?? 'empty';
+                }
+              },
+            );
+            const rootObserver = observerLocator.getObserver(component, key) as unknown as ISubscriberCollection;
+            assertText('empty');
+            assert.strictEqual(rootObserver.subs.count, 1, 'the absent model must still be watched for replacement');
+
+            const first = { details: { status: 'loading' } };
+            component[key] = first;
+            assert.strictEqual(evaluations, flush === 'sync' ? 2 : 1, 'preserve configured scheduling');
+            runTasks();
+            assertText('loading');
+            const firstLeaf = observerLocator.getObserver(first.details, 'status') as unknown as ISubscriberCollection;
+            assert.strictEqual(firstLeaf.subs.count, 1, 'the arriving graph is observed');
+
+            first.details.status = 'ready';
+            runTasks();
+            assertText('ready');
+
+            // Clearing loaded data is ordinary application state, not an observation failure.
+            component[key] = empty;
+            runTasks();
+            assertText('empty');
+            assert.strictEqual(firstLeaf.subs.count, 0, 'clearing releases the previous graph');
+            assert.strictEqual(rootObserver.subs.count, 1, 'clearing retains the replacement subscription');
+            const afterClear = evaluations;
+            first.details.status = 'obsolete';
+            runTasks();
+            assert.strictEqual(evaluations, afterClear, 'the discarded graph no longer invalidates the getter');
+
+            const second = { details: { status: 'replacement' } };
+            component[key] = second;
+            runTasks();
+            assertText('replacement');
+            second.details.status = 'updated';
+            runTasks();
+            assertText('updated');
+
+            const secondLeaf = observerLocator.getObserver(second.details, 'status') as unknown as ISubscriberCollection;
+            void stop();
+            assert.strictEqual(rootObserver.subs.count, 0, 'unbind releases the root');
+            assert.strictEqual(secondLeaf.subs.count, 0, 'unbind releases the active graph');
+          });
+        }
+      }
+
+      it(`keeps other dependencies active when a deep model is absent (${flush})`, function () {
+        const { component, assertText } = createFixture(
+          '${summary}',
+          class App {
+            public model: Model | null = null;
+            public suffix = 'loading';
+
+            @computed({ deps: ['model', 'suffix'], deep: true, flush })
+            public get summary(): string {
+              return `${this.model?.details.status ?? 'empty'}: ${this.suffix}`;
+            }
+          },
+        );
+        assertText('empty: loading');
+        component.suffix = 'ready';
+        runTasks();
+        assertText('empty: ready');
+        component.model = { details: { status: 'loaded' } };
+        runTasks();
+        assertText('loaded: ready');
+      });
+
+      it(`rebinds a nullable model without reviving queued work from a retired graph (${flush})`, function () {
+        let evaluations = 0;
+        const oldModel = { details: { status: 'initial' } };
+        const { component, assertText, observerLocator, stop } = createFixture(
+          '<span if.bind="show">${summary}</span>',
+          class App {
+            public show = true;
+            public model: Model | null = oldModel;
+
+            @computed({ deps: ['model'], deep: true, flush })
+            public get summary(): string {
+              evaluations++;
+              return this.model?.details.status ?? 'empty';
+            }
+          },
+        );
+        const oldLeaf = observerLocator.getObserver(oldModel.details, 'status') as unknown as ISubscriberCollection;
+        assertText('initial');
+
+        // Queue a nested update, then replace its root before that work settles.
+        oldModel.details.status = 'pending';
+        component.model = null;
+        runTasks();
+        assertText('empty');
+        assert.strictEqual(oldLeaf.subs.count, 0);
+
+        component.show = false;
+        runTasks();
+        assertText('');
+        component.model = { details: { status: 'rebound' } };
+        component.show = true;
+        runTasks();
+        assertText('rebound');
+
+        const currentLeaf = observerLocator.getObserver(component.model.details, 'status') as unknown as ISubscriberCollection;
+        component.model.details.status = 'pending teardown';
+        const beforeStop = evaluations;
+        void stop();
+        runTasks();
+        assert.strictEqual(evaluations, beforeStop, 'queued work does not evaluate the unbound getter');
+        assert.strictEqual(oldLeaf.subs.count, 0, 'queued work leaves the retired graph detached');
+        assert.strictEqual(currentLeaf.subs.count, 0, 'queued work leaves the active graph detached');
+      });
+    }
+  });
+
   describe('deep cyclic dependencies', function () {
     type Leaf = { value: number };
     type CyclicGraph = { root: object; leaf: Leaf };

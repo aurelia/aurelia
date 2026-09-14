@@ -294,6 +294,8 @@ or `_cart.gst` changes, the `total` is considered dirty.
 > [!WARNING]
 > `deep` observation doesn't observe non-existent properties, which means newly added properties won't trigger any changes notification. Replace the entire object instead.
 
+A declared dependency may hold `null` or `undefined` while data is loading or after it is cleared. Aurelia keeps watching that dependency and observes the nested properties when an object is assigned. The computed getter should handle the empty value itself, for example with `this.model?.total ?? 0`.
+
 ## Deep Observation
 
 Aurelia can observe nested object changes:

@@ -136,10 +136,15 @@ export class ControlledComputedObserver implements IObserver, ISubscriberCollect
       obs.useFlush?.(this.flush);
 
       if (this.deep) {
-        obs = observeDeep(obs.getValue(), this.oL);
-        observers.push(obs);
-        obs.subscribe(this);
-        obs.useFlush?.(this.flush);
+        const value = obs.getValue();
+        // An absent graph has no descendants. Keep the dependency above subscribed so a later
+        // replacement can attach deep observation when application data becomes available.
+        if (value != null) {
+          obs = observeDeep(value, this.oL);
+          observers.push(obs);
+          obs.subscribe(this);
+          obs.useFlush?.(this.flush);
+        }
       }
     });
   }

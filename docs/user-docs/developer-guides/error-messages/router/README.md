@@ -19,12 +19,15 @@ This section documents error codes emitted by [@aurelia/router](https://github.c
 * [AUR3173](aur3173.md) - Lazy import requires path
 * [AUR3174](aur3174.md) - No available ViewportAgent
 * [AUR3175](aur3175.md) - Invalid lazy import component
+* [AUR3179](aur3179.md) - Route ID shadows another route's public path (warning)
 
 ## Router transitions
 
 * [AUR3270](aur3270.md) - Scheduling next transition (trace)
 * [AUR3271](aur3271.md) - Transition failed (error)
 * [AUR3272](aur3272.md) - Root RouteContext not set
+* [AUR3273](aur3273.md) - Invalid application URL reference
+* [AUR3274](aur3274.md) - Conflicting navigation attributes
 
 ## Viewport agent
 
@@ -59,4 +62,3 @@ This section documents error codes emitted by [@aurelia/router](https://github.c
 * [AUR3556](aur3556.md) - Unknown route config property
 * [AUR3557](aur3557.md) - Unknown redirect config property
 * [AUR3558](aur3558.md) - Navigation strategy component not resolved
-

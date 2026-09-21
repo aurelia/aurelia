@@ -35,6 +35,12 @@ interface IRouter {
     options?: INavigationOptions
   ): boolean | Promise<boolean>;
 
+  /** Navigate relative to the last successful application URL. */
+  navigate(reference: string, options?: INavigationBehaviorOptions): Promise<boolean>;
+
+  /** Resolve an application URL reference to a browser-ready href. */
+  resolveUrl(reference: string): string;
+
   /**
    * Check if a given instruction is currently active.
    */
@@ -277,6 +283,21 @@ interface INavigationOptions {
   isBack?: boolean;
 }
 ```
+
+---
+
+### INavigationBehaviorOptions
+
+Options accepted by `router.navigate()`. The application URL reference supplies the destination; these options control the transition and its browser-history entry.
+
+```typescript
+interface INavigationBehaviorOptions extends Pick<
+  INavigationOptions,
+  'historyStrategy' | 'title' | 'titleSeparator' | 'state' | 'transitionPlan'
+> {}
+```
+
+See [application URL navigation](./application-url-navigation.md) for reference-resolution rules and examples.
 
 ---
 
@@ -1011,6 +1032,26 @@ class HrefCustomAttribute {
 <a href="products">Products</a>
 <a href="mailto:test@example.com" external>Email</a>
 ```
+
+---
+
+### UrlCustomAttribute
+
+An opt-in `url` attribute for [application URL links](./application-url-navigation.md#declarative-links). Register `UrlCustomAttribute` explicitly; it is not included in `RouterConfiguration` or `DefaultResources`.
+
+```typescript
+class UrlCustomAttribute {
+  /** Application URL reference; null or undefined removes the href. */
+  value: string | null | undefined;
+}
+```
+
+```html
+<a url="../reports">Reports</a>
+<a url.bind="destination">Open</a>
+```
+
+The attribute updates its `href` after successful navigation and uses that destination for ordinary clicks. Use it without `load` or an authored `href` on the same element.
 
 ---
 

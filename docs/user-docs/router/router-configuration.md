@@ -366,23 +366,19 @@ The following example demonstrate the title translation.
 
 ## Enable or disable the usage of the `href` custom attribute using `useHref`
 
-By default, the router will allow you to use both `href` as well as `load` for specifying routes.
-Where this can get you into trouble is external links, `mailto:` links and other types of links that do not route.
-A simple example looks like this:
+By default, the router handles ordinary clicks on route links written with `href` or `load`. Absolute URLs and protocol links such as `mailto:` already keep native browser behavior:
 
 ```html
-<a href="mailto:myemail@gmail.com">Email Me</a>
+<a href="mailto:support@example.com">Email support</a>
 ```
 
-This seemingly innocent and common scenario by default will trigger the router and will cause an error.
-
-You have two options when it comes to working with external links. You can specify the link as external using the [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute).
+For a document-relative link that should bypass routing, use the [`external` attribute](./navigating.md#bypassing-the-href-custom-attribute):
 
 ```html
-<a href="mailto:myemail@gmail.com" external>Email Me</a>
+<a href="/downloads/guide.pdf" external>Download the guide</a>
 ```
 
-Or, you can set `useHref` to `false` (default is `true`) and only ever use the `load` attribute for routes.
+Set `useHref` to `false` to disable click interception by the router's `href` attribute. The attribute still resolves routing instructions and writes the resulting URL; use `external` when the authored value should be handled entirely by the browser. The `load` attribute and explicitly registered [`url` attribute](./application-url-navigation.md#declarative-links) continue to handle their own links.
 
 ```typescript
 import Aurelia from 'aurelia';

@@ -8,8 +8,7 @@ Aurelia's router provides multiple ways to navigate between routes in your appli
 
 ## Path syntax
 
-Before diving into the navigation methods, here is a overview of the path syntax supported by the router.
-The syntax is consistent similar to file-system navigation.
+The `href` and `load` attributes and `router.load()` use the following routing-instruction syntax. Relative instructions refer to a routing context. For navigation relative to URL path segments instead, use [application URL navigation](./application-url-navigation.md).
 
 - `/path`: This represents an absolute path from the root of the application.
 - `path`, `./path`: These represent a relative paths from the current routing context.
@@ -43,6 +42,7 @@ Choose the method that best fits your use case:
 | Conditional navigation | `IRouter.load()` | `if (canAccess) router.load('admin')` |
 | Navigation with query params | `IRouter.load()` with options | `router.load('search', { queryParams: { q: 'term' }})` |
 | Context-aware navigation | `IContextRouter.load()` | `contextRouter.load('details/42')` |
+| Navigation relative to the current application URL | [`router.navigate()` or `url`](./application-url-navigation.md) | `router.navigate('?page=2')` |
 | Dynamic link generation | `router.generatePath()` | `const url = await router.generatePath({ component: 'user', params: { id: userId } })` |
 
 ## Using the `href` custom attribute
@@ -432,6 +432,7 @@ To disable/bypass the default handling of router for any particular `href` attri
 - Point the `href` to an absolute or protocol URL such as `https://`, `mailto:`, `tel:`, `ftp:`, or a protocol-relative value like `//cdn.example.com`. The router automatically treats any value that the [`URL`](https://developer.mozilla.org/docs/Web/API/URL/URL) constructor can parse without a base as external, including custom schemes such as `myapp:deep-link`.
 - Using `external` or `data-external` attribute on the `a` tag for any other cases that should bypass the router.
 - Using a non-null value for the `target`, other than the current window name, or `_self`.
+- Adding a `download` attribute, or canceling the click with `event.preventDefault()`.
 
 Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router ignores the routing instruction and the default handling of clicking a link takes place.
 

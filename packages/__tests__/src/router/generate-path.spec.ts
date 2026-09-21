@@ -1,7 +1,7 @@
-import { resolve } from '@aurelia/kernel';
-import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, NavigationStrategy, Params, route, RouteContext, RouteNode } from '@aurelia/router';
-import { CustomElement, customElement } from '@aurelia/runtime-html';
-import { assert } from '@aurelia/testing';
+import { Registration, resolve } from '@aurelia/kernel';
+import { IContextRouter, IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, NavigationStrategy, Params, route, RouteContext, RouteNode } from '@aurelia/router';
+import { CustomElement, customElement, ILocation, IWindow } from '@aurelia/runtime-html';
+import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
 describe('router/generate-path.spec.ts', function () {
@@ -1031,6 +1031,65 @@ describe('router/generate-path.spec.ts', function () {
         // #endregion
 
         await au.stop(true);
+      });
+
+      it('preserves selected-context paths and replays rooted paths through the root router', async function () {
+        @customElement({ name: 'c-1', template: 'c1' })
+        class C1 {
+          public readonly routeContext = resolve(IRouteContext);
+          public readonly contextRouter = resolve(IContextRouter);
+        }
+
+        @customElement({ name: 'c-2', template: 'c2 ${params.id}' })
+        class C2 extends AbstractVm { }
+
+        @route({ routes: [
+          { path: 'c1', component: C1 },
+          { id: 'c2', path: 'child/:id', component: C2 },
+        ] })
+        @customElement({ name: 'pa-rent', template: 'parent <au-viewport></au-viewport>' })
+        class Parent { }
+
+        @route({ routes: [{ path: 'parent', component: Parent }] })
+        @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+        class Root { }
+
+        const { host, au, container } = await start({
+          appRoot: Root, useHash,
+          registrations: [Registration.instance(IWindow, {
+            document: { baseURI: 'https://example.test/' },
+            addEventListener() { /* This test navigates through the router. */ },
+            removeEventListener() { /* No window listeners are installed. */ },
+          })],
+        });
+        const router = container.get(IRouter);
+        const location = container.get<MockBrowserHistoryLocation>(ILocation);
+        const target = { component: '../c2', params: { id: 42 } };
+        const expectedUrl = `https://example.test/${useHash ? '#/' : ''}parent/child/42`;
+
+        try {
+          await router.load('parent/c1');
+          let c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
+
+          // Leading ../ selects the parent; the generated string does not retain that prefix.
+          const relative = await c1.contextRouter.generatePath(target);
+          assert.strictEqual(relative, 'child/42');
+          assert.strictEqual(await router.generatePath(target, c1), relative);
+          assert.strictEqual(await c1.routeContext.generateRelativePath(target), relative);
+          assert.strictEqual(await c1.contextRouter.load(relative, { context: c1.routeContext.parent }), true);
+          assert.html.textContent(host, 'parent c2 42', 'selected-context replay');
+          assert.strictEqual(location.path, expectedUrl, 'selected-context URL');
+
+          await router.load('parent/c1');
+          c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
+          const rooted = await c1.routeContext.generateRootedPath(target);
+          assert.strictEqual(rooted, useHash ? '/#/parent/child/42' : 'parent/child/42');
+          assert.strictEqual(await router.load(rooted), true);
+          assert.html.textContent(host, 'parent c2 42', 'root-context replay');
+          assert.strictEqual(location.path, expectedUrl, 'root-context URL');
+        } finally {
+          await au.stop(true);
+        }
       });
 
       it('rooted path generation with multi-level hierarchy', async function () {

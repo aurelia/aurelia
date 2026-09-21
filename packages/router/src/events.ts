@@ -78,6 +78,8 @@ export const enum Events {
   rcUnexpectedEmptyPathForEagerLoading = 3176,
   rcParamterizedPathHasChildren = 3177,
   rcNoContextStringComponent = 3178,
+  rcAmbiguousRouteId = 3179,
+  rcStaticPathInstructionSyntax = 3180,
   // #endregion
   // #region router events
   rePublishingEvent = 3200,
@@ -107,6 +109,8 @@ export const enum Events {
   rtrNextTr = 3270,
   rtrTrFailed = 3271,
   rtrNoCtx = 3272,
+  rtrInvalidUrlReference = 3273,
+  rtrUrlResourceConflict = 3274,
   // #endregion
   // #region viewport agent
   vpaCreated = 3300,
@@ -260,6 +264,8 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rcUnexpectedEmptyPathForEagerLoading]: 'Empty path encountered (%s) while the router is configured for eager loading. This may result in unexpected behavior. Consider using non-empty paths and/or "default" attribute for au-viewports.',
   [Events.rcParamterizedPathHasChildren]: 'The parameterized path %s has child routes while the router is configured without eager loading. This may result in unexpected behavior.',
   [Events.rcNoContextStringComponent]: 'Expected context for string component, got none.',
+  [Events.rcAmbiguousRouteId]: 'Route ID "%s" on %s shadows a public path of %s. URL entry retains ID-first lookup. Give these routes distinct public paths or IDs so generated links can identify each route after reload.',
+  [Events.rcStaticPathInstructionSyntax]: 'Route path "%s" on %s contains router instruction syntax in a static segment. For reloadable links, configure an encoded, non-colliding path (for example, "a%2Bb" for "a+b"). Check that the chosen address does not already belong to another route.',
   // #endregion
 
   // #region router events
@@ -291,6 +297,8 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtrNextTr]: 'scheduling next transition: %s',
   [Events.rtrTrFailed]: 'Transition %s failed with error: %s',
   [Events.rtrNoCtx]: 'Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?',
+  [Events.rtrInvalidUrlReference]: 'Expected an application URL reference, got %s. Use a path such as /users or ../reports. Document and external URLs belong in native links.',
+  [Events.rtrUrlResourceConflict]: 'The url attribute must be the only navigation attribute on its element. Remove the accompanying load or href attribute.',
   // #endregion
 
   // #region viewport agent

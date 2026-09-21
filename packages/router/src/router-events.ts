@@ -75,6 +75,7 @@ export class LocationChangeEvent {
     public readonly url: string,
     public readonly trigger: 'popstate' | 'hashchange',
     public readonly state: {} | null,
+    /** @internal */ public readonly _routePath?: string,
   ) {}
 
   public toString(): string {

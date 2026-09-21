@@ -1,32 +1,37 @@
 ---
-description: >-
-  For fans of configuration, the configured routing approach is for those who
-  want to explicitly work with the router.
+description: Map application paths to components with @aurelia/router.
 ---
 
 # Configured routing
 
-{% hint style="info" %}
-`Please note that we currently have an interim router implementation and that some (minor) changes to application code might be required when the original router is added back in.`
-{% endhint %}
-
-If you prefer a more traditional approach to routing where you specify the routes through configuration and things work similarly to other routers you might have worked with \(including the Aurelia 1 router\), then configured routing might appeal to you.
-
-In Aurelia, you can define routes inside of your components using the `route` decorator on your view-model. Most commonly, you would use this decorator on your application shell. If you are working with the `npx makes aurelia` skeleton, by default, this would be `my-app.ts/js`
-
-The `route` decorator accepts an object with a property called `routes` which accepts an array.
+Define the routes owned by a layout with the `@route` decorator from `@aurelia/router`. The application root usually owns the top-level routes; a feature layout can declare its own children in exactly the same way.
 
 ```typescript
+// my-app.ts
+import { route } from '@aurelia/router';
+
 @route({
   routes: [
-    { id: 'home', path: '', component: import('./home'), title: 'Home' },
-    { path: 'login', component: import('./auth'), title: 'Sign in' },
-    { path: 'register', component: import('./auth'), title: 'Sign up' }
-  ]
+    { id: 'home', path: '', component: () => import('./home'), title: 'Home' },
+    { path: 'login', component: () => import('./login'), title: 'Sign in' },
+    { path: 'register', component: () => import('./register'), title: 'Sign up' },
+  ],
 })
-export class MyApp {
-}
+export class MyApp {}
 ```
 
-Provided the accompanying view has an `<au-viewport` element, these routes would be projected into the element depending on the url. We have three routes; /home, /login and, /register. The `path` property denotes the route which is matched and the `component` is the component loaded. We use an inline `import` here for the component.
+The accompanying template supplies a viewport and links to the routes:
 
+```html
+<!-- my-app.html -->
+<nav>
+  <a load="home">Home</a>
+  <a load="login">Sign in</a>
+  <a load="register">Sign up</a>
+</nav>
+<au-viewport></au-viewport>
+```
+
+`path` defines the URL that selects a component. Here, the empty path makes Home the default page at the application root. Its `id: 'home'` lets the link refer to the route by name without changing that URL to `/home`. The functions containing `import()` load the page modules when needed.
+
+Register `RouterConfiguration` when starting the application, as shown in [Getting started](../../router/getting-started.md). For a feature that owns another viewport, continue with [Component configured routing](./component-configured-routing.md). The full [route configuration guide](../../router/configuring-routes.md) covers parameters, aliases, redirects, and fallback routes.

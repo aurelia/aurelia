@@ -20,6 +20,7 @@ This section documents error codes emitted by [@aurelia/router](https://github.c
 * [AUR3174](aur3174.md) - No available ViewportAgent
 * [AUR3175](aur3175.md) - Invalid lazy import component
 * [AUR3179](aur3179.md) - Route ID shadows another route's public path (warning)
+* [AUR3180](aur3180.md) - Static route path contains instruction syntax (warning)
 
 ## Router transitions
 

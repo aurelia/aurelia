@@ -92,14 +92,14 @@ export class FilterPanel {
   private readonly current = resolve(ICurrentRoute);
 
   apply(filters: Record<string, string>) {
-    return this.router.load(this.current.path, {
-      queryParams: filters,
-    });
+    const query = new URLSearchParams(this.current.query);
+    for (const [key, value] of Object.entries(filters)) query.set(key, value);
+    return this.router.navigate(`?${query}`);
   }
 }
 ```
 
-Use `ICurrentRoute` to observe query changes reactively (see [Router state management](./router-state-management.md#managed-history-entries-au-nav-id-and-managedstate)).
+This preserves query fields that are not replaced by `filters`. Query navigation does not automatically rerun `loading()` on an unchanged page. Observe `ICurrentRoute.query` for query-driven presentation, or use a per-navigation `transitionPlan: 'invoke-lifecycles'` when the hook owns the refresh. See [application URL navigation](application-url-navigation.md#refresh-a-page-when-its-query-changes).
 
 ## 4. Generate links with parameters
 
@@ -190,12 +190,12 @@ You can also mock `IRouteContext` or `ICurrentRoute` to simulate specific parame
 Goal: encode search term, page number, and filter chips in the URL so users can share the view.
 
 1. Define the base route `/search` and keep filters in the query string (`?q=aurelia&page=2&tag=forms`).
-2. Use `ICurrentRoute.query` to read the current filters in `attached()` and hydrate your form.
-3. When filters change, call `router.load(this.current.path, { queryParams: newFilters })` to update the URL without reloading the whole app.
+2. Use the incoming `RouteNode.queryParams` in `loading()` to prepare a newly routed page, or react to successful query changes for both initial entry and later navigation. `ICurrentRoute` is updated at navigation end; a newly created page's `attached()` can still see the previous location.
+3. When filters change, copy the query fields to preserve into `URLSearchParams` and call `router.navigate('?' + query.toString())`. If `loading()` owns the data refresh, pass the per-navigation lifecycle override described above.
 
 Checklist:
 - Refreshing `/search?q=router&page=3` shows the same filter state.
-- `router.load` uses `historyStrategy: 'replace'` when only filters change to avoid polluting history (configure via navigation options if needed).
+- Choose `historyStrategy: 'replace'` for changes that should replace the current history entry, or keep `push` when Back should revisit earlier filter choices. Verify the page also reacts to browser-driven query changes.
 
 ### Parent + child identifiers
 

@@ -221,41 +221,58 @@ export class DiagnosticService {
 
 ### Router Debugging
 
-Enable router debugging:
+Enable trace logging in your development startup configuration:
 
 ```typescript
+import Aurelia from 'aurelia';
+import { ConsoleSink, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
 import { RouterConfiguration } from '@aurelia/router';
 
 Aurelia.register(
-  RouterConfiguration.customize(options => {
-    options.logLevel = 'debug'; // Enable router logging
-  })
+  LoggerConfiguration.create({ level: LogLevel.trace, sinks: [ConsoleSink] }),
+  RouterConfiguration,
 );
 ```
 
-Add router event listeners:
+Subscribe through `IRouterEvents` to inspect transition inputs and outcomes. Put the subscription in the application root if you need to observe the initial navigation; a page constructed during that navigation cannot observe its already-published start event.
 
 ```typescript
-import { IEventAggregator, resolve } from '@aurelia/kernel';
+import { type IDisposable, resolve } from '@aurelia/kernel';
+import { IRouterEvents } from '@aurelia/router';
 
-export class RouterDebugger {
-  private ea = resolve(IEventAggregator);
+export class MyApp {
+  private readonly events = resolve(IRouterEvents);
+  private subscriptions: IDisposable[] = [];
 
-  created() {
-    this.ea.subscribe('au:router:navigation-start', (event) => {
-      console.log('Navigation started:', event);
-    });
+  binding() {
+    this.subscriptions = [
+      this.events.subscribe('au:router:navigation-start', event => {
+        console.log('Navigation started:', event.instructions);
+      }),
+      this.events.subscribe('au:router:navigation-end', event => {
+        console.log('Navigation completed:', event.finalInstructions);
+      }),
+      this.events.subscribe('au:router:navigation-cancel', event => {
+        console.log('Navigation canceled:', event.reason);
+      }),
+      this.events.subscribe('au:router:navigation-error', event => {
+        console.error('Navigation failed:', event.error);
+      }),
+    ];
+  }
 
-    this.ea.subscribe('au:router:navigation-end', (event) => {
-      console.log('Navigation completed:', event);
-    });
-
-    this.ea.subscribe('au:router:navigation-error', (event) => {
-      console.error('Navigation error:', event);
-    });
+  unbinding() {
+    for (const subscription of this.subscriptions) subscription.dispose();
+    this.subscriptions = [];
   }
 }
 ```
+
+When a link leads somewhere unexpected, identify its reference point first. `load` and router-managed `href` use the owning routing context; `url` and `IRouter.navigate()` use the last completed application URL. A `../` instruction can therefore mean a different destination in the two models. Inspect the rendered href as well as the authored value.
+
+Application-reference validation can throw before a transition starts. Handle a programmatic request with `try { await router.navigate(reference); } catch (error) { /* report the failure */ }`; a rejected reference does not necessarily produce a navigation-error event. A guard returning `false` is cancellation, not an error.
+
+[Router troubleshooting](../router/troubleshooting.md) covers query-only refreshes, native document links, base paths, and other common navigation problems. See [Router events](../router/router-events.md) for the full event contract.
 
 ## Common Issues and Solutions
 

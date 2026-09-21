@@ -27,7 +27,7 @@ Create `src/pages/dashboard-page.html`:
 </app-shell>
 ```
 
-**Note:** Links inside routed components are resolved relative to the current route. Use `../` when you want to navigate to a sibling at the parent level.
+The `load` attribute resolves routes from the routing context that owns the link. Here, `../projects` moves from the Dashboard page to its parent routing context, then selects the parent's `projects` route. A parent routing context can span several URL segments; `../` in a `load` instruction is not a URL-directory operation.
 
 ## 2. Create placeholder child pages
 
@@ -93,7 +93,7 @@ Create `src/pages/projects-page.html`:
 </app-shell>
 ```
 
-The nested `<au-viewport>` is where the Overview and Activity pages render.
+The nested `<au-viewport>` is where the Overview and Activity pages render. The two tab links belong to `ProjectsPage`, so `load="activity"` selects its `activity` child route even when another child page is open. The back link uses `../dashboard` to select a route owned by the parent.
 
 ## 4. Wire up the root routes
 
@@ -124,6 +124,8 @@ Update `src/my-app.html`:
 <au-viewport></au-viewport>
 ```
 
-Notice the `is-active` class when you navigate between Dashboard and Projects.
+The `activeClass: 'is-active'` option registered in Step 1 makes `load` apply that class to active links. It also works for the Projects layout's child navigation.
+
+These menus deliberately follow layout ownership. For navigation that should instead follow the current application URL, see [Application URL navigation](../../router/application-url-navigation.md). The two approaches can coexist in the same application.
 
 Next step: [Step 3: Overview page + filters + events](step-3-projects-overview.md)

@@ -858,50 +858,59 @@ await tasksSettled();
 ### Route Configuration
 
 ```typescript
-import { resolve } from '@aurelia/kernel';
-import { IRouter, route } from '@aurelia/router';
+import { route } from '@aurelia/router';
 
 @route({
   routes: [
     { path: '', component: () => import('./home'), title: 'Home' },
-    { path: '/products/:id', component: () => import('./product-detail'), title: 'Product' },
-    { path: '/about', component: () => import('./about'), title: 'About' },
+    { path: 'products', component: () => import('./products'), title: 'Products' },
+    { id: 'product-detail', path: 'products/:id', component: () => import('./product-detail'), title: 'Product' },
+    { path: 'about', component: () => import('./about'), title: 'About' },
   ]
 })
-export class AppRoot {
-  constructor(private router: IRouter = resolve(IRouter)) {}
-}
+export class AppRoot {}
 ```
 
 ### Navigation
 
+| Destination | Template | Code |
+| --- | --- | --- |
+| A route owned by the current layout or component | `load` | `IContextRouter.load()` |
+| An address relative to the current application URL or rooted at `/` | `url` | `IRouter.navigate()` |
+| Another document | Native `href`, with `external` when needed | Browser APIs |
+
+In the layout that owns the routes above:
+
 ```typescript
 import { resolve } from '@aurelia/kernel';
-import { IRouter, IRouteContext } from '@aurelia/router';
+import { IContextRouter, IRouter } from '@aurelia/router';
 
-export class MyComponent {
+export class ProductNavigation {
+  private readonly contextRouter = resolve(IContextRouter);
   private readonly router = resolve(IRouter);
-  private readonly routeContext = resolve(IRouteContext);
 
-  // Navigate to a route
+  // Select the configured route by ID and supply its parameters.
   goToProduct(id: string) {
-    return this.router.load(`/products/${id}`);
+    return this.contextRouter.load(
+      { component: 'product-detail', params: { id } },
+      { queryParams: { tab: 'reviews' } },
+    );
   }
 
-  // Navigate with parameters
-  goToProductWithQuery(id: string) {
-    return this.router.load(`/products/${id}`, { queryParams: { tab: 'reviews' } });
+  // Resolve against the last completed application URL.
+  goToAddress(reference: string) {
+    return this.router.navigate(reference);
   }
 
-  // Check if a route is active relative to this component's context
-  isActive(path: string): boolean {
-    return this.router.isActive(path, this.routeContext);
+  isProductActive(id: string): boolean {
+    return this.contextRouter.isActive({ component: 'product-detail', params: { id } });
   }
 }
 ```
 
-`IRouter.isActive` always needs a `RouteContextLike`. Inside routed components you can `resolve(IRouteContext)` as shown above; elsewhere pass the owning element/controller or an explicit `IRouteContext` so the router knows which viewport tree to compare against.
+`IContextRouter` uses the routing context where it is resolved. A leading `../` in its instructions selects a parent routing context, which may span several URL segments. `IRouter.navigate` instead applies URL-segment rules to application references; omit the deployment prefix and outer hash-routing marker from its input.
 
+[Navigation guide](../router/navigating.md) · [Application URL navigation](../router/application-url-navigation.md)
 
 ### Router Viewports
 
@@ -920,17 +929,43 @@ export class MyComponent {
 ### Router Links in Templates
 
 ```html
-<!-- load triggers router navigation and keeps <a> hrefs in sync automatically -->
+<!-- Select a route owned by this layout -->
 <a load="products">Products</a>
 
-<!-- Supply route params via params.bind (object or array) -->
-<a load="products" params.bind="{ id: product.id }">View Product</a>
+<!-- params and active are bindables inside load's value -->
+<a load="route: product-detail; params.bind: { id: product.id }">View product</a>
 
-<!-- Highlight active routes by binding to the 'active' property provided by load -->
-<a load="products" active.class="active">Products</a>
+<!-- Read active state and use it for custom styling -->
+<a load="route: products; active.bind: productsActive" active.class="productsActive">Products</a>
+
+<!-- Preserve a document address and native navigation -->
+<a href="/downloads/catalog.pdf" external>Catalog</a>
 ```
-Configure `RouterConfiguration.customize({ activeClass: 'active' })` to have the `load` custom attribute toggle that class automatically, or bind `active.two-way`/`active.class` as above for fine-grained control. Because `load` resolves the element's `href` internally, these links continue to work even without JavaScript and honor the app's `base` URL.
 
+For automatic active-link styling, register `RouterConfiguration.customize({ activeClass: 'active' })`; no per-link active binding is required. Once bound, `load` writes a browser href that includes the deployment base, so the resulting anchor supports copying and opening in another tab. A raw `load` attribute does not provide an href before Aurelia runs.
+
+For application-URL links, explicitly register the optional `UrlCustomAttribute`:
+
+```typescript
+import Aurelia from 'aurelia';
+import { RouterConfiguration, UrlCustomAttribute } from '@aurelia/router';
+import { AppRoot } from './app-root';
+
+Aurelia
+  .register(RouterConfiguration.customize({ activeClass: 'active' }), UrlCustomAttribute)
+  .app(AppRoot)
+  .start();
+```
+
+```html
+<!-- Fixed application-root destination -->
+<a url="/products">Products</a>
+
+<!-- At /products/42, resolves to /products/43 -->
+<a url="43">Next product</a>
+```
+
+Use one navigation attribute per anchor. `url` does not expose `load`'s active-route state. Router-managed `href` remains supported as shorthand for contextual instructions; `useHref: false` disables its click interception but still generates hrefs. Use `external` when you need the authored href preserved.
 
 ## Validation
 

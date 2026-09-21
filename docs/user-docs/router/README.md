@@ -1,6 +1,6 @@
 # Router Quick Reference
 
-Navigate your Aurelia 2 application with confidence using this task-focused quick reference.
+Find a routing task, copy the relevant pattern, and follow its link for the full contract. New to the router? Start with the [overview](../getting-to-know-aurelia/routing/aurelia-router.md) or [getting started](./getting-started.md).
 
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -16,32 +16,41 @@ Navigate your Aurelia 2 application with confidence using this task-focused quic
 ## Getting Started
 
 ### How do I install and configure the router?
-```typescript
-// Install
-npm i @aurelia/router
 
-// Configure in main.ts
-import { RouterConfiguration } from '@aurelia/router';
+```sh
+npm i @aurelia/router
+```
+
+```typescript
+// main.ts
+import Aurelia from 'aurelia';
+import { RouterConfiguration, UrlCustomAttribute } from '@aurelia/router';
+import { MyApp } from './my-app';
 
 Aurelia
   .register(RouterConfiguration.customize({
-    useUrlFragmentHash: false,  // Clean URLs (default)
-    historyStrategy: 'push',     // Browser history
-  }))
+    useUrlFragmentHash: false,
+    activeClass: 'active',
+  }), UrlCustomAttribute)
   .app(MyApp)
   .start();
 ```
+`RouterConfiguration` registers `load`, router-managed `href`, and `<au-viewport>`. `UrlCustomAttribute` is a separate, optional registration required for the `url` links shown below. Path-based routing is the default; configure your server to serve the application for route URLs.
+
 [Full configuration options →](./router-configuration.md)
 
 ### How do I define routes?
 ```typescript
 import { route } from '@aurelia/router';
+import { Home } from './home';
+import { About } from './about';
+import { UserDetail } from './user-detail';
 
 @route({
   routes: [
-    { path: '', component: Home, title: 'Home' },
+    { id: 'home', path: '', component: Home, title: 'Home' },
     { path: 'about', component: About, title: 'About' },
-    { path: 'users/:id', component: UserDetail }
+    { id: 'user-detail', path: 'users/:id', component: UserDetail }
   ]
 })
 export class MyApp {}
@@ -52,8 +61,8 @@ export class MyApp {}
 ```html
 <!-- In your root component template -->
 <nav>
-  <a href="home">Home</a>
-  <a href="about">About</a>
+  <a load="home">Home</a>
+  <a load="about">About</a>
 </nav>
 
 <au-viewport></au-viewport>
@@ -73,32 +82,52 @@ RouterConfiguration.customize({
 ## Navigation
 
 ### How do I create navigation links?
-```html
-<!-- Using href (simple) -->
-<a href="about">About</a>
-<a href="users/42">User 42</a>
 
-<!-- Using load (structured) -->
-<a load="route: users; params.bind: {id: userId}">User Profile</a>
+Choose the reference point that matches the destination:
+
+| Destination | Template | Code |
+| --- | --- | --- |
+| A route owned by the current layout or component | `load` | `IContextRouter.load()` |
+| An address relative to the current application URL, or rooted at `/` | `url` | `IRouter.navigate()` |
+| Another document | Native `href`; add `external` to bypass routing | Browser APIs |
+
+```html
+<!-- A child route of the layout that owns this link -->
+<a load="about">About</a>
+
+<!-- Route ID with a parameter -->
+<a load="route: user-detail; params.bind: { id: userId }">User profile</a>
+
+<!-- Application-root URL; requires UrlCustomAttribute -->
+<a url="/users/42">User 42</a>
+
+<!-- Another document, even though its address is on this site -->
+<a href="/downloads/guide.pdf" external>Guide</a>
 ```
-[Navigation methods →](./navigating.md)
+Router-managed `href="about"` is also supported; it uses contextual routing instructions like `load`. Once bound, `load` and `url` materialize browser hrefs, preserving copy-link and open-in-new-tab behavior. Use one navigation attribute per element.
+
+[Contextual navigation →](./navigating.md) · [Application URL navigation →](./application-url-navigation.md)
 
 ### How do I navigate programmatically?
 ```typescript
-import { IRouter } from '@aurelia/router';
+import { IContextRouter, IRouter } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
 
 export class MyComponent {
+  private readonly contextRouter = resolve(IContextRouter);
   private readonly router = resolve(IRouter);
 
-  navigateToUser(id: number) {
-    this.router.load(`users/${id}`);
+  // In the layout that defines the user-detail route:
+  openUser(id: string) {
+    return this.contextRouter.load(
+      { component: 'user-detail', params: { id } },
+      { queryParams: { tab: 'profile' } },
+    );
+  }
 
-    // Or with options
-    this.router.load('users', {
-      params: { id },
-      queryParams: { tab: 'profile' }
-    });
+  // Resolve relative to the last completed application URL:
+  openAddress(reference: string) {
+    return this.router.navigate(reference);
   }
 }
 ```
@@ -112,22 +141,23 @@ RouterConfiguration.customize({
 })
 ```
 ```html
-<!-- Use with load attribute -->
-<a load="home" active.bind="isHomeActive">Home</a>
+<!-- The configured class is applied automatically -->
+<a load="home">Home</a>
 
-<!-- Or use the configured active class -->
-<a load="home">Home</a>  <!-- Gets 'active' class automatically -->
+<!-- Read the active state when you also need it in the view model -->
+<a load="route: home; active.bind: isHomeActive">Home</a>
 ```
+`active` is a bindable of `load`, so its binding belongs inside the `load` value. The `url` attribute does not expose active-route state.
+
 [Active CSS class →](./router-configuration.md#configure-active-class)
 
 ### How do I navigate to parent routes from nested components?
 ```html
-<!-- Using href with ../ prefix -->
-<a href="../sibling">Go to sibling route</a>
-
-<!-- Using load with context -->
-<a load="route: sibling; context.bind: parentContext">Sibling</a>
+<!-- Select a route owned by the parent routing context -->
+<a load="../sibling">Go to sibling route</a>
 ```
+Each leading `../` traverses a routing context. It does not remove one URL segment: a single route can consume several segments. Use `url` or `navigate` when you intend URL-segment resolution.
+
 [Ancestor navigation →](./navigating.md#navigate-in-current-and-ancestor-routing-context)
 
 ### How do I pass query parameters?
@@ -142,29 +172,23 @@ router.load('search', {
 
 ### How do I handle external links?
 
-**Good news**: External links work automatically! The router automatically ignores:
+Absolute URLs, protocol-relative URLs, and links with schemes such as `mailto:` retain native browser navigation:
 
 ```html
-<!-- These automatically bypass the router (no special attributes needed!) -->
 <a href="https://example.com">External site</a>
 <a href="mailto:test@example.com">Email</a>
 <a href="tel:+1234567890">Phone</a>
 <a href="//cdn.example.com/file.pdf">Protocol-relative</a>
-<a href="ftp://files.example.com">FTP</a>
-
-<!-- Also bypassed: -->
-<a href="/internal" target="_blank">New tab</a>
-<a href="/internal" target="other">Named target</a>
 ```
 
-**Only use `external` attribute for edge cases:**
+For an internal-looking address that belongs to another document or endpoint, use `external`. This bypasses both contextual href generation and click interception:
+
 ```html
-<!-- When URL looks internal but should bypass router -->
 <a href="/api/download" external>API endpoint</a>
 <a href="/old-page.html" external>Legacy HTML page</a>
 ```
 
-**How it works**: The router uses the `URL` constructor to check if a link is external. Any URL that can be parsed without a base (like `https://`, `mailto:`, etc.) is automatically treated as external.
+Modified clicks, downloads, and links targeting another browsing context also retain browser click behavior. Their router-managed hrefs are still generated unless the link is marked external. Likewise, `useHref: false` disables href click interception but does not disable href generation.
 
 [Bypassing the router →](./navigating.md#bypassing-the-href-custom-attribute)
 
@@ -190,9 +214,10 @@ router.load('search', {
 import { IRouteViewModel, Params } from '@aurelia/router';
 
 export class UserDetail implements IRouteViewModel {
-  userId: string;
+  userId = '';
 
   canLoad(params: Params) {
+    if (params.id === undefined) return false;
     this.userId = params.id;
     return true;
   }
@@ -281,7 +306,7 @@ export class AuthorizationHook {
   data: { permission: 'admin' }
 }
 ```
-[Router hooks example →](./router-hooks.md#example-authentication-and-authorization)
+[Router hooks example →](./router-hooks.md#example-1-authentication-and-authorization)
 
 ### How do I prevent navigation away from unsaved forms?
 ```typescript
@@ -325,13 +350,16 @@ export class Dashboard implements IRouteViewModel {
 ### How do I load data before showing a component?
 ```typescript
 import { IRouteViewModel, Params } from '@aurelia/router';
+import type { User } from './user';
 
 export class UserDetail implements IRouteViewModel {
   user: User | null = null;
 
   async loading(params: Params) {
-    this.user = await fetch(`/api/users/${params.id}`)
-      .then(r => r.json());
+    if (params.id === undefined) throw new Error('A user ID is required');
+    const response = await fetch(`/api/users/${encodeURIComponent(params.id)}`);
+    if (!response.ok) throw new Error(`Could not load user: ${response.status}`);
+    this.user = await response.json();
   }
 }
 ```
@@ -422,7 +450,7 @@ export class MyApp {}
 ```
 ```html
 <!-- Load components into both viewports -->
-<a href="products@left+details/42@right">Products + Details</a>
+<a load="products@left+details/42@right">Products + Details</a>
 ```
 ```typescript
 // Programmatically
@@ -460,8 +488,8 @@ export class UserLayout {}
 <!-- UserLayout template -->
 <h2>User: ${userId}</h2>
 <nav>
-  <a href="posts">Posts</a>
-  <a href="settings">Settings</a>
+  <a load="posts">Posts</a>
+  <a load="settings">Settings</a>
 </nav>
 <au-viewport></au-viewport>
 ```
@@ -508,23 +536,26 @@ RouterConfiguration.customize({
 [Setting titles →](./configuring-routes.md#setting-the-title) | [Customizing titles →](./router-configuration.md#customizing-title)
 
 ### How do I generate URLs without navigating?
+
+Use `createHref` when you have an application URL reference and need a browser-ready address:
+
 ```typescript
 import { IRouter } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
 
-const router = resolve(IRouter);
+export class ShareLink {
+  private readonly router = resolve(IRouter);
 
-// Generate path
-const userPath = await router.generatePath({
-  component: 'users',
-  params: { id: 42 }
-});
-// Result: "/users/42"
-
-// Use in template
-<a href.bind="userPath">View User</a>
+  userHref() {
+    return this.router.createHref('/users/42');
+  }
+}
 ```
-[Path generation →](./navigating.md#path-generation)
+The result includes the deployment base and configured hash form. `createHref` is synchronous and does not check whether the route exists. Its output is for the browser; do not pass it back to `navigate`, which accepts application references.
+
+To generate a path from a route ID, component, or structured instruction, use the [path-generation APIs](./navigating.md#path-generation). Those paths are relative to the selected routing context and are not universally browser-ready hrefs. For ordinary in-app links, `load` or `url` performs the appropriate generation for you.
+
+[Application URL href generation →](./application-url-navigation.md)
 
 ### How do I work with base paths (multi-tenant apps)?
 ```typescript
@@ -533,7 +564,7 @@ RouterConfiguration.customize({
 })
 ```
 ```html
-<base href="/tenant1/app">
+<base href="/tenant1/app/">
 ```
 [Base path configuration →](./router-configuration.md#configuring-basepath)
 
@@ -574,28 +605,18 @@ export class MyComponent {
 ## Troubleshooting
 
 ### My routes don't work with clean URLs (no hash)
-**Problem**: Getting 404 errors when refreshing or accessing routes directly
 
-**Solution**:
-1. Ensure `<base href="/">` is in your HTML
-2. Configure server for SPA routing (return index.html for all routes)
-3. Or use hash routing: `useUrlFragmentHash: true`
+If in-app navigation works but a reload or direct entry returns a server 404, configure the host to serve the application's entry document for route URLs. Set `<base href="/">` for an application at the origin root, or use the matching deployment prefix for an application hosted below it. Keep server endpoints and static files outside the SPA fallback.
+
+Hash routing (`useUrlFragmentHash: true`) is another option when the host cannot provide that fallback.
 
 [PushState configuration →](./router-configuration.md#choose-between-hash-and-pushstate-routing-using-useurlfragmenthash)
 
-### External links are triggering the router (rare)
-**Problem**: External links somehow being handled by router
+### A document link is being interpreted as a route
 
-**This should NOT happen** - the router automatically ignores external links like `https://`, `mailto:`, `tel:`, etc.
+An address such as `/api/download` looks like a contextual routing instruction to the registered `href` attribute. Mark it external to retain the authored address and browser navigation:
 
-**If it's happening:**
-1. Check your link format - is it truly external?
-2. You probably don't need the `external` attribute anymore
-3. Links with protocol (`https://`, `mailto:`) are automatically bypassed
-
-**Only needed for edge cases:**
 ```html
-<!-- Internal-looking URLs that should bypass router -->
 <a href="/api/download" external>API endpoint</a>
 <a href="/static/old-page.html" external>Legacy page</a>
 ```
@@ -603,60 +624,53 @@ export class MyComponent {
 [Bypassing href →](./navigating.md#bypassing-the-href-custom-attribute)
 
 ### Navigation isn't working from nested components
-**Problem**: Links to sibling routes not working
 
-**Solution**: Use `../` prefix for parent context
+First identify which layout owns the destination route. A layout's link to its own child uses `load="child"`; a routed child's link to a sibling selects the parent context:
+
 ```html
-<a href="../sibling">Sibling Route</a>
+<a load="../sibling">Sibling route</a>
 ```
+If you mean an address relative to the current application URL instead, use `url` or `navigate`. See [Choosing the reference point](./application-url-navigation.md).
+
 [Ancestor navigation →](./navigating.md#navigate-in-current-and-ancestor-routing-context)
 
 ### My lifecycle hooks aren't being called
-**Problem**: `canLoad`, `loading`, etc. not executing
 
-**Solution**: Implement the `IRouteViewModel` interface
-```typescript
-import { IRouteViewModel } from '@aurelia/router';
+Define the hook on the component activated by the router. `implements IRouteViewModel` supplies TypeScript checking; it does not register or enable hooks at runtime. For a shared `@lifecycleHooks()` class, check its registration.
 
-export class MyComponent implements IRouteViewModel {
-  canLoad(params: Params) { /* ... */ }
-}
-```
+Also check reuse: changing only the query updates `ICurrentRoute` without automatically rerunning `loading`. A page can react to current query state, or the navigation can explicitly request `transitionPlan: 'invoke-lifecycles'` when its `loading` hook owns the refresh. See [Query-driven navigation](./application-url-navigation.md).
+
 [Lifecycle hooks →](./routing-lifecycle.md)
 
 ### Route parameters aren't updating when navigating between same routes
-**Problem**: Navigating from `/users/1` to `/users/2` doesn't update component
 
-**Solution**: Configure transition plan
-```typescript
-{
-  path: 'users/:id',
-  component: UserDetail,
-  transitionPlan: 'invoke-lifecycles'  // Re-invoke hooks
-}
-```
+By default, changed path parameters cause the router to replace the component. If you configured `invoke-lifecycles` to reuse it, read the new parameters in `loading`; the constructor will not run again. A custom plan returning `none` suppresses that refresh. Query-only changes follow the reuse rule described above.
+
 [Transition plans →](./transition-plans.md)
 
 ### How do I debug routing issues?
 ```typescript
 import { IRouterEvents } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
+import { type IDisposable, resolve } from '@aurelia/kernel';
 
 export class MyApp {
-  constructor() {
-    const events = resolve(IRouterEvents);
+  private readonly events = resolve(IRouterEvents);
+  private subscriptions: IDisposable[] = [];
 
-    events.subscribe('au:router:navigation-start', (evt) => {
-      console.log('Navigation started:', evt);
-    });
+  binding() {
+    this.subscriptions = [
+      this.events.subscribe('au:router:navigation-end', event => {
+        console.log('Navigation completed:', event.finalInstructions);
+      }),
+      this.events.subscribe('au:router:navigation-error', event => {
+        console.error('Navigation failed:', event.error);
+      }),
+    ];
+  }
 
-    events.subscribe('au:router:navigation-end', (evt) => {
-      console.log('Navigation ended:', evt);
-    });
-
-    events.subscribe('au:router:navigation-error', (evt) => {
-      console.error('Navigation error:', evt);
-    });
+  unbinding() {
+    for (const subscription of this.subscriptions) subscription.dispose();
+    this.subscriptions = [];
   }
 }
 ```
@@ -675,6 +689,7 @@ export class MyApp {
 - [Route Parameters Guide](./route-parameters.md)
 - [Route Expression Syntax](./route-expression-syntax.md)
 - [Navigation](./navigating.md)
+- [Application URL Navigation](./application-url-navigation.md)
 - [Viewports](./viewports.md)
 - [Child Routing Playbook](./child-routing.md)
 

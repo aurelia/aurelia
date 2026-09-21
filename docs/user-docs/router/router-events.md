@@ -11,15 +11,17 @@ This section discusses that.
 
 ## Router Event Types Overview
 
-The router emits five distinct events that cover the complete navigation lifecycle:
+Five router events expose transition progress and browser-location changes:
 
 | Event | When Emitted | Use Cases |
 |-------|-------------|-----------|
-| `au:router:location-change` | Browser location changed via history API | Track URL changes, analytics, browser navigation |
-| `au:router:navigation-start` | Before navigation begins | Show loading states, cancel navigation, logging |
+| `au:router:location-change` | Browser Back/Forward or a hash change | Observe browser-driven navigation |
+| `au:router:navigation-start` | A transition begins | Show loading states and correlate diagnostic logs |
 | `au:router:navigation-end` | Navigation completes successfully | Hide loading states, update breadcrumbs, analytics |
-| `au:router:navigation-cancel` | Navigation cancelled by guards/hooks | Handle cancelled navigation, show messages |
-| `au:router:navigation-error` | Navigation encounters an error | Error handling, fallback routing, logging |
+| `au:router:navigation-cancel` | A transition is canceled, including guard redirects or restoration after an error | Observe cancellation and clear pending UI |
+| `au:router:navigation-error` | A transition reports an error | Record diagnostic context and display an error state |
+
+The diagnostic examples below serialize instruction trees with the exported `pathUrlParser`. That representation includes application path, query, and fragment; it omits deployment and physical-document publication. Use `router.createHref()` when you need a browser href from an application reference. The private `RouterOptions._urlParser` field is not a public configuration API.
 
 ## Event Details and Properties
 
@@ -28,15 +30,15 @@ Triggered when the browser location changes through user navigation (back/forwar
 
 ```typescript
 interface LocationChangeEvent {
-  readonly id: number;           // Unique navigation ID
-  readonly url: string;          // New URL
+  readonly id: number;           // Location-event ID (separate from transition IDs)
+  readonly url: string;          // Location-manager URL
   readonly trigger: 'popstate' | 'hashchange';  // What caused the change
   readonly state: {} | null;     // Browser history state
 }
 ```
 
 ### `NavigationStartEvent`
-Emitted before navigation execution begins, giving you a chance to prepare or cancel.
+Emitted when a transition begins. Event subscribers observe navigation; their return values do not cancel it. Use `canLoad` or `canUnload` guards to decide whether navigation may proceed. Input validation can fail before a transition starts, so callers must also handle errors from the navigation call itself.
 
 ```typescript
 interface NavigationStartEvent {
@@ -59,7 +61,7 @@ interface NavigationEndEvent {
 ```
 
 ### `NavigationCancelEvent`
-Emitted when navigation is cancelled by lifecycle hooks (for example by returning `false` or returning a redirect instruction).
+Emitted when the current transition is canceled. This includes guard cancellation, the canceled leg of a guard redirect, and route-tree restoration after an error. The `reason` is diagnostic information; do not parse its wording to determine an application permission decision.
 
 ```typescript
 interface NavigationCancelEvent {
@@ -70,7 +72,7 @@ interface NavigationCancelEvent {
 ```
 
 ### `NavigationErrorEvent`
-Triggered when navigation encounters errors during execution.
+Emitted for transition errors reported through the event stream. It is not an exhaustive error boundary: invalid input can fail before a transition starts, and unknown-route failures can reject a navigation without emitting this event. Handle the navigation call itself as described in [error handling](./error-handling.md).
 
 ```typescript
 interface NavigationErrorEvent {
@@ -105,7 +107,7 @@ export class NavigationService implements IDisposable {
 
   public constructor() {
     const events = resolve(IRouterEvents);
-    
+
     this.subscriptions = [
       // Track location changes from browser navigation
       events.subscribe('au:router:location-change', (event: LocationChangeEvent) => {
@@ -160,7 +162,7 @@ export class NavigationService implements IDisposable {
   }
 
   private handleNavigationError(event: NavigationErrorEvent): void {
-    // Show error messages, log errors, fallback routing
+    // Show error messages and log diagnostic context
   }
 
   public dispose(): void {
@@ -175,78 +177,78 @@ export class NavigationService implements IDisposable {
 You can also use the standard event aggregator, though you lose TypeScript type safety:
 
 ```typescript
-import { IEventAggregator, resolve } from '@aurelia/kernel';
+import { IEventAggregator, resolve, type IDisposable } from '@aurelia/kernel';
 
-export class BasicNavigationService {
-  private readonly ea: IEventAggregator = resolve(IEventAggregator);
+export class BasicNavigationService implements IDisposable {
+  private readonly subscription = resolve(IEventAggregator).subscribe(
+    'au:router:navigation-start',
+    (event: unknown) => {
+      // The string channel does not infer a router event type.
+      console.log(event);
+    },
+  );
 
-  public constructor() {
-    this.ea.subscribe('au:router:navigation-start', (event: any) => {
-      // Note: 'event' is typed as 'any' - no type safety
-    });
+  dispose(): void {
+    this.subscription.dispose();
   }
 }
 ```
 
-**Important:** Using `IRouterEvents` provides type safety and IntelliSense support, making it the preferred approach.
+Use `IRouterEvents` for typed callbacks. Instantiate application-wide services during startup so they can observe initial navigation, and call their `dispose()` methods from the application owner when shutting down. Registering a service alone does not instantiate it.
 
 ## Practical Use Cases and Examples
 
 ### Leverage managed history state
 
-The router stores a tiny object inside every browser history entry it creates. That object always contains an `au-nav-id` field (exported as `AuNavId`) so the router can determine whether a later `popstate` represents a backward or forward navigation. You can read and extend that managed state through the router events API.
+The router adds an `au-nav-id` field (exported as `AuNavId`) to the browser history entries it publishes. Custom `state` supplied to `load()` or `navigate()` travels with the transition, including guard redirects, and is stored with the successful history entry.
 
 #### Read managed state when navigation starts
 
 ```typescript
-import { IRouterEvents, NavigationStartEvent } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
+import { AuNavId, IRouterEvents } from '@aurelia/router';
+import { resolve, type IDisposable } from '@aurelia/kernel';
 
-export class NavigationStateLogger {
-  private readonly events = resolve(IRouterEvents);
-
-  public constructor() {
-    this.events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
-      if (event.managedState) {
-        console.log('Entry id:', event.managedState['au-nav-id']);
-        console.log('Custom payload:', event.managedState['filters']);
+export class NavigationStateLogger implements IDisposable {
+  private readonly subscription = resolve(IRouterEvents).subscribe(
+    'au:router:navigation-start',
+    event => {
+      if (event.managedState !== null) {
+        console.log('Entry id:', event.managedState[AuNavId]);
+        console.log('Saved tab:', event.managedState['tab']);
       }
-    });
+    },
+  );
+
+  dispose(): void {
+    this.subscription.dispose();
   }
 }
 ```
 
-- The `managedState` payload is populated for both API-driven and browser-driven navigations, but only browser-triggered events will contain data you previously stored in `history.state`.
-- The `au-nav-id` key is required—always merge existing state instead of overwriting it.
-- See [Router state management](./router-state-management.md#managed-history-entries-au-nav-id-and-managedstate) for end-to-end scenarios, including persisting filters or scroll depth.
+`managedState` can be `null`. For an API call with an explicit `state` option, it includes that payload; for a browser visit to a router-managed entry, it contains the visited entry's state. A new API navigation does not implicitly copy arbitrary state from the previously displayed entry.
 
 #### Store additional metadata per history entry
 
+Supply state with the navigation that should own it:
+
 ```typescript
-import { IRouterEvents, NavigationEndEvent } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
 
-export class HistoryMetadataWriter {
-  private readonly events = resolve(IRouterEvents);
+export class InboxNavigation {
+  private readonly router = resolve(IRouter);
 
-  public constructor() {
-    this.events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
-      const nextState = {
-        ...(window.history.state ?? {}),
-        filters: this.getActiveFilters(),
-        updatedAt: Date.now(),
-      };
-      window.history.replaceState(nextState, document.title);
+  openUnread() {
+    return this.router.navigate('/inbox?status=unread', {
+      state: { tab: 'unread', openedFrom: 'dashboard' },
     });
-  }
-
-  private getActiveFilters() {
-    return { tab: 'inbox' };
   }
 }
 ```
 
-The router will emit the same metadata the next time that history entry is restored, allowing you to resume UI state in `NavigationStartEvent` or `NavigationEndEvent` handlers.
+Use URL query parameters for values that must survive sharing a link. History state belongs to that browser entry. With `historyStrategy: 'none'`, the transition still carries its state but does not publish a history entry.
+
+If host code modifies `history.state` directly, preserve the router's `AuNavId` field and existing payload. See [router state management](./router-state-management.md#managed-history-entries-aunavid-and-managedstate) for history-state ownership and restoration.
 
 ### Global Loading Indicator
 
@@ -255,7 +257,7 @@ Show a loading spinner during navigation:
 ```typescript
 import { resolve } from '@aurelia/kernel';
 import { customElement, observable } from '@aurelia/runtime-html';
-import { IRouter, IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
+import { IRouter, IRouterEvents, NavigationStartEvent, NavigationEndEvent, pathUrlParser } from '@aurelia/router';
 
 @customElement({
   name: 'loading-app',
@@ -266,14 +268,14 @@ import { IRouter, IRouterEvents, NavigationStartEvent, NavigationEndEvent } from
         <div class="spinner"></div>
         <span>Loading...</span>
       </div>
-      
+
       <!-- Navigation breadcrumbs -->
       <nav class="breadcrumb" if.bind="breadcrumbs.length">
         <span repeat.for="crumb of breadcrumbs" class="breadcrumb-item">
           \${crumb}
         </span>
       </nav>
-      
+
       <!-- Main content -->
       <au-viewport></au-viewport>
     </div>
@@ -287,13 +289,13 @@ export class LoadingApp {
   private readonly subscriptions = [
     resolve(IRouterEvents).subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
       this.isNavigating = true;
-      console.log(`Starting navigation to: ${event.instructions.toUrl(false, this.router.options._urlParser, true)}`);
+      console.log(`Starting navigation to: ${event.instructions.toUrl(false, pathUrlParser, true)}`);
     }),
 
     resolve(IRouterEvents).subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
       this.isNavigating = false;
       this.updateBreadcrumbs();
-      console.log(`Navigation completed: ${event.finalInstructions.toUrl(true, this.router.options._urlParser, true)}`);
+      console.log(`Navigation completed: ${event.finalInstructions.toUrl(true, pathUrlParser, true)}`);
     }),
 
     resolve(IRouterEvents).subscribe('au:router:navigation-cancel', () => {
@@ -331,196 +333,108 @@ export class LoadingApp {
 
 ### Analytics and Tracking Service
 
-Track navigation events for analytics:
+Record page views after successful navigation. Clear timing data when a transition ends, is canceled, or reports an error, so canceled attempts are not counted as page views:
 
 ```typescript
-import { singleton, resolve } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, NavigationEndEvent, LocationChangeEvent } from '@aurelia/router';
+import { singleton, resolve, type IDisposable } from '@aurelia/kernel';
+import { ICurrentRoute, IRouterEvents, pathUrlParser } from '@aurelia/router';
 
 @singleton
-export class AnalyticsService {
-  private readonly startTimes = new Map<number, number>();
-  private readonly router = resolve(IRouter);
+export class AnalyticsService implements IDisposable {
+  private readonly currentRoute = resolve(ICurrentRoute);
+  private readonly subscriptions: IDisposable[];
+  private started: { id: number; time: number } | null = null;
 
-  public constructor() {
+  constructor() {
     const events = resolve(IRouterEvents);
-
-    // Track page views
-    events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
-      this.trackPageView(event);
-      this.trackNavigationTiming(event);
-    });
-
-    // Track browser navigation
-    events.subscribe('au:router:location-change', (event: LocationChangeEvent) => {
-      this.trackLocationChange(event);
-    });
-
-    // Track navigation starts for timing
-    events.subscribe('au:router:navigation-start', (event) => {
-      this.startTimes.set(event.id, performance.now());
-    });
+    this.subscriptions = [
+      events.subscribe('au:router:navigation-start', event => {
+        this.started = { id: event.id, time: performance.now() };
+      }),
+      events.subscribe('au:router:navigation-end', event => {
+        const duration = this.started?.id === event.id
+          ? performance.now() - this.started.time
+          : undefined;
+        this.started = null;
+        this.recordPageView({
+          path: event.finalInstructions.toUrl(true, pathUrlParser, true),
+          title: this.currentRoute.title,
+          duration,
+        });
+      }),
+      events.subscribe('au:router:navigation-cancel', () => {
+        this.started = null;
+      }),
+      events.subscribe('au:router:navigation-error', () => {
+        this.started = null;
+      }),
+    ];
   }
 
-  private trackPageView(event: NavigationEndEvent): void {
-    const url = event.finalInstructions.toUrl(true, this.router.options._urlParser, true);
-    const title = this.extractPageTitle();
-    
-    // Send to analytics service (Google Analytics, Adobe Analytics, etc.)
-    if (typeof gtag !== 'undefined') {
-      gtag('config', 'GA_TRACKING_ID', {
-        page_title: title,
-        page_location: window.location.href
-      });
-    }
-
-    console.log(`📊 Page view: ${title} (${url})`);
+  private recordPageView(view: { path: string; title: string; duration?: number }): void {
+    // Send this data through your application's analytics adapter.
+    console.log('Page view:', view);
   }
 
-  private trackNavigationTiming(event: NavigationEndEvent): void {
-    const startTime = this.startTimes.get(event.id);
-    if (startTime) {
-      const duration = performance.now() - startTime;
-      console.log(`⏱️ Navigation #${event.id} took ${duration.toFixed(2)}ms`);
-      
-      // Track slow navigations 
-      if (duration > 1000) {
-        console.warn(`🐌 Slow navigation detected: ${duration.toFixed(2)}ms`);
-      }
-
-      this.startTimes.delete(event.id);
-    }
-  }
-
-  private trackLocationChange(event: LocationChangeEvent): void {
-    console.log(`🔄 Location changed via ${event.trigger}: ${event.url}`);
-    
-    // Track back/forward button usage
-    if (event.trigger === 'popstate') {
-      // Send analytics event for browser navigation
-    }
-  }
-
-  private extractPageTitle(): string {
-    return this.router.routeTree.root.getTitle(' | ') ?? 'Unknown Page';
+  dispose(): void {
+    this.subscriptions.forEach(subscription => subscription.dispose());
+    this.subscriptions.length = 0;
+    this.started = null;
   }
 }
 ```
+
+This records the completed application route, which can differ from `location.href` after navigation with `historyStrategy: 'none'`. The analytics adapter is an application integration; the example does not assume a global SDK or tracking identifier.
 
 ### Error Handling and Recovery Service
 
-Handle navigation errors gracefully:
+Use an event subscriber to record the failure and update a bounded error display. Recovery belongs to the operation that owns the navigation, where the intended destination and application policy are known.
 
 ```typescript
-import { singleton, resolve } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, NavigationErrorEvent, NavigationCancelEvent } from '@aurelia/router';
-
-interface ErrorRecoveryStrategy {
-  shouldRecover(error: unknown): boolean;
-  recover(error: unknown): Promise<void>;
-}
+import { singleton, resolve, type IDisposable } from '@aurelia/kernel';
+import { IRouterEvents, pathUrlParser } from '@aurelia/router';
 
 @singleton
-export class NavigationErrorService {
-  private readonly router: IRouter = resolve(IRouter);
-  private errorHistory: Array<{timestamp: number, error: unknown, url: string}> = [];
+export class NavigationErrorService implements IDisposable {
+  lastFailure: { path: string; error: unknown } | null = null;
+  private readonly subscriptions: IDisposable[];
 
-  private recoveryStrategies: ErrorRecoveryStrategy[] = [
-    {
-      shouldRecover: (error) => error instanceof Error && error.message.includes('Component not found'),
-      recover: async (error) => {
-        console.log('Component not found, redirecting to home');
-        await this.router.load('/');
-      }
-    },
-    {
-      shouldRecover: (error) => error instanceof Error && error.message.includes('Permission denied'),
-      recover: async (error) => {
-        console.log('Permission denied, redirecting to login');
-        await this.router.load('/login');
-      }
-    }
-  ];
-
-  public constructor() {
+  constructor() {
     const events = resolve(IRouterEvents);
-
-    events.subscribe('au:router:navigation-error', (event: NavigationErrorEvent) => {
-      this.handleNavigationError(event);
-    });
-
-    events.subscribe('au:router:navigation-cancel', (event: NavigationCancelEvent) => {
-      this.handleNavigationCancel(event);
-    });
+    this.subscriptions = [
+      events.subscribe('au:router:navigation-error', event => {
+        this.lastFailure = {
+          path: event.instructions.toUrl(false, pathUrlParser, true),
+          error: event.error,
+        };
+        console.error('Navigation failed:', this.lastFailure);
+      }),
+    ];
   }
 
-  private async handleNavigationError(event: NavigationErrorEvent): Promise<void> {
-    const url = event.instructions.toUrl(false, this.router.options._urlParser, true);
-    
-    // Log error for debugging
-    this.errorHistory.push({
-      timestamp: Date.now(),
-      error: event.error,
-      url
-    });
-
-    console.error(`❌ Navigation error for ${url}:`, event.error);
-
-    // Try recovery strategies
-    for (const strategy of this.recoveryStrategies) {
-      if (strategy.shouldRecover(event.error)) {
-        try {
-          await strategy.recover(event.error);
-          console.log(`✅ Recovered from navigation error using strategy`);
-          return;
-        } catch (recoveryError) {
-          console.error('Recovery strategy failed:', recoveryError);
-        }
-      }
-    }
-
-    // Fallback: show error page or go to home
-    this.showErrorNotification(`Navigation failed: ${url}`);
-    // If you need to pass error details to the error page, store them in a service/store.
-    await this.router.load('/error', {
-      queryParams: { from: url },
-    });
+  dismissError(): void {
+    this.lastFailure = null;
   }
 
-  private handleNavigationCancel(event: NavigationCancelEvent): void {
-    const url = event.instructions.toUrl(false, this.router.options._urlParser, true);
-    console.warn(`⚠️ Navigation cancelled for ${url}:`, event.reason);
-    
-    // Show user-friendly message
-    if (typeof event.reason === 'string' && event.reason.includes('permission')) {
-      this.showErrorNotification('You do not have permission to access this page');
-    } else {
-      this.showErrorNotification('Navigation was cancelled');
-    }
-  }
-
-  private showErrorNotification(message: string): void {
-    // Implementation depends on your notification system
-    console.log(`🔔 ${message}`);
-  }
-
-  public getErrorHistory(): Array<{timestamp: number, error: unknown, url: string}> {
-    return [...this.errorHistory];
-  }
-
-  public clearErrorHistory(): void {
-    this.errorHistory.length = 0;
+  dispose(): void {
+    this.subscriptions.forEach(subscription => subscription.dispose());
+    this.subscriptions.length = 0;
   }
 }
 ```
+
+Keep the failure visible until the user dismisses it with `dismissError()`, including when the router restores the previous route. This observer does not retry or redirect. Starting another navigation from every error event can create a loop if the recovery destination also fails. Matching exception text is also too fragile to decide whether a failure means “not found” or “not authorized.”
+
+Configure a route fallback for unknown addresses, return redirect instructions from guards for access decisions, and handle `load()` or `navigate()` at the caller with `try`/`catch`. An error observer supplements that handling; it cannot see input failures before a transition starts or every unknown-route rejection. See [error handling](./error-handling.md) for complete caller and recovery patterns.
 
 ### Navigation State Management
 
 Track and manage complex navigation states:
 
 ```typescript
-import { singleton, resolve, observable } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, NavigationStartEvent, NavigationEndEvent } from '@aurelia/router';
+import { singleton, resolve, type IDisposable } from '@aurelia/kernel';
+import { observable } from '@aurelia/runtime';
+import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, pathUrlParser } from '@aurelia/router';
 
 interface NavigationHistoryEntry {
   id: number;
@@ -531,60 +445,71 @@ interface NavigationHistoryEntry {
 }
 
 @singleton
-export class NavigationStateService {
+export class NavigationStateService implements IDisposable {
   @observable currentNavigation: NavigationHistoryEntry | null = null;
   @observable navigationHistory: NavigationHistoryEntry[] = [];
   @observable isNavigating: boolean = false;
 
-  private readonly router = resolve(IRouter);
+  private readonly subscriptions: IDisposable[];
   private pendingNavigations = new Map<number, NavigationHistoryEntry>();
 
   public constructor() {
     const events = resolve(IRouterEvents);
 
-    events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
-      const entry: NavigationHistoryEntry = {
-        id: event.id,
-        url: event.instructions.toUrl(false, this.router.options._urlParser, true),
-        timestamp: Date.now(),
-        trigger: event.trigger
-      };
+    this.subscriptions = [
+      events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
+        const entry: NavigationHistoryEntry = {
+          id: event.id,
+          url: event.instructions.toUrl(false, pathUrlParser, true),
+          timestamp: Date.now(),
+          trigger: event.trigger
+        };
 
-      this.pendingNavigations.set(event.id, entry);
-      this.currentNavigation = entry;
-      this.isNavigating = true;
-    });
+        this.pendingNavigations.clear();
+        this.pendingNavigations.set(event.id, entry);
+        this.currentNavigation = entry;
+        this.isNavigating = true;
+      }),
 
-    events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
-      const entry = this.pendingNavigations.get(event.id);
-      if (entry) {
-        entry.duration = Date.now() - entry.timestamp;
-        entry.url = event.finalInstructions.toUrl(true, this.router.options._urlParser, true); // Use final URL
-        
-        this.navigationHistory.push(entry);
-        this.pendingNavigations.delete(event.id);
-        
-        // Keep only last 50 entries
-        if (this.navigationHistory.length > 50) {
-          this.navigationHistory.shift();
+      events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
+        const entry = this.pendingNavigations.get(event.id);
+        if (entry) {
+          entry.duration = Date.now() - entry.timestamp;
+          entry.url = event.finalInstructions.toUrl(true, pathUrlParser, true); // Use final URL
+
+          this.navigationHistory.push(entry);
+          this.pendingNavigations.delete(event.id);
+
+          // Keep only last 50 entries
+          if (this.navigationHistory.length > 50) {
+            this.navigationHistory.shift();
+          }
         }
-      }
 
-      this.isNavigating = false;
-      this.currentNavigation = null;
-    });
+        this.isNavigating = false;
+        this.currentNavigation = null;
+      }),
 
-    events.subscribe('au:router:navigation-cancel', (event) => {
-      this.pendingNavigations.delete(event.id);
-      this.isNavigating = false;
-      this.currentNavigation = null;
-    });
+      events.subscribe('au:router:navigation-cancel', (event) => {
+        this.pendingNavigations.delete(event.id);
+        this.isNavigating = false;
+        this.currentNavigation = null;
+      }),
 
-    events.subscribe('au:router:navigation-error', (event) => {
-      this.pendingNavigations.delete(event.id);
-      this.isNavigating = false;
-      this.currentNavigation = null;
-    });
+      events.subscribe('au:router:navigation-error', (event) => {
+        this.pendingNavigations.delete(event.id);
+        this.isNavigating = false;
+        this.currentNavigation = null;
+      }),
+    ];
+  }
+
+  dispose(): void {
+    this.subscriptions.forEach(subscription => subscription.dispose());
+    this.subscriptions.length = 0;
+    this.pendingNavigations.clear();
+    this.currentNavigation = null;
+    this.isNavigating = false;
   }
 
   public getRecentNavigation(count: number = 10): NavigationHistoryEntry[] {
@@ -592,9 +517,9 @@ export class NavigationStateService {
   }
 
   public getAverageNavigationTime(): number {
-    const withDuration = this.navigationHistory.filter(entry => entry.duration);
+    const withDuration = this.navigationHistory.filter(entry => entry.duration !== undefined);
     if (withDuration.length === 0) return 0;
-    
+
     const total = withDuration.reduce((sum, entry) => sum + (entry.duration || 0), 0);
     return total / withDuration.length;
   }
@@ -632,7 +557,7 @@ export class Component implements IDisposable {
 
   constructor() {
     const events = resolve(IRouterEvents);
-    
+
     this.subscriptions.push(
       events.subscribe('au:router:navigation-start', (event) => {
         // Handle event
@@ -672,51 +597,40 @@ events.subscribe('au:router:navigation-end', (event) => {
 
 ### Debugging Router Events
 
-Enable detailed logging for debugging:
+Instantiate a diagnostic service during development when you need a correlated record of transitions:
 
 ```typescript
-import { resolve } from '@aurelia/kernel';
-import { IRouter, IRouterEvents } from '@aurelia/router';
+import { resolve, type IDisposable } from '@aurelia/kernel';
+import { IRouterEvents, pathUrlParser } from '@aurelia/router';
 
-export class RouterDebugService {
+export class RouterDebugService implements IDisposable {
+  private readonly subscriptions: IDisposable[];
+
   constructor() {
-    const router = resolve(IRouter);
     const events = resolve(IRouterEvents);
-    
-    if (process.env.NODE_ENV === 'development') {
-      events.subscribe('au:router:location-change', (event) => {
-        console.group(`🔄 Location Change #${event.id}`);
-        console.log('URL:', event.url);
-        console.log('Trigger:', event.trigger);
-        console.log('State:', event.state);
-        console.groupEnd();
-      });
+    this.subscriptions = [
+      events.subscribe('au:router:location-change', event => {
+        console.log('Browser location:', event.url, event.trigger, event.state);
+      }),
+      events.subscribe('au:router:navigation-start', event => {
+        console.log(`Navigation #${event.id} started:`, event.instructions.toString());
+      }),
+      events.subscribe('au:router:navigation-end', event => {
+        console.log(`Navigation #${event.id} completed:`,
+          event.finalInstructions.toUrl(true, pathUrlParser, true));
+      }),
+      events.subscribe('au:router:navigation-cancel', event => {
+        console.log(`Navigation #${event.id} canceled:`, event.reason);
+      }),
+      events.subscribe('au:router:navigation-error', event => {
+        console.error(`Navigation #${event.id} failed:`, event.error);
+      }),
+    ];
+  }
 
-      events.subscribe('au:router:navigation-start', (event) => {
-        console.group(`🚀 Navigation Start #${event.id}`);
-        console.log('Instructions:', event.instructions.toString());
-        console.log('Trigger:', event.trigger);
-        console.groupEnd();
-      });
-
-      events.subscribe('au:router:navigation-end', (event) => {
-        console.group(`✅ Navigation End #${event.id}`);
-        console.log('Final URL:', event.finalInstructions.toUrl(true, router.options._urlParser, true));
-        console.groupEnd();
-      });
-
-      events.subscribe('au:router:navigation-cancel', (event) => {
-        console.group(`❌ Navigation Cancel #${event.id}`);
-        console.log('Reason:', event.reason);
-        console.groupEnd();
-      });
-
-      events.subscribe('au:router:navigation-error', (event) => {
-        console.group(`💥 Navigation Error #${event.id}`);
-        console.error('Error:', event.error);
-        console.groupEnd();
-      });
-    }
+  dispose(): void {
+    this.subscriptions.forEach(subscription => subscription.dispose());
+    this.subscriptions.length = 0;
   }
 }
 ```

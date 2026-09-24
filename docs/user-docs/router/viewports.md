@@ -8,7 +8,7 @@ description: Learn about viewports in Aurelia router and how to create complex l
 **Bundler note:** These examples import '.html' files as raw strings (showing '?raw' for Vite/esbuild). Configure your bundler as described in [Importing external HTML templates with bundlers](../components/components.md#importing-external-html-templates-with-bundlers) so the imports resolve to strings on Webpack, Parcel, etc.
 {% endhint %}
 
-An `<au-viewport>` is the place where the router renders a routed component. A layout can own one viewport for its page, several sibling viewports for independently navigable panels, or children that declare viewports of their own. That structure lets navigation change the intended part of the interface while its surrounding layout remains active.
+An `<au-viewport>` is where the router renders a routed component. A layout can have a single viewport for its page or several viewports for panels that navigate independently. Routed components can declare their own viewports too, so a nested page can change within the same layout.
 
 ## Viewport Concepts Overview
 
@@ -41,12 +41,9 @@ The `<au-viewport>` element supports several configuration attributes:
 
 ## Hierarchical routing
 
-As seen in the ["Getting started"-tutorial](./getting-started.md), a component can define a set of children routes (using [either the `@route` decorator or the static properties](./configuring-routes.md#route-configuration-basics)).
-The child routes can also in turn define children routes of there own.
-Such route configuration are commonly known as hierarchical route configuration.
+As shown in the [getting started tutorial](./getting-started.md), a component can define child routes with [the `@route` decorator or static properties](./configuring-routes.md#route-configuration-basics). Each child can define routes of its own, forming a hierarchy.
 
-To understand it better, let us consider an example.
-We want to show a list of products, as links, and when a product link is clicked, we display the details of the product.
+In this example, clicking a link in a product list displays that product's details:
 
 ```
 +--------------------------------------------------------------------+
@@ -77,8 +74,7 @@ We want to show a list of products, as links, and when a product link is clicked
 
 ```
 
-To this end we want a viewport on the root component which is used to host the list component.
-The list component itself houses anther viewport, or more accurately a child viewport, which is then used to host the product details.
+The root component's viewport hosts the list. A child viewport inside the list hosts the product details.
 
 {% tabs %}
 {% tab title="my-app.ts" %}
@@ -112,9 +108,7 @@ export class MyApp {}
 {% endtab %}
 {% endtabs %}
 
-The route configuration for the root component consists of a single root for the list component and it also houses a single viewport.
-The `Products` component defines its own child route configuration and houses a child viewport.
-This is shown below.
+The root configures one route and one viewport for `Products`. The `Products` component then defines the child route and viewport for the details:
 
 {% tabs %}
 {% tab title="products.ts" %}
@@ -171,22 +165,15 @@ export class Products {
 {% endtab %}
 {% endtabs %}
 
-The `IProductService` injected to the `Products` is just some service used to populate the product list and has very little relevance to the discussion related to the router.
-And the extra style is added to display the list and the details side by side.
-And that's pretty much all you need for a simple hierarchical routing configuration.
-You can see this in action below.
+The routing pieces are the route configuration and the two viewports. `IProductService` supplies the sample data, and the styles place the list and details side by side. Try the complete example below:
 
 {% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport?ctl=1&embed=1&file=src/my-app.ts" %}
 
-If you open the example in a new tab, you can see how the URL paths are constructed.
-For example, when you click a product link, the URL is `/products/42/details`.
-This also means that when you try to navigate to that URL directly, the product details will be loaded from the start.
-It essentially creates shareable URLs.
+Open the example in a new tab to see the URL change. Selecting product 42 produces `/products/42/details`. A direct visit to that address opens the same product details, so users can share the link.
 
 ## Sibling viewports
 
-Two viewports are called siblings if they are under one parent routing hierarchy.
-Let us recreate the previous example but using sibling viewports this time.
+Sibling viewports share a parent routing context. Let's adapt the previous product example so the list and details are displayed in two viewports owned by the root:
 
 ```
 +--------------------------------------------------------------------+
@@ -211,10 +198,7 @@ Let us recreate the previous example but using sibling viewports this time.
 +--------------------------------------------------------------------+
 ```
 
-To this end, we want to viewports, housed side-by-side on the root component.
-We show the products' list on one viewport and the details of the selected product on the other one.
-
-To this end, let us start with the routing configuration on the root component.
+The root component owns two viewports: one for the product list and one for the selected product's details. It configures both routes:
 
 {% code title="my-app.ts" %}
 ```typescript
@@ -243,9 +227,7 @@ export class MyApp {}
 ```
 {% endcode %}
 
-Two routes, one for the list another for the details, are configured on the route.
-Next we need 2 viewports to on the root component.
-Let us get that done.
+With both routes configured, the next step is to add two viewports to the root template:
 
 {% code title="my-app.html" %}
 ```html
@@ -268,20 +250,13 @@ Let us get that done.
 ```
 {% endcode %}
 
-Even though we are not yet done, you can check out our work so far in the live example below.
+Before wiring up product selection, try this intermediate version. Both viewports show the product list, so the next step is to adjust their defaults:
 
 {% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport-duplicate?ctl=1&embed=1&file=src/my-app.html" %}
 
-If you run the example, you can immediately see a "problem" that both the viewports are loading the products' list.
-Although it is not an error per se, with natural use-case in mind, you probably like to avoid that.
-Let us fix this "problem" first.
+Each viewport's [`default` attribute](#specify-a-default-component-for-a-viewport) defaults to `''`, so both load the route configured for the empty path. In a layout with one viewport, this conveniently opens the default page without any extra viewport configuration. Here, we want only the first viewport to load the list.
 
-This is happening due to the default value of the [`default` attribute](#specify-a-default-component-for-a-viewport) of the `<au-viewport>` that is set to `''` (empty string).
-This default value enables loading the component associated with the empty path without any additional configuration.
-This default behavior makes sense as the usage of a single viewport at every routing hierarchy might be prevalent.
-
-However, we need a way to prevent this duplication.
-To this end, we can bind `null` to the `default` attribute of a viewport, which instructs the router that this particular viewport should be left out when it is empty (that is no component is targeted to be loaded in this viewport).
+Bind the second viewport's `default` to `null` to leave it empty until a navigation targets it:
 
 {% code title="my-app.html" %}
 ```diff
@@ -295,18 +270,17 @@ To this end, we can bind `null` to the `default` attribute of a viewport, which 
 ```
 {% endcode %}
 
-You can see in the live example below that this fixes the duplication issue.
+Run the updated example to check that the list appears once and the second viewport starts empty:
 
 {% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport-no-duplicate?ctl=1&embed=1&file=src/my-app.html" %}
 
-We still need a way to load the product details on the second viewport.
-Note that till now, the two viewports cannot be referentially differentiated from one another; that is if you want to load a component specifically on the first or on the second viewport, there is no way to do this for now.
-To this end, we need to [name the viewports](#named-viewports).
+The layout is ready, but the product links still need a way to select the second viewport. [Give each viewport a name](#named-viewports) so the links can target it explicitly:
 
 {% code title="my-app.html" %}
 ```diff
   <div class="content">
--   <au-viewport></au-viewport>
+    <!-- instruct the router to load the products component by default -->
+-   <au-viewport default="products"></au-viewport>
 -   <au-viewport default.bind="null"></au-viewport>
 +   <au-viewport name="list" default="products"></au-viewport>
 +   <au-viewport name="details" default.bind="null"></au-viewport>
@@ -314,8 +288,7 @@ To this end, we need to [name the viewports](#named-viewports).
 ```
 {% endcode %}
 
-Although we name the viewports semantically, it is not necessary, and you are free to choose viewport names, as you like.
-Lastly, we need to use the [`load` attribute](./navigating.md#using-the-load-custom-attribute) in the `Products` component to construct the URL, or more accurately the routing instruction correctly, such that the details of the product is loaded on the `details` viewport.
+These names are application-defined. Finally, use the [`load` attribute](./navigating.md#using-the-load-custom-attribute) in `Products` to open the selected product in `details`:
 
 {% code title="products.html" %}
 ```diff
@@ -328,23 +301,19 @@ Lastly, we need to use the [`load` attribute](./navigating.md#using-the-load-cus
 ```
 {% endcode %}
 
-Using the `load` attribute we are instructing the router to load the `Product` (using the route-id `details`) component, with the `id` parameter of the route set to the `id` of the current `item` in the repeater, in the `details` viewport.
-With the `context.bind:null`, we are instructing the router to perform this routing instruction on the root routing context (refer [the documentation](./navigating.md#using-the-load-custom-attribute) for the `load` attribute for more details).
-Now, when someone clicks a product link the associated details are loaded in the `details` viewport.
-You can see this in action below.
+Each link loads the `details` route with the current item's `id`, targeting the `details` viewport. `context.bind:null` selects the root context, which owns both viewports. See the [`load` documentation](./navigating.md#using-the-load-custom-attribute) for more about choosing a context.
+
+In the completed example below, select a product to load its details beside the list:
 
 {% embed url="https://stackblitz.com/edit/router-lite-sibling-viewport?ctl=1&embed=1&file=src/products.html" %}
 
-If you open the example in a new tab, you can see how the URL paths are constructed.
-For example, when you click a product link, the URL is `/details/42@details+products@list`.
+Open the example in a new tab to see the generated URL. Selecting product 42 produces `/details/42@details+products@list`.
 
 ## Named viewports
 
-As seen in [the sibling viewports example](#sibling-viewports), viewports can be named.
-It is particularly useful when there are multiple [sibling viewports](#sibling-viewports) present.
-Note that specifying a value for the `name` attribute of viewport is optional, and the default value is simply `'default'`.
+The `name` attribute identifies a viewport within its routing context, as shown in [the sibling viewports example](#sibling-viewports). Names are useful when several [sibling viewports](#sibling-viewports) can accept a route. The attribute is optional and defaults to `'default'`.
 
-In the following example, we have the `main` viewport for our main content and then another viewport called `sidebar` for our sidebar content.
+This layout names its viewports `main` and `sidebar`:
 
 ```html
 <main>
@@ -357,8 +326,7 @@ In the following example, we have the `main` viewport for our main content and t
 
 ### Using viewport name for routing instructions
 
-The names can be used to instruct the router to load a specific component to a specific named viewport.
-To this end the path syntax is as follows:
+An instruction can target a viewport by name:
 
 ```
 {path}@{viewport-name}
@@ -368,7 +336,7 @@ The live example below shows this.
 
 {% embed url="https://stackblitz.com/edit/router-lite-named-viewport?ctl=1&embed=1&file=src/my-app.html" %}
 
-Note the `load` attributes in the `anchor` elements.
+The example's links use these `load` instructions:
 
 ```html
 <a load="products@list+details/${id}@details">Load products@list+details/${id}@details</a>
@@ -385,12 +353,12 @@ A link inside the rendered `Products` component starts in that component's conte
 </a>
 ```
 
-The parameter object keeps dynamic values separate from `@` and `+` syntax. To target sibling viewports programmatically, use `IContextRouter.load()` in their owner, or select the owning context explicitly. Viewport names do not select a global application-wide outlet.
+The parameter object keeps dynamic values separate from `@` and `+` syntax. To target sibling viewports programmatically, use `IContextRouter.load()` in their owner, or select the owning context explicitly. Viewport names are local to that context.
 
-[Application URL navigation](./application-url-navigation.md) resolves references against the complete serialized application location. It does not select an individual active viewport as its URL base. Use contextual instructions when the intent is to update a particular panel.
+[Application URL navigation](./application-url-navigation.md) uses the complete application URL as its base. To update a particular panel, use an instruction from the context that owns it.
 
 {% hint style="info" %}
-For more details about navigating and instructions for router, please refer the [documentation](./navigating.md).
+See [Navigating](./navigating.md) for the supported instruction forms.
 {% endhint %}
 
 ### Specifying a viewport name on a route
@@ -421,12 +389,11 @@ import { Product } from './product';
 export class MyApp {}
 ```
 
-In this example, we are specifying that the `Products` component needs to be loaded into the `list` viewport and the `Product` component need to be loaded into the `details` viewport.
-You can also see this in the live example below.
+This configuration loads `Products` into `list` and `Product` into `details`:
 
 {% embed url="https://stackblitz.com/edit/router-lite-named-viewport-route-config?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note the `anchor`s in the example that show that the viewport names can now be dropped from the routing instructions.
+The links can now omit the viewport names:
 
 ```html
 <nav>
@@ -441,51 +408,39 @@ Note the `anchor`s in the example that show that the viewport names can now be d
 
 ## Reserve viewports for components using `used-by`
 
-The `used-by` attribute on the `au-viewport` component can be thought of as (almost) the parallel of the [`viewport` configuration option](#specifying-a-viewport-name-on-a-route) on route configuration.
-Using this property on a viewport, you can "reserve" a viewport for particular component(s).
-In other words, you are instructing the router that no other components apart from those specified can be loaded into a viewport with `used-by` set.
+Set `used-by` to restrict which components a viewport accepts. It complements the route's [`viewport` option](#specifying-a-viewport-name-on-a-route), which specifies where that route loads:
 
 ```html
 <au-viewport used-by="ce-two"></au-viewport>
 <au-viewport used-by="ce-one"></au-viewport>
 ```
 
-In this example, we are instructing the router to reserve the first viewport for `ce-two` custom element and the reserve the second viewport for `ce-one` custom element.
-You can see this in the live example below, by clicking the links and observing how the components are loaded into the reserved viewports.
+The first viewport accepts only `ce-two`, and the second accepts only `ce-one`. Click the links in the example to see which viewport loads each component:
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by?ctl=1&embed=1&file=src/my-app.ts" %}
 
-You can reserve a viewport for more than one component.
-To this end, you can use comma-separated values for the `used-by` attribute.
+To accept several components, separate their names with commas:
 
 ```html
 <au-viewport used-by="ce-one,ce-two"></au-viewport>
 <au-viewport used-by="ce-one"></au-viewport>
 ```
 
-The live example below shows this in action
+The live example below uses both names:
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by-multiple-values?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Although the `used-by` attribute feels like a markup alternative of the [`viewport` configuration option](#specifying-a-viewport-name-on-a-route) on route configuration, there is a subtle difference.
-Having the `used-by` property on a particular viewport set to `X` component, does not prevent a preceding viewport without any value for the `used-by` property to load the `X` component.
-This is shown in action in the example below.
+`used-by` restricts this viewport; the component can still load into another viewport that accepts it. In this example, the first viewport has no `used-by` restriction and can load either component. Set the route's [`viewport` option](#specifying-a-viewport-name-on-a-route) to choose its default target.
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-used-by-with-default?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note how clicking the links load the components also in the first viewport without any value for the `used-by`.
+Clicking either link loads its component into the first available viewport.
 
 ## Specify a default component for a viewport
 
-When no route is loaded into a viewport, a 'default' route is loaded into the viewport.
-For every viewport, such defaults can be configured using the `default` attribute.
-It is optional to specify a value for this attribute and the empty string (`''`) is used as the default value for this property.
-This explains why the route with empty path (when exists) is loaded into a viewport without the `default` attribute set, as seen in the [sibling viewports example](#sibling-viewports).
+An empty viewport loads its `default` route when no navigation instruction targets it. The attribute defaults to `''`, so it loads the route for the empty path if one is configured. The [sibling viewports example](#sibling-viewports) shows this behavior.
 
-Another path can be used to override the default value of the `default` attribute.
-The following example shows four viewports with varied values for the `default` attribute.
-Whereas the first viewport might be the usual viewport with empty path, the other three specifies different default values.
-These components are loaded into the viewport, by default when the application is started.
+Set `default` to another path to choose a different initial component. These four viewports load their respective defaults when the application starts:
 
 ```html
 <div class="content">
@@ -509,25 +464,15 @@ The example below shows this in action.
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-default?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note that `default` attribute can also be bound to `null`, to instruct the router not to load any component into this viewport when no component is scheduled (either by explicit instruction or implicit availability check) to be loaded into the viewport.
-This is useful when you have more than one viewports and you want to load the empty path (assuming it is configured) in a particular viewport.
-In that case, you can bind `null` to the `default` attribute of the other viewport.
-To see examples of this, please refer to the [sibling viewport](#sibling-viewports) section.
+Bind `default` to `null` to leave an untargeted viewport empty. With multiple viewports, this lets you choose which one initially loads the route for the empty path. See [sibling viewports](#sibling-viewports) for an example.
 
 ## Specify a fallback component for a viewport
 
-If a route cannot be recognized, a fallback route is looked for and loaded (when configured) into the viewport.
-Such fallback can be configured using the `fallback` property of the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path).
-`au-viewport` also offers a similar `fallback` attribute, using which a fallback component can be configured for a particular viewport.
-The `fallback` attribute is similar to its route configuration counterpart, with only one difference.
-The `fallback` attribute in the `au-viewport`, when configured, always takes precedence over the `fallback` route configuration option.
-This is shown in the live example below.
+When the router cannot recognize a route, it loads a fallback if one is configured. You can set `fallback` in the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path) or on an individual `<au-viewport>`. The viewport attribute takes precedence:
 
 {% embed url="https://stackblitz.com/edit/router-lite-viewport-fallback?ctl=1&embed=1&file=src/my-app.html" %}
 
-A function for the value of `fallback` is also supported.
-An example looks like as follows, where the example redirects the user to `NF1` component if an attempt to load a path `/foo` is made.
-Every other attempt to load an unknown path is results loading the `NF2` component.
+`fallback` also accepts a function. This example selects `NF1` for the unknown path `/foo` and `NF2` for every other unknown path:
 
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
@@ -615,15 +560,15 @@ Opening Analytics targets `main`, as specified in its route configuration. These
 
 ### Conditional Viewport Rendering
 
-An instruction needs an available viewport that can accept its target. If `if.bind` removes that viewport, links to it cannot rely on CSS or permissions state to create a routing destination automatically.
+An instruction needs an available viewport that can accept its target. When `if.bind` removes a viewport, make sure the condition is true and the viewport has rendered before navigating into it.
 
-Keep a stable viewport when different authorized pages occupy the same region, and enforce access in [routing guards](./routing-lifecycle.md). If the layout itself must change, make the corresponding viewports available before navigating into them. A hidden link or a conditional viewport is not an authorization boundary.
+Keep the viewport in place when different pages occupy the same region. Enforce access in [routing guards](./routing-lifecycle.md); hiding a link or conditionally rendering a viewport does not protect the route.
 
 ### Dynamic Viewport Creation
 
-Dynamic panels need both a component destination and a routing decision: should their arrangement be part of the URL? Use named viewports when panel destinations should participate in navigation, browser history, and deep links. Use [dynamic composition](../getting-to-know-aurelia/dynamic-composition.md) for panels whose lifetime and selection belong entirely to application state.
+Use named viewports when users should be able to reopen a set of panels from its URL or with Back/Forward. Use [dynamic composition](../getting-to-know-aurelia/dynamic-composition.md) when the application controls which panels are open independently of navigation.
 
-When creating viewports through a repeater or conditional template, coordinate their creation with navigation. Give them stable names in the owning context, make them available before targeting them, and verify that a direct visit can reconstruct the same layout. Changing the DOM alone does not define how a saved address should recreate the panels.
+When creating viewports through a repeater or conditional template, give them stable names in the owning context and wait until they are available before navigating into them. Test a direct visit to the resulting URL: the application must recreate the viewports needed to display it.
 
 ### Layout with Auxiliary Content Areas
 
@@ -643,11 +588,11 @@ A tools-only action can target just `tools` from the same owning context:
 await contextRouter.load({ component: 'inspector', viewport: 'tools' });
 ```
 
-Changing a panel's CSS visibility does not unload its routed component. Likewise, `default.bind="null"` controls what happens when an untargeted viewport is empty; it is not a command to clear an already loaded panel. Decide whether closing an auxiliary region is a visual change or a navigation change, and verify its Back/Forward behavior accordingly.
+CSS can hide a panel while keeping its routed component alive. `default.bind="null"` prevents an empty, untargeted viewport from loading its default route; it does not clear an already loaded panel. Decide whether closing the region should also navigate, then check that Back/Forward behaves as expected.
 
 ### Responsive Viewport Layouts
 
-Prefer changing the layout around stable viewports when desktop and mobile show the same routed content. CSS can rearrange the regions without replacing their route ownership:
+When desktop and mobile show the same routed content, keep the viewports in place and rearrange them with CSS:
 
 ```html
 <div class="workspace-layout">
@@ -670,17 +615,17 @@ Prefer changing the layout around stable viewports when desktop and mobile show 
 }
 ```
 
-If mobile needs a genuinely different route layout, test direct entry into each layout as well as switching viewport size while a child is active. Removing and recreating a viewport involves component lifecycles, not merely resizing its contents.
+If mobile needs a different route layout, test direct entry into each layout and resize the window while a child is active. Removing and recreating a viewport runs component lifecycles, which may affect the page's state.
 
 ## Best Practices for Viewports
 
 ### Viewport Naming Conventions
 
-Choose names that identify regions in the owning layout, such as `main`, `list`, `details`, or `tools`. A second layout may reuse the same names because targeting is contextual. Use explicit names when several viewports can accept the same route; reserve `used-by` for constraints on which components a viewport accepts.
+Choose names that identify regions in the owning layout, such as `main`, `list`, `details`, or `tools`. Each layout can use those same names in its own context. Use explicit names when several viewports can accept a route, and `used-by` to limit which components a viewport accepts.
 
 ### Performance Considerations
 
-Lazy-load components whose code is not needed at startup. Choose [transition plans](./transition-plans.md) for the desired component lifetime when revisiting a route. Hiding a region with CSS keeps its component alive, and `fallback=""` is not a memory-management mechanism.
+Lazy-load components whose code is not needed at startup. Use [transition plans](./transition-plans.md) to control whether revisiting a route reuses or replaces its component. A component hidden by CSS is still alive; setting `fallback=""` does not release it.
 
 Use `default.bind="null"` for optional viewports that should begin empty:
 
@@ -696,4 +641,4 @@ A viewport fallback handles an unrecognized route. It is not a general catch for
 <au-viewport name="main" default="home" fallback="not-found"></au-viewport>
 ```
 
-Register the fallback destination in the relevant route context. For navigation exceptions, guard cancellation, and recovery, see [error handling](./error-handling.md).
+Register the fallback destination in the relevant route context. See [error handling](./error-handling.md) for help recovering from a failed or canceled navigation.

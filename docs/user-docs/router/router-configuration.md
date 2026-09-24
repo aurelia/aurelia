@@ -1,10 +1,10 @@
 ---
-description: Configure URL modes, deployment paths, hash documents, link handling, history, and shared router behavior.
+description: Configure how the router works with browser URLs, links, and history.
 ---
 
 # Router configuration
 
-Configure the router once at application startup with `RouterConfiguration.customize()`. Route declarations describe which components are available; these options control their URL representation, browser history, link behavior, and shared router services.
+Configure the router at application startup with `RouterConfiguration.customize()`. These options determine how routes appear in the browser and how the router handles links and history. Declare the routes themselves separately in route configuration.
 
 ```typescript
 import Aurelia from 'aurelia';
@@ -25,7 +25,7 @@ Pass only the values you want to change. `basePath` configures the location mana
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `useUrlFragmentHash` | `boolean` | `false` | Use hash routes (`#/path`) instead of history-mode paths. |
+| `useUrlFragmentHash` | `boolean` | `false` | Put routes after the URL's hash (`#/path`). |
 | `preserveHashDocument` | `boolean` | `false` | In hash mode, retain the current document's pathname and query when publishing routes and links. |
 | `useHref` | `boolean` | `true` | Intercept eligible clicks on router-managed `href` links. Disabling it leaves href rewriting enabled. |
 | `historyStrategy` | `'push' \| 'replace' \| 'none' \| (instructions) => HistoryStrategy` | `'push'` | Choose how successful navigation updates browser history. |
@@ -70,7 +70,7 @@ RouterConfiguration.customize({
 });
 ```
 
-The browser link for application route `/reports` then points to `/portal/reports` in history mode or `/portal/#/reports` in hash mode. Continue to declare routes and call `navigate()` in application coordinates, without adding `/portal` to the reference.
+The browser link for application route `/reports` then points to `/portal/reports` in history mode or `/portal/#/reports` in hash mode. Declare routes and call `navigate()` with application paths such as `/reports`; the router adds `/portal` when it writes a browser URL.
 
 For tenant-specific deployments, supply the deployment path from the host's startup configuration:
 
@@ -83,7 +83,7 @@ RouterConfiguration.customize({
 });
 ```
 
-Derive this value from a known hosting contract. The current `location.pathname` can include a deep route, so using it wholesale as a base would give different results on reload. `basePath` changes router URLs; it does not change the browser's base for scripts, stylesheets, or other assets.
+Use the deployment path supplied by your host. The current `location.pathname` can include a deep route, so copying it as the base would give different results on reload. `basePath` changes router URLs; it does not change the browser's base for scripts, stylesheets, or other assets.
 
 ## Preserve a specific document in hash mode
 
@@ -130,12 +130,11 @@ Aurelia
 
 `HostLocationManager` must implement the [location-manager interface](./api-reference.md#ilocationmanager): listen for location changes, publish `LocationChangeEvent` through `IRouterEvents`, read the current route, publish history entries, and add or remove the deployment base. These operations must agree on the URL form. An adapter that only writes URLs will not support direct entry or Back/Forward navigation correctly.
 
-Use the built-in browser manager for ordinary browser deployments. Configure its URL mode, base path, and hash-document policy through the options above. `RouterOptions._urlParser` is internal and is not a supported configuration hook; casting options to a writable type does not make it part of the public API.
+Use the built-in location manager for ordinary browser deployments and configure it with the options above. `RouterOptions._urlParser` is internal; changing it is unsupported, including through a type cast.
 
 ## Customizing title
 
-A `buildTitle` function can be used to customize the [default behavior of building the title](./configuring-routes.md#setting-the-title).
-When configured, `buildTitle` owns document title generation for every navigation. Route configuration titles, assigned route-node titles, and navigation options are still available on the `Transition`, but the builder decides how to use them.
+Supply a `buildTitle` function to customize the [document title](./configuring-routes.md#setting-the-title) for every navigation. The function receives a `Transition` with access to route configuration titles, assigned route-node titles, and navigation options. It decides how to combine them.
 For example, give the root and a child route their own titles:
 
 ```typescript
@@ -153,8 +152,7 @@ import { route, IRouteViewModel } from '@aurelia/router';
 export class MyApp implements IRouteViewModel {}
 ```
 
-With this route configuration in place, when we navigate to `/home`, the default-built title will be `Home | Aurelia`.
-We can use the following `buildTitle` function to use ` - ` as the separator when users navigate to `/` or `/home` route.
+With this configuration, navigating to `/home` produces the default title `Home | Aurelia`. The following `buildTitle` function uses ` - ` as the separator for `/` and `/home`:
 
 ```typescript
 // main.ts
@@ -170,7 +168,7 @@ au.register(
 );
 ```
 
-Check out the following live example. You might need to open the demo in a new tab to observe the title changes.
+Open the example in a new tab to see the document title change.
 
 {% embed url="https://stackblitz.com/edit/router-lite-buildtitle?ctl=1&embed=1&file=src/main.ts" %}
 
@@ -233,8 +231,7 @@ import { AppTask, Aurelia } from '@aurelia/runtime-html';
 })().catch(console.error);
 ```
 
-This customization in conjunction with the previously shown routing configuration will cause the title to be `Aurelia - Startseite` when user is navigated to `/` or `/home` route and the current locale is `de`.
-Here we are assuming that the i18n resource for the `de` locale contains the following.
+With the `de` locale active, the title for `/` and `/home` becomes `Aurelia - Startseite`. This assumes the locale contains the following translations:
 
 ```json
 {
@@ -244,7 +241,7 @@ Here we are assuming that the i18n resource for the `de` locale contains the fol
 }
 ```
 
-The following example demonstrate the title translation.
+Try changing the locale in this example:
 
 {% embed url="https://stackblitz.com/edit/router-lite-translate-title?ctl=1&embed=1&file=src/main.ts" %}
 
@@ -286,7 +283,7 @@ Choose whether a successful navigation creates a history entry, replaces the cur
 
 {% embed url="https://stackblitz.com/edit/router-lite-historystrategy-push?ctl=1&embed=1&file=src/main.ts" %}
 
-The main configuration can be found in the `main.ts`.
+Configure the strategy in `main.ts`:
 
 ```typescript
 import { RouterConfiguration } from '@aurelia/router';
@@ -307,7 +304,7 @@ import { MyApp as component } from './my-app';
 })().catch(console.error);
 ```
 
-To demonstrate the `push` behavior, there is a small piece of code in the `my-app.ts` that listens to router events to create informative text (the `history` property in the class) from the browser history object that is used in the view to display the information.
+In `my-app.ts`, a router event subscription updates the `history` text displayed in the view:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -326,7 +323,7 @@ export class MyApp {
 }
 ```
 
-As you click the `Home` and `About` links in the example, you can see that the new states are being pushed to the history, and thereby increasing the length of the history.
+Click between `Home` and `About` to add history entries and watch the history length increase.
 
 ### `replace`
 
@@ -348,7 +345,7 @@ You can use the [navigation options](./navigating.md#using-navigation-options) t
 
 ### Return a dynamic history strategy
 
-`RouterOptions.historyStrategy` is declared as `ValueOrFunc<HistoryStrategy>`, so you can supply a function whenever you call `RouterConfiguration.customize`. That callback receives the `ViewportInstructionTree` for the pending transition, allowing you to branch on route metadata:
+Set `historyStrategy` to a function when it depends on the destination. The function receives the transition's `ViewportInstructionTree`:
 
 ```typescript
 import {
@@ -403,7 +400,7 @@ RouterConfiguration.customize({
 
 ## Disable navigation model generation
 
-If you're not using the navigation model feature for building menus, you can disable it to improve performance:
+Disable the navigation model if your menus do not use it:
 
 ```typescript
 RouterConfiguration.customize({
@@ -411,11 +408,11 @@ RouterConfiguration.customize({
 })
 ```
 
-This prevents the router from generating navigation model data, which can be useful in applications with many routes where you don't need the navigation model functionality.
+The router then skips generating that data.
 
 ## Error recovery configuration
 
-With `restorePreviousRouteTreeOnError: true` (the default), the router attempts to restore the previous route tree after a transition throws. This concerns router state; it cannot undo application effects such as a completed network request or a mutation performed by a lifecycle hook.
+With `restorePreviousRouteTreeOnError: true` (the default), the router attempts to restore the previous route tree after a transition throws. Your application must handle any effects of the failed transition, such as a completed network request or data changed by a lifecycle hook.
 
 ```typescript
 RouterConfiguration.customize({
@@ -423,17 +420,17 @@ RouterConfiguration.customize({
 });
 ```
 
-A guard returning `false` is a cancellation, not an error. Setting this option to `false` disables automatic restoration after errors; it is not required to receive or log them. See [error handling](./error-handling.md) for the distinction and recovery patterns.
+A guard returning `false` cancels navigation. Setting this option to `false` disables automatic restoration after errors; error reporting works with either setting. See [error handling](./error-handling.md) for cancellation and recovery behavior.
 
 ## Observing navigation state while configuring the router
 
-Use `ICurrentRoute` for the completed route and `IRouterEvents` for navigation events. These are application services rather than configuration options. Resolve them from the running application's container, not a separate container created for logging.
+Resolve `ICurrentRoute` from the running application's container to read the completed route, or `IRouterEvents` to subscribe to navigation events. A separate container created for logging would not observe that application's router.
 
 See [current route](./current-route.md#observe-completed-navigation) for a subscription with a matching cleanup hook, and [router events](./router-events.md) for attempts, cancellations, and errors.
 
 ## Treat query parameters as path parameters
 
-When the `treatQueryAsParameters` property in the router configuration is set to `true`, the router will treat query parameters as path parameters. The default value is `false`.
+Set `treatQueryAsParameters: true` to include query parameters with path parameters. The default is `false`.
 
 {% hint style="warning" %}
 `treatQueryAsParameters` is deprecated and will be removed in the next major version.
@@ -441,11 +438,11 @@ When the `treatQueryAsParameters` property in the router configuration is set to
 
 ## Use eager loading for route configurations
 
-When the `useEagerLoading` property in the router configuration is set to `true`, the router will eagerly load all route configurations upfront when the application starts. The default value is `false`.
+Set `useEagerLoading: true` to load all route configurations at application startup. The default is `false`.
 
-Consider the following scenario. A parent route with paths `[ 'parent', 'parent/:id' ]` configures a child route with path `['child']`. Given this scenario, if when a user tries to navigate to the path `/parent/child`, the router might 'recognize' the `child` segment as a value for the `:id` parameter of the parent route, instead of recognizing it as the child route. This problem is the artifact of how the route-recognizer works under the lazy-loading scenario. The recognizer tries to match the path hungrily, without having any information about the child routes.
+For example, a parent with paths `[ 'parent', 'parent/:id' ]` has a child route with path `['child']`. When recognizing `/parent/child` lazily, the router may match `child` as the parent's `:id` value before it knows about the child route.
 
-To avoid this problem, you can set the `useEagerLoading` property to `true` in the router configuration. Under this configuration, the router will make all the route information available to the route-recognizer when the application starts, thereby avoiding the aforementioned problem.
+Eager loading gives the recognizer the complete route hierarchy before navigation, so it can match the child route:
 
 ```typescript
 RouterConfiguration.customize({
@@ -453,7 +450,7 @@ RouterConfiguration.customize({
 })
 ```
 
-For the above mentioned paths-constellation, under eager-loading the router will essentially create the following routing table.
+For these paths, eager loading produces the following routing table:
 
 | Path                 | Components                                                            |
 |----------------------|-----------------------------------------------------------------------|
@@ -463,7 +460,7 @@ For the above mentioned paths-constellation, under eager-loading the router will
 | `parent/:id/child`   | [ParentComponent with the (required) `:id` parameter, ChildComponent] |
 
 
-As all the routing paths contribute to create a single routing table, the usage of empty paths are discouraged under eager-loading. For example, if instead of `child`, the child route was configured with an empty path `''`, then the routing table would have contained two identical paths `parent` and `parent/:id`, which is not allowed. To this end, apply the following pattern, when using eager-loading.
+All paths share one routing table, so avoid empty child paths with eager loading. A child path of `''` in this example would duplicate the parent's `parent` and `parent/:id` entries, which is not allowed. Use a named child path:
 
 ```diff
   @route({
@@ -496,7 +493,7 @@ Keep host links native with `external`, and use `load` or explicitly registered 
 <a load="reports">Application reports</a>
 ```
 
-This preserves the hosting document; it does not give multiple routers independent ownership of one hash or browser history stack. Likewise, `historyStrategy: 'replace'` replaces the current entry rather than isolating the application from the host. Select the history strategy according to the Back/Forward behavior the host and application intend to provide.
+The host and application still share one hash and browser history stack. `preserveHashDocument` keeps the hosting document's pathname and query; `historyStrategy: 'replace'` updates the shared history's current entry. Choose the history strategy together with the host's Back/Forward behavior.
 
 Setting `useHref: false` disables click interception by the `href` custom attribute but still lets it rewrite route links. Use `external` whenever the browser should receive the authored href unchanged.
 

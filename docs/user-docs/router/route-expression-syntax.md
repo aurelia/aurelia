@@ -6,7 +6,7 @@ description: Reference for contextual routing instructions, including child and 
 
 Routing expressions describe which routes to load, how they nest, and which viewports receive them. Use them with `load`, the router-managed `href` attribute, `IRouter.load()`, or `IContextRouter.load()`.
 
-Expressions start from a **routing context**. For references relative to the current application URL, use [`navigate()` or `url`](./application-url-navigation.md). URL-relative navigation still recognizes the router's serialized viewport syntax, but `../` follows URL segments rather than traversing the component context hierarchy.
+Expressions start from a **routing context**. For references relative to the current application URL, use [`navigate()` or `url`](./application-url-navigation.md). Those APIs also recognize serialized viewport syntax. Their `../` follows URL segments; in a contextual instruction, it selects a parent routing context.
 
 ## Quick Reference
 
@@ -25,7 +25,7 @@ Expressions start from a **routing context**. For references relative to the cur
 | `?query` | Set query parameters for the navigation | `search?q=aurelia` |
 | `#fragment` | Set the route fragment | `docs#section-1` |
 
-The `:id`, `:id?`, and `*path` forms belong in **route configuration**. Navigation supplies their values, for example `users/42`, rather than navigating to the declaration `users/:id`.
+The `:id`, `:id?`, and `*path` forms belong in **route configuration**. Navigate with the actual values: a route configured as `users/:id` accepts a path such as `users/42`.
 
 ## Grammar
 
@@ -60,7 +60,7 @@ await contextRouter.load('products'); // IContextRouter: this component's contex
 await router.load('about');          // IRouter: the root context
 ```
 
-Route IDs take precedence when an ID can resolve the instruction. Avoid giving one route an ID that is another route's literal path in the same context. Development warning **AUR3179** identifies provable single-segment collisions; it does not change that precedence. See [configuring routes](./configuring-routes.md).
+Route IDs take precedence when an ID can resolve the instruction. Avoid giving one route an ID that is another route's literal path in the same context. Development warning **AUR3179** reports single-segment collisions the router can identify. The ID still takes precedence. See [configuring routes](./configuring-routes.md).
 
 ### Absolute vs Relative Paths
 
@@ -86,7 +86,7 @@ Use `/` to continue through a route and its descendants:
 <a load="admin/users/42/edit">Edit user 42</a>
 ```
 
-Route configuration determines the boundaries. For example, `users/:id/edit` can be the path of one route. It does not necessarily instantiate three nested components. When a route owns child routes, the remaining path is resolved in that child's routing context.
+Route configuration determines where each component begins. For example, `users/:id/edit` can be the path of a single route. When a route owns child routes, the router resolves the rest of the path in that child's routing context.
 
 ## Sibling Routes (Parallel Navigation)
 
@@ -113,7 +113,7 @@ A leading `+`, as in `+sidebar`, is accepted by the parser but does not enable a
 <a load="settings@sidebar">Settings</a>
 ```
 
-Use one composed instruction or instruction array when several viewports should change together. Their navigation semantics come from the targeted viewports, not a leading `+`.
+Use one composed instruction or instruction array when several viewports should change together. The router updates the viewports that instruction targets.
 
 ## Grouping with Parentheses
 
@@ -168,7 +168,7 @@ await contextRouter.load({ component: 'products', viewport: 'main' });
 <a load="dashboard@main/analytics@content+summary@sidebar">Dashboard</a>
 ```
 
-Names select viewports within the relevant routing context, not globally across the application.
+Names select viewports within the relevant routing context. Other contexts can reuse those names.
 
 ## Inline Parameters
 
@@ -180,7 +180,7 @@ Append parameter values to the route name, before any viewport name:
 <a load="product(42)">Product 42, positional parameter</a>
 ```
 
-Named parameters make the association explicit. A structured instruction avoids constructing the parameter expression yourself:
+Named parameters show which value belongs to each parameter. You can also supply them as an object:
 
 ```typescript
 await contextRouter.load({ component: 'product', params: { id: '42' } });
@@ -192,7 +192,7 @@ await contextRouter.load({ component: 'product', params: { id: '42' } });
 <a load="product(id=42)@main+cart(items=3)@sidebar">Product and cart</a>
 ```
 
-For dynamic values, bind `params` rather than interpolating a value that might contain instruction punctuation:
+Bind `params` for dynamic values so the router can encode any instruction punctuation they contain:
 
 ```html
 <a load="route: product; params.bind: { id: productId }">View product</a>
@@ -249,7 +249,7 @@ A route can constrain a dynamic segment:
 { path: 'orders/:id{{^\\d+$}}', component: OrderDetail }
 ```
 
-The doubled backslash belongs to the TypeScript string. Validate domain-specific requirements in the application as well; matching a numeric path does not establish that an order exists or that the user may access it.
+The doubled backslash belongs to the TypeScript string. The application must still check that the order exists and that the user may access it.
 
 ## Query Strings
 
@@ -392,7 +392,7 @@ The application supplies the modal presentation and focus behavior; `@modal` sel
 
 ## Programmatic Equivalents
 
-Structured instructions make viewport and parameter ownership explicit:
+Put each route's `params`, `viewport`, and `children` together in a structured instruction:
 
 ```typescript
 // products(id=42)@main/details

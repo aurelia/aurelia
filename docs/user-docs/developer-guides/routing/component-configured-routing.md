@@ -4,7 +4,7 @@ description: Keep a feature's child routes and navigation beside the layout that
 
 # Component configured routing
 
-A feature layout can own its routes just as the application root does. Use this when several pages share a shell, navigation, or state that should remain in place while the child page changes.
+A feature layout can own its routes just as the application root does. The layout stays mounted while its child page changes, keeping shared navigation visible and holding state for the feature.
 
 For example, a user profile can host an information page and an items page:
 
@@ -38,6 +38,6 @@ These examples use Aurelia's file conventions to pair each class with its templa
 { path: 'profile', component: UserProfile }
 ```
 
-At `/profile`, the empty child path selects `UserInfo`. At `/profile/items`, the nested viewport shows `UserItems` while `UserProfile` remains mounted. Both links resolve in the profile layout's routing context. The `info` link selects the route ID for the empty path, returning to `/profile`.
+At `/profile`, the empty child path selects `UserInfo`. At `/profile/items`, the nested viewport shows `UserItems` within the existing `UserProfile` layout. Both links resolve in the profile layout's routing context. The `info` link selects the route ID for the empty path, returning to `/profile`.
 
-This is ordinary child routing in `@aurelia/router`; the parent and child route tables use the same configuration model. Read [Child routing](../../router/child-routing.md) for parameters, parent navigation, and programmatic navigation through `IContextRouter`.
+The parent and child route tables use the same configuration model. See [Child routing](../../router/child-routing.md) to pass parameters, navigate to a parent, or navigate from code with `IContextRouter`.

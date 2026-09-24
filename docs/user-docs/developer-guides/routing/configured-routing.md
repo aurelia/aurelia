@@ -4,7 +4,7 @@ description: Map application paths to components with @aurelia/router.
 
 # Configured routing
 
-Define the routes owned by a layout with the `@route` decorator from `@aurelia/router`. The application root usually owns the top-level routes; a feature layout can declare its own children in exactly the same way.
+Define a layout's routes with the `@route` decorator from `@aurelia/router`. The application root usually owns the top-level routes. A feature layout can define child routes with the same decorator.
 
 ```typescript
 // my-app.ts
@@ -20,7 +20,7 @@ import { route } from '@aurelia/router';
 export class MyApp {}
 ```
 
-The accompanying template supplies a viewport and links to the routes:
+The template contains a viewport and links to the routes:
 
 ```html
 <!-- my-app.html -->

@@ -1,10 +1,10 @@
 ---
-description: Diagnose unexpected destinations, stale query-driven views, link behavior, and deployment problems.
+description: Find out why a link opens the wrong page, query changes leave stale data, or a route fails after deployment.
 ---
 
 # Router Troubleshooting Guide
 
-When a link goes somewhere unexpected, first identify what its destination is relative to. `load` and router-managed `href` select routes from the owning routing context. `url` and `IRouter.navigate()` resolve references against the last completed application URL. A native `href` addresses a browser document. The same relative text can mean something different in each case.
+When a link opens the wrong page, check how its destination is resolved. `load` and router-managed `href` select routes from the owning routing context. `url` and `IRouter.navigate()` resolve references against the last completed application URL. A native `href` addresses a browser document. The same relative text can mean something different in each case.
 
 ## A sidebar link changes destination on deeper pages
 
@@ -16,7 +16,7 @@ Use a contextual link in the admin layout:
 <a load="reports">Reports</a>
 ```
 
-If the sidebar instead uses `<a url="reports">`, it follows the current application URL. At `/admin/items/42/details`, that reference resolves to `/admin/items/42/reports`. This behavior is useful for a link whose destination really does depend on the displayed URL.
+With `<a url="reports">`, the sidebar follows the current application URL. At `/admin/items/42/details`, that reference resolves to `/admin/items/42/reports`. Use this form when the destination should change with the displayed URL.
 
 For a fixed application-root destination, use `<a url="/admin/reports">` after [registering `UrlCustomAttribute`](#a-url-link-has-no-href). Keep `load` for layout-owned menus, especially when you need its active-route state. See [Choosing a navigation API](navigating.md).
 
@@ -47,7 +47,7 @@ If you intended URL-segment navigation, use `IRouter.navigate('../1')`. If you a
 
 A query-only navigation updates `ICurrentRoute.query`. It usually reuses the current component without calling `loading` again, because the route path and route parameters have not changed.
 
-If `loading` owns the refresh, request lifecycle invocation on that navigation:
+To call `loading` again for this navigation, set `transitionPlan` to `'invoke-lifecycles'`:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -79,7 +79,7 @@ A route-level `transitionPlan` alone does not override reuse when the path and r
 
 ## A `url` link has no `href`
 
-`UrlCustomAttribute` is an explicit registration. `RouterConfiguration` registers `load`, `href`, and `au-viewport`, but does not register `url`.
+Register `UrlCustomAttribute` alongside `RouterConfiguration`. The router configuration includes `load`, `href`, and `au-viewport`; `url` needs this separate registration:
 
 ```typescript
 import Aurelia from 'aurelia';
@@ -120,7 +120,7 @@ Inspect the rendered `href`, then check who owns the click:
 - An earlier handler calling `preventDefault()` prevents the router from taking over the click.
 - A guard returning `false` cancels routing. It does not request a native navigation instead.
 
-Give each element one navigation owner. In particular, `url` combined with `load` or a router-managed `href` produces **AUR3274**. Prefer one clear declaration:
+Choose how each link should navigate. Combining `url` with `load` or a router-managed `href` produces **AUR3274**:
 
 ```html
 <a load="reports">Layout-owned route</a>
@@ -153,7 +153,7 @@ RouterConfiguration.customize({
 
 A link to application route `/reports` then retains the document pathname and query, producing `/portal/shell.html?tenant=acme#/reports`. The `tenant` value belongs to the document query; it is not a route query parameter.
 
-`preserveHashDocument` defaults to `false` and only affects hash routing. With the default, publication continues to use the configured base path. Apply the same configuration on fresh loads and new tabs. See [Router configuration](router-configuration.md) for deployment options.
+`preserveHashDocument` defaults to `false` and only affects hash routing. With the default, the router builds URLs from the configured base path. Apply the same configuration on fresh loads and new tabs. See [Router configuration](router-configuration.md) for deployment options.
 
 ### A route ID shadows another route's path
 
@@ -166,7 +166,7 @@ Consider these routes in the same context:
 
 The literal `reports` can select the first route by ID, including on incoming URL recognition. A structured instruction selecting `reports-page` can display the second component, but its published `/reports` URL still encounters that ambiguity on reload.
 
-The development warning **AUR3179** identifies provable ID/path collisions. Give the archive route a non-conflicting ID, and update links that use it. The warning does not change route precedence or repair the configuration. An ID matching one of its own route's path aliases is fine.
+The development warning **AUR3179** reports ID/path collisions the router can detect. Give the archive route a non-conflicting ID, and update links that use it. The warning does not change route precedence or repair the configuration. An ID matching one of its own route's path aliases is fine.
 
 ### A static path contains routing punctuation
 
@@ -199,13 +199,13 @@ try {
 }
 ```
 
-See [Application URL navigation](application-url-navigation.md) for the input and output boundary.
+See [Application URL navigation](application-url-navigation.md) for accepted references and the URLs they produce.
 
 ## The fragment changes, but the page does not scroll
 
 `router.navigate('#details')` updates router fragment state. It does not implement scrolling to an element with `id="details"`.
 
-If the fragment represents a section in your application, read it from the destination `RouteNode` during a lifecycle hook or from `NavigationEndEvent.finalInstructions.fragment`, then scroll after the relevant content is rendered. Content loaded asynchronously may require a later application-controlled point. Keep section scrolling separate from route recognition; changing to hash routing does not add it automatically.
+If the fragment represents a section in your application, read it from the destination `RouteNode` during a lifecycle hook or from `NavigationEndEvent.finalInstructions.fragment`. Scroll once that section has rendered, allowing for any content it loads asynchronously. Your application handles section scrolling in both history and hash routing.
 
 ## A route does not match, or its viewport stays empty
 
@@ -273,4 +273,4 @@ Compare the attempted instructions with the completed event's `finalInstructions
 
 Separate download time from work done by lifecycle hooks. Lazy imports defer component code until it is needed, while promises returned from `canLoad`, `loading`, and activation hooks keep navigation waiting. Moving an awaited request from `canLoad` to `loading` changes its purpose, but does not make that request non-blocking.
 
-Use `loading` when data must be ready before displaying the page. For progressive data, let the page activate and present its own pending, error, and retry states. The [outcome recipes](outcome-recipes.md) show both data loading and query-driven refresh.
+Use `loading` when data must be ready before displaying the page. To show the page sooner, let it activate while data loads. It can show a loading message and offer retry if the request fails. The [outcome recipes](outcome-recipes.md) show both data loading and query-driven refresh.

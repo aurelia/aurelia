@@ -234,7 +234,7 @@ Aurelia.register(
 );
 ```
 
-Subscribe through `IRouterEvents` to inspect transition inputs and outcomes. Put the subscription in the application root if you need to observe the initial navigation; a page constructed during that navigation cannot observe its already-published start event.
+Subscribe through `IRouterEvents` to see what the router was asked to load and how the navigation ended. To observe the initial navigation, subscribe in the application root. By the time the destination page is constructed, the router has already published the start event.
 
 ```typescript
 import { type IDisposable, resolve } from '@aurelia/kernel';
@@ -268,9 +268,9 @@ export class MyApp {
 }
 ```
 
-When a link leads somewhere unexpected, identify its reference point first. `load` and router-managed `href` use the owning routing context; `url` and `IRouter.navigate()` use the last completed application URL. A `../` instruction can therefore mean a different destination in the two models. Inspect the rendered href as well as the authored value.
+When a link leads somewhere unexpected, check where the router starts resolving it. `load` and router-managed `href` use the owning routing context; `url` and `IRouter.navigate()` use the last completed application URL. A `../` instruction can therefore lead to different destinations depending on which API you use. Inspect the rendered href as well as the authored value.
 
-Application-reference validation can throw before a transition starts. Handle a programmatic request with `try { await router.navigate(reference); } catch (error) { /* report the failure */ }`; a rejected reference does not necessarily produce a navigation-error event. A guard returning `false` is cancellation, not an error.
+An invalid application reference can throw before a transition starts, without producing a navigation-error event. Handle errors around the call itself: `try { await router.navigate(reference); } catch (error) { /* report the failure */ }`. If a guard returns `false`, the router cancels the navigation.
 
 [Router troubleshooting](../router/troubleshooting.md) covers query-only refreshes, native document links, base paths, and other common navigation problems. See [Router events](../router/router-events.md) for the full event contract.
 

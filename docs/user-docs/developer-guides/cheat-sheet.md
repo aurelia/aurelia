@@ -910,7 +910,9 @@ export class ProductNavigation {
 }
 ```
 
-`IRouter.load()` starts at the root by default; `isActive()` takes an explicit context, supplied here from the root of the active route tree. For a routed feature's own child routes, use `IContextRouter`. Its leading `../` selects a parent routing context, which may span several URL segments. In the app root, resolve `IContextRouter` [lazily after the context is established](../router/navigating.md#use-icontextrouter-for-context-aware-navigation).
+`IRouter.load()` starts at the root by default. `isActive()` takes an explicit context; this example uses the root of the active route tree.
+
+For a routed feature's own child routes, use `IContextRouter`. In a `load` instruction, a leading `../` selects a parent routing context, which may span several URL segments. In the app root, resolve `IContextRouter` [lazily after the context is established](../router/navigating.md#use-icontextrouter-for-context-aware-navigation).
 
 `IRouter.navigate()` applies URL-segment rules to application references; omit the deployment prefix and outer hash-routing marker from its input.
 
@@ -946,7 +948,7 @@ export class ProductNavigation {
 <a href="/downloads/catalog.pdf" external>Catalog</a>
 ```
 
-For automatic active-link styling, register `RouterConfiguration.customize({ activeClass: 'active' })`; no per-link active binding is required. Once bound, `load` writes a browser href that includes the deployment base, so the resulting anchor supports copying and opening in another tab. A raw `load` attribute does not provide an href before Aurelia runs.
+To style active links automatically, register `RouterConfiguration.customize({ activeClass: 'active' })`. This applies the class to each active link without a per-link binding. Once bound, `load` writes a browser href that includes the deployment base, so users can copy the link or open it in another tab. Aurelia must run before `load` can provide that href.
 
 For application-URL links, explicitly register the optional `UrlCustomAttribute`:
 
@@ -969,7 +971,7 @@ Aurelia
 <a url="43">Next product</a>
 ```
 
-Use one navigation attribute per anchor. `url` does not expose `load`'s active-route state. Router-managed `href` remains supported as shorthand for contextual instructions; `useHref: false` disables its click interception but still generates hrefs. Use `external` when you need the authored href preserved.
+Use one navigation attribute per anchor. Choose `load` when you need active-route state; `url` does not expose it. Router-managed `href` is shorthand for contextual instructions. With `useHref: false`, it generates hrefs and leaves the browser to handle clicks. Use `external` to keep the href as authored.
 
 ## Validation
 

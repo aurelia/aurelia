@@ -4,11 +4,11 @@ description: Inspect router instruction trees, generate paths with an explicit c
 
 # Advanced router API reference
 
-The public navigation APIs cover most application code. Use this page when you need to inspect instruction trees, generate contextual paths, or correlate transitions with browser history. For application URL references and browser-ready links, use [`navigate()` and `createHref()`](application-url-navigation.md).
+Use these APIs to inspect the router's work or generate paths from a particular routing context. For application URL references and browser-ready links, use [`navigate()` and `createHref()`](application-url-navigation.md).
 
 ## Instruction trees (`ViewportInstructionTree`)
 
-Router events expose the instructions for a transition. An instruction tree retains information that a string alone cannot carry, including the selected routing context. You can construct one through the router:
+Router events expose a transition's instruction tree, which includes the selected routing context. You can also construct a tree through the router:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -27,7 +27,7 @@ The final two arguments are the navigation options and parent route path. The th
 
 ### Convert an instruction tree to a path or URL
 
-`toPath()` supplies a diagnostic instruction path. It omits query and fragment information, so it is not a faithful snapshot of a whole navigation request.
+`toPath()` returns an instruction path for diagnostics. It omits the query and fragment; keep the tree when you need the whole navigation request.
 
 For low-level serialization, `toUrl(isFinalInstruction, parser, isRooted)` accepts the exported `pathUrlParser` or `fragmentUrlParser`. Use an explicit parser to choose the serialized representation; neither supplies an origin or deployment prefix.
 
@@ -59,13 +59,13 @@ export class NavigationLogger {
 - `parser` determines path or hash-form serialization.
 - `isRooted: true` asks the parser for rooted output. The exact prefix depends on the chosen parser.
 
-`RouterOptions._urlParser` is internal and absent from the published types. Do not use private parser mutation as a configuration recipe. For ordinary browser links from application references, `createHref()` applies the router's publication rules for you.
+For browser links, `createHref()` applies the configured URL mode and deployment base to an application reference. `RouterOptions._urlParser` is internal and absent from the published types; changing it is unsupported.
 
 ## Path generation (`router.generatePath`)
 
 `generatePath()` formats route instructions without navigating. It returns a string or a promise of a string when route configuration needs loading. Its result is relative to the **context selected by the instruction prefixes**.
 
-The starting context is the root for `IRouter.generatePath()` unless a context is supplied. `IContextRouter.generatePath()` starts at its bound context. A leading `../` selects a parent and is consumed; it does not remain in the generated text.
+`IRouter.generatePath()` starts at the root unless you supply a context. `IContextRouter.generatePath()` starts at its bound context. A leading `../` selects a parent, then disappears from the generated text.
 
 For example, from the child of a `/parent` layout, suppose sibling route ID `c2` has path `child/:id`:
 
@@ -97,15 +97,15 @@ export class ChildPage {
 }
 ```
 
-`generateRootedPath()` returns `parent/child/42` in history mode and `/#/parent/child/42` in hash mode for this example. These are established router instruction forms, not universally browser-ready hrefs. In particular, the history form does not contain a leading slash that would independently select the root. Consume it through the root router or an explicit root context.
+`generateRootedPath()` returns `parent/child/42` in history mode and `/#/parent/child/42` in hash mode for this example. Pass these router instructions to the root router or use an explicit root context. The history form has no leading slash to select the root on its own, and neither form is a general-purpose browser href.
 
-For a same-component link, passing the original `../c2` instruction and its parameters directly to `load` avoids this intermediate conversion. The attribute keeps the selected instruction context for clicks and produces the browser href separately. See [path generation in the navigation guide](navigating.md#path-generation) for the full contract.
+For a link in the same component, pass the original `../c2` instruction and its parameters directly to `load`. The attribute uses the selected context for clicks and writes the browser href. See [path generation in the navigation guide](navigating.md#path-generation) for the full contract.
 
-Do not feed hash-form generated instructions into `navigate()` as though they were application URL references. The [application URL guide](application-url-navigation.md) distinguishes those values from `createHref()` output.
+For `navigate()`, supply an application URL reference without the hash-routing wrapper. See the [application URL guide](application-url-navigation.md) for accepted inputs and the browser hrefs produced by `createHref()`.
 
 ## Active state checks (`router.isActive`)
 
-`isActive()` checks route instructions within a selected context. This is useful when building navigation UI whose state follows route identity:
+Use `isActive()` to check whether a route is active within a selected context, for example when highlighting a navigation item:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -124,7 +124,7 @@ For ordinary menus, the [navigation model](navigation-model.md) and the `load` a
 
 ## Route tree and transitions
 
-`router.routeTree`, `router.currentTr`, and `router.isNavigating` expose the current tree, transition, and navigation status. Inspect them for diagnostics; changing their internals is not a supported way to navigate or cancel work. Use guards for a navigation decision and [router events](router-events.md) for notifications.
+Inspect `router.routeTree` to see the active routes, `router.currentTr` for the transition, and `router.isNavigating` to check whether navigation is in progress. Use guards to accept or cancel navigation and [router events](router-events.md) to observe it. Changing the tree or transition internals is unsupported.
 
 ## Managed browser history state (`AuNavId` / `ManagedState`)
 
@@ -136,6 +136,6 @@ await router.navigate('/reports', {
 });
 ```
 
-The same option is available to `load`. The router carries the caller's state without adding its marker to the original application object. On Back/Forward, the restored state is available through `NavigationStartEvent.managedState`.
+The same option is available to `load`. The router adds its marker to the history entry and leaves your original state object untouched. On Back/Forward, read the restored state through `NavigationStartEvent.managedState`.
 
-If you deliberately amend an existing browser entry with `history.replaceState`, merge with its current state so the router's marker survives. A `historyStrategy: 'none'` navigation writes no entry. See [router state management](router-state-management.md) for reading and managing per-entry metadata.
+When updating an existing browser entry with `history.replaceState`, merge with its current state to preserve the router's marker. A `historyStrategy: 'none'` navigation writes no entry. See [router state management](router-state-management.md) for reading and managing per-entry metadata.

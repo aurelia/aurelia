@@ -4,9 +4,9 @@ description: Navigate from the current application URL and create links that wor
 
 # Application URL navigation
 
-Use `router.navigate()` or the `url` attribute when the destination follows the current application URL. They work from a service, a global toolbar, or a component without requiring that caller to select a routing context. A sibling page, a new query, or a fixed application address can all be expressed as URL references.
+Use `router.navigate()` or the `url` attribute to resolve a destination from the current application URL. A toolbar can replace the last path segment or change the query string without selecting a routing context.
 
-Contextual navigation remains useful for a different job: a layout linking to its own child routes. Inside an `/admin` layout, while `/admin/items/42/details` is displayed:
+A layout can use `load` to link to its own child routes. The choice depends on where the link should start. Inside an `/admin` layout, while `/admin/items/42/details` is displayed:
 
 | Intention | Link | Application destination |
 | --- | --- | --- |
@@ -14,9 +14,9 @@ Contextual navigation remains useful for a different job: a layout linking to it
 | Open a sibling of the displayed page | `url="summary"` | `/admin/items/42/summary` |
 | Open a fixed application address | `url="/admin/reports"` | `/admin/reports` |
 
-These examples assume the corresponding routes are configured. `load` keeps the layout as its reference point as descendants navigate. A relative `url` link follows the changing application location. Both are useful; choose the reference point that expresses the destination you intend.
+These examples assume the corresponding routes are configured. The `load` link keeps pointing to the layout's Reports page as you browse its descendants. A relative `url` link follows the changing application address.
 
-The `url` attribute requires explicit registration, shown below. For contextual instructions, route identities, active navigation menus, and targeted viewports, see [Navigating](navigating.md).
+Register the `url` attribute as shown below. See [Navigating](navigating.md) for links that use route IDs or a particular routing context.
 
 ## Declarative links
 
@@ -41,9 +41,9 @@ You can then write application-URL links:
 <a url.bind="destination">Open destination</a>
 ```
 
-The attribute writes a real `href`. When navigation succeeds, it refreshes relative destinations using the new application URL. A normal click follows the destination captured when that link was updated; it does not reinterpret the original relative text midway through another navigation. Modified clicks, downloads, canceled clicks, and targets belonging to another browsing context retain native browser behavior.
+The attribute writes a real `href` and refreshes relative destinations after each successful navigation. A normal click uses the destination calculated when the link was last updated, even if another navigation is pending. The click handler does not resolve the original relative text again. It respects canceled clicks and leaves modified clicks, downloads, and links to another browsing context to the browser.
 
-Use one router navigation owner per element. Combining `url` with `load` or a router-managed `href` raises [AUR3274](../developer-guides/error-messages/router/aur3274.md). The `url` attribute generates its own `href`; you do not author both. It has no active-route output. Use `load` and its [active status](navigating.md#active-status) for route-aware menu styling.
+Put one routing attribute on each element. The `url` attribute generates its own `href`; authoring it alongside `load` or a router-managed `href` raises [AUR3274](../developer-guides/error-messages/router/aur3274.md). To highlight the active menu item, use `load` and its [active status](navigating.md#active-status). The `url` attribute has no active-route output.
 
 ## Navigate from code
 
@@ -71,7 +71,7 @@ export class ItemToolbar {
 }
 ```
 
-`navigate()` participates in the usual router lifecycle and returns `Promise<boolean>`. A guard veto returns `false`. Invalid input can throw synchronously before a transition starts, and transition failures can reject the promise; `try` around `await` handles both. A canceled router navigation is not a request to fall back to native document navigation.
+`navigate()` runs through the usual router lifecycle and returns `Promise<boolean>`. When a guard cancels navigation, the result is `false`; respect that decision to stay on the current page. Falling back to document navigation would bypass the guard. Invalid input can throw synchronously before a transition starts, and transition failures can reject the promise. Put the call inside `try` and await its result to handle both.
 
 Behavior options control history, caller state, title, title separator, and the transition plan:
 
@@ -106,15 +106,15 @@ From that application location:
 | `./` | `/users/` |
 | `/` | `/` |
 
-A leading `/` starts at the application root, so pass `/users/admins`, not `/app/users/admins`. Relative references use URL-segment resolution. Contextual `../` instead selects a parent routing context, which may consume several URL segments.
+A leading `/` starts at the application root. For the deployment above, pass `/users/admins`; the router adds `/app/` to the browser link. Relative URL references work segment by segment. Contextual `../` selects a parent routing context, which may cover several URL segments.
 
 The base is the **last successfully completed router location**. Pending, canceled, or failed navigation does not become the base. Successful navigation with `historyStrategy: 'none'` does become the base even though it leaves the address bar unchanged.
 
-Navigation normalizes the resolved reference into the router's canonical location. A trailing slash or trailing `/index.html` is not retained as a directory marker for the next relative navigation. For example, after successfully navigating to `/users/`, the next reference `admins` resolves from canonical `/users` to `/admins`. To address a child explicitly, use `/users/admins` or the appropriate contextual instruction. The `/users/` entry in the table describes reference resolution before that navigation normalization.
+After navigation, the router uses a canonical address with any trailing slash or `/index.html` removed. For example, successful navigation to `/users/` establishes `/users` as the next base, so a subsequent `admins` reference resolves to `/admins`. To address a child explicitly, use `/users/admins` or the appropriate contextual instruction. The `/users/` entry in the table shows the resolved reference before this normalization.
 
-Reference resolution retains the established incoming-address interpretation, including route IDs and viewport syntax. It does not introduce path-first precedence. A route ID that shadows another route's literal path can therefore affect links and direct entry; [AUR3179](../developer-guides/error-messages/router/aur3179.md) explains the collision. [AUR3180](../developer-guides/error-messages/router/aur3180.md) covers raw routing punctuation in static path text. Structured parameter values are encoded by the router; do not pre-encode them.
+The router recognizes the resolved address using its existing route-ID and viewport rules. Route IDs can take precedence over literal paths, so an ID that shadows another route's path can affect links and direct entry; [AUR3179](../developer-guides/error-messages/router/aur3179.md) explains the collision. [AUR3180](../developer-guides/error-messages/router/aur3180.md) covers raw routing punctuation in static path text. Pass original values in structured parameters and let the router encode them; pre-encoding changes the values.
 
-Relative references operate on the whole application address. They do not select an individual named viewport as their base. Use contextual or structured `load` for a targeted viewport update.
+Relative references use the whole application address as their base. To update a particular named viewport, use contextual or structured `load`.
 
 ## Create a browser-facing href
 
@@ -124,9 +124,9 @@ Relative references operate on the whole application address. They do not select
 const href = router.createHref('/reports?period=month');
 ```
 
-It does not navigate, run guards, or check that the route exists. The output applies the deployment and hash/history publication rules, including encoding from the configured URL serializer. It is a snapshot; use the `url` attribute when a relative link should update after navigation.
+The returned href includes the deployment prefix and any hash-routing marker, with encoding handled by the configured URL serializer. `createHref()` only builds that string: it does not navigate, run guards, or check whether the route exists. Use the `url` attribute when a relative link should update after navigation.
 
-A browser href and an application reference are different values. Do not pass the output back into `navigate()`:
+Keep the application reference for `navigate()` and use the generated href in browser links. Passing the href back to `navigate()` can fail because it contains browser-address details:
 
 ```typescript
 const destination = '/reports?period=month';
@@ -140,11 +140,11 @@ If you bind a created href to an anchor, mark it `external` to keep the register
 <a href.bind="href" external>Open reports as a document</a>
 ```
 
-This example uses native document navigation on an ordinary click. Use `<a url="/reports?period=month">` for router-handled navigation with the same browser-link affordances, after registering `UrlCustomAttribute`.
+An ordinary click on this link loads the document through the browser. To let the router handle the click, register `UrlCustomAttribute` and use `<a url="/reports?period=month">`. Visitors can still copy that link or open it in a new tab.
 
 ## Refresh a page when its query changes
 
-A query-only reference replaces the query string. Copy existing query parameters when some must survive:
+A query-only reference replaces the query string. To keep existing filters while changing the page number, copy the current query first:
 
 ```typescript
 const query = new URLSearchParams(currentRoute.query);
@@ -152,7 +152,7 @@ query.set('page', '2');
 await router.navigate(`?${query}`, { transitionPlan: 'invoke-lifecycles' });
 ```
 
-The transition-plan override matters when `loading()` owns data acquisition. A query change updates `ICurrentRoute`, but the default reuse behavior does not rerun `loading()` for an otherwise unchanged route. A route-level `transitionPlan` does not override that same-path/parameters reuse check; the per-navigation option above does.
+If the page fetches its data in `loading()`, request that hook with the per-navigation `transitionPlan` shown above. A query change updates `ICurrentRoute`, but by default the router reuses an otherwise unchanged route without rerunning `loading()`. A `transitionPlan` set on the route does not override this reuse rule; set it on the navigation call.
 
 Here is a routed results page whose backend returns an array of `{ id, name }` objects. It keeps filters in the query, refreshes data during navigation, and handles cancellation separately from errors:
 
@@ -211,11 +211,11 @@ export class Reports implements IRouteViewModel {
 <button type="button" click.trigger="goToPage(page + 1)">Next</button>
 ```
 
-Use your application's data service and response validation at the HTTP boundary. The example reports failures from its own pagination actions; errors during initial entry need the application's [navigation error handling](error-handling.md).
+In your application, fetch through your data service and validate the server response before using it. This example reports failures from its own pagination actions. Handle errors during initial entry through the application's [navigation error handling](error-handling.md).
 
-The override above applies to these method calls. It does not make later Back/Forward events or declarative `url` links invoke `loading()`. When data must follow every successful query change, use the [query-driven results recipe](outcome-recipes.md#query-parameter-state-management). The `url` attribute has no transition-plan option. Choose one owner for refreshing the data so the same query does not trigger duplicate requests.
+The override applies to these method calls. Later Back/Forward events and declarative `url` links still follow the default reuse rule, and `url` has no transition-plan option. To refresh data after every successful query change, use the [query-driven results recipe](outcome-recipes.md#query-parameter-state-management). Choose one place to trigger the fetch so the same query does not start duplicate requests.
 
-A fragment-only reference such as `#details` changes the router fragment. It does not automatically scroll to an element. An application that uses fragments for scrolling must implement that behavior after the intended content is available.
+A fragment-only reference such as `#details` changes the router fragment. To scroll to an element, add that behavior in your application after the intended content is available; the router does not scroll automatically.
 
 ## Keep the hosting document in hash mode
 
@@ -231,15 +231,15 @@ Aurelia.register(
 ).app(MyApp).start();
 ```
 
-Using the same imports as the registration example above, this configuration can publish a Reports destination as:
+Using the imports from the registration example above, this configuration produces a Reports link such as:
 
 ```text
 /app/shell.html?theme=dark#/reports?period=month
 ```
 
-`theme=dark` belongs to the hosting document. `period=month` belongs to the route. With the option enabled, publication preserves the current document's pathname and query and replaces its hash; it does not turn the document query into route query parameters. A document with no hash starts at the application's default route.
+Here, `theme=dark` belongs to the hosting document and `period=month` belongs to the route. With the option enabled, the router keeps the current document's pathname and query and replaces its hash. Document query values do not become route query parameters. Opening a document with no hash starts at the application's default route.
 
-The default is `false`, preserving the existing publication behavior based on `basePath` or the base href. The option has no effect in history mode. Use the same configuration when entering the app directly, not only when creating a link. A server request normally contains no fragment, so this option does not give the server information about the browser's hash route. See [router configuration](router-configuration.md) for deployment details.
+The option defaults to `false`, which builds addresses from `basePath` or the base href. It has no effect in history mode. Apply the configuration at startup so it also governs direct visits and reloads. A normal HTTP request contains no fragment, so the server cannot read the browser's hash route from it. See [router configuration](router-configuration.md) for deployment details.
 
 ## Leave other documents to the browser
 
@@ -250,4 +250,4 @@ Use native links for downloads, other pages, and external sites:
 <a href="https://example.com/help" external>Help center</a>
 ```
 
-Use `location.assign()` or `location.replace()` for programmatic document navigation. Scheme-qualified and protocol-relative references, such as `https://example.com/help` and `//example.com/help`, are rejected by `navigate()`, `createHref()`, and `url` with [AUR3273](../developer-guides/error-messages/router/aur3273.md). The new operations navigate within the application; they do not select another hosting document.
+Use `location.assign()` or `location.replace()` to open another document from code. `navigate()`, `createHref()`, and `url` accept references within the application. Scheme-qualified and protocol-relative references, such as `https://example.com/help` and `//example.com/help`, raise [AUR3273](../developer-guides/error-messages/router/aur3273.md).

@@ -1,12 +1,12 @@
 ---
-description: Build route-driven applications with nested layouts, named viewports, and navigation that follows your intent.
+description: Define routes on your layouts and choose how links find their destinations.
 ---
 
 # @aurelia/router
 
-Aurelia's router connects URLs to your application's components. Each feature can own its routes, layout, navigation, and loading behavior. A parent layout stays in place as its child pages change; multiple named viewports let a single address describe a split view. Route guards and asynchronous lifecycle hooks coordinate the transition before the new view is shown.
+Aurelia's router connects URLs to your application's components. A layout defines the pages it hosts and stays on screen as you move between them. Each page can load the data it needs and decide whether a navigation may proceed.
 
-Navigation can follow the same ownership. A menu in an administration layout can link to that layout's reports page regardless of which detail page is open. Elsewhere, a control can deliberately navigate relative to the current application URL. Aurelia supports both, with an explicit choice of reference point.
+Links can use that layout as their starting point. An administration menu's Reports link then leads to the same page, even while a nested detail page is displayed. A control on the detail page can use the current URL to open a related page. You choose which starting point each link needs.
 
 ## Routes belong with their layouts
 
@@ -39,7 +39,7 @@ export class AdminLayout {}
 
 If the application mounts this layout at `admin`, its reports page is available at `/admin/reports`. The `load="reports"` link selects a route owned by `AdminLayout`. Opening `/admin/items/42/details` does not change where that menu link leads.
 
-The same model extends to nested feature areas, lazy-loaded components, and [named viewports](../../router/viewports.md#named-viewports). You can keep child routes beside their layout instead of maintaining every route in one root table.
+Keep each feature's child routes beside its layout. The root application only needs a route to that layout, which can be loaded on demand. For a split view, a layout can host several [named viewports](../../router/viewports.md#named-viewports).
 
 ## Choose what a destination is relative to
 
@@ -49,9 +49,9 @@ The same model extends to nested feature areas, lazy-loaded components, and [nam
 | Resolve an address against the current application URL | `url="summary"` | `IRouter.navigate('summary')` |
 | Open another document or leave the application | Native `href`; use `external` for an internal-looking address | Browser navigation APIs |
 
-`load` supports route IDs, parameters, named viewports, and active-link state. The router-managed `href` attribute is also supported as shorthand for contextual routing instructions; it follows the same reference point as `load`.
+Use `load` to select a route by ID, supply its parameters, or target a named viewport. It can also mark the active menu item. The router-managed `href` attribute accepts contextual routing instructions with the same starting point as `load`.
 
-Use `url` when URL relationships are what you intend. At `/admin/items/42/details`, `url="summary"` leads to `/admin/items/42/summary`, while `url="/admin/reports"` always selects the application root's `/admin/reports`. The router adds your deployment prefix and, when configured, the outer hash-routing marker. These application references do not include either one.
+Use `url` to navigate from the current application address. At `/admin/items/42/details`, `url="summary"` leads to `/admin/items/42/summary`, while `url="/admin/reports"` always selects the application root's `/admin/reports`. Write these references without a deployment prefix or outer hash-routing marker; the router adds them when it builds the browser link.
 
 The `url` attribute is opt-in. Add `UrlCustomAttribute` alongside your router registration:
 
@@ -66,7 +66,7 @@ Aurelia
   .start();
 ```
 
-Once bound, `load` and `url` write real `href` values to anchors, so visitors can copy a link or open it in another tab. They handle ordinary in-app clicks while preserving native modified-click, target, and download behavior. For a separate document, make that ownership explicit:
+Once bound, `load` and `url` write real `href` values to anchors, so visitors can copy a link or open it in another tab. The router handles ordinary in-app clicks. The browser handles modified clicks, downloads, and links targeting another browsing context. Mark links to separate documents with `external`:
 
 ```html
 <a href="/downloads/guide.pdf" external>Download the guide</a>
@@ -78,7 +78,7 @@ Read [Navigation](../../router/navigating.md) for contextual links and route ins
 
 A routed component can load the data it needs in `loading`, reject or redirect an incoming navigation in `canLoad`, and ask about unsaved work in `canUnload`. These hooks can be asynchronous. Shared hooks let a feature apply the same policy across several pages.
 
-The router also exposes current route information, a navigation model for menus, and typed events through `IRouterEvents`. These give loading indicators, titles, analytics, and other application services a common account of navigation. [Transition plans](../../router/transition-plans.md) control whether a component is reused, has its routing hooks invoked again, or is replaced.
+Build menus from the navigation model and read the completed route through `ICurrentRoute`. Typed events from `IRouterEvents` let you show a loading indicator during navigation or record a page view when it finishes. [Transition plans](../../router/transition-plans.md) control whether a component is reused, has its routing hooks invoked again, or is replaced.
 
 ## Find your next guide
 

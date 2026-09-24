@@ -4,7 +4,7 @@ description: Router API contracts for navigation, configuration, route state, ev
 
 # API Reference
 
-Use this page to look up navigation methods, configuration options, route state, and router resources. For choosing between routing-context navigation and application URL navigation, start with [navigating](./navigating.md). Type excerpts focus on the members relevant to each task; package declarations provide the full overload sets.
+Look up an API's signature and behavior here. To choose how to navigate, start with [navigating](./navigating.md). The type excerpts show the members discussed on this page; package declarations provide the full overload sets.
 
 ## Core Router
 
@@ -103,7 +103,7 @@ The base is the canonical location of the last successful navigation, including 
 
 Put query and fragment data in the reference. The behavior options accepted by `navigate()` do not include `context`, `queryParams`, or `fragment`.
 
-`createHref()` returns an output for the browser, not another input for `navigate()`. Keep the original application reference if both operations are needed:
+Use the result of `createHref()` in a browser link. Keep the original application reference for `navigate()`:
 
 ```typescript
 const reference = '/reports?period=month';
@@ -147,13 +147,13 @@ export class AdminLayout {
 }
 ```
 
-Here `reports` is a child route available to `AdminLayout`. It does not become relative to a deeper page merely because that page is active.
+Here `reports` is a child route available to `AdminLayout`. The lookup starts in that layout even when a deeper page is active.
 
 ### Generated paths
 
-`IRouter.generatePath()`, `IContextRouter.generatePath()`, and `IRouteContext.generateRelativePath()` return a path relative to the context selected by the instruction prefixes. A leading `../` selects a parent routing context and is consumed; it is not retained in the generated result. Replay that path from the selected context, which may differ from the caller's original context.
+`IRouter.generatePath()`, `IContextRouter.generatePath()`, and `IRouteContext.generateRelativePath()` return a path relative to the context selected by the instruction prefixes. A leading `../` selects a parent routing context, then disappears from the generated result. Replay that path from the selected context, which may differ from the caller's original context.
 
-For a path to consume through the root router, use `IRouteContext.generateRootedPath()` and `IRouter.load()` with its default root context. These generated paths omit the deployment base; history-mode output is not necessarily slash-prefixed, and hash-mode rooted output includes `/#/`. They are not interchangeable with browser-ready hrefs or application URL references.
+To generate a path for the root router, use `IRouteContext.generateRootedPath()` and pass the result to `IRouter.load()` with its default root context. These generated paths omit the deployment base; history-mode output is not necessarily slash-prefixed, and hash-mode rooted output includes `/#/`. Use them as router instructions, not as browser-ready hrefs or application URL references.
 
 For a contextual anchor, `load` retains the selected instruction context and writes its browser href. See [path generation](./navigating.md#path-generation) for examples.
 
@@ -519,7 +519,7 @@ type NavigationInstruction =
 
 ### IViewportInstruction / ViewportInstruction
 
-An instruction with optional parameters, viewport, and child instructions. The author-facing fields are:
+An instruction with optional parameters, viewport, and child instructions. Applications use these fields:
 
 ```typescript
 interface IViewportInstruction {
@@ -549,7 +549,7 @@ router.load({
 
 The optional `recognizedRoute` member carries an already recognized route. Application-authored instructions normally omit it.
 
-Readonly instruction arrays are accepted by navigation and path-generation APIs. Constructing an instruction tree copies the supplied parameter values; it does not freeze the application's parameter object. Later edits to that object do not change an instruction tree already constructed from it. Supply unencoded parameter values and let the router encode the generated path.
+Navigation and path-generation APIs accept readonly instruction arrays. When the router constructs an instruction tree, it copies the supplied parameter values. Your parameter object stays editable, and later changes to it leave the existing instruction tree untouched. Supply unencoded parameter values and let the router encode the generated path.
 
 ---
 
@@ -570,7 +570,7 @@ class NavigationStrategy {
 }
 ```
 
-A synchronous callback can return a component class. For lazy loading, return a module promise such as `import('./admin-dashboard')`; a promise resolving directly to a component class is not the callback's return contract.
+A synchronous callback can return a component class. For lazy loading, return a module promise such as `import('./admin-dashboard')`. A promise that resolves directly to a component class is not supported.
 
 ```typescript
 const user = await authService.getUser();
@@ -669,7 +669,7 @@ export class MyComponent {
 
 ### RouteParametersOptions
 
-`getRouteParameters()` aggregates the active context's parameters and its ancestors. The result is a frozen snapshot; call again after navigation to read the new state. There is no promise of the same object identity between calls.
+`getRouteParameters()` collects parameters from the active context and its ancestors. Each result is a frozen snapshot; call again after navigation to read the new state. Object identity may differ between calls.
 
 ```typescript
 type RouteParameterMergeStrategy = 'child-first' | 'parent-first' | 'append' | 'by-route';
@@ -692,7 +692,7 @@ type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'chi
 
 `includeQueryParams` defaults to the router's `treatQueryAsParameters` setting. Set it explicitly when the caller needs query values. This aggregation API is separate from a lifecycle hook's `params` argument, which contains that route's parameters and, if configured, its query values; it does not automatically merge ancestor parameters.
 
-The return type in the method signature above is represented by the following conditional type. It is shown for reference, not exported from the package entry point:
+The following conditional type describes the return type in the method signature above. The package entry point does not export it:
 
 ```typescript
 type RouteParametersResult<
@@ -1154,7 +1154,7 @@ class UrlCustomAttribute {
 <a url.bind="destination">Open</a>
 ```
 
-The attribute updates its `href` after successful navigation. Ordinary clicks use the application destination captured when that href was published; they do not re-resolve the original relative text during an in-progress navigation. Use it without `load` or an authored `href` on the same element. Clicks targeting another browsing context, downloads, modifier-key clicks, and already-canceled clicks retain browser ownership. Unlike `load`, `url` has no active-route output.
+The attribute updates its `href` after successful navigation. An ordinary click uses the destination captured when that href was written, even if another navigation is in progress. Use it without `load` or an authored `href` on the same element. The browser handles clicks targeting another browsing context, downloads, and modifier-key clicks; the attribute also leaves already-canceled clicks alone. The `url` attribute has no active-route output.
 
 ---
 

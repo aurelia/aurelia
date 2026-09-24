@@ -90,7 +90,7 @@ Viewport names are local to the selected routing context. See [Viewports](./view
 
 ## 3. Share layout data across child routes
 
-The parent can load data shared by its child pages. A service lets those pages read the same data without making the URL or template carry the entire model:
+The parent can load data into a shared service for its child pages to read:
 
 ```typescript
 import { singleton } from '@aurelia/kernel';
@@ -144,13 +144,13 @@ export class UsersPage {
 }
 ```
 
-This singleton is application-wide. That is appropriate if the application has one shared admin summary. If separate layout instances need independent data, scope the service to their containers instead; see [dependency injection](../getting-to-know-aurelia/dependency-injection-di/overview.md).
+This application-wide singleton gives every page the same admin summary. If separate layout instances need independent data, register the service in each layout's container; see [dependency injection](../getting-to-know-aurelia/dependency-injection-di/overview.md).
 
-The parent remains active while navigation changes only its descendants. Its `loading()` hook is not a refresh mechanism for every child or query change; choose an explicit refresh policy when the data requires one.
+Navigating among descendants keeps the parent active. Decide when its shared data needs refreshing: the parent's `loading()` hook does not run for every child or query change.
 
 ## 4. Navigate within the current hierarchy
 
-Contextual navigation expresses who owns the destination. The `load="reports"` link in `AdminLayout` continues to target `/admin/reports` even while `/admin/users/42/settings` is active.
+The `load="reports"` link in `AdminLayout` targets that layout's Reports route, `/admin/reports`, even while `/admin/users/42/settings` is active.
 
 Resolve `IContextRouter` to use the same reference point in a component's code:
 
@@ -182,13 +182,13 @@ From inside `UserSettings`, select its parent context to open a sibling route ow
 
 Each leading `../` climbs one routing context, regardless of how many URL segments that component's route consumed. Ascent stops at the root. `..` also selects the parent's default route.
 
-If the destination is intentionally relative to the current application URL, use [`navigate()` or `url`](./application-url-navigation.md). Those APIs follow URL-segment rules. Layout menus generally benefit from keeping their destination tied to the owning layout, using `load`.
+Use [`navigate()` or `url`](./application-url-navigation.md) for a destination relative to the current application URL. Those APIs follow URL-segment rules. Use `load` in a layout menu to keep each link tied to the layout's routes.
 
 ## 5. Combine child routes with parameters
 
-Child routes can declare their own parameters and read parameters from ancestors. `IRouteContext.getRouteParameters()` aggregates the current context and ancestor values; `{ includeQueryParams: true }` also includes the query. It returns a snapshot, so read it again when a reused component needs updated values.
+Child routes can declare their own parameters and read parameters from ancestors. `IRouteContext.getRouteParameters()` collects both sets of values; `{ includeQueryParams: true }` also includes the query. It returns a snapshot, so read it again when a reused component needs updated values.
 
-The `Params` argument in a routing lifecycle hook contains the incoming node's parameters, plus query values when configured. It is not an automatic merge of every ancestor's parameters. The hook's `next` route node and its parent nodes describe the incoming hierarchy. See [route parameters](./route-parameters.md) for access and merge options.
+In a routing lifecycle hook, `Params` contains the incoming node's parameters, plus query values when configured. To read an ancestor's incoming parameters, use the hook's `next` route node and follow its parents. See [route parameters](./route-parameters.md) for access and merge options.
 
 ## 6. Lazy-load nested modules
 
@@ -207,7 +207,7 @@ You can reference dynamic imports inside any `component` slot. The router will `
 export class AdminLayout {}
 ```
 
-This works at every level of the tree, so you pay the cost only when users actually navigate there.
+Use this at any level of the route tree to load modules on demand.
 
 ## 7. Test nested layouts in isolation
 

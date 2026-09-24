@@ -4,11 +4,11 @@ description: Apply authentication guards, preload route data, protect unsaved wo
 
 # Router Outcome Recipes
 
-These recipes connect routing decisions to application behavior. Use `load` when selecting routes owned by a component or layout, and `navigate` when changing the application URL. The choice of API does not change the need to handle guards, data loading, and component reuse.
+Use these recipes to check access before opening a page, load its data, and protect the user's work when they leave. They use `load` to select routes owned by a component or layout, and `navigate` to change the application URL.
 
 ## Global authentication guard
 
-A shared `canLoad` hook can enforce route metadata without repeating the check in every page. This recipe uses an application `AuthService` with three members: `ensureSession()` waits for the initial session check, `isAuthenticated` reports the result, and `hasRole(role)` checks the current user's roles. Keep session acquisition and login behavior in that service.
+A shared `canLoad` hook checks access rules declared in route metadata, so each page can use the same guard. This recipe uses an application `AuthService` with three members: `ensureSession()` waits for the initial session check, `isAuthenticated` reports the result, and `hasRole(role)` checks the current user's roles. Keep the code that obtains a session and signs in the user in that service.
 
 ```typescript
 // global-auth-guard.ts
@@ -85,7 +85,7 @@ Aurelia
 
 A globally registered lifecycle hook is available to routed components throughout the application. It runs when `canLoad` is invoked; unchanged routes can be reused without rerunning that hook. Handle session expiry in the authentication layer as well. Route guards control navigation, while the server still authorizes access to protected data and operations.
 
-Returning an instruction lets the router coordinate the redirect. Calling `router.load('login')` and returning `false` instead starts a second request while canceling the first. A failed session request should follow the application's error policy, rather than silently becoming an unauthenticated result.
+Return an instruction so the router handles the redirect. Calling `router.load('login')` and returning `false` starts a second request while canceling the first. Handle a failed session request through the application's error policy; a failed request does not tell you whether the user is signed in.
 
 If login must resume the original destination, retain a complete navigation request or a validated root-relative application URL. `next.path` is a route pattern, not a complete return address. The [retry discussion](error-handling.md#retain-the-request-for-retry) explains which information needs to survive.
 
@@ -128,9 +128,9 @@ export class ProductDetail implements IRouteViewModel {
 }
 ```
 
-The router waits for this promise. A loading indicator inside the new page cannot show before that page activates; put navigation progress in the surrounding shell when preloading is required. An error from this hook rejects navigation and follows the configured [route recovery behavior](error-handling.md#what-route-restoration-restores).
+The router waits for this promise before displaying the page. Put a loading indicator in the surrounding shell, where it can show while the new page is being prepared. An error from this hook rejects navigation and follows the configured [route recovery behavior](error-handling.md#what-route-restoration-restores).
 
-Only await the data that must precede the view. If reviews are optional, the page can activate with the product and load reviews afterward, with its own pending and retry states. If the entire destination should display an error in place, catch the request failure and allow `loading` to finish, as shown in [component-level recovery](error-handling.md#let-a-destination-show-its-own-error).
+Only await the data the page needs before it can open. If reviews are optional, display the product first, then load the reviews and offer retry if that request fails. To let the destination show an error for the whole page, catch the request failure and allow `loading` to finish, as shown in [component-level recovery](error-handling.md#let-a-destination-show-its-own-error).
 
 ## Preventing navigation with unsaved changes
 
@@ -208,7 +208,7 @@ export class EditProfile implements IRouteViewModel {
 <button type="button" disabled.bind="saving" click.trigger="save()">Save changes</button>
 ```
 
-The saved baseline is the submitted snapshot. If the user continues editing while Save is in progress, those later edits remain unsaved. Adapt the baseline to the server's returned representation if saving normalizes fields.
+The saved baseline is the submitted snapshot. If the user continues editing while Save is in progress, those later edits still need saving. If the server normalizes fields, update the baseline from its response.
 
 Returning `false` leaves navigation canceled. It does not fall through to a native browser load. Closing the tab, refreshing the document, or following a native document link is outside the router guard; applications that need protection there should handle the browser's separate unload behavior.
 
@@ -343,9 +343,9 @@ export class ProductList {
 
 The first refresh uses `next.queryParams`, because the destination is not yet reflected in `ICurrentRoute` during `loading`. The completion event then supplies query data for later navigation, including Back/Forward. Comparing query strings avoids fetching twice for initial activation or for an unrelated navigation with the same query. The request counter prevents a slower response from replacing results for a newer query.
 
-The two errors have different retry targets. A navigation failure leaves the last successful query current; the user can submit the requested search or page selection again. A product-fetch failure belongs to that successful query, so the Retry button fetches it again without creating another navigation.
+If navigation fails, the previous query is still current. The user can submit the search or page selection again. If navigation succeeds but the product fetch fails, the Retry button fetches the current query again without starting another navigation.
 
-Copying `ICurrentRoute.query` before changing one field preserves other filters. The example uses the normal push history behavior, making successful query changes revisit-able. For frequent edits where only the latest state should occupy the history entry, pass `{ historyStrategy: 'replace' }` to `navigate`. This still performs router navigation; it changes how the result is recorded in browser history.
+Copying `ICurrentRoute.query` before changing one field preserves other filters. The example uses the normal push history behavior, so Back returns to earlier successful searches. For frequent edits, pass `{ historyStrategy: 'replace' }` to `navigate` to update the current history entry.
 
 If a page instead requires every fetch to finish inside `loading`, programmatic calls can use `{ transitionPlan: 'invoke-lifecycles' }`. That option applies to those calls; it does not make subsequent declarative links or browser history events invoke `loading` for an unchanged path. See [Application URL navigation](application-url-navigation.md) for that alternative.
 

@@ -4,7 +4,7 @@ description: Read the active route, observe completed navigation, and use incomi
 
 # Current route
 
-`ICurrentRoute` exposes the last successfully completed navigation. Resolve it in a component or service to read the active path, title, query, and route parameters. Its properties update together when the router publishes `au:router:navigation-end`. The service starts observing when first resolved; resolving it from a persistent shell lets it track navigation from startup.
+Resolve `ICurrentRoute` in a component or service to read the last successfully completed navigation. Its properties update together on `au:router:navigation-end`. Resolve it from a persistent shell to track navigation from startup; the service begins observing when first resolved.
 
 ```ts
 import { resolve } from '@aurelia/kernel';
@@ -68,7 +68,7 @@ export class ProductPage implements IRouteViewModel {
 }
 ```
 
-Use this approach when preparing the page for the navigation in progress. A subscription to `navigation-start` created by the incoming page is too late to observe that navigation's start event. A timer is also unnecessary: lifecycle arguments identify the incoming route without depending on when unrelated work finishes.
+Use these lifecycle arguments to prepare the incoming page; they are available as soon as the hook runs. By the time the page is created, `navigation-start` has already fired, so a subscription created there would miss it.
 
 ## Observe completed navigation
 
@@ -97,7 +97,7 @@ export class AppShell {
 }
 ```
 
-For application-wide observation of attempts, cancellations, and failures, see [router events](./router-events.md).
+To follow a navigation through completion, cancellation, or failure, see [router events](./router-events.md).
 
 ## Query changes and component reuse
 

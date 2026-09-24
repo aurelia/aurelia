@@ -1,10 +1,10 @@
 ---
-description: Handle rejected navigation, guard cancellation, route restoration, and retry without losing the original destination.
+description: Respond when navigation is canceled or fails, and retry with the original destination intact.
 ---
 
 # Router Error Handling
 
-A canceled navigation and a failed navigation need different responses. A guard may deliberately keep an editor open; a failed data request may warrant a retry; an invalid destination needs correction. Handle the outcome where the application knows what the user was trying to do, and use router events for shared reporting.
+A guard can cancel navigation to protect unsaved work. A failed data request may warrant a retry. Handle these outcomes in the code that started the navigation, where you know what the user was trying to do. Use router events to report failures across the application.
 
 ## Handle the call and its result
 
@@ -43,7 +43,7 @@ Do not turn `false` into `window.location.assign(...)` or automatically navigate
 
 ## Redirect from a guard
 
-Return the destination from `canLoad` rather than starting a second navigation from inside it. This example assumes the application's `AuthService.ensureSession()` waits for its initial session check:
+Return the destination from `canLoad` so the router can perform the redirect. Calling `load()` inside the guard starts a separate navigation. This example assumes the application's `AuthService.ensureSession()` waits for its initial session check:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -105,9 +105,9 @@ export class MyApp {
 <au-viewport></au-viewport>
 ```
 
-This event is not an error boundary for every possible navigation call. Input errors can occur before enqueueing. Unknown-route failures follow the router's cancellation/restoration path and do not emit `navigation-error`; programmatic callers still receive the rejection. A `navigation-cancel` event can also accompany recovery or a guard redirect, so it is not by itself evidence that the user refused navigation.
+Also catch errors at the call site. Input errors can occur before navigation is queued. Unknown-route failures follow the router's cancellation/restoration path and do not emit `navigation-error`; programmatic callers receive the rejection. A `navigation-cancel` event can also accompany recovery or a guard redirect, so it is not by itself evidence that the user refused navigation.
 
-Avoid unconditionally starting another navigation from an error subscriber. The router may be restoring the previous route, and a failing error page can create a recovery loop. A shell-level message remains available even when the destination component never reaches the screen.
+Show the error in the application shell so the user can see it even if the destination component never reaches the screen. Avoid automatically navigating from every error event: the router may be restoring the previous route, and a failing error page can create a recovery loop.
 
 ## What route restoration restores
 
@@ -121,9 +121,9 @@ RouterConfiguration.customize({
 
 When a transition fails after a previous successful navigation, the router can restore the previous route tree and reactivate the previous route. The original request still reports its error, and recovery can run lifecycle hooks again. At startup there may be no previous page to restore.
 
-This recovery concerns routing state. It cannot undo an HTTP mutation, restore arbitrary service state changed by a hook, or guarantee the same component instances and local UI state. Put irreversible work in explicit application operations rather than relying on route recovery as a transaction rollback.
+This recovery concerns routing state. It cannot undo an HTTP mutation, restore arbitrary service state changed by a hook, or guarantee the same component instances and local UI state. Handle irreversible work, such as submitting an order, in explicit application operations with their own recovery logic.
 
-Setting the option to `false` disables automatic recovery for ordinary transition errors. It does not make errors more strictly validated, and the router still maintains internal state for later navigation. Unknown-route failures have their own restoration behavior. Change this setting only when your application owns the resulting recovery experience.
+Setting the option to `false` disables automatic recovery for ordinary transition errors. Your application then decides what to show after a failed transition. The router still maintains internal state for later navigation, and unknown-route failures have their own restoration behavior.
 
 ## Retain the request for retry
 
@@ -181,7 +181,7 @@ export class ProductBrowser {
 }
 ```
 
-The retry UI belongs to the layout that remains present around its child viewport. Discard that contextual request when its owner leaves. For application-URL navigation, retain a root-relative application reference such as `/products/42?tab=reviews#summary`; retrying relative text after another successful navigation would resolve it against a different base.
+Keep the retry controls in the layout around the child viewport. Discard that contextual request when the layout leaves. For application-URL navigation, retain a root-relative application reference such as `/products/42?tab=reviews#summary`; retrying relative text after another successful navigation would resolve it against a different base.
 
 ```html
 <div if.bind="error" role="alert">
@@ -266,4 +266,4 @@ import { NotFound } from './not-found';
 export class MyApp {}
 ```
 
-A fallback handles an unrecognized route. It does not catch a rejected import or an exception from a recognized page's lifecycle hook. See [Fallbacks](configuring-routes.md) and [Router events](router-events.md) for the corresponding contracts.
+A fallback handles an unrecognized route. It does not catch a rejected import or an exception from a recognized page's lifecycle hook. See [Fallbacks](configuring-routes.md) for configuration and [Router events](router-events.md) for observing transition failures.

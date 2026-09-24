@@ -1,6 +1,6 @@
 # Router Quick Reference
 
-Find a routing task, copy the relevant pattern, and follow its link for the full contract. New to the router? Start with the [overview](../getting-to-know-aurelia/routing/aurelia-router.md) or [getting started](./getting-started.md).
+Use the examples below for common routing tasks, with links to the full explanations. For an introduction, start with the [overview](../getting-to-know-aurelia/routing/aurelia-router.md) or [getting started](./getting-started.md).
 
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -35,7 +35,7 @@ Aurelia
   .app(MyApp)
   .start();
 ```
-`RouterConfiguration` registers `load`, router-managed `href`, and `<au-viewport>`. `UrlCustomAttribute` is a separate, optional registration required for the `url` links shown below. Path-based routing is the default; configure your server to serve the application for route URLs.
+`RouterConfiguration` registers `load`, router-managed `href`, and `<au-viewport>`. Add `UrlCustomAttribute` if you want to use the `url` links shown below. Path-based routing is the default; configure your server to serve the application for route URLs.
 
 [Full configuration options →](./router-configuration.md)
 
@@ -104,7 +104,7 @@ Choose the reference point that matches the destination:
 <!-- Another document, even though its address is on this site -->
 <a href="/downloads/guide.pdf" external>Guide</a>
 ```
-Router-managed `href="about"` is also supported; it uses contextual routing instructions like `load`. Once bound, `load` and `url` materialize browser hrefs, preserving copy-link and open-in-new-tab behavior. Use one navigation attribute per element.
+Router-managed `href="about"` uses contextual routing instructions like `load`. Once bound, `load` and `url` write browser hrefs so visitors can copy a link or open it in another tab. Use one navigation attribute per element.
 
 [Contextual navigation →](./navigating.md) · [Application URL navigation →](./application-url-navigation.md)
 
@@ -161,7 +161,7 @@ RouterConfiguration.customize({
 <!-- Select a route owned by the parent routing context -->
 <a load="../sibling">Go to sibling route</a>
 ```
-Each leading `../` traverses a routing context. It does not remove one URL segment: a single route can consume several segments. Use `url` or `navigate` when you intend URL-segment resolution.
+Each leading `../` moves up one routing context, which may cover several URL segments. To move through the URL one segment at a time, use `url` or `navigate`.
 
 [Ancestor navigation →](./navigating.md#navigate-in-current-and-ancestor-routing-context)
 
@@ -177,7 +177,7 @@ router.load('search', {
 
 ### How do I handle external links?
 
-Absolute URLs, protocol-relative URLs, and links with schemes such as `mailto:` retain native browser navigation:
+The browser handles absolute URLs, protocol-relative URLs, and links with schemes such as `mailto:`:
 
 ```html
 <a href="https://example.com">External site</a>
@@ -186,14 +186,14 @@ Absolute URLs, protocol-relative URLs, and links with schemes such as `mailto:` 
 <a href="//cdn.example.com/file.pdf">Protocol-relative</a>
 ```
 
-For an internal-looking address that belongs to another document or endpoint, use `external`. This bypasses both contextual href generation and click interception:
+Add `external` when an address looks like an application route but points to another document or endpoint. The browser then uses the authored address, and the router leaves the link and its clicks alone:
 
 ```html
 <a href="/api/download" external>API endpoint</a>
 <a href="/old-page.html" external>Legacy HTML page</a>
 ```
 
-Modified clicks, downloads, and links targeting another browsing context also retain browser click behavior. Their router-managed hrefs are still generated unless the link is marked external. Likewise, `useHref: false` disables href click interception but does not disable href generation.
+The browser also handles modified clicks, downloads, and links targeting another browsing context. The router still generates their hrefs unless they are marked `external`. Setting `useHref: false` stops the router from handling href clicks; it still generates the href values.
 
 [Bypassing the router →](./navigating.md#bypassing-the-href-custom-attribute)
 
@@ -387,11 +387,11 @@ export class Dashboard implements IRouteViewModel {
 ### When do lifecycle hooks run?
 | Hook | When | Use For |
 |------|------|---------|
-| `canLoad` | Before activation | Guards, redirects, param validation |
-| `loading` | After approval, before render | Data fetching, state setup |
-| `loaded` | After render | Analytics, scroll, post-render effects |
-| `canUnload` | Before deactivation | Unsaved changes warnings |
-| `unloading` | Before removal | Cleanup, save drafts |
+| `canLoad` | Before activation | Check access, validate parameters, or redirect |
+| `loading` | After approval, before render | Fetch data and prepare the page |
+| `loaded` | After render | Record a page view, scroll, or run other effects |
+| `canUnload` | Before deactivation | Ask whether to leave unsaved changes |
+| `unloading` | Before removal | Clean up or save a draft |
 
 [Hook summary →](./routing-lifecycle.md#hook-summary)
 
@@ -556,9 +556,9 @@ export class ShareLink {
   }
 }
 ```
-The result includes the deployment base and configured hash form. `createHref` is synchronous and does not check whether the route exists. Its output is for the browser; do not pass it back to `navigate`, which accepts application references.
+The result includes the deployment prefix and any hash-routing marker. `createHref` returns synchronously without checking whether the route exists. Use the result in a browser link. Keep the original application reference when calling `navigate`; do not pass the generated href back to it.
 
-To generate a path from a route ID, component, or structured instruction, use the [path-generation APIs](./navigating.md#path-generation). Those paths are relative to the selected routing context and are not universally browser-ready hrefs. For ordinary in-app links, `load` or `url` performs the appropriate generation for you.
+To generate a path from a route ID, component, or structured instruction, use the [path-generation APIs](./navigating.md#path-generation). Check which context the generated path is relative to before using it; these paths are not always suitable as browser hrefs. For ordinary in-app links, `load` or `url` builds the href for you.
 
 [Application URL href generation →](./application-url-navigation.md)
 
@@ -619,7 +619,7 @@ Hash routing (`useUrlFragmentHash: true`) is another option when the host cannot
 
 ### A document link is being interpreted as a route
 
-An address such as `/api/download` looks like a contextual routing instruction to the registered `href` attribute. Mark it external to retain the authored address and browser navigation:
+The registered `href` attribute interprets `/api/download` as a routing instruction. Add `external` so the browser opens the address as written:
 
 ```html
 <a href="/api/download" external>API endpoint</a>
@@ -635,7 +635,7 @@ First identify which layout owns the destination route. A layout's link to its o
 ```html
 <a load="../sibling">Sibling route</a>
 ```
-If you mean an address relative to the current application URL instead, use `url` or `navigate`. See [Choosing the reference point](./application-url-navigation.md).
+For an address relative to the current application URL, use `url` or `navigate`. See [Choosing the reference point](./application-url-navigation.md).
 
 [Ancestor navigation →](./navigating.md#navigate-in-current-and-ancestor-routing-context)
 
@@ -643,7 +643,7 @@ If you mean an address relative to the current application URL instead, use `url
 
 Define the hook on the component activated by the router. `implements IRouteViewModel` supplies TypeScript checking; it does not register or enable hooks at runtime. For a shared `@lifecycleHooks()` class, check its registration.
 
-Also check reuse: changing only the query updates `ICurrentRoute` without automatically rerunning `loading`. A page can react to current query state, or the navigation can explicitly request `transitionPlan: 'invoke-lifecycles'` when its `loading` hook owns the refresh. See [Query-driven navigation](./application-url-navigation.md).
+Changing only the query updates `ICurrentRoute` without automatically rerunning `loading`. Have the page react to query changes, or pass `transitionPlan: 'invoke-lifecycles'` on the navigation call when `loading` fetches the data. See [Query-driven navigation](./application-url-navigation.md).
 
 [Lifecycle hooks →](./routing-lifecycle.md)
 

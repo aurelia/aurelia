@@ -1,13 +1,11 @@
 ---
 description: >-
-  Learn about how to subscribe to and handle router events for advanced navigation monitoring and application state management.
+  Subscribe to router events to show loading progress, record page views, and report failed navigation.
 ---
 
 # Router events
 
-You can use the lifecycle hooks ([instance](./routing-lifecycle.md) and [shared](./router-hooks.md)) to intercept different stages of the navigation when you are working with the routed components directly.
-However, if you want to tap into different navigation phases from a non-routed component, such as standalone service or a simple custom element, then you need to leverage router events.
-This section discusses that.
+Router events let an application shell or service follow navigation from start to finish. Use them to show a loading indicator, record a page view after successful navigation, or report an error. To control whether a routed component can open or close, use lifecycle hooks ([instance](./routing-lifecycle.md) or [shared](./router-hooks.md)).
 
 ## Router Event Types Overview
 
@@ -16,12 +14,12 @@ Five router events expose transition progress and browser-location changes:
 | Event | When Emitted | Use Cases |
 |-------|-------------|-----------|
 | `au:router:location-change` | Browser Back/Forward or a hash change | Observe browser-driven navigation |
-| `au:router:navigation-start` | A transition begins | Show loading states and correlate diagnostic logs |
-| `au:router:navigation-end` | Navigation completes successfully | Hide loading states, update breadcrumbs, analytics |
+| `au:router:navigation-start` | A transition begins | Show a loading indicator and log the attempted destination |
+| `au:router:navigation-end` | Navigation completes successfully | Hide the loading indicator, update breadcrumbs, and record a page view |
 | `au:router:navigation-cancel` | A transition is canceled, including guard redirects or restoration after an error | Observe cancellation and clear pending UI |
-| `au:router:navigation-error` | A transition reports an error | Record diagnostic context and display an error state |
+| `au:router:navigation-error` | A transition reports an error | Log the failed navigation and show an error message |
 
-The diagnostic examples below serialize instruction trees with the exported `pathUrlParser`. That representation includes application path, query, and fragment; it omits deployment and physical-document publication. Use `router.createHref()` when you need a browser href from an application reference. The private `RouterOptions._urlParser` field is not a public configuration API.
+The logging examples below use the exported `pathUrlParser` to serialize instruction trees. Its output includes the application path, query, and fragment. For a browser link, use `router.createHref()` with an application reference to add the deployment base path and hash-routing details. The private `RouterOptions._urlParser` field is not a public configuration API.
 
 ## Event Details and Properties
 
@@ -61,7 +59,7 @@ interface NavigationEndEvent {
 ```
 
 ### `NavigationCancelEvent`
-Emitted when the current transition is canceled. This includes guard cancellation, the canceled leg of a guard redirect, and route-tree restoration after an error. The `reason` is diagnostic information; do not parse its wording to determine an application permission decision.
+Emitted when the current transition is canceled. This includes guard cancellation, the canceled leg of a guard redirect, and route-tree restoration after an error. Use `reason` when debugging; do not parse its wording to decide whether a user has permission to open a page.
 
 ```typescript
 interface NavigationCancelEvent {
@@ -84,11 +82,11 @@ interface NavigationErrorEvent {
 
 ## Subscribing to Router Events
 
-You can subscribe to router events in two ways: using the event aggregator or the type-safe `IRouterEvents` service (recommended).
+Use `IRouterEvents` for typed subscriptions. The event aggregator also exposes the same events through string channels.
 
 ### Type-Safe Event Subscription with `IRouterEvents`
 
-The recommended approach uses `IRouterEvents` for compile-time type safety and better developer experience:
+With `IRouterEvents`, TypeScript infers each callback's event type from the event name. This example writes the types explicitly to show which event each callback receives:
 
 ```typescript
 import {
@@ -174,7 +172,7 @@ export class NavigationService implements IDisposable {
 
 ### Alternative: Event Aggregator Subscription
 
-You can also use the standard event aggregator, though you lose TypeScript type safety:
+The event aggregator's string channels require you to supply the event type yourself. This example uses `unknown` because it only logs the event:
 
 ```typescript
 import { IEventAggregator, resolve, type IDisposable } from '@aurelia/kernel';
@@ -198,7 +196,7 @@ Use `IRouterEvents` for typed callbacks. Instantiate application-wide services d
 
 ## Practical Use Cases and Examples
 
-### Leverage managed history state
+### Use managed history state
 
 The router adds an `au-nav-id` field (exported as `AuNavId`) to the browser history entries it publishes. Custom `state` supplied to `load()` or `navigate()` travels with the transition, including guard redirects, and is stored with the successful history entry.
 
@@ -384,11 +382,11 @@ export class AnalyticsService implements IDisposable {
 }
 ```
 
-This records the completed application route, which can differ from `location.href` after navigation with `historyStrategy: 'none'`. The analytics adapter is an application integration; the example does not assume a global SDK or tracking identifier.
+This records the completed application route, which can differ from `location.href` after navigation with `historyStrategy: 'none'`. Connect `recordPageView` to your application's analytics service.
 
 ### Error Handling and Recovery Service
 
-Use an event subscriber to record the failure and update a bounded error display. Recovery belongs to the operation that owns the navigation, where the intended destination and application policy are known.
+Use an event subscriber to record a failed navigation and show an error message. Let the code that started the navigation decide how to recover: it knows the intended destination and whether retry is useful.
 
 ```typescript
 import { singleton, resolve, type IDisposable } from '@aurelia/kernel';
@@ -429,7 +427,7 @@ Configure a route fallback for unknown addresses, return redirect instructions f
 
 ### Navigation State Management
 
-Track and manage complex navigation states:
+Keep a history of successful navigations with their duration and trigger. This service also exposes the current attempt so a component can display progress:
 
 ```typescript
 import { singleton, resolve, type IDisposable } from '@aurelia/kernel';
@@ -574,10 +572,7 @@ export class Component implements IDisposable {
 
 ### Performance Considerations
 
-1. **Debounce expensive operations** in event handlers
-2. **Use singleton services** for global event handlers
-3. **Unsubscribe** when components are disposed
-4. **Avoid heavy computations** in event handlers
+Keep event handlers short. Debounce expensive work when it can wait until events settle. Use a singleton service for application-wide subscriptions to avoid duplicating the same work in each component, and dispose of subscriptions when their owner shuts down.
 
 ### Error Handling in Event Handlers
 
@@ -597,7 +592,7 @@ events.subscribe('au:router:navigation-end', (event) => {
 
 ### Debugging Router Events
 
-Instantiate a diagnostic service during development when you need a correlated record of transitions:
+To trace a navigation during development, log its start and outcome with the same event ID:
 
 ```typescript
 import { resolve, type IDisposable } from '@aurelia/kernel';
@@ -637,7 +632,7 @@ export class RouterDebugService implements IDisposable {
 
 ## Using Current Route for Simple Cases
 
-For simple scenarios where you only need current route information without complex event handling, use `ICurrentRoute`:
+Use `ICurrentRoute` to display the completed route's path, URL, or title in a component:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';

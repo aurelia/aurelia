@@ -4,7 +4,7 @@ description: Add primary routes, a Projects layout, and nested child routes.
 
 # Step 2: Routing + nested layouts
 
-In this step you will create the root pages and a Projects layout that hosts child routes.
+Create the root pages and a Projects layout that hosts child routes.
 
 ## 1. Create the dashboard
 
@@ -27,7 +27,7 @@ Create `src/pages/dashboard-page.html`:
 </app-shell>
 ```
 
-The `load` attribute resolves routes from the routing context that owns the link. Here, `../projects` moves from the Dashboard page to its parent routing context, then selects the parent's `projects` route. A parent routing context can span several URL segments; `../` in a `load` instruction is not a URL-directory operation.
+The `load` attribute resolves routes from the routing context that owns the link. Here, `../projects` moves from the Dashboard page to its parent routing context, then selects the parent's `projects` route. Each `../` climbs one routing context, which can span several URL segments.
 
 ## 2. Create placeholder child pages
 
@@ -126,6 +126,6 @@ Update `src/my-app.html`:
 
 The `activeClass: 'is-active'` option registered in Step 1 makes `load` apply that class to active links. It also works for the Projects layout's child navigation.
 
-These menus deliberately follow layout ownership. For navigation that should instead follow the current application URL, see [Application URL navigation](../../router/application-url-navigation.md). The two approaches can coexist in the same application.
+These menus select routes defined by their layouts. For links that follow the current application URL, see [Application URL navigation](../../router/application-url-navigation.md). You can use both approaches in the same application.
 
 Next step: [Step 3: Overview page + filters + events](step-3-projects-overview.md)

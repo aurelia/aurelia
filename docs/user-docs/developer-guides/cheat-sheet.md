@@ -879,19 +879,18 @@ export class AppRoot {}
 | An address relative to the current application URL or rooted at `/` | `url` | `IRouter.navigate()` |
 | Another document | Native `href`, with `external` when needed | Browser APIs |
 
-In the layout that owns the routes above:
+For the routes defined on `AppRoot` above, use `IRouter`:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
-import { IContextRouter, IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 
 export class ProductNavigation {
-  private readonly contextRouter = resolve(IContextRouter);
   private readonly router = resolve(IRouter);
 
-  // Select the configured route by ID and supply its parameters.
+  // Select a root-configured route by ID and supply its parameters.
   goToProduct(id: string) {
-    return this.contextRouter.load(
+    return this.router.load(
       { component: 'product-detail', params: { id } },
       { queryParams: { tab: 'reviews' } },
     );
@@ -903,12 +902,17 @@ export class ProductNavigation {
   }
 
   isProductActive(id: string): boolean {
-    return this.contextRouter.isActive({ component: 'product-detail', params: { id } });
+    return this.router.isActive(
+      { component: 'product-detail', params: { id } },
+      this.router.routeTree.root.context,
+    );
   }
 }
 ```
 
-`IContextRouter` uses the routing context where it is resolved. A leading `../` in its instructions selects a parent routing context, which may span several URL segments. `IRouter.navigate` instead applies URL-segment rules to application references; omit the deployment prefix and outer hash-routing marker from its input.
+`IRouter.load()` starts at the root by default; `isActive()` takes an explicit context, supplied here from the root of the active route tree. For a routed feature's own child routes, use `IContextRouter`. Its leading `../` selects a parent routing context, which may span several URL segments. In the app root, resolve `IContextRouter` [lazily after the context is established](../router/navigating.md#use-icontextrouter-for-context-aware-navigation).
+
+`IRouter.navigate()` applies URL-segment rules to application references; omit the deployment prefix and outer hash-routing marker from its input.
 
 [Navigation guide](../router/navigating.md) · [Application URL navigation](../router/application-url-navigation.md)
 

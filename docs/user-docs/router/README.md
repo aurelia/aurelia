@@ -109,17 +109,19 @@ Router-managed `href="about"` is also supported; it uses contextual routing inst
 [Contextual navigation →](./navigating.md) · [Application URL navigation →](./application-url-navigation.md)
 
 ### How do I navigate programmatically?
+
+For the routes defined on `MyApp` above, use `IRouter`:
+
 ```typescript
-import { IContextRouter, IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
 
 export class MyComponent {
-  private readonly contextRouter = resolve(IContextRouter);
   private readonly router = resolve(IRouter);
 
-  // In the layout that defines the user-detail route:
+  // The user-detail route is defined at the application root.
   openUser(id: string) {
-    return this.contextRouter.load(
+    return this.router.load(
       { component: 'user-detail', params: { id } },
       { queryParams: { tab: 'profile' } },
     );
@@ -131,6 +133,9 @@ export class MyComponent {
   }
 }
 ```
+
+For a routed feature's own child routes, use `IContextRouter`. In the app root, resolve it lazily because the root routing context is established after construction; see [context-aware navigation](./navigating.md#use-icontextrouter-for-context-aware-navigation).
+
 [Using the Router API →](./navigating.md#using-the-router-api)
 
 ### How do I highlight the active link?

@@ -7,7 +7,7 @@ import type { IViewport } from './resources/viewport';
 import type { ComponentAgent } from './component-agent';
 import { type RouteNode, createAndAppendNodes } from './route-tree';
 import type { IRouteContext } from './route-context';
-import type { NavigationOptions, TransitionPlan } from './options';
+import type { TransitionPlan } from './options';
 import type { Transition } from './router';
 import { Batch, mergeDistinct } from './util';
 import { ViewportInstruction, defaultViewportName } from './instructions';
@@ -744,7 +744,7 @@ export class ViewportAgent {
   }
 
   /** @internal */
-  public _scheduleUpdate(options: NavigationOptions, next: RouteNode): void {
+  public _scheduleUpdate(transitionPlan: TransitionPlan | null, next: RouteNode): void {
     switch (this._nextState) {
       case State.nextIsEmpty:
         this._nextNode = next;
@@ -769,7 +769,7 @@ export class ViewportAgent {
       this._$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      this._$plan = next.context.routeConfigContext.config._getTransitionPlan(cur, next, options.transitionPlan);
+      this._$plan = next.context.routeConfigContext.config._getTransitionPlan(cur, next, transitionPlan);
     }
 
     if (__DEV__) trace(this._logger, Events.vpaScheduleUpdate, this);

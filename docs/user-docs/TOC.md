@@ -121,6 +121,7 @@
     * [Viewports](router/viewports.md)
   * Navigation
     * [Navigating](router/navigating.md)
+    * [Application URL navigation](router/application-url-navigation.md)
     * [Navigation model](router/navigation-model.md)
     * [Current route](router/current-route.md)
   * Lifecycle & Events
@@ -481,9 +482,13 @@
     * [AUR3173](developer-guides/error-messages/router/aur3173.md)
     * [AUR3174](developer-guides/error-messages/router/aur3174.md)
     * [AUR3175](developer-guides/error-messages/router/aur3175.md)
+    * [AUR3179](developer-guides/error-messages/router/aur3179.md)
+    * [AUR3180](developer-guides/error-messages/router/aur3180.md)
     * [AUR3270](developer-guides/error-messages/router/aur3270.md)
     * [AUR3271](developer-guides/error-messages/router/aur3271.md)
     * [AUR3272](developer-guides/error-messages/router/aur3272.md)
+    * [AUR3273](developer-guides/error-messages/router/aur3273.md)
+    * [AUR3274](developer-guides/error-messages/router/aur3274.md)
     * [AUR3350](developer-guides/error-messages/router/aur3350.md)
     * [AUR3351](developer-guides/error-messages/router/aur3351.md)
     * [AUR3352](developer-guides/error-messages/router/aur3352.md)

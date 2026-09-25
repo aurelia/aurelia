@@ -4,17 +4,17 @@ description: Track current route details and persist per-entry UI state with @au
 
 # Router state management
 
-This page covers router-provided state services and patterns for keeping UI state in sync with navigation.
+Read the current route to update your UI after navigation. Save per-entry state in browser history when users should recover it with Back or Forward.
 
 ## Current route (`ICurrentRoute`)
 
 `ICurrentRoute` exposes the active instruction path, URL, title, query params, and hierarchical parameter information.
 
-Important notes:
+When reading this state:
 
 - `ICurrentRoute` is updated on `au:router:navigation-end`, so reading it inside `binding()`, `bound()`, `attaching()`, or `attached()` of a newly routed component will show the **previous** route. See [Current route](./current-route.md#timing-considerations) for details.
 - `currentRoute.path` is an **instruction path** (no leading `/` and siblings separated by `+`).
-- `currentRoute.url` is a rooted URL string (includes query + fragment), but it does **not** include the origin (and it does not include any `base#href` prefix).
+- `currentRoute.url` is the router's serialized URL form, including query and fragment and the outer hash marker when hash routing is enabled. It omits the origin and deployment prefix. It is not universally an application reference accepted by `navigate()` or a browser-ready href.
 
 ```ts
 import { ICurrentRoute } from '@aurelia/router';
@@ -27,7 +27,7 @@ export class MyComponent {
 
 ## Managed History Entries (`AuNavId` and `ManagedState`)
 
-Every time the router writes to the browser history it attaches an `au-nav-id` marker under the exported `AuNavId` constant. The router uses this managed state to detect backward versus forward navigation whenever a future `popstate` or `hashchange` event fires. Because the managed state flows through the router events API, you can read (or extend) it for diagnostics and per-entry state.
+The router adds an `au-nav-id` marker to every history entry it writes. Its key is exported as `AuNavId`. When a later `popstate` or `hashchange` event fires, this marker tells the router whether the user moved backward or forward. You can read the entry's state through router events and store your own data alongside the marker.
 
 ### Inspect managed state during navigation
 
@@ -47,12 +47,12 @@ export class NavigationCorrelationService {
 }
 ```
 
-- Programmatic navigations (`router.load`) start with an empty managed state.
-- Browser-driven navigations (Back/Forward) reuse whatever was stored in `history.state` and surface it via `NavigationStartEvent.managedState`.
+- Pass application metadata in the `state` option of `load` or `navigate`. The router saves it in the successful navigation's history entry, including after a guard redirect.
+- On Back/Forward, read the restored `history.state` through `NavigationStartEvent.managedState`.
 
 ### Persist extra metadata in history entries
 
-You may attach your own keys to the active history entry as long as you keep the `au-nav-id` field intact. A common pattern is to listen for `NavigationEndEvent`, merge your metadata, and call `window.history.replaceState`:
+Pass `state` in the navigation options to save metadata with a new navigation. To update the active browser entry later, call `window.history.replaceState` and preserve its `au-nav-id` field. This example adds filter metadata after each successful navigation:
 
 ```ts
 import { IRouterEvents, type NavigationEndEvent } from '@aurelia/router';
@@ -74,56 +74,12 @@ export class HistoryMetadataService {
 }
 ```
 
-When the user later taps the browser buttons, the router emits a `NavigationStartEvent` whose `managedState` contains the same metadata, allowing you to restore filter selections, scroll positions, or analytics context.
+When the user returns with Back or Forward, read the saved metadata from `NavigationStartEvent.managedState` to restore the filters.
 
-## Preserve Scroll Positions with `IStateManager`
+## Scroll snapshots with `IStateManager`
 
-The router ships an `IStateManager` service that captures scroll offsets for every descendant element inside a routed component. Pair it with lifecycle hooks to remember where the user left off when they revisit the same view.
+Call `IStateManager.saveState(controller)` to save scroll positions for descendants of a component's host. The default implementation stores an in-memory snapshot of descendants with a positive scroll offset on either axis, along with references to those elements. Call `restoreState(controller)` while the same elements are available and their content can accommodate the saved positions. Restoring consumes the snapshot; saving again replaces the previous snapshot for that host.
 
-### Component-level usage
+This utility does not capture the host's own scroll position or document scrolling. Router transitions do not invoke it automatically, and a recreated page does not inherit positions saved for its previous DOM elements. Both methods accept a component controller; `ICustomElementController` is a TypeScript interface, not a dependency injection token.
 
-```ts
-import { IRouteViewModel, IStateManager } from '@aurelia/router';
-import { ICustomElementController } from '@aurelia/runtime-html';
-import { resolve } from '@aurelia/kernel';
-
-export class ArticleList implements IRouteViewModel {
-  private readonly controller = resolve(ICustomElementController);
-  private readonly stateManager = resolve(IStateManager);
-
-  canUnload() {
-    this.stateManager.saveState(this.controller);
-    return true;
-  }
-
-  loading() {
-    this.stateManager.restoreState(this.controller);
-  }
-}
-```
-
-### Share scroll persistence across multiple routes
-
-```ts
-import { IRouteViewModel, IStateManager } from '@aurelia/router';
-import { ICustomElementController } from '@aurelia/runtime-html';
-import { resolve } from '@aurelia/kernel';
-
-export abstract class ScrollAwareRoute implements IRouteViewModel {
-  protected readonly controller = resolve(ICustomElementController);
-  protected readonly stateManager = resolve(IStateManager);
-
-  canUnload() {
-    this.stateManager.saveState(this.controller);
-    return true;
-  }
-
-  loading() {
-    this.stateManager.restoreState(this.controller);
-  }
-}
-
-export class ArticleList extends ScrollAwareRoute {}
-export class ArticleDetail extends ScrollAwareRoute {}
-```
-
+For Back/Forward restoration across recreated pages, keep numeric offsets in application state associated with the relevant history entry. Restore them to the new elements after the scrollable content has rendered. Separate visits to the same URL may need separate saved positions. Preserve the router's `au-nav-id` field when amending browser history state, as shown above.

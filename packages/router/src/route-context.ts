@@ -117,15 +117,17 @@ function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val 
 }
 
 export function createEagerInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]) {
-  if (!isArray(instructionOrInstructions)) instructionOrInstructions = [instructionOrInstructions];
+  // Link generation and navigation often share a menu's instruction array.
+  // Normalize our own array, just as core creates our own instruction objects.
+  const instructions = isArray(instructionOrInstructions) ? instructionOrInstructions.slice() : [instructionOrInstructions];
 
-  const numInstr = (instructionOrInstructions as NavigationInstruction[]).length;
+  const numInstr = instructions.length;
   for (let i = 0; i < numInstr; ++i) {
-    const instr = core((instructionOrInstructions as NavigationInstruction[])[i]);
+    const instr = core(instructions[i]);
     if (instr == null) throw new Error(getMessage(Events.instrIncompatiblePathGenerationInstr, instructionOrInstructions));
-    (instructionOrInstructions as NavigationInstruction[])[i] = instr;
+    instructions[i] = instr;
   }
-  return instructionOrInstructions as EagerInstruction[];
+  return instructions as EagerInstruction[];
 
   function core(val: NavigationInstruction): EagerInstruction | null {
     let component: EagerInstruction['component'];
@@ -586,9 +588,10 @@ export class RouteContext {
   }
 
   /**
-   * Generates a path that is relative to the this context.
+   * Generates a path relative to the context selected by the instruction prefixes.
+   * Parent prefixes are consumed; replay the result from the selected context.
    */
-  public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
+  public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, null, true),
       // Note that even though this method is for generating relative paths, one can still generate a rooted path using this method.
@@ -664,22 +667,35 @@ export class RouteContext {
           if ($instruction.startsWith('/')) {
             $instruction = $instruction.slice(1);
           }
-        } else if ($instruction.startsWith('../') && context !== null) {
-          // Consume every leading parent prefix even after traversal reaches
-          // root. Leaking an excess `../` into the serialized URL would make
-          // native/reloaded navigation disagree with intercepted navigation.
-          while (($instruction as string).startsWith('../')) {
-            $instruction = ($instruction as string).slice(3);
-            if (!hasRebasedContext) {
-              context = context.parent ?? context;
-            }
-          }
-          hasRebasedContext = true;
         } else {
           if (context == null) logAndThrow(new Error(getMessage(Events.rcNoContextStringComponent)), this._logger);
-          if ($instruction.startsWith('./')) {
-            $instruction = $instruction.slice(2);
+          let relativeInstruction: string = $instruction;
+          if (relativeInstruction.startsWith('./')) {
+            relativeInstruction = relativeInstruction.slice(2);
           }
+          // Select the parent before scheduling route nodes, including a final
+          // `..` (with an optional query or fragment). Otherwise the route tree
+          // cancels an already-scheduled no-op update and can retain the child.
+          // Excess parent prefixes still clamp at root, and sibling instructions
+          // share the first instruction's selected context.
+          const traverseParents = !hasRebasedContext;
+          while (
+            relativeInstruction === '..'
+            || relativeInstruction.startsWith('../')
+            || (
+              (relativeInstruction.startsWith('..?') || relativeInstruction.startsWith('..#'))
+              // The first hash in a scalar legacy hash instruction starts the
+              // route; its preceding document spelling is not a parent path.
+              && (typeof instructionOrInstructions !== 'string' || !this._router.options.useUrlFragmentHash || !relativeInstruction.includes('#'))
+            )
+          ) {
+            relativeInstruction = relativeInstruction.slice(relativeInstruction.startsWith('../') ? 3 : 2);
+            if (traverseParents) {
+              context = context.parent ?? context;
+            }
+            hasRebasedContext = true;
+          }
+          $instruction = relativeInstruction;
         }
       }
       if (isVpInstr) {
@@ -904,12 +920,41 @@ export class RouteConfigContext {
 
     if (allPromises.length > 0) {
       this._allResolved = Promise.all(allPromises)
-        .then(() => this._options.useEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0)
+        .then(() => {
+          if (__DEV__) warnAmbiguousRoutes.call(this);
+          return this._options.useEagerLoading ? this._eagerLoadChildRouteConfigContext() : void 0;
+        })
         .then(() => {
           this._allResolved = null;
         });
-    } else if (this._options.useEagerLoading) {
-      this._allResolved = onResolve(this._eagerLoadChildRouteConfigContext(), () => { this._allResolved = null; });
+    } else {
+      if (__DEV__) warnAmbiguousRoutes.call(this);
+      if (this._options.useEagerLoading) {
+        this._allResolved = onResolve(this._eagerLoadChildRouteConfigContext(), () => { this._allResolved = null; });
+      }
+    }
+
+    function warnAmbiguousRoutes(this: RouteConfigContext): void {
+      // Wait for this context's lazy configs so import order cannot hide a collision.
+      const routes = this.childRoutes as RouteConfig[];
+      for (const pathRoute of routes) {
+        for (const path of pathRoute.path) {
+          // Auto-encoding static paths could steal an existing encoded or dynamic
+          // route's address. Keep recognition intact and make the ambiguity visible.
+          // Parameter patterns own their syntax; only static segments need escaping.
+          if (path.split('/').some(segment => !segment.startsWith(':') && !segment.startsWith('*') && /[+@()!?=#,&'~;]/.test(segment))) {
+            warn(this._logger, Events.rcStaticPathInstructionSyntax, path, pathRoute);
+          }
+          // An ID warning requires a literal name which can actually resolve;
+          // parameter patterns and composed instructions are not ID collisions.
+          if (path.length === 0 || /[/:*+@()?#]/.test(path)) continue;
+          const idRoute = routes.find(candidate => candidate.id === path);
+          if (idRoute === void 0 || idRoute === pathRoute) continue;
+          if (this._generateViewportInstruction({ component: path, params: emptyObject }, null) !== null) {
+            warn(this._logger, Events.rcAmbiguousRouteId, path, idRoute, pathRoute);
+          }
+        }
+      }
     }
   }
 
@@ -1105,19 +1150,21 @@ export class RouteConfigContext {
       const consumed: Params = Object.create(null);
       for (const param of endpoint.params) {
         const key = param.name;
-        let value = params[key];
+        const value = params[key];
         if (value == null || String(value).length === 0) {
           if (!param.isOptional) {
             errors.push(`No value for the required parameter '${key}' is provided for the path: '${path}'.`);
             return null;
           }
-          value = '';
         } else {
           if (!param.satisfiesPattern(value)) {
             errors.push(`The value '${value}' for the parameter '${key}' does not satisfy the pattern '${param.pattern}'.`);
             return null;
           }
-          consumed[key] = value;
+          // RecognizedRoute decodes its parameter input once. Supply the same
+          // encoded atom used in the address, including router DSL terminals
+          // which encodeURIComponent deliberately leaves unescaped.
+          consumed[key] = encodeURIComponent(value).replace(/[!'()~]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
         }
 
         const pattern = param.isStar
@@ -1126,7 +1173,7 @@ export class RouteConfigContext {
             ? `:${key}?`
             : `:${key}`;
 
-        path = path.replace(pattern, encodeURIComponent(value));
+        path = path.replace(pattern, consumed[key] ?? '');
       }
       const consumedKeys = Object.keys(consumed);
       const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));

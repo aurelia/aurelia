@@ -1,163 +1,141 @@
 ---
-description: Low-level and advanced APIs for @aurelia/router (router-lite).
+description: Inspect router instruction trees, generate paths with an explicit context, and correlate navigation with browser history.
 ---
 
 # Advanced router API reference
 
-This page documents low-level router APIs that are useful for diagnostics, dynamic link generation, and advanced integrations.
+Use these APIs to inspect the router's work or generate paths from a particular routing context. For application URL references and browser-ready links, use [`navigate()` and `createHref()`](application-url-navigation.md).
 
 ## Instruction trees (`ViewportInstructionTree`)
 
-Many advanced APIs revolve around the `ViewportInstructionTree` type (often abbreviated as “VIT”). Router events expose instruction trees, and you can also create them yourself.
+Router events expose a transition's instruction tree, which includes the selected routing context. You can also construct a tree through the router:
 
-### Create an instruction tree
-
-```ts
-import { IRouter } from '@aurelia/router';
+```typescript
 import { resolve } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 
-const router = resolve(IRouter);
+export class NavigationPreparation {
+  private readonly router = resolve(IRouter);
 
-const instructions = router.createViewportInstructions('users');
+  createUsersTarget() {
+    return this.router.createViewportInstructions('users', null, null);
+  }
+}
 ```
+
+The final two arguments are the navigation options and parent route path. The three-argument overload returns an instruction tree synchronously. An overload with `traverseChildren: true` can return a promise while traversing configured child routes.
 
 ### Convert an instruction tree to a path or URL
 
-`ViewportInstructionTree` has two key helpers:
+`toPath()` returns an instruction path for diagnostics. It omits the query and fragment; keep the tree when you need the whole navigation request.
 
-- `toPath()` returns an instruction path (no leading `/`, siblings separated by `+`).
-- `toUrl(isFinalInstruction, parser, isRooted)` returns a URL string.
+For low-level serialization, `toUrl(isFinalInstruction, parser, isRooted)` accepts the exported `pathUrlParser` or `fragmentUrlParser`. Use an explicit parser to choose the serialized representation; neither supplies an origin or deployment prefix.
 
-```ts
-import { IRouter, IRouterEvents, type NavigationStartEvent } from '@aurelia/router';
+```typescript
 import { resolve } from '@aurelia/kernel';
+import { IRouterEvents, pathUrlParser } from '@aurelia/router';
+import type { IDisposable } from '@aurelia/kernel';
 
 export class NavigationLogger {
-  private readonly router = resolve(IRouter);
+  private readonly events = resolve(IRouterEvents);
+  private subscription: IDisposable | undefined;
 
-  public constructor() {
-    resolve(IRouterEvents).subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
-      // Instruction path (example: 'users+details@right')
-      console.log('toPath:', event.instructions.toPath());
-
-      // URL string (example: '/users+details@right')
-      console.log(
-        'toUrl:',
-        event.instructions.toUrl(false, this.router.options._urlParser, true),
-      );
+  binding(): void {
+    this.subscription = this.events.subscribe('au:router:navigation-end', event => {
+      console.log('Instruction path:', event.finalInstructions.toPath());
+      console.log('Application path, query and fragment:',
+        event.finalInstructions.toUrl(true, pathUrlParser, true));
     });
+  }
+
+  unbinding(): void {
+    this.subscription?.dispose();
+    this.subscription = undefined;
   }
 }
 ```
 
-`toUrl` parameters:
+- `isFinalInstruction: true` serializes a final tree. For a contextual tree that still needs its owning parent segments, use `false`.
+- `parser` determines path or hash-form serialization.
+- `isRooted: true` asks the parser for rooted output. The exact prefix depends on the chosen parser.
 
-- `isFinalInstruction`: pass `true` when the instruction tree is final/absolute; pass `false` to include parent segments when the instruction tree is relative to a routing context.
-- `parser`: use `router.options._urlParser` to match your router configuration (hash vs pushState).
-- `isRooted`: pass `true` to generate a rooted URL (leading `/` or `#/` depending on the parser).
+For browser links, `createHref()` applies the configured URL mode and deployment base to an application reference. `RouterOptions._urlParser` is internal and absent from the published types; changing it is unsupported.
 
 ## Path generation (`router.generatePath`)
 
-Use `generatePath` when you want a URL string **without navigating**.
+`generatePath()` formats route instructions without navigating. It returns a string or a promise of a string when route configuration needs loading. Its result is relative to the **context selected by the instruction prefixes**.
 
-```ts
-import { IRouter } from '@aurelia/router';
+`IRouter.generatePath()` starts at the root unless you supply a context. `IContextRouter.generatePath()` starts at its bound context. A leading `../` selects a parent, then disappears from the generated text.
+
+For example, from the child of a `/parent` layout, suppose sibling route ID `c2` has path `child/:id`:
+
+```typescript
 import { resolve } from '@aurelia/kernel';
+import { IContextRouter, IRouteContext, IRouter } from '@aurelia/router';
 
-export class LinkBuilder {
-  private readonly router = resolve(IRouter);
+export class ChildPage {
+  private readonly localRouter = resolve(IContextRouter);
+  private readonly context = resolve(IRouteContext);
+  private readonly rootRouter = resolve(IRouter);
 
-  public userHref(userId: string) {
-    return this.router.generatePath({ component: 'users', params: { id: userId } });
+  async openSibling(): Promise<void> {
+    const parent = this.context.parent;
+    if (parent === null) return;
+    const path = await this.localRouter.generatePath({
+      component: '../c2', params: { id: '42' },
+    });
+    // path is 'child/42'; consume it from the selected parent context.
+    await this.localRouter.load(path, { context: parent });
+  }
+
+  async openSiblingFromRoot(): Promise<void> {
+    const path = await this.context.generateRootedPath({
+      component: '../c2', params: { id: '42' },
+    });
+    await this.rootRouter.load(path);
   }
 }
 ```
 
-Notes:
+`generateRootedPath()` returns `parent/child/42` in history mode and `/#/parent/child/42` in hash mode for this example. Pass these router instructions to the root router or use an explicit root context. The history form has no leading slash to select the root on its own, and neither form is a general-purpose browser href.
 
-- The **first** argument is a navigation instruction (or instruction array).
-- The **second** argument (optional) is a **routing context** for relative path generation (for example an `IRouteContext`, a routeable component instance, or an `HTMLElement` inside a routed component).
+For a link in the same component, pass the original `../c2` instruction and its parameters directly to `load`. The attribute uses the selected context for clicks and writes the browser href. See [path generation in the navigation guide](navigating.md#path-generation) for the full contract.
 
-```ts
-import { IRouter } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
-
-export class ChildViewModel {
-  private readonly router = resolve(IRouter);
-
-  public siblingHref() {
-    // Generate relative to the current routeable component instance.
-    return this.router.generatePath('../sibling', this);
-  }
-}
-```
+For `navigate()`, supply an application URL reference without the hash-routing wrapper. See the [application URL guide](application-url-navigation.md) for accepted inputs and the browser hrefs produced by `createHref()`.
 
 ## Active state checks (`router.isActive`)
 
-To determine whether a link/instruction is currently active, use `router.isActive`.
+Use `isActive()` to check whether a route is active within a selected context, for example when highlighting a navigation item:
 
-```ts
-import { IRouter } from '@aurelia/router';
+```typescript
 import { resolve } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 
 export class NavBar {
   private readonly router = resolve(IRouter);
 
-  public isUsersActive() {
+  isUsersActive(): boolean {
     return this.router.isActive('users', this);
   }
 }
 ```
 
-If you are building navigation menus, also see the navigation model (`IRouteContext.routeConfigContext.navigationModel`) and the `load` custom attribute’s `activeClass` option.
+For ordinary menus, the [navigation model](navigation-model.md) and the `load` attribute's active status can supply this behavior directly. The `url` attribute does not expose an active-route output.
 
 ## Route tree and transitions
 
-The router keeps a live route tree and transition state for diagnostics:
-
-- `router.routeTree` is the active `RouteTree`.
-- `router.currentTr` is the current `Transition`.
-- `router.isNavigating` indicates whether a transition is currently running.
-
-```ts
-import { IRouter } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
-
-export class RouterDebugPanel {
-  private readonly router = resolve(IRouter);
-
-  public log() {
-    console.log('isNavigating:', this.router.isNavigating);
-    console.log('currentTr:', this.router.currentTr);
-    console.log('routeTree:', this.router.routeTree);
-  }
-}
-```
+Inspect `router.routeTree` to see the active routes, `router.currentTr` for the transition, and `router.isNavigating` to check whether navigation is in progress. Use guards to accept or cancel navigation and [router events](router-events.md) to observe it. Changing the tree or transition internals is unsupported.
 
 ## Managed browser history state (`AuNavId` / `ManagedState`)
 
-When the router writes to the browser history, it stores a small managed state object containing an `au-nav-id` field (exported as `AuNavId`). This lets the router detect back/forward navigations later.
+When the router writes a history entry, it includes an `au-nav-id` marker. Supply application metadata through the navigation's `state` option:
 
-If you want to persist additional metadata per history entry, extend the **current** entry using `window.history.replaceState`, and always merge with existing state so `au-nav-id` remains intact:
-
-```ts
-import { IRouterEvents, type NavigationEndEvent } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
-
-export class HistoryMetadataService {
-  public constructor() {
-    resolve(IRouterEvents).subscribe('au:router:navigation-end', (_event: NavigationEndEvent) => {
-      window.history.replaceState(
-        {
-          ...(window.history.state ?? {}),
-          lastVisitedAt: Date.now(),
-        },
-        document.title,
-      );
-    });
-  }
-}
+```typescript
+await router.navigate('/reports', {
+  state: { openedFrom: 'dashboard' },
+});
 ```
 
-On a later Back/Forward navigation, the restored state is surfaced via `NavigationStartEvent.managedState`.
+The same option is available to `load`. The router adds its marker to the history entry and leaves your original state object untouched. On Back/Forward, read the restored state through `NavigationStartEvent.managedState`.
 
+When updating an existing browser entry with `history.replaceState`, merge with its current state to preserve the router's marker. A `historyStrategy: 'none'` navigation writes no entry. See [router state management](router-state-management.md) for reading and managing per-entry metadata.

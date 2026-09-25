@@ -1,16 +1,16 @@
 ---
-description: Complete API reference for @aurelia/router exports, interfaces, classes, and types.
+description: Router API contracts for navigation, configuration, route state, events, and link resources.
 ---
 
 # API Reference
 
-This page documents all public exports from `@aurelia/router`. Use it as a quick lookup for types, interfaces, classes, and functions.
+Look up an API's signature and behavior here. To choose how to navigate, start with [navigating](./navigating.md). The type excerpts show the members discussed on this page; package declarations provide the full overload sets.
 
 ## Core Router
 
 ### IRouter / Router
 
-The main router interface and implementation. Inject `IRouter` to navigate programmatically.
+The application-wide router. `load()` interprets contextual routing instructions and starts from the root unless a context is supplied. `navigate()` resolves an application URL reference against the last successful router location. Use `IContextRouter` when instructions should start from the component's owning routing context.
 
 ```typescript
 interface IRouter {
@@ -31,23 +31,29 @@ interface IRouter {
    * @returns Promise resolving to true if navigation succeeded, false if cancelled
    */
   load(
-    path: string | NavigationInstruction | NavigationInstruction[],
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     options?: INavigationOptions
   ): boolean | Promise<boolean>;
+
+  /** Navigate relative to the last successful application URL. */
+  navigate(reference: string, options?: INavigationBehaviorOptions): Promise<boolean>;
+
+  /** Resolve an application URL reference to a browser-ready href. */
+  createHref(reference: string): string;
 
   /**
    * Check if a given instruction is currently active.
    */
   isActive(
-    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     context: RouteContextLike
   ): boolean;
 
   /**
-   * Generate a URL path from navigation instructions without navigating.
+   * Generate a path relative to the context selected by instruction prefixes.
    */
   generatePath(
-    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     context?: RouteContextLike
   ): string | Promise<string>;
 
@@ -83,6 +89,73 @@ export class MyComponent {
   }
 }
 ```
+
+### Application URL methods
+
+`navigate(reference, options?)` and `createHref(reference)` accept application URL references, such as `/reports`, `../reports`, `?page=2`, or `#details`. A leading `/` selects the application root. Omit the deployment prefix and the outer hash-routing marker. Full document URLs, including same-origin URLs, are rejected.
+
+The base is the canonical location of the last successful navigation, including navigation with `historyStrategy: 'none'`. Pending, canceled, and failed transitions do not replace it. Relative references follow URL segment rules, independently of routing contexts. Trailing separators and `/index.html` are normalized when the route is recognized; do not assume a trailing slash from a browser visit is retained in the base.
+
+| Method | Result |
+| --- | --- |
+| `navigate()` | A promise resolving to `true` on completion or `false` on guard cancellation. Invalid input can throw synchronously; transition failures reject the promise. |
+| `createHref()` | A browser-ready href in the configured URL mode and deployment location. Synchronous; does not navigate or verify that the route exists. |
+
+Put query and fragment data in the reference. The behavior options accepted by `navigate()` do not include `context`, `queryParams`, or `fragment`.
+
+Use the result of `createHref()` in a browser link. Keep the original application reference for `navigate()`:
+
+```typescript
+const reference = '/reports?period=month';
+const href = router.createHref(reference); // Publish in a native link.
+await router.navigate(reference);         // Navigate within the application.
+```
+
+Use a `try`/`catch` around `await router.navigate(...)` to handle both input validation and transition errors. A validation error raised before enqueueing has no `navigation-error` event. See [application URL navigation](./application-url-navigation.md) for complete examples.
+
+### IContextRouter
+
+A router bound to the routing context in which it is resolved. Its `load()` method uses that context unless navigation options override it; its `generatePath()` and `isActive()` methods use the bound context.
+
+```typescript
+interface IContextRouter {
+  load(
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
+    options?: INavigationOptions,
+  ): boolean | Promise<boolean>;
+
+  generatePath(
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
+  ): string | Promise<string>;
+
+  isActive(
+    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
+  ): boolean;
+}
+```
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { IContextRouter } from '@aurelia/router';
+
+export class AdminLayout {
+  private readonly router = resolve(IContextRouter);
+
+  openReports() {
+    return this.router.load('reports');
+  }
+}
+```
+
+Here `reports` is a child route available to `AdminLayout`. The lookup starts in that layout even when a deeper page is active.
+
+### Generated paths
+
+`IRouter.generatePath()`, `IContextRouter.generatePath()`, and `IRouteContext.generateRelativePath()` return a path relative to the context selected by the instruction prefixes. A leading `../` selects a parent routing context, then disappears from the generated result. Replay that path from the selected context, which may differ from the caller's original context.
+
+To generate a path for the root router, use `IRouteContext.generateRootedPath()` and pass the result to `IRouter.load()` with its default root context. These generated paths omit the deployment base; history-mode output is not necessarily slash-prefixed, and hash-mode rooted output includes `/#/`. Use them as router instructions, not as browser-ready hrefs or application URL references.
+
+For a contextual anchor, `load` retains the selected instruction context and writes its browser href. See [path generation](./navigating.md#path-generation) for examples.
 
 ---
 
@@ -184,7 +257,7 @@ const RouterConfiguration: {
 };
 
 interface IRouterConfigurationOptions extends IRouterOptions {
-  /** Custom routing base path (overrides document.baseURI) */
+  /** Deployment path override (otherwise inferred from document.baseURI) */
   basePath?: string | null;
 }
 ```
@@ -213,8 +286,14 @@ interface IRouterOptions {
   /** Use hash-based routing (#/path) instead of pushState. Default: false */
   useUrlFragmentHash?: boolean;
 
-  /** Enable href attribute processing. Default: true */
+  /** Intercept eligible href clicks; does not disable href rewriting. Default: true */
   useHref?: boolean;
+
+  /** Preserve the current document path/query in hash mode. Default: false */
+  preserveHashDocument?: boolean;
+
+  /** Load all route configurations at startup. Default: false */
+  useEagerLoading?: boolean;
 
   /** History interaction strategy. Default: 'push' */
   historyStrategy?: HistoryStrategy | ((instructions: ViewportInstructionTree) => HistoryStrategy);
@@ -245,7 +324,7 @@ type HistoryStrategy = 'none' | 'replace' | 'push';
 
 ### NavigationOptions / INavigationOptions
 
-Options for individual navigation calls.
+Options for `load()` calls. Query and fragment can be supplied here; route parameters belong in an instruction's `params`. For `navigate()`, use the narrower `INavigationBehaviorOptions` below.
 
 ```typescript
 interface INavigationOptions {
@@ -258,7 +337,7 @@ interface INavigationOptions {
   /** Separator between hierarchical titles. Default: ' | ' */
   titleSeparator?: string;
 
-  /** Navigation context for relative navigation */
+  /** Starting routing context; null selects root */
   context?: RouteContextLike | null;
 
   /** Query string parameters */
@@ -270,13 +349,28 @@ interface INavigationOptions {
   /** History state object */
   state?: Params | null;
 
-  /** Override route's transition plan */
+  /** Override the transition plan for this navigation's targets */
   transitionPlan?: TransitionPlan | null;
 
   /** Mark as back navigation (affects transition behavior) */
   isBack?: boolean;
 }
 ```
+
+---
+
+### INavigationBehaviorOptions
+
+Options accepted by `router.navigate()`. The application URL reference supplies the destination; these options control the transition and its browser-history entry.
+
+```typescript
+interface INavigationBehaviorOptions extends Pick<
+  INavigationOptions,
+  'historyStrategy' | 'title' | 'titleSeparator' | 'state' | 'transitionPlan'
+> {}
+```
+
+See [application URL navigation](./application-url-navigation.md) for reference-resolution rules and examples.
 
 ---
 
@@ -295,6 +389,8 @@ function route(path: string): ClassDecorator;
 
 ```typescript
 import { route } from '@aurelia/router';
+import { Home } from './home';
+import { About } from './about';
 
 @route({
   routes: [
@@ -318,49 +414,47 @@ Route configuration interface and class.
 ```typescript
 interface IRouteConfig {
   /** Route identifier for href generation */
-  id?: string | null;
+  readonly id?: string | null;
 
   /** URL path pattern(s) to match */
-  path?: string | string[] | null;
+  readonly path?: string | string[] | null;
 
   /** Title part when route is active */
-  title?: string | ((node: RouteNode) => string | null) | null;
+  readonly title?: string | ((node: RouteNode) => string | null) | null;
 
   /** Redirect to another route when matched */
-  redirectTo?: string | null;
+  readonly redirectTo?: string | null;
 
   /** Case-sensitive path matching. Default: false */
-  caseSensitive?: boolean;
+  readonly caseSensitive?: boolean;
 
   /** Component reentry behavior */
-  transitionPlan?: TransitionPlan | TransitionPlanOrFunc | null;
+  readonly transitionPlan?: TransitionPlanOrFunc | null;
 
   /** Target viewport name */
-  viewport?: string | null;
+  readonly viewport?: string | null;
 
   /** Custom route metadata */
-  data?: Record<string, unknown>;
+  readonly data?: Record<string, unknown>;
 
   /** Child routes */
-  routes?: readonly Routeable[];
+  readonly routes?: readonly Routeable[];
 
   /** Fallback for unknown child routes */
-  fallback?: Routeable | FallbackFunction | null;
+  readonly fallback?: Routeable | FallbackFunction | null;
 
   /** Include in navigation model. Default: true */
-  nav?: boolean;
+  readonly nav?: boolean;
 }
 
 interface IChildRouteConfig extends IRouteConfig {
   /** Component to load (required for child routes) */
-  component: Routeable;
+  readonly component: Routeable;
 }
 
-interface IRedirectRouteConfig {
-  path: string | string[];
-  redirectTo: string;
-  caseSensitive?: boolean;
-}
+interface IRedirectRouteConfig extends Pick<
+  IRouteConfig, 'caseSensitive' | 'redirectTo' | 'path'
+> {}
 
 type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
 type TransitionPlanOrFunc = TransitionPlan | ((current: RouteNode, next: RouteNode) => TransitionPlan);
@@ -425,24 +519,21 @@ type NavigationInstruction =
 
 ### IViewportInstruction / ViewportInstruction
 
-Detailed navigation instruction targeting a specific viewport.
+An instruction with optional parameters, viewport, and child instructions. Applications use these fields:
 
 ```typescript
 interface IViewportInstruction {
   /** Component to load (name, class, or definition) */
-  component: string | RouteableComponent;
+  readonly component: string | RouteableComponent;
 
   /** Target viewport name */
-  viewport?: string | null;
+  readonly viewport?: string | null;
 
-  /** Route parameters */
-  params?: Params | null;
+  /** Route parameter values, before URL encoding */
+  readonly params?: Params | null;
 
   /** Child navigation instructions */
-  children?: readonly NavigationInstruction[];
-
-  /** Pre-recognized route (internal) */
-  recognizedRoute?: RecognizedRoute | null;
+  readonly children?: readonly NavigationInstruction[];
 }
 ```
 
@@ -456,27 +547,37 @@ router.load({
 });
 ```
 
+The optional `recognizedRoute` member carries an already recognized route. Application-authored instructions normally omit it.
+
+Navigation and path-generation APIs accept readonly instruction arrays. When the router constructs an instruction tree, it copies the supplied parameter values. Your parameter object stays editable, and later changes to it leave the existing instruction tree untouched. Supply unencoded parameter values and let the router encode the generated path.
+
 ---
 
 ### NavigationStrategy
 
-Class for programmatic/lazy component selection.
+Select a component during route resolution. The callback receives the instruction, its routing context, the route node, and the recognized route.
 
 ```typescript
 class NavigationStrategy {
   constructor(
-    getComponent: () => RouteableComponent | Promise<RouteableComponent>
+    getComponent: (
+      instruction: IViewportInstruction,
+      context: IRouteContext,
+      node: RouteNode,
+      route: RecognizedRoute<unknown>,
+    ) => string | RouteType | Promise<IModule> | CustomElementDefinition,
   );
 }
 ```
 
-**Usage:**
+A synchronous callback can return a component class. For lazy loading, return a module promise such as `import('./admin-dashboard')`. A promise that resolves directly to a component class is not supported.
 
 ```typescript
-router.load(new NavigationStrategy(async () => {
-  const user = await authService.getUser();
-  return user.isAdmin ? AdminDashboard : UserDashboard;
-}));
+const user = await authService.getUser();
+
+await router.load(new NavigationStrategy(() =>
+  user.isAdmin ? AdminDashboard : UserDashboard
+));
 ```
 
 ---
@@ -523,22 +624,25 @@ interface IRouteContext {
   /**
    * Get aggregated route parameters from this context and ancestors.
    */
-  getRouteParameters<T extends Record<string, unknown> = Params>(
-    options?: RouteParametersOptions
-  ): T;
+  getRouteParameters<TParams extends Record<string, unknown> = Params>(): Readonly<TParams>;
+
+  getRouteParameters<
+    TParams extends Record<string, unknown> = Params,
+    TStrategy extends RouteParameterMergeStrategy = RouteParameterMergeStrategy,
+  >(options: RouteParametersOptions<TStrategy>): RouteParametersResult<TStrategy, TParams>;
 
   /**
-   * Generate an absolute URL path from instructions.
+   * Generate a path for consumption from the application routing root.
    */
   generateRootedPath(
-    instructions: NavigationInstruction | NavigationInstruction[]
+    instructions: NavigationInstruction | readonly NavigationInstruction[]
   ): string | Promise<string>;
 
   /**
-   * Generate a relative URL path from instructions.
+   * Generate a path relative to the context selected by instruction prefixes.
    */
   generateRelativePath(
-    instructions: NavigationInstruction | NavigationInstruction[]
+    instructions: NavigationInstruction | readonly NavigationInstruction[]
   ): string | Promise<string>;
 }
 ```
@@ -565,26 +669,41 @@ export class MyComponent {
 
 ### RouteParametersOptions
 
-Options for `getRouteParameters()`.
+`getRouteParameters()` collects parameters from the active context and its ancestors. Each result is a frozen snapshot; call again after navigation to read the new state. Object identity may differ between calls.
 
 ```typescript
 type RouteParameterMergeStrategy = 'child-first' | 'parent-first' | 'append' | 'by-route';
+type RouteParameterValue = string | readonly string[];
 
-interface RouteParametersOptions {
-  /** How to merge parameters from parent/child routes */
-  mergeStrategy?: RouteParameterMergeStrategy;
-
-  /** Include query string parameters */
-  includeQueryParams?: boolean;
-}
+type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy = 'child-first'> =
+  { includeQueryParams?: boolean } & (
+    TStrategy extends 'child-first'
+      ? { mergeStrategy?: 'child-first' }
+      : { mergeStrategy: TStrategy }
+  );
 ```
 
-| Strategy | Description |
-|----------|-------------|
-| `'child-first'` | Child parameters override parent (default) |
-| `'parent-first'` | Parent parameters override child |
-| `'append'` | Collect all values as arrays |
-| `'by-route'` | Group parameters by route |
+| Strategy | Result |
+| --- | --- |
+| `'child-first'` | One value per name; nearer contexts take precedence. The default. |
+| `'parent-first'` | One value per name; ancestor contexts take precedence. |
+| `'append'` | An array of values per name, ordered from ancestors to descendants. A repeated query value can itself be an array. |
+| `'by-route'` | Parameters grouped by route ID, or by the context's friendly path when there is no ID. |
+
+`includeQueryParams` defaults to the router's `treatQueryAsParameters` setting. Set it explicitly when the caller needs query values. This aggregation API is separate from a lifecycle hook's `params` argument, which contains that route's parameters and, if configured, its query values; it does not automatically merge ancestor parameters.
+
+The following conditional type describes the return type in the method signature above. The package entry point does not export it:
+
+```typescript
+type RouteParametersResult<
+  TStrategy extends RouteParameterMergeStrategy,
+  TParams extends Record<string, unknown>,
+> = TStrategy extends 'append'
+  ? Readonly<Record<string, readonly RouteParameterValue[]>>
+  : TStrategy extends 'by-route'
+    ? Readonly<Record<string, Readonly<Record<string, RouteParameterValue>>>>
+    : Readonly<TParams>;
+```
 
 ---
 
@@ -606,7 +725,7 @@ type RouteContextLike =
 
 ### RouteTree
 
-Immutable tree representing the current route state.
+Tree representing the current route state. Read it to inspect active routes; navigate through the router to change that state.
 
 ```typescript
 class RouteTree {
@@ -617,7 +736,7 @@ class RouteTree {
   readonly options: NavigationOptions;
 
   /** Current query parameters */
-  readonly queryParams: URLSearchParams;
+  readonly queryParams: Readonly<URLSearchParams>;
 
   /** Current URL fragment */
   readonly fragment: string | null;
@@ -628,7 +747,7 @@ class RouteTree {
 
 ### RouteNode
 
-A node in the route tree representing a single route segment.
+A node representing one active route in the hierarchy. Its configured path can consume more than one URL segment.
 
 ```typescript
 class RouteNode {
@@ -686,7 +805,7 @@ interface ICurrentRoute {
   /** Current path (without query/fragment) */
   readonly path: string;
 
-  /** Full current URL */
+  /** Serialized route URL, with query/fragment and the configured hash wrapper; no deployment base */
   readonly url: string;
 
   /** Current page title */
@@ -714,7 +833,7 @@ interface ParameterInformation {
 }
 ```
 
-**Important timing note:** `ICurrentRoute` is updated **after** all lifecycle hooks complete. Use router events for immediate access during navigation.
+`ICurrentRoute` updates on `navigation-end`, after the incoming page's lifecycle hooks. During `loading()`, use the hook's `params` and `next: RouteNode` arguments for the incoming route. See [current route](./current-route.md) for timing, event subscriptions, and query-driven refresh. Its `url` is neither the full document URL nor a general-purpose input for `navigate()`; use `createHref()` when producing a browser link from an application reference.
 
 ---
 
@@ -754,18 +873,20 @@ interface INavigationRoute {
 **Usage:**
 
 ```typescript
-import { IRouteContext, INavigationModel } from '@aurelia/router';
+import { IRouteContext, type INavigationModel } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
 
 export class NavBar {
-  private readonly navModel: INavigationModel =
+  readonly navModel: INavigationModel | null =
     resolve(IRouteContext).routeConfigContext.navigationModel;
 
-  async binding() {
-    await this.navModel.resolve();
+  async binding(): Promise<void> {
+    await this.navModel?.resolve();
   }
 }
 ```
+
+The model is `null` when `useNavigationModel` is disabled. Check for its presence before rendering a menu that consumes `navModel.routes`.
 
 ---
 
@@ -843,6 +964,7 @@ class NavigationErrorEvent {
 ```typescript
 import { IRouterEvents, NavigationEndEvent } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
+import { trackPageView } from './analytics'; // The application's analytics adapter.
 
 export class Analytics {
   constructor() {
@@ -884,7 +1006,8 @@ interface IRouteViewModel extends ICustomElementViewModel {
     next: RouteNode,
     current: RouteNode | null,
     options: INavigationOptions
-  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<...>;
+  ): boolean | NavigationInstruction | NavigationInstruction[]
+    | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
 
   /**
    * Pre-activation hook. Fetch data, prepare state.
@@ -967,20 +1090,20 @@ The `load` custom attribute for declarative navigation.
 
 ```typescript
 class LoadCustomAttribute {
-  /** Navigation instruction (route id, path, or component) */
-  value: unknown;
+  /** Navigation instruction (route ID, path, or component); primary bindable */
+  route: unknown;
 
   /** Route parameters */
-  params: Params;
+  params?: Params;
 
   /** Attribute to set on host element (default: 'href') */
   attribute: string;
 
-  /** Whether this route is currently active (readonly) */
-  readonly active: boolean;
+  /** Active-route output; binds from the attribute to the view model */
+  active: boolean;
 
-  /** Navigation context for relative navigation */
-  context: IRouteContext;
+  /** Optional explicit context; otherwise use the owning routing context */
+  context?: IRouteContext;
 }
 ```
 
@@ -989,14 +1112,15 @@ class LoadCustomAttribute {
 ```html
 <a load="products">Products</a>
 <a load="route: product-detail; params.bind: { id: item.id }">View</a>
-<a load="dashboard" active.class="is-active">Dashboard</a>
+<a load="route: dashboard; active.bind: dashboardActive"
+   class.bind="dashboardActive ? 'is-active' : ''">Dashboard</a>
 ```
 
 ---
 
 ### HrefCustomAttribute
 
-The `href` custom attribute for link interception.
+The `href` custom attribute interprets routing instructions in the owning routing context and writes the corresponding browser href. `useHref: false` disables click interception but does not stop that rewriting. Use `external` for a native document link.
 
 ```typescript
 class HrefCustomAttribute {
@@ -1011,6 +1135,26 @@ class HrefCustomAttribute {
 <a href="products">Products</a>
 <a href="mailto:test@example.com" external>Email</a>
 ```
+
+---
+
+### UrlCustomAttribute
+
+An opt-in `url` attribute for [application URL links](./application-url-navigation.md#declarative-links). Register `UrlCustomAttribute` explicitly; it is not included in `RouterConfiguration` or `DefaultResources`.
+
+```typescript
+class UrlCustomAttribute {
+  /** Application URL reference; null or undefined removes the href. */
+  value: string | null | undefined;
+}
+```
+
+```html
+<a url="../reports">Reports</a>
+<a url.bind="destination">Open</a>
+```
+
+The attribute updates its `href` after successful navigation. An ordinary click uses the destination captured when that href was written, even if another navigation is in progress. Use it without `load` or an authored `href` on the same element. The browser handles clicks targeting another browsing context, downloads, and modifier-key clicks; the attribute also leaves already-canceled clicks alone. The `url` attribute has no active-route output.
 
 ---
 
@@ -1051,7 +1195,7 @@ interface IStateManager {
 }
 ```
 
-The default implementation (`ScrollStateManager`) automatically saves and restores scroll positions during route transitions.
+The default implementation records and restores scroll offsets for descendants of the supplied controller's host when these methods are called. Router transitions do not automatically invoke this service, and it does not implement fragment-to-element scrolling.
 
 ---
 
@@ -1069,18 +1213,21 @@ interface IUrlParser {
   /** Build a URL string from components */
   stringify(
     path: string,
-    query: URLSearchParams,
+    query: Readonly<URLSearchParams>,
     fragment: string | null,
-    isRooted?: boolean
+    isRooted: boolean
   ): string;
 }
 
+// Shape returned by parse(); ParsedUrl is not exported from the package entry point.
 interface ParsedUrl {
-  path: string;
-  query: URLSearchParams;
-  fragment: string | null;
+  readonly path: string;
+  readonly query: Readonly<URLSearchParams>;
+  readonly fragment: string | null;
 }
 ```
+
+`IUrlParser` describes the exported parser utilities. `RouterConfiguration.customize()` selects the built-in parser through `useUrlFragmentHash`; it does not expose a custom-parser option. The internal `RouterOptions._urlParser` member is not a supported mutation hook.
 
 ### pathUrlParser / fragmentUrlParser
 

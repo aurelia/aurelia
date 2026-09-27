@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
@@ -7,12 +7,14 @@ import { fileURLToPath } from 'node:url';
 import { bundleBenchmarkVariant } from './rollup.variant.mjs';
 import {
   discoverInternalClosure,
+  discoverLockedExternalClosure,
   discoverWorkspacePackages,
   getAureliaPackageName,
   isPathInside,
   resolveAureliaEntry,
   validateInstalledGraph,
 } from './variant-utils.mjs';
+import { defaultFixtures, fixturesForProfile, packageRootsForFixtures } from './fixtures.mjs';
 
 const benchmarksRoot = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(benchmarksRoot, '..');
@@ -43,6 +45,42 @@ void describe('benchmark variant utilities', () => {
     assert.equal(getAureliaPackageName('@aurelia/runtime-html'), '@aurelia/runtime-html');
     assert.equal(getAureliaPackageName('@aurelia/runtime-html/development'), '@aurelia/runtime-html');
     assert.equal(getAureliaPackageName('rollup'), null);
+  });
+
+  void it('keeps smoke fixtures and their dependency graph unchanged', async () => {
+    assert.equal(fixturesForProfile('smoke').length, 6);
+    assert.equal(defaultFixtures.length, 8);
+    assert.deepEqual(packageRootsForFixtures(fixturesForProfile('smoke')), ['@aurelia/runtime-html']);
+    assert.deepEqual(packageRootsForFixtures(defaultFixtures), ['@aurelia/runtime-html', '@aurelia/i18n']);
+    for (const fixture of defaultFixtures) {
+      assert.match(await readFile(path.join(benchmarksRoot, fixture, 'index.js'), 'utf8'), /@aurelia\//);
+    }
+    const closure = discoverInternalClosure(await discoverWorkspacePackages(repositoryRoot), packageRootsForFixtures(defaultFixtures));
+    assert.equal(closure.packages.size, 9);
+    assert.deepEqual([...closure.external], ['i18next']);
+    const lock = JSON.parse(await readFile(path.join(repositoryRoot, 'package-lock.json'), 'utf8'));
+    const external = discoverLockedExternalClosure(lock, closure.external);
+    assert.deepEqual([...external.keys()], ['i18next', '@babel/runtime']);
+    for (const [name, entry] of external) assert.deepEqual(entry, { ...lock.packages[`node_modules/${name}`], lockPath: `node_modules/${name}` });
+  });
+
+  void it('rejects unreviewed or unpinned external package inputs', () => {
+    const lock = { packages: { 'node_modules/i18next': {
+      version: '25.7.4', resolved: 'https://registry.npmjs.org/i18next/-/i18next-25.7.4.tgz', integrity: 'sha512-YQ==',
+    } } };
+    for (const patch of [
+      { version: 'latest' }, { resolved: 'file:../workspace' }, { integrity: undefined }, { link: true },
+      { dependencies: { unreviewed: '1.0.0' } }, { optionalDependencies: { unreviewed: '1.0.0' } },
+      { peerDependencies: { typescript: '^5' } },
+    ]) {
+      const altered = structuredClone(lock);
+      Object.assign(altered.packages['node_modules/i18next'], patch);
+      assert.throws(() => discoverLockedExternalClosure(altered, ['i18next']), /benchmark dependency/);
+    }
+    const nested = structuredClone(lock);
+    nested.packages['node_modules/i18next'].dependencies = { '@babel/runtime': '^7' };
+    nested.packages['node_modules/i18next/node_modules/@babel/runtime'] = {};
+    assert.throws(() => discoverLockedExternalClosure(nested, ['i18next']), /nested below/);
   });
 
   void it('rejects production closures that could be satisfied outside the source revision', () => {
@@ -158,6 +196,36 @@ void describe('benchmark variant utilities', () => {
     assert.notEqual(base.sha256, candidate.sha256);
     assert.equal(isPathInside(baseRoot, base.resolvedAureliaModules['@aurelia/example']), true);
     assert.equal(isPathInside(candidateRoot, candidate.resolvedAureliaModules['@aurelia/example']), true);
+  });
+
+  void it('bundles i18next from each variant and proves byte-identical A/A outputs', async () => {
+    const root = await createTemporaryRoot();
+    const fixtureRoot = path.join(root, 'fixtures');
+    const fixture = 'external-probe';
+    await mkdir(path.join(fixtureRoot, fixture), { recursive: true });
+    await writeFile(path.join(fixtureRoot, fixture, 'index.js'),
+      "import { value } from '@aurelia/example'; import { locale } from 'i18next'; globalThis.result = [value, locale];\n");
+    const records = [];
+    for (const variant of ['base', 'candidate']) {
+      const installRoot = await writeBundleGraph(path.join(root, variant), 'same');
+      const external = path.join(installRoot, 'node_modules', 'i18next');
+      await mkdir(external, { recursive: true });
+      await writeJson(path.join(external, 'package.json'), { name: 'i18next', version: '25.7.4', module: 'index.js' });
+      await writeFile(path.join(external, 'index.js'), "export const locale = 'de';\n");
+      const [record] = await bundleBenchmarkVariant({ fixtureRoot, fixtures: [fixture], installRoot, outputRoot: path.join(root, 'output', variant) });
+      assert.equal(isPathInside(installRoot, record.resolvedExternalModules.i18next), true);
+      assert.doesNotMatch(await readFile(record.file, 'utf8'), /from["']i18next/);
+      records.push(record);
+    }
+    assert.equal(records[0].sha256, records[1].sha256);
+    await rm(path.join(root, 'candidate', 'node_modules', 'i18next'), { recursive: true });
+    await assert.rejects(bundleBenchmarkVariant({
+      fixtureRoot, fixtures: [fixture], installRoot: path.join(root, 'candidate'), outputRoot: path.join(root, 'missing'),
+    }), /ENOENT/);
+    await writeFile(path.join(fixtureRoot, fixture, 'index.js'), "import 'unreviewed';\n");
+    await assert.rejects(bundleBenchmarkVariant({
+      fixtureRoot, fixtures: [fixture], installRoot: path.join(root, 'base'), outputRoot: path.join(root, 'unknown'),
+    }), /Unsupported bare benchmark import/);
   });
 
   void it('distinguishes descendants from sibling paths', () => {

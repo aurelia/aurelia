@@ -23,7 +23,11 @@ from the current PR test merge, or current master for a standalone run. Its revi
 requested. This lets maintainers measure older framework code with today's fixtures and runner.
 
 Each revision gets its own source snapshot, clean install, and release build. The builder discovers the internal
-`@aurelia/runtime-html` package closure, packs those packages, and installs them into an isolated graph. Both graphs
+`@aurelia/runtime-html` package closure (plus `@aurelia/i18n` for the formatting fixture), packs those packages, and
+installs them into an isolated graph. The i18n graph also packs the exact `i18next` and required `@babel/runtime`
+installed by that revision's `npm ci`; provenance records their source-lock versions, registry URLs and integrity
+alongside the packed-artifact hashes. Unknown external dependencies fail preparation. The final graph installs
+offline from these local tarballs and every bundled package resolves inside its selected variant. Both graphs
 are then bundled with the same harness-owned fixture source and Rollup configuration. This prevents workspace links
 or root dependencies from mixing the two revisions.
 
@@ -220,7 +224,26 @@ npm run bench:realistic-refresh
 npm run bench:realistic-heap500
 npm run bench:realistic-refresh-loop
 npm run bench:dependency-rotation
+npm run bench:i18n-formatting
+npm run bench:template-compilation
 ```
+
+The two focused formatting/compilation configs run in `full` and `master`, not `smoke`:
+
+- `app-i18n-formatting/refresh.json` measures one settled 1000-row keyed refresh through the real `nf` and `df`
+  converters, separately with default options and shared explicit currency/date options. Initialization, asynchronous
+  i18n activation, two warm-up refreshes, replacement records and expected output are outside the timer. Every row's
+  formatted output and keyed DOM identity are checked before publishing. The explicit-options row also acts as a
+  control for optimizations limited to the default formatter path.
+- `app-template-compilation/compilation.json` measures synchronous startup of a fresh 100-section template with
+  distinct large static SVG paths/text and real interpolation bindings. Template construction is outside the timer;
+  compilation is cold, with no parser/compiler warm-up. A separate warmed-parser row performs 100000 rounds over
+  three static strings and one interpolation to expose hot-cache regressions. Both cases validate their output.
+
+These focused rows complement the existing repeat startup/refresh regression guards. They are not general-purpose
+formatter or template-cache guarantees. Use the same prepared base/candidate bundle pair for the focused results and
+the guard results. `smoke` retains its original six fixture bundles; `full` and `master` now require eight bundles and
+all 16 result files. Trusted report support must land on master before expanded reports can be published.
 
 `npm run bench` is a convenience batch of common local scenarios. It is not the formal `full` profile. Once every
 result required by the selected provenance profile exists, build the machine-readable and Markdown report with:

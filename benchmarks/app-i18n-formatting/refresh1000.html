@@ -1,0 +1,44 @@
+<script type="module">
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { prepareFormattingApplication, tasksSettled } = await loadVariant('app-i18n-formatting');
+const explicitOptions = new URLSearchParams(location.search).get('options') === 'explicit';
+const mode = explicitOptions ? 'explicit' : 'default';
+const host = document.body.appendChild(document.createElement('div'));
+const records = offset => Array.from({ length: 1000 }, (_, id) => ({
+  id,
+  price: 1234.5 + id + offset,
+  date: 1750000000000 + (id + offset) * 86400000,
+}));
+const au = await prepareFormattingApplication(host, records(0), explicitOptions);
+const app = au.root.controller.viewModel;
+const initialRows = [...host.querySelectorAll('.row')];
+// Warm converters and the keyed refresh path before the representative interaction.
+for (let offset = 1; offset <= 2; ++offset) {
+  app.items = records(offset);
+  await tasksSettled();
+}
+const next = records(3);
+const number = new Intl.NumberFormat('de', app.numberOptions);
+const date = new Intl.DateTimeFormat('de', app.dateOptions);
+const expected = next.map(item => [number.format(item.price), date.format(item.date)]);
+
+performance.mark('formatting-refresh-start');
+app.items = next;
+await tasksSettled();
+performance.mark('formatting-refresh-end');
+
+const rows = [...host.querySelectorAll('.row')];
+if (rows.length !== next.length || initialRows.length !== next.length) {
+  throw new Error('Formatting refresh produced an incorrect row count.');
+}
+for (let index = 0; index < rows.length; ++index) {
+  const row = rows[index];
+  if (row !== initialRows[index]
+    || row.querySelector('.price').textContent !== expected[index][0]
+    || row.querySelector('.date').textContent !== expected[index][1]) {
+    throw new Error(`Formatting refresh changed row identity or formatted content at ${index}.`);
+  }
+}
+publishMeasurement(`i18n-formatting-${mode}-refresh-1000`, 'formatting-refresh-start', 'formatting-refresh-end');
+</script>

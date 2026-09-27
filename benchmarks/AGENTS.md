@@ -48,8 +48,10 @@ commands, metric meanings, and local reproduction workflow used by this director
 
 ## Required updates
 
-When adding a fixture, update its entry module and page/config, the `defaultFixtures` list in
-`prepare-variants.mjs`, provenance expectations, and bundle tests.
+When adding a fixture, update its entry module and page/config, the `defaultFixtures` list and profile/package-root
+selection in `fixtures.mjs`, provenance expectations, and bundle tests. Keep the smoke fixture graph compatible
+when expanding full/master coverage. External runtime dependencies require an explicit source-lock policy in
+`variant-utils.mjs`; never resolve them from the harness installation.
 
 When adding a result file, update:
 

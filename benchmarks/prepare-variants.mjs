@@ -5,8 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundleBenchmarkVariant } from './rollup.variant.mjs';
 import { prepareComparison } from './prepare-comparison.mjs';
+import { defaultFixtures, fixturesForProfile, packageRootsForFixtures } from './fixtures.mjs';
 import {
   discoverInternalClosure,
+  discoverLockedExternalClosure,
   discoverWorkspacePackages,
   hashFile,
   hashFileSet,
@@ -17,14 +19,6 @@ import {
 
 const benchmarksRoot = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(benchmarksRoot, '..');
-const defaultFixtures = [
-  'app-repeat-view',
-  'app-repeat-ce',
-  'app-repeat-view-big-template',
-  'app-repeat-view-keyed-string',
-  'app-repeat-view-keyed-expr',
-  'app-repeat-realistic',
-];
 const npmCli = process.env.npm_execpath;
 if (npmCli === undefined) {
   throw new Error('Run benchmark variant preparation through an npm script so the npm CLI is explicit.');
@@ -169,7 +163,12 @@ async function prepareVariant(label, commit) {
   }
 
   const workspacePackages = await discoverWorkspacePackages(sourceRoot);
-  const closure = discoverInternalClosure(workspacePackages, '@aurelia/runtime-html');
+  const packageRoots = packageRootsForFixtures(options.fixtures);
+  const closure = discoverInternalClosure(workspacePackages, packageRoots);
+  const externalClosure = discoverLockedExternalClosure(
+    await readJson(path.join(sourceRoot, 'package-lock.json')),
+    closure.external,
+  );
 
   // Each revision installs its own build tools. Sharing root node_modules would also share
   // workspace symlinks, allowing a base build to import candidate sources.
@@ -185,12 +184,12 @@ async function prepareVariant(label, commit) {
   const turboCli = path.join(sourceRoot, 'node_modules', 'turbo', 'bin', 'turbo');
   await run(
     process.execPath,
-    [turboCli, 'rollup', '--filter=@aurelia/runtime-html'],
+    [turboCli, 'rollup', '--concurrency=1', ...packageRoots.map(name => `--filter=${name}`)],
     sourceRoot,
     { RELEASE_BUILD: 'true', TURBO_TELEMETRY_DISABLED: '1' },
   );
 
-  const packedPackages = await packClosure(label, closure, variantRoot, sourceRoot);
+  const packedPackages = await packClosure(label, closure, externalClosure, variantRoot, sourceRoot);
   const installRoot = await installPackedGraph(label, packedPackages, variantRoot);
   const installed = await validateInstalledGraph(installRoot, packedPackages);
 
@@ -208,17 +207,28 @@ async function prepareVariant(label, commit) {
   };
 }
 
-async function packClosure(label, closure, variantRoot, sourceRoot) {
+async function packClosure(label, closure, externalClosure, variantRoot, sourceRoot) {
   const packRoot = path.join(variantRoot, 'packs');
   await mkdir(packRoot, { recursive: true });
   const packedPackages = new Map();
+  const packages = new Map(closure.packages);
+  for (const [name, sourceLock] of externalClosure) {
+    const dir = path.join(sourceRoot, sourceLock.lockPath);
+    const manifest = await readJson(path.join(dir, 'package.json'));
+    if (manifest.name !== name || manifest.version !== sourceLock.version) {
+      throw new Error(`Source dependency ${name} does not match its exact source lock.`);
+    }
+    packages.set(name, { dir, manifest, sourceLock });
+  }
 
   // Packing in a stable order keeps filenames and diagnostics attributable if one package fails.
-  for (const packageName of [...closure.packages.keys()].sort((left, right) => left.localeCompare(right))) {
-    const workspacePackage = closure.packages.get(packageName);
+  for (const packageName of [...packages.keys()].sort((left, right) => left.localeCompare(right))) {
+    const workspacePackage = packages.get(packageName);
     const modulePath = path.resolve(workspacePackage.dir, workspacePackage.manifest.module ?? 'dist/esm/index.mjs');
     try {
-      await readFile(modulePath);
+      if (workspacePackage.sourceLock === undefined) {
+        await readFile(modulePath);
+      }
     } catch (error) {
       if (error?.code === 'ENOENT') {
         throw new Error(`Release build for ${label} did not produce ${modulePath}.`);
@@ -252,6 +262,14 @@ async function packClosure(label, closure, variantRoot, sourceRoot) {
       shasum: result.shasum,
       sha256: await hashFile(tarball),
       bytes: result.size,
+      ...(workspacePackage.sourceLock === undefined ? {} : {
+        sourceLock: {
+          path: workspacePackage.sourceLock.lockPath,
+          version: workspacePackage.sourceLock.version,
+          resolved: workspacePackage.sourceLock.resolved,
+          integrity: workspacePackage.sourceLock.integrity,
+        },
+      }),
     });
   }
   return packedPackages;
@@ -305,8 +323,9 @@ function toManifestVariant(variant) {
         installedPath: toPosixPath(path.relative(variant.installRoot, installed.dir)),
         resolved: installed.resolved,
         installedIntegrity: installed.integrity,
-        entry: toPosixPath(path.relative(variant.installRoot, installed.entry)),
+        entry: installed.entry === null ? null : toPosixPath(path.relative(variant.installRoot, installed.entry)),
         entrySha256: installed.entrySha256,
+        ...(packed.sourceLock === undefined ? {} : { sourceLock: packed.sourceLock }),
       }];
     })),
   };
@@ -323,12 +342,19 @@ function normalizeBundleRecord(bundle, installRoot, outputRoot) {
       specifier,
       toPosixPath(path.relative(installRoot, file)),
     ])),
+    resolvedExternalModules: Object.fromEntries(Object.entries(bundle.resolvedExternalModules).map(([specifier, file]) => [
+      specifier,
+      toPosixPath(path.relative(installRoot, file)),
+    ])),
   };
 }
 
 async function getHarnessFileSet() {
   const tracked = (await runCapture('git', [
     'ls-files',
+    '--cached',
+    '--others',
+    '--exclude-standard',
     '--',
     '.circleci/config.yml',
     '.github/scripts',
@@ -399,7 +425,7 @@ function parseArguments(argv) {
   if (parsed.comparison !== 'revisions' && (parsed.harness !== undefined || parsed.prBase !== undefined)) {
     throw new Error('--harness and --pr-base require --comparison revisions.');
   }
-  if (parsed.fixtures.length === 0) parsed.fixtures = [...defaultFixtures];
+  if (parsed.fixtures.length === 0) parsed.fixtures = fixturesForProfile(parsed.profile);
   for (const fixture of parsed.fixtures) {
     if (!defaultFixtures.includes(fixture)) {
       throw new Error(`Unknown benchmark fixture "${fixture}". Expected one of: ${defaultFixtures.join(', ')}`);

@@ -1113,6 +1113,22 @@ workflows:
             - bench_realistic_heap_lifecycle
             - bench_realistic_refresh_loop
             - bench_dependency_rotation
+            - bench_i18n_formatting
+            - bench_template_compilation
+
+      - tacho_benchmark:
+          name: bench_i18n_formatting
+          command: npm run bench:i18n-formatting
+          result: i18n-formatting-refresh-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          name: bench_template_compilation
+          command: npm run bench:template-compilation
+          result: template-compilation.json
+          requires:
+            - bench_prep
 
   # Runs build and tests (master)
   build_test:
@@ -1382,3 +1398,19 @@ workflows:
             - benchmark_realistic_heap_lifecycle
             - benchmark_realistic_refresh_loop
             - benchmark_dependency_rotation
+            - benchmark_i18n_formatting
+            - benchmark_template_compilation
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_i18n_formatting
+          command: npm run bench:i18n-formatting
+          result: i18n-formatting-refresh-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_template_compilation
+          command: npm run bench:template-compilation
+          result: template-compilation.json
+          requires:
+            - tacho_benchmark_prep

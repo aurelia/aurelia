@@ -25,6 +25,8 @@ commands, metric meanings, and local reproduction workflow used by this director
   Explicit comparisons select framework base/candidate independently; the harness remains the frozen PR test merge
   or current master for a standalone run. Verify PR parents against `prBase`/`head`, not a historical framework pair.
 - Build each revision from its own source snapshot, lockfile, release output, and packed package graph.
+- Preserve external dependencies as original source-lock tarballs and verify their SHA-512 integrity. npm 10 can
+  run directory `prepare` hooks despite `--ignore-scripts`; exercise packing tests through the pinned npm version.
 - Resolve every bundled `@aurelia/*` module inside the selected variant root. Never fall back to workspace packages,
   npm `dev`, or another moving label.
 - Run base and candidate with identical fixture source, filenames, bundler configuration, browser, and interleaved
@@ -48,8 +50,10 @@ commands, metric meanings, and local reproduction workflow used by this director
 
 ## Required updates
 
-When adding a fixture, update its entry module and page/config, the `defaultFixtures` list in
-`prepare-variants.mjs`, provenance expectations, and bundle tests.
+When adding a fixture, update its entry module and page/config, the `defaultFixtures` list and profile/package-root
+selection in `fixtures.mjs`, provenance expectations, and bundle tests. Keep the smoke fixture graph compatible
+when expanding full/master coverage. External runtime dependencies require an explicit source-lock policy in
+`variant-utils.mjs`; never resolve them from the harness installation.
 
 When adding a result file, update:
 

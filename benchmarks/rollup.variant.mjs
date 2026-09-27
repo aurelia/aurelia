@@ -8,6 +8,7 @@ import {
   hashFile,
   isPathInside,
   resolveAureliaEntry,
+  resolvePackageEntry,
   toPosixPath,
 } from './variant-utils.mjs';
 
@@ -21,6 +22,7 @@ export async function bundleBenchmarkVariant({ fixtureRoot, fixtures, installRoo
     const outputDir = path.join(outputRoot, fixture);
     const outputFile = path.join(outputDir, 'app.js');
     const resolvedAureliaModules = new Map();
+    const resolvedExternalModules = new Map();
     const sourceFiles = new Set();
     await mkdir(outputDir, { recursive: true });
 
@@ -28,7 +30,16 @@ export async function bundleBenchmarkVariant({ fixtureRoot, fixtures, installRoo
       name: 'aurelia-benchmark-package-isolation',
       async resolveId(source) {
         const packageName = getAureliaPackageName(source);
-        if (packageName === null) return null;
+        if (packageName === null) {
+          if (source.startsWith('.') || path.isAbsolute(source)) return null;
+          const externalName = /^((?:@[^/]+\/)?[^/]+)/.exec(source)?.[1];
+          if (!['i18next', '@babel/runtime'].includes(externalName)) {
+            throw new Error(`Unsupported bare benchmark import "${source}".`);
+          }
+          const resolved = await resolvePackageEntry(variantRoot, source, externalName);
+          resolvedExternalModules.set(source, resolved.entry);
+          return resolved.entry;
+        }
 
         // Benchmark source is shared by both variants. Forcing every Aurelia import through the
         // selected install root keeps workspace links from turning an A/A run into a mixed graph.
@@ -50,8 +61,8 @@ export async function bundleBenchmarkVariant({ fixtureRoot, fixtures, installRoo
       for (const watchedFile of build.watchFiles) {
         const resolvedFile = await realpath(watchedFile);
         const normalized = toPosixPath(resolvedFile);
-        if (normalized.includes('/node_modules/@aurelia/') && !isPathInside(variantRoot, resolvedFile)) {
-          throw new Error(`Aurelia module escaped the selected benchmark variant: ${resolvedFile}`);
+        if (normalized.includes('/node_modules/') && !isPathInside(variantRoot, resolvedFile)) {
+          throw new Error(`Package module escaped the selected benchmark variant: ${resolvedFile}`);
         }
         if (isPathInside(resolvedFixtureRoot, resolvedFile)) {
           sourceFiles.add(toPosixPath(path.relative(resolvedFixtureRoot, resolvedFile)));
@@ -80,6 +91,9 @@ export async function bundleBenchmarkVariant({ fixtureRoot, fixtures, installRoo
       sourceFiles: [...sourceFiles].sort((left, right) => left.localeCompare(right)),
       resolvedAureliaModules: Object.fromEntries(
         [...resolvedAureliaModules.entries()].sort(([left], [right]) => left.localeCompare(right))
+      ),
+      resolvedExternalModules: Object.fromEntries(
+        [...resolvedExternalModules.entries()].sort(([left], [right]) => left.localeCompare(right))
       ),
     });
   }

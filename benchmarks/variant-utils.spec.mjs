@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { bundleBenchmarkVariant } from './rollup.variant.mjs';
 import {
   discoverInternalClosure,
@@ -11,6 +14,7 @@ import {
   discoverWorkspacePackages,
   getAureliaPackageName,
   isPathInside,
+  packBenchmarkPackage,
   resolveAureliaEntry,
   validateInstalledGraph,
 } from './variant-utils.mjs';
@@ -96,6 +100,124 @@ void describe('benchmark variant utilities', () => {
       () => discoverInternalClosure(packages, '@aurelia/example'),
       /external production dependencies: external-package/,
     );
+  });
+
+  void it('continues packing internal packages from their release source directory', async () => {
+    const fixture = await writePackFixture();
+    const packed = await packBenchmarkPackage(
+      fixture.packageName, fixture.workspacePackage, fixture.packRoot, async (args, cwd) => {
+        assert.deepEqual(args, ['pack', '--json', '--ignore-scripts', '--pack-destination', fixture.packRoot]);
+        assert.equal(cwd, fixture.workspacePackage.dir);
+        return JSON.stringify([fixture.result]);
+      },
+    );
+    assert.deepEqual(packed, { result: fixture.result, tarball: fixture.tarball });
+  });
+
+  void it('packs the exact source-lock tarball for external dependencies', async () => {
+    const fixture = await writePackFixture({ external: true });
+    const packed = await packBenchmarkPackage(
+      fixture.packageName, fixture.workspacePackage, fixture.packRoot, async (args, cwd) => {
+        assert.equal(args[0], 'pack');
+        assert.ok(args.includes(fixture.workspacePackage.sourceLock.resolved));
+        assert.ok(args.includes('--json'));
+        assert.ok(args.includes('--ignore-scripts'));
+        assert.equal(args[args.indexOf('--pack-destination') + 1], fixture.packRoot);
+        assert.equal(cwd, fixture.workspacePackage.dir);
+        return JSON.stringify([fixture.result]);
+      },
+    );
+    assert.deepEqual(packed, { result: fixture.result, tarball: fixture.tarball });
+  });
+
+  void it('rejects noisy JSON and unexpected npm pack result shapes', async () => {
+    const fixture = await writePackFixture();
+    await assert.rejects(packBenchmarkPackage(
+      fixture.packageName, fixture.workspacePackage, fixture.packRoot,
+      async () => `.git can't be found${JSON.stringify([fixture.result])}`,
+    ), SyntaxError);
+    for (const results of [{}, [], [fixture.result, fixture.result]]) {
+      await assert.rejects(packBenchmarkPackage(
+        fixture.packageName, fixture.workspacePackage, fixture.packRoot,
+        async () => JSON.stringify(results),
+      ), /unexpected result/);
+    }
+  });
+
+  void it('rejects npm pack results with the wrong package identity', async () => {
+    const fixture = await writePackFixture();
+    for (const patch of [{ name: '@aurelia/wrong' }, { version: '9.9.9' }]) {
+      await assert.rejects(packBenchmarkPackage(
+        fixture.packageName, fixture.workspacePackage, fixture.packRoot,
+        async () => JSON.stringify([{ ...fixture.result, ...patch }]),
+      ), /npm pack produced/);
+    }
+  });
+
+  void it('rejects external tarballs whose advertised integrity differs from the source lock', async () => {
+    const fixture = await writePackFixture({ external: true });
+    await assert.rejects(packBenchmarkPackage(
+      fixture.packageName, fixture.workspacePackage, fixture.packRoot,
+      async () => JSON.stringify([{ ...fixture.result, integrity: 'sha512-wrong' }]),
+    ), /integrity/i);
+  });
+
+  void it('checks external tarball bytes even when npm advertises the expected integrity', async () => {
+    const fixture = await writePackFixture({ external: true });
+    await writeFile(fixture.tarball, 'different archive bytes');
+    await assert.rejects(packBenchmarkPackage(
+      fixture.packageName, fixture.workspacePackage, fixture.packRoot,
+      async () => JSON.stringify([fixture.result]),
+    ), /integrity/i);
+  });
+
+  void it('preserves original external tarball bytes without rerunning its prepare script', {
+    skip: process.env.npm_execpath === undefined ? 'Run through npm run bench:variants:test to exercise npm packing.' : false,
+  }, async () => {
+    const root = await createTemporaryRoot();
+    const dir = path.join(root, 'source');
+    const originalRoot = path.join(root, 'original');
+    const packRoot = path.join(root, 'packs');
+    await Promise.all([dir, originalRoot, packRoot].map(directory => mkdir(directory)));
+    const manifest = {
+      name: 'benchmark-prepare-probe',
+      version: '1.0.0',
+      files: ['index.js', 'prepare.cjs'],
+      scripts: { prepare: 'node prepare.cjs' },
+    };
+    const marker = path.join(dir, 'prepare-ran');
+    await writeJson(path.join(dir, 'package.json'), manifest);
+    await writeFile(path.join(dir, 'index.js'), 'module.exports = 1;\n');
+    await writeFile(path.join(dir, 'prepare.cjs'),
+      'require("node:fs").writeFileSync("prepare-ran", "yes"); process.stdout.write(".git can\'t be found");\n');
+    const execFileAsync = promisify(execFile);
+    const runNpmCapture = async (args, cwd) => (await execFileAsync(
+      process.execPath, [process.env.npm_execpath, ...args], {
+        cwd,
+        env: { ...process.env, npm_config_cache: path.join(root, 'npm-cache') },
+        encoding: 'utf8',
+      },
+    )).stdout.trim();
+
+    // Setup deliberately runs prepare once; its marker is excluded from the original archive.
+    await runNpmCapture(['pack', '--json', '--ignore-scripts=false', '--pack-destination', originalRoot], dir);
+    assert.equal(await readFile(marker, 'utf8'), 'yes');
+    await rm(marker);
+    const originalTarball = path.join(originalRoot, 'benchmark-prepare-probe-1.0.0.tgz');
+    const originalBytes = await readFile(originalTarball);
+    const integrity = `sha512-${createHash('sha512').update(originalBytes).digest('base64')}`;
+    const packed = await packBenchmarkPackage(manifest.name, {
+      dir,
+      manifest,
+      // Discovery separately enforces registry URLs. A local archive keeps this regression offline.
+      sourceLock: { resolved: originalTarball, integrity, version: manifest.version },
+    }, packRoot, runNpmCapture);
+
+    assert.equal(packed.result.name, manifest.name);
+    assert.equal(packed.result.version, manifest.version);
+    assert.equal(packed.result.integrity, integrity);
+    assert.deepEqual(await readFile(packed.tarball), originalBytes);
+    await assert.rejects(readFile(marker), { code: 'ENOENT' });
   });
 
   void it('resolves the import condition from an isolated package graph', async () => {
@@ -242,6 +364,42 @@ async function createTemporaryRoot() {
 }
 
 const writeJson = (file, value) => writeFile(file, `${JSON.stringify(value, null, 2)}\n`);
+
+async function writePackFixture({ external = false } = {}) {
+  const root = await createTemporaryRoot();
+  const packageName = external ? 'i18next' : '@aurelia/example';
+  const version = '1.0.0';
+  const filename = external ? 'i18next-1.0.0.tgz' : 'aurelia-example-1.0.0.tgz';
+  const packRoot = path.join(root, 'packs');
+  const tarball = path.join(packRoot, filename);
+  const contents = Buffer.from('exact archive bytes');
+  const integrity = `sha512-${createHash('sha512').update(contents).digest('base64')}`;
+  const dir = path.join(root, 'source');
+  await Promise.all([mkdir(dir), mkdir(packRoot)]);
+  await writeFile(tarball, contents);
+  return {
+    packageName,
+    packRoot,
+    tarball,
+    workspacePackage: {
+      dir,
+      manifest: { name: packageName, version },
+      ...(external ? { sourceLock: {
+        version,
+        resolved: `https://registry.npmjs.org/i18next/-/${filename}`,
+        integrity,
+      } } : {}),
+    },
+    result: {
+      name: packageName,
+      version,
+      filename,
+      integrity,
+      shasum: createHash('sha1').update(contents).digest('hex'),
+      size: contents.length,
+    },
+  };
+}
 
 async function writeInstalledGraph(
   installRoot,

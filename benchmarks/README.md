@@ -24,9 +24,10 @@ requested. This lets maintainers measure older framework code with today's fixtu
 
 Each revision gets its own source snapshot, clean install, and release build. The builder discovers the internal
 `@aurelia/runtime-html` package closure (plus `@aurelia/i18n` for the formatting fixture), packs those packages, and
-installs them into an isolated graph. The i18n graph also packs the exact `i18next` and required `@babel/runtime`
-installed by that revision's `npm ci`; provenance records their source-lock versions, registry URLs and integrity
-alongside the packed-artifact hashes. Unknown external dependencies fail preparation. The final graph installs
+installs them into an isolated graph. The i18n graph retrieves the original `i18next` and required `@babel/runtime`
+tarballs from that revision's lockfile and verifies their SHA-512 integrity. This preserves the published bytes and
+avoids rerunning dependency lifecycle hooks. Provenance records their source-lock versions, registry URLs and integrity
+alongside the artifact hashes. Unknown external dependencies fail preparation. The final graph installs
 offline from these local tarballs and every bundled package resolves inside its selected variant. Both graphs
 are then bundled with the same harness-owned fixture source and Rollup configuration. This prevents workspace links
 or root dependencies from mixing the two revisions.

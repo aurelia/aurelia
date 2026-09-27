@@ -12,6 +12,7 @@ import {
   discoverWorkspacePackages,
   hashFile,
   hashFileSet,
+  packBenchmarkPackage,
   readJson,
   toPosixPath,
   validateInstalledGraph,
@@ -236,22 +237,7 @@ async function packClosure(label, closure, externalClosure, variantRoot, sourceR
       throw error;
     }
 
-    const rawResult = await runNpmCapture(
-      ['pack', '--json', '--ignore-scripts', '--pack-destination', packRoot],
-      workspacePackage.dir,
-    );
-    const results = JSON.parse(rawResult);
-    if (!Array.isArray(results) || results.length !== 1) {
-      throw new Error(`npm pack returned an unexpected result for ${packageName}.`);
-    }
-    const [result] = results;
-    if (result.name !== packageName || result.version !== workspacePackage.manifest.version) {
-      throw new Error(
-        `npm pack produced ${result.name}@${result.version}, `
-        + `expected ${packageName}@${workspacePackage.manifest.version}.`
-      );
-    }
-    const tarball = path.join(packRoot, result.filename);
+    const { result, tarball } = await packBenchmarkPackage(packageName, workspacePackage, packRoot, runNpmCapture);
     packedPackages.set(packageName, {
       name: packageName,
       version: workspacePackage.manifest.version,

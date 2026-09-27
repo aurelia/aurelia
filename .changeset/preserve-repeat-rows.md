@@ -3,3 +3,4 @@
 ---
 
 - Fixed repeated rows losing component state and input focus when an array was mutated and then reassigned.
+- Improved performance when removing and replacing rows in repeated lists.

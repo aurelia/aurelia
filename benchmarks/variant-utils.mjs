@@ -152,6 +152,35 @@ export function getAureliaPackageName(specifier) {
   return match?.[1] ?? null;
 }
 
+export async function packBenchmarkPackage(packageName, workspacePackage, packRoot, runNpmCapture) {
+  const { sourceLock } = workspacePackage;
+  // npm 10 can run a directory's prepare hook despite --ignore-scripts. Keep
+  // external dependencies in their original archive form so those hooks never run.
+  const rawResult = await runNpmCapture(
+    ['pack', ...(sourceLock === undefined ? [] : [sourceLock.resolved]), '--json', '--ignore-scripts', '--pack-destination', packRoot],
+    workspacePackage.dir,
+  );
+  const results = JSON.parse(rawResult);
+  if (!Array.isArray(results) || results.length !== 1) {
+    throw new Error(`npm pack returned an unexpected result for ${packageName}.`);
+  }
+  const [result] = results;
+  if (result.name !== packageName || result.version !== workspacePackage.manifest.version) {
+    throw new Error(
+      `npm pack produced ${result.name}@${result.version}, `
+      + `expected ${packageName}@${workspacePackage.manifest.version}.`
+    );
+  }
+  const tarball = path.join(packRoot, result.filename);
+  if (sourceLock !== undefined) {
+    const integrity = `sha512-${createHash('sha512').update(await readFile(tarball)).digest('base64')}`;
+    if (result.integrity !== sourceLock.integrity || integrity !== sourceLock.integrity) {
+      throw new Error(`Packed external dependency ${packageName} does not match its source-lock integrity.`);
+    }
+  }
+  return { result, tarball };
+}
+
 export async function resolveAureliaEntry(installRoot, specifier) {
   const packageName = getAureliaPackageName(specifier);
   if (packageName === null) return null;

@@ -1,12 +1,25 @@
 ---
-description: Access information about the active route via ICurrentRoute.
+description: Read the active route, observe completed navigation, and use incoming route data during lifecycle hooks.
 ---
 
 # Current route
 
-`ICurrentRoute` is a dependency injection token that exposes details of the route that is currently active. The instance is updated whenever navigation finishes so that you can inspect the active path, URL and query information from any component or service.
+Resolve `ICurrentRoute` in a component or service to read the last successfully completed navigation. Its properties update together on `au:router:navigation-end`. Resolve it from a persistent shell to track navigation from startup; the service begins observing when first resolved.
 
-`ICurrentRoute` has the following shape:
+```ts
+import { resolve } from '@aurelia/kernel';
+import { ICurrentRoute } from '@aurelia/router';
+
+export class AppHeader {
+  readonly currentRoute = resolve(ICurrentRoute);
+}
+```
+
+```html
+<span>${currentRoute.title}</span>
+```
+
+## Available information
 
 ```ts
 interface ICurrentRoute {
@@ -25,145 +38,80 @@ interface ParameterInformation {
 }
 ```
 
-To use it, inject the token and read its properties:
+| Property | Meaning |
+| --- | --- |
+| `path` | The active route path, without query or fragment. |
+| `url` | The route serialized in the configured URL mode, including query and fragment. Hash routing includes its `/#/` wrapper. This is not the full browser document URL and does not include the deployment base. |
+| `title` | The title calculated for the completed navigation. |
+| `query` | The current route's query parameters, published with completed navigation. |
+| `parameterInformation` | Route configuration, viewport, and parameter information arranged in the same hierarchy as the active instructions. |
+
+Treat these values as router-owned state. To edit query parameters for another navigation, make a copy with `new URLSearchParams(currentRoute.query)`.
+
+For a browser-ready link, use [`router.createHref(reference)`](./application-url-navigation.md) with an application URL reference. For the actual address bar value, use the browser's `location.href`. Successful navigation with `historyStrategy: 'none'` updates `ICurrentRoute` while leaving the address bar unchanged.
+
+## Timing considerations
+
+While a page is loading or attaching, `ICurrentRoute` still describes the previous completed navigation. The incoming route is available directly to the page's router lifecycle hooks through their `params` and `next` arguments:
 
 ```ts
-import { ICurrentRoute } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
+import type { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
 
-export class MyApp {
-  private readonly currentRoute = resolve(ICurrentRoute);
+export class ProductPage implements IRouteViewModel {
+  id = '';
+  tab = 'overview';
 
-  // ⚠️ Note: accessing in lifecycle hooks shows previous route
-  // See "Timing Considerations" below for proper solutions
-}
-```
-
-## Timing Considerations
-
-**Important:** `ICurrentRoute` is updated by the router **after** navigation completes, which happens after **all** component lifecycle hooks complete. This means:
-
-- ❌ **Avoid in lifecycle hooks** - `binding()`, `bound()`, `attaching()`, and `attached()` all show previous route information  
-- ✅ **Use router events instead** - Subscribe to `au:router:navigation-end` for immediate access
-
-### Component Lifecycle vs Router Timing
-
-The exact sequence is:
-1. `binding()` hook → **previous route**
-2. `bound()` hook → **previous route**  
-3. `attaching()` hook → **previous route**
-4. `attached()` hook → **previous route**
-5. `au:router:navigation-end` event fires → **current route updated**
-
-### Incorrect Timing Examples
-
-```ts
-// ❌ All lifecycle hooks show the previous route, not the current one
-export class AboutPage {
-  private readonly currentRoute = resolve(ICurrentRoute);
-
-  bound() {
-    // Shows previous route due to timing
-    console.log('Active path:', this.currentRoute.path);
-  }
-
-  attached() {
-    // Also shows previous route due to timing
-    console.log('Active path:', this.currentRoute.path);
+  loading(params: Params, next: RouteNode): void {
+    this.id = params.id ?? '';
+    this.tab = next.queryParams.get('tab') ?? 'overview';
   }
 }
 ```
 
-### Correct Timing Solutions
+Use these lifecycle arguments to prepare the incoming page; they are available as soon as the hook runs. By the time the page is created, `navigation-start` has already fired, so a subscription created there would miss it.
 
-**Option 1: Use `navigation-start` event (Recommended)**
+## Observe completed navigation
+
+A persistent shell or component can subscribe to `navigation-end` for work that needs the final route, including any redirects. Resolve `ICurrentRoute` before subscribing so its own update subscription runs first.
 
 ```ts
-import { IRouterEvents, NavigationStartEvent, IRouter } from '@aurelia/router';
-import { IDisposable } from '@aurelia/kernel';
-import { resolve } from '@aurelia/kernel';
+import { resolve, type IDisposable } from '@aurelia/kernel';
+import { ICurrentRoute, IRouterEvents } from '@aurelia/router';
 
-export class AboutPage implements IDisposable {
-  private readonly subscription: IDisposable;
+export class AppShell {
+  private readonly currentRoute = resolve(ICurrentRoute);
+  private readonly events = resolve(IRouterEvents);
+  private subscription?: IDisposable;
 
-  constructor() {
-    const events = resolve(IRouterEvents);
-    const router = resolve(IRouter);
-    
-    this.subscription = events.subscribe('au:router:navigation-start', (event: NavigationStartEvent) => {
-      // Access route information immediately from the event
-      console.log('Navigating to path:', event.instructions.toPath());
-      console.log('Navigating to URL:', event.instructions.toUrl(false, router.options._urlParser, true));
-      console.log('Navigation ID:', event.id);
-      console.log('Trigger:', event.trigger);
+  binding(): void {
+    this.subscription = this.events.subscribe('au:router:navigation-end', () => {
+      console.log('Active route:', this.currentRoute.url);
+      console.log('Query:', this.currentRoute.query.toString());
     });
   }
 
-  dispose(): void {
+  unbinding(): void {
     this.subscription?.dispose();
+    this.subscription = undefined;
   }
 }
 ```
 
-**Option 2: Use `navigation-end` event**
+To follow a navigation through completion, cancellation, or failure, see [router events](./router-events.md).
+
+## Query changes and component reuse
+
+Changing only the query updates `ICurrentRoute`, but does not automatically rerun `loading()` on a reused page. A page whose content follows the query can observe `currentRoute.query`. If the page loads its data in router lifecycle hooks, request those hooks for that navigation:
 
 ```ts
-import { IRouterEvents, NavigationEndEvent } from '@aurelia/router';
-import { IDisposable } from '@aurelia/kernel';
-import { resolve } from '@aurelia/kernel';
+const query = new URLSearchParams(currentRoute.query);
+query.set('page', '2');
 
-export class AboutPage implements IDisposable {
-  private readonly currentRoute = resolve(ICurrentRoute);
-  private readonly subscription: IDisposable;
-
-  constructor() {
-    const events = resolve(IRouterEvents);
-    this.subscription = events.subscribe('au:router:navigation-end', (event: NavigationEndEvent) => {
-      // ICurrentRoute is now updated and can be used
-      console.log('Navigation completed to:', this.currentRoute.path);
-      console.log('Current URL:', this.currentRoute.url);
-    });
-  }
-
-  dispose(): void {
-    this.subscription?.dispose();
-  }
-}
+await router.navigate(`?${query}`, {
+  transitionPlan: 'invoke-lifecycles',
+});
 ```
 
-**Option 3: Use `setTimeout` as a workaround (Not recommended)**
+This is a per-navigation override. A route-level `transitionPlan` alone does not override reuse when the path and route parameters are unchanged. See [application URL navigation](./application-url-navigation.md) for query-driven navigation examples.
 
-```ts
-// ⚠️ Workaround only - prefer Option 1 above
-export class AboutPage {
-  private readonly currentRoute = resolve(ICurrentRoute);
-
-  attached() {
-    // Force execution after navigation completes
-    setTimeout(() => {
-      console.log('Active path:', this.currentRoute.path);
-      console.log('Active url:', this.currentRoute.url);
-    }, 0);
-  }
-}
-```
-
-**Option 4: Access current route outside of lifecycle hooks**
-
-```ts
-export class AboutPage {
-  private readonly currentRoute = resolve(ICurrentRoute);
-
-  // ✅ Works correctly when called after navigation
-  public getCurrentRoute(): string {
-    return this.currentRoute.path;
-  }
-
-  // ✅ Works correctly in event handlers
-  onButtonClick(): void {
-    console.log('Current path:', this.currentRoute.path);
-  }
-}
-```
-
-The `parameterInformation` array mirrors the hierarchy of viewport instructions of the current navigation. It allows you to inspect route parameters and nested routes programmatically.
+A fragment such as `#details` also updates route state. Scrolling to a matching element is application behavior; the router does not do it automatically.

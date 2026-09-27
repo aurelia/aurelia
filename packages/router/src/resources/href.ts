@@ -10,7 +10,7 @@ import {
 
 import { LoadCustomAttribute } from '../configuration';
 import { resolve } from '@aurelia/kernel';
-import { bmToView } from '../util';
+import { bmToView, isNavigationClick } from '../util';
 import { ViewportInstructionTree } from '../instructions';
 import { ILocationManager } from '../location-manager';
 import { IContextRouter } from '../context-router';
@@ -39,6 +39,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   };
 
   /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
+  /** @internal */private readonly _window: IWindow = resolve(IWindow);
   /** @internal */private readonly _ctxRouter: IContextRouter = resolve(IContextRouter);
   /** @internal */private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
 
@@ -52,26 +53,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   public constructor() {
-    if (
-      this._ctxRouter._options.useHref &&
-      // Ensure the element is an anchor
-      this._el.nodeName === 'A'
-    ) {
-      const windowName = resolve(IWindow).name;
-      // Ensure the anchor targets the current window.
-      switch (this._el.getAttribute('target')) {
-        case null:
-        case windowName:
-        case '_self':
-          this._isEnabled = true;
-          break;
-        default:
-          this._isEnabled = false;
-          break;
-      }
-    } else {
-      this._isEnabled = false;
-    }
+    this._isEnabled = this._ctxRouter._options.useHref && this._el.nodeName === 'A';
   }
 
   public binding(): void {
@@ -110,12 +92,10 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
 
   /** @internal */
   private _onClick(e: MouseEvent): void {
-    // Ensure this is an ordinary left-button click
-    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
-      // on an internally managed link
-      || this._treatAsExternal
+    if (this._treatAsExternal
       || !this._isEnabled
       || this._instructions === null
+      || !isNavigationClick(e, this._el, this._window.name)
     ) {
       return;
     }

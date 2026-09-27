@@ -93,8 +93,9 @@ export const fragmentUrlParser: IUrlParser = Object.freeze({
      */
     const start = value.indexOf('#');
     if (start >= 0) {
-      const rawFragment = value.slice(start + 1);
-      value = decodeURIComponent(rawFragment);
+      // Decode each field after its delimiters are separated. Whole-hash
+      // decoding turns encoded parameter/query values into routing syntax.
+      value = value.slice(start + 1);
     }
     // Normalize '/' to '' since they represent the same root path semantically in hash routing
     if (value === '/') {

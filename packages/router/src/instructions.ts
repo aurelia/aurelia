@@ -90,7 +90,7 @@ export interface IViewportInstruction {
    * Normally, when the recognized route is null, in the process of creating a route node, it will be attempted to recognize a configured route for the given `component`.
    * Therefore, when a recognized route is provided when creating the `ViewportInstruction`, the process of recognizing the `component` can be completely skipped.
    */
-  readonly recognizedRoute: $RecognizedRoute | null;
+  readonly recognizedRoute?: $RecognizedRoute | null;
 }
 
 export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component> implements IExtendedViewportInstruction {
@@ -117,7 +117,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
         instruction.recognizedRoute ?? null,
         component as ITypedNavigationInstruction_Component,
         instruction.viewport ?? null,
-        Object.freeze(instruction.params ?? null),
+        // Snapshot values without freezing the application's reusable params object.
+        instruction.params == null ? null : Object.freeze({ ...instruction.params }),
         children,
       );
     }

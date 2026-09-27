@@ -22,6 +22,8 @@
     "bench:realistic-refresh": "node run-tachometer.mjs --config app-repeat-realistic/refresh.json --json-file results/repeat-realistic-refresh-1000.json",
     "bench:realistic-refresh-loop": "node run-tachometer.mjs --config app-repeat-realistic/refresh-loop.json --json-file results/repeat-realistic-refresh-loop-20x1000.json",
     "bench:dependency-rotation": "node run-tachometer.mjs --config app-repeat-realistic/dependency-rotation.json --json-file results/binding-dependency-rotation.json",
+    "bench:i18n-formatting": "node run-tachometer.mjs --config app-i18n-formatting/refresh.json --json-file results/i18n-formatting-refresh-1000.json",
+    "bench:template-compilation": "node run-tachometer.mjs --config app-template-compilation/compilation.json --json-file results/template-compilation.json",
     "bench:realistic-mixed": "node run-tachometer.mjs --config app-repeat-realistic/mixed.json --json-file results/repeat-realistic-mixed-1000.json",
     "bench:realistic-heap500": "node run-tachometer.mjs --config app-repeat-realistic/heap-lifecycle.json --json-file results/repeat-realistic-heap-lifecycle-500.json"
   },

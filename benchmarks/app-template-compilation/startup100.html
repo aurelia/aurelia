@@ -1,0 +1,32 @@
+<script type="module">
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { prepareCompilationApplication } = await loadVariant('app-template-compilation');
+const host = document.body.appendChild(document.createElement('div'));
+const sections = Array.from({ length: 100 }, (_, index) => ({
+  title: `Static section ${index}`,
+  path: `M${index} 20 ` + 'L30 40C50 60 70 80 90 100Z '.repeat(350),
+  text: `Section ${index}: ` + 'Aurelia supports static text and attributes. '.repeat(26),
+}));
+const start = prepareCompilationApplication(host, sections);
+// One fresh application and one distinct template per page: no parser/compiler warmup.
+// Large strings and the component definition are prepared before the latency interval.
+performance.mark('compilation-start');
+const au = start();
+performance.mark('compilation-end');
+
+const rendered = [...host.querySelectorAll('.compiled-section')];
+if (rendered.length !== sections.length) throw new Error('Cold compilation skipped sections.');
+for (let index = 0; index < sections.length; ++index) {
+  const element = rendered[index];
+  const section = sections[index];
+  if (element.getAttribute('title') !== section.title
+    || element.querySelector('path').getAttribute('d') !== section.path
+    || element.querySelector('.static-text').textContent !== section.text
+    || element.querySelector('.message').textContent !== au.root.controller.viewModel.message
+    || element.querySelector('.count').textContent !== String(sections.length)) {
+    throw new Error(`Cold compilation lost static or interpolated output at ${index}.`);
+  }
+}
+publishMeasurement('cold-static-compilation-startup-100', 'compilation-start', 'compilation-end');
+</script>

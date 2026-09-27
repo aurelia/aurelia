@@ -7,6 +7,7 @@ import {
   formatBenchmarkReportMarkdown,
   validateBenchmarkReport,
 } from './benchmark-report.mjs';
+import { fixturesForProfile } from './fixtures.mjs';
 
 const MiB = 1024 * 1024;
 
@@ -161,7 +162,7 @@ void describe('benchmark report profiles', () => {
     const report = createBenchmarkReport(inputs);
     const afterGc = report.measurements.filter(measurement => measurement.metric.kind === 'used-js-heap-after-gc');
 
-    assert.equal(report.measurements.length, 27);
+    assert.equal(report.measurements.length, 31);
     assert.deepEqual(afterGc.map(measurement => measurement.metric.state), ['live-list', 'post-teardown']);
     assert.deepEqual(afterGc.map(measurement => measurement.metric.unit), ['byte', 'byte']);
     assert.deepEqual(afterGc.map(measurement => measurement.difference.assessment), ['lower', 'lower']);
@@ -226,6 +227,39 @@ void describe('benchmark report profiles', () => {
 });
 
 void describe('focused benchmark reports', () => {
+  void it('requires all formatting and compilation rows only in full and master', () => {
+    const report = createBenchmarkReport(fullInputs());
+    const focusedFiles = ['i18n-formatting-refresh-1000.json', 'template-compilation.json'];
+    assert.equal(createReport().bundles.length, 6);
+    assert.equal(report.bundles.length, 8);
+    assert.deepEqual(report.measurements.filter(row => focusedFiles.includes(row.source)).map(row => [row.scenario, row.metric.measurement.entryName]), [
+      ['i18n default formatting refresh 1000', 'i18n-formatting-default-refresh-1000'],
+      ['i18n explicit formatting refresh 1000', 'i18n-formatting-explicit-refresh-1000'],
+      ['cold static compilation startup 100', 'cold-static-compilation-startup-100'],
+      ['warm interpolation parser 100000', 'warm-interpolation-parser-100000'],
+    ]);
+    for (const file of focusedFiles) {
+      assert.equal(expectedResultFiles('smoke').includes(file), false);
+      assert.equal(expectedResultFiles('master').includes(file), true);
+      const missing = fullInputs();
+      missing.resultDocuments = missing.resultDocuments.filter(input => input.file !== file);
+      assert.throws(() => createBenchmarkReport(missing), /incomplete/);
+      const mislabeled = fullInputs();
+      mislabeled.resultDocuments.find(input => input.file === file).document.benchmarks[0].measurement.entryName = 'unrelated-boundary';
+      assert.throws(() => createBenchmarkReport(mislabeled));
+    }
+    const wrongBundles = structuredClone(report);
+    wrongBundles.bundles.pop();
+    assert.throws(() => validateBenchmarkReport(wrongBundles, report.comparison), /unexpected bundle count/);
+    const missingProvenanceBundle = fullInputs();
+    missingProvenanceBundle.provenance.comparisons.pop();
+    assert.throws(() => createBenchmarkReport(missingProvenanceBundle), /provenance fixtures/);
+    const wrongFixtures = structuredClone(report);
+    wrongFixtures.harness.fixtures.pop();
+    assert.throws(() => validateBenchmarkReport(wrongFixtures, report.comparison), /fixtures do not match/);
+    assert.match(formatBenchmarkReportMarkdown(report), /real nf\/df converters/);
+  });
+
   void it('reports loop and fresh/cached connection timings with their own boundaries and millisecond units', () => {
     const report = createBenchmarkReport(fullInputs());
     const focused = report.measurements.filter(measurement =>
@@ -257,7 +291,7 @@ void describe('focused benchmark reports', () => {
       }
       const complete = createBenchmarkReport(inputs);
       if (profile === 'full') assert.equal(validateBenchmarkReport(complete, complete.comparison), complete);
-      assert.equal(complete.measurements.length, 27);
+      assert.equal(complete.measurements.length, 31);
     }
   });
 
@@ -328,6 +362,10 @@ function smokeInputs() {
 function fullInputs() {
   const inputs = smokeInputs();
   inputs.provenance.comparison.profile = 'full';
+  inputs.provenance.harness.fixtures = fixturesForProfile('full');
+  inputs.provenance.comparisons = fixturesForProfile('full').map(fixture => ({
+    ...structuredClone(inputs.provenance.comparisons[0]), fixture,
+  }));
   inputs.resultDocuments = [
     timingInput('repeat-view-startup-10k.json', 'startup', 'startup-10k'),
     timingInput('repeat-ce-startup-10k.json', 'startup CE', 'startup-10k'),
@@ -359,6 +397,8 @@ function fullInputs() {
     ),
     timingConfigInput('repeat-realistic-refresh-loop-20x1000.json', 'app-repeat-realistic/refresh-loop.json'),
     timingConfigInput('binding-dependency-rotation.json', 'app-repeat-realistic/dependency-rotation.json'),
+    timingConfigInput('i18n-formatting-refresh-1000.json', 'app-i18n-formatting/refresh.json'),
+    timingConfigInput('template-compilation.json', 'app-template-compilation/compilation.json'),
     heapLifecycleInput(),
   ];
   return inputs;

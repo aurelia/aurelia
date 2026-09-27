@@ -1,0 +1,28 @@
+<script type="module">
+import { loadVariant } from '../utils/load-variant.js';
+import { publishMeasurement } from '../utils/publish-measurement.js';
+const { ExpressionParser } = await loadVariant('app-template-compilation');
+const parser = new ExpressionParser();
+const inputs = [
+  'primary button static class',
+  'Aurelia supports static text and attributes. '.repeat(26),
+  'M10 20L30 40C50 60 70 80 90 100Z '.repeat(350),
+  'Hello ${person.name}!',
+];
+const expected = inputs.map(input => parser.parse(input, 'Interpolation'));
+if (expected.slice(0, 3).some(value => value !== null) || expected[3] === null) {
+  throw new Error('Warm parser preparation produced incorrect expression kinds.');
+}
+const results = new Array(inputs.length);
+performance.mark('warm-parser-start');
+for (let index = 0; index < 100000; ++index) {
+  for (let inputIndex = 0; inputIndex < inputs.length; ++inputIndex) {
+    results[inputIndex] = parser.parse(inputs[inputIndex], 'Interpolation');
+  }
+}
+performance.mark('warm-parser-end');
+if (results.some((value, index) => value !== expected[index])) {
+  throw new Error('Warm parser changed static results or cached interpolation identity.');
+}
+publishMeasurement('warm-interpolation-parser-100000', 'warm-parser-start', 'warm-parser-end');
+</script>

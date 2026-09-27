@@ -57,9 +57,10 @@ export async function discoverWorkspacePackages(sourceRoot) {
 }
 
 export function discoverInternalClosure(workspacePackages, rootPackageName) {
-  const queue = [rootPackageName];
+  const queue = [rootPackageName].flat();
   const packages = new Map();
   const edges = new Map();
+  const external = new Set();
 
   while (queue.length > 0) {
     const packageName = queue.shift();
@@ -93,19 +94,57 @@ export function discoverInternalClosure(workspacePackages, rootPackageName) {
       );
     }
 
-    if (externalDependencies.size > 0) {
+    if ([...externalDependencies].some(name => packageName !== '@aurelia/i18n' || name !== 'i18next')) {
       throw new Error(
         `Benchmark package closure for "${packageName}" has external production dependencies: `
         + `${[...externalDependencies].sort().join(', ')}. Add an explicit reproducibility policy before continuing.`
       );
     }
+    for (const name of externalDependencies) external.add(name);
 
     packages.set(packageName, workspacePackage);
     edges.set(packageName, [...internalDependencies].sort((left, right) => left.localeCompare(right)));
     queue.push(...internalDependencies);
   }
 
-  return { packages, edges };
+  return { packages, edges, external };
+}
+
+// External runtime inputs come from the measured source lock, never the harness lock or a range.
+// Keep this policy deliberately small: a new dependency requires explicit review before bundling.
+export function discoverLockedExternalClosure(lock, roots) {
+  const allowed = new Set(['i18next', '@babel/runtime']);
+  const queue = [...roots];
+  const packages = new Map();
+  while (queue.length > 0) {
+    const name = queue.shift();
+    if (packages.has(name)) continue;
+    if (!allowed.has(name)) throw new Error(`External benchmark dependency "${name}" has no reproducibility policy.`);
+    const lockPath = `node_modules/${name}`;
+    const entry = lock.packages?.[lockPath];
+    if (entry?.link || !/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(entry?.version)
+      || !/^https:\/\/registry\.npmjs\.org\//.test(entry?.resolved)
+      || !/^sha512-[A-Za-z0-9+/]+={0,2}$/.test(entry?.integrity)) {
+      throw new Error(`External benchmark dependency "${name}" needs an exact registry lock with SHA-512 integrity.`);
+    }
+    for (const [peer, metadata] of Object.entries(entry.peerDependencies ?? {})) {
+      if (entry.peerDependenciesMeta?.[peer]?.optional !== true) {
+        throw new Error(`External benchmark dependency "${name}" has unsupported required peer ${peer}: ${metadata}.`);
+      }
+    }
+    if (Object.keys(entry.optionalDependencies ?? {}).length > 0) {
+      throw new Error(`External benchmark dependency "${name}" has unsupported optional dependencies.`);
+    }
+    const dependencies = Object.keys(entry.dependencies ?? {});
+    for (const dependency of dependencies) {
+      if (lock.packages?.[`${lockPath}/node_modules/${dependency}`] !== undefined) {
+        throw new Error(`External benchmark dependency "${dependency}" is nested below "${name}".`);
+      }
+    }
+    packages.set(name, { ...entry, lockPath });
+    queue.push(...dependencies);
+  }
+  return packages;
 }
 
 export function getAureliaPackageName(specifier) {
@@ -113,9 +152,43 @@ export function getAureliaPackageName(specifier) {
   return match?.[1] ?? null;
 }
 
+export async function packBenchmarkPackage(packageName, workspacePackage, packRoot, runNpmCapture) {
+  const { sourceLock } = workspacePackage;
+  // npm 10 can run a directory's prepare hook despite --ignore-scripts. Keep
+  // external dependencies in their original archive form so those hooks never run.
+  const rawResult = await runNpmCapture(
+    ['pack', ...(sourceLock === undefined ? [] : [sourceLock.resolved]), '--json', '--ignore-scripts', '--pack-destination', packRoot],
+    workspacePackage.dir,
+  );
+  const results = JSON.parse(rawResult);
+  if (!Array.isArray(results) || results.length !== 1) {
+    throw new Error(`npm pack returned an unexpected result for ${packageName}.`);
+  }
+  const [result] = results;
+  if (result.name !== packageName || result.version !== workspacePackage.manifest.version) {
+    throw new Error(
+      `npm pack produced ${result.name}@${result.version}, `
+      + `expected ${packageName}@${workspacePackage.manifest.version}.`
+    );
+  }
+  const tarball = path.join(packRoot, result.filename);
+  if (sourceLock !== undefined) {
+    const integrity = `sha512-${createHash('sha512').update(await readFile(tarball)).digest('base64')}`;
+    if (result.integrity !== sourceLock.integrity || integrity !== sourceLock.integrity) {
+      throw new Error(`Packed external dependency ${packageName} does not match its source-lock integrity.`);
+    }
+  }
+  return { result, tarball };
+}
+
 export async function resolveAureliaEntry(installRoot, specifier) {
   const packageName = getAureliaPackageName(specifier);
   if (packageName === null) return null;
+
+  return resolvePackageEntry(installRoot, specifier, packageName);
+}
+
+export async function resolvePackageEntry(installRoot, specifier, packageName = specifier) {
 
   const packageDir = await realpath(path.join(installRoot, 'node_modules', ...packageName.split('/')));
   if (!isPathInside(installRoot, packageDir)) {
@@ -128,7 +201,8 @@ export async function resolveAureliaEntry(installRoot, specifier) {
   if (typeof target !== 'string') {
     throw new Error(`Cannot resolve ESM export "${subpath}" from benchmark package "${packageName}".`);
   }
-  if (!target.startsWith('./')) {
+  if ((!target.startsWith('./') && packageName.startsWith('@aurelia/'))
+    || path.isAbsolute(target) || target.startsWith('../')) {
     throw new Error(`ESM export "${subpath}" from benchmark package "${packageName}" is not package-relative.`);
   }
 
@@ -210,14 +284,18 @@ export async function validateInstalledGraph(installRoot, packedPackages) {
         + `expected ${packageName}@${packed.version}.`
       );
     }
-    const resolvedEntry = await resolveAureliaEntry(installRoot, packageName);
+    // Some locked transitive packages (for example @babel/runtime) export subpaths only.
+    const resolvedEntry = packed.sourceLock !== undefined && manifest.exports?.['.'] === undefined
+      && manifest.module === undefined && manifest.main === undefined
+      ? null
+      : await resolvePackageEntry(installRoot, packageName);
     installed.set(packageName, {
       dir: packageRealpath,
       version: manifest.version,
       resolved,
       integrity: lockEntry.integrity,
-      entry: resolvedEntry.entry,
-      entrySha256: await hashFile(resolvedEntry.entry),
+      entry: resolvedEntry?.entry ?? null,
+      entrySha256: resolvedEntry === null ? null : await hashFile(resolvedEntry.entry),
     });
   }
   return installed;

@@ -8,6 +8,7 @@ import {
   measurementLabel,
 } from './benchmark-summary.mjs';
 import { comparisonHarness, comparisonsEqual, validateComparison } from './benchmark-comparison.cjs';
+import { fixturesForProfile } from './fixtures.mjs';
 
 const shaPattern = /^[0-9a-f]{40}$/;
 const metricDefinitions = {
@@ -76,6 +77,14 @@ const resultContracts = {
     { scenario: 'fresh binding dependency rotation 250000', entryName: 'dependency-rotation-250000', metrics: ['perf'] },
     { scenario: 'cached binding dependency rotation 1000000', entryName: 'dependency-rotation-cached-1000000', metrics: ['perf'] },
   ],
+  'i18n-formatting-refresh-1000.json': [
+    { scenario: 'i18n default formatting refresh 1000', entryName: 'i18n-formatting-default-refresh-1000', metrics: ['perf'] },
+    { scenario: 'i18n explicit formatting refresh 1000', entryName: 'i18n-formatting-explicit-refresh-1000', metrics: ['perf'] },
+  ],
+  'template-compilation.json': [
+    { scenario: 'cold static compilation startup 100', entryName: 'cold-static-compilation-startup-100', metrics: ['perf'] },
+    { scenario: 'warm interpolation parser 100000', entryName: 'warm-interpolation-parser-100000', metrics: ['perf'] },
+  ],
   'repeat-realistic-mixed-1000.json': { scenario: 'realistic mixed reconciliation 1000', entryName: 'realistic-mixed-1000', metrics: ['perf', 'used JS heap'] },
   'repeat-realistic-heap-lifecycle-500.json': {
     scenario: 'realistic heap lifecycle 500',
@@ -105,6 +114,8 @@ const fullFiles = [
   'repeat-realistic-mixed-1000.json',
   'repeat-realistic-refresh-loop-20x1000.json',
   'binding-dependency-rotation.json',
+  'i18n-formatting-refresh-1000.json',
+  'template-compilation.json',
   'repeat-realistic-heap-lifecycle-500.json',
 ];
 
@@ -158,14 +169,10 @@ export function validateBenchmarkReport(report, expected) {
   validateReportNotices(report.notices, expectedMetricKinds);
   validateReportMethodology(report.methodology, expectedMetricKinds);
 
-  const fixtureOrder = [
-    'app-repeat-view',
-    'app-repeat-ce',
-    'app-repeat-view-big-template',
-    'app-repeat-view-keyed-string',
-    'app-repeat-view-keyed-expr',
-    'app-repeat-realistic',
-  ];
+  const fixtureOrder = fixturesForProfile(expected.profile);
+  if (JSON.stringify(report.harness.fixtures) !== JSON.stringify(fixtureOrder)) {
+    throw new Error('Benchmark report harness fixtures do not match its profile.');
+  }
   if (!Array.isArray(report.bundles) || report.bundles.length !== fixtureOrder.length) {
     throw new Error('Benchmark report has an unexpected bundle count.');
   }
@@ -415,6 +422,16 @@ export function formatBenchmarkReportMarkdown(report, links = {}) {
         + 'alongside these focused measurements when assessing an application-facing improvement.',
     );
   }
+  if (report.measurements.some(measurement => measurement.source === 'template-compilation.json')) {
+    lines.push(
+      '',
+      'Formatting measures settled keyed refreshes through the real nf/df converters after initialization and '
+        + 'two warm-ups, with default or shared explicit options. Cold compilation starts one uncompiled '
+        + '100-section application containing distinct static SVG/text and real interpolation. The warm parser '
+        + 'row checks repeated static and interpolated inputs separately; use existing repeat startup/refresh '
+        + 'rows as application regression guards.',
+    );
+  }
   const footerLinks = [];
   if (links.circleWorkflow !== undefined) footerLinks.push(`[CircleCI workflow](${links.circleWorkflow})`);
   if (links.artifacts !== undefined) footerLinks.push(`[Artifacts](${links.artifacts})`);
@@ -443,6 +460,11 @@ function validateProvenance(provenance) {
   }
   if (!Array.isArray(provenance.comparisons) || provenance.comparisons.length === 0) {
     throw new Error('Benchmark provenance does not contain bundle comparisons.');
+  }
+  const expectedFixtures = fixturesForProfile(comparison.profile);
+  if (JSON.stringify(harness.fixtures) !== JSON.stringify(expectedFixtures)
+    || JSON.stringify(provenance.comparisons.map(bundle => bundle.fixture)) !== JSON.stringify(expectedFixtures)) {
+    throw new Error('Benchmark provenance fixtures do not match its profile.');
   }
 }
 

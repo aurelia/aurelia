@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Polymer/tachometer/master/config.schema.json",
+  "root": "..",
+  "benchmarks": [
+    {
+      "browser": { "name": "chrome", "headless": true, "addArguments": ["--disable-gpu", "--disable-dev-shm-usage", "--no-sandbox"] },
+      "measurement": { "name": "perf", "mode": "performance", "entryName": "cold-static-compilation-startup-100" },
+      "expand": [
+        { "name": "cold static compilation startup 100 base", "url": "startup100.html?variant=base" },
+        { "name": "cold static compilation startup 100 candidate", "url": "startup100.html?variant=candidate" }
+      ]
+    },
+    {
+      "browser": { "name": "chrome", "headless": true, "addArguments": ["--disable-gpu", "--disable-dev-shm-usage", "--no-sandbox"] },
+      "measurement": { "name": "perf", "mode": "performance", "entryName": "warm-interpolation-parser-100000" },
+      "expand": [
+        { "name": "warm interpolation parser 100000 base", "url": "warmParser100000.html?variant=base" },
+        { "name": "warm interpolation parser 100000 candidate", "url": "warmParser100000.html?variant=candidate" }
+      ]
+    }
+  ],
+  "timeout": 0.5
+}

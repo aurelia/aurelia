@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <title>Shapes &amp; colors</title>
   <circle cx="60" cy="60" r="54" fill="#ed2b88"/>
   <path d="M34 78 60 28l26 50H72L60 54 48 78Z" fill="#fff"/>
 </svg>

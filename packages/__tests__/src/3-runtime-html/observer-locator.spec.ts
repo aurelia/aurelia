@@ -391,6 +391,17 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
       assert.strictEqual(v, 2);
     });
 
+    it('rediscovers a setter observer from its installed getter', function () {
+      const { sut } = createFixture();
+      const obj = { value: 1 };
+      const observer = sut.getObserver(obj, 'value');
+      observer.subscribe({ handleChange() { return; } });
+
+      delete (obj as unknown as { $observers: Record<string, unknown> }).$observers.value;
+
+      assert.strictEqual(sut.getObserver(obj, 'value'), observer);
+    });
+
     it('with getObserver on getter - getter observation', function () {
       const { sut } = createFixture();
       const obj = {

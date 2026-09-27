@@ -220,8 +220,11 @@ jobs:
             - packages-tooling/ts-jest/node_modules
             - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
+            # Preserve fixture-local Vite versions that cannot be hoisted to the root.
+            - packages/__e2e__/14-vite8-decorators/node_modules
             - packages/__e2e__/15-ts6-webpack-smoke/node_modules
             - packages/__e2e__/16-ts7-webpack-smoke/node_modules
+            - packages/__e2e__/17-vite-template-assets/node_modules
 
   build_and_cache:
     executor: docker_circleci
@@ -890,6 +893,13 @@ workflows:
 
       - e2e_test:
           <<: *filter_only_topic
+          name: pr_full_e2e_vite_template_assets
+          path: "packages/__e2e__/17-vite-template-assets"
+          requires:
+            - pr_full_build_release
+
+      - e2e_test:
+          <<: *filter_only_topic
           name: pr_full_e2e_router
           path: "packages/__e2e__/6-router"
           run_webpack: true
@@ -1103,6 +1113,22 @@ workflows:
             - bench_realistic_heap_lifecycle
             - bench_realistic_refresh_loop
             - bench_dependency_rotation
+            - bench_i18n_formatting
+            - bench_template_compilation
+
+      - tacho_benchmark:
+          name: bench_i18n_formatting
+          command: npm run bench:i18n-formatting
+          result: i18n-formatting-refresh-1000.json
+          requires:
+            - bench_prep
+
+      - tacho_benchmark:
+          name: bench_template_compilation
+          command: npm run bench:template-compilation
+          result: template-compilation.json
+          requires:
+            - bench_prep
 
   # Runs build and tests (master)
   build_test:
@@ -1172,6 +1198,12 @@ workflows:
           <<: *filter_only_master
           name: e2e_vite8_decorators
           path: "packages/__e2e__/14-vite8-decorators"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_only_master
+          name: e2e_vite_template_assets
+          path: "packages/__e2e__/17-vite-template-assets"
           requires:
             - build_release
       - e2e_test:
@@ -1366,3 +1398,19 @@ workflows:
             - benchmark_realistic_heap_lifecycle
             - benchmark_realistic_refresh_loop
             - benchmark_dependency_rotation
+            - benchmark_i18n_formatting
+            - benchmark_template_compilation
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_i18n_formatting
+          command: npm run bench:i18n-formatting
+          result: i18n-formatting-refresh-1000.json
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_only_master
+          name: benchmark_template_compilation
+          command: npm run bench:template-compilation
+          result: template-compilation.json
+          requires:
+            - tacho_benchmark_prep

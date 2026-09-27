@@ -5,9 +5,9 @@
   "version": "2.0.0-rc.2",
   "port": 9017,
   "scripts": {
-    "build": "vite build",
+    "build": "node scripts/vite.mjs build",
     "test:e2e": "npm run build && playwright test",
-    "test": "npm run test:e2e"
+    "test": "npm run test:e2e && cross-env VITE_PACKAGE=vite8 npm run test:e2e"
   },
   "dependencies": {
     "aurelia": "2.0.0-rc.2"
@@ -17,7 +17,8 @@
     "@playwright/test": "1.62.1",
     "playwright": "1.62.1",
     "@types/node": "22.20.1",
-    "vite": "^7.0.2"
+    "vite": "^7.0.2",
+    "vite8": "npm:vite@^8.0.0"
   },
   "engines": {
     "node": ">=22.22.2"

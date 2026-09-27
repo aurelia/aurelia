@@ -82,38 +82,102 @@ Do not delete rejected or inconclusive entries: their experiment records prevent
 | R3 | Repeat/scope | inconclusive | focused fixture needed | Scope remapping can avoid work for contextual properties when a repeat does not consume `$index` or related context. | `_createScopes` reuses scopes and replaces their items; later reconciliation updates contextual state conditionally. | Compiler/runtime contextual detection must remain correct for nested expressions. |
 | R4 | Repeat | inconclusive | mixed | Deleted views can be removed with one stable linear compaction instead of repeated `Array.splice` suffix shifts. | `_deactivateAndRemoveViewsByKey` sorts deleted indices, then splices the live views array once per deletion. | Compaction must retain array identity, surviving view order, and async teardown ownership. |
 | C1 | Controller | inconclusive | startup | The synchronous controller activation path can reduce generic async/lifecycle coordination overhead. | `Controller.activate` coordinates lifecycle hooks, view-model callbacks, binding, child activation, and `onResolveAll` even when the whole tree is synchronous. | Async hooks, reentrant start/stop, and lifecycle ordering must remain identical. |
-| C2 | Controller | adopted | startup, mixed | Controller creation/hydration repeats metadata, container, scope, and lifecycle setup that can be cached or initialized more directly. | Every row creates or reactivates a controller graph before binding and attachment. | Cached state must remain container- and definition-specific and must not leak between controllers. |
-| C3 | Controller | adopted | startup, heap lifecycle | Per-instance lifecycle-hook descriptors can be interned by their exact hook-presence mask. | Every custom-element and custom-attribute controller constructs an object with eleven boolean fields, even when thousands of instances have the same hook shape. | Instance-owned hook methods and later view-model replacement must compute the exact current shape rather than assuming constructor/prototype uniformity. |
-| B1 | Binding | adopted | startup, heap lifecycle | Binding initialization performs repeated mode checks, observer setup, and connection-state work that can use specialized common paths. | Property, content, attribute, and interpolation bindings each initialize scope/state and call `astEvaluate` during `bind`. | Specialized paths must preserve converters, behaviors, custom expressions, from-view modes, and reconnection. |
+| C2 | Controller | rejected | startup, mixed | Controller creation/hydration repeats metadata, container, scope, and lifecycle setup that can be cached or initialized more directly. | Every row creates or reactivates a controller graph before binding and attachment. | Cached state must remain container- and definition-specific and must not leak between controllers. |
+| C3 | Controller | rejected | startup, heap lifecycle | Per-instance lifecycle-hook descriptors can be interned by their exact hook-presence mask. | Every custom-element and custom-attribute controller constructs an object with eleven boolean fields, even when thousands of instances have the same hook shape. | Instance-owned hook methods and later view-model replacement must compute the exact current shape rather than assuming constructor/prototype uniformity. |
+| B1 | Binding | rejected | startup, heap lifecycle | Binding initialization performs repeated mode checks, observer setup, and connection-state work that can use specialized common paths. | Property, content, attribute, and interpolation bindings each initialize scope/state and call `astEvaluate` during `bind`. | Specialized paths must preserve converters, behaviors, custom expressions, from-view modes, and reconnection. |
 | B2 | Binding | inconclusive | startup, refresh | Interpolation wrapper/part traversal and retained binding reevaluation can reduce intermediate calls or allocations. | `InterpolationBinding.bind` iterates part bindings, and each part independently evaluates and tracks its expression. | Multi-part interpolation and collection observation must remain atomic and ordered. |
 | B3 | Binding/DOM | inconclusive | focused fixture needed | Target updates can avoid writes where the evaluated value is unchanged. | New record objects make retained row bindings reevaluate even when some displayed values remain stable. | Equality guards can cost more than DOM writes and must preserve coercion and behavior semantics. |
 | A1 | AST | inconclusive | startup, refresh | Common AST node kinds can reduce recursive dispatch and scope-lookup overhead. | `astEvaluate` recursively dispatches access, call, interpolation, converter, behavior, and operator nodes for binding initialization and updates. | Strict/non-strict behavior, optional access, proxies, converters, and connectable tracking must agree. |
-| A2 | AST/binding | queued | startup | Binding-time evaluation and dependency connection duplicate traversals that can share work for simple expressions. | Bindings evaluate with a connectable argument to both obtain a value and collect dependencies. | Dependency collection must update correctly when conditional expression branches change. |
+| A2 | AST/binding | inconclusive | startup | Binding-time evaluation and dependency connection duplicate traversals that can share work for simple expressions. | Bindings evaluate with a connectable argument to both obtain a value and collect dependencies. | Dependency collection must update correctly when conditional expression branches change. |
 | O1 | Observation | adopted | refresh | Batched observer notification and retained-binding dispatch can reduce per-subscriber bookkeeping. | Record replacement notifies bindings which reevaluate ASTs and update targets before `tasksSettled` completes. | Notification order, collection batching, reentrancy, and subscriber mutation are observable behavior. |
 | O2 | Observation | inconclusive | refresh, mixed | Multi-subscriber notification can snapshot lazily only when subscription mutation occurs during dispatch. | Each row `item` observer fans out to seven property bindings, and `SubscriberRecord` eagerly slices its subscriber array before every notification. | Add/remove, nested notification, thrown handlers, value/collection/dirty ordering, and batching semantics must remain exact. |
 | O3 | Observation/property | inconclusive | refresh, mixed | Setter notification can skip its post-notification equality check when no callback is installed. | `SetterObserver.setValue` always compares the notified value again before optional-calling `_callback`, including ordinary observed scope properties without callbacks. | Reentrant subscriber writes must still suppress callbacks for stale values when a callback exists. |
 | O4 | Binding/observation | inconclusive | refresh loop, refresh | Dependency connection can use the stored observer version as the membership lookup instead of probing a `Map` twice. | The refresh profile attributes 606ms self time to `observe`; `BindingObserverRecord.add` calls `Map.has` and then `Map.set` for every dependency, while stored versions are always numbers so `undefined` identifies absence. | Subscription counts and dependency-version refresh must remain exact across reconnect, branch changes, unbind, and rebind. |
 | O10 | Observation/subscribers | adopted | dependency rotation, refresh | Removing the sole subscriber can bypass two searches and array splicing while retaining efficient array reuse. | Stale dependency cleanup commonly removes the only binding from an observer; the general path searches both subscriber arrays and splices the value-subscriber array. | Dirty-subscriber state, failed removal, re-subscription, fan-out mutation, and repeatedly reused observers must remain exact. |
-| D1 | DOM | queued | startup, mixed | Node-sequence insertion and movement can reduce repeated DOM calls for contiguous row blocks. | Rendering and Repeat sorting ultimately insert or move node sequences through render locations. | Containerless views, multi-node templates, projection, and SSR-adopted nodes must remain correct. |
+| D1 | DOM | inconclusive | startup, mixed | Node-sequence insertion and movement can reduce repeated DOM calls for contiguous row blocks. | Rendering and Repeat sorting ultimately insert or move node sequences through render locations. | Containerless views, multi-node templates, projection, and SSR-adopted nodes must remain correct. |
 | D2 | DOM/rendering | inconclusive | startup, mixed | Cached node creation can avoid redundant template-cache work before cloning a view. | `Rendering.createNodes` performs both `WeakMap.has` and `WeakMap.get` for every cached row view. | `null` cached templates and definitions without templates must retain empty-sequence behavior. |
 | D3 | DOM/hydration | rejected | startup, mixed | Repeated clones can reuse compiled target-location metadata instead of tree-walking every cloned fragment for `<!--au-->` markers. | Every `FragmentNodeSequence` constructor performs native comment traversal even though clones of one compiled definition have identical marker locations. | Containerless marker pairs, marker preservation, enhanced templates, and SSR adoption have different ownership rules. |
 | D4 | DOM/hydration | rejected | startup | Fragment target discovery can transform marker comments during TreeWalker traversal without retaining and revisiting a marker array. | `FragmentNodeSequence` currently collects every marker into a temporary array, then performs a second loop to resolve targets and remove markers. | Removing the current marker must not disturb TreeWalker order; SSR marker preservation and render-location pairing must remain exact. |
-| B7 | Property binding | adopted | startup, heap lifecycle | Queue and from-view subscriber state can be allocated lazily for the uncommon bindings that use them. | Every `PropertyBinding` eagerly emits `_isQueued = false` and `_targetSubscriber = null`; ordinary non-layout to-view bindings never change either field. | Layout queue deduplication, from-view subscription teardown, and binding-behavior subscriber replacement must retain exact state transitions. |
+| B7 | Property binding | rejected | startup, heap lifecycle | Queue and from-view subscriber state can be allocated lazily for the uncommon bindings that use them. | Every `PropertyBinding` eagerly emits `_isQueued = false` and `_targetSubscriber = null`; ordinary non-layout to-view bindings never change either field. | Layout queue deduplication, from-view subscription teardown, and binding-behavior subscriber replacement must retain exact state transitions. |
 | B8 | Interpolation binding | inconclusive | startup, heap lifecycle | Queue and dirty state can be allocated lazily for interpolation owners and parts that actually receive updates. | Every interpolation owner and part eagerly initializes transient booleans even when the bound value remains stable for its lifetime. | Initial evaluation, collection observation, queued layout writes, change coalescing, unbind, and rebind must treat absent state exactly like `false`. |
-| C4 | Controller/bindables | adopted | startup | Observer initialization can reuse bindable property names for every instance of one definition. | `createObservers` calls `Object.getOwnPropertyNames` on the same definition bindables object for each repeated component instance. | Bindable definition mutation after first controller creation would require invalidation; supported definitions are expected to be immutable once consumed. |
+| C4 | Controller/bindables | rejected | startup | Observer initialization can reuse bindable property names for every instance of one definition. | `createObservers` calls `Object.getOwnPropertyNames` on the same definition bindables object for each repeated component instance. | Bindable definition mutation after first controller creation would require invalidation; supported definitions are expected to be immutable once consumed. |
 | B4 | Binding/renderer | inconclusive | startup, mixed | Adjacent binding instructions can reuse target transformation and common construction inputs. | Each property/interpolation renderer independently resolves the same controller target, container, strict flag, parser, and observer locator. | Native nodes and controller targets share renderer entry points; class accessors and custom-element bindables need exact behavior. |
 | B5 | Property binding | inconclusive | refresh, mixed | Non-layout target updates can avoid a second controller-state read by checking accessor type before the layout-only activation condition. | `PropertyBinding.handleChange` checks controller state in its guard, then checks it again before testing whether the accessor is a layout target. | Boolean reordering must not change queuing during activation or deactivation. |
 | B6 | Renderer/SSR | inconclusive | startup | Client rendering can short-circuit SSR child-instruction classification before testing instruction types. | The inner renderer loop compares every instruction against both child-creating types even when the controller has no SSR scope. | SSR child-scope indexing must remain exact for hydrated element and template-controller instructions. |
 | S1 | Scheduling | inconclusive | refresh, mixed | Fully synchronous reconciliation can avoid promise/task bookkeeping while retaining the general async path. | `_beginReconciliation`, `_drainReconciliation`, and row-transition handling coordinate both synchronous and asynchronous lifecycles. | Queued mutations, teardown ownership, and raw rejection values must retain their existing semantics. |
 | D5 | Binding/DOM | inconclusive | startup | Dynamic class initialization can batch normalized tokens into one `DOMTokenList.add` call. | The startup CPU profile attributes 6.99ms self time to `ClassAttributeAccessor._flushChanges`; the realistic row class produces multiple tokens and the accessor calls `classList.add` separately for each. | Mapping, empty tokens, duplicate tokens, invalid tokens, and removal bookkeeping must retain correct behavior. |
 | D6 | Binding/DOM | inconclusive | refresh loop, refresh | Text-content updates can avoid a native `instanceof Node` test for primitive interpolation values. | `ContentBinding.updateTarget` is the second-largest refresh frame at 612ms self time; the realistic text bindings produce strings and numbers but every update tests them against the platform `Node` constructor. | Real DOM-node interpolation, null, objects, proxies, and cross-realm values must preserve existing insertion and stringification behavior. |
-| O5 | Observation/property | inconclusive | startup | Setter observation can avoid allocating a second closure and temporary assignment object for every installed property descriptor. | `SetterObserver.start` is the largest named framework self-time frame in the startup profile at 10.95ms; each call uses `Object.assign` to attach a newly allocated `getObserver` closure to the property getter. | Observer rediscovery, descriptor inspection, stop/restart, coercion, callbacks, and subscriber notification must retain exact behavior. |
+| O5 | Observation/property | rejected | startup, refresh, mixed, heap lifecycle | Setter observation can avoid allocating a second closure and temporary assignment object for every installed property descriptor. | `SetterObserver.start` is the largest named framework self-time frame in the startup profile at 10.95ms; each call uses `Object.assign` to attach a newly allocated `getObserver` closure to the property getter. | Observer rediscovery, descriptor inspection, stop/restart, coercion, callbacks, and subscriber notification must retain exact behavior. |
 | O6 | Binding/observation | rejected | refresh | Small binding dependency records can use ordered arrays instead of a `Map`. | The 100-iteration refresh profile attributes 614ms self time to dependency `observe`, 224ms to observer lookup, and 137ms to stale unsubscription; realistic bindings retain only a small dependency set. | Dependency uniqueness, ordering, version refresh, branch changes, reentrant subscription changes, thrown unsubscribe handlers, and large computed dependency sets must remain correct. |
 | O7 | Observation/property | rejected | refresh loop, startup, heap lifecycle | Optional setter-observer callback and coercion state can be materialized only when configured. | Every replacement record creates observers for its bound properties; ordinary observers never use `_callback`, `_coercer`, or `_coercionConfig`, but the constructor eagerly writes all three fields. | Callback/coercer installation, object shape transitions, coercion configuration, reentrancy, stop/restart, and observer rediscovery must retain exact behavior. |
 | O8 | Binding/observation | inconclusive | refresh loop, refresh | Connectable dependency tracking can consume an already-cached property observer without re-entering the general observer locator. | The refresh profile attributes roughly 250-316ms self time to `ObserverLocator.getObserver`; bindable view-model properties and previously observed scope properties already expose their observer through `$observers`. | Function-key computed observers, primitives, cache misses, non-cacheable observers, and user-supplied observer lookups must retain general locator behavior. |
 | O9 | Binding/observation | inconclusive | refresh loop, refresh | Stable dependency sets can prove completeness by unique-observer count and skip stale-map traversal. | `unsubscribeStale` consumes roughly 120-145ms per 100 refreshes, and every binding calls `Map.forEach` after evaluation even when it re-observed every existing dependency. | Duplicate reads, conditional branch changes, added/replaced dependencies, evaluation throws, unbind/rebind, and externally visible record counts must remain exact. |
 | D7 | Binding/DOM | inconclusive | refresh loop, refresh | Content bindings can update their known `Text` target through `CharacterData.data` instead of generic `Node.textContent`. | `ContentBinding.updateTarget` consistently consumes roughly 570-612ms self time; its target is statically typed and constructed as a `Text` placeholder, but `textContent` dispatches through the generic node-content API. | String conversion, MutationObserver behavior, interpolated DOM-node placeholders, node cleanup, and custom platform implementations must remain equivalent. |
 | A3 | AST/member access | inconclusive | refresh | A member access rooted directly in an access-scope expression can avoid a recursive evaluator dispatch. | `astEvaluate` is the largest refresh-profile self-time frame at 658ms; seven row inputs use the common `item.property` AST shape, which currently re-enters the full evaluator for `item` before evaluating the member. | Strict and optional access, ancestor scope resolution, `$host`, function binding, dependency connection, and nullish behavior must remain exact. |
+| D8 | DOM/hydration | inconclusive | startup | Zero-target, single-target, and single-root fragments can bypass parts of generic marker collection, target-array construction, and child-node snapshotting. | The startup profile attributes 6.35ms self to `collectMarkerComments` and 4.11ms self / 11.49ms inclusive to `FragmentNodeSequence`; D3 and D4 already rejected general marker-path caching and single-pass mutation. | Multi-node views, paired render locations, marker preservation, enhanced templates, projection, and SSR adoption must stay on the general path. |
+| O11 | Observation/allocation | rejected | startup, heap lifecycle | Concrete hot objects that always consume `obs` or `subs` can install their record with a normal own slot instead of invoking `Reflect.defineProperty` through a lazy prototype getter. | The startup profile attributes 7.27ms self to `rtDefineHiddenProp`, while GC accounts for 20.94ms; the generic lazy path trades unused-object memory for installation work on every active binding/observer. | Enumerability, prototype decoration, devtools access, mixins, objects that never observe, hidden-class transitions, and teardown behavior must remain compatible. |
+| D9 | Binding/DOM | rejected | startup | Initial class/style binding can initialize the target and accessor cache without running the full incremental diff used for later changes. | `_flushChanges` uses 6.37ms self / 8.46ms inclusive and `splitClassString` another 2.10ms self in the startup profile; D5 showed that merely batching `classList.add` calls is insufficient. | Static classes/styles, mapped tokens, duplicate and invalid tokens, multiple bindings, SVG, MutationObserver behavior, and later removals must remain correct. |
+| C5 | Controller/DI | inconclusive | startup | Controller and renderer construction can reuse already-resolved stable services within one hydration operation instead of repeating general container resolution. | Startup samples include `registerResolver`, `get`, `invoke`, `resolve`, `getObserver`, and `createObservers`; their individual self times are small but their construction stacks repeat for every row. | Child-container overrides, scoped resources, new-instance resolvers, custom factories, SSR scopes, and user registrations must still resolve from the correct container. |
+| D10 | DOM/hydration | rejected | startup, heap lifecycle | The completed marker array can be reused as the final target array after native traversal. | Each realistic row discovers eight markers, then allocates a second eight-element target array and overwrites it during marker transformation. | Every marker entry must be replaced, target order must remain stable, and SSR-preserved markers must remain independently reachable through the DOM. |
+| K1 | Kernel/DI | rejected | startup | Invoking a type with no static constructor dependencies can avoid mapping and spreading a newly allocated empty array. | The realistic row component has no constructor dependencies, while startup profiles repeatedly include `invoke` in row construction. | The active container must remain established for field-initializer `resolve()` calls and dynamic dependencies must retain their ordering. |
+
+## Startup investigation run
+
+The saved 1,000-row startup profile completed on 2026-09-06 with a 166.40ms measured workload. Its CPU recording
+covered 327.26ms and one startup iteration, so frame percentages include profiler setup and module work outside the
+User Timing interval. Use the frame ranking to select theories, not as a decomposition that must sum to 166.40ms.
+This capture also predates the conservative runtime-html revert in `a6e7a13ef6`; establish a fresh baseline before
+changing source.
+
+| Frame or subsystem | Self time | Inclusive time | Investigation meaning |
+| --- | ---: | ---: | --- |
+| Garbage collector | 20.94ms | 20.94ms | Capture allocation stacks before attempting another field-removal or cache theory. |
+| Native `cloneNode` | 13.77ms | 13.77ms | Browser-owned cost; reduce clones or specialize view creation rather than rewriting the native operation. |
+| `rtDefineHiddenProp` | 7.27ms | 7.27ms | Test O11 on concrete consumers; do not globally make internal properties enumerable. |
+| `_flushChanges` | 6.37ms | 8.46ms | Test an initial-write path, not D5's rejected multi-argument `classList.add` variant. |
+| `collectMarkerComments` | 6.35ms | 7.38ms | Test D8 special cases; do not repeat D3 or D4. |
+| Native `appendChild` / `insertBefore` | 11.69ms combined | 11.69ms | Count calls and nodes per call before attempting batching. |
+| `astEvaluate` | 4.22ms | 21.95ms | Attribute child time between scope lookup, observer connection, and target update before specializing AST dispatch. |
+| `FragmentNodeSequence` | 4.11ms | 11.49ms | Measure marker targets, root-node count, temporary arrays, and constructor calls. |
+| `render` | 2.26ms | 56.74ms | Inclusive umbrella; instrument its hydration, instruction, binding, and node-creation descendants. |
+| `bind` | 2.08ms | 42.17ms | Count binding kinds and split evaluation, dependency connection, observer lookup, and initial target writes. |
+| `createNodes` | 2.11ms | 28.37ms | Separate template-cache access, cloning, target discovery, and NodeSequence construction. |
+
+Run theories in this order unless a fresh profile changes the ranking:
+
+1. D10 confirmation: reproduce the immediate allocation reduction, then use forced-GC lifecycle and allocation
+   evidence to classify it as transient-allocation or retained-heap improvement. Keep it only with neutral startup,
+   refresh, and mixed guards.
+2. A2 instrumentation: split initial binding work among expression evaluation, observer lookup/creation, dependency
+   connection, and target writes. Use the result to define a narrower optimization; do not repeat A3's AST dispatch
+   specialization or O11's record-storage changes.
+3. D1 instrumentation and experiment: count initial node-sequence mounts, native insertions, and nodes per insertion;
+   if repeated rows mount independently, test staging contiguous initial rows in a fragment while preserving lifecycle
+   and render-location order.
+4. C5 attribution: aggregate container creation, registration, invocation, and resolution by service and call site.
+   Only specialize a stable service proven hot; K1 established that empty constructor-dependency mapping is too small.
+5. Update-path DOM work: test D7 and then D6 with a focused content-binding fixture before realistic refresh guards.
+6. Update-path observation work: test O8 and O9 independently with dependency rotation and refresh-loop guards.
+7. Reconciliation work: revisit R2 for stable keyed order and R4 for deletion compaction using refresh and mixed;
+   retain the generic paths for changed order, duplicate keys, and asynchronous lifecycles.
+
+D8 requires a separate simple-template fixture because its zero/single-target specialization does not apply to the
+eight-target realistic row. B2, B3, and R3 likewise remain deferred until their focused fixtures exist.
+
+For each theory, preserve the unmodified startup bundle as the live session baseline, change one mechanism, wait for
+both result and profile status files to report `complete`, and record bundle hashes. The three-start diagnostic profile
+amplifies recurring creation/hydration frames but includes warmed second and third application starts; only the
+Tachometer scenario's fresh-page, single-start samples decide end-to-end startup performance. Require two completed
+runs whose 95% duration intervals exclude zero in the expected direction. Use `mixed.json`, `refresh.json`, and
+`heap-lifecycle.json` as regression guards when a candidate changes DOM behavior, binding/observer layout, or
+allocation respectively.
+
+Duration and memory are independent acceptance axes. The investigation prioritizes duration, but a candidate with
+neutral duration may still be retained as a memory optimization when the reduction excludes zero, follows directly
+from the changed allocation mechanism, reproduces, and passes duration/DOM correctness guards. Immediate used-heap
+readings can include uncollected temporary objects, so distinguish reduced allocation pressure from retained-memory
+improvement with `heap-lifecycle.json` and, where needed, allocation profiling. Do not reject such a candidate merely
+because its duration interval includes zero; do not describe it as a speed improvement either.
 
 ## Experiment record
 
@@ -274,6 +338,38 @@ Copy this block for each attempt:
 - Decision: reverted. Both candidate profiles reduced the measured `SetterObserver.start` cost (10.95ms baseline;
   5.89ms and 9.37ms candidates), but the end-to-end benchmark did not establish a startup improvement.
 - Follow-up: revisit only with a focused property-observer installation benchmark or a higher-sample startup run.
+
+### A2 / attribution investigation
+
+- State: inconclusive; original mechanism falsified without a code change.
+- Finding: initial property, content, attribute, and interpolation binding paths call `astEvaluate` once with the
+  connectable, so value evaluation and dependency discovery already share one AST traversal. Initial bind also does
+  not increment the observer-record version or call stale-dependency cleanup. The large inclusive AST stack consists
+  of required scope reads plus observer lookup/creation, setter installation, and subscription.
+- Existing isolation evidence: A3 reduced recursive member-access dispatch without an end-to-end improvement; O4's
+  map membership change and O8's cached observer lookup reduced subframe costs but were also end-to-end neutral.
+- Decision: do not add a second simple-expression evaluator or repeat those subpath implementations. Continue with
+  the independently hot observer-installation path under O5.
+
+### O5 / attempt 2
+
+- State: testing; startup-positive, realistic guards pending.
+- Commit/worktree description: install one getter closure whose module-owned symbol points directly to its
+  `SetterObserver`; descriptor rediscovery reads that symbol before retaining the established custom `getObserver`
+  callback convention. This removes the per-property recovery closure and temporary `Object.assign` source object.
+- Correctness design: a symbol prevents collisions with properties on user-authored getter functions, and cached
+  observer lookup remains unchanged. A focused test removes the ordinary cache entry and verifies that descriptor
+  rediscovery returns the original observer; existing custom-getter callback tests retain their behavior.
+- Startup results for the initial string-slot prototype: attempt 1 improved 0.52% to 6.44%; attempt 2 was
+  inconclusive at -6.65% to +0.64%; attempt 3 improved 0.47% to 8.90%. Immediate heap was consistently higher.
+- Collision-safe symbol result: candidate improved 0.21% to 6.64%; immediate heap increased 0.03-0.38 MiB
+  (+0.20% to +2.35%). Base bundle was `e5fd2030`; candidate was `862667a7`.
+- Profile evidence: the first direct-observer prototype reduced `SetterObserver.start` from 19.59ms to 9.27ms self.
+  Sampling varied on later runs, but the end-to-end improvement excluded zero in three of four candidate runs.
+- Correctness validation: runtime build and lint passed; test-workspace build passed; all 1,938 focused property
+  observation and observer-locator tests passed.
+- Decision: retain for refresh, mixed-reconciliation, and forced-GC heap guards. A small heap increase is acceptable
+  only if the startup improvement remains and the authoritative real-DOM update paths do not regress.
 
 ### O6 / attempt 1
 
@@ -818,3 +914,187 @@ Copy this block for each attempt:
   multi-subscriber removal, and mutation during value, dirty, and collection notifications.
 - Decision: adopted because the focused cached-observer improvement reproduced without a fresh-observer, real-DOM,
   or heap regression.
+
+### B1+B7+C2+C3+C4 / exact-revision interaction validation
+
+- State: rejected; reverted by `a6e7a13ef6`. O10 remains adopted.
+- Revisions: `ae44897b38d2076a6c2d38604504a5d6068aa26d` base and
+  `547b5d40332d303e840a91c4a69f8303ec599fef` candidate, rebuilt from isolated source/package graphs.
+- Trigger: exact-revision CI and local reruns found a reproducible realistic mixed-reconciliation regression despite
+  individually favorable or neutral live results for the allocation changes.
+- Exact candidate result: realistic refresh was 0.54% to 6.89% slower, mixed reconciliation was 15.89% to 23.46%
+  slower, and live-list heap after GC was 1.37% to 1.52% lower. The warmed refresh loop was neutral.
+- Isolation result: restoring all subscriber behavior was neutral for refresh and mixed reconciliation. Restoring
+  PropertyBinding plus all controller/lifecycle behavior recovered 14.08% to 17.87% on mixed reconciliation;
+  restoring either group alone was neutral. PropertyBinding plus old hook handling and either old bindable-name
+  lookup or old lifecycle lookup also recovered mixed performance, while the other tested subsets did not identify
+  one independently causal optimization.
+- Engine evidence: the regression remained under `--no-opt`, shrank substantially under `--jitless`, and was not
+  removed by warming. Sampling profiles placed the manifestation around NodeSequence/DOM insertion, not inside a
+  changed subscriber method.
+- Decision: retain the subscriber-collection improvements, including O10's sole-subscriber removal fast path. Revert B1, B7, C2, C3, and C4 as a
+  group because their combined allocation/object/code-layout interaction regressed an authoritative real-DOM path.
+  Do not re-adopt one of these entries solely from an isolated live result; require exact-revision mixed, refresh,
+  dependency-rotation, and heap guards.
+
+### O11 / attempt 1
+
+- State: rejected and reverted.
+- Commit/worktree description: retain the lazy prototype `obs` getter but store its first `BindingObserverRecord` in
+  an internal symbol property with ordinary assignment, avoiding `Reflect.defineProperty`; leave subscriber-record
+  storage unchanged.
+- Profile evidence: the three-start baseline attributed 20.70ms self to `rtDefineHiddenProp`. Caller attribution
+  assigned roughly 11.6ms to `getObserverRecord` and 9.1ms to `getSubscriberRecord`.
+- Startup result: candidate 108.86-115.87ms versus base 115.94-123.81ms; delta -12.78ms to -2.23ms
+  (-10.51% to -2.02%), faster. Candidate `rtDefineHiddenProp` profile time fell to 12.01ms.
+- Focused result: fresh dependency rotation improved 0.15% to 1.53%; cached dependency rotation improved 18.19% to
+  20.37%.
+- Heap result: immediate startup heap was 2.88% to 5.57% higher, but after forced GC the live 500-row list was 1.31%
+  to 1.52% lower and post-teardown heap was neutral.
+- Real-DOM guards: keyed refresh regressed 0.74% to 8.01%; mixed reconciliation regressed 17.68% to 23.25%. Their
+  immediate heap readings were respectively 3.34% to 3.52% and 3.50% to 3.67% lower.
+- Decision: reject. A different observer-record storage/shape independently recreates the same faster-focused-work,
+  lower-heap, slower-realistic-rendering pattern seen in the reverted allocation set. Do not optimize
+  `rtDefineHiddenProp` by changing connectable record representation without exact refresh and mixed guards.
+
+### D9 / attempt 1
+
+- State: rejected and reverted.
+- Commit/worktree description: on the first class binding update, when the element starts with no classes and the CSS
+  mapping is empty, populate removal bookkeeping but install the normalized class string with one `className`
+  assignment; retain `classList` diffing for every later update and all mapped/static-class cases.
+- Expected result: reduce initial JS-to-DOM calls without repeating D5's rejected variadic `classList.add` approach.
+- Startup result: candidate 112.54-118.73ms; delta -3.99ms to +4.81ms (-3.47% to +4.18%), no clear change.
+  Immediate heap was 1.13% to 3.58% lower.
+- Profile result: `_flushChanges` remained 9.10ms self / 12.34ms inclusive versus 9.19ms / 14.40ms in the adjacent
+  candidate profile; sampling does not establish a reduction in its own work.
+- Decision: reject. The narrower DOM assignment did not improve end-to-end startup or clearly remove the profiled
+  accessor cost.
+
+### O11 / attempt 2
+
+- State: rejected and reverted.
+- Commit/worktree description: store lazy connectable observer records in a module-local `WeakMap`, preserving the
+  prototype `obs` getter while leaving each binding object's own-property shape unchanged.
+- Expected result: avoid `Reflect.defineProperty` without the symbol attempt's binding-shape change and real-DOM
+  regression.
+- Startup result: candidate 116.48-120.86ms; delta -2.28ms to +5.67ms (-1.98% to +4.88%), no clear change.
+  Immediate heap was 5.54% to 7.94% higher.
+- Profile result: `getObserverRecord` became the largest named framework self-time frame at 33.77ms, reflecting the
+  repeated `WeakMap.get` path; the three-start workload increased to 508.40ms.
+- Decision: reject without further guards because the primary startup metric did not improve and both profile cost
+  and immediate heap worsened. Retain the own non-enumerable `obs` property installed on first access.
+
+### D8 / workload applicability investigation
+
+- State: inconclusive; no code change.
+- Finding: the root compiled template has one instruction target, but the hot repeated-row definition has eight
+  instruction targets and one root article after marker removal. Therefore zero/single-target specialization does
+  not apply to the 1,000 repeated controllers responsible for most node-sequence construction in this workload.
+- Decision: retain D8 for a focused simple-template fixture; do not use realistic startup to accept it.
+
+### D10 / attempt 1
+
+- State: rejected and reverted after forced-GC lifecycle validation.
+- Commit/worktree description: reuse the array returned by native marker collection as `FragmentNodeSequence`'s
+  target array, overwriting each marker only after traversal has completed.
+- Expected result: remove one eight-element array allocation and eight copy writes for each realistic row without
+  repeating D4's DOM mutation during TreeWalker traversal.
+- Startup result: candidate 117.21-122.83ms versus base 114.59-125.51ms; delta -6.17ms to +6.11ms
+  (-5.14% to +5.09%), no clear change. Immediate heap was 0.10-0.49 MiB lower (-2.86% to -0.61%).
+- Clean-baseline confirmation: candidate 112.12-117.17ms versus base 111.77-116.52ms; delta -2.97ms to +3.96ms
+  (-2.61% to +3.48%), again no clear duration change. Immediate heap was 0.06-0.40 MiB lower
+  (-2.46% to -0.38%), reproducing the allocation signal with base bundle `e5fd2030` and candidate `c2f180df`.
+- Profile result: `FragmentNodeSequence` measured 32.15ms self / 46.98ms inclusive versus 24.82ms / 39.47ms in
+  the preceding restored profile, so sampling provides no CPU evidence for the candidate.
+- Correctness validation: the runtime-html package build passed, package lint reported no errors, and the focused
+  Node/JSDOM DOM suite passed 48 tests with 9 existing pending.
+- Forced-GC result: live-list heap increased by 0.05-0.06 MiB (+0.47% to +0.61%); post-teardown heap was neutral at
+  -0.03 MiB to +0.05 MiB (-1.20% to +1.91%). Base bundle was `e5fd2030`; candidate was `c2f180df`.
+- Decision: reject. The reproducibly lower immediate heap represents less temporary garbage before collection, but
+  the reused push-grown marker arrays retain more live memory than the original exact-length target arrays. With
+  neutral duration and higher forced-GC live heap, preserving the separate fixed-size target array is preferable.
+
+### K1 / attempt 1
+
+- State: rejected and reverted.
+- Commit/worktree description: cache `getDependencies(Type)` within `Container.invoke` and construct directly when
+  it is empty, while retaining the active-container bracket required by field-initializer `resolve()` calls.
+- Expected result: avoid mapping and spreading an empty dependency array for each zero-dependency row component.
+- Startup result: candidate 115.47-122.96ms versus base 115.30-124.49ms; delta -6.61ms to +5.25ms
+  (-5.50% to +4.36%), no clear change. Immediate heap was also neutral (-2.37% to +0.60%).
+- Run note: the benchmark and profile completed before an unrelated `subscriber-count.json` fixture-change event
+  marked the status cancelled and rebased the live session; the completed measurements above retain the original
+  baseline hash.
+- Decision: reject. Removing empty dependency-array work is too small to affect end-to-end startup.
+
+### O5 / attempt 2
+
+- State: rejected and reverted.
+- Commit/worktree description: store the `SetterObserver` under a module-owned symbol on the installed getter,
+  eliminating the second `getObserver` closure and temporary `Object.assign` object while retaining the generic
+  `getObserver` fallback for decorators and custom getters.
+- Preliminary startup evidence: three string-slot runs were faster twice and neutral once; the collision-safe symbol
+  run was 0.21% to 6.64% faster. A later startup run was discarded because package-build output changed during the
+  comparison and its base/candidate transfer sizes were not comparable.
+- Realistic refresh guard: duration was inconclusive at -0.79% to +10.28%; immediate heap was 4.02% to 4.22% lower.
+- Realistic mixed guard: duration regressed 16.36% to 25.74%; immediate heap was 3.88% to 4.30% lower.
+- Correctness validation: the runtime build and lint passed. A generic rediscovery test covers recovering the same
+  observer from its installed property descriptor after its `$observers` cache entry is removed.
+- Decision: reject. Changing the installed getter's representation recreates the lower-heap but substantially slower
+  real-DOM reconciliation pattern seen in O11 and the reverted allocation group. Do not retain this optimization for
+  its isolated startup signal.
+
+### D1 / call-shape investigation
+
+- State: inconclusive; no code change.
+- Finding: an unmounted `FragmentNodeSequence` already inserts its whole `DocumentFragment` with one native call.
+  Mounted sequences move one top-level node per call, but the realistic repeated view has exactly one top-level
+  `article`, so each moved row already uses the minimum one `insertBefore` call.
+- Decision: there is no contiguous-node batching opportunity in the measured startup or mixed workloads. A
+  multi-root focused fixture would be required before considering a Range- or fragment-based move path.
+
+### C5 / attribution investigation
+
+- State: inconclusive; no code change.
+- Profile evidence: across three realistic starts, generic DI `get` accounted for 7.67ms self / 12.37ms inclusive
+  with only six samples; `resolve` and `invoke` had 3.87ms and 2.05ms self time respectively.
+- Finding: repeated controller observer/coercion lookups are container-sensitive. Caching across controllers would
+  bypass supported child-container overrides or require invalidation when registrations change. Rendering already
+  caches its root-scoped platform, parser, and observer locator once.
+- Decision: the attributable time is too small and sparse to justify weakening container semantics. Revisit only if
+  a service-key/call-site profile identifies one immutable resolver with a larger end-to-end share.
+
+### D6 / attempt 2
+
+- State: inconclusive and reverted.
+- Commit/worktree description: primitive content-binding values bypass the native platform `Node` `instanceof` test;
+  object values retain the existing DOM-node insertion and placeholder path.
+- Benchmark: the warmed 20x1,000 keyed refresh loop at 20 samples.
+- Duration summary: total refresh delta -60.54ms to +23.86ms (-3.69% to +1.45%); median single-refresh delta
+  -2.04ms to +0.93ms (-2.64% to +1.20%). Both cross zero.
+- Decision: attempt 1 and the lower-variance warmed loop both failed to establish an end-to-end improvement. Retain
+  the direct `instanceof` path unless a content-only benchmark demonstrates a meaningful isolated threshold.
+
+### D1 / call-shape investigation
+
+- State: inconclusive; no code change.
+- Finding: an unmounted `FragmentNodeSequence` already inserts all of its nodes with one native
+  `insertBefore(DocumentFragment, location)` call. A mounted sequence must move its nodes individually, but the hot
+  realistic repeated-row definition has exactly one root article, so each moved row already uses the minimum one
+  native insertion. The LIS reconciliation also already avoids moving rows whose relative order is stable.
+- Decision: there is no contiguous-node batching opportunity in startup or realistic mixed reconciliation. Revisit
+  only with a measured multi-root movement workload; grouping single-root rows would add bookkeeping without reducing
+  DOM calls.
+
+### D8 / attempt 1
+
+- State: inconclusive and reverted.
+- Commit/worktree description: pass the compiled target count into `FragmentNodeSequence`; skip marker traversal for
+  zero-target fragments and use a no-array first-marker path for single-target fragments.
+- Focused result: on the existing 10,000-row single-target startup fixture, duration was inconclusive at -4.16% to
+  1.20%. Immediate heap was 0.33-0.47 MiB lower (-2.19% to -1.57%).
+- Interpretation: the heap signal matches removal of 10,000 short-lived one-element marker arrays. They are not
+  retained after construction, and the allocation reduction did not improve startup duration.
+- Decision: revert rather than add a target-count invariant and special branches for a transient allocation whose
+  end-to-end cost did not separate from noise.

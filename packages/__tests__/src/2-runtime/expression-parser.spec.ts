@@ -196,13 +196,13 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // parenthesized and primary are already from the same precedence group
   const SimpleParenthesizedList: [string, any][] = [
     [`(a[b])`,            createAccessKeyedExpression($a, $b)],
-    [`(a?.[b])`,          createAccessKeyedExpression($a, $b, true)],
+    [`(a?.[b])`,          { ...createAccessKeyedExpression($a, $b, true), parenthesized: true }],
     [`(a.b)`,             createAccessMemberExpression($a, 'b')],
-    [`(a?.b)`,            createAccessMemberExpression($a, 'b', true)],
+    [`(a?.b)`,            { ...createAccessMemberExpression($a, 'b', true), parenthesized: true }],
     [`(a\`\`)`,           createTaggedTemplate([''], $a, [])],
     [`($this())`,         createCallFunctionExpression($this, [])],
     [`(a())`,             createCallScopeExpression('a', [])],
-    [`(a?.())`,           createCallScopeExpression('a', [], 0, true)],
+    [`(a?.())`,           { ...createCallScopeExpression('a', [], 0, true), parenthesized: true }],
     [`(!a)`,              createUnaryExpression('!', $a)],
     [`(a+b)`,             createBinaryExpression('+', $a, $b)],
     [`(a?b:c)`,           createConditionalExpression($a, $b, createAccessScopeExpression('c'))],

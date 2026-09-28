@@ -1,5 +1,6 @@
 import {
   DI,
+  type Constructable,
   type IContainer,
   ILogger,
   IModule,
@@ -7,6 +8,7 @@ import {
   InstanceProvider,
   noop,
   onResolve,
+  onResolveAll,
   Registration,
   emptyObject,
   emptyArray,
@@ -59,7 +61,7 @@ import {
   IRouter,
 } from './router';
 import { IRouterEvents } from './router-events';
-import { ensureArrayOfStrings, mergeQueryParams } from './util';
+import { ensureArrayOfStrings, ensureString, mergeQueryParams } from './util';
 import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialViewportInstruction } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace, warn } from './events';
@@ -85,7 +87,7 @@ export type RouteParametersOptions<TStrategy extends RouteParameterMergeStrategy
   ? RouteParametersBaseOptions & { mergeStrategy?: 'child-first' }
   : RouteParametersBaseOptions & { mergeStrategy: TStrategy };
 
-type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
+export type PathGenerationResult = { vi: ViewportInstruction; query: Record<string, string | string[]> };
 
 type EagerInstruction = {
   component: string | RouteConfig | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
@@ -736,12 +738,61 @@ export class RouteContext {
   }
 }
 
+// A child route whose component is a factory such as `() => import('./x')`. The factory only runs when the route is
+// first needed, so routes the user never visits are never downloaded.
+export class LazyRoute {
+  public readonly id: string;
+  public readonly path: string[];
+  public readonly title: string | ((node: RouteNode) => string | null) | null;
+  public readonly data: Record<string, unknown>;
+  public readonly nav: boolean;
+  public readonly redirectTo: null = null;
+  /** @internal */ public _config: RouteConfig | null = null;
+  /** @internal */ private _promise: Promise<RouteConfig> | null = null;
+
+  public constructor(
+    config: IChildRouteConfig,
+    /** @internal */ private readonly _load: () => RouteConfig | Promise<RouteConfig>,
+    /** @internal */ private readonly _onLoad: (config: RouteConfig) => void,
+  ) {
+    this.path = ensureArrayOfStrings(config.path!);
+    this.id = config.id ?? ensureString(this.path);
+    this.title = config.title ?? null;
+    this.data = config.data ?? {};
+    this.nav = config.nav ?? true;
+  }
+
+  /** @internal */
+  public _resolve(): RouteConfig | Promise<RouteConfig> {
+    if (this._config !== null) return this._config;
+    if (this._promise !== null) return this._promise;
+    const result = this._load();
+    if (!isPromise(result)) return this._loaded(result);
+    return this._promise = result.then(
+      config => { this._promise = null; return this._loaded(config); },
+      // forget the failure so that the next navigation retries the import
+      err => { this._promise = null; throw err; },
+    );
+  }
+
+  /** @internal */
+  private _loaded(config: RouteConfig): RouteConfig {
+    this._config = config;
+    this._onLoad(config);
+    return config;
+  }
+}
+
+// A child route's entry in the route table: a resolved `RouteConfig`, a promise resolving to one
+// (`component: import('./x')` or a routeable promise), or a not-yet-loaded lazy route.
+export type RouteTableEntry = RouteConfig | Promise<RouteConfig> | LazyRoute;
+
 export interface IRouteConfigContext extends RouteConfigContext { }
 export class RouteConfigContext {
 
   /** @internal */ private readonly _moduleLoader: IModuleLoader;
   /** @internal */ private readonly _logger: ILogger;
-  /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
+  /** @internal */ public readonly _recognizer: RouteRecognizer<RouteTableEntry>;
   /** @internal */ public _childRoutesConfigured: boolean = false;
 
   public readonly root: IRouteConfigContext;
@@ -772,9 +823,12 @@ export class RouteConfigContext {
     return this._navigationModel;
   }
   /**
-   * The (fully resolved) configured child routes of this context's `RouteConfig`
+   * The configured child routes of this context's `RouteConfig`.
+   *
+   * Entries are `RouteConfig`s, `Promise<RouteConfig>`s while promise-based modules are being resolved,
+   * or `LazyRoute`s for factory components (such as `() => import('./x')`) that are only loaded on first match.
    */
-  public readonly childRoutes: (RouteConfig | Promise<RouteConfig>)[] = [];
+  public readonly childRoutes: RouteTableEntry[] = [];
 
   /** @internal */
   private _allResolved: Promise<void> | null = null;
@@ -835,7 +889,7 @@ export class RouteConfigContext {
   public _handleNavigationStart() {
     this.config._handleNavigationStart();
     for (const childRoute of this.childRoutes) {
-      if (childRoute instanceof Promise) continue;
+      if (childRoute instanceof Promise || childRoute instanceof LazyRoute) continue;
       childRoute._handleNavigationStart();
     }
   }
@@ -873,6 +927,30 @@ export class RouteConfigContext {
       const childRoute = childrenRoutes[i];
       if (childRoute instanceof Promise) {
         allPromises.push(this._addRoute(childRoute));
+        continue;
+      }
+      if (!this._options.useEagerLoading
+        && isPartialChildRouteConfig(childRoute)
+        && childRoute.redirectTo == null
+        && childRoute.path != null
+        && ensureArrayOfStrings(childRoute.path).length > 0
+        && typeof childRoute.component === 'function'
+        && !CustomElement.isType(childRoute.component as Constructable)) {
+        // A factory component such as `component: () => import('./x')`: register the route's metadata only
+        // and defer the factory invocation (and thus the import) until the route is first matched.
+        const idx = this.childRoutes.length;
+        const lazy = new LazyRoute(
+          childRoute,
+          () => resolveRouteConfiguration(childRoute, true, config, null, this),
+          rdConfig => { this.childRoutes[idx] = rdConfig; },
+        );
+        for (const path of lazy.path) {
+          this._$addRoute(path, childRoute.caseSensitive ?? false, lazy);
+        }
+        this.childRoutes.push(lazy);
+        if (hasNavModel) {
+          navModel._addRoute(lazy);
+        }
         continue;
       }
       const rdResolution = resolveRouteConfiguration(childRoute, true, config, null, this);
@@ -930,7 +1008,7 @@ export class RouteConfigContext {
   }
 
   /** @internal */
-  private _$addRoute(path: string, caseSensitive: boolean, handler: RouteConfig | Promise<RouteConfig>): void {
+  private _$addRoute(path: string, caseSensitive: boolean, handler: RouteTableEntry): void {
     if (__DEV__ && path === '') {
       warn(this._logger, Events.rcUnexpectedEmptyPathForEagerLoading, isPromise(handler) ? 'Promise' : handler);
     }
@@ -1015,9 +1093,10 @@ export class RouteConfigContext {
   /** @internal */
   public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }, parentRoutePath: string | null): PathGenerationResult;
   public _generateViewportInstruction(instruction: { component: string; params: Params }, parentRoutePath: string | null): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null): PathGenerationResult | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null): PathGenerationResult | Promise<PathGenerationResult> | null;
   public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren?: boolean): PathGenerationResult | Promise<PathGenerationResult> | null {
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren: boolean | undefined, resolveLazyRoutes: boolean): PathGenerationResult | Promise<PathGenerationResult> | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, parentRoutePath: string | null, traverseChildren?: boolean, resolveLazyRoutes: boolean = false): PathGenerationResult | Promise<PathGenerationResult> | null {
     if (!isEagerInstruction(instruction)) return null;
     if (!this._options.useEagerLoading) parentRoutePath = null;
     else if (parentRoutePath == null) {
@@ -1035,22 +1114,38 @@ export class RouteConfigContext {
       paths = component.path;
       throwError = true;
     } else if (typeof component === 'string') {
-      const $rdConfig = (this.childRoutes as RouteConfig[]).find(x => x.id === component);
+      const $rdConfig = this.childRoutes.find((x): x is RouteConfig | LazyRoute => !(x instanceof Promise) && x.id === component);
       if ($rdConfig === void 0) return null;
       paths = $rdConfig.path;
     } else if ((component as ITypedNavigationInstruction_string).type === NavigationInstructionType.string) {
-      const $rdConfig = (this.childRoutes as RouteConfig[]).find(x => x.id === (component as ITypedNavigationInstruction_string).value);
+      const $rdConfig = this.childRoutes.find((x): x is RouteConfig | LazyRoute => !(x instanceof Promise) && x.id === (component as ITypedNavigationInstruction_string).value);
       if ($rdConfig === void 0) return null;
       paths = $rdConfig.path;
     } else {
       // as the component is ensured not to be a promise in here, the resolution should also be synchronous
       const ced = (resolveCustomElementDefinition(component, this) as [ITypedNavigationInstruction_Component, CustomElementDefinition])[1];
       paths = this.childRoutes.reduce((acc, x) => {
-        if ((x as RouteConfig).component === ced.Type) {
-          acc.push(...(x as RouteConfig).path);
+        if (!(x instanceof Promise) && !(x instanceof LazyRoute) && x.component === ced.Type) {
+          acc.push(...x.path);
         }
         return acc;
       }, [] as string[]);
+      if (paths.length === 0) {
+        const lazies = this.childRoutes.filter((x): x is LazyRoute => x instanceof LazyRoute);
+        if (lazies.length > 0) {
+          // The custom element type of a lazy route is unknown until its module is loaded.
+          // As the type might still be one of the pending lazies, synchronous callers (the `load`/`href`
+          // attributes, `isActive`, route-id lookups) get `null` and fall back to a plain instruction,
+          // instead of an error or an unexpected promise.
+          if (!resolveLazyRoutes) return null;
+          // Resolve them and retry; `_onLoad` replaces each `LazyRoute` entry with the resolved `RouteConfig`,
+          // so the retry cannot loop.
+          return onResolve(
+            onResolveAll(...lazies.map(l => l._resolve())),
+            () => this._generateViewportInstruction(instruction, parentRoutePath, traverseChildren as true, resolveLazyRoutes),
+          ) as PathGenerationResult | Promise<PathGenerationResult> | null;
+        }
+      }
       throwError = true;
     }
     if (paths === void 0) return null;
@@ -1091,7 +1186,7 @@ export class RouteConfigContext {
 
     type EagerResolutionResult = {
       path: string;
-      endpoint: Endpoint<RouteConfig | Promise<RouteConfig>>;
+      endpoint: Endpoint<RouteTableEntry>;
       consumed: Params;
       query: Params;
     };
@@ -1156,7 +1251,8 @@ export class RouteConfigContext {
               $routeConfigContext._generateViewportInstruction(
                 isPartialViewportInstruction(child) ? { ...child, params: child.params ?? emptyObject } : { component: child, params: emptyObject },
                 parentPath,
-                traverseChildren as true
+                traverseChildren as true,
+                true,
               ),
               eagerVi => {
                 if (eagerVi == null) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, child));
@@ -1171,12 +1267,16 @@ export class RouteConfigContext {
     }
 
     function createPathGenerationResult(this: RouteConfigContext, result: Exclude<ReturnType<typeof core>, null>): PathGenerationResult | Promise<PathGenerationResult> {
+      const handler = result.endpoint.route.handler;
       return onResolve(
-        (traverseChildren
-          ? generateChildrenInstructions.call(
-            this,
-            result.endpoint.route.handler as RouteConfig,
-            parentRoutePath != null && parentRoutePath.length > 0 ? `${parentRoutePath}/${result.endpoint.route.path}` : result.endpoint.route.path
+        (traverseChildren && ((instruction as IExtendedViewportInstruction).children?.length ?? 0) > 0
+          ? onResolve(
+            handler instanceof LazyRoute ? handler._resolve() : handler,
+            cfg => generateChildrenInstructions.call(
+              this,
+              cfg,
+              parentRoutePath != null && parentRoutePath.length > 0 ? `${parentRoutePath}/${result.endpoint.route.path}` : result.endpoint.route.path
+            )
           ) as Promise<{ instructions: NavigationInstruction[]; query: Record<string, string | string[]> }>
           : { instructions: (instruction as IViewportInstruction).children, query: emptyObject }),
         ({ instructions: children, query: $query }) => {
@@ -1195,13 +1295,13 @@ export class RouteConfigContext {
     }
   }
 
-  public recognize(path: string, searchAncestor: boolean = false, relativeTo: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null): $RecognizedRoute[] | null {
+  public recognize(path: string, searchAncestor: boolean = false, relativeTo: RecognizedRoute<RouteTableEntry>[] | null = null): $RecognizedRoute[] | null {
     if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let _current: IRouteConfigContext = this;
     let _continue = true;
-    let results: RecognizedRoute<RouteConfig | Promise<RouteConfig>>[] | null = null;
+    let results: RecognizedRoute<RouteTableEntry>[] | null = null;
     while (_continue) {
       results = _current._recognizer.recognize(path, relativeTo);
       if (results === null) {
@@ -1264,7 +1364,7 @@ export class RouteConfigContext {
 
 export class $RecognizedRoute {
   public constructor(
-    public readonly route: RecognizedRoute<RouteConfig | Promise<RouteConfig>>,
+    public readonly route: RecognizedRoute<RouteTableEntry>,
     public readonly residue: string | null,
   ) {
     if (residue?.startsWith('/') === true) {
@@ -1313,7 +1413,7 @@ class NavigationModel implements INavigationModel {
 
   private readonly emptyRoute: symbol = Symbol.for('au:router:empty-navigation-route');
   /** @internal */
-  public _addRoute(route: RouteConfig | Promise<RouteConfig>): void {
+  public _addRoute(route: RouteTableEntry): void {
     const routes = this.routes;
     if (!(route instanceof Promise)) {
       if ((route.nav ?? false) && route.redirectTo === null) {
@@ -1362,7 +1462,7 @@ class NavigationRoute implements INavigationRoute {
   ) { }
 
   /** @internal */
-  public static _create(rdConfig: RouteConfig, parentPaths: string[] | null) {
+  public static _create(rdConfig: Pick<RouteConfig, 'id' | 'path' | 'title' | 'data'>, parentPaths: string[] | null) {
     return new NavigationRoute(
       rdConfig.id,
       ensureArrayOfStrings(rdConfig.path ?? emptyArray),

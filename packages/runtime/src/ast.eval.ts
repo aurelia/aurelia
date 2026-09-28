@@ -115,6 +115,17 @@ export const {
     [astTrackableMethodMarker]?: TrackableFunctionOptions;
   };
 
+  // writes go through splice so array observers are notified; growing fills the gap with undefined
+  // in the same splice (plain JS would leave holes) so a repeat reconciles once per write
+  function setArrayLength(arr: unknown[], length: number): void {
+    const len = arr.length;
+    if (length < len) {
+      arr.splice(length);
+    } else if (length > len) {
+      arr.splice(len, 0, ...Array(length - len));
+    }
+  }
+
   function observeTrackableMethodDependencies(connectable: IConnectable, instance: unknown, options: TrackableFunctionOptions): void {
     if (instance == null) {
       return;
@@ -571,7 +582,7 @@ export const {
           astAssign(ast.object, s, e, c, { [ast.name]: val });
         } else if (isObjectOrFunction(obj)) {
           if (ast.name === 'length' && isArray(obj) && !isNaN(val as number)) {
-            obj.splice(val as number);
+            setArrayLength(obj, +(val as number));
           } else {
             obj[ast.name] = val;
           }
@@ -599,11 +610,18 @@ export const {
 
         if (isArray(instance)) {
           if (key === 'length' && !isNaN(val as number)) {
-            instance.splice(val as number);
+            setArrayLength(instance, +(val as number));
             return val;
           }
           if (isArrayIndex(key)) {
-            instance.splice(key as unknown as number, 1, val);
+            const index = +key;
+            const len = instance.length;
+            if (index < len) {
+              instance.splice(index, 1, val);
+            } else {
+              // splice clamps start to length, so an out of bounds index would otherwise append
+              instance.splice(len, 0, ...Array(index - len), val);
+            }
             return val;
           }
         }

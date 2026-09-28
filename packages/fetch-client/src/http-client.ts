@@ -223,9 +223,13 @@ export class HttpClient {
       requestContentType = new Headers(requestInit.headers as Headers).get('Content-Type');
       request = new Request(getRequestUrl(this.baseUrl, input), requestInit);
     }
-    if (!requestContentType) {
+    // new Request() derives Content-Type from these bodies, including the multipart boundary
+    const bodySetsContentType = body instanceof FormData
+      || body instanceof URLSearchParams
+      || (body instanceof Blob && !!body.type);
+    if (!requestContentType && !bodySetsContentType) {
       if (new Headers(parsedDefaultHeaders).has('content-type')) {
-        if (__DEV__) {
+        if (__DEV__ && 'content-type' in parsedDefaultHeaders) {
           // eslint-disable-next-line no-console
           console.warn('Request was created with header "content-type", converted to "Content-Type" instead.');
         }

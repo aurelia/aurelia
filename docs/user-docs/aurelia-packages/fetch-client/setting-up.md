@@ -587,6 +587,8 @@ config.withRetry({
 });
 ```
 
+Without `doRetry`, only the idempotent methods — GET, HEAD, OPTIONS, PUT and DELETE — are retried. POST and PATCH are skipped because the server may already have applied them before the failure surfaced. Supplying `doRetry` replaces that default entirely, so opt non-idempotent methods in deliberately. The first argument is a `Response` when the server replied (with `rejectErrorResponses` configured) or an `Error`, such as a `TypeError`, for network failures. Aborted requests are never retried, so `doRetry` is not consulted for them.
+
 ### Complete Retry Configuration
 ```typescript
 interface IRetryConfiguration {
@@ -595,7 +597,7 @@ interface IRetryConfiguration {
   strategy?: RetryStrategy | ((retryCount: number) => number); // Retry timing strategy
   minRandomInterval?: number;                            // Min random interval (for random strategy)
   maxRandomInterval?: number;                            // Max random interval (for random strategy)
-  doRetry?(response: Response, request: Request): boolean | Promise<boolean>; // Conditional retry logic
+  doRetry?(response: Response, request: Request): boolean | Promise<boolean>; // Conditional retry logic; defaults to retrying only idempotent methods
   beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>; // Request modification before retry
 }
 ```

@@ -19,6 +19,9 @@ const defaultRetryConfig: IRetryConfiguration = {
   strategy: RetryStrategy.fixed
 };
 
+// fetch normalizes method names to upper case; TRACE is forbidden and POST/PATCH are not idempotent
+const idempotentMethods = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE'];
+
 /**
  * Interceptor that retries requests on error, based on a given RetryConfiguration.
  */
@@ -78,39 +81,53 @@ export class RetryInterceptor implements IFetchInterceptor {
    * previous interceptor.
    * @returns The response of the retry; or a Promise for one.
    */
-  public responseError(error: Response, request: IRetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
-    const { retryConfig } = request as { retryConfig: Required<IRetryConfiguration> };
+  public responseError(error: unknown, request: IRetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
+    const retryConfig = request.retryConfig as Required<IRetryConfiguration> | undefined;
+    // nothing to retry when the request never passed through this interceptor's request hook,
+    // e.g. an earlier interceptor short-circuited with a response
+    if (retryConfig == null) {
+      throw error;
+    }
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
-      if (retryConfig.counter < retryConfig.maxRetries) {
-        const result = retryConfig.doRetry != null ? retryConfig.doRetry(error, request) : true;
-
-        return Promise.resolve(result).then(doRetry => {
-          if (doRetry) {
-            retryConfig.counter++;
-            const delay = calculateDelay(retryConfig);
-            return new Promise(resolve => this.p.setTimeout(resolve, !isNaN(delay) ? delay : 0))
-              .then(() => {
-                const newRequest = requestClone.clone();
-                if (typeof (retryConfig.beforeRetry) === 'function') {
-                  return retryConfig.beforeRetry(newRequest, httpClient);
-                }
-                return newRequest;
-              })
-              .then(newRequest => {
-                const retryableRequest: IRetryableRequest = {...newRequest, retryConfig };
-                return httpClient.fetch(retryableRequest);
-              });
-          }
-
-          // no more retries, so clean up
-          delete request.retryConfig;
-          throw error;
-        });
+      // aborted requests are never retried, and doRetry is not consulted for them
+      if (retryConfig.counter >= retryConfig.maxRetries
+        || request.signal?.aborted === true
+        || (error as { name?: unknown } | null)?.name === 'AbortError') {
+        delete request.retryConfig;
+        throw error;
       }
-      // no more retries, so clean up
-      delete request.retryConfig;
-      throw error;
+
+      // without a doRetry callback only idempotent methods are retried, since the server may
+      // already have applied non-idempotent ones
+      const result = retryConfig.doRetry != null
+        ? retryConfig.doRetry(error as Response, request)
+        : idempotentMethods.includes(request.method);
+
+      return Promise.resolve(result).then(doRetry => {
+        if (doRetry) {
+          retryConfig.counter++;
+          const delay = calculateDelay(retryConfig);
+          return new Promise(resolve => this.p.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+            .then(() => {
+              const newRequest = requestClone.clone() as IRetryableRequest;
+              // attach before beforeRetry so user code can read the retry state
+              newRequest.retryConfig = retryConfig;
+              return retryConfig.beforeRetry?.(newRequest, httpClient) ?? newRequest;
+            })
+            .then(retryRequest => {
+              delete request.retryConfig;
+              // beforeRetry may return a brand-new Request; the config must live on a real
+              // Request - a spread would produce a plain object that buildRequest treats as a url
+              (retryRequest as IRetryableRequest).retryConfig = retryConfig;
+              return httpClient.fetch(retryRequest);
+            });
+        }
+
+        // no more retries, so clean up
+        delete request.retryConfig;
+        throw error;
+      });
     });
   }
 }
@@ -167,6 +184,7 @@ export interface IRetryConfiguration {
   maxRandomInterval?: number;
   counter?: number;
   requestClone?: Request;
+  /** When omitted, only idempotent methods (GET, HEAD, OPTIONS, PUT, DELETE) are retried; aborted requests are never retried. */
   doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
   beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
 }

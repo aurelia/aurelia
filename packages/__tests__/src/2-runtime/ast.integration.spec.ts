@@ -415,6 +415,100 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
       assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
     });
+
+    // https://github.com/aurelia/aurelia/issues/2549
+    describe('out of bounds index/length (#2549)', function () {
+      const html = `<div repeat.for="q of questions"><input value.bind="answers[$index]"></div>`;
+      const inputValues = (inputs: HTMLInputElement[]) => inputs.map(i => i.value);
+
+      it('binds each input to its own index when filled out of order starting from an empty array', function () {
+        const { component, getAllBy, type } = createFixture
+          .component({ questions: ['q1', 'q2', 'q3'], answers: [] as string[] })
+          .html(html)
+          .build();
+
+        const inputs = getAllBy('input') as HTMLInputElement[];
+        type(inputs[2], 'C');
+        runTasks();
+        assert.deepStrictEqual(component.answers, [undefined, undefined, 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['', '', 'C']);
+
+        type(inputs[0], 'A');
+        runTasks();
+        assert.deepStrictEqual(component.answers, ['A', undefined, 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['A', '', 'C']);
+
+        type(inputs[1], 'B');
+        runTasks();
+        assert.deepStrictEqual(component.answers, ['A', 'B', 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['A', 'B', 'C']);
+      });
+
+      it('keeps in-order filling unchanged', function () {
+        const { component, getAllBy, type } = createFixture
+          .component({ questions: ['q1', 'q2', 'q3'], answers: [] as string[] })
+          .html(html)
+          .build();
+
+        const inputs = getAllBy('input') as HTMLInputElement[];
+        type(inputs[0], 'A');
+        type(inputs[1], 'B');
+        type(inputs[2], 'C');
+        runTasks();
+        assert.deepStrictEqual(component.answers, ['A', 'B', 'C']);
+        assert.deepStrictEqual(inputValues(inputs), ['A', 'B', 'C']);
+      });
+
+      it('extends the array when assigning past the end in an event handler', function () {
+        const { component, trigger, getAllBy } = createFixture
+          .component({ items: ['a'] })
+          .html`
+            <button click.trigger="items[3] = 'x'"></button>
+            <p repeat.for="i of items">\${i}</p>
+          `
+          .build();
+
+        trigger.click('button');
+        runTasks();
+        assert.strictEqual(component.items.length, 4);
+        assert.deepStrictEqual(component.items, ['a', undefined, undefined, 'x']);
+        assert.deepStrictEqual(getAllBy('p').map(p => p.textContent), ['a', '', '', 'x']);
+      });
+
+      for (const [kind, expr] of [['keyed', `items['length']`], ['member', 'items.length']] as const) {
+        it(`grows and shrinks the array when assigning length (${kind})`, function () {
+          const { component, trigger, assertText, getAllBy } = createFixture
+            .component({ items: ['a'], n: 3 })
+            .html`
+              <button click.trigger="${expr} = n">\${items.length}</button>
+              <p repeat.for="i of items">\${i}</p>
+            `
+            .build();
+
+          assertText('button', '1');
+
+          trigger.click('button');
+          runTasks();
+          assert.strictEqual(component.items.length, 3);
+          assert.deepStrictEqual(component.items, ['a', undefined, undefined]);
+          assertText('button', '3');
+          assert.strictEqual(getAllBy('p').length, 3);
+
+          component.n = 1;
+          trigger.click('button');
+          runTasks();
+          assert.deepStrictEqual(component.items, ['a']);
+          assertText('button', '1');
+          assert.strictEqual(getAllBy('p').length, 1);
+
+          // same length is a no-op
+          trigger.click('button');
+          runTasks();
+          assert.deepStrictEqual(component.items, ['a']);
+          assertText('button', '1');
+        });
+      }
+    });
   });
 
   describe('[[AccessBoundary]]', function () {

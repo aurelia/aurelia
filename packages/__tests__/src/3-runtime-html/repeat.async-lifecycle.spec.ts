@@ -939,8 +939,8 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       assert.strictEqual(clientHost.querySelector('ssr-pending-repeat-row'), adoptedRow);
       assert.strictEqual(clientHost.textContent, '01');
 
-      await root.deactivate();
-      root.dispose();
+      assert.strictEqual(root, clientAu.root);
+      await clientAu.stop(true);
       clientAu.dispose();
       clientHost.remove();
     });

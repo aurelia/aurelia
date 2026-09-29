@@ -5,6 +5,7 @@ import {
   ISSRContext,
   type ISSRScope,
   prepareSSRForSerialization,
+  restoreSSRTextNodes,
 } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
@@ -220,5 +221,28 @@ describe('3-runtime-html/ssr-round-trip.spec.ts', function () {
     } finally {
       await dispose();
     }
+  });
+
+  describe('restoreSSRTextNodes', function () {
+    it('pairs with prepareSSRForSerialization on a document root', function () {
+      const { doc } = TestContext.create();
+      const document = doc.implementation.createHTMLDocument('');
+      document.body.append('a', 'b', '');
+
+      prepareSSRForSerialization(document);
+      assert.strictEqual(restoreSSRTextNodes(document), true);
+      assert.deepStrictEqual(Array.from(document.body.childNodes, n => (n as Text).data), ['a', 'b', '']);
+    });
+
+    it('only counts the integrity marker on the root itself', function () {
+      const { doc } = TestContext.create();
+      const host = doc.createElement('div');
+      const nested = host.appendChild(doc.createElement('section'));
+      nested.append('a', 'b');
+      prepareSSRForSerialization(nested);
+
+      assert.strictEqual(restoreSSRTextNodes(host), false, 'a prepared nested root does not vouch for its host');
+      assert.strictEqual(host.innerHTML, '<section>ab</section>', 'nested markers are still restored');
+    });
   });
 });

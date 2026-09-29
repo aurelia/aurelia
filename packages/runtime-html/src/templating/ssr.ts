@@ -212,24 +212,24 @@ const rawTextParentRE = /^(?:SCRIPT|STYLE|TEXTAREA|TITLE|XMP|IFRAME|NOEMBED|NOFR
 /**
  * Reverse `prepareSSRForSerialization` on the client before adoption.
  *
- * @returns whether the `<!--au-hm-->` integrity marker was found, i.e. whether the markup was prepared and its
- * comments survived delivery.
+ * @returns whether `host` starts with the `<!--au-hm-->` integrity marker, i.e. whether the markup was prepared
+ * and its comments survived delivery.
  */
 export function restoreSSRTextNodes(host: Node): boolean {
-  const doc = host.ownerDocument!;
+  const doc = host.ownerDocument ?? host as Document;
+  // Only the marker prepareSSRForSerialization() put on this root counts: a nested root prepared on its own says
+  // nothing about the markup around it.
+  const first = host.firstChild;
+  const prepared = first !== null && first.nodeType === 8 && (first as Comment).data === 'au-hm';
   // NodeFilter.SHOW_COMMENT = 128
   const walker = doc.createTreeWalker(host, 128);
   const markers: Comment[] = [];
-  let prepared = false;
   let node: Comment | null;
+  let data: string;
   while ((node = walker.nextNode() as Comment | null) !== null) {
-    switch (node.data) {
-      case 'au-hm':
-        prepared = true;
-        // falls through
-      case 'au-e':
-      case 'au-t':
-        markers.push(node);
+    data = node.data;
+    if (data === 'au-e' || data === 'au-t' || data === 'au-hm') {
+      markers.push(node);
     }
   }
   for (const marker of markers) {

@@ -548,6 +548,17 @@ export class TemplateCompiler implements ITemplateCompiler {
       needsMarker = true;
     }
 
+    // <textarea> and <title> content is parsed as text, so a marker comment inside it would come back from a
+    // server render as literal text. Bind interpolated content through the element's textContent instead.
+    if (!isCustomElement && (el.nodeName === 'TEXTAREA' || el.nodeName === 'TITLE')) {
+      const expr = context._exprParser.parse(el.textContent!, etInterpolation);
+      if (expr !== null) {
+        (instructions ??= []).push({ type: itInterpolation, from: expr, to: 'textContent' } as InterpolationInstruction);
+        needsMarker = true;
+        el.textContent = '';
+      }
+    }
+
     // 4. Compile element content
     //    Two paths diverge here based on whether template controllers (TCs) are present.
     //    Both paths do the same core work: extract projections, mark target, compile children.

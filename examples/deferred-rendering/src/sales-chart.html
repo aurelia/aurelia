@@ -1,0 +1,5 @@
+<svg class="chart" viewBox="0 0 240 110" role="img" aria-label="Sales per month">
+  <rect repeat.for="bar of bars" x.attr="bar.x" y.attr="105 - bar.height" width="30" height.attr="bar.height">
+    <title>${bar.value}</title>
+  </rect>
+</svg>

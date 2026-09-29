@@ -1,0 +1,19 @@
+{
+  "name": "@examples/deferred-rendering",
+  "private": true,
+  "description": "Renders parts of a page later, and loads their code on demand, with the defer template controller.",
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "aurelia": "2.0.0-rc.2"
+  },
+  "devDependencies": {
+    "@aurelia/vite-plugin": "2.0.0-rc.2",
+    "typescript": "5.9.2",
+    "vite": "7.3.1"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  }
+}

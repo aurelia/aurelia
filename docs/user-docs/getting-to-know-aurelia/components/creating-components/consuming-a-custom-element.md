@@ -23,3 +23,9 @@ Adding your element to be used within the template is as easy as adding the foll
 ```html
 <import from="./path-to/some-element"></import>
 ```
+
+If the element is only used inside [`defer` blocks](../../../templates/deferred-rendering.md), add `defer` to load it when a block that uses it renders, instead of with the page:
+
+```html
+<import from="./path-to/some-element" defer></import>
+```

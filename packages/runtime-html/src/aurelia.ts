@@ -10,6 +10,7 @@ import type {
 import { ErrorNames, createMappedError } from './errors';
 import { refs } from './dom.node';
 import { tasksSettled } from '@aurelia/runtime';
+import { restoreSSRTextNodes } from './templating/ssr';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
@@ -110,6 +111,10 @@ export class Aurelia implements IDisposable {
    */
   public hydrate<T extends object>(config: IHydrateConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
     const container = config.container ?? this.container.createChild();
+    if (!restoreSSRTextNodes(config.host) && __DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('[DEV:aurelia] Hydrating markup without the <!--au-hm--> marker: either prepareSSRForSerialization() was not called on the server before serializing, or the HTML comments were stripped after server rendering (e.g. by a minifier or CDN). Empty and adjacent text nodes will not line up with the SSR manifest.');
+    }
     const appRoot: IAppRoot<T> = new AppRoot(
       { host: config.host, component: config.component, ssrScope: config.ssrScope },
       container,

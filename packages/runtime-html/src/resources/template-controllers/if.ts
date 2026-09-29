@@ -11,6 +11,7 @@ import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
+import { reportError } from '../../templating/error-handling';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -134,9 +135,19 @@ export class If implements ICustomAttributeViewModel {
               this.pending = void 0;
             }
           };
-          const result = view.activate(view, ctrl, ctrl.scope);
+          let result: void | Promise<void>;
+          try {
+            result = view.activate(view, ctrl, ctrl.scope);
+          } catch (err) {
+            // Post-activation swaps report to an enclosing error boundary before
+            // the error escapes through the observer notification call site.
+            if (recoverAfterFailure && reportError(ctrl, err, 'attaching')) {
+              return;
+            }
+            throw err;
+          }
           if (recoverAfterFailure && isPromise(result)) {
-            return result.then(complete, () => {
+            return result.then(complete, (err) => {
               // A successor or owner teardown already owns stale-view cleanup.
               if (!isCurrent()) {
                 return;
@@ -150,6 +161,10 @@ export class If implements ICustomAttributeViewModel {
                 () => {
                   this._disposeViewsIfUncached(view);
                   complete();
+                  if (!reportError(ctrl, err, 'attaching')) {
+                    // eslint-disable-next-line no-console
+                    console.error(err);
+                  }
                 },
               );
             });

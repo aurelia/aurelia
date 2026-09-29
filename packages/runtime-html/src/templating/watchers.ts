@@ -19,6 +19,8 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
+import type { IController } from './controller';
+import { reportTaskError } from './error-handling';
 import { IBinding } from '../binding/interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 
@@ -67,6 +69,8 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     public readonly $get: (obj: object, watcher: IConnectable) => unknown,
     cb: IWatcherCallback<object>,
     flush: 'async' | 'sync' = 'async',
+    /** @internal */
+    private readonly _controller?: IController,
   ) {
     this._callback = cb;
     this.oL = observerLocator;
@@ -103,8 +107,15 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     if (this._isQueued) return;
     this._isQueued = true;
     queueTask(() => {
-      this._isQueued = false;
-      this._run();
+      try {
+        this._isQueued = false;
+        this._run();
+      } catch (err) {
+        if (this._controller != null) {
+          reportTaskError(this._controller.container, this._controller, err);
+        }
+        throw err;
+      }
     });
   }
 
@@ -184,6 +195,8 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
     expression: IsBindingBehavior,
     callback: IWatcherCallback<object>,
     flush: 'async' | 'sync' = 'async',
+    /** @internal */
+    private readonly _controller?: IController,
   ) {
     this.obj = scope.bindingContext;
     this._expression = expression;
@@ -210,8 +223,15 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
     if (this._isQueued) return;
     this._isQueued = true;
     queueTask(() => {
-      this._isQueued = false;
-      this._run();
+      try {
+        this._isQueued = false;
+        this._run();
+      } catch (err) {
+        if (this._controller != null) {
+          reportTaskError(this._controller.container, this._controller, err);
+        }
+        throw err;
+      }
     });
   }
 

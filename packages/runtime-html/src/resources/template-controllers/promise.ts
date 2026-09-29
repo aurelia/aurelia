@@ -16,6 +16,7 @@ import { IViewFactory } from '../../templating/view';
 import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { safeString, tsRunning } from '../../utilities';
+import { runReported } from '../../templating/error-handling';
 import { ErrorNames, createMappedError } from '../../errors';
 
 // NOTE: The "SSR pending -> client resolves" case is not currently handled.
@@ -198,7 +199,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
       view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, scope);
+    return activateBranchView(view, this.$controller, scope);
   }
 
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
@@ -252,7 +253,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
       view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, scope);
+    return activateBranchView(view, this.$controller, scope);
   }
 
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
@@ -306,7 +307,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
       view = this.view = this._factory.create(this.$controller).setLocation(this._location);
     }
     if (view.isActive) { return; }
-    return view.activate(view, this.$controller, scope);
+    return activateBranchView(view, this.$controller, scope);
   }
 
   public deactivate(_initiator: IHydratedController | null): void | Promise<void> {
@@ -323,6 +324,15 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
     this.view?.dispose();
     this.view = (void 0)!;
   }
+}
+
+/**
+ * Branch views always self-activate inside queued tasks, outside any ancestor
+ * activation, so a failure reports to an enclosing error boundary first. When
+ * nothing handles it, the error keeps reaching the task's host channel.
+ */
+function activateBranchView(view: ISyntheticView, controller: ICustomAttributeController, scope: Scope): void | Promise<void> {
+  return runReported(controller, () => view.activate(view, controller, scope));
 }
 
 function getPromiseController(controller: IHydratableController) {

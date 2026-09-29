@@ -23,6 +23,7 @@ import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';
 import { type CustomExpression, type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 import { activated, activating } from '../templating/controller';
+import { reportTaskError } from '../templating/error-handling';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -98,12 +99,17 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
       this._isQueued = true;
 
       queueTask(() => {
-        this._isQueued = false;
-        // Layout writes are delayed. The controller may start deactivating
-        // before this task runs, so repeat the synchronous activation guard.
-        if (!this.isBound || this._controller.state > activated) return;
+        try {
+          this._isQueued = false;
+          // Layout writes are delayed. The controller may start deactivating
+          // before this task runs, so repeat the synchronous activation guard.
+          if (!this.isBound || this._controller.state > activated) return;
 
-        this._handleChange();
+          this._handleChange();
+        } catch (err) {
+          reportTaskError(this.l, this._controller, err);
+          throw err;
+        }
       });
     } else {
       this._handleChange();

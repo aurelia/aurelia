@@ -1,7 +1,7 @@
 import {
   emptyArray,
   InstanceProvider,
-  type IContainer,
+  IContainer,
   type Constructable,
   type IResolver,
   resolve,
@@ -30,6 +30,7 @@ import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor 
 import { convertToRenderLocation, IRenderLocation, ICssClassMapping, registerHostNode } from './dom';
 import { INode, refs } from './dom.node';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext } from './templating/controller';
+import { notifyErrorHandler } from './templating/error-handling';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
@@ -606,9 +607,12 @@ export interface IListenerBindingOptions {
 export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.singleton(class {
   /** @internal */
   private readonly p = resolve(IPlatform);
+  /** @internal */
+  private readonly c = resolve(IContainer);
   public prevent = false;
 
   public onError = (event: Event, error: unknown) => {
+    notifyErrorHandler(this.c, error, null, 'event', false);
     const errorEvent = new this.p.CustomEvent('au-event-error', { cancelable: true, detail: { event, error } });
     this.p.window.dispatchEvent(errorEvent);
     if (errorEvent.defaultPrevented) {

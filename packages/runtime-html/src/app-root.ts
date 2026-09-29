@@ -3,6 +3,7 @@ import { InstanceProvider, onResolve, onResolveAll, isFunction, isPromise, noop 
 import { IAppTask } from './app-task';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
+import { notifyErrorHandler } from './templating/error-handling';
 import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
@@ -153,18 +154,42 @@ export class AppRoot<
   public activate(): void | Promise<void> {
     return onResolve(this._hydratePromise, () => {
       return onResolve(this._runAppTasks('activating'), () => {
-        return onResolve(this._controller.activate(this._controller, null, void 0), () => {
-          return this._runAppTasks('activated');
-        });
+        const controller = this._controller;
+        const onActivationFailed = (err: unknown): never => {
+          notifyErrorHandler(this.container, err, controller, 'attaching', false);
+          throw err;
+        };
+        let activation: void | Promise<void>;
+        try {
+          activation = controller.activate(controller, null, void 0);
+        } catch (err) {
+          return onActivationFailed(err);
+        }
+        if (isPromise(activation)) {
+          return activation.then(() => this._runAppTasks('activated'), onActivationFailed);
+        }
+        return this._runAppTasks('activated');
       });
     });
   }
 
   public deactivate(): void | Promise<void> {
     return onResolve(this._runAppTasks('deactivating'), () => {
-      return onResolve(this._controller.deactivate(this._controller, null), () => {
-        return this._runAppTasks('deactivated');
-      });
+      const controller = this._controller;
+      const onDeactivationFailed = (err: unknown): never => {
+        notifyErrorHandler(this.container, err, controller, 'detaching', false);
+        throw err;
+      };
+      let deactivation: void | Promise<void>;
+      try {
+        deactivation = controller.deactivate(controller, null);
+      } catch (err) {
+        return onDeactivationFailed(err);
+      }
+      if (isPromise(deactivation)) {
+        return deactivation.then(() => this._runAppTasks('deactivated'), onDeactivationFailed);
+      }
+      return this._runAppTasks('deactivated');
     });
   }
 

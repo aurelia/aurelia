@@ -55,56 +55,37 @@ Template:
 
 ### Lifecycle Hook Error Management
 
-Handle errors in different lifecycle hooks with appropriate recovery strategies:
+The simplest way to contain a lifecycle failure is the built-in `<error-boundary>` element. Wrap the content you don't fully control, and Aurelia tears the failed subtree down and renders your fallback instead of rejecting `Aurelia.start()`:
+
+```html
+<error-boundary>
+  <third-party-widget></third-party-widget>
+
+  <template au-slot="fallback">
+    <p>This widget couldn't load.</p>
+    <button click.trigger="$host.reset()">Try again</button>
+  </template>
+</error-boundary>
+```
+
+`$host` inside the fallback is the boundary, so `$host.error` reads the captured error and `$host.reset()` rebuilds the content with fresh component instances. `reset-key.bind` resets the boundary automatically when a key like a route parameter or selected record changes. See [error boundaries](../components/error-boundaries.md) for the full API, including nesting and `error.from-view`.
+
+For a single place to send caught errors, register `IErrorHandler` on the app container. It receives every error the framework catches, including ones a boundary handled:
 
 ```typescript
-export class RobustComponent {
-  private initializationError: Error | null = null;
-  private bindingError: Error | null = null;
+import { Registration } from '@aurelia/kernel';
+import { IErrorHandler } from 'aurelia';
 
-  created(): void {
-    try {
-      this.initializeComponent();
-    } catch (error) {
-      this.initializationError = error instanceof Error ? error : new Error('Initialization failed');
-      console.error('Component initialization failed:', error);
-    }
-  }
-
-  async binding(): Promise<void> {
-    if (this.initializationError) {
-      // Skip binding if initialization failed
-      return;
-    }
-
-    try {
-      await this.bindData();
-    } catch (error) {
-      this.bindingError = error instanceof Error ? error : new Error('Binding failed');
-      console.error('Data binding failed:', error);
-    }
-  }
-
-  attached(): void {
-    if (this.initializationError || this.bindingError) {
-      // Show error state instead of normal functionality
-      this.showErrorState();
-    }
-  }
-
-  private initializeComponent(): void {
-    // Component initialization logic
-  }
-
-  private async bindData(): Promise<void> {
-    // Data binding logic
-  }
-
-  private showErrorState(): void {
-    // Show error UI
-  }
-}
+Aurelia.register(
+  Registration.instance(IErrorHandler, {
+    handleError(error, info) {
+      errorReporter.send(error, info.phase, info.handled);
+    },
+  }),
+);
 ```
+
+Per-hook try/catch still has a place when a hook can recover on its own: catch the error inside the hook, store it in a property, and let the template react to it. That's the pattern in the promise-based example above. The difference is scope: try/catch inside a hook only sees errors in that component's code, while a boundary sees errors anywhere in its subtree, including components you didn't write.
 
 ## Event Handler Error Handling
 

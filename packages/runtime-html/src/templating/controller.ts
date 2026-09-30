@@ -878,7 +878,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
       case deactivating:
         // Already deactivating, return the existing promise to let caller wait for completion
-        return this.$promise;
+        return this._teardown?.promise ?? this.$promise;
       case none:
       case deactivated:
       case disposed:
@@ -917,7 +917,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    return onResolve(prevActivation, () => {
+    const deactivation = onResolve(prevActivation, () => {
       // The initiator may have been disposed while this deactivation was still
       // pending (e.g. an ancestor's failover already removed the subtree).
       if (initiator !== this && ((initiator as Controller).state & disposed) === disposed) {
@@ -985,10 +985,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       // sibling activation would resolve a recreated one before unbind.
       if (this._detachingStack > 0 || this._unbindingStack > 0) {
         void this.$promise?.catch(noop);
-        return (this._teardown ??= createTeardown()).promise;
+        const teardown = this._teardown;
+        return (teardown?.resolve !== void 0 ? teardown : this._teardown = createTeardown()).promise;
       }
       return this.$promise;
     });
+    // Until the interrupted activation settles, `$promise` is the activation's
+    // own, so a repeated deactivate would settle with it. Follow this call's
+    // outcome instead; its activation errors are ignored the same way.
+    if (initiator === this && isPromise(prevActivation)) {
+      this._teardown = { promise: deactivation as Promise<void> };
+    }
+    return deactivation;
   }
 
   private removeNodes(): void {
@@ -1052,7 +1060,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const teardown = this._teardown;
     if (teardown !== void 0) {
       this._teardown = void 0;
-      teardown.resolve();
+      teardown.resolve?.();
     }
   }
 
@@ -1095,7 +1103,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       _reject = void 0;
     }
     const teardown = this._teardown;
-    if (teardown !== void 0) {
+    if (teardown?.reject !== void 0) {
       this._teardown = void 0;
       teardown.reject(err);
     }
@@ -1428,8 +1436,12 @@ const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
 
 interface ITeardown {
   readonly promise: Promise<void>;
-  resolve(): void;
-  reject(err: unknown): void;
+  /**
+   * Absent while an interrupted activation settles, when `promise` is the
+   * first deactivate call's own result.
+   */
+  readonly resolve?: () => void;
+  readonly reject?: (err: unknown) => void;
 }
 
 function createTeardown(): ITeardown {

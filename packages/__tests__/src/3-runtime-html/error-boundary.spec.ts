@@ -1719,6 +1719,51 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       assert.strictEqual(second, void 0);
     });
 
+    for (const settleFirst of [true, false]) {
+      it(`keeps a repeated deactivate pending until an interrupted activation's teardown finishes (${settleFirst ? 'after' : 'before'} the activation settles)`, async function () {
+        const activation = new Deferred();
+        const detaching = new Deferred();
+        const error = new Error('activation failed');
+        const SlowDetaching = CustomElement.define({ name: 'slow-detaching', template: 'd' }, class {
+          public detaching(): Promise<void> { return detaching.promise; }
+        });
+        const SlowBinding = CustomElement.define({ name: 'slow-binding', template: 's' }, class {
+          public binding(): Promise<void> { return activation.promise; }
+        });
+        const fixture = createFixture(
+          '<slow-detaching></slow-detaching><slow-binding></slow-binding>',
+          class App {},
+          [SlowDetaching, SlowBinding],
+          false,
+        );
+        const start = (fixture.start() as Promise<void>).catch(err => err);
+        for (let i = 0; i < 20; ++i) { await Promise.resolve(); }
+        const controller = fixture.au.root.controller;
+        let firstSettled = false;
+        let secondSettled = false;
+        const first = controller.deactivate(controller, null) as Promise<void>;
+        void first.then(() => { firstSettled = true; });
+        let second: void | Promise<void> = void 0;
+        if (!settleFirst) {
+          second = controller.deactivate(controller, null);
+        }
+        activation.reject(error);
+        assert.strictEqual(await start, error);
+        for (let i = 0; i < 20; ++i) { await Promise.resolve(); }
+        if (settleFirst) {
+          second = controller.deactivate(controller, null);
+        }
+        const secondResult = Promise.resolve(second).then(() => { secondSettled = true; }, err => err as unknown);
+        for (let i = 0; i < 20; ++i) { await Promise.resolve(); }
+        assert.strictEqual(firstSettled, false, 'the first deactivate waits for the pending detaching hook');
+        assert.strictEqual(secondSettled, false, 'the repeated deactivate waits for the same teardown');
+        detaching.resolve();
+        await first;
+        assert.strictEqual(await secondResult, void 0, 'the repeated deactivate resolves, not rejects');
+        assert.strictEqual(secondSettled, true);
+      });
+    }
+
     it('reports a recurring error object again after reset(), with its new origin', async function () {
       // A memoized rejection hands every attempt the same error object.
       const error = new Error('cached failure');

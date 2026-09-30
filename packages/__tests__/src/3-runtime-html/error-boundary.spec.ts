@@ -1556,6 +1556,50 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       }
     });
 
+    it('reports a listener-escaping failure once when another is caught while it unwinds', async function () {
+      const outer = new Error('outer swap failure');
+      const inner = new Error('inner swap failure');
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): void { throw outer; }
+      });
+      const Bang = CustomElement.define({ name: 'bang', template: 'x' }, class Bang {
+        public binding(): void { throw inner; }
+      });
+      const handler = createRecordingHandler();
+      const ctx = TestContext.create();
+      const preventAuEventError = (e: Event) => { e.preventDefault(); };
+      ctx.platform.window.addEventListener('au-event-error', preventAuEventError);
+      try {
+        const fixture = createFixture(
+          `<button click.trigger="go()">go</button><boom if.bind="a"></boom><bang if.bind="b"></bang>`,
+          class App {
+            public a = false;
+            public b = false;
+            public go(): void {
+              try {
+                this.a = true;
+              } finally {
+                try { this.b = true; } catch { /* the inner failure is handled here */ }
+              }
+            }
+          },
+          [Boom, Bang, Registration.instance(IErrorHandler, handler)],
+          true,
+          ctx,
+        );
+        await fixture.started;
+        fixture.appHost.querySelector('button')!.click();
+        await Promise.resolve();
+        assert.deepStrictEqual(handler.calls, [
+          { error: outer, phase: 'binding', controller: 'Boom', handled: false },
+          { error: inner, phase: 'binding', controller: 'Bang', handled: false },
+        ]);
+        await fixture.stop(true);
+      } finally {
+        ctx.platform.window.removeEventListener('au-event-error', preventAuEventError);
+      }
+    });
+
     it('reports each caught template controller failure of the same error object in one turn', async function () {
       const error = new Error('shared swap failure');
       const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {

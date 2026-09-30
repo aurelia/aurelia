@@ -49,17 +49,23 @@ interface IErrorOrigin {
 const errorOrigins = new WeakMap<object, IErrorOrigin>();
 
 /**
- * An unhandled error a template controller has reported and is rethrowing to
- * whatever triggered its swap. The outer seam it reaches on the way out (a
- * queued binding task, an event listener) sees the same failure, so only those
- * seams skip it, once. Other reporters never check the mark: user code may
- * catch the rethrow, and a later throw of the same object in this turn is a
- * separate failure. If no seam consumes it, the mark is dropped on the next
- * microtask.
+ * Unhandled errors template controllers have reported and are rethrowing to
+ * whatever triggered their swap. The outer seam a rethrow reaches on the way
+ * out (a queued binding task, an event listener) sees the same failure, so
+ * only those seams skip it, once. Other reporters never check the marks: user
+ * code may catch a rethrow, and a later throw of the same object in this turn
+ * is a separate failure. A set rather than a single slot, so a rethrow caught
+ * while another is still unwinding cannot displace its mark. Unconsumed marks
+ * are dropped on the next microtask.
+ *
+ * A seam only sees the error object, so it cannot tell a rethrow from a fresh
+ * throw of the same object after user code caught the rethrow in the same
+ * turn; that throw goes unreported. Tracking each propagation would cost every
+ * listener call and task run, to refine error reporting alone.
  *
  * @internal
  */
-let rethrownError: object | null = null;
+const rethrownErrors = new Set<object>();
 
 const isTaggable = (error: unknown): error is object =>
   isObject(error) || isFunction(error);
@@ -123,11 +129,7 @@ export function notifyErrorHandler(
  * @internal
  */
 export function isReportedRethrow(error: unknown): boolean {
-  if (error !== null && error === rethrownError) {
-    rethrownError = null;
-    return true;
-  }
-  return false;
+  return isTaggable(error) && rethrownErrors.delete(error);
 }
 
 interface IErrorCapturing {
@@ -182,11 +184,9 @@ export function reportOrRethrow(controller: IHydratedController, error: unknown)
     return;
   }
   if (isTaggable(error)) {
-    const marked = rethrownError = error;
+    rethrownErrors.add(error);
     void Promise.resolve().then(() => {
-      if (rethrownError === marked) {
-        rethrownError = null;
-      }
+      rethrownErrors.delete(error);
     });
   }
   throw error;

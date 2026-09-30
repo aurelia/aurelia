@@ -1,4 +1,4 @@
-import { Registration } from '@aurelia/kernel';
+import { noop, Registration } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   AppTask,
@@ -953,6 +953,92 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         ]);
         await fixture.stop(true);
       });
+
+      for (const [async, boundary] of [[false, true], [true, true], [false, false], [true, false]]) {
+        const wrap = (content: string): string => boundary
+          ? `<error-boundary>${content}<template au-slot="fallback">FB</template></error-boundary>`
+          : content;
+        const variant = `${async ? 'rejecting' : 'throwing'} detaching is reported, not contained (${boundary ? 'in' : 'without'} a boundary)`;
+        // A failed teardown leaves the retired view part way torn down, with
+        // or without a boundary, so stopping the app can fail too.
+        const stop = (fixture: { stop(dispose: boolean): void | Promise<void> }) =>
+          Promise.resolve().then(() => fixture.stop(true)).catch(noop);
+
+        it(`repeat: a removed row's ${variant}`, async function () {
+          const teardownError = new Error('row teardown');
+          const Row = CustomElement.define({ name: 'bad-row', template: 'r' }, class Row {
+            public detaching(): void | Promise<void> {
+              if (async) { return Promise.reject(teardownError); }
+              throw teardownError;
+            }
+          });
+          const handler = createRecordingHandler();
+          const fixture = createFixture(
+            wrap('<bad-row repeat.for="i of items"></bad-row>'),
+            class App { public items = [1, 2]; },
+            [Row, Registration.instance(IErrorHandler, handler)],
+          );
+          const unhandled = observeUnhandledRejections();
+          try {
+            await fixture.started;
+            assert.html.textContent(fixture.appHost, 'rr');
+            if (async) {
+              fixture.component.items.pop();
+            } else {
+              assert.throws(() => fixture.component.items.pop(), /row teardown/);
+            }
+            await tasksSettled();
+            await waitForUnhandledRejection();
+            // the failed row stays, as without a boundary; no fallback
+            assert.html.textContent(fixture.appHost, 'rr');
+            assert.deepStrictEqual(handler.calls, [
+              { error: teardownError, phase: 'detaching', controller: 'Row', handled: false },
+            ]);
+            // an unhandled teardown failure keeps its host channel
+            assert.strictEqual(unhandled.reasons.length > 0, async);
+            assert.ok(unhandled.reasons.every(r => r === teardownError), 'only the teardown error is unhandled');
+            await stop(fixture);
+          } finally {
+            unhandled.dispose();
+          }
+        });
+
+        it(`au-compose: a retired composition's ${variant}`, async function () {
+          const teardownError = new Error('compose teardown');
+          const OldComp = CustomElement.define({ name: 'old-comp', template: 'old' }, class OldComp {
+            public detaching(): void | Promise<void> {
+              if (async) { return Promise.reject(teardownError); }
+              throw teardownError;
+            }
+          });
+          const NewComp = CustomElement.define({ name: 'new-comp', template: 'new' }, class NewComp { });
+          const handler = createRecordingHandler();
+          const fixture = createFixture(
+            wrap('<au-compose component.bind="comp"></au-compose>'),
+            class App { public comp: unknown = OldComp; },
+            [OldComp, NewComp, Registration.instance(IErrorHandler, handler)],
+          );
+          const unhandled = observeUnhandledRejections();
+          try {
+            await fixture.started;
+            assert.html.textContent(fixture.appHost, 'old');
+            if (async) {
+              fixture.component.comp = NewComp;
+            } else {
+              assert.throws(() => { fixture.component.comp = NewComp; }, /compose teardown/);
+            }
+            await tasksSettled();
+            await waitForUnhandledRejection();
+            assert.notStrictEqual(fixture.appHost.textContent, 'FB', 'no fallback');
+            assert.deepStrictEqual(handler.calls, [
+              { error: teardownError, phase: 'detaching', controller: 'OldComp', handled: false },
+            ]);
+            await stop(fixture);
+          } finally {
+            unhandled.dispose();
+          }
+        });
+      }
 
       it('switch: case change failure is caught', async function () {
         const error = new Error('case boom');

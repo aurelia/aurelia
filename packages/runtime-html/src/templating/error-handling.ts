@@ -214,6 +214,10 @@ export function reportOrRethrow(controller: IHydratedController, error: unknown)
   if (reportError(controller, error, 'attaching')) {
     return;
   }
+  rethrowReported(error);
+}
+
+function rethrowReported(error: unknown): never {
   rethrownErrors.add(error);
   void Promise.resolve().then(() => {
     rethrownErrors.delete(error);
@@ -295,6 +299,10 @@ export function deactivateFailedView(
  * `onHandled` runs synchronously once a boundary has taken over a rejection,
  * before the boundary's queued failover tears the caller down.
  *
+ * Boundaries contain creation and activation failures only, so a failure
+ * raised while this work retires a view (a removed row, a replaced
+ * composition) is reported as unhandled and keeps propagating.
+ *
  * @internal
  */
 export function runReported(
@@ -302,16 +310,26 @@ export function runReported(
   work: () => void | Promise<void>,
   onHandled?: () => void,
 ): void | Promise<void> {
+  const report = (err: unknown): boolean => {
+    const origin = isTaggable(err) ? errorOrigins.get(err)?.find(o => o.path.includes(controller)) : void 0;
+    if (origin?.phase === 'detaching' || origin?.phase === 'unbinding') {
+      notifyErrorHandler(controller.container, err, controller, origin.phase, false);
+      return false;
+    }
+    return reportError(controller, err, 'attaching');
+  };
   let result: void | Promise<void>;
   try {
     result = work();
   } catch (err) {
-    reportOrRethrow(controller, err);
+    if (!report(err)) {
+      rethrowReported(err);
+    }
     return;
   }
   if (isPromise(result)) {
     return result.catch((err: unknown) => {
-      if (!reportError(controller, err, 'attaching')) {
+      if (!report(err)) {
         throw err;
       }
       onHandled?.();

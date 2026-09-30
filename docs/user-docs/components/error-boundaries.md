@@ -1,6 +1,6 @@
 ---
 description: >-
-  Contain component activation failures inside an error-boundary element, render fallback UI, and report every framework error to a central IErrorHandler.
+  Contain component activation failures inside an error-boundary element, render fallback UI, and report caught framework errors to a central IErrorHandler.
 ---
 
 # Error boundaries
@@ -27,7 +27,7 @@ If `<user-profile>` activates normally, the fallback never runs. If anything ins
 
 A boundary that catches an error during startup doesn't hold up the rest of the tree. Siblings activate normally, and `Aurelia.start()` resolves with the fallback in place.
 
-With no `fallback` slot, the boundary renders nothing after a failure. The error is still reported to [`IErrorHandler`](#report-everything-with-ierrorhandler).
+With no `fallback` slot, the boundary renders nothing after a failure. The error is still reported to [`IErrorHandler`](#report-errors-with-ierrorhandler).
 
 ## Reading the error in the fallback
 
@@ -117,9 +117,9 @@ Branch views that `if`, `switch` and `promise` first create after startup are a 
 
 Deactivation is different from activation: `detaching`/`unbinding` errors outside a boundary still reject `au.stop()`. Only the teardown a boundary performs on its own failed content is reported and ignored, so a bad teardown hook can't leave the fallback unmounted.
 
-## Report everything with IErrorHandler
+## Report errors with IErrorHandler
 
-`IErrorHandler` is an app-level hook that receives every error the framework catches, whether or not a boundary handled it. Register it once on the app container:
+`IErrorHandler` is an app-level hook that receives the errors the framework catches, whether or not a boundary handled them: lifecycle hooks and component creation (including the root component during `Aurelia.app()` and `start()`), template controller swaps, queued binding and watcher updates, app tasks, and event listeners. Computed getter errors are the known exception listed above. Register it once on the app container:
 
 ```typescript
 import { Aurelia, IErrorHandler, type ErrorInfo } from 'aurelia';

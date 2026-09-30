@@ -25,8 +25,11 @@ export interface ErrorInfo {
 }
 
 /**
- * An application-level hook that receives every error the framework catches,
- * whether or not an `<error-boundary>` handled it.
+ * An application-level hook that receives the errors the framework catches at
+ * its reporting points, whether or not an `<error-boundary>` handled them:
+ * lifecycle hooks and component creation, template controller swaps, queued
+ * binding and watcher updates, app tasks, and event listeners. Computed getters
+ * re-evaluated in `@aurelia/runtime`'s own queued tasks are not reported yet.
  */
 export interface IErrorHandler {
   handleError(error: unknown, info: ErrorInfo): void;
@@ -37,16 +40,23 @@ export const IErrorHandler = /*@__PURE__*/createInterface<IErrorHandler>('IError
 interface IErrorOrigin {
   controller: IHydratedController;
   phase: ErrorPhase;
+  /**
+   * The controller and its ancestors when the error was tagged. Captured then
+   * because tearing a failed view down clears `parent` before the report.
+   */
+  path: IController[];
 }
 
 /**
- * The controller and phase a thrown object originated from. Only the first tag
- * wins: as a synchronous throw unwinds, the innermost controller tags first and
- * outer layers must not overwrite the true origin.
+ * The controllers and phases a thrown object originated from, one per failure
+ * still on its way to a report. As a throw unwinds, the innermost controller
+ * tags first and outer layers must not add a tag of their own. Separate
+ * failures sharing one object (a memoized rejection, say) each keep their
+ * origin, and a report takes the one raised inside the reporting controller.
  *
  * @internal
  */
-const errorOrigins = new WeakMap<object, IErrorOrigin>();
+const errorOrigins = new WeakMap<object, IErrorOrigin[]>();
 
 /**
  * Unhandled errors template controllers have reported and are rethrowing to
@@ -77,8 +87,22 @@ const isTaggable = (error: unknown): error is object =>
  * @internal
  */
 export function tagError<T>(error: T, controller: IController, phase: ErrorPhase): T {
-  if (isTaggable(error) && !errorOrigins.has(error)) {
-    errorOrigins.set(error, { controller: controller as IHydratedController, phase });
+  if (isTaggable(error)) {
+    const origins = errorOrigins.get(error);
+    // An outer layer of a failure still unwinding adds nothing; anything else
+    // is a separate failure.
+    if (origins === void 0 || !origins.some(o => o.path.includes(controller))) {
+      const path: IController[] = [];
+      for (let c: IController | null = controller; c !== null; c = c.parent) {
+        path.push(c);
+      }
+      const origin: IErrorOrigin = { controller: controller as IHydratedController, phase, path };
+      if (origins === void 0) {
+        errorOrigins.set(error, [origin]);
+      } else {
+        origins.push(origin);
+      }
+    }
   }
   return error;
 }
@@ -101,11 +125,17 @@ export function notifyErrorHandler(
   handled: boolean,
 ): void {
   let origin: IErrorOrigin | undefined;
-  if (isTaggable(error)) {
-    // The tag describes this throw only; a later throw of the same object
-    // must be tagged afresh with its own origin.
-    origin = errorOrigins.get(error);
-    errorOrigins.delete(error);
+  const origins = isTaggable(error) ? errorOrigins.get(error) : void 0;
+  if (origins !== void 0) {
+    // A tag describes one throw only; a later throw of the same object must
+    // be tagged afresh with its own origin.
+    const i = fallbackController === null
+      ? 0
+      : origins.findIndex(o => o.path.includes(fallbackController));
+    origin = origins.splice(i < 0 ? 0 : i, 1)[0];
+    if (origins.length === 0) {
+      errorOrigins.delete(error as object);
+    }
   }
   if (!container.has(IErrorHandler, true)) {
     return;

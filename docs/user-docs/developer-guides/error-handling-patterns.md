@@ -70,7 +70,7 @@ The simplest way to contain a lifecycle failure is the built-in `<error-boundary
 
 `$host` inside the fallback is the boundary, so `$host.error` reads the captured error and `$host.reset()` rebuilds the content with fresh component instances. `reset-key.bind` resets the boundary automatically when a key like a route parameter or selected record changes. See [error boundaries](../components/error-boundaries.md) for the full API, including nesting and `error.from-view`.
 
-For a single place to send caught errors, register `IErrorHandler` on the app container. It receives every error the framework catches, including ones a boundary handled:
+For a single place to send caught errors, register `IErrorHandler` on the app container. It receives the errors the framework catches at lifecycle hooks, template controller swaps, queued binding updates, app tasks and event listeners, including ones a boundary handled. Computed getter errors don't reach it yet; see [what a boundary does not catch](../components/error-boundaries.md#what-a-boundary-does-not-catch).
 
 ```typescript
 import { Registration } from '@aurelia/kernel';

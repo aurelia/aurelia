@@ -99,52 +99,72 @@ export class AppRoot<
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
 
+    // Component construction and hydration failures reject start() (or throw
+    // out of app() when nothing defers them); report them first. App task
+    // failures are reported by _runAppTasks, so the tasks stay outside.
+    const onHydrationFailed = (err: unknown): never => {
+      notifyErrorHandler(container, err, this._controller ?? null, 'attaching', false);
+      throw err;
+    };
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
-      if (!config.allowActionlessForm !== false) {
-        host.addEventListener('submit', (e: Event) => {
-          const target = e.target as HTMLFormElement;
-          const noAction = !target.getAttribute('action');
+      let controller: Controller<K>;
+      try {
+        if (!config.allowActionlessForm !== false) {
+          host.addEventListener('submit', (e: Event) => {
+            const target = e.target as HTMLFormElement;
+            const noAction = !target.getAttribute('action');
 
-          if (target.tagName === 'FORM' && noAction) {
-            e.preventDefault();
-          }
-        }, false);
+            if (target.tagName === 'FORM' && noAction) {
+              e.preventDefault();
+            }
+          }, false);
+        }
+
+        const childCtn = enhance ? container : container.createChild();
+        const component = config.component as Constructable | ICustomElementViewModel;
+        let instance: object;
+        if (isFunction(component)) {
+          instance = childCtn.invoke(component);
+          instanceRegistration(component, instance);
+        } else {
+          instance = config.component as ICustomElementViewModel;
+        }
+
+        const hydrationInst: IControllerElementHydrationInstruction = {
+          hydrate: false,
+          projections: null,
+        };
+        const definition = enhance
+          ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
+          // leave the work of figuring out the definition to the controller
+          // there's proper error messages in case of failure inside the $el() call
+          : void 0;
+        controller = (this._controller = Controller.$el<K>(
+          childCtn,
+          instance as K,
+          host,
+          hydrationInst,
+          definition,
+          /* location  */null,
+          /* ssrScope  */config.ssrScope,
+        )) as Controller<K>;
+
+        controller._hydrateCustomElement(hydrationInst);
+      } catch (err) {
+        return onHydrationFailed(err);
       }
-
-      const childCtn = enhance ? container : container.createChild();
-      const component = config.component as Constructable | ICustomElementViewModel;
-      let instance: object;
-      if (isFunction(component)) {
-        instance = childCtn.invoke(component);
-        instanceRegistration(component, instance);
-      } else {
-        instance = config.component as ICustomElementViewModel;
-      }
-
-      const hydrationInst: IControllerElementHydrationInstruction = {
-        hydrate: false,
-        projections: null,
-      };
-      const definition = enhance
-        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
-        // leave the work of figuring out the definition to the controller
-        // there's proper error messages in case of failure inside the $el() call
-        : void 0;
-      const controller = (this._controller = Controller.$el<K>(
-        childCtn,
-        instance as K,
-        host,
-        hydrationInst,
-        definition,
-        /* location  */null,
-        /* ssrScope  */config.ssrScope,
-      )) as Controller<K>;
-
-      controller._hydrateCustomElement(hydrationInst);
       return onResolve(this._runAppTasks('hydrating'), () => {
-        controller._hydrate();
+        try {
+          controller._hydrate();
+        } catch (err) {
+          return onHydrationFailed(err);
+        }
         return onResolve(this._runAppTasks('hydrated'), () => {
-          controller._hydrateChildren();
+          try {
+            controller._hydrateChildren();
+          } catch (err) {
+            return onHydrationFailed(err);
+          }
           this._hydratePromise = void 0;
         });
       });

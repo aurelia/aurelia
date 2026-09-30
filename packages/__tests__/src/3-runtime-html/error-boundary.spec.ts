@@ -283,6 +283,31 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       ]);
       await fixture.stop(true);
     });
+    for (const deferred of [false, true]) {
+      it(`I: a child that fails while the app hydrates reports and rejects ${deferred ? 'start() after an async app task' : 'start()'}`, async function () {
+        const error = new Error('created boom');
+        const Kid = CustomElement.define({ name: 'kid', template: 'k' }, class Kid {
+          public created(): void { throw error; }
+        });
+        const handler = createRecordingHandler();
+        const fixture = createFixture(
+          '<kid></kid>',
+          class App { },
+          [
+            Kid,
+            Registration.instance(IErrorHandler, handler),
+            ...(deferred ? [AppTask.hydrating(() => Promise.resolve())] : []),
+          ],
+          false,
+        );
+        const caught = await Promise.resolve().then(() => fixture.start()).then(() => null, (e: unknown) => e);
+        assert.strictEqual(caught, error);
+        assert.deepStrictEqual(handler.calls, [
+          { error, phase: 'attaching', controller: 'App', handled: false },
+        ]);
+      });
+    }
+
   });
 
   describe('with a boundary', function () {
@@ -1579,6 +1604,36 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         [[error, 'binding', 'Boom', true], [error, 'binding', 'Boom', true]],
       );
       assert.notStrictEqual(origins[1], origins[0], 'the second report points at the fresh controller');
+      await fixture.stop(true);
+    });
+
+    it('keeps each origin when concurrent failures reject with one error object', async function () {
+      const error = new Error('memoized rejection');
+      const gate = new Deferred();
+      const BoomA = CustomElement.define({ name: 'boom-a', template: 'x' }, class BoomA {
+        public binding(): Promise<void> { return gate.promise; }
+      });
+      const BoomB = CustomElement.define({ name: 'boom-b', template: 'x' }, class BoomB {
+        public binding(): Promise<void> { return gate.promise; }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        `<error-boundary><boom-a></boom-a><template au-slot="fallback">A</template></error-boundary>` +
+        `<error-boundary><boom-b></boom-b><template au-slot="fallback">B</template></error-boundary>`,
+        class App { },
+        [BoomA, BoomB, Registration.instance(IErrorHandler, handler)],
+      );
+      gate.reject(error);
+      await fixture.started;
+      await tasksSettled();
+      assert.html.textContent(fixture.appHost, 'AB');
+      assert.deepStrictEqual(
+        [...handler.calls].sort((a, b) => String(a.controller).localeCompare(String(b.controller))),
+        [
+          { error, phase: 'binding', controller: 'BoomA', handled: true },
+          { error, phase: 'binding', controller: 'BoomB', handled: true },
+        ],
+      );
       await fixture.stop(true);
     });
 

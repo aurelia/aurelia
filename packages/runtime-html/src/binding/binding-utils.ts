@@ -9,6 +9,7 @@ import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
 import { IHydrationContext } from '../templating/controller';
+import { reportTaskError } from '../templating/error-handling';
 import type { ICallerContext } from '../resources/value-converter';
 
 /**
@@ -271,6 +272,18 @@ const flushItem = function (item: IFlushable, _: IFlushable, items: Set<IFlushab
 export const mixingBindingLimited = /*@__PURE__*/ (() => {
   const withLimitationBindings = new WeakSet<IBinding>();
   /**
+   * Rate-limited calls run in their own queued task, outside the binding's
+   * usual reporting seams, so report their failures before the task rethrows.
+   */
+  const reportQueued = (binding: IBinding, callback: () => unknown): void => {
+    try {
+      callback();
+    } catch (err) {
+      reportTaskError(binding.get(IContainer), (binding as { _controller?: unknown })._controller, err);
+      throw err;
+    }
+  };
+  /**
    * A helper for creating rated limited functions for binding. For internal use only
    */
   const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
@@ -279,11 +292,12 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
     let latestValue: unknown;
     let isPending = false;
     const callOriginalCallback = () => callOriginal(latestValue);
+    const callQueued = () => reportQueued(binding, callOriginalCallback);
     const fn = (v: unknown) => {
       latestValue = v;
       if (binding.isBound) {
         task = limiterTask;
-        limiterTask = queueAsyncTask(callOriginalCallback, { delay: opts.delay });
+        limiterTask = queueAsyncTask(callQueued, { delay: opts.delay });
         task?.cancel();
       } else {
         callOriginalCallback();
@@ -330,7 +344,7 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
           // Queue the new one before canceling the old one, to prevent early yield
           limiterTask = queueAsyncTask(() => {
             last = now();
-            callOriginalCallback();
+            reportQueued(binding, callOriginalCallback);
           }, { delay: opts.delay - elapsed });
         }
         task?.cancel();

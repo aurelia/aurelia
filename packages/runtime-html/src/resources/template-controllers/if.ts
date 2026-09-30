@@ -11,7 +11,7 @@ import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
-import { deactivateFailedView, reportError } from '../../templating/error-handling';
+import { deactivateFailedView, reportOrRethrow } from '../../templating/error-handling';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -141,10 +141,11 @@ export class If implements ICustomAttributeViewModel {
           } catch (err) {
             // Post-activation swaps report to an enclosing error boundary before
             // the error escapes through the observer notification call site.
-            if (recoverAfterFailure && reportError(ctrl, err, 'attaching')) {
-              return;
+            if (!recoverAfterFailure) {
+              throw err;
             }
-            throw err;
+            reportOrRethrow(ctrl, err);
+            return;
           }
           if (recoverAfterFailure && isPromise(result)) {
             return result.then(complete, (err) => {
@@ -157,8 +158,10 @@ export class If implements ICustomAttributeViewModel {
               // application start still reports an invalid initial tree. Keep
               // teardown in this chain so a successor cannot overlap the failed view.
               return deactivateFailedView(ctrl, view!, err, () => {
-                this._disposeViewsIfUncached(view);
+                // Settle the swap before disposing, so a throwing dispose()
+                // can't leave the failed swap as the pending one.
                 complete();
+                this._disposeViewsIfUncached(view);
               });
             });
           }

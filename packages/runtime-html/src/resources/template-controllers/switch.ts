@@ -19,7 +19,7 @@ import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
 import { adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
-import { deactivateFailedView, reportError } from '../../templating/error-handling';
+import { deactivateFailedView, reportOrRethrow } from '../../templating/error-handling';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
@@ -381,10 +381,11 @@ export class Case implements ICustomAttributeViewModel {
     try {
       result = view.activate(initiator ?? view, this.$controller, scope);
     } catch (err) {
-      if (initiator === null && reportError(this.$controller, err, 'attaching')) {
-        return;
+      if (initiator !== null) {
+        throw err;
       }
-      throw err;
+      reportOrRethrow(this.$controller, err);
+      return;
     }
     if (initiator === null && isPromise(result)) {
       return result.catch((err) => {

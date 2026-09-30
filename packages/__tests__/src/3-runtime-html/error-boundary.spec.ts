@@ -662,6 +662,41 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         }
       });
 
+      it('if swap: an async rejection still fails over when disposing the uncached view throws', async function () {
+        const gate = new Deferred();
+        const error = new Error('if async');
+        const disposeError = new Error('if dispose');
+        const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+          public attaching(): Promise<void> { return gate.promise; }
+          public dispose(): void { throw disposeError; }
+        });
+        const handler = createRecordingHandler();
+        const fixture = createFixture(
+          `<error-boundary>
+            <boom if="value.bind: show; cache: false"></boom>
+            <template au-slot="fallback">FB</template>
+          </error-boundary><ok-el></ok-el>`,
+          class App { public show = false; },
+          [Boom, OkEl, Registration.instance(IErrorHandler, handler)],
+        );
+        const unhandled = observeUnhandledRejections();
+        try {
+          await fixture.started;
+          fixture.component.show = true;
+          gate.reject(error);
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FBok');
+          assert.html.textContent(fixture.appHost, 'FBok');
+          assert.deepStrictEqual(handler.calls[0], { error, phase: 'attaching', controller: 'Boom', handled: true });
+          assert.includes(handler.calls.map(c => c.error), disposeError);
+          await waitForUnhandledRejection();
+          assert.deepStrictEqual(unhandled.reasons, []);
+          await fixture.stop(true);
+        } finally {
+          unhandled.dispose();
+        }
+      });
+
       it('else branch: failure swapping to else is caught', async function () {
         const error = new Error('else boom');
         const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
@@ -792,6 +827,43 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         await waitForMicrotasks(() => fixture.appHost.textContent === 'FB');
         assert.html.textContent(fixture.appHost, 'FB');
         await fixture.stop(true);
+      });
+
+      it('au-compose: an async component change failure fails over once and disposes the failed composition', async function () {
+        const error = new Error('compose async');
+        let disposed = 0;
+        const OkComp = CustomElement.define({ name: 'ok-comp', template: 'okc' }, class OkComp { });
+        const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+          public binding(): Promise<void> { return Promise.reject(error); }
+          public dispose(): void { ++disposed; }
+        });
+        const handler = createRecordingHandler();
+        const fixture = createFixture(
+          `<error-boundary>
+            <au-compose component.bind="comp"></au-compose>
+            <template au-slot="fallback">FB</template>
+          </error-boundary>`,
+          class App { public comp: unknown = OkComp; },
+          [Boom, OkComp, Registration.instance(IErrorHandler, handler)],
+        );
+        const unhandled = observeUnhandledRejections();
+        try {
+          await fixture.started;
+          fixture.component.comp = Boom;
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FB');
+          assert.html.textContent(fixture.appHost, 'FB');
+          assert.deepStrictEqual(
+            handler.calls.map(c => [c.error, c.handled]),
+            [[error, true]],
+          );
+          assert.strictEqual(disposed, 1);
+          await waitForUnhandledRejection();
+          assert.deepStrictEqual(unhandled.reasons, []);
+          await fixture.stop(true);
+        } finally {
+          unhandled.dispose();
+        }
       });
 
       it('promise: fulfilled view failure is caught', async function () {
@@ -1441,8 +1513,8 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         );
         await fixture.started;
         const button = fixture.appHost.querySelector('button')!;
+        // Both clicks run in the same turn: they are still separate failures.
         button.click();
-        await Promise.resolve();
         button.click();
         await Promise.resolve();
         assert.deepStrictEqual(handler.calls, [
@@ -1452,6 +1524,64 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         await fixture.stop(true);
       } finally {
         ctx.platform.window.removeEventListener('au-event-error', preventAuEventError);
+      }
+    });
+
+    it('reports a template controller failure once when it escapes through a listener', async function () {
+      const error = new Error('swap from click');
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): void { throw error; }
+      });
+      const handler = createRecordingHandler();
+      const ctx = TestContext.create();
+      const preventAuEventError = (e: Event) => { e.preventDefault(); };
+      ctx.platform.window.addEventListener('au-event-error', preventAuEventError);
+      try {
+        const fixture = createFixture(
+          `<button click.trigger="show = true">go</button><boom if.bind="show"></boom>`,
+          class App { public show = false; },
+          [Boom, Registration.instance(IErrorHandler, handler)],
+          true,
+          ctx,
+        );
+        await fixture.started;
+        fixture.appHost.querySelector('button')!.click();
+        await Promise.resolve();
+        assert.deepStrictEqual(handler.calls, [
+          { error, phase: 'binding', controller: 'Boom', handled: false },
+        ]);
+        await fixture.stop(true);
+      } finally {
+        ctx.platform.window.removeEventListener('au-event-error', preventAuEventError);
+      }
+    });
+
+    it('reports errors from rate-limited binding callbacks with phase task', async function () {
+      const error = new Error('debounced boom');
+      const handler = createRecordingHandler();
+      const unhandled = observeUnhandledRejections();
+      const originalConsoleError = console.error;
+      console.error = () => { /* the queue keeps logging the rethrown error */ };
+      try {
+        const fixture = createFixture(
+          `<button click.trigger="go() & debounce:5">go</button>`,
+          class App {
+            public go(): void { throw error; }
+          },
+          [Registration.instance(IErrorHandler, handler)],
+        );
+        await fixture.started;
+        fixture.appHost.querySelector('button')!.click();
+        await new Promise(resolve => setTimeout(resolve, 30));
+        await tasksSettled().catch(() => { /* the task rethrows */ });
+        assert.deepStrictEqual(
+          handler.calls.map(c => [c.error, c.phase, c.handled]),
+          [[error, 'task', false]],
+        );
+        await fixture.stop(true);
+      } finally {
+        console.error = originalConsoleError;
+        unhandled.dispose();
       }
     });
 

@@ -49,18 +49,16 @@ interface IErrorOrigin {
 const errorOrigins = new WeakMap<object, IErrorOrigin>();
 
 /**
- * Unhandled object errors already passed to `IErrorHandler` during the current
- * synchronous turn, so a single failure travelling through several reporting
- * seams (e.g. a template controller rethrowing into a queued task or an event
- * listener) is only delivered once. Those rethrows all happen on the same
- * stack, so the set is dropped on the next microtask: a later throw of the
- * same object (a shared error thrown on every click) is an independent
- * failure and is reported again. A handled error ends its journey at the
- * boundary, so it is never recorded.
+ * An unhandled error a template controller has reported and is rethrowing to
+ * whatever triggered its swap. The next reporting seam it reaches on the way
+ * out (a queued binding task, an event listener) sees the same failure, so it
+ * is skipped once there. The rethrow unwinds synchronously; if nothing reports
+ * it on the way out, the mark is dropped on the next microtask. Separate
+ * throws of the same object are never marked, so each one is reported.
  *
  * @internal
  */
-let notifiedErrors: Set<object> | null = null;
+let rethrownError: object | null = null;
 
 const isTaggable = (error: unknown): error is object =>
   isObject(error) || isFunction(error);
@@ -82,8 +80,8 @@ export function tagError<T>(error: T, controller: IController, phase: ErrorPhase
  * Deliver an error to the registered `IErrorHandler`, if any. The origin is
  * resolved from the tag written while the error unwound, falling back to the
  * reporting site when the error was never tagged (non-object throws, or errors
- * raised outside a controller context). Object errors are delivered once per
- * synchronous turn.
+ * raised outside a controller context). An error a template controller already
+ * reported is skipped when its rethrow reaches the next seam.
  * A throwing handler must not break the framework, so its own error is logged
  * to the console instead.
  *
@@ -98,20 +96,14 @@ export function notifyErrorHandler(
 ): void {
   let origin: IErrorOrigin | undefined;
   if (isTaggable(error)) {
-    if (notifiedErrors?.has(error)) {
-      return;
-    }
-    if (!handled) {
-      if (notifiedErrors === null) {
-        notifiedErrors = new Set();
-        void Promise.resolve().then(() => { notifiedErrors = null; });
-      }
-      notifiedErrors.add(error);
-    }
     // The tag describes this throw only; a later throw of the same object
     // must be tagged afresh with its own origin.
     origin = errorOrigins.get(error);
     errorOrigins.delete(error);
+    if (error === rethrownError) {
+      rethrownError = null;
+      return;
+    }
   }
   if (!container.has(IErrorHandler, true)) {
     return;
@@ -170,6 +162,27 @@ export function reportError(
 }
 
 /**
+ * Report a synchronous post-activation failure and rethrow it to the caller
+ * when no error boundary took it over.
+ *
+ * @internal
+ */
+export function reportOrRethrow(controller: IHydratedController, error: unknown): void {
+  if (reportError(controller, error, 'attaching')) {
+    return;
+  }
+  if (isTaggable(error)) {
+    const marked = rethrownError = error;
+    void Promise.resolve().then(() => {
+      if (rethrownError === marked) {
+        rethrownError = null;
+      }
+    });
+  }
+  throw error;
+}
+
+/**
  * Report an error thrown inside a framework-queued task body before the task
  * rethrows it through the queue's own channel. `controller` is duck-typed so
  * bindings can pass their `IBindingController` without importing `Controller`;
@@ -190,8 +203,8 @@ export function reportTaskError(
 
 /**
  * Tear down a view whose observer-driven activation rejected, then report the
- * activation error. A failing teardown must not swallow that error, so it is
- * reported afterwards, on its own. Nothing awaits these swaps, so unhandled
+ * activation error. A failing teardown or `settled` cleanup must not swallow
+ * that error, so their errors are reported afterwards, on their own. Nothing awaits these swaps, so unhandled
  * errors go to the console instead of becoming unhandled rejections.
  *
  * @internal
@@ -202,11 +215,9 @@ export function deactivateFailedView(
   error: unknown,
   settled?: () => void,
 ): void | Promise<void> {
-  let teardownFailed = false;
-  let teardownError: unknown;
+  const teardownErrors: unknown[] = [];
   const onTeardownError = (err: unknown): void => {
-    teardownFailed = true;
-    teardownError = err;
+    teardownErrors.push(err);
   };
   const report = (err: unknown, phase: ErrorPhase): void => {
     if (!reportError(controller, err, phase)) {
@@ -221,10 +232,14 @@ export function deactivateFailedView(
     onTeardownError(err);
   }
   return onResolve(isPromise(teardown) ? teardown.catch(onTeardownError) : teardown, () => {
-    settled?.();
+    try {
+      settled?.();
+    } catch (err) {
+      onTeardownError(err);
+    }
     report(error, 'attaching');
-    if (teardownFailed) {
-      report(teardownError, 'detaching');
+    for (const err of teardownErrors) {
+      report(err, 'detaching');
     }
   });
 }
@@ -235,20 +250,21 @@ export function deactivateFailedView(
  * throw reports to an enclosing error boundary and is swallowed when handled,
  * otherwise it rethrows; a promise rejection reports first and keeps a derived
  * rejection so unhandled errors keep reaching the caller's host channel.
+ * `onHandled` runs synchronously once a boundary has taken over a rejection,
+ * before the boundary's queued failover tears the caller down.
  *
  * @internal
  */
 export function runReported(
   controller: IHydratedController,
   work: () => void | Promise<void>,
+  onHandled?: () => void,
 ): void | Promise<void> {
   let result: void | Promise<void>;
   try {
     result = work();
   } catch (err) {
-    if (!reportError(controller, err, 'attaching')) {
-      throw err;
-    }
+    reportOrRethrow(controller, err);
     return;
   }
   if (isPromise(result)) {
@@ -256,6 +272,7 @@ export function runReported(
       if (!reportError(controller, err, 'attaching')) {
         throw err;
       }
+      onHandled?.();
     });
   }
 }

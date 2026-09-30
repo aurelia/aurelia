@@ -15,6 +15,7 @@ import {
   IAstEvaluator,
 } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
+import { isReportedRethrow, notifyErrorHandler } from '../templating/error-handling';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -105,6 +106,11 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
       try {
         this.callSource(event);
       } catch (ex) {
+        // Reported here rather than in the default onError, so an app that
+        // replaces onError still reaches IErrorHandler.
+        if (!isReportedRethrow(ex)) {
+          notifyErrorHandler(this.l, ex, null, 'event', false);
+        }
         this._options.onError(event, ex);
       }
     }

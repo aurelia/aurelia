@@ -91,46 +91,26 @@ Per-hook try/catch still has a place when a hook can recover on its own: catch t
 
 ### Safe Event Handlers
 
-Aurelia provides built-in error handling for event handlers. You can configure custom error handling:
+When an event handler throws, the default listener behavior reports the error to `IErrorHandler`, dispatches a cancelable `au-event-error` event on `window`, and rethrows unless that event was cancelled. To change what happens after the report, register your own `IListenerBindingOptions`:
 
 ```typescript
-import { ListenerBindingOptions } from 'aurelia';
+import { Registration } from '@aurelia/kernel';
+import { IListenerBindingOptions } from '@aurelia/runtime-html';
 
-export class EventErrorComponent {
-  private errorCount = 0;
-  private lastError: Error | null = null;
-
-  // Configure error handling for event listeners
-  private eventOptions = new ListenerBindingOptions(
-    false, // prevent
-    false, // capture
-    (event: Event, error: unknown) => {
-      this.handleEventError(event, error);
-    }
-  );
-
-  handleClick(): void {
-    // This might throw an error
-    throw new Error('Button click failed');
-  }
-
-  private handleEventError(event: Event, error: unknown): void {
-    this.errorCount++;
-    this.lastError = error instanceof Error ? error : new Error('Unknown event error');
-    
-    console.error('Event handler error:', error);
-    
-    // Show user-friendly message
-    if (this.errorCount > 3) {
-      this.showCriticalError();
-    }
-  }
-
-  private showCriticalError(): void {
-    // Show critical error UI
-  }
-}
+Aurelia.register(
+  Registration.instance(IListenerBindingOptions, {
+    // true calls preventDefault() on every handled event
+    prevent: false,
+    onError(event: Event, error: unknown) {
+      // Swallow the error instead of rethrowing it. IErrorHandler has
+      // already received it by the time this runs.
+      console.error(`${event.type} handler failed:`, error);
+    },
+  }),
+);
 ```
+
+The options apply to every listener binding in the app. For a single handler that needs its own recovery, catch inside the handler instead.
 
 ### Error-Safe Event Handlers
 

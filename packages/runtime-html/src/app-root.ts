@@ -200,6 +200,11 @@ export class AppRoot<
       ? []
       : container.getAll(IAppTask);
     const results: (void | Promise<void>)[] = [];
+    // App tasks belong to no controller; their failures still reject start()
+    // or stop(), and are reported first like every other caught error.
+    const report = (error: unknown): void => {
+      notifyErrorHandler(container, error, null, 'task', false);
+    };
     try {
       for (let i = 0; i < appTasks.length; ++i) {
         const task = appTasks[i];
@@ -215,9 +220,16 @@ export class AppRoot<
       if (isPromise(pending)) {
         void pending.catch(noop);
       }
+      report(error);
       throw error;
     }
-    return onResolveAll(...results);
+    const result = onResolveAll(...results);
+    return isPromise(result)
+      ? result.catch((error: unknown) => {
+        report(error);
+        throw error;
+      })
+      : result;
   }
 
   /** @internal */

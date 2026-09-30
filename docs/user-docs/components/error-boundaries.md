@@ -107,8 +107,9 @@ A failure inside `<my-widget>` shows the inner fallback and leaves the outer bou
 
 Boundaries only cover view creation and activation. The following report to `IErrorHandler` (with `handled` set to `false`) but keep their normal behavior:
 
-- **Event handlers.** An error in `click.trigger` and friends travels through the listener's `onError` option, which dispatches `au-event-error` on `window` and rethrows unless the event is cancelled. Keep handler bodies safe, or pass a custom `onError` via `ListenerBindingOptions`.
+- **Event handlers.** An error in `click.trigger` and friends travels through the listener's `onError` option, which dispatches `au-event-error` on `window` and rethrows unless the event is cancelled. Keep handler bodies safe, or register your own `IListenerBindingOptions` (from `@aurelia/runtime-html`) to replace that `onError` behavior. The error still reaches `IErrorHandler` first either way.
 - **Binding re-evaluation and queued tasks.** A binding that throws inside its own queued update (a value converter that throws while an interpolation refreshes, for example) is reported to `IErrorHandler` with phase `'task'`, then the queue logs it with `console.error` and the DOM keeps the previous value. Errors from computed getters are one exception right now: they re-evaluate inside the computed observer's own queued task in `@aurelia/runtime`, so they reach `console.error` through the task queue but aren't delivered to `IErrorHandler` yet.
+- **App tasks.** A throwing or rejecting `AppTask` is reported with phase `'task'` and `controller` set to `null`, then still rejects `Aurelia.start()` or `stop()`.
 - **Router navigation.** A component that fails during navigation is handled by the router's own recovery (`restorePreviousRouteTreeOnError`, fallback routes). A boundary inside a routed component still covers that component's subtree.
 - **SSR.** Server-side fallback rendering and hydration of fallbacks aren't covered yet.
 
@@ -149,6 +150,6 @@ interface ErrorInfo {
 }
 ```
 
-`phase` tells you which channel reported the error. Lifecycle hooks report their own phase, queued binding and watcher work reports `'task'`, and event listeners report `'event'`. `handled` is `true` when a boundary caught the error (including teardown errors it absorbed while failing over) and `false` otherwise.
+`phase` tells you which channel reported the error. Lifecycle hooks report their own phase, queued binding and watcher work and app tasks report `'task'`, and event listeners report `'event'`. `handled` is `true` when a boundary caught the error (including teardown errors it absorbed while failing over) and `false` otherwise.
 
 Registering a handler doesn't change the default behavior for errors no boundary caught. Activation failures still reject `Aurelia.start()`, deactivation failures still reject `au.stop()`, task errors still go to `console.error`, and listener errors still dispatch `au-event-error`. A handler that throws doesn't break the framework: the handler's own error is logged with `console.error` and whatever was in progress continues.

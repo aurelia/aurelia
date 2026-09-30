@@ -1,8 +1,10 @@
 import { Registration } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
+  AppTask,
   CustomElement,
   IErrorHandler,
+  IListenerBindingOptions,
   ValueConverter,
   type ErrorInfo,
 } from '@aurelia/runtime-html';
@@ -228,6 +230,58 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       } finally {
         unhandled.dispose();
       }
+    });
+    it('F: a throwing app task reports with phase task and still rejects start()', async function () {
+      const error = new Error('activating task failure');
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        '<ok-el></ok-el>',
+        class App { },
+        [OkEl, Registration.instance(IErrorHandler, handler), AppTask.activating(() => { throw error; })],
+        false,
+      );
+      const caught = await Promise.resolve().then(() => fixture.start()).then(() => null, (e: unknown) => e);
+      assert.strictEqual(caught, error);
+      assert.deepStrictEqual(handler.calls, [
+        { error, phase: 'task', controller: null, handled: false },
+      ]);
+    });
+
+    it('G: a rejecting app task reports with phase task and still rejects stop()', async function () {
+      const error = new Error('deactivating task failure');
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        '<ok-el></ok-el>',
+        class App { },
+        [OkEl, Registration.instance(IErrorHandler, handler), AppTask.deactivating(() => Promise.reject(error))],
+      );
+      await fixture.started;
+      const caught = await Promise.resolve().then(() => fixture.stop(true)).then(() => null, (e: unknown) => e);
+      assert.strictEqual(caught, error);
+      assert.deepStrictEqual(handler.calls, [
+        { error, phase: 'task', controller: null, handled: false },
+      ]);
+    });
+
+    it('H: a listener error still reports when the app replaces onError', async function () {
+      const error = new Error('custom onError');
+      const handler = createRecordingHandler();
+      const seen: unknown[] = [];
+      const fixture = createFixture(
+        `<button click.trigger="go()">go</button>`,
+        class App { public go(): void { throw error; } },
+        [
+          Registration.instance(IErrorHandler, handler),
+          Registration.instance(IListenerBindingOptions, { prevent: false, onError: (_e: Event, err: unknown) => { seen.push(err); } }),
+        ],
+      );
+      await fixture.started;
+      fixture.appHost.querySelector('button')!.click();
+      assert.deepStrictEqual(seen, [error]);
+      assert.deepStrictEqual(handler.calls, [
+        { error, phase: 'event', controller: null, handled: false },
+      ]);
+      await fixture.stop(true);
     });
   });
 
@@ -520,6 +574,86 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       assert.strictEqual(constructed, 2);
       assert.html.textContent(fixture.appHost, 'FB retry');
       assert.strictEqual(handler.calls.length, 2);
+      await fixture.stop(true);
+    });
+
+    it('reset() escalates a fallback that throws while being rebuilt to the outer boundary', async function () {
+      const contentError = new Error('content fails');
+      const fallbackError = new Error('fallback fails on rebuild');
+      let fallbackBuilds = 0;
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): void { throw contentError; }
+      });
+      const Fb = CustomElement.define({ name: 'fb', template: 'FB' }, class Fb {
+        public constructor() {
+          if (++fallbackBuilds > 1) {
+            throw fallbackError;
+          }
+        }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        `<error-boundary>
+          <template au-slot="fallback">OUTER</template>
+          <error-boundary component.ref="inner">
+            <boom></boom>
+            <template au-slot="fallback"><fb></fb></template>
+          </error-boundary>
+        </error-boundary>`,
+        class App { public inner!: { reset(): void | Promise<void> }; },
+        [Boom, Fb, Registration.instance(IErrorHandler, handler)],
+      );
+      await fixture.started;
+      assert.html.textContent(fixture.appHost, 'FB');
+
+      let result: void | Promise<void>;
+      assert.doesNotThrow(() => { result = fixture.component.inner.reset(); });
+      await result;
+      await tasksSettled();
+      await waitForMicrotasks(() => fixture.appHost.textContent === 'OUTER');
+      assert.html.textContent(fixture.appHost, 'OUTER');
+      assert.deepStrictEqual(
+        handler.calls.filter(c => c.error === fallbackError).map(c => c.handled),
+        [true],
+        'the outer boundary handled the fallback failure',
+      );
+      await fixture.stop(true);
+    });
+
+    it('reports a dispose failure of the leftover fallback when a boundary re-attaches', async function () {
+      const error = new Error('boom');
+      const disposeError = new Error('dispose fails');
+      let fail = true;
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): void { if (fail) { throw error; } }
+      });
+      const BadDispose = CustomElement.define({ name: 'bad-dispose', template: 'FB' }, class BadDispose {
+        public dispose(): void { throw disposeError; }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        `<div if.bind="show">
+          <error-boundary>
+            <boom></boom>
+            <template au-slot="fallback"><bad-dispose></bad-dispose></template>
+          </error-boundary>
+        </div>`,
+        class App { public show = true; },
+        [Boom, BadDispose, Registration.instance(IErrorHandler, handler)],
+      );
+      await fixture.started;
+      assert.html.textContent(fixture.appHost, 'FB');
+
+      fixture.component.show = false;
+      await tasksSettled();
+      fail = false;
+      fixture.component.show = true;
+      await tasksSettled();
+      assert.html.textContent(fixture.appHost, 'x');
+      assert.deepStrictEqual(
+        handler.calls.filter(c => c.error === disposeError),
+        [{ error: disposeError, phase: 'detaching', controller: 'ErrorBoundary', handled: true }],
+      );
       await fixture.stop(true);
     });
 

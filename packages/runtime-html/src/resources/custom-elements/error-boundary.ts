@@ -119,8 +119,9 @@ export class ErrorBoundary implements ICustomElementViewModel {
       this._view = void 0;
       try {
         view.dispose();
-      } catch {
-        // A stale view may already be partially torn down; ignore and rebuild.
+      } catch (err) {
+        // A stale view may already be partially torn down; report and rebuild.
+        notifyErrorHandler(this.$controller.container, err, this.$controller, 'detaching', true);
       }
     }
     this._isFallback = false;
@@ -381,18 +382,27 @@ export class ErrorBoundary implements ICustomElementViewModel {
     }
     const version = ++this._version;
     const view = this._view;
-    const transition = onResolve(this._pending, () => onResolve(
-      view === void 0 ? void 0 : this._teardownView(view),
-      () => {
-        if (version !== this._version) {
-          return;
-        }
-        this._captured = false;
-        this.error = null;
-        this._isFallback = false;
-        return this._activate(this._contentFactory);
-      },
-    ));
+    let transition: void | Promise<void>;
+    try {
+      transition = onResolve(this._pending, () => onResolve(
+        view === void 0 ? void 0 : this._teardownView(view),
+        () => {
+          if (version !== this._version) {
+            return;
+          }
+          this._captured = false;
+          this.error = null;
+          this._isFallback = false;
+          return this._activate(this._contentFactory);
+        },
+      ));
+    } catch (err) {
+      // With nothing pending the transition runs synchronously, so a fallback
+      // that throws while being built lands here. It belongs to the next
+      // boundary up, never to the click or reset-key change that reset.
+      this._escalate(err);
+      return;
+    }
     return this._chain(transition);
   }
 

@@ -229,13 +229,22 @@ export class AppRoot<
       for (let i = 0; i < appTasks.length; ++i) {
         const task = appTasks[i];
         if (task.slot === slot) {
-          results.push(task.run());
+          const result = task.run();
+          // Reported per task: the aggregate below only surfaces the first
+          // rejection, and every failed task deserves its own report.
+          results.push(isPromise(result)
+            ? result.catch((error: unknown) => {
+              report(error);
+              throw error;
+            })
+            : result);
         }
       }
     } catch (error) {
       // A synchronous throw ends the phase immediately. Earlier task Promises
-      // remain application-owned, but observing their rejection keeps a later
-      // failure from escaping after the original error has been reported.
+      // remain application-owned and still report their own failures, but
+      // observing their rejection keeps a later failure from escaping after
+      // the original error has been reported.
       const pending = onResolveAll(...results);
       if (isPromise(pending)) {
         void pending.catch(noop);
@@ -243,13 +252,7 @@ export class AppRoot<
       report(error);
       throw error;
     }
-    const result = onResolveAll(...results);
-    return isPromise(result)
-      ? result.catch((error: unknown) => {
-        report(error);
-        throw error;
-      })
-      : result;
+    return onResolveAll(...results);
   }
 
   /** @internal */

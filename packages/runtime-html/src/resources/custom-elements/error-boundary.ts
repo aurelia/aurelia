@@ -263,7 +263,8 @@ export class ErrorBoundary implements ICustomElementViewModel {
                 try {
                   binding.unbind();
                 } catch (err) {
-                  notifyErrorHandler(ctrl.container, err, ctrl, 'unbinding', true);
+                  // Unbind errors carry no tag; the owner is their origin.
+                  notifyErrorHandler(c.container, err, c, 'unbinding', true);
                 }
               }
             }

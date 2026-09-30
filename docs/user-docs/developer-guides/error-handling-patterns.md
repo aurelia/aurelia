@@ -74,7 +74,7 @@ For a single place to send caught errors, register `IErrorHandler` on the app co
 
 ```typescript
 import { Registration } from '@aurelia/kernel';
-import { IErrorHandler } from 'aurelia';
+import { Aurelia, IErrorHandler } from 'aurelia';
 
 Aurelia.register(
   Registration.instance(IErrorHandler, {
@@ -96,6 +96,7 @@ When an event handler throws, the default listener behavior reports the error to
 ```typescript
 import { Registration } from '@aurelia/kernel';
 import { IListenerBindingOptions } from '@aurelia/runtime-html';
+import { Aurelia } from 'aurelia';
 
 Aurelia.register(
   Registration.instance(IListenerBindingOptions, {

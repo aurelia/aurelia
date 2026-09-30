@@ -2,6 +2,7 @@ import { Registration } from '@aurelia/kernel';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   AppTask,
+  BindingBehavior,
   CustomElement,
   IErrorHandler,
   IListenerBindingOptions,
@@ -308,6 +309,36 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       });
     }
 
+    it('J: reports every rejecting app task in a slot, not only the first', async function () {
+      const first = new Error('first task failure');
+      const second = new Error('second task failure');
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        '<ok-el></ok-el>',
+        class App { },
+        [
+          OkEl,
+          Registration.instance(IErrorHandler, handler),
+          AppTask.activating(() => Promise.reject(first)),
+          AppTask.activating(() => Promise.reject(second)),
+        ],
+        false,
+      );
+      const unhandled = observeUnhandledRejections();
+      try {
+        const caught = await Promise.resolve().then(() => fixture.start()).then(() => null, (e: unknown) => e);
+        assert.strictEqual(caught, first);
+        await waitForMicrotasks(() => handler.calls.length === 2);
+        assert.deepStrictEqual(handler.calls, [
+          { error: first, phase: 'task', controller: null, handled: false },
+          { error: second, phase: 'task', controller: null, handled: false },
+        ]);
+        await waitForUnhandledRejection();
+        assert.deepStrictEqual(unhandled.reasons, []);
+      } finally {
+        unhandled.dispose();
+      }
+    });
   });
 
   describe('with a boundary', function () {
@@ -1165,6 +1196,34 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       } finally {
         unhandled.dispose();
       }
+    });
+
+    it('reports a binding that fails to unbind during forced cleanup against its owning controller', async function () {
+      const attachError = new Error('attached fails');
+      const detachError = new Error('detaching fails');
+      const unbindError = new Error('unbind fails');
+      const BadUnbind = BindingBehavior.define('badUnbind', class {
+        public unbind(): void { throw unbindError; }
+      });
+      const Boom = CustomElement.define({ name: 'boom', template: '${label & badUnbind}' }, class Boom {
+        public label = 'x';
+        public attached(): void { throw attachError; }
+        public detaching(): void { throw detachError; }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        `<error-boundary><boom></boom><template au-slot="fallback">FB</template></error-boundary>`,
+        class App { },
+        [Boom, BadUnbind, Registration.instance(IErrorHandler, handler)],
+      );
+      await fixture.started;
+      await tasksSettled();
+      assert.html.textContent(fixture.appHost, 'FB');
+      assert.deepStrictEqual(
+        handler.calls.filter(c => c.error === unbindError),
+        [{ error: unbindError, phase: 'unbinding', controller: 'Boom', handled: true }],
+      );
+      await fixture.stop(true);
     });
 
     it('reports teardown errors during failover as handled and still shows the fallback', async function () {

@@ -65,8 +65,9 @@ const errorOrigins = new WeakMap<object, IErrorOrigin[]>();
  * only those seams skip it, once. Other reporters never check the marks: user
  * code may catch a rethrow, and a later throw of the same object in this turn
  * is a separate failure. A set rather than a single slot, so a rethrow caught
- * while another is still unwinding cannot displace its mark. Unconsumed marks
- * are dropped on the next microtask.
+ * while another is still unwinding cannot displace its mark. Primitives are
+ * marked too, since they reach the same seams. Unconsumed marks are dropped
+ * on the next microtask.
  *
  * A seam only sees the error object, so it cannot tell a rethrow from a fresh
  * throw of the same object after user code caught the rethrow in the same
@@ -75,7 +76,7 @@ const errorOrigins = new WeakMap<object, IErrorOrigin[]>();
  *
  * @internal
  */
-const rethrownErrors = new Set<object>();
+const rethrownErrors = new Set<unknown>();
 
 const isTaggable = (error: unknown): error is object =>
   isObject(error) || isFunction(error);
@@ -159,7 +160,7 @@ export function notifyErrorHandler(
  * @internal
  */
 export function isReportedRethrow(error: unknown): boolean {
-  return isTaggable(error) && rethrownErrors.delete(error);
+  return rethrownErrors.delete(error);
 }
 
 interface IErrorCapturing {
@@ -213,12 +214,10 @@ export function reportOrRethrow(controller: IHydratedController, error: unknown)
   if (reportError(controller, error, 'attaching')) {
     return;
   }
-  if (isTaggable(error)) {
-    rethrownErrors.add(error);
-    void Promise.resolve().then(() => {
-      rethrownErrors.delete(error);
-    });
-  }
+  rethrownErrors.add(error);
+  void Promise.resolve().then(() => {
+    rethrownErrors.delete(error);
+  });
   throw error;
 }
 

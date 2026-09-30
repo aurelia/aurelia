@@ -14,8 +14,10 @@ import {
   astUnbind,
   IAstEvaluator,
 } from '@aurelia/runtime';
-import { IBinding } from './interfaces-bindings';
+import { IBinding, type IBindingController } from './interfaces-bindings';
 import { isReportedRethrow, notifyErrorHandler } from '../templating/error-handling';
+
+import type { IController } from '../templating/controller';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -64,6 +66,14 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   /** @internal */
   private readonly _modifiedEventHandler: IModifiedEventHandler | null = null;
 
+  /**
+   * The controller that rendered this binding: the origin reported for its
+   * errors, including debounced or throttled calls.
+   *
+   * @internal
+   */
+  private readonly _controller: IBindingController | null;
+
   public constructor(
     locator: IServiceLocator,
     public ast: IsBindingBehavior,
@@ -72,10 +82,12 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     options: ListenerBindingOptions,
     modifiedEventHandler: IModifiedEventHandler | null,
     public strict: boolean,
+    controller: IBindingController | null = null,
   ) {
     this.l = locator;
     this._options = options;
     this._modifiedEventHandler = modifiedEventHandler;
+    this._controller = controller;
   }
 
   public callSource(event: Event): void {
@@ -109,7 +121,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
         // Reported here rather than in the default onError, so an app that
         // replaces onError still reaches IErrorHandler.
         if (!isReportedRethrow(ex)) {
-          notifyErrorHandler(this.l, ex, null, 'event', false);
+          notifyErrorHandler(this.l, ex, this._controller as IController | null, 'event', false);
         }
         this._options.onError(event, ex);
       }

@@ -280,7 +280,7 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       fixture.appHost.querySelector('button')!.click();
       assert.deepStrictEqual(seen, [error]);
       assert.deepStrictEqual(handler.calls, [
-        { error, phase: 'event', controller: null, handled: false },
+        { error, phase: 'event', controller: 'App', handled: false },
       ]);
       await fixture.stop(true);
     });
@@ -1766,8 +1766,8 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         button.click();
         await Promise.resolve();
         assert.deepStrictEqual(handler.calls, [
-          { error, phase: 'event', controller: null, handled: false },
-          { error, phase: 'event', controller: null, handled: false },
+          { error, phase: 'event', controller: 'App', handled: false },
+          { error, phase: 'event', controller: 'App', handled: false },
         ]);
         await fixture.stop(true);
       } finally {
@@ -1868,6 +1868,36 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       await fixture.stop(true);
     });
 
+    it('reports a primitive thrown by a listener-driven template controller swap once', async function () {
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        // eslint-disable-next-line no-throw-literal
+        public binding(): void { throw 'primitive boom'; }
+      });
+      const handler = createRecordingHandler();
+      const ctx = TestContext.create();
+      const preventAuEventError = (e: Event) => { e.preventDefault(); };
+      ctx.platform.window.addEventListener('au-event-error', preventAuEventError);
+      try {
+        const fixture = createFixture(
+          `<button click.trigger="show = true">go</button><boom if.bind="show"></boom>`,
+          class App { public show = false; },
+          [Boom, Registration.instance(IErrorHandler, handler)],
+          true,
+          ctx,
+        );
+        await fixture.started;
+        fixture.appHost.querySelector('button')!.click();
+        await Promise.resolve();
+        assert.deepStrictEqual(
+          handler.calls.map(c => [c.error, c.phase, c.handled]),
+          [['primitive boom', 'attaching', false]],
+        );
+        await fixture.stop(true);
+      } finally {
+        ctx.platform.window.removeEventListener('au-event-error', preventAuEventError);
+      }
+    });
+
     it('reports errors from rate-limited binding callbacks with phase task', async function () {
       const error = new Error('debounced boom');
       const handler = createRecordingHandler();
@@ -1887,8 +1917,8 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         await new Promise(resolve => setTimeout(resolve, 30));
         await tasksSettled().catch(() => { /* the task rethrows */ });
         assert.deepStrictEqual(
-          handler.calls.map(c => [c.error, c.phase, c.handled]),
-          [[error, 'task', false]],
+          handler.calls.map(c => [c.error, c.phase, c.controller, c.handled]),
+          [[error, 'task', 'App', false]],
         );
         await fixture.stop(true);
       } finally {

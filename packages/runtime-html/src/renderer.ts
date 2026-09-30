@@ -645,6 +645,7 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
       new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture, this._defaultOptions.onError),
       this._modifierHandler.getHandler(instruction.to, instruction.modifier),
       renderingCtrl.strict ?? false,
+      renderingCtrl,
     ));
   }
 }, null!);

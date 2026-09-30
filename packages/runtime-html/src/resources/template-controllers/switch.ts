@@ -359,26 +359,28 @@ export class Case implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
-    if (view === void 0) {
-      const ssrScope = this.$controller.ssrScope;
-      if (
-        ssrScope != null
-        && isSSRTemplateController(ssrScope)
-        && (ssrScope.type === 'case' || ssrScope.type === 'default-case')
-      ) {
-        const result = adoptSSRView(ssrScope, this._factory, this.$controller, this._location, this._platform);
-        if (result != null) {
-          view = this.view = result.view;
-        }
-        this.$controller.ssrScope = undefined;
-      }
-      if (view === void 0) {
-        view = this.view = this._factory.create(this.$controller).setLocation(this._location);
-      }
-    }
-    if (view.isActive) { return; }
     let result: void | Promise<void>;
     try {
+      if (view === void 0) {
+        const ssrScope = this.$controller.ssrScope;
+        if (
+          ssrScope != null
+          && isSSRTemplateController(ssrScope)
+          && (ssrScope.type === 'case' || ssrScope.type === 'default-case')
+        ) {
+          const adopted = adoptSSRView(ssrScope, this._factory, this.$controller, this._location, this._platform);
+          if (adopted != null) {
+            view = this.view = adopted.view;
+          }
+          this.$controller.ssrScope = undefined;
+        }
+        if (view === void 0) {
+          // Creating the case view constructs its components, so their
+          // constructor and `created` failures are routed like activation's.
+          view = this.view = this._factory.create(this.$controller).setLocation(this._location);
+        }
+      }
+      if (view.isActive) { return; }
       result = view.activate(initiator ?? view, this.$controller, scope);
     } catch (err) {
       if (initiator !== null) {

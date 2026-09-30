@@ -108,28 +108,6 @@ export class If implements ICustomAttributeViewModel {
           if (!isCurrent()) {
             return;
           }
-          // falsy -> truthy
-          if (value) {
-            view = (this.view = this.ifView = this.cache && this.ifView != null
-              ? this.ifView
-              : this._ifFactory.create(ctrl)
-            );
-          } else {
-            // truthy -> falsy
-            view = (this.view = this.elseView = this.cache && this.elseView != null
-              ? this.elseView
-              : this.elseFactory?.create(ctrl)
-            );
-          }
-          // if the value is falsy
-          // and there's no [else], `view` will be null
-          if (view == null) {
-            return;
-          }
-          // todo: location should be based on either the [if]/[else] attribute
-          //       instead of always of the [if]
-          view.setLocation(this._location);
-
           const complete = (): void => {
             if (isCurrent()) {
               this.pending = void 0;
@@ -137,6 +115,29 @@ export class If implements ICustomAttributeViewModel {
           };
           let result: void | Promise<void>;
           try {
+            // Creating the branch view constructs its components, so their
+            // constructor and `created` failures are routed like activation's.
+            // falsy -> truthy
+            if (value) {
+              view = (this.view = this.ifView = this.cache && this.ifView != null
+                ? this.ifView
+                : this._ifFactory.create(ctrl)
+              );
+            } else {
+              // truthy -> falsy
+              view = (this.view = this.elseView = this.cache && this.elseView != null
+                ? this.elseView
+                : this.elseFactory?.create(ctrl)
+              );
+            }
+            // if the value is falsy
+            // and there's no [else], `view` will be null
+            if (view == null) {
+              return;
+            }
+            // todo: location should be based on either the [if]/[else] attribute
+            //       instead of always of the [if]
+            view.setLocation(this._location);
             result = view.activate(view, ctrl, ctrl.scope);
           } catch (err) {
             // Post-activation swaps report to an enclosing error boundary before

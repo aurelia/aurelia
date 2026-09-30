@@ -113,7 +113,7 @@ Boundaries only cover view creation and activation. The following report to `IEr
 - **Router navigation.** A component that fails during navigation is handled by the router's own recovery (`restorePreviousRouteTreeOnError`, fallback routes). A boundary inside a routed component still covers that component's subtree.
 - **SSR.** Server-side fallback rendering and hydration of fallbacks aren't covered yet.
 
-Branch views that `if`, `switch` and `promise` first create after startup are a gap for now: their components are constructed before the swap's error routing starts, so a throwing constructor or `created` hook there escapes to whatever triggered the swap instead of reaching the boundary. Activation failures in those branches are caught, and the boundary's own content is covered from construction onwards.
+Branch views that `if`, `switch` and `promise` create after startup are covered from construction onwards: a throwing constructor or `created` hook in a new branch reaches the boundary and `IErrorHandler` the same way an activation failure does.
 
 Deactivation is different from activation: `detaching`/`unbinding` errors outside a boundary still reject `au.stop()`. Only the teardown a boundary performs on its own failed content is reported and ignored, so a bad teardown hook can't leave the fallback unmounted.
 

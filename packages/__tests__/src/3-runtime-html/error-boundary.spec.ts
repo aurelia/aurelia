@@ -207,6 +207,23 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       }
     });
 
+    it('C2: a throwing constructor in a newly created if branch escapes the assignment but still reports', async function () {
+      const error = new Error('branch constructor');
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public constructor() { throw error; }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        '<boom if.bind="show"></boom><ok-el></ok-el>',
+        class App { public show = false; },
+        [Boom, OkEl, Registration.instance(IErrorHandler, handler)],
+      );
+      await fixture.started;
+      assert.throws(() => { fixture.component.show = true; });
+      assert.deepStrictEqual(handler.calls.map(c => [c.error, c.handled]), [[error, false]]);
+      await fixture.stop(true);
+    });
+
     it('E: a synchronous repeat push failure escapes push() but still reports', async function () {
       const error = new Error('repeat failure');
       let fail = false;
@@ -1078,6 +1095,76 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         assert.html.textContent(fixture.appHost, 'FB');
         await fixture.stop(true);
       });
+
+      for (const hook of ['constructor', 'created'] as const) {
+        const defineBoom = (error: Error) => CustomElement.define(
+          { name: 'boom', template: 'x' },
+          hook === 'constructor'
+            ? class Boom { public constructor() { throw error; } }
+            : class Boom { public created(): void { throw error; } },
+        );
+
+        it(`if swap: a throwing ${hook} in the newly created branch is caught`, async function () {
+          const error = new Error(`if ${hook}`);
+          const handler = createRecordingHandler();
+          const fixture = createFixture(
+            `<error-boundary>
+              <boom if.bind="show"></boom>
+              <template au-slot="fallback">FB</template>
+            </error-boundary><ok-el></ok-el>`,
+            class App { public show = false; },
+            [defineBoom(error), OkEl, Registration.instance(IErrorHandler, handler)],
+          );
+          await fixture.started;
+          assert.doesNotThrow(() => { fixture.component.show = true; });
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FBok');
+          assert.html.textContent(fixture.appHost, 'FBok');
+          assert.deepStrictEqual(handler.calls.map(c => [c.error, c.handled]), [[error, true]]);
+          await fixture.stop(true);
+        });
+
+        it(`switch: a throwing ${hook} in the newly created case is caught`, async function () {
+          const error = new Error(`case ${hook}`);
+          const handler = createRecordingHandler();
+          const fixture = createFixture(
+            `<error-boundary>
+              <div switch.bind="v"><ok-el case="a"></ok-el><boom case="b"></boom></div>
+              <template au-slot="fallback">FB</template>
+            </error-boundary>`,
+            class App { public v = 'a'; },
+            [defineBoom(error), OkEl, Registration.instance(IErrorHandler, handler)],
+          );
+          await fixture.started;
+          fixture.component.v = 'b';
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FB');
+          assert.html.textContent(fixture.appHost, 'FB');
+          assert.deepStrictEqual(handler.calls.map(c => [c.error, c.handled]), [[error, true]]);
+          await fixture.stop(true);
+        });
+
+        it(`promise: a throwing ${hook} in the newly created branch is caught`, async function () {
+          const error = new Error(`then ${hook}`);
+          const gate = new Deferred<string>();
+          const handler = createRecordingHandler();
+          const fixture = createFixture(
+            `<error-boundary>
+              <div promise.bind="p"><template pending>pending</template><boom then></boom></div>
+              <template au-slot="fallback">FB</template>
+            </error-boundary>`,
+            class App { public p = gate.promise; },
+            [defineBoom(error), Registration.instance(IErrorHandler, handler)],
+          );
+          await fixture.started;
+          gate.resolve('v');
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FB');
+          assert.html.textContent(fixture.appHost, 'FB');
+          assert.deepStrictEqual(handler.calls.map(c => [c.error, c.handled]), [[error, true]]);
+          await fixture.stop(true);
+        });
+      }
 
       it('portal: target change callback failure is caught', async function () {
         const error = new Error('portal boom');

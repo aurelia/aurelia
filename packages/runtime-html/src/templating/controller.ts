@@ -980,10 +980,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
       this._leaveDetaching();
       // A self-initiated deactivate that still has pending descendants or hooks
-      // must stay observable so callers can await the full teardown.
+      // must stay observable so callers can await the full teardown. `$promise`
+      // can't be reused: a rejected activation cleared it, and a still-pending
+      // sibling activation would resolve a recreated one before unbind.
       if (this._detachingStack > 0 || this._unbindingStack > 0) {
         void this.$promise?.catch(noop);
-        return this._ensureTeardownPromise();
+        return (this._teardown ??= createTeardown()).promise;
       }
       return this.$promise;
     });
@@ -1035,39 +1037,22 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.state = deactivated;
     this.$initiator = null!;
     this._resolve();
-    this._resolveTeardown();
+    this._settleTeardown();
   }
 
-  /** @internal */
-  private _teardownPromise: Promise<void> | undefined = void 0;
-  /** @internal */
-  private _teardownResolve: (() => void) | undefined = void 0;
-  /** @internal */
-  private _teardownReject: ((err: unknown) => void) | undefined = void 0;
-
   /**
-   * A promise that resolves when a running deactivation completes, for callers
-   * that need to await teardown of a subtree whose activation was interrupted.
+   * Allocated only when a deactivation outlives an interrupted activation.
    *
    * @internal
    */
-  private _ensureTeardownPromise(): Promise<void> {
-    if (this._teardownPromise === void 0) {
-      this._teardownPromise = new Promise<void>((resolve, reject) => {
-        this._teardownResolve = resolve;
-        this._teardownReject = reject;
-      });
-    }
-    return this._teardownPromise;
-  }
+  private _teardown: ITeardown | undefined = void 0;
 
   /** @internal */
-  private _resolveTeardown(): void {
-    const resolve = this._teardownResolve;
-    if (resolve !== void 0) {
-      this._teardownResolve = this._teardownReject = void 0;
-      this._teardownPromise = void 0;
-      resolve();
+  private _settleTeardown(): void {
+    const teardown = this._teardown;
+    if (teardown !== void 0) {
+      this._teardown = void 0;
+      teardown.resolve();
     }
   }
 
@@ -1109,12 +1094,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       _reject(err);
       _reject = void 0;
     }
-    if (this._teardownReject !== void 0) {
-      _reject = this._teardownReject;
-      this._teardownResolve = this._teardownReject = void 0;
-      this._teardownPromise = void 0;
-      _reject(err);
-      _reject = void 0;
+    const teardown = this._teardown;
+    if (teardown !== void 0) {
+      this._teardown = void 0;
+      teardown.reject(err);
     }
     if (this.$initiator !== this) {
       (this.parent as Controller)._reject(err);
@@ -1381,7 +1364,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.nodes = null;
     this.location = null;
-    this._resolveTeardown();
+    // A disposed initiator never reaches unbind(), so settle a pending teardown
+    // here rather than leave its awaiters hanging.
+    this._settleTeardown();
 
     this.viewFactory = null;
     if (this._vm !== null) {
@@ -1440,6 +1425,22 @@ export type MountTarget = typeof MountTarget[keyof typeof MountTarget];
 
 // const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
+
+interface ITeardown {
+  readonly promise: Promise<void>;
+  resolve(): void;
+  reject(err: unknown): void;
+}
+
+function createTeardown(): ITeardown {
+  let resolve!: () => void;
+  let reject!: (err: unknown) => void;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
 
 function createObservers(
   controller: Controller,

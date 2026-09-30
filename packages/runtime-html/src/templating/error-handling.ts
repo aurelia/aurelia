@@ -49,8 +49,12 @@ interface IErrorOrigin {
 const errorOrigins = new WeakMap<object, IErrorOrigin>();
 
 /**
- * Object errors that have already been passed to `IErrorHandler`, so a single
- * failure travelling through several reporting seams is only delivered once.
+ * Unhandled object errors that have already been passed to `IErrorHandler`, so
+ * a single failure travelling through several reporting seams (e.g. a template
+ * controller rethrowing into a queued task) is only delivered once. A handled
+ * error ends its journey at the boundary, so it is not recorded: the same object
+ * thrown again later (a memoized rejection after `reset()`, or one shared by
+ * sibling boundaries) must be reported again, with its new origin.
  *
  * @internal
  */
@@ -89,16 +93,22 @@ export function notifyErrorHandler(
   fallbackPhase: ErrorPhase,
   handled: boolean,
 ): void {
-  if (isTaggable(error)) {
+  const taggable = isTaggable(error);
+  if (taggable) {
     if (notifiedErrors.has(error)) {
       return;
     }
-    notifiedErrors.add(error);
+    if (!handled) {
+      notifiedErrors.add(error);
+    }
+  }
+  const origin = taggable ? errorOrigins.get(error) : void 0;
+  if (taggable && handled) {
+    errorOrigins.delete(error);
   }
   if (!container.has(IErrorHandler, true)) {
     return;
   }
-  const origin = isTaggable(error) ? errorOrigins.get(error) : void 0;
   try {
     container.get(IErrorHandler).handleError(error, {
       phase: origin?.phase ?? fallbackPhase,

@@ -56,9 +56,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   /** @internal */
   private readonly _controller: IBindingController;
 
-  /** @internal */
-  private readonly l: IServiceLocator;
-
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -70,7 +67,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     public strict: boolean,
   ) {
     this._controller = controller;
-    this.l = locator;
     this.oL = observerLocator;
     this._targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = ast.expressions;
@@ -99,7 +95,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 
           this.updateTarget();
         } catch (err) {
-          reportTaskError(this.l, this._controller, err);
+          reportTaskError(this.partBindings[0].l, this._controller, err);
           throw err;
         }
       });

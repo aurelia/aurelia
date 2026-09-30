@@ -1267,5 +1267,67 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       const second = controller.deactivate(controller, null);
       assert.strictEqual(second, void 0);
     });
+
+    it('reports a recurring error object again after reset(), with its new origin', async function () {
+      // A memoized rejection hands every attempt the same error object.
+      const error = new Error('cached failure');
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): Promise<void> { return Promise.reject(error); }
+      });
+      const handler = createRecordingHandler();
+      const origins: unknown[] = [];
+      const fixture = createFixture(
+        `<error-boundary>
+          <boom></boom>
+          <template au-slot="fallback">FB <button click.trigger="$host.reset()">retry</button></template>
+        </error-boundary>`,
+        class App { },
+        [Boom, Registration.instance(IErrorHandler, {
+          handleError(err: unknown, info: ErrorInfo): void {
+            origins.push(info.controller);
+            handler.handleError(err, info);
+          },
+        })],
+      );
+      await fixture.started;
+      fixture.appHost.querySelector('button')!.click();
+      await tasksSettled();
+      await waitForMicrotasks(() => handler.calls.length === 2);
+      assert.html.textContent(fixture.appHost, 'FB retry');
+      assert.deepStrictEqual(
+        handler.calls.map(c => [c.error, c.phase, c.controller, c.handled]),
+        [[error, 'binding', 'Boom', true], [error, 'binding', 'Boom', true]],
+      );
+      assert.notStrictEqual(origins[1], origins[0], 'the second report points at the fresh controller');
+      await fixture.stop(true);
+    });
+
+    it('reports the same error object once per sibling boundary that catches it', async function () {
+      const error = new Error('shared failure');
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): void { throw error; }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        `<error-boundary><boom></boom><template au-slot="fallback">A</template></error-boundary>` +
+        `<error-boundary><boom></boom><template au-slot="fallback">B</template></error-boundary>`,
+        class App { },
+        [Boom, Registration.instance(IErrorHandler, handler)],
+      );
+      await fixture.started;
+      assert.html.textContent(fixture.appHost, 'AB');
+      assert.strictEqual(handler.calls.length, 2);
+      await fixture.stop(true);
+    });
+
+    it('binds content against the declaring scope inside a repeat', async function () {
+      const fixture = createFixture(
+        `<div repeat.for="item of items"><error-boundary>\${item}-\${$index};</error-boundary></div>`,
+        class App { public items = ['a', 'b']; },
+      );
+      await fixture.started;
+      assert.html.textContent(fixture.appHost, 'a-0;b-1;');
+      await fixture.stop(true);
+    });
   });
 });

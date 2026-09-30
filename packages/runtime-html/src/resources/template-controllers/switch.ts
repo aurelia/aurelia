@@ -19,7 +19,7 @@ import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
 import { adoptSSRView, isSSRTemplateController } from '../../templating/ssr';
-import { reportError } from '../../templating/error-handling';
+import { deactivateFailedView, reportError } from '../../templating/error-handling';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom.node';
@@ -391,12 +391,7 @@ export class Case implements ICustomAttributeViewModel {
         // Observer-driven case changes historically remain reusable after an
         // async activation failure. Initial activation keeps its initiator and
         // returns the rejection to application start.
-        return onResolve(view.deactivate(view, this.$controller), () => {
-          if (!reportError(this.$controller, err, 'attaching')) {
-            // eslint-disable-next-line no-console
-            console.error(err);
-          }
-        });
+        return deactivateFailedView(this.$controller, view, err);
       });
     }
     return result;

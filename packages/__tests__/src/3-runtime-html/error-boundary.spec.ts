@@ -625,6 +625,43 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         }
       });
 
+      it('if swap: an async rejection still fails over when the failed view\'s teardown also throws', async function () {
+        const gate = new Deferred();
+        const error = new Error('if async');
+        const teardownError = new Error('if teardown');
+        const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+          public attaching(): Promise<void> { return gate.promise; }
+          public detaching(): void { throw teardownError; }
+        });
+        const handler = createRecordingHandler();
+        const fixture = createFixture(
+          `<error-boundary>
+            <boom if.bind="show"></boom>
+            <template au-slot="fallback">FB</template>
+          </error-boundary><ok-el></ok-el>`,
+          class App { public show = false; },
+          [Boom, OkEl, Registration.instance(IErrorHandler, handler)],
+        );
+        const unhandled = observeUnhandledRejections();
+        try {
+          await fixture.started;
+          fixture.component.show = true;
+          gate.reject(error);
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FBok');
+          assert.html.textContent(fixture.appHost, 'FBok');
+          assert.deepStrictEqual(handler.calls.slice(0, 2), [
+            { error, phase: 'attaching', controller: 'Boom', handled: true },
+            { error: teardownError, phase: 'detaching', controller: 'Boom', handled: true },
+          ]);
+          await waitForUnhandledRejection();
+          assert.deepStrictEqual(unhandled.reasons, []);
+          await fixture.stop(true);
+        } finally {
+          unhandled.dispose();
+        }
+      });
+
       it('else branch: failure swapping to else is caught', async function () {
         const error = new Error('else boom');
         const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
@@ -695,6 +732,43 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
         await waitForMicrotasks(() => fixture.appHost.textContent === 'FB');
         assert.html.textContent(fixture.appHost, 'FB');
         await fixture.stop(true);
+      });
+
+      it('switch: an async case rejection still fails over when the failed view\'s teardown also throws', async function () {
+        const gate = new Deferred();
+        const error = new Error('case async');
+        const teardownError = new Error('case teardown');
+        const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+          public attaching(): Promise<void> { return gate.promise; }
+          public detaching(): void { throw teardownError; }
+        });
+        const handler = createRecordingHandler();
+        const fixture = createFixture(
+          `<error-boundary>
+            <div switch.bind="v"><ok-el case="a"></ok-el><boom case="b"></boom></div>
+            <template au-slot="fallback">FB</template>
+          </error-boundary>`,
+          class App { public v = 'a'; },
+          [Boom, OkEl, Registration.instance(IErrorHandler, handler)],
+        );
+        const unhandled = observeUnhandledRejections();
+        try {
+          await fixture.started;
+          fixture.component.v = 'b';
+          gate.reject(error);
+          await tasksSettled();
+          await waitForMicrotasks(() => fixture.appHost.textContent === 'FB');
+          assert.html.textContent(fixture.appHost, 'FB');
+          assert.deepStrictEqual(handler.calls.slice(0, 2), [
+            { error, phase: 'attaching', controller: 'Boom', handled: true },
+            { error: teardownError, phase: 'detaching', controller: 'Boom', handled: true },
+          ]);
+          await waitForUnhandledRejection();
+          assert.deepStrictEqual(unhandled.reasons, []);
+          await fixture.stop(true);
+        } finally {
+          unhandled.dispose();
+        }
       });
 
       it('au-compose: component change failure is caught', async function () {
@@ -1318,6 +1392,67 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       assert.html.textContent(fixture.appHost, 'AB');
       assert.strictEqual(handler.calls.length, 2);
       await fixture.stop(true);
+    });
+
+    for (const hook of ['constructor', 'created'] as const) {
+      it(`catches a throwing ${hook} while the content view is created`, async function () {
+        const error = new Error(`${hook} boom`);
+        const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+          public constructor() {
+            if (hook === 'constructor') { throw error; }
+          }
+          public created(): void {
+            if (hook === 'created') { throw error; }
+          }
+        });
+        const handler = createRecordingHandler();
+        const fixture = createFixture(
+          `<error-boundary>
+            <boom></boom>
+            <template au-slot="fallback">FB</template>
+          </error-boundary><ok-el></ok-el>`,
+          class App { },
+          [Boom, OkEl, Registration.instance(IErrorHandler, handler)],
+        );
+        await fixture.started;
+        assert.html.textContent(fixture.appHost, 'FBok');
+        assert.strictEqual(handler.calls.length, 1);
+        assert.strictEqual(handler.calls[0].error, error);
+        assert.strictEqual(handler.calls[0].handled, true);
+        await fixture.stop(true);
+      });
+    }
+
+    it('reports the same error object again each time a listener throws it', async function () {
+      const error = new Error('shared listener failure');
+      const handler = createRecordingHandler();
+      const ctx = TestContext.create();
+      const preventAuEventError = (e: Event) => { e.preventDefault(); };
+      ctx.platform.window.addEventListener('au-event-error', preventAuEventError);
+      try {
+        const fixture = createFixture(
+          `<button click.trigger="go()">go</button>`,
+          class App {
+            public go(): void { throw error; }
+          },
+          [Registration.instance(IErrorHandler, handler)],
+          true,
+          ctx,
+        );
+        await fixture.started;
+        const button = fixture.appHost.querySelector('button')!;
+        button.click();
+        await Promise.resolve();
+        button.click();
+        await Promise.resolve();
+        assert.deepStrictEqual(handler.calls, [
+          { error, phase: 'event', controller: null, handled: false },
+          { error, phase: 'event', controller: null, handled: false },
+        ]);
+        await fixture.stop(true);
+      } finally {
+        ctx.platform.window.removeEventListener('au-event-error', preventAuEventError);
+      }
     });
 
     it('binds content against the declaring scope inside a repeat', async function () {

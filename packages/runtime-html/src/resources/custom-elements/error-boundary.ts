@@ -133,8 +133,17 @@ export class ErrorBoundary implements ICustomElementViewModel {
     if (factory === null) {
       return;
     }
-    const ctrl = this.$controller;
-    return this._activateView(factory.create(ctrl).setLocation(this._location));
+    let view: ISyntheticView;
+    try {
+      // Creating the view renders it, which constructs and hydrates the
+      // content's components, so their constructor and `created` failures
+      // surface here, before activation.
+      view = factory.create(this.$controller).setLocation(this._location);
+    } catch (err) {
+      this._view = void 0;
+      return this._fail(void 0, err, this._version, false);
+    }
+    return this._activateView(view);
   }
 
   /** @internal */
@@ -157,13 +166,14 @@ export class ErrorBoundary implements ICustomElementViewModel {
   }
 
   /**
-   * Report the failure, tear down the failed view (reporting and ignoring any
-   * teardown errors) and activate the fallback in its place. A rejection means
-   * the fallback itself failed; callers decide how that escalates.
+   * Report the failure, tear down the failed view if creating it got that far
+   * (reporting and ignoring any teardown errors) and activate the fallback in
+   * its place. A rejection means the fallback itself failed; callers decide
+   * how that escalates.
    *
    * @internal
    */
-  private _fail(view: ISyntheticView, error: unknown, version: number, notified: boolean): void | Promise<void> {
+  private _fail(view: ISyntheticView | undefined, error: unknown, version: number, notified: boolean): void | Promise<void> {
     const ctrl = this.$controller;
     if (!notified) {
       notifyErrorHandler(ctrl.container, error, ctrl, 'attaching', true);
@@ -174,7 +184,7 @@ export class ErrorBoundary implements ICustomElementViewModel {
       // reference so `dispose()` or the next `attaching` can clean it up.
       return;
     }
-    return onResolve(this._teardownView(view), () => {
+    return onResolve(view === void 0 ? void 0 : this._teardownView(view), () => {
       if (this._isStale(version)) {
         return;
       }

@@ -5,7 +5,7 @@ description: >-
 
 # Error boundaries
 
-Wrap part of a template in `<error-boundary>` to contain failures inside that subtree. When a component inside the boundary throws or rejects while its view is being created or activated, the boundary tears the failed content down, renders fallback UI in its place, and lets the rest of the app keep running. Without a boundary, a component that throws during startup rejects `Aurelia.start()`; with one, startup resolves and the fallback is on screen.
+Wrap part of a template in `<error-boundary>` to contain failures inside that subtree. When a component inside the boundary throws while it's being constructed, or throws or rejects while it's being activated, the boundary tears the failed content down, renders fallback UI in its place, and lets the rest of the app keep running. Without a boundary, a component that throws during startup rejects `Aurelia.start()`; with one, startup resolves and the fallback is on screen.
 
 `<error-boundary>` is a built-in resource. It doesn't need to be registered or imported.
 
@@ -23,7 +23,7 @@ The element's own content is the default slot. An optional `au-slot="fallback"` 
 </error-boundary>
 ```
 
-If `<user-profile>` activates normally, the fallback never runs. If anything inside the boundary fails during activation, the boundary removes the failed content and renders the fallback instead. A failure in a synchronous hook (`binding`, `attaching`), an async hook, or a post-activation update driven by a template controller (`if`, `repeat`, `switch`, `au-compose`, `promise`, `portal`) all reach the boundary the same way.
+If `<user-profile>` activates normally, the fallback never runs. If anything inside the boundary fails during activation, the boundary removes the failed content and renders the fallback instead. A throwing constructor or `created` hook, a failure in a synchronous hook (`binding`, `attaching`), an async hook, or a failed activation of a view that a template controller (`if`, `repeat`, `switch`, `au-compose`, `promise`, `portal`) swaps in after startup all reach the boundary the same way.
 
 A boundary that catches an error during startup doesn't hold up the rest of the tree. Siblings activate normally, and `Aurelia.start()` resolves with the fallback in place.
 
@@ -111,6 +111,8 @@ Boundaries only cover view creation and activation. The following report to `IEr
 - **Binding re-evaluation and queued tasks.** A binding that throws inside its own queued update (a value converter that throws while an interpolation refreshes, for example) is reported to `IErrorHandler` with phase `'task'`, then the queue logs it with `console.error` and the DOM keeps the previous value. Errors from computed getters are one exception right now: they re-evaluate inside the computed observer's own queued task in `@aurelia/runtime`, so they reach `console.error` through the task queue but aren't delivered to `IErrorHandler` yet.
 - **Router navigation.** A component that fails during navigation is handled by the router's own recovery (`restorePreviousRouteTreeOnError`, fallback routes). A boundary inside a routed component still covers that component's subtree.
 - **SSR.** Server-side fallback rendering and hydration of fallbacks aren't covered yet.
+
+Branch views that `if`, `switch` and `promise` first create after startup are a gap for now: their components are constructed before the swap's error routing starts, so a throwing constructor or `created` hook there escapes to whatever triggered the swap instead of reaching the boundary. Activation failures in those branches are caught, and the boundary's own content is covered from construction onwards.
 
 Deactivation is different from activation: `detaching`/`unbinding` errors outside a boundary still reject `au.stop()`. Only the teardown a boundary performs on its own failed content is reported and ignored, so a bad teardown hook can't leave the fallback unmounted.
 

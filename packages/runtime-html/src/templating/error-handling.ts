@@ -1,8 +1,8 @@
-import { isFunction, isObject, isPromise } from '@aurelia/kernel';
+import { isFunction, isObject, isPromise, onResolve } from '@aurelia/kernel';
 import { createInterface } from '../utilities-di';
 
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { IController, IHydratedController } from './controller';
+import type { IController, IHydratedController, ISyntheticView } from './controller';
 
 /**
  * The lifecycle phase or channel an error was raised from.
@@ -49,16 +49,18 @@ interface IErrorOrigin {
 const errorOrigins = new WeakMap<object, IErrorOrigin>();
 
 /**
- * Unhandled object errors that have already been passed to `IErrorHandler`, so
- * a single failure travelling through several reporting seams (e.g. a template
- * controller rethrowing into a queued task) is only delivered once. A handled
- * error ends its journey at the boundary, so it is not recorded: the same object
- * thrown again later (a memoized rejection after `reset()`, or one shared by
- * sibling boundaries) must be reported again, with its new origin.
+ * Unhandled object errors already passed to `IErrorHandler` during the current
+ * synchronous turn, so a single failure travelling through several reporting
+ * seams (e.g. a template controller rethrowing into a queued task or an event
+ * listener) is only delivered once. Those rethrows all happen on the same
+ * stack, so the set is dropped on the next microtask: a later throw of the
+ * same object (a shared error thrown on every click) is an independent
+ * failure and is reported again. A handled error ends its journey at the
+ * boundary, so it is never recorded.
  *
  * @internal
  */
-const notifiedErrors = new WeakSet<object>();
+let notifiedErrors: Set<object> | null = null;
 
 const isTaggable = (error: unknown): error is object =>
   isObject(error) || isFunction(error);
@@ -80,7 +82,8 @@ export function tagError<T>(error: T, controller: IController, phase: ErrorPhase
  * Deliver an error to the registered `IErrorHandler`, if any. The origin is
  * resolved from the tag written while the error unwound, falling back to the
  * reporting site when the error was never tagged (non-object throws, or errors
- * raised outside a controller context). Object errors are only delivered once.
+ * raised outside a controller context). Object errors are delivered once per
+ * synchronous turn.
  * A throwing handler must not break the framework, so its own error is logged
  * to the console instead.
  *
@@ -93,17 +96,21 @@ export function notifyErrorHandler(
   fallbackPhase: ErrorPhase,
   handled: boolean,
 ): void {
-  const taggable = isTaggable(error);
-  if (taggable) {
-    if (notifiedErrors.has(error)) {
+  let origin: IErrorOrigin | undefined;
+  if (isTaggable(error)) {
+    if (notifiedErrors?.has(error)) {
       return;
     }
     if (!handled) {
+      if (notifiedErrors === null) {
+        notifiedErrors = new Set();
+        void Promise.resolve().then(() => { notifiedErrors = null; });
+      }
       notifiedErrors.add(error);
     }
-  }
-  const origin = taggable ? errorOrigins.get(error) : void 0;
-  if (taggable && handled) {
+    // The tag describes this throw only; a later throw of the same object
+    // must be tagged afresh with its own origin.
+    origin = errorOrigins.get(error);
     errorOrigins.delete(error);
   }
   if (!container.has(IErrorHandler, true)) {
@@ -179,6 +186,47 @@ export function reportTaskError(
     ? controller as IHydratedController
     : null;
   notifyErrorHandler(hydrated?.container ?? locator, error, hydrated, 'task', false);
+}
+
+/**
+ * Tear down a view whose observer-driven activation rejected, then report the
+ * activation error. A failing teardown must not swallow that error, so it is
+ * reported afterwards, on its own. Nothing awaits these swaps, so unhandled
+ * errors go to the console instead of becoming unhandled rejections.
+ *
+ * @internal
+ */
+export function deactivateFailedView(
+  controller: IHydratedController,
+  view: ISyntheticView,
+  error: unknown,
+  settled?: () => void,
+): void | Promise<void> {
+  let teardownFailed = false;
+  let teardownError: unknown;
+  const onTeardownError = (err: unknown): void => {
+    teardownFailed = true;
+    teardownError = err;
+  };
+  const report = (err: unknown, phase: ErrorPhase): void => {
+    if (!reportError(controller, err, phase)) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+  };
+  let teardown: void | Promise<void> = void 0;
+  try {
+    teardown = view.deactivate(view, controller);
+  } catch (err) {
+    onTeardownError(err);
+  }
+  return onResolve(isPromise(teardown) ? teardown.catch(onTeardownError) : teardown, () => {
+    settled?.();
+    report(error, 'attaching');
+    if (teardownFailed) {
+      report(teardownError, 'detaching');
+    }
+  });
 }
 
 /**

@@ -11,7 +11,7 @@ import type { INode } from '../../dom.node';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isSSRTemplateController, adoptSSRView, type ISSRScope, type ISSRTemplateController } from '../../templating/ssr';
-import { reportError } from '../../templating/error-handling';
+import { deactivateFailedView, reportError } from '../../templating/error-handling';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -152,21 +152,14 @@ export class If implements ICustomAttributeViewModel {
               if (!isCurrent()) {
                 return;
               }
-              return onResolve(
-                // Value-driven swaps historically remain reusable after an async
-                // branch failure. Initial activation uses the rejecting path so
-                // application start still reports an invalid initial tree. Keep
-                // teardown in this chain so a successor cannot overlap the failed view.
-                view!.deactivate(view!, ctrl),
-                () => {
-                  this._disposeViewsIfUncached(view);
-                  complete();
-                  if (!reportError(ctrl, err, 'attaching')) {
-                    // eslint-disable-next-line no-console
-                    console.error(err);
-                  }
-                },
-              );
+              // Value-driven swaps historically remain reusable after an async
+              // branch failure. Initial activation uses the rejecting path so
+              // application start still reports an invalid initial tree. Keep
+              // teardown in this chain so a successor cannot overlap the failed view.
+              return deactivateFailedView(ctrl, view!, err, () => {
+                this._disposeViewsIfUncached(view);
+                complete();
+              });
             });
           }
           return onResolve(result, complete);

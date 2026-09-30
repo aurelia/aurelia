@@ -50,11 +50,12 @@ const errorOrigins = new WeakMap<object, IErrorOrigin>();
 
 /**
  * An unhandled error a template controller has reported and is rethrowing to
- * whatever triggered its swap. The next reporting seam it reaches on the way
- * out (a queued binding task, an event listener) sees the same failure, so it
- * is skipped once there. The rethrow unwinds synchronously; if nothing reports
- * it on the way out, the mark is dropped on the next microtask. Separate
- * throws of the same object are never marked, so each one is reported.
+ * whatever triggered its swap. The outer seam it reaches on the way out (a
+ * queued binding task, an event listener) sees the same failure, so only those
+ * seams skip it, once. Other reporters never check the mark: user code may
+ * catch the rethrow, and a later throw of the same object in this turn is a
+ * separate failure. If no seam consumes it, the mark is dropped on the next
+ * microtask.
  *
  * @internal
  */
@@ -80,8 +81,7 @@ export function tagError<T>(error: T, controller: IController, phase: ErrorPhase
  * Deliver an error to the registered `IErrorHandler`, if any. The origin is
  * resolved from the tag written while the error unwound, falling back to the
  * reporting site when the error was never tagged (non-object throws, or errors
- * raised outside a controller context). An error a template controller already
- * reported is skipped when its rethrow reaches the next seam.
+ * raised outside a controller context).
  * A throwing handler must not break the framework, so its own error is logged
  * to the console instead.
  *
@@ -100,10 +100,6 @@ export function notifyErrorHandler(
     // must be tagged afresh with its own origin.
     origin = errorOrigins.get(error);
     errorOrigins.delete(error);
-    if (error === rethrownError) {
-      rethrownError = null;
-      return;
-    }
   }
   if (!container.has(IErrorHandler, true)) {
     return;
@@ -118,6 +114,20 @@ export function notifyErrorHandler(
     // eslint-disable-next-line no-console
     console.error(handlerError);
   }
+}
+
+/**
+ * Whether an outer seam caught a template controller's already-reported
+ * rethrow. Consumes the mark, so a later throw of the same object is reported.
+ *
+ * @internal
+ */
+export function isReportedRethrow(error: unknown): boolean {
+  if (error !== null && error === rethrownError) {
+    rethrownError = null;
+    return true;
+  }
+  return false;
 }
 
 interface IErrorCapturing {
@@ -184,7 +194,8 @@ export function reportOrRethrow(controller: IHydratedController, error: unknown)
 
 /**
  * Report an error thrown inside a framework-queued task body before the task
- * rethrows it through the queue's own channel. `controller` is duck-typed so
+ * rethrows it through the queue's own channel, unless it is a template
+ * controller's rethrow that was already reported. `controller` is duck-typed so
  * bindings can pass their `IBindingController` without importing `Controller`;
  * anything else falls back to the supplied `locator`.
  *
@@ -198,7 +209,9 @@ export function reportTaskError(
   const hydrated = isObject(controller) && 'vmKind' in controller
     ? controller as IHydratedController
     : null;
-  notifyErrorHandler(hydrated?.container ?? locator, error, hydrated, 'task', false);
+  if (!isReportedRethrow(error)) {
+    notifyErrorHandler(hydrated?.container ?? locator, error, hydrated, 'task', false);
+  }
 }
 
 /**

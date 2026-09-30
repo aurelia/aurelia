@@ -1556,6 +1556,26 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       }
     });
 
+    it('reports each caught template controller failure of the same error object in one turn', async function () {
+      const error = new Error('shared swap failure');
+      const Boom = CustomElement.define({ name: 'boom', template: 'x' }, class Boom {
+        public binding(): void { throw error; }
+      });
+      const handler = createRecordingHandler();
+      const fixture = createFixture(
+        '<boom if.bind="a"></boom><boom if.bind="b"></boom>',
+        class App { public a = false; public b = false; },
+        [Boom, Registration.instance(IErrorHandler, handler)],
+      );
+      assert.throws(() => { fixture.component.a = true; });
+      assert.throws(() => { fixture.component.b = true; });
+      assert.deepStrictEqual(handler.calls, [
+        { error, phase: 'binding', controller: 'Boom', handled: false },
+        { error, phase: 'binding', controller: 'Boom', handled: false },
+      ]);
+      await fixture.stop(true);
+    });
+
     it('reports errors from rate-limited binding callbacks with phase task', async function () {
       const error = new Error('debounced boom');
       const handler = createRecordingHandler();

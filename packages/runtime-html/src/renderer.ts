@@ -30,7 +30,7 @@ import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor 
 import { convertToRenderLocation, IRenderLocation, ICssClassMapping, registerHostNode } from './dom';
 import { INode, refs } from './dom.node';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext } from './templating/controller';
-import { notifyErrorHandler } from './templating/error-handling';
+import { isReportedRethrow, notifyErrorHandler } from './templating/error-handling';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
@@ -612,7 +612,9 @@ export const IListenerBindingOptions = createInterface<IListenerBindingOptions>(
   public prevent = false;
 
   public onError = (event: Event, error: unknown) => {
-    notifyErrorHandler(this.c, error, null, 'event', false);
+    if (!isReportedRethrow(error)) {
+      notifyErrorHandler(this.c, error, null, 'event', false);
+    }
     const errorEvent = new this.p.CustomEvent('au-event-error', { cancelable: true, detail: { event, error } });
     this.p.window.dispatchEvent(errorEvent);
     if (errorEvent.defaultPrevented) {

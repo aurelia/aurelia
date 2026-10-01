@@ -72,7 +72,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
    *
    * @internal
    */
-  private readonly _controller: IBindingController | null;
+  public readonly _controller: IBindingController | null;
 
   public constructor(
     locator: IServiceLocator,

@@ -54,7 +54,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   public constructor(
     controller: IBindingController,
@@ -212,6 +212,11 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   ) {
     this.l = locator;
     this.oL = observerLocator;
+  }
+
+  /** @internal */
+  public get _controller(): IBindingController {
+    return this.owner._controller;
   }
 
   public updateTarget() {

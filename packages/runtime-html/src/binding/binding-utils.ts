@@ -279,7 +279,7 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
     try {
       callback();
     } catch (err) {
-      reportTaskError(binding.get(IContainer), (binding as { _controller?: unknown })._controller, err);
+      reportTaskError(binding.get(IContainer), binding._controller, err);
       throw err;
     }
   };

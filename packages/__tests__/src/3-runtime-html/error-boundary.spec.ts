@@ -2193,6 +2193,51 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       }
     });
 
+    for (const [kind, template] of [
+      ['interpolation', `<rl-target val="\${key | boom & debounce:5}"></rl-target>`],
+      ['ref', `<div ref="holder[key] & debounce:5"></div>`],
+    ] as const) {
+      it(`reports the owning controller for a rate-limited ${kind} binding failure`, async function () {
+        const error = new Error(`rate-limited ${kind} boom`);
+        const handler = createRecordingHandler();
+        const unhandled = observeUnhandledRejections();
+        const originalConsoleError = console.error;
+        console.error = () => { /* the queue keeps logging the rethrown error */ };
+        try {
+          const RlTarget = CustomElement.define({ name: 'rl-target', template: '', bindables: ['val'] }, class RlTarget {});
+          const BoomConverter = ValueConverter.define('boom', class {
+            public toView(v: string): string {
+              if (v === 'bad') { throw error; }
+              return v;
+            }
+          });
+          const fixture = createFixture(
+            template,
+            class App {
+              public key = 'ok';
+              public holder = {
+                ok: null as unknown,
+                set bad(_: unknown) { throw error; },
+              };
+            },
+            [RlTarget, BoomConverter, Registration.instance(IErrorHandler, handler)],
+          );
+          await fixture.started;
+          fixture.component.key = 'bad';
+          await new Promise(resolve => setTimeout(resolve, 30));
+          await tasksSettled().catch(() => { /* the task rethrows */ });
+          assert.deepStrictEqual(
+            handler.calls.map(c => [c.error, c.phase, c.controller, c.handled]),
+            [[error, 'task', 'App', false]],
+          );
+          await fixture.stop(true);
+        } finally {
+          console.error = originalConsoleError;
+          unhandled.dispose();
+        }
+      });
+    }
+
     it('binds content against the declaring scope inside a repeat', async function () {
       const fixture = createFixture(
         `<div repeat.for="item of items"><error-boundary>\${item}-\${$index};</error-boundary></div>`,

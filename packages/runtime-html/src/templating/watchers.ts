@@ -70,7 +70,7 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     cb: IWatcherCallback<object>,
     flush: 'async' | 'sync' = 'async',
     /** @internal */
-    private readonly _controller?: IController,
+    public readonly _controller?: IController,
   ) {
     this._callback = cb;
     this.oL = observerLocator;
@@ -196,7 +196,7 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
     callback: IWatcherCallback<object>,
     flush: 'async' | 'sync' = 'async',
     /** @internal */
-    private readonly _controller?: IController,
+    public readonly _controller?: IController,
   ) {
     this.obj = scope.bindingContext;
     this._expression = expression;

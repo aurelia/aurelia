@@ -61,7 +61,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   public l: IServiceLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   // see Listener binding for explanation
   /** @internal */

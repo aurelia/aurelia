@@ -468,6 +468,7 @@ export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRendere
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getRefTarget(target, instruction.to),
       renderingCtrl.strict ?? false,
+      renderingCtrl,
     ));
   }
 }, null!);

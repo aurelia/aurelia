@@ -59,7 +59,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   /** @internal */
   public readonly l: IServiceLocator;

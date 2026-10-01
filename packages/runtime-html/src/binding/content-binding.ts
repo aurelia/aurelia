@@ -63,7 +63,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   private _value: unknown = '';
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
   /** @internal */
   private _needsRemoveNode: boolean = false;
   // see Listener binding for explanation

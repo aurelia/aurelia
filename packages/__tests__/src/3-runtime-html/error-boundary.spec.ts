@@ -281,6 +281,54 @@ describe('3-runtime-html/error-boundary.spec.ts', function () {
       ]);
     });
 
+    it('an app task report leaves a pending lifecycle failure of the same error its origin', async function () {
+      // A failed `if` branch is reported once its teardown finishes. Another
+      // app's task throws the same error while that teardown is pending; its
+      // report must not take the branch's origin.
+      const error = new Error('shared failure');
+      const detachGate = new Deferred();
+      const handler = createRecordingHandler();
+      const SharedFail = CustomElement.define({ name: 'shared-fail', template: 'x' }, class SharedFail {
+        public attaching(): Promise<void> { return Promise.reject(error); }
+      });
+      const SlowDetach = CustomElement.define({ name: 'slow-detach', template: 'y' }, class SlowDetach {
+        public detaching(): Promise<void> { return detachGate.promise; }
+      });
+      const originalConsoleError = console.error;
+      console.error = () => { /* the unhandled branch failure is logged */ };
+      try {
+        const branchApp = createFixture(
+          `<div if.bind="show"><slow-detach></slow-detach><shared-fail></shared-fail></div>`,
+          class App { public show = false; },
+          [SharedFail, SlowDetach, Registration.instance(IErrorHandler, handler)],
+        );
+        await branchApp.started;
+        branchApp.component.show = true;
+        await new Promise(resolve => setTimeout(resolve, 0));
+        assert.deepStrictEqual(handler.calls, [], 'the branch report waits for its teardown');
+
+        const taskApp = createFixture(
+          '',
+          class App { },
+          [Registration.instance(IErrorHandler, handler), AppTask.activating(() => { throw error; })],
+          false,
+        );
+        const caught = await Promise.resolve().then(() => taskApp.start()).then(() => null, (e: unknown) => e);
+        assert.strictEqual(caught, error);
+
+        detachGate.resolve();
+        await tasksSettled();
+        await new Promise(resolve => setTimeout(resolve, 0));
+        assert.deepStrictEqual(
+          handler.calls.map(c => [c.phase, c.controller, c.handled]),
+          [['task', null, false], ['attaching', 'SharedFail', false]],
+        );
+        await branchApp.stop(true);
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
     it('H: a listener error still reports when the app replaces onError', async function () {
       const error = new Error('custom onError');
       const handler = createRecordingHandler();

@@ -126,16 +126,18 @@ export function notifyErrorHandler(
   handled: boolean,
 ): void {
   let origin: IErrorOrigin | undefined;
-  const origins = isTaggable(error) ? errorOrigins.get(error) : void 0;
+  const origins = fallbackController !== null && isTaggable(error) ? errorOrigins.get(error) : void 0;
   if (origins !== void 0) {
-    // A tag describes one throw only; a later throw of the same object must
-    // be tagged afresh with its own origin.
-    const i = fallbackController === null
-      ? 0
-      : origins.findIndex(o => o.path.includes(fallbackController));
-    origin = origins.splice(i < 0 ? 0 : i, 1)[0];
-    if (origins.length === 0) {
-      errorOrigins.delete(error as object);
+    // An origin raised outside the reporting controller belongs to a separate
+    // failure still on its way to its own report, so it is left in place.
+    const i = origins.findIndex(o => o.path.includes(fallbackController!));
+    if (i >= 0) {
+      // A tag describes one throw only; a later throw of the same object must
+      // be tagged afresh with its own origin.
+      origin = origins.splice(i, 1)[0];
+      if (origins.length === 0) {
+        errorOrigins.delete(error as object);
+      }
     }
   }
   if (!container.has(IErrorHandler, true)) {

@@ -1,9 +1,9 @@
-import { onResolve, resolve, isPromise, isString } from '@aurelia/kernel';
+import { onResolve, resolve, isString } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { rethrow } from '../../utilities';
+import { runReported } from '../../templating/error-handling';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';
@@ -100,14 +100,13 @@ export class Portal implements ICustomAttributeViewModel {
     this._resolvedTarget = newTarget;
 
     // TODO(fkleuver): fix and test possible race condition
-    const ret = onResolve(
+    void runReported($controller, () => onResolve(
       this._deactivating(null, newTarget),
       () => {
         this._moveLocation(newTarget, this.position);
         return this._activating(null, newTarget);
       },
-    );
-    if (isPromise(ret)) { ret.catch(rethrow); }
+    ));
   }
 
   public positionChanged(): void {
@@ -116,14 +115,13 @@ export class Portal implements ICustomAttributeViewModel {
       return;
     }
     // TODO(fkleuver): fix and test possible race condition
-    const ret = onResolve(
+    void runReported($controller, () => onResolve(
       this._deactivating(null, _resolvedTarget),
       () => {
         this._moveLocation(_resolvedTarget, this.position);
         return this._activating(null, _resolvedTarget);
       },
-    );
-    if (isPromise(ret)) { ret.catch(rethrow); }
+    ));
   }
 
   /** @internal */

@@ -566,6 +566,11 @@ export {
   IAuSlotWatcher,
   slotted,
 
+  ErrorBoundary,
+  IErrorHandler,
+  type ErrorInfo,
+  type ErrorPhase,
+
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,

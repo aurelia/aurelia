@@ -46,6 +46,7 @@ import type {
 import type { INodeSequence, IRenderLocation } from '../dom';
 import type { INode } from '../dom.node';
 import { ErrorNames, createMappedError } from '../errors';
+import { reportTaskError, tagError } from './error-handling';
 import type { ISSRScope, ISSRScopeChild, ISSRTemplateController } from './ssr';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
@@ -671,18 +672,22 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._enterActivating();
 
     let ret: void | Promise<void> = void 0;
-    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.binding != null) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
+    try {
+      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.binding != null) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.binding()`); }
 
-      ret = onResolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
-    }
+        ret = onResolveAll(...this._lifecycleHooks!.binding!.map(callBindingHook, this));
+      }
 
-    if (this._vmHooks._binding) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
+      if (this._vmHooks._binding) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`binding()`); }
 
-      ret = onResolveAll(ret, this._vm!.binding(this.$initiator, this.parent));
+        ret = onResolveAll(ret, this._vm!.binding(this.$initiator, this.parent));
+      }
+    } catch (err) {
+      throw tagError(err, this as IHydratedController, 'binding');
     }
 
     if (isPromise(ret)) {
@@ -696,7 +701,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           this.bind();
         }
       }).catch((err: Error) => {
-        this._reject(err);
+        this._reject(tagError(err, this as IHydratedController, 'binding'));
       });
       return this.$promise;
     }
@@ -717,24 +722,32 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (this.bindings !== null) {
       i = 0;
       ii = this.bindings.length;
-      while (ii > i) {
-        this.bindings[i].bind(this.scope!);
-        ++i;
+      try {
+        while (ii > i) {
+          this.bindings[i].bind(this.scope!);
+          ++i;
+        }
+      } catch (err) {
+        throw tagError(err, this as IHydratedController, 'binding');
       }
     }
 
-    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
+    try {
+      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.bound != null) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.bound()`); }
 
-      ret = onResolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
-    }
+        ret = onResolveAll(...this._lifecycleHooks!.bound.map(callBoundHook, this));
+      }
 
-    if (this._vmHooks._bound) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
+      if (this._vmHooks._bound) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`bound()`); }
 
-      ret = onResolveAll(ret, this._vm!.bound(this.$initiator, this.parent));
+        ret = onResolveAll(ret, this._vm!.bound(this.$initiator, this.parent));
+      }
+    } catch (err) {
+      throw tagError(err, this as IHydratedController, 'bound');
     }
 
     if (isPromise(ret)) {
@@ -748,7 +761,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
           this._attach();
         }
       }).catch((err: Error) => {
-        this._reject(err);
+        this._reject(tagError(err, this as IHydratedController, 'bound'));
       });
       return;
     }
@@ -802,18 +815,22 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let i = 0;
     let ret: Promise<void> | void = void 0;
 
-    if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
+    try {
+      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attaching != null) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.attaching()`); }
 
-      ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
-    }
+        ret = onResolveAll(...this._lifecycleHooks!.attaching!.map(callAttachingHook, this));
+      }
 
-    if (this._vmHooks._attaching) {
-      /* istanbul ignore next */
-      if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
+      if (this._vmHooks._attaching) {
+        /* istanbul ignore next */
+        if (__DEV__ && this.debug) { this.logger!.trace(`attaching()`); }
 
-      ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
+        ret = onResolveAll(ret, this._vm!.attaching(this.$initiator, this.parent));
+      }
+    } catch (err) {
+      throw tagError(err, this as IHydratedController, 'attaching');
     }
 
     if (isPromise(ret)) {
@@ -822,7 +839,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       ret.then(() => {
         this._leaveActivating();
       }).catch((err: Error) => {
-        this._reject(err);
+        this._reject(tagError(err, this as IHydratedController, 'attaching'));
       });
     }
 
@@ -861,7 +878,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         break;
       case deactivating:
         // Already deactivating, return the existing promise to let caller wait for completion
-        return this.$promise;
+        return this._teardown?.promise ?? this.$promise;
       case none:
       case deactivated:
       case disposed:
@@ -900,18 +917,30 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
     }
 
-    return onResolve(prevActivation, () => {
-      if (this.isBound) {
-        if (this.vmKind !== vmkSynth && this._lifecycleHooks!.detaching != null) {
-          if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
-
-          ret = onResolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+    const deactivation = onResolve(prevActivation, () => {
+      // The initiator may have been disposed while this deactivation was still
+      // pending (e.g. an ancestor's failover already removed the subtree).
+      if (initiator !== this && ((initiator as Controller).state & disposed) === disposed) {
+        if (asyncPrevActivation) {
+          (initiator as Controller)._leaveDetaching();
         }
+        return;
+      }
+      if (this.isBound) {
+        try {
+          if (this.vmKind !== vmkSynth && this._lifecycleHooks!.detaching != null) {
+            if (__DEV__ && this.debug) { this.logger!.trace(`lifecycleHooks.detaching()`); }
 
-        if (this._vmHooks._detaching) {
-          if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
+            ret = onResolveAll(...this._lifecycleHooks!.detaching.map(callDetachingHook, this));
+          }
 
-          ret = onResolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+          if (this._vmHooks._detaching) {
+            if (__DEV__ && this.debug) { this.logger!.trace(`detaching()`); }
+
+            ret = onResolveAll(ret, this._vm!.detaching(this.$initiator, this.parent));
+          }
+        } catch (err) {
+          throw tagError(err, this as IHydratedController, 'detaching');
         }
       }
 
@@ -921,7 +950,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         ret.then(() => {
           (initiator as Controller)._leaveDetaching();
         }).catch((err: Error) => {
-          (initiator as Controller)._reject(err);
+          (initiator as Controller)._reject(tagError(err, this as IHydratedController, 'detaching'));
         });
       }
 
@@ -950,8 +979,24 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       }
 
       this._leaveDetaching();
+      // A self-initiated deactivate that still has pending descendants or hooks
+      // must stay observable so callers can await the full teardown. `$promise`
+      // can't be reused: a rejected activation cleared it, and a still-pending
+      // sibling activation would resolve a recreated one before unbind.
+      if (this._detachingStack > 0 || this._unbindingStack > 0) {
+        void this.$promise?.catch(noop);
+        const teardown = this._teardown;
+        return (teardown?.resolve !== void 0 ? teardown : this._teardown = createTeardown()).promise;
+      }
       return this.$promise;
     });
+    // Until the interrupted activation settles, `$promise` is the activation's
+    // own, so a repeated deactivate would settle with it. Follow this call's
+    // outcome instead; its activation errors are ignored the same way.
+    if (initiator === this && isPromise(prevActivation)) {
+      this._teardown = { promise: deactivation as Promise<void> };
+    }
+    return deactivation;
   }
 
   private removeNodes(): void {
@@ -1000,6 +1045,23 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this.state = deactivated;
     this.$initiator = null!;
     this._resolve();
+    this._settleTeardown();
+  }
+
+  /**
+   * Allocated only when a deactivation outlives an interrupted activation.
+   *
+   * @internal
+   */
+  private _teardown: ITeardown | undefined = void 0;
+
+  /** @internal */
+  private _settleTeardown(): void {
+    const teardown = this._teardown;
+    if (teardown !== void 0) {
+      this._teardown = void 0;
+      teardown.resolve?.();
+    }
   }
 
   private $resolve: (() => void) | undefined = void 0;
@@ -1040,6 +1102,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       _reject(err);
       _reject = void 0;
     }
+    const teardown = this._teardown;
+    if (teardown?.reject !== void 0) {
+      this._teardown = void 0;
+      teardown.reject(err);
+    }
     if (this.$initiator !== this) {
       (this.parent as Controller)._reject(err);
     }
@@ -1066,15 +1133,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return;
     }
     if (--this._activatingStack === 0) {
-      if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
-        _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
-      }
+      try {
+        if (this.vmKind !== vmkSynth && this._lifecycleHooks!.attached != null) {
+          _retPromise = onResolveAll(...this._lifecycleHooks!.attached.map(callAttachedHook, this));
+        }
 
-      if (this._vmHooks._attached) {
-        /* istanbul ignore next */
-        if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
+        if (this._vmHooks._attached) {
+          /* istanbul ignore next */
+          if (__DEV__ && this.debug) { this.logger!.trace(`attached()`); }
 
-        _retPromise = onResolveAll(_retPromise, this._vm!.attached!(this.$initiator));
+          _retPromise = onResolveAll(_retPromise, this._vm!.attached!(this.$initiator));
+        }
+      } catch (err) {
+        throw tagError(err, this as IHydratedController, 'attached');
       }
 
       if (isPromise(_retPromise)) {
@@ -1087,7 +1158,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
             (this.parent as Controller)._leaveActivating();
           }
         }).catch((err: Error) => {
-          this._reject(err);
+          this._reject(tagError(err, this as IHydratedController, 'attached'));
         });
         _retPromise = void 0;
         return;
@@ -1112,6 +1183,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _leaveDetaching(): void {
     if (--this._detachingStack === 0) {
+      // A disposed initiator has nothing left to tear down; late settle of a
+      // pending descendant deactivation may arrive after dispose() ran.
+      if ((this.state & disposed) === disposed) {
+        return;
+      }
       // Note: this controller is the initiator (detach is only ever called on the initiator)
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`detach()`); }
@@ -1131,24 +1207,29 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         }
 
         if (cur._isBindingDone) {
-          if (cur.vmKind !== vmkSynth && cur._lifecycleHooks!.unbinding != null) {
-            ret = onResolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
-          }
+          try {
+            if (cur.vmKind !== vmkSynth && cur._lifecycleHooks!.unbinding != null) {
+              ret = onResolveAll(...cur._lifecycleHooks!.unbinding.map(callUnbindingHook, cur));
+            }
 
-          if (cur._vmHooks._unbinding) {
-            if (cur.debug) { cur.logger!.trace('unbinding()'); }
+            if (cur._vmHooks._unbinding) {
+              if (cur.debug) { cur.logger!.trace('unbinding()'); }
 
-            ret = onResolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
+              ret = onResolveAll(ret, cur.viewModel!.unbinding(cur.$initiator, cur.parent));
+            }
+          } catch (err) {
+            throw tagError(err, cur as IHydratedController, 'unbinding');
           }
         }
 
         if (isPromise(ret)) {
           this._ensurePromise();
           this._enterUnbinding();
+          const failed = cur;
           ret.then(() => {
             this._leaveUnbinding();
           }).catch((err: Error) => {
-            this._reject(err);
+            this._reject(tagError(err, failed as IHydratedController, 'unbinding'));
           });
         }
 
@@ -1291,6 +1372,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this.nodes = null;
     this.location = null;
+    // A disposed initiator never reaches unbind(), so settle a pending teardown
+    // here rather than leave its awaiters hanging.
+    this._settleTeardown();
 
     this.viewFactory = null;
     if (this._vm !== null) {
@@ -1350,6 +1434,26 @@ export type MountTarget = typeof MountTarget[keyof typeof MountTarget];
 // const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
 
+interface ITeardown {
+  readonly promise: Promise<void>;
+  /**
+   * Absent while an interrupted activation settles, when `promise` is the
+   * first deactivate call's own result.
+   */
+  readonly resolve?: () => void;
+  readonly reject?: (err: unknown) => void;
+}
+
+function createTeardown(): ITeardown {
+  let resolve!: () => void;
+  let reject!: (err: unknown) => void;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 function createObservers(
   controller: Controller,
   definition: CustomElementDefinition | CustomAttributeDefinition,
@@ -1376,15 +1480,20 @@ function createObservers(
           if (!isQueued) {
             isQueued = true;
             queueTask(() => {
-              isQueued = false;
-              const $changes = changes;
-              changes = {};
-              changeCount = 0;
-              if (controller.isBound) {
-                instance.propertiesChanged?.($changes);
-                if (changeCount > 0) {
-                  callPropertiesChanged();
+              try {
+                isQueued = false;
+                const $changes = changes;
+                changes = {};
+                changeCount = 0;
+                if (controller.isBound) {
+                  instance.propertiesChanged?.($changes);
+                  if (changeCount > 0) {
+                    callPropertiesChanged();
+                  }
                 }
+              } catch (err) {
+                reportTaskError(controller.container, controller, err);
+                throw err;
               }
             });
           }
@@ -1472,6 +1581,7 @@ function createWatchers(
         expression,
         callback,
         flush,
+        controller,
       ));
     } else {
       ast = isString(expression)
@@ -1485,6 +1595,7 @@ function createWatchers(
         ast,
         callback,
         flush,
+        controller,
       ) as unknown as IBinding);
     }
   }

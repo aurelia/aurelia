@@ -1,5 +1,5 @@
 import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
-import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
+import { queueAsyncTask, Task, TaskAbortError, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
 import { fromView, toView } from '../../binding/interfaces-bindings';
@@ -86,24 +86,30 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const pending = this.pending;
     const s = this.viewScope;
 
-    let preSettlePromise: Promise<void>;
     const $swap = () => {
+      // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
+      // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
+      const preSettledTask = this.preSettledTask = queueAsyncTask(() => {
+        return onResolveAll(
+          fulfilled?.deactivate(initiator),
+          rejected?.deactivate(initiator),
+          pending?.activate(initiator, s)
+        );
+      });
+      // A detach or a settlement that wins the race cancels this task on purpose; only report real failures.
+      const preSettlePromise = preSettledTask.result.catch((err) => {
+        if (!(err instanceof TaskAbortError)) throw err;
+      });
+      // A detach clears the task and a later swap replaces it, so a settlement that arrives after either is stale.
+      const isStale = () => this.value !== value || this.preSettledTask !== preSettledTask;
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
       void onResolveAll(
-        // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
-        // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
-        preSettlePromise = (this.preSettledTask = queueAsyncTask(() => {
-          return onResolveAll(
-            fulfilled?.deactivate(initiator),
-            rejected?.deactivate(initiator),
-            pending?.activate(initiator, s)
-          );
-        })).result.catch((err) => { throw err; }),
+        preSettlePromise,
         value
           .then(
             (data) => {
-              if (this.value !== value) {
+              if (isStale()) {
                 return;
               }
               const fulfill = () => {
@@ -114,15 +120,15 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   fulfilled?.activate(initiator, s, data),
                 ))).result;
               };
-              if (this.preSettledTask!.status === tsRunning) {
-                void preSettlePromise.then(fulfill);
+              if (preSettledTask.status === tsRunning) {
+                void preSettlePromise.then(() => { if (!isStale()) fulfill(); });
               } else {
-                this.preSettledTask!.cancel();
+                preSettledTask.cancel();
                 fulfill();
               }
             },
             (err) => {
-              if (this.value !== value) {
+              if (isStale()) {
                 return;
               }
               const reject = () => {
@@ -133,10 +139,10 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   rejected?.activate(initiator, s, err),
                 ))).result;
               };
-              if (this.preSettledTask!.status === tsRunning) {
-                void preSettlePromise.then(reject);
+              if (preSettledTask.status === tsRunning) {
+                void preSettlePromise.then(() => { if (!isStale()) reject(); });
               } else {
-                this.preSettledTask!.cancel();
+                preSettledTask.cancel();
                 reject();
               }
             },

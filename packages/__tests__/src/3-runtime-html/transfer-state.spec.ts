@@ -1,14 +1,17 @@
-import { Registration, resolve } from '@aurelia/kernel';
+import { DI, Registration, resolve } from '@aurelia/kernel';
 import {
   Aurelia,
   CustomElement,
+  IPlatform,
   ISSRContext,
   type ISSRScope,
   ITransferState,
+  StandardConfiguration,
   TransferState,
   transferStateId,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
+import { isNode } from '../util.js';
 
 describe('3-runtime-html/transfer-state.spec.ts', function () {
   describe('TransferState', function () {
@@ -110,6 +113,14 @@ describe('3-runtime-html/transfer-state.spec.ts', function () {
       }));
     }
 
+    // `hydrate()` registers the platform on its own child container, not on the root that caches the store.
+    it('reads the document of the requesting container platform', withStateScript('{"a":1}', ({ platform }) => {
+      const child = DI.createContainer().createChild();
+      child.register(Registration.instance(IPlatform, platform));
+
+      assert.strictEqual(child.get(ITransferState).get('a'), 1);
+    }));
+
     it('resolves to a registered store', withStateScript('{"a":1}', ({ container }) => {
       const server = new TransferState(void 0, true);
       container.register(Registration.instance(ITransferState, server));
@@ -136,54 +147,91 @@ describe('3-runtime-html/transfer-state.spec.ts', function () {
       });
     }
 
-    it('adopts the server content without loading the data again', async function () {
-      let calls = 0;
-      const ProductPage = defineProductPage(() => {
-        ++calls;
-        return Promise.resolve({ name: 'Espresso machine', price: 499 });
-      });
-
-      const serverCtx = TestContext.create();
-      const serverState = new TransferState(void 0, true);
-      serverCtx.container.register(
+    async function renderOnServer(ProductPage: ReturnType<typeof defineProductPage>) {
+      const ctx = TestContext.create();
+      const state = new TransferState(void 0, true);
+      ctx.container.register(
         Registration.instance(ISSRContext, { preserveMarkers: true }),
-        Registration.instance(ITransferState, serverState),
+        Registration.instance(ITransferState, state),
       );
-      const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('product-page'));
-      const serverAu = new Aurelia(serverCtx.container).app({ host: serverHost, component: ProductPage });
-      let markup: string;
+      const host = ctx.doc.body.appendChild(ctx.createElement('product-page'));
+      const au = new Aurelia(ctx.container).app({ host, component: ProductPage });
       try {
-        await serverAu.start();
-        markup = serverHost.innerHTML;
+        await au.start();
+        return { markup: host.innerHTML, state };
       } finally {
-        await serverAu.stop(true);
-        serverAu.dispose();
-        serverHost.remove();
+        await au.stop(true);
+        au.dispose();
+        host.remove();
       }
-      assert.strictEqual(calls, 1);
-      assert.includes(markup, 'Espresso machine');
+    }
 
-      const clientCtx = TestContext.create();
-      const clientHost = clientCtx.doc.body.appendChild(clientCtx.createElement('product-page'));
-      clientHost.innerHTML = markup;
-      const script = clientCtx.doc.body.appendChild(clientCtx.createElement('script'));
+    /** Puts the server markup and state in the client document and hydrates it. */
+    async function hydrateOnClient(
+      ProductPage: ReturnType<typeof defineProductPage>,
+      server: { markup: string; state: TransferState },
+      test: (host: HTMLElement) => void,
+    ) {
+      const ctx = TestContext.create();
+      const host = ctx.doc.body.appendChild(ctx.createElement('product-page'));
+      host.innerHTML = server.markup;
+      const script = ctx.doc.body.appendChild(ctx.createElement('script'));
       script.type = 'application/json';
       script.id = transferStateId;
-      script.textContent = serverState.serialize();
-      const clientAu = new Aurelia(clientCtx.container);
+      script.textContent = server.state.serialize();
+      const au = new Aurelia(ctx.container);
       try {
-        const root = await clientAu.hydrate({ host: clientHost, component: ProductPage, ssrScope });
+        const root = await au.hydrate({ host, component: ProductPage, ssrScope });
         try {
-          assert.strictEqual(clientHost.textContent, 'Espresso machine499', 'the server content stays in place instead of flashing to loading');
-          assert.strictEqual(calls, 1, 'the client reuses the server data');
+          test(host);
         } finally {
           await root.deactivate();
           root.dispose();
         }
       } finally {
-        clientAu.dispose();
-        clientHost.remove();
+        au.dispose();
+        host.remove();
         script.remove();
+      }
+    }
+
+    function createCountingPage() {
+      const counter = { calls: 0 };
+      const ProductPage = defineProductPage(() => {
+        ++counter.calls;
+        return Promise.resolve({ name: 'Espresso machine', price: 499 });
+      });
+      return { counter, ProductPage };
+    }
+
+    it('adopts the server content without loading the data again', async function () {
+      const { counter, ProductPage } = createCountingPage();
+      const server = await renderOnServer(ProductPage);
+      assert.strictEqual(counter.calls, 1);
+      assert.includes(server.markup, 'Espresso machine');
+
+      await hydrateOnClient(ProductPage, server, host => {
+        assert.strictEqual(host.textContent, 'Espresso machine499', 'the server content stays in place instead of flashing to loading');
+        assert.strictEqual(counter.calls, 1, 'the client reuses the server data');
+      });
+    });
+
+    it('resolves the store before hydration when no platform is registered', function () {
+      // Node runs without a global document, so there the store can only start empty.
+      const doc = isNode() ? null : document;
+      const script = doc?.body.appendChild(doc.createElement('script'));
+      if (script != null) {
+        script.type = 'application/json';
+        script.id = transferStateId;
+        script.textContent = '{"a":1}';
+      }
+      try {
+        const state = DI.createContainer().register(StandardConfiguration).get(ITransferState);
+
+        assert.strictEqual(state.isServer, false);
+        assert.strictEqual(state.get('a'), isNode() ? void 0 : 1);
+      } finally {
+        script?.remove();
       }
     });
   });

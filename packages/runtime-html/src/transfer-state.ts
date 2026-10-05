@@ -30,8 +30,12 @@ export interface ITransferState {
  * `<script id="au-state">` element, so the same component code runs in a plain SPA,
  * on the server and during hydration. Servers register `new TransferState(void 0, true)`.
  */
-export const ITransferState = /*@__PURE__*/createInterface<ITransferState>('ITransferState', x => x.cachedCallback(handler =>
-  new TransferState(readTransferState(handler.get(IPlatform).document))
+export const ITransferState = /*@__PURE__*/createInterface<ITransferState>('ITransferState', x => x.cachedCallback((_, requestor) =>
+  new TransferState(readTransferState(
+    // `hydrate()` registers the platform on its own child container, and a store resolved before
+    // hydration (for example while configuring an http client) runs before any platform exists.
+    requestor.has(IPlatform, true) ? requestor.get(IPlatform).document : globalThis.document
+  ))
 ));
 
 export class TransferState implements ITransferState {

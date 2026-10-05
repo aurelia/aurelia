@@ -96,6 +96,151 @@ describe('3-runtime-html/portal.spec.tsx', function () {
     assertHtml('div', '');
   });
 
+  describe('target changes and lifecycle callbacks', function () {
+    const callbacks = 'activating.bind: activating; activated.bind: activated; deactivating.bind: deactivating; deactivated.bind: deactivated';
+    const targets = '<div id="a"></div><div id="b"></div><div id="c"></div>';
+
+    // Records each callback with the id of the target it received. Callbacks named in `async`
+    // return a promise that stays pending until `settle()` resolves it.
+    class CallbackLog {
+      public target: string | Element = '#a';
+      public position: InsertPosition = 'beforeend';
+      public log: string[] = [];
+      public async = new Set<string>();
+      public pending: (() => void)[] = [];
+      public activating = (target: Element) => this.record('activating', target);
+      public activated = (target: Element) => this.record('activated', target);
+      public deactivating = (target: Element) => this.record('deactivating', target);
+      public deactivated = (target: Element) => this.record('deactivated', target);
+
+      public record(name: string, target: Element): void | Promise<void> {
+        this.log.push(`${name}:${target.id}`);
+        if (this.async.has(name)) {
+          return new Promise<void>(r => this.pending.push(r));
+        }
+      }
+
+      // Resolves the newest pending callbacks first, to expose ordering bugs.
+      public async settle(): Promise<void> {
+        while (this.pending.length > 0) {
+          this.pending.splice(0).reverse().forEach(resolve => resolve());
+          await new Promise(r => setTimeout(r));
+        }
+      }
+    }
+
+    it('passes the previous target to deactivating and deactivated', function () {
+      const { component, appHost } = createFixture(
+        `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+        CallbackLog,
+      );
+      component.target = '#b';
+
+      assert.deepStrictEqual(component.log, [
+        'activating:a', 'activated:a',
+        'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+      ]);
+      assert.notEqual(appHost.querySelector('#b > .p'), null);
+    });
+
+    it('applies rapid target changes in order when callbacks are async', async function () {
+      const { component, appHost, tearDown } = createFixture(
+        `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+        CallbackLog,
+      );
+      component.async.add('deactivating');
+      component.target = '#b';
+      component.target = '#c';
+      await component.settle();
+      component.async.clear();
+
+      assert.strictEqual(appHost.querySelector('#a').innerHTML, '');
+      assert.strictEqual(appHost.querySelector('#b').innerHTML, '');
+      assert.strictEqual(appHost.querySelector('#c').innerHTML, '<!--au-start--><span class="p">x</span><!--au-end-->');
+      assert.deepStrictEqual(component.log, [
+        'activating:a', 'activated:a',
+        'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+        'deactivating:b', 'deactivated:b', 'activating:c', 'activated:c',
+      ]);
+
+      await tearDown();
+    });
+
+    it('applies a target change made while an async activating callback is pending', async function () {
+      const { component, appHost, started, tearDown } = createFixture(
+        `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+        class extends CallbackLog {
+          public async = new Set(['activating']);
+        },
+      );
+      component.target = '#b';
+      component.async.clear();
+      await component.settle();
+      await started;
+
+      assert.strictEqual(appHost.querySelector('#a').innerHTML, '');
+      assert.strictEqual(appHost.querySelector('#b').innerHTML, '<!--au-start--><span class="p">x</span><!--au-end-->');
+      assert.deepStrictEqual(component.log, [
+        'activating:a', 'activated:a',
+        'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+      ]);
+
+      await tearDown();
+    });
+
+    it('finishes a pending move before deactivating', async function () {
+      const { component, appHost, platform, tearDown } = createFixture(
+        `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+        CallbackLog,
+      );
+      const [a, b] = [appHost.querySelector('#a'), appHost.querySelector('#b')];
+      component.async.add('deactivating');
+      component.target = '#b';
+      const stopped = tearDown();
+      await component.settle();
+      await stopped;
+
+      assert.strictEqual(platform.document.querySelectorAll('.p').length, 0);
+      assert.strictEqual(a.innerHTML, '');
+      assert.strictEqual(b.innerHTML, '');
+      assert.deepStrictEqual(component.log, [
+        'activating:a', 'activated:a',
+        'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+        'deactivating:b', 'deactivated:b',
+      ]);
+    });
+
+    for (const position of ['beforebegin', 'afterend'] as const) {
+      it(`throws AUR0830 when attaching "${position}" a target without a parent`, async function () {
+        const ctx = TestContext.create();
+        const detached = ctx.doc.createElement('div');
+        await assert.rejects(
+          async () => {
+            await createFixture(
+              `<span portal="target.bind: target; position: ${position}">x</span>`,
+              { target: detached },
+              [],
+              true,
+              ctx,
+            ).started;
+          },
+          /AUR0830/,
+        );
+      });
+
+      it(`throws AUR0830 and keeps the content in place when moving "${position}" a target without a parent`, function () {
+        const { component, appHost, platform } = createFixture(
+          `${targets}<span class="p" portal="target.bind: target; position.bind: position">x</span>`,
+          CallbackLog,
+        );
+        const detached = platform.document.createElement('div');
+        component.position = position;
+        assert.throws(() => component.target = detached, /AUR0830/);
+        assert.strictEqual(appHost.querySelector('.p')?.parentNode, appHost.querySelector('#a').parentNode);
+      });
+    }
+  });
+
   describe('basic', function () {
 
     const basicTestCases: IPortalTestCase<IPortalTestRootVm>[] = [

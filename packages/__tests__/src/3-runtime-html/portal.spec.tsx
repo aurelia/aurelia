@@ -188,6 +188,36 @@ describe('3-runtime-html/portal.spec.tsx', function () {
       await tearDown();
     });
 
+    for (const [name, leaving] of [['activating', false], ['activated', false], ['deactivating', true], ['deactivated', true]] as const) {
+      it(`applies a target change made by a synchronous ${name} callback after the running move`, async function () {
+        const { component, appHost, tearDown } = createFixture(
+          `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+          class extends CallbackLog {
+            public [name] = (target: Element) => {
+              const ret = this.record(name, target);
+              if (target.id === (leaving ? 'a' : 'b')) {
+                this.target = '#c';
+              }
+              return ret;
+            };
+          },
+        );
+        component.target = '#b';
+        await new Promise(r => setTimeout(r));
+
+        assert.strictEqual(appHost.querySelector('#a').innerHTML, '');
+        assert.strictEqual(appHost.querySelector('#b').innerHTML, '');
+        assert.strictEqual(appHost.querySelector('#c').innerHTML, '<!--au-start--><span class="p">x</span><!--au-end-->');
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a', 'deactivated:a', 'activating:b', 'activated:b',
+          'deactivating:b', 'deactivated:b', 'activating:c', 'activated:c',
+        ]);
+
+        await tearDown();
+      });
+    }
+
     it('finishes a pending move before deactivating', async function () {
       const { component, appHost, platform, tearDown } = createFixture(
         `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,

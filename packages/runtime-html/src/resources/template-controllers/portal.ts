@@ -63,6 +63,10 @@ export class Portal implements ICustomAttributeViewModel {
    * @internal
    */
   private _pending: void | Promise<void> = void 0;
+  /** Whether a step is running synchronously, outside of `_pending`. @internal */
+  private _running: boolean = false;
+  /** Starts the changes a synchronous callback queued behind the running step. @internal */
+  private _release: (() => void) | null = null;
   /** @internal */ private readonly _platform: IPlatform;
   /** @internal */ private readonly _targetLocation: IRenderLocation;
 
@@ -111,7 +115,31 @@ export class Portal implements ICustomAttributeViewModel {
 
   /** @internal */
   private _enqueue(fn: () => void | Promise<void>): void | Promise<void> {
-    const ret = onResolve(this._pending, fn);
+    if (this._running) {
+      // a synchronous callback of the running step made this change. Applying it now would let the
+      // step carry on with the old placement afterwards, so it waits until the step is done
+      this._pending ??= new Promise<void>(r => { this._release = r; });
+    }
+    let ret: void | Promise<void>;
+    if (this._pending !== void 0) {
+      ret = this._pending.then(fn);
+    } else {
+      this._running = true;
+      try {
+        ret = fn();
+      } finally {
+        this._running = false;
+        const release = this._release;
+        if (release !== null) {
+          this._release = null;
+          const queued = this._pending;
+          // start the queued changes once the step settles, even if it failed
+          ret = isPromise(ret)
+            ? ret.finally(release).then(() => queued)
+            : (release(), queued);
+        }
+      }
+    }
     if (isPromise(ret)) {
       // clear the queue once idle so changes are applied synchronously again.
       // the caller handles a rejection, the queue only needs to know it settled

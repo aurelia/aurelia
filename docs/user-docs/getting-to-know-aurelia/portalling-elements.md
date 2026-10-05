@@ -233,9 +233,9 @@ Use these callbacks in your template:
 
 ### Callbacks when the target or position changes
 
-When `target`, `position` or `renderContext` changes while the portal is active, the portal runs all four callbacks again. `deactivating` and `deactivated` receive the target the content is leaving, and `activating` and `activated` receive the target it moves to.
+When `target`, `position` or `renderContext` changes while the portal is active, the portal resolves the target again. If the content moves to a different element or position, the portal runs all four callbacks again. `deactivating` and `deactivated` receive the target the content is leaving, and `activating` and `activated` receive the target it moves to. If the change resolves to the element and position the content is already at, for example a new `renderContext` that finds the same element, nothing moves and no callbacks run.
 
-Changes are applied one at a time, in the order they were made. If a callback returns a promise, a later change waits for it, and so does deactivating the portal. Content therefore never ends up in an outdated target, even when the target changes several times in a row.
+Changes are applied one at a time, in the order they were made. If a callback returns a promise, a later change waits for it, and so does deactivating the portal. A change made from inside a callback waits until the current move has finished. Content therefore never ends up in an outdated target, even when the target changes several times in a row.
 
 ## Strict mode
 

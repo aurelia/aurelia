@@ -218,6 +218,60 @@ describe('3-runtime-html/portal.spec.tsx', function () {
       });
     }
 
+    it('waits for a change made by a callback even when the running move rejects', async function () {
+      const reasons: unknown[] = [];
+      let dispose: () => void;
+      if (typeof process !== 'undefined' && typeof process.on === 'function') {
+        const handler = (reason: unknown) => { reasons.push(reason); };
+        process.on('unhandledRejection', handler);
+        dispose = () => { process.off('unhandledRejection', handler); };
+      } else {
+        const handler = (ev: PromiseRejectionEvent) => { reasons.push(ev.reason); ev.preventDefault(); };
+        addEventListener('unhandledrejection', handler);
+        dispose = () => { removeEventListener('unhandledrejection', handler); };
+      }
+      try {
+        const { component, appHost, tearDown } = createFixture(
+          `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,
+          class extends CallbackLog {
+            public rejected = false;
+            public deactivating = (target: Element) => {
+              const ret = this.record('deactivating', target);
+              if (!this.rejected) {
+                this.rejected = true;
+                this.target = '#c';
+                return Promise.reject(new Error('deactivating failed'));
+              }
+              return ret;
+            };
+          },
+        );
+        component.async.add('activating');
+        component.target = '#b';
+        await new Promise(r => setTimeout(r));
+        // the move to #c is waiting on activating, so this change has to wait for it
+        component.target = '#b';
+        component.async.clear();
+        await component.settle();
+
+        assert.strictEqual(appHost.querySelector('#a').innerHTML, '');
+        assert.strictEqual(appHost.querySelector('#b').innerHTML, '<!--au-start--><span class="p">x</span><!--au-end-->');
+        assert.strictEqual(appHost.querySelector('#c').innerHTML, '');
+        assert.deepStrictEqual(component.log, [
+          'activating:a', 'activated:a',
+          'deactivating:a',
+          'deactivating:a', 'deactivated:a', 'activating:c', 'activated:c',
+          'deactivating:c', 'deactivated:c', 'activating:b', 'activated:b',
+        ]);
+        // mocha re-emits unhandled rejections to other listeners, so the same error can show up twice
+        assert.deepStrictEqual([...new Set(reasons)].map(r => (r as Error).message), ['deactivating failed']);
+
+        await tearDown();
+      } finally {
+        dispose();
+      }
+    });
+
     it('finishes a pending move before deactivating', async function () {
       const { component, appHost, platform, tearDown } = createFixture(
         `${targets}<span class="p" portal="target.bind: target; ${callbacks}">x</span>`,

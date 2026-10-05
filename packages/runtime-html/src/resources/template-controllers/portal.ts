@@ -132,10 +132,11 @@ export class Portal implements ICustomAttributeViewModel {
         const release = this._release;
         if (release !== null) {
           this._release = null;
-          const queued = this._pending;
-          // start the queued changes once the step settles, even if it failed
+          const queued: Promise<void> = this._pending;
+          // start the queued changes once the step settles, even if it failed, and keep the queue
+          // busy until they're done. `queued` never rejects, so a failure is passed on after it
           ret = isPromise(ret)
-            ? ret.finally(release).then(() => queued)
+            ? ret.finally(release).then(() => queued, err => queued.then(() => { throw err; }))
             : (release(), queued);
         }
       }

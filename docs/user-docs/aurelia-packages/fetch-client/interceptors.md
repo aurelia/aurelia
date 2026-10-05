@@ -85,6 +85,20 @@ function handleError(error) {
 }
 ```
 
+### Transfer Cache Interceptor
+
+For server-rendered apps, `TransferCacheInterceptor` records `GET` and `HEAD` responses during the server render and replays them during hydration, so the client does not request the same data twice:
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { TransferCacheInterceptor } from '@aurelia/fetch-client';
+import { ITransferState } from '@aurelia/runtime-html';
+
+http.configure(config => config.withInterceptor(new TransferCacheInterceptor(resolve(ITransferState))));
+```
+
+Requests carrying an `Authorization` or `Cookie` header are never recorded, so an authentication interceptor that runs earlier in the chain keeps those requests out of the cache. See [Transferring server state](../../getting-to-know-aurelia/transfer-state.md) for the server setup and the full list of rules.
+
 ## Advanced Interceptor Patterns
 
 ### Async Interceptors and Promise Handling

@@ -13,6 +13,7 @@ import {
   IController,
   IViewFactory,
   IHydratedComponentController,
+  IHydratedController,
   ICustomAttributeViewModel,
   ISyntheticView,
   IRenderLocation,
@@ -203,9 +204,17 @@ export class VirtualRepeat implements IVirtualRepeater, IIterateBindingTarget {
   /**
    * @internal
    */
-  public detaching() {
+  public detaching(initiator: IHydratedController) {
     this._attached = false;
     this._unsubscribeScroller?.();
+    // Rows are activated by this repeat, not as children of its controller, so the owner's teardown never reaches them.
+    // They stay in `views`, as the core repeat's rows do, so showing the list again reuses them instead of creating new views.
+    // todo: no async supported
+    const views = this.views;
+    const repeatController = this.$controller!;
+    for (let i = 0; i < views.length; ++i) {
+      void views[i].deactivate(initiator, repeatController);
+    }
     this.task?.cancel();
     this._resetCalculation();
     this.dom.dispose();
@@ -213,6 +222,17 @@ export class VirtualRepeat implements IVirtualRepeater, IIterateBindingTarget {
     this.dom
       = this.task
       = null!;
+  }
+
+  /**
+   * @internal
+   */
+  public dispose(): void {
+    const views = this.views;
+    for (let i = 0; i < views.length; ++i) {
+      views[i].dispose();
+    }
+    views.length = 0;
   }
 
   /** @internal */

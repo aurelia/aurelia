@@ -83,7 +83,7 @@ The interceptor records a response only when it is safe to share and to replay:
 
 - The request is a `GET` or `HEAD`. Responses are keyed by method and full URL, so the server and the client must request the same absolute URL.
 - The request has no `Authorization` or `Cookie` header.
-- The response is successful (2xx) and has a text, JSON or XML body.
+- The response is successful (2xx) and its `content-type` is text: `text/*` (except `text/event-stream`), JSON or XML (including `+json` and `+xml` types), JavaScript or form data. Bodies travel as text, so other types are left out. `HEAD`, 204 and 205 responses have no body and need no `content-type`.
 - The response has no `Set-Cookie` header, and its `Cache-Control` is not `no-store` or `private`.
 
 Only the `content-type` response header is recorded by default. Add others with `includeHeaders`, and keep requests out of the cache with `filter`:
@@ -95,4 +95,4 @@ new TransferCacheInterceptor(state, {
 });
 ```
 
-Each recorded response is replayed once. After that, the same request goes to the network.
+Each recorded response is replayed once, with the same status, recorded headers and final URL. After that, the same request goes to the network.

@@ -31,7 +31,17 @@ interface ITransferredResponse {
   t: string;
   /** headers */
   h: [string, string][];
+  /** final URL, recorded only when a redirect made it differ from the request URL */
+  u?: string;
 }
+
+/**
+ * Bodies travel as text, so only types that are text by definition are recorded. Subtypes must match
+ * exactly or as a `+json`/`+xml` suffix: a substring test would admit binary types such as
+ * `application/vnd.openxmlformats-officedocument.wordprocessingml.document`. `text/event-stream`
+ * is excluded because reading it waits for a stream that may never close.
+ */
+const textContentType = /^(?:text\/(?!event-stream\s*(?:;|$))[\w.+-]+|application\/(?:[\w.-]+\+)?(?:json|xml)|application\/(?:javascript|x-www-form-urlencoded))\s*(?:;|$)/i;
 
 /**
  * Records GET and HEAD responses during a server render and replays them on the client,
@@ -68,7 +78,10 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
     // A replayed response describes the page as the server rendered it. Later requests,
     // such as a refresh after the user acts, must reach the network.
     store.remove(key);
-    return new Response(entry.b, { status: entry.s, statusText: entry.t, headers: entry.h });
+    const response = new Response(entry.b, { status: entry.s, statusText: entry.t, headers: entry.h });
+    // A constructed response has an empty `url`, which breaks response interceptors that read it.
+    Object.defineProperty(response, 'url', { value: entry.u ?? request.url });
+    return response;
   }
 
   public async response(response: Response, request?: Request): Promise<Response> {
@@ -77,13 +90,12 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
     }
     const headers = response.headers;
     const cacheControl = headers.get('cache-control');
-    const contentType = headers.get('content-type');
+    const hasBody = request.method !== 'HEAD' && response.status !== 204 && response.status !== 205;
     if (
       // A response that sets a cookie or forbids shared caching is specific to the server's request.
       headers.has('set-cookie')
       || cacheControl !== null && /no-store|private/i.test(cacheControl)
-      // Bodies travel as text, which would corrupt binary content.
-      || contentType !== null && !/^text\/|json|xml/i.test(contentType)
+      || hasBody && !textContentType.test(headers.get('content-type') ?? '')
     ) {
       return response;
     }
@@ -94,12 +106,16 @@ export class TransferCacheInterceptor implements IFetchInterceptor {
         recorded.push([name, value]);
       }
     }
-    this._store.set<ITransferredResponse>(getTransferKey(request), {
-      b: request.method === 'HEAD' || response.status === 204 || response.status === 205 ? null : await response.clone().text(),
+    const entry: ITransferredResponse = {
+      b: hasBody ? await response.clone().text() : null,
       s: response.status,
       t: response.statusText,
       h: recorded,
-    });
+    };
+    if (response.url !== '' && response.url !== request.url) {
+      entry.u = response.url;
+    }
+    this._store.set(getTransferKey(request), entry);
     return response;
   }
 

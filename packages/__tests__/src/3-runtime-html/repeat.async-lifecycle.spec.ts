@@ -688,6 +688,8 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
         );
         await fixture.started;
         await fixture.stop(false);
+        // A changed item cannot reuse the retained row, so restart disposes it.
+        fixture.component.items = [1];
 
         assert.strictEqual(await captureFailure(() => fixture.au.start()), disposalError);
         abandonTerminalFixture(fixture);
@@ -1109,43 +1111,227 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       await fixture.tearDown();
     });
 
-    it('disposes the previous row graph before rebuilding on owner restart', async function () {
-      const constructed: number[] = [];
-      const disposed: number[] = [];
-      let nextId = 0;
+    it('reuses retained rows for unchanged items on owner restart', async function () {
+      const disposed: string[] = [];
 
-      @customElement({ name: 'restart-disposal-repeat-row', template: '${item}', bindables: ['item'] })
+      @customElement({ name: 'restart-reuse-repeat-row', template: '${item.label}', bindables: ['item'] })
       class RestartRow {
-        public item!: number;
-        private readonly id = ++nextId;
-
-        public constructor() {
-          constructed.push(this.id);
-        }
+        public item!: { label: string };
 
         public dispose(): void {
-          disposed.push(this.id);
+          disposed.push(this.item.label);
         }
       }
 
+      const a = { label: 'a' };
+      const b = { label: 'b' };
+      const c = { label: 'c' };
       const fixture = createFixture(
-        '<restart-disposal-repeat-row repeat.for="item of items" item.bind="item"></restart-disposal-repeat-row>',
-        class App { public items = [1]; },
+        '<restart-reuse-repeat-row repeat.for="item of items" item.bind="item"></restart-reuse-repeat-row>',
+        class App { public items = [a, b, c]; },
         [RestartRow],
       );
       await fixture.started;
-      assert.deepStrictEqual(constructed, [1]);
+      const repeat = findRepeat(fixture.au.root.controller);
+      const [viewA, , viewC] = repeat.views;
 
       await fixture.stop(false);
       assert.deepStrictEqual(disposed, [], 'stop(false) retains the settled row graph until restart');
 
+      // Restart with an unchanged item at each end and a new one in between.
+      fixture.component.items = [a, { label: 'x' }, c, { label: 'y' }];
       await fixture.au.start();
-      assert.deepStrictEqual(constructed, [1, 2]);
-      assert.deepStrictEqual(disposed, [1], 'restart disposes the row graph it replaces');
-      fixture.assertText('1');
+      assert.deepStrictEqual(disposed, ['b'], 'only the row whose item changed is disposed');
+      assert.strictEqual(repeat.views[0], viewA);
+      assert.strictEqual(repeat.views[2], viewC);
+      fixture.assertText('axcy');
 
       await fixture.stop(true);
-      assert.deepStrictEqual(disposed, [1, 2], 'final disposal owns only the rebuilt row graph');
+      assert.deepStrictEqual(disposed.sort(), ['a', 'b', 'c', 'x', 'y'], 'final disposal owns the rebuilt row graph');
+    });
+
+    it('reuses a retained row only at the same position', async function () {
+      const fixture = createFixture(
+        '<div repeat.for="item of items; key: id">${item.id}</div>',
+        class App { public items = [{ id: 1 }, { id: 2 }, { id: 3 }]; },
+      );
+      await fixture.started;
+      const repeat = findRepeat(fixture.au.root.controller);
+      const before = repeat.views.slice();
+
+      await fixture.stop(false);
+      fixture.component.items.reverse();
+      // Same key, different object: identity decides reuse, not the key.
+      fixture.component.items[2] = { id: 1 };
+      await fixture.au.start();
+
+      fixture.assertText('321');
+      assert.notStrictEqual(repeat.views[0], before[2], 'a moved item does not take its old row along');
+      assert.strictEqual(repeat.views[1], before[1], 'the unmoved middle item keeps its row');
+      assert.notStrictEqual(repeat.views[2], before[0]);
+
+      await fixture.stop(true);
+    });
+
+    it('keeps row component state when a cached if shows the list again', async function () {
+      let created = 0;
+
+      @customElement({ name: 'stateful-repeat-row', template: '${item}:${clicks}', bindables: ['item'] })
+      class StatefulRow {
+        public item!: string;
+        public clicks = 0;
+
+        public constructor() {
+          ++created;
+        }
+      }
+
+      const fixture = createFixture(
+        '<div if.bind="show"><stateful-repeat-row repeat.for="item of items" item.bind="item" data-index.bind="$index" data-last.bind="$last"></stateful-repeat-row></div>',
+        class App { public show = true; public items = ['a', 'b', 'c']; },
+        [StatefulRow],
+      );
+      await fixture.started;
+      const rowVm = (index: number) => CustomElement.for<StatefulRow>(fixture.getAllBy('stateful-repeat-row')[index]).viewModel;
+      rowVm(1).clicks = 2;
+      await tasksSettled();
+      fixture.assertText('a:0b:2c:0');
+
+      for (let i = 0; i < 3; ++i) {
+        fixture.component.show = false;
+        await tasksSettled();
+        fixture.assertText('');
+        fixture.component.show = true;
+        await tasksSettled();
+      }
+      assert.strictEqual(created, 3, 'toggling visibility creates no rows');
+      fixture.assertText('a:0b:2c:0');
+
+      fixture.component.show = false;
+      await tasksSettled();
+      fixture.component.items.push('d');
+      fixture.component.show = true;
+      await tasksSettled();
+      assert.strictEqual(created, 4, 'only the appended item gets a new row');
+      fixture.assertText('a:0b:2c:0d:0');
+      const rows = fixture.getAllBy('stateful-repeat-row');
+      assert.deepStrictEqual(rows.map(row => row.getAttribute('data-index')), ['0', '1', '2', '3']);
+      assert.deepStrictEqual(rows.map(row => row.getAttribute('data-last')), ['false', 'false', 'false', 'true'], 'contextual properties are refreshed on reused rows');
+
+      await fixture.tearDown();
+    });
+
+    it('does not move retained rows to shifted items', async function () {
+      let created = 0;
+
+      @customElement({ name: 'shifted-repeat-row', template: '${item}', bindables: ['item'] })
+      class ShiftedRow {
+        public item!: number;
+
+        public constructor() {
+          ++created;
+        }
+      }
+
+      const fixture = createFixture(
+        '<div if.bind="show"><shifted-repeat-row repeat.for="item of items" item.bind="item"></shifted-repeat-row></div>',
+        class App { public show = true; public items = [0, 1, 2]; },
+        [ShiftedRow],
+      );
+      await fixture.started;
+
+      fixture.component.show = false;
+      await tasksSettled();
+      fixture.component.items.shift();
+      fixture.component.show = true;
+      await tasksSettled();
+
+      fixture.assertText('12');
+      assert.strictEqual(created, 5, 'shifted items do not reuse rows from other positions');
+      await fixture.tearDown();
+    });
+
+    it('disposes adopted rows and reuses ordinary rows on owner restart', async function () {
+      const disposed: number[] = [];
+
+      @customElement({ name: 'adopted-restart-repeat-row', template: '${value}', bindables: ['value'] })
+      class AdoptedRestartRow {
+        public value!: number;
+
+        public dispose(): void {
+          disposed.push(this.value);
+        }
+      }
+
+      const fixture = createFixture(
+        '<adopted-restart-repeat-row repeat.for="item of items" value.bind="item"></adopted-restart-repeat-row>',
+        class { public items = [0, 1]; },
+        [AdoptedRestartRow],
+      );
+      await fixture.started;
+      const repeat = findRepeat(fixture.au.root.controller);
+      // See 'disposes adopted-provenance and later ordinary rows together on owner teardown'.
+      (repeat as unknown as { _adoptedViews: Set<unknown> })._adoptedViews = new Set(repeat.views);
+      fixture.component.items.push(2);
+      fixture.assertText('012');
+      const ordinary = repeat.views[2];
+
+      await fixture.stop(false);
+      await fixture.au.start();
+
+      assert.deepStrictEqual(disposed, [0, 1], 'adopted rows are never reused');
+      assert.strictEqual(repeat.views[2], ordinary, 'the ordinary row is reused');
+      assert.strictEqual((repeat as unknown as { _adoptedViews?: Set<unknown> })._adoptedViews, void 0);
+      fixture.assertText('012');
+
+      await fixture.stop(true);
+      assert.deepStrictEqual(disposed.sort(), [0, 0, 1, 1, 2]);
+    });
+
+    it('reuses the rows that survived an owner teardown during reconciliation', async function () {
+      const gate = new Deferred();
+      let created = 0;
+      let blockFirstRemoval = true;
+
+      @customElement({ name: 'interrupted-restart-repeat-row', template: '${value}', bindables: ['value'] })
+      class InterruptedRow {
+        public value!: number;
+
+        public constructor() {
+          ++created;
+        }
+
+        public detaching(): void | Promise<void> {
+          if (blockFirstRemoval && this.value === 0) {
+            blockFirstRemoval = false;
+            return gate.promise;
+          }
+        }
+      }
+
+      const fixture = createFixture(
+        '<interrupted-restart-repeat-row repeat.for="item of items" value.bind="item"></interrupted-restart-repeat-row>',
+        class { public items = [0, 1, 2]; },
+        [InterruptedRow],
+      );
+      await fixture.started;
+      const repeat = findRepeat(fixture.au.root.controller);
+      const [, viewOne, viewTwo] = repeat.views;
+
+      fixture.component.items.shift();
+      fixture.component.items.push(3);
+      const stop = fixture.stop(false);
+      gate.resolve();
+      await stop;
+      assert.strictEqual(created, 3, 'owner teardown dominates the queued insertion');
+
+      await fixture.au.start();
+      fixture.assertText('123');
+      assert.strictEqual(repeat.views[0], viewOne);
+      assert.strictEqual(repeat.views[1], viewTwo);
+      assert.strictEqual(created, 4, 'only the item the teardown skipped gets a new row');
+
+      await fixture.stop(true);
     });
 
   });

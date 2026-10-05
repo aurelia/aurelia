@@ -282,22 +282,18 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
-    if (this.views.length > 0) {
-      // Repeat rebuilds its row graph when an owner is restarted. The previous
-      // Controller operation is fully settled at this point, so dispose every
-      // retained ordinary or adopted row before replacing the views array.
-      const cleanup = createRowTransitionState();
-      for (let i = 0; i < this.views.length; ++i) {
-        this._disposeRow(this.views[i], i, cleanup);
-      }
-      this.views = [];
-      this._adoptedViews = void 0;
-      throwRowErrors(cleanup);
-    }
+    // An owner restart finds the rows kept by the last deactivation. The previous
+    // Controller operation is fully settled at this point, so they are handed to
+    // the rebuild below, which reuses what it can and disposes the rest.
+    const retainedItems = this._normalizedItems;
     return this._beginReconciliation(() => {
       this._normalizeToArray();
       this._createScopes(void 0);
-      return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
+      const $items = this._normalizedItems ?? emptyArray;
+      if (this.views.length > 0) {
+        this._reuseRetainedViews($items, retainedItems);
+      }
+      return this._activateAllViews(initiator, $items);
     });
   }
 
@@ -481,8 +477,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   private _deactivateOwnedViews(initiator: IHydratedController): void {
     // Rows stay owned until Repeat is disposed or restarted. Disposing inside
     // this hook would race the ancestor Controller's linked-list cleanup, which
-    // still needs their nodes and bindings; attaching disposes the settled graph
-    // before rebuilding it.
+    // still needs their nodes and bindings; attaching reuses the settled rows
+    // whose items are unchanged and disposes the rest.
     this._deactivateAllViews(initiator);
   }
 
@@ -745,11 +741,12 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   ): void | Promise<void> {
     const { $controller, _factory, _location, _scopes } = this;
     const newLen = $items.length;
-    const views = this.views = Array(newLen);
+    // An owner restart may have placed reused rows already; fill the gaps.
+    const views: ISyntheticView[] = this.views.length === newLen ? this.views : this.views = Array(newLen);
 
     let transition: RowTransitionState | undefined;
     for (let i = 0; i < newLen; ++i) {
-      const view = views[i] = _factory.create($controller).setLocation(_location);
+      const view = views[i] ??= _factory.create($controller).setLocation(_location);
       if (this._declaration.kind === 'object-binding') {
         this._declaration.value.ensureViewBinding(view);
       }
@@ -768,6 +765,35 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     return settleRowTransitions(transition);
+  }
+
+  /** @internal */
+  private _reuseRetainedViews($items: unknown[], retainedItems: unknown[] | undefined): void {
+    const { views: retained, _adoptedViews: adopted } = this;
+    this._adoptedViews = void 0;
+    const newLen = $items.length;
+    const views: ISyntheticView[] = Array(newLen);
+    // Retained rows line up with the last reconciled items unless an
+    // interrupted reconciliation left a partial row set behind.
+    const aligned = retainedItems !== void 0 && retainedItems.length === retained.length;
+    const cleanup = createRowTransitionState();
+    for (let i = 0, ii = retained.length; i < ii; ++i) {
+      const view = retained[i];
+      // Only the identical item at the same position keeps its row, so row-local
+      // state never moves to another item. Adopted rows are tied to the server
+      // rendered DOM and are always disposed.
+      if (aligned && i < newLen && retainedItems[i] === $items[i] && adopted?.has(view) !== true) {
+        views[i] = view;
+      } else {
+        this._disposeRow(view, i, cleanup);
+      }
+    }
+    if (cleanup.firstErrorIndex !== Number.POSITIVE_INFINITY) {
+      // Keep the reused rows owned so a later dispose still reaches them.
+      this.views = views.filter(Boolean);
+      throwRowErrors(cleanup);
+    }
+    this.views = views;
   }
 
   /** @internal */

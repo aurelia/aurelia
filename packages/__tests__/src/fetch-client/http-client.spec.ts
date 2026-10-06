@@ -48,7 +48,7 @@ describe('fetch-client/http-client.spec.ts', function () {
       Registration.instance(IPlatform, platform),
       Registration.instance(IFetchFn, ((request: Request) => fetchFn(request, record)) as typeof fetch),
     );
-    return { client: container.get(IHttpClient), delays, requests, record };
+    return { client: container.get(IHttpClient), delays, requests, record, platform };
   }
 
   function serverError(): Promise<Response> {
@@ -462,6 +462,87 @@ describe('fetch-client/http-client.spec.ts', function () {
       assert.instanceOf(err, Response);
       assert.strictEqual((err as Response).status, 500);
       assert.strictEqual(requests.length, 0);
+    });
+  });
+
+  describe('cancellation review (#2554)', function () {
+    for (const preserveSignal of [true, false]) {
+      it(`keeps cancellation effective during an async retry hook (replacement inherits signal=${preserveSignal})`, async function () {
+        let enterHook: () => void;
+        let releaseHook: () => void;
+        const entered = new Promise<void>(resolve => { enterHook = resolve; });
+        const released = new Promise<void>(resolve => { releaseHook = resolve; });
+        const nativeFetch = globalThis.fetch.bind(globalThis);
+        const controller = new AbortController();
+        const { client, requests } = createTestClient(async (request, record) => {
+          await record(request);
+          // One service failure enters retry handling; the retry uses actual Fetch
+          // cancellation semantics without contacting an external server.
+          return requests.length === 1 ? new Response(null, { status: 503 }) : nativeFetch(request);
+        });
+        client.configure(config => config.rejectErrorResponses().withRetry({
+          maxRetries: 1,
+          interval: 0,
+          beforeRetry: async request => {
+            enterHook!();
+            await released;
+            return new Request(preserveSignal ? request : request.url, { headers: { 'x-token': 'refreshed' } });
+          },
+        }));
+        const outcome = client.fetch('data:text/plain,retried', { signal: controller.signal })
+          .then(response => ({ response, error: null }), error => ({ response: null, error }));
+        await entered;
+        controller.abort();
+        releaseHook!();
+        const result = await outcome;
+        assert.strictEqual(result.response, null, 'the cancelled logical call must not succeed');
+        assert.strictEqual(result.error?.name, 'AbortError');
+        assert.strictEqual(client.isRequesting, false);
+      });
+    }
+
+    it('settles cancellation during backoff without waiting for its timer or running the retry hook', async function () {
+      let delayScheduled: () => void;
+      let releaseDelay: () => void;
+      const scheduled = new Promise<void>(resolve => { delayScheduled = resolve; });
+      const controller = new AbortController();
+      const nativeFetch = globalThis.fetch.bind(globalThis);
+      const { client, requests, platform } = createTestClient(async (request, record) => {
+        await record(request);
+        return requests.length === 1 ? new Response(null, { status: 503 }) : nativeFetch(request);
+      });
+      // Hold only the retry timer. A separate task below drains ordinary promise
+      // reactions so the test does not depend on guessed millisecond delays.
+      (platform as Writable<BrowserPlatform>).setTimeout = ((callback: () => void) => {
+        releaseDelay = callback;
+        delayScheduled!();
+        return 0;
+      }) as BrowserPlatform['setTimeout'];
+      let hookCalls = 0;
+      client.configure(config => config.rejectErrorResponses().withRetry({
+        maxRetries: 1,
+        interval: 30_000,
+        beforeRetry: request => { ++hookCalls; return request; },
+      }));
+      let settled = false;
+      const outcome = client.fetch('data:text/plain,retried', { signal: controller.signal })
+        .then(response => ({ response, error: null }), error => ({ response: null, error }));
+      void outcome.then(() => { settled = true; });
+      await scheduled;
+      controller.abort();
+      await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
+      const settledOnAbort = settled;
+      const requestingAfterAbort = client.isRequesting;
+      // Release the held callback even on the broken implementation so no test
+      // leaves pending work behind. Native Fetch rejects its aborted clone.
+      releaseDelay!();
+      const result = await outcome;
+      assert.strictEqual(result.error?.name, 'AbortError');
+      assert.deepStrictEqual(
+        { settledOnAbort, requestingAfterAbort, hookCalls },
+        { settledOnAbort: true, requestingAfterAbort: false, hookCalls: 0 },
+        'abort should settle the call before the retry delay elapses and skip its hook',
+      );
     });
   });
 

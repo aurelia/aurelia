@@ -52,9 +52,7 @@ const BenchmarkTaskRow = CustomElement.define({
   }
 });
 
-const App = CustomElement.define({
-  name: 'app',
-  template: `<benchmark-task-row repeat.for="item of items; key: id"
+const taskRows = `<benchmark-task-row repeat.for="item of items; key: id"
     item-id.bind="item.id"
     label.bind="item.label"
     owner.bind="item.owner"
@@ -62,7 +60,11 @@ const App = CustomElement.define({
     status.bind="item.status"
     selected.bind="item.selected"
     detail.bind="item.detail">
-  </benchmark-task-row>`,
+  </benchmark-task-row>`;
+
+const App = CustomElement.define({
+  name: 'app',
+  template: taskRows,
   dependencies: [BenchmarkTaskRow],
 }, class App {
   constructor() {
@@ -71,12 +73,30 @@ const App = CustomElement.define({
   }
 });
 
-export const start = (host, items) => {
+// The same list under a cached `if`, so hiding and showing it deactivates and
+// reactivates the repeat without disposing it.
+const ReshowApp = CustomElement.define({
+  name: 'reshow-app',
+  template: `<div class="task-list" if.bind="show">${taskRows}</div>`,
+  dependencies: [BenchmarkTaskRow],
+}, class ReshowApp {
+  constructor() {
+    this.show = true;
+    this.items = initialItems;
+    initialItems = void 0;
+  }
+});
+
+const startWith = (component, host, items) => {
   if (!Array.isArray(items)) throw new Error('Realistic benchmark startup requires prepared items.');
   initialItems = items;
-  const au = new Aurelia().register(StandardConfiguration).app({ component: App, host });
+  const au = new Aurelia().register(StandardConfiguration).app({ component, host });
   return startSynchronousApplication(au);
 };
+
+export const start = (host, items) => startWith(App, host, items);
+
+export const startReshow = (host, items) => startWith(ReshowApp, host, items);
 
 export const createDependencyRotationBenchmark = host => {
   const au = start(host, []);

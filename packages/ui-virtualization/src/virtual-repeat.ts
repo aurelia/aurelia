@@ -209,7 +209,7 @@ export class VirtualRepeat implements IVirtualRepeater, IIterateBindingTarget {
     this._unsubscribeScroller?.();
     // Rows are activated by this repeat, not as children of its controller, so the owner's teardown never reaches them.
     // They stay in `views`, as the core repeat's rows do, so showing the list again reuses them instead of creating new views.
-    // todo: no async supported
+    // The incoming initiator tracks row cleanup, including async detaching and unbinding hooks.
     const views = this.views;
     const repeatController = this.$controller!;
     for (let i = 0; i < views.length; ++i) {

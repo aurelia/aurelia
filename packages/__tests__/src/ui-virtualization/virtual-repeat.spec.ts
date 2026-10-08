@@ -2,7 +2,7 @@ import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualizationConfiguration, VirtualRepeat, VIRTUAL_REPEAT_NEAR_BOTTOM, VIRTUAL_REPEAT_NEAR_TOP, type IVirtualRepeatNearBottomEvent, type IVirtualRepeatNearTopEvent } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
 import { IObserverLocator, type ISubscriberCollection, runTasks, tasksSettled } from '@aurelia/runtime';
-import { CustomElement, LifecycleHooks, ValueConverter } from '@aurelia/runtime-html';
+import { CustomElement, If, LifecycleHooks, ValueConverter } from '@aurelia/runtime-html';
 
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   if (isNode()) {
@@ -574,7 +574,8 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     type Item = { idx: number; name: string };
 
     function createRowTracking() {
-      const calls = { attached: 0, detaching: 0, unbinding: 0, evaluated: 0 };
+      const calls = { attached: 0, detaching: 0, unbinding: 0, evaluated: 0, disposed: 0 };
+      const disposedRows = new Set<object>();
       const Row = CustomElement.define({
         name: 'row-el',
         template: '${item.name | track}',
@@ -583,6 +584,10 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
         public attached(): void { ++calls.attached; }
         public detaching(): void { ++calls.detaching; }
         public unbinding(): void { ++calls.unbinding; }
+        public dispose(): void {
+          ++calls.disposed;
+          disposedRows.add(this);
+        }
       });
       const Track = ValueConverter.define('track', class {
         public toView(value: unknown) {
@@ -590,7 +595,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
           return value;
         }
       });
-      return { calls, deps: [...virtualRepeatDeps, Row, Track] };
+      return { calls, disposedRows, deps: [...virtualRepeatDeps, Row, Track] };
     }
 
     const listTemplate = createScrollerTemplate(
@@ -713,6 +718,143 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       store.items[0].name = 'changed-0';
       runTasks();
       assert.strictEqual(calls.evaluated, evaluated, 'rows of a stopped app are not re-evaluated');
+    });
+
+    for (const boundary of ['if', 'app'] as const) {
+      it(`${boundary} teardown waits for async row detaching and unbinding`, async function () {
+        let finishDetaching!: () => void;
+        let finishUnbinding!: () => void;
+        const detaching = new Promise<void>(resolve => { finishDetaching = resolve; });
+        const unbinding = new Promise<void>(resolve => { finishUnbinding = resolve; });
+        const calls = { detaching: 0, unbinding: 0 };
+        let owningIf!: If;
+        const CaptureIf = LifecycleHooks.define({}, class {
+          public created(vm: unknown): void {
+            if (vm instanceof If) owningIf = vm;
+          }
+        });
+        const Row = CustomElement.define({
+          name: 'row-el',
+          template: '${item.name}',
+          bindables: ['item'],
+        }, class {
+          public detaching(): Promise<void> {
+            ++calls.detaching;
+            return detaching;
+          }
+          public unbinding(): Promise<void> {
+            ++calls.unbinding;
+            return unbinding;
+          }
+        });
+        const { component, au, appHost, container, stop } = createFixture(
+          boundary === 'if' ? `<div if.bind="show">${listTemplate}</div>` : listTemplate,
+          class App { show = true; store = { items: createItems() }; },
+          [...virtualRepeatDeps, Row, CaptureIf],
+        );
+        const shown = renderedItems();
+        let settled = false;
+        let completion: Promise<void> | undefined;
+
+        try {
+          // The row controllers are not normal children. Their initiator must
+          // nevertheless keep the owning transition open through both phases.
+          if (boundary === 'if') {
+            component.show = false;
+            runTasks();
+            // tasksSettled only drains scheduled work; the if owns this
+            // lifecycle promise rather than registering it with the scheduler.
+            completion = Promise.resolve((owningIf as unknown as { pending: void | Promise<void> }).pending);
+          } else {
+            completion = Promise.resolve(au.stop());
+          }
+          completion = completion.then(() => { settled = true; });
+          assert.strictEqual(calls.detaching, 24);
+          // Keep each gate closed for a task turn so an early completion has
+          // time to reach its promise callbacks before we check it.
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          assert.strictEqual(settled, false, 'owner waits for row detaching');
+          assert.strictEqual(calls.unbinding, 0);
+          assert.strictEqual(appHost.querySelectorAll('row-el').length, 24);
+
+          finishDetaching();
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          assert.strictEqual(calls.unbinding, 24);
+          assert.strictEqual(settled, false, 'owner waits for row unbinding');
+
+          finishUnbinding();
+          await completion;
+          assert.strictEqual(appHost.querySelectorAll('row-el').length, 0);
+          assert.strictEqual(subscriberCount(container.get(IObserverLocator), shown), 0);
+        } finally {
+          finishDetaching();
+          finishUnbinding();
+          try {
+            await completion;
+          } finally {
+            await stop(true);
+          }
+        }
+      });
+    }
+
+    it('app restart reuses detached rows and final disposal reaches them once', async function () {
+      const { calls, disposedRows, deps } = createRowTracking();
+      const store = { items: createItems() };
+      const { au, appHost, container, stop } = createFixture(
+        listTemplate,
+        class App { store = store; },
+        deps,
+      );
+      const repeat = virtualRepeats[0];
+      const views = repeat.getViews().slice();
+      const observerLocator = container.get(IObserverLocator);
+      const shown = renderedItems();
+
+      try {
+        await au.stop();
+        assert.strictEqual(calls.disposed, 0, 'stop retains row controllers');
+        assert.strictEqual(subscriberCount(observerLocator, shown), 0);
+        store.items[0].name = 'updated while stopped';
+
+        await au.start();
+        await tasksSettled();
+        assert.strictEqual(virtualRepeats[0], repeat);
+        assert.strictEqual(repeat.getViews().length, views.length);
+        views.forEach((view, i) => assert.strictEqual(repeat.getViews()[i], view));
+        assert.strictEqual(appHost.querySelector('row-el')!.textContent, 'updated while stopped');
+        assert.strictEqual(calls.attached, 48);
+        assert.strictEqual(subscriberCount(observerLocator, shown), 24);
+      } finally {
+        await stop(true);
+      }
+      assert.strictEqual(calls.disposed, 24);
+      assert.strictEqual(disposedRows.size, 24, 'each row is disposed exactly once');
+      assert.strictEqual(repeat.getViews().length, 0);
+    });
+
+    it('a non-cached if disposes rows once per removed list', async function () {
+      const { calls, disposedRows, deps } = createRowTracking();
+      const { component, stop } = createFixture(
+        `<div if="value.bind: show; cache: false">${listTemplate}</div>`,
+        class App { show = true; store = { items: createItems() }; },
+        deps,
+      );
+      try {
+        component.show = false;
+        await tasksSettled();
+        assert.strictEqual(calls.disposed, 24);
+        assert.strictEqual(disposedRows.size, 24);
+        assert.strictEqual(virtualRepeats[0].getViews().length, 0);
+        component.show = true;
+        await tasksSettled();
+        assert.strictEqual(calls.attached, 48);
+        assert.strictEqual(calls.disposed, 24);
+      } finally {
+        await stop(true);
+      }
+      assert.strictEqual(calls.disposed, 48);
+      assert.strictEqual(disposedRows.size, 48, 'both lists dispose each row exactly once');
     });
 
     it('deactivates rows when an ancestor component is removed', async function () {

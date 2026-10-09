@@ -144,6 +144,9 @@ export const enum ErrorNames {
   hydration_target_count_mismatch = 822,
   hydration_node_count_mismatch = 823,
   hydration_view_count_mismatch = 824,
+
+  au_head_invalid_child = 825,
+  au_head_script_interpolation = 826,
 }
 _END_CONST_ENUM();
 
@@ -278,6 +281,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.hydration_target_count_mismatch]: `SSR hydration error: manifest declares {{0}} targets but collected {{1}} from DOM.`,
   [ErrorNames.hydration_node_count_mismatch]: `SSR hydration error: manifest declares {{0}} total nodes for views but found {{1}} nodes in DOM.`,
   [ErrorNames.hydration_view_count_mismatch]: `SSR hydration error: manifest declares {{0}} views but items array has {{1}} elements.`,
+  [ErrorNames.au_head_invalid_child]: `Invalid <au-head> child <{{0}}>. Only <title>, <meta>, <link>, <script>, <base>, <let> and <template> are allowed, and no text.`,
+  [ErrorNames.au_head_script_interpolation]: `Interpolation inside an <au-head> <script> is not supported because the value would not be escaped. Use json.bind="value" to render JSON safely.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

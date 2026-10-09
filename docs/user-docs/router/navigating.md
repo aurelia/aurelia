@@ -4,57 +4,48 @@ description: Learn to navigate from one view to another using the Aurelia router
 
 # Navigating
 
-Aurelia's router provides multiple ways to navigate between routes in your application. This section covers all navigation methods from simple links to complex programmatic navigation patterns.
+A link or navigation call needs a starting point: the component or layout that owns the destination, or the current application URL.
 
-## Path syntax
-
-Before diving into the navigation methods, here is a overview of the path syntax supported by the router.
-The syntax is consistent similar to file-system navigation.
-
-- `/path`: This represents an absolute path from the root of the application.
-- `path`, `./path`: These represent a relative paths from the current routing context.
-- `../path`, or `../../path`: These represent relative paths from the ancestor routing context; every `../` moves one level up in the routing context hierarchy.
-- `path1+path2`: This represents loading multiple sibling viewports simultaneously; `path1` is loaded in the first available viewport and `path2` in the next available viewport.
-- `path@viewportName`: This represents loading a route in a named viewport; `path` is loaded in the viewport identified by `viewportName`. The viewport name can also be used with the sibling viewport syntax like `path1@vp1+path2@vp2`.
+For example, a Reports link in an admin sidebar should open the admin layout's Reports route from any of its nested pages. A link to the next item may need to follow the currently displayed URL. Aurelia provides navigation methods for both cases.
 
 ## Navigation Methods Overview
 
-The router offers three primary navigation approaches:
+| Destination or task | Use | Reference point |
+| --- | --- | --- |
+| A route owned by the current component or layout | `load` or `IContextRouter.load()` | The owning routing context |
+| A route at the application routing root | `IRouter.load()` or an explicitly rooted `load` instruction | The root routing context |
+| A destination relative to the current application URL | [`url` or `IRouter.navigate()`](./application-url-navigation.md) | The last completed router location |
+| Another document, download, or external site | Native `href`; add `external` to bypass the router's `href` attribute | The browser's URL rules |
+| A contextual route with parameters or active-link styling | `load` with `params` or `active` | The selected routing context |
+| A generated path for later contextual navigation | [`generatePath()`](#path-generation) | The context selected by the instruction |
+| A browser-ready link from an application URL reference | [`createHref()`](./application-url-navigation.md) | The last completed router location |
 
-1. **Declarative Navigation**:
-   - `href` custom attribute - Natural anchor tag navigation
-   - `load` custom attribute - Structured navigation with advanced options
+The router-managed `href` attribute accepts a routing instruction as a string and resolves it in the same context as `load`. A native browser `href` follows the browser's URL rules. Both router attributes render a real `href`, so users can copy a link or open it in a new tab.
 
-2. **Programmatic Navigation**:
-   - `IRouter.load()` method - Full programmatic control
-   - Navigation with options (query params, fragments, context, etc.)
-   - Use `IContextRouter.load()` for context-aware navigation
+Register `UrlCustomAttribute` explicitly to use the `url` attribute; `RouterConfiguration` does not register it. See [application URL navigation](./application-url-navigation.md) for setup and URL-relative examples. Use `load` for menus that need its active-route output or instructions that target particular viewports.
 
-3. **Path Generation**:
-   - Generate URLs for routes without navigating
-   - Useful for conditional navigation and dynamic link building
+## Path syntax
 
-Choose the method that best fits your use case:
+The `load` and router-managed `href` attributes, `IRouter.load()`, and `IContextRouter.load()` accept routing instructions:
 
-| Use Case | Best Method | Example |
-|----------|-------------|---------|
-| Simple navigation links | `href` | `<a href="about">About</a>` |
-| Links with parameters | `load` with params | `<a load="route: user; params.bind: {id: userId}">User</a>` |
-| Conditional navigation | `IRouter.load()` | `if (canAccess) router.load('admin')` |
-| Navigation with query params | `IRouter.load()` with options | `router.load('search', { queryParams: { q: 'term' }})` |
-| Context-aware navigation | `IContextRouter.load()` | `contextRouter.load('details/42')` |
-| Dynamic link generation | `router.generatePath()` | `const url = await router.generatePath({ component: 'user', params: { id: userId } })` |
+| Instruction | Meaning |
+| --- | --- |
+| `/path` | Select the application routing root, then resolve `path`. |
+| `path` or `./path` | Resolve `path` in the current routing context. |
+| `../path` | Select the parent routing context, then resolve `path`. Each additional leading `../` selects another ancestor; ascent stops at the root. |
+| `..` or `../` | Select the parent context and its default route. |
+| `path1+path2` | Load sibling routes into available viewports in the selected context. |
+| `path@viewportName` | Target a named viewport, as in `products@list+details/42@details`. |
+
+Each routed component establishes a routing context. A route configured as `items/:id/details`, for example, consumes three URL segments while creating one context. `../` in `load` climbs a context; `../` in `navigate` follows URL-segment rules.
 
 ## Using the `href` custom attribute
 
-You can use the `href` custom attribute with an `a` (anchor) tag, with a string value.
-When the users click this link, the router performs the navigation.
-This can be seen in action in the live example below.
+The router-managed `href` attribute accepts a string instruction on an anchor. It resolves that instruction in the link's owning context and writes its browser URL. A normal click navigates through the router.
 
 {% embed url="https://stackblitz.com/edit/router-lite-getting-started?ctl=1&embed=1&file=src/main.ts" %}
 
-The example shows that there are two configured routes, `home` and `about`, and in markup there are two anchor tags that points to these routes.
-Clicking those links the users can navigate to the desired components, as it is expected.
+Here, both links resolve against routes configured by `MyApp`:
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -88,14 +79,11 @@ export class MyApp {}
 {% endtab %}
 {% endtabs %}
 
-You can also use the parameterized routes with the `href` attribute, exactly the same way.
-To this end, you need to put the parameter value in the path itself and use the parameterized path in the `href` attribute.
-This is shown in the example below.
+For a parameterized path, the instruction includes the parameter value:
 
 {% embed url="https://stackblitz.com/edit/router-lite-href-with-bound-parameter?ctl=1&embed=1&file=src/my-app.ts" %}
 
-The example shows two configured routes; one with an optional parameter.
-The markup has three anchor tags as follows:
+This route accepts both `about` and `about/42`:
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -130,18 +118,17 @@ export class MyApp {}
 {% endtab %}
 {% endtabs %}
 
-The last `href` attribute is an example of a parameterized route.
+The last link supplies `42` as the route's `id` parameter.
 
 ### Using route-id
 
-While configuring routes, an [`id` for the route](./configuring-routes.md#advanced-route-configuration-options) can be set explicitly.
-This `id` can also be used with the `href` attribute.
-This is shown in the example below.
+Give a route an explicit [`id`](./configuring-routes.md#advanced-route-configuration-options) to use that ID in the `href` attribute.
+
+An ID can take precedence over a matching literal path. Avoid giving one route an ID that is a different route's path in the same context. Development warning [AUR3179](../developer-guides/error-messages/router/aur3179.md) reports single-segment collisions the router can identify. The ID still takes precedence.
 
 {% embed url="https://stackblitz.com/edit/router-lite-href-route-id?ctl=1&embed=1&file=src/my-app.ts" %}
 
-Note that the example set a route id that is different than the defined path.
-These route-ids are later used in the markup as the values for the `href` attributes.
+This example gives each route an ID that differs from its path. The links use those IDs as their `href` values.
 
 {% tabs %}
 {% tab title="my-app.ts" %}
@@ -245,18 +232,17 @@ If the target route expects parameters, `href` cannot pass them as a separate ob
 
 ### Targeting viewports
 
-You can target [named](./viewports.md#named-viewports) and/or [sibling](./viewports.md#sibling-viewports) viewports.
-To this end, you can use the following syntax.
+The syntax for targeting [named](./viewports.md#named-viewports) or [sibling](./viewports.md#sibling-viewports) viewports is:
 
 ```
 {path1}[@{viewport-name}][+{path2}[@{sibling-viewport-name}]]
 ```
 
-The following live example, demonstrates that.
+The live example uses these instructions to load a product list and its details.
 
 {% embed url="https://stackblitz.com/edit/router-lite-named-sibling-viewport-href?ctl=1&embed=1&file=src/my-app.html" %}
 
-The example shows the following variations.
+Its links show how each instruction selects a viewport:
 
 ```html
 <!-- Load the products' list in the first viewport and the details in the second viewport -->
@@ -273,7 +259,7 @@ The example shows the following variations.
 <a href="details/${id}@details">Load details/${id}@details</a>
 ```
 
-Note that using the viewport name in the routing instruction is optional and when omitted, the router uses the first available viewport.
+When the instruction omits a viewport name, the router uses the first available viewport.
 
 ### Passing component params in the instruction string
 
@@ -281,7 +267,7 @@ When you use the string-based route expression syntax (for example in `href`, `l
 
 ```html
 <a href="users(id=42)">User 42</a>
-<a href="products@list(category=shoes)+details@details(id=42)">Shoes</a>
+<a href="products(category=shoes)@list+details(id=42)@details">Shoes</a>
 ```
 
 This is equivalent to passing `params` via an object instruction:
@@ -292,14 +278,13 @@ router.load({ component: 'users', params: { id: '42' } });
 
 Notes:
 
-- Parameter values are strings and are URL-decoded.
+- Named parameter values are URL-decoded. Prefer structured `params` for dynamic values that need escaping.
 - Named params use `key=value` pairs (for example `users(id=42,tab=settings)`).
 - Positional params are also supported (for example `users(42)`), but named params are recommended for clarity.
 
 ### Navigate in current and ancestor routing context
 
-The navigation using `href` attribute always happens in the current routing context; that is, the routing instruction will be successful if and only the route is configured in the current routing parent.
-This is shown in the example below.
+The `href` attribute starts in the routing context that owns the link. A leading `/` or `../` changes that selection before the router resolves the route. The following example shows why the owning context matters.
 
 {% embed url="https://stackblitz.com/edit/router-lite-hierarchical-viewport-2mcxwj?ctl=1&embed=1&file=src/main.ts" %}
 
@@ -307,9 +292,11 @@ This is shown in the example below.
 {% tab title="my-app.ts" %}
 ```typescript
 import { route } from '@aurelia/router';
+import { customElement } from '@aurelia/runtime-html';
 import { ChildOne } from './child1';
 import { ChildTwo } from './child2';
 import { NotFound } from './not-found';
+import template from './my-app.html?raw';
 
 @route({
   routes: [
@@ -398,62 +385,56 @@ export class ChildTwo {}
 {% endtab %}
 {% endtabs %}
 
-In the example, the root component has two child-routes (`c1`, `c2`) and every child component in turn has 2 child-routes (`gc11`, and `gc12` and `gc21`, and `gc22` respectively) of their own.
-In this case, any `href` pointing to any of the immediate child-routes (and thus configured in the current routing parent) works as expected.
-However, when an `href`, like below (refer `child1.ts`), is used to navigate from one child component to another child component, it does not work.
+The root component configures `c1` and `c2`. Each has its own children: `c1` configures `gc11` and `gc12`, and `c2` configures `gc21` and `gc22`. Links in each component resolve against its own child routes.
+
+In `child1.ts`, the following link cannot reach `c2` because the root component owns that route:
 
 ```html
  <a href="c2">c2 (doesn't work)</a>
 ```
 
-In such cases, the router offers the following syntax to make such navigation possible.
+Select the parent context with `../` to reach `c2`:
 
 ```html
 <a href="../c2">../c2 (works)</a>
 ```
 
-That is, you can use `../` prefix to instruct the router to point to the parent routing context.
-The prefix can also be used multiple times to point to any ancestor routing context.
-Naturally, this does not go beyond the root routing context.
+Each additional `../` selects another ancestor context, up to the root.
 
-Contextually, note that the [example involving route-id](#using-route-id) also demonstrates the behavior of navigating in the current context.
-In that example, the root component uses `r1`, and `r2` as route identifiers, which are the same identifiers used in the children to identify their respective child-routes.
-The route-ids are used in the markup with the `href` attributes.
-Despite being the same route-ids, the navigation works because unless specified otherwise, the routing instructions are constructed under the current routing context.
+The [route-ID example](#using-route-id) uses this same rule. The root and child components each define routes with IDs `r1` and `r2`. Each link resolves the ID in its own context, so the components can reuse those IDs.
 
 ### Bypassing the `href` custom attribute
 
-By default the router enables usage of the `href` custom attribute, as that ensures that the router handles the routing instructions by default.
-There might be cases, where you want to avoid that.
-If you want to globally deactivate the usage of `href`, then you can customize the router configuration by setting `false` to the [`useHref` configuration option](./router-configuration.md#enable-or-disable-the-usage-of-the-href-custom-attribute-using-usehref).
+Use `external` (or `data-external`) to let the browser follow a relative or root-relative `href` directly:
 
-To disable/bypass the default handling of router for any particular `href` attribute, you can avail couple of different ways as per your need and convenience.
+```html
+<a href="/downloads/guide.pdf" external>Download the guide</a>
+<a href="../help.html" external>Help document</a>
+```
 
-- Point the `href` to an absolute or protocol URL such as `https://`, `mailto:`, `tel:`, `ftp:`, or a protocol-relative value like `//cdn.example.com`. The router automatically treats any value that the [`URL`](https://developer.mozilla.org/docs/Web/API/URL/URL) constructor can parse without a base as external, including custom schemes such as `myapp:deep-link`.
-- Using `external` or `data-external` attribute on the `a` tag for any other cases that should bypass the router.
-- Using a non-null value for the `target`, other than the current window name, or `_self`.
+Full URLs and schemes such as `https:`, `mailto:`, `tel:`, and protocol-relative `//example.com/path` are treated as external automatically. This includes an absolute URL to the same origin.
 
-Other than that, when clicking the link if either of the `alt`, `ctrl`, `shift`, `meta` key is pressed, the router ignores the routing instruction and the default handling of clicking a link takes place.
+Setting [`useHref: false`](./router-configuration.md#enable-or-disable-the-usage-of-the-href-custom-attribute-using-usehref) disables click interception by the router-managed `href` attribute. The attribute still resolves routing instructions and writes their generated URLs. Use `external` to preserve the authored native URL as well.
 
-Following example demonstrate these options.
+For router-generated links, the browser handles modified clicks, non-primary mouse buttons, `download`, and a `target` other than `_self` or the current window name. A click already canceled with `preventDefault()` is also left alone. These rules affect who handles the click; they do not turn a contextual instruction into a native relative URL.
+
+Choose one routing attribute per element. Do not combine `url` with `load` or a router-managed `href` attribute.
+
+The following example demonstrates these options.
 
 {% embed url="https://stackblitz.com/edit/router-lite-bypassing-href?ctl=1&embed=1&file=src/my-app.html" %}
 
 ## Using the `load` custom attribute
 
-Although the usage of `href` is the most natural choice, it has some limitations.
-Firstly, it allows navigating in the [current routing context](#navigate-in-current-routing-context).
-However, a bigger limitation might be that the `href` allows usage of only string values.
-This might be bit sub-optimal when the routes have parameters, as in that case you need to know the order of the  parameterized and static segments etc. to correctly compose the string path.
-In case the order of those segments are changed, it may cause undesired or unexpected results if your application.
+The `load` attribute expresses navigation owned by a route context. It accepts route IDs, paths, component classes, and structured viewport instructions. It can also bind route parameters, select a different context, and expose whether its destination is active.
 
-To support structured way to constructing URL the router offers another alternative namely the `load` attribute.
-This custom attribute accepts structured routing instructions as well as string-instructions, just like the `href` attribute.
-Before starting the discussion on the features supported exclusively by the `load` attribute, let us quickly review the following example of using string-instructions with the `load` attribute.
+Use a route ID with a parameter object when a link should follow a configured route even if its path pattern changes.
+
+First, the example below carries the familiar string instructions from `href` over to `load`. The following section adds parameter binding.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
 
-The example shows various instances of `load` attribute with various string instructions.
+These links pass string instructions to `load`:
 
 ```html
 <!-- my-app.html -->
@@ -469,18 +450,15 @@ The example shows various instances of `load` attribute with various string inst
 <a load="../c2">../c2</a>
 ```
 
-The following sections discuss the various other ways routing instruction can be used with the `load` attribute.
+The following sections cover parameters, component classes, and other options for `load`.
 
 ### Binding the route-`params`
 
-Using the bindable `params` property in the `load` custom attribute, you can bind the parameters for a parameterized route.
-The complete URL is then constructed from the given route and the parameters.
-Following is an example where the route-id is used with bound parameters.
+Bind `params` to supply a route's parameters. The router builds the URL from the route and those values. This example combines a route ID with bound parameters:
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-params?ctl=1&embed=1&file=src/my-app.html" %}
 
-The example above configures a route as follows.
-The route-id is then used in the markup with the bound `params`, as shown in the example below.
+The route has several path patterns. Each link supplies the route ID and a different set of parameters:
 
 {% tabs %}
 {% tab title="my-app.ts" %}
@@ -520,46 +498,32 @@ export class MyApp {}
 {% endtab %}
 {% endtabs %}
 
-An important thing to note here is how the URL paths are constructed for each URL.
-Based on the given set of parameters, a path is selected from the configured set of paths for the route, that maximizes the number of matched parameters at the same time meeting the parameter constraints.
+The router chooses the path pattern that matches the most supplied parameters while satisfying that pattern's constraints.
 
-For example, the third instance (params: `{p1: 4, p3: 5}`) creates the path `/c2/4/foo/?p3=5` (instance of `'c2/:p1/foo/:p2?'` path) even though there is a path with `:p3` configured.
-This happens because the bound parameters-object is missing the `p2` required parameter in the path pattern `'c2/:p1/foo/:p2/bar/:p3'`.
-Therefore, it constructs the path using the pattern `'c2/:p1/foo/:p2?'` instead.
+For example, the third link supplies `{p1: 4, p3: 5}`. The pattern `'c2/:p1/foo/:p2/bar/:p3'` requires `p2`, so it cannot match. The router uses `'c2/:p1/foo/:p2?'` and puts the unused `p3` in the query: `/c2/4/foo/?p3=5`.
 
-In other case, the fourth instance provides a value for `p2` as well as a value for `p3` that results in the construction of path `/c2/6/foo/7/bar/8` (instance of `'c2/:p1/foo/:p2/bar/:p3'`).
-This case also demonstrates the aspect of "maximization of parameter matching" while path construction.
+The fourth link also supplies `p2`. Now `'c2/:p1/foo/:p2/bar/:p3'` matches all three parameters, producing `/c2/6/foo/7/bar/8`.
 
-One last point to note here is that when un-configured parameters are included in the `params` object, those are converted into query string.
+Parameters that are not consumed by the selected path become query parameters.
+
+Pass parameter values in their original form. For example, `{ key: 'draft(100%)' }` belongs in `params`; do not call `encodeURIComponent` first. The router encodes structured values for the URL and restores the original value when the address is opened again. See [reserved characters](./route-expression-syntax.md#reserved-characters) when authoring a literal instruction or static route path.
 
 ### Binding to a different DOM attribute
 
-The `load` custom attribute exposes an `attribute` bindable that defaults to `href`. Whatever attribute name you supply becomes the target for the generated URL (or instruction object), while routing still works because the `load` behavior listens for clicks on the host element rather than relying on `href`.
+By default, `load` writes the generated browser URL to `href`. Its `attribute` bindable can select another attribute, or a property on a custom element. Put that setting inside the `load` multi-binding value:
 
 ```html
-<!-- Drive aria-controls with the generated URL -->
-<button
-  load="route: settings"
-  attribute="aria-controls"
-  aria-controls="">
-  Open settings
-</button>
-
-<!-- Expose the resolved path for analytics -->
-<button
-  load="route: reports; params.bind: { year: selectedYear }"
-  attribute="data-route"
-  data-route="">
+<button type="button"
+        load="route: reports; params.bind: { year: selectedYear }; attribute: data-route">
   View report
 </button>
 ```
 
-When these elements bind, the router will set `aria-controls="/settings"` on the first button and `data-route="/reports/2024"` (or similar) on the second. Because click handling is managed by `load`, you can still navigate with buttons, spans, or any element that makes sense for your UI, and the `active.bind` flag remains available no matter which attribute you choose.
+This writes the URL to `data-route` and lets `load` handle the button's click. Use anchors with the default `href` for ordinary navigation so the browser can offer link actions. A generated URL is not an element ID and should not be used as `aria-controls`.
 
 ### Using the route view-model class as `route`
 
-The bindable `route` property in the `load` attribute supports binding a class instead of route-id.
-The following example demonstrates [the `params`-example](#binding-the-route-params) using the classes (`child1`, `child2`) directly, instead of using the route-id.
+The `route` property also accepts a view-model class. Here is the [parameter-binding example](#binding-the-route-params) using `child1` and `child2` directly:
 
 ```typescript
 // my-app.ts
@@ -588,40 +552,33 @@ You can see this in action below.
 
 ### Customize the routing context
 
-Just like the `href` attribute, the `load` attribute also supports navigating in the [current routing context](#navigate-in-current-and-ancestor-routing-context) by default.
-The following example shows this where the root component has two child-routes with `r1` and `r2` route-ids and the child-components in turn defines their own child-routes using the same route-ids.
-The `load` attributes also use the route-ids as routing instruction.
-The routing works in this case, because the routes are searched in the same routing context.
+Like `href`, `load` starts in the [current routing context](#navigate-in-current-and-ancestor-routing-context). In this example, the root and child components each configure routes with IDs `r1` and `r2`. Their `load` links resolve those IDs within the context that owns each link.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-current-context?ctl=1&embed=1&file=src/my-app.ts" %}
 
-However, this default behavior can be changed by binding the `context` property of the `load` custom attribute explicitly.
-To this end, you need to bind the instance of `IRouteContext` in which you want to perform the navigation.
-The most straightforward way to select a parent routing context is to use the `parent` property of the `IRouteContext`.
-The current `IRouteContext` can be injected using the `resolve(IRouteContext)`.
-Then one can use `context.parent`, `context.parent?.parent` etc. to select an ancestor context.
+To navigate in another context, bind an `IRouteContext` instance to the `context` property. Resolve the current context with `resolve(IRouteContext)`, then use `context.parent` or `context.parent?.parent` to select an ancestor:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
+import { IRouteContext } from '@aurelia/router';
 
 export class ChildOne {
-  private readonly parentCtx: IRouteContext = resolve(IRouteContext).parent;
+  readonly parentCtx = resolve(IRouteContext).parent;
 }
 ```
-Such ancestor context can then be used to bind the `context` property of the `load` attribute as follows.
+Bind the selected context to `load`:
 
 ```html
 <a load="route: r2; context.bind: parentCtx">c2</a>
 ```
 
-The following live example demonstrate this behavior.
+The following live example demonstrates this behavior.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-parent-context?ctl=1&embed=1&file=src/child1.ts" %}
 
-Note that even though the `ChildOne` defines a route with `r2` route-id, specifying the `context` explicitly, instructs the router to look for a route with `r2` route-id in the parent routing context.
+This link looks up `r2` in the parent context. The `r2` route defined by `ChildOne` does not affect it.
 
-Using the `IRouteContext#parent` path to select the root routing context is somewhat cumbersome when you intend to target the root routing context.
-For convenience, the router supports binding `null` to the `context` property which instructs the router to perform the navigation in the root routing context.
+Bind `null` to select the root context directly:
 
 ```html
 <a load="route: r2; context.bind: null">Go to root c2</a>
@@ -631,9 +588,7 @@ This is shown in the following example.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nullroot-context?ctl=1&embed=1&file=src/child1.ts" %}
 
-When the route context selection involves only ancestor context, then the `../` prefix can be used when using string instruction.
-This also works when using the route-id.
-The following code snippets shows, how the previous example can be written using the `../` prefix.
+For a string instruction, a leading `../` selects the parent context. It works with route IDs too:
 
 
 ```html
@@ -643,8 +598,7 @@ The following code snippets shows, how the previous example can be written using
 
 ### `active` status
 
-When using the `load` attribute, you can also leverage the bindable `active` property which is `true` whenever the associated route, bound to the `href` is active.
-In the following example, when a link in clicked and thereby the route is activated, the `active*` properties are bound from the views to `true` and thereby applying the `.active`-CSS-class on the `a` tags.
+The `active` property reports whether the link's instruction is active in its selected context. Bind it from the attribute to style links or set `aria-current`:
 
 ```html
 <style>
@@ -671,36 +625,40 @@ This can also be seen in the live example below.
 
 
 {% hint style="info" %}
-Note that the [navigation model](./navigation-model.md) also offers a [`isActive` property](./navigation-model.md#using-the-isactive-property).
+The [navigation model](./navigation-model.md) also offers an [`isActive` property](./navigation-model.md#using-the-isactive-property).
 {% endhint %}
 
 ### "active" CSS class
 
-The `active` bindable can be used for other purposes, other than adding CSS classes to the element.
-However, if that's what you need mostly the `active` property for, you may choose to configure the [`activeClass` property](./router-configuration.md#configure-active-class) in the router configuration.
-When configured, the `load` custom attribute will add that configured class to the element when the associated routing instruction is active.
+To add a CSS class to active links, set [`activeClass`](./router-configuration.md#configure-active-class) in the router configuration. The `load` attribute adds that class whenever its instruction is active. Use the `active` bindable when you also need the status for other bindings.
 
 ## Using the Router API
 
-Along with the custom attributes on the markup-side, the router also offers the `IRouter#load` method that can be used to perform navigation, with the complete capabilities of the JavaScript at your disposal.
-To this end, you have to first inject the router into your component.
-This can be done by using the `IRouter` decorator on your component constructor method as shown in the example below.
+Use `IContextRouter` for navigation owned by a routed component, or `IRouter` for application-root navigation. Resolve either service through Aurelia's dependency injection:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
-import { IRouter, RouteableComponent } from '@aurelia/router';
+import { IContextRouter, IRouter } from '@aurelia/router';
 
-export class MyComponent {
-  private readonly router: IRouter = resolve(IRouter);
+export class DetailsPage {
+  private readonly contextRouter = resolve(IContextRouter);
+  private readonly router = resolve(IRouter);
+
+  openSettings() {
+    return this.contextRouter.load('../settings');
+  }
+
+  openHome() {
+    return this.router.load('home');
+  }
 }
 ```
 
-Now you are ready to use the `load` method, with many supported overloads at your disposal.
-These are outlined below.
+The root router also provides [`navigate()`](./application-url-navigation.md) for application URL references. Its relative references use the last completed location, irrespective of the component making the call.
 
 ### Using string instructions
 
-The easiest way to use the `load` method is to use the paths directly.
+Pass a path directly to `load`:
 
 ```typescript
 router.load('c1')
@@ -710,19 +668,15 @@ router.load('c1+c2')
 router.load('c1@vp2+c2@vp1')
 ```
 
-With respect to that, this method supports the string instructions supported by the `href` and the `load` attribute.
-This is also shown in the example below.
+The method accepts the same string instructions as the `href` and `load` attributes:
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouter-load-string-instructions?ctl=1&embed=1&file=src/my-app.html" %}
 
 #### Choose the routing context for `router.load()`
 
-Unlike `<a href>` or `<a load>`, calling `router.load()` always evaluates instructions inside the **root** routing context unless you pass a `context` navigation option.
-Therefore relative paths such as `../1` will throw `UnknownRouteError: AUR3401 ... did you forget to add '..1' to the routes list of 'root'?` because the router tries to resolve them at the top-level.
-Declarative navigation succeeds because the `<a load>` custom attribute implicitly binds its `context` to the component's own `IRouteContext`.
+`IRouter.load()` starts at the root unless you supply a `context`. `IContextRouter.load()` starts at its bound context. Template `load` and router-managed `href` attributes use the context that owns the link.
 
-To make programmatic navigation behave the same way, inject both `IRouter` and `IRouteContext` and pass that context explicitly.
-This pattern keeps reusable routed components self-contained.
+You can select a context explicitly when navigation is owned somewhere other than the caller:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -732,55 +686,53 @@ export class WizardStep {
   private readonly router = resolve(IRouter);
   private readonly routeContext = resolve(IRouteContext);
 
-  async previousStep() {
-    await this.router.load('../1', { context: this.routeContext });
+  previousStep() {
+    return this.router.load('../1', { context: this.routeContext });
   }
 
-  async goToStep(stepNumber: number) {
-    await this.router.load(`../${stepNumber}`, { context: this.routeContext });
+  exitWizard() {
+    return this.router.load('dashboard', { context: null });
   }
 }
 ```
 
-When you need to bubble navigation further up (for example leaving the wizard), walk the `parent` chain or set `context` to `null` to opt into the root router explicitly.
+Leading `../` prefixes are evaluated from the chosen context. Selecting `routeContext.parent` and then passing `../settings` climbs again. Ascent stops at the root, where the router looks up the remaining instruction.
 
-```typescript
-async exitWizard() {
-  await this.router.load('../../dashboard', {
-    context: this.routeContext.parent ?? null,
-  });
-}
-```
-
-Passing `context: this` is also supported because the router can derive the owning context from the view-model instance, but resolving `IRouteContext` keeps the code portable when the component is reused in different hierarchies or instantiated outside of routing.
+A component instance, controller, or host element can also supply the context. For example, `router.load('details', { context: this })` uses the owning context of that view model.
 
 #### Use `IContextRouter` for context-aware navigation
 
-If you frequently call `router.load()` with the `context` option, inject `IContextRouter` instead. The context router wraps the root `IRouter` together with the component's current `IRouteContext`, so every overload of `load()` automatically behaves like `router.load(..., { context: currentContext })` and relative instructions such as `../details` or `gc2` always resolve correctly.
+`IContextRouter` gives a routed component the same starting context as its template links:
 
-```ts
-import { lazy, resolve } from '@aurelia/kernel';
+```typescript
+import { resolve } from '@aurelia/kernel';
 import { IContextRouter } from '@aurelia/router';
 
-export class MyCustomElement {
-  // Inject IContextRouter when not in AppRoot.
-  private readonly contextRouter = resolve(IContextRouter);
+export class WizardStep {
+  private readonly router = resolve(IContextRouter);
 
-  // Or use `lazy` when injecting to AppRoot.
-  private readonly getContextRouter = resolve(lazy(IContextRouter));
-
-  async loadChild(id: string) {
-    await this.contextRouter.load(`details/${id}`);
-  }
-
-  async activateSibling() {
-    await this.getContextRouter().load('../summary');
+  previousStep() {
+    return this.router.load('../1');
   }
 }
 ```
 
-An array of paths (string) can be used to load components into sibling viewports.
-The paths can be parameterized or not non-parameterized.
+It supports the same instruction forms and navigation options as `IRouter.load()`. An explicit `context` option overrides its bound context. For the app root, use `IRouter`, or resolve `IContextRouter` lazily after the root routing context has been established:
+
+```typescript
+import { lazy, resolve } from '@aurelia/kernel';
+import { IContextRouter } from '@aurelia/router';
+
+export class MyApp {
+  private readonly getRouter = resolve(lazy(IContextRouter));
+
+  openReports() {
+    return this.getRouter().load('reports');
+  }
+}
+```
+
+Pass an array of paths to load sibling viewports, with one instruction per viewport:
 
 ```typescript
 router.load(['c1', 'c2']);
@@ -793,12 +745,11 @@ This is shown in the example below.
 
 ### Using non-string routing instructions
 
-The `load` method also support non-string routing instruction.
+The `load` method also accepts components and structured instructions.
 
 **Using custom elements**
 
-You can use the custom element classes directly for which the routes have been configured.
-Multiple custom element classes can be used in an array to target sibling viewports.
+Pass a custom element class that has a configured route. An array of classes targets sibling viewports:
 
 ```typescript
 router.load(ChildOne);
@@ -813,8 +764,7 @@ This can be seen in action in the live example below.
 
 **Using custom element definitions**
 
-You can use the custom element definitions for which routes have been configured.
-Multiple definitions can be used in an array to target sibling viewports.
+You can also pass custom element definitions with configured routes, individually or in an array for sibling viewports:
 
 ```typescript
 import { CustomElement } from '@aurelia/runtime-html';
@@ -837,8 +787,7 @@ This can be seen in action in the live example below.
 
 **Using a function to return the view-model class**
 
-Similar to [route configuration](./configuring-routes.md#using-a-function-returning-the-class), for `load` you can use a function that returns a class as routing instruction.
-This looks like as follows.
+As in [route configuration](./configuring-routes.md#using-a-function-returning-the-class), `load` accepts a function that returns a view-model class:
 
 ```typescript
 router.load(() => ChildOne);
@@ -853,8 +802,7 @@ This can be seen in action in the live example below.
 
 **Using `import()`**
 
-Similar to [route configuration](./configuring-routes.md#using-inline-import), for `load` you can use an `import()` statement to import a module.
-This looks like as follows.
+As in [route configuration](./configuring-routes.md#using-inline-import), `load` accepts an `import()` call:
 
 ```typescript
 router.load(import('./child1'));          // uses the default or first non-default import
@@ -868,7 +816,7 @@ This can be seen in action in the live example below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-import?ctl=1&embed=1&file=src/child2.ts" %}
 
-Note that because invoking the `import()` function returns a promise, you can also use a promise directly with the `load` function.
+An `import()` call returns a promise, which you can also pass directly to `load`:
 
 ```typescript
 router.load(Promise.resolve({ ChildOne }));
@@ -876,10 +824,7 @@ router.load(Promise.resolve({ ChildOne }));
 
 **Using a viewport instruction**
 
-Any kind of routing instruction used for the `load` method is converted to a viewport instruction tree.
-Therefore, you can also use a (partial) viewport instruction directly with the `load` method.
-This offers maximum flexibility in terms of configuration, such as routing parameters, viewports, children etc.
-Following are few examples, how the viewport instruction API can be used.
+The router converts every `load` instruction into a viewport instruction tree. You can supply a partial viewport instruction directly to set parameters, choose a viewport, or navigate to children:
 
 ```typescript
 // using a route-id
@@ -920,14 +865,11 @@ This can be seen in the example below.
 
 ### Using navigation options
 
-Along with using the routing instructions, the `load` method allows you to specify different navigation options on a per-use basis.
-One of those, the `context`, you have already seen in the examples in the previous sections.
-This section describes other available options.
+The second argument to `load` supplies options for that navigation, including the `context` used in earlier examples.
 
 **`title`**
 
-The `title` property lets you override the document title for a single navigation.
-This looks like as follows.
+Set `title` to override the document title for a single navigation:
 
 ```typescript
 router.load(Home, { title: 'Some title' });
@@ -941,10 +883,7 @@ This can also be seen in the action below where a random title is generated ever
 
 **`titleSeparator`**
 
-As the name suggests, this provides a configuration option to customize the separator for the [title parts](./configuring-routes.md#setting-the-title).
-By default router uses `|` (pipe) as separator.
-For example if the root component defines a title `'Aurelia'` and has a route `/home` with title `Home`, then the resulting title would be `Home | Aurelia` when navigating to the route `/home`.
-Using this option, you can customize the separator.
+Set the separator between [title parts](./configuring-routes.md#setting-the-title). The default is `|` (pipe): a root title of `Aurelia` and a route title of `Home` produce `Home | Aurelia`. To change it for one navigation:
 
 ```typescript
 router.load(Home, { titleSeparator: '-' });
@@ -958,8 +897,7 @@ This can also be seen in the action below where a random title separator is sele
 
 **`queryParams`**
 
-This option lets you specify an object to be serialized to a query string.
-This can be used as follows.
+Pass an object to serialize as the query string:
 
 ```typescript
 // the generated URL: /home?foo=bar&fizz=buzz
@@ -974,14 +912,13 @@ router.load(
 );
 ```
 
-This can be seen in the live example below.
+Query changes update `ICurrentRoute.query`, but do not by themselves rerun `loading()` on a reused component. If `loading()` owns the data refresh, supply `transitionPlan: 'invoke-lifecycles'` on that navigation. A route-level transition plan alone does not override same-path, same-parameter reuse. Alternatively, let the page react to the current query. See [application URL navigation](./application-url-navigation.md) for complete query-driven examples.
 
 {% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-query?ctl=1&embed=1&file=src/my-app.ts" %}
 
 **`fragment`**
 
-Like the `queryParams`, using the `fragment` option, you can specify the hash fragment for the new URL.
-This can be used as follows.
+The `fragment` option sets the route fragment, available on the `RouteNode` passed to routing lifecycle hooks. It does not automatically scroll to an element with that ID. The application owns any scrolling or focus behavior.
 
 ```typescript
 // the generated URL: /home#foobar
@@ -999,27 +936,18 @@ This can be seen in the live example below.
 
 **`context`**
 
-As by default, the `load` method performs the navigation relative to root context, when navigating to child routes, the context needs to be specified.
-This navigation option has also already been used in various examples previously.
-Various types of values can be used for the `context`.
-
-The easiest is to use the custom element **view model instance**.
-If you are reading this documentation sequentially, then you already noticed this.
-An example looks like as follows.
+`IRouter.load()` starts at the root by default. Supply a `context` to navigate relative to a component, as shown earlier. Several values can identify that context, starting with the component's **view-model instance**:
 
 ```typescript
 router.load('child-route', { context: this });
 ```
 
-Here is one of the previous example.
-Take a look at the `child1.ts` or `child2.ts` that demonstrates this.
+The `child1.ts` and `child2.ts` files in this example use their view-model instances:
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouter-load-string-instructions?ctl=1&embed=1&file=src/child1.ts" %}
 
 
-You can also use an **instance of `IRouteContext`** directly.
-One way to grab the instance of `IRouteContext` is to get it inject via `constructor` using `resolve(IRouteContext)`.
-An example looks like as follows.
+You can also supply an **`IRouteContext` instance**. Resolve it in the component's field initializer:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -1051,7 +979,7 @@ class GrandChildTwoTwo {}
   <au-viewport></au-viewport>`,
 })
 export class ChildTwo {
-  private id: string;
+  private id: string = '';
   private readonly router: IRouter = resolve(IRouter);
   // injected instance of IRouteContext
   private readonly context: IRouteContext = resolve(IRouteContext);
@@ -1077,8 +1005,7 @@ You can see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-iroutecontext?ctl=1&embed=1&file=src/child2.ts" %}
 
-Using a **custom element controller** instance is also supported to be used as a value for the `context` option.
-An example looks as follows.
+A **custom element controller** can also supply the context:
 
 ```typescript
 import { resolve } from '@aurelia/kernel';
@@ -1114,7 +1041,7 @@ class GrandChildOneTwo {}
 })
 export class ChildOne implements IHydratedCustomElementViewModel {
   // set by aurelia pipeline
-  public readonly $controller: ICustomElementController<this>;
+  public readonly $controller!: ICustomElementController<this>;
   private readonly router: IRouter = resolve(IRouter);
 
   private load(route: string, useCurrentContext: boolean = false) {
@@ -1135,34 +1062,30 @@ You can see this in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-controller?ctl=1&embed=1&file=src/child1.ts" %}
 
-And lastly, you can use the **HTML element** as context.
-Following is live example of this.
+This live example uses the component's **HTML element** as context:
 
 {% embed url="https://stackblitz.com/edit/router-lite-irouterload-context-element?ctl=1&embed=1&file=src/child1.ts" %}
 
 **historyStrategy**
 
-Using this navigation option, you can override the [configured history strategy](./router-configuration.md#configure-browser-history-strategy).
-Let us consider the example where three routes `c1`, `c2`, and `c3` are configured with the `push` history strategy.
-Let us also assume that the following navigation instructions have already taken place.
+Override the [configured history strategy](./router-configuration.md#configure-browser-history-strategy) for one navigation. Suppose routes `c1`, `c2`, and `c3` use `push`, and the user has visited `c1` followed by `c2`:
 
 ```typescript
 router.load('c1');
 router.load('c2');
 ```
 
-After this, if we issue the following instruction,
+Now navigate to `c3` with `replace`:
 
 ```typescript
 router.load('c3', { historyStrategy: 'replace' })
 ```
 
-then performing a `history.back()` should load the `c1` route, as the state for `c2` is replaced.
+Calling `history.back()` loads `c1`, because the entry for `c3` replaced `c2`.
 
 **transitionPlan**
 
-Using this navigation option, you can override the [configured transition plan](./transition-plans.md) per routing instruction basis.
-The following example demonstrates that even though the routes are configured with a specific transition plans, using the router API, the transition plans can be overridden.
+Override the [configured transition plan](./transition-plans.md) for one navigation. The options passed to `load` take precedence over the plans configured on these routes:
 
 ```typescript
 @route({
@@ -1217,10 +1140,7 @@ This can be seen in action below.
 
 ## Redirection and unknown paths
 
-For completeness it needs to be briefly discussed that apart from the explicit navigation instruction, there can be need to redirect the user to a different route or handle unknown routes gracefully.
-Other sections of the router documentation discusses these topics in detail.
-Hence these topics aren't repeated here.
-Please refer to the linked documentations for more details.
+To redirect a route or choose what users see for an unknown path, see:
 
 - [Redirection documentation](./configuring-routes.md#redirect-to-another-path)
 - Fallback using the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path)
@@ -1228,534 +1148,252 @@ Please refer to the linked documentations for more details.
 
 ## Checking or using the current route while navigating
 
-Sometimes, when navigating, you'll want to compare the route you're navigating to with the current one. This can help skip redundant navigations, read query parameters, or handle special cases. You can inject `ICurrentRoute` from `@aurelia/router` and compare it:
+`ICurrentRoute` describes the last completed navigation. Its `query` field gives you the parsed query parameters. Route fragments are available on the `RouteNode` passed to routing lifecycle hooks or the completed navigation event's `finalInstructions`. To check whether a contextual destination is active, use `IContextRouter.isActive()` or the `load` attribute's [`active` output](#active-status).
 
 ```typescript
-import { IRouter, ICurrentRoute } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
+import { ICurrentRoute, IContextRouter } from '@aurelia/router';
 
-export class MyApp {
-  private readonly router = resolve(IRouter);
-  private readonly currentRoute = resolve(ICurrentRoute);
+export class ReportsLayout {
+  readonly currentRoute = resolve(ICurrentRoute);
+  private readonly router = resolve(IContextRouter);
 
-  public navigateToAbout() {
-    if (this.currentRoute.path === 'about') {
-      console.log('Already on "about" page');
-      return;
-    }
-    this.router.load('about');
+  isOverviewActive() {
+    return this.router.isActive('overview');
   }
 
-  public logParams() {
-    // For example, you might want the existing query:
-    console.log('Query string is:', this.currentRoute.url.split('?')[1]);
+  get sortOrder() {
+    return this.currentRoute.query.get('sort') ?? 'name';
   }
 }
 ```
+
+During a routing lifecycle hook, the `next` route node supplies the incoming route's data. Read [current route](./current-route.md) for the distinction between pending and completed navigation.
 
 ## Advanced Navigation Patterns
 
 ### Error Handling and Navigation Guards Integration
 
-When using programmatic navigation, you should handle potential failures and integrate with navigation guards:
+A guard can cancel navigation by returning `false`. A thrown error rejects the navigation promise. Handle those outcomes separately; cancellation is not a request to fall back to a native browser navigation.
 
 ```typescript
-import { IRouter } from '@aurelia/router';
 import { resolve } from '@aurelia/kernel';
+import { IRouter } from '@aurelia/router';
 
-export class UserManagementComponent {
+export class UserManagement {
   private readonly router = resolve(IRouter);
+  navigationMessage = '';
 
-  async navigateToUser(userId: string) {
+  async openUser(id: string) {
+    this.navigationMessage = '';
     try {
-      const success = await this.router.load(`user/${userId}`);
-      if (!success) {
-        // Navigation was blocked by guards or failed
-        console.log('Navigation was blocked or failed');
-        this.showErrorMessage('Unable to access user profile');
-      }
+      const completed = await this.router.load({
+        component: 'user',
+        params: { id },
+      });
+      if (!completed) this.navigationMessage = 'Navigation was canceled.';
     } catch (error) {
-      console.error('Navigation error:', error);
-      this.router.load('error');
+      this.navigationMessage = 'The user page could not be opened.';
+      console.error(error);
     }
-  }
-
-  private showErrorMessage(message: string) {
-    // Your error handling logic
   }
 }
 ```
+
+Keep the call inside `try`, including when using `navigate()`: invalid input can throw before a transition is scheduled. See [error handling](./error-handling.md) for recovery and router events.
 
 ### Conditional Navigation with Permissions
 
-```typescript
-import { IRouter } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
-
-export class NavigationService {
-  private readonly router = resolve(IRouter);
-
-  async navigateWithPermissionCheck(route: string, requiredPermission: string) {
-    if (!this.hasPermission(requiredPermission)) {
-      await this.router.load('unauthorized');
-      return false;
-    }
-
-    try {
-      return await this.router.load(route);
-    } catch {
-      await this.router.load('error');
-      return false;
-    }
-  }
-
-  private hasPermission(permission: string): boolean {
-    // Your permission checking logic
-    return true;
-  }
-}
-```
+Put permission checks in the route's [`canLoad` guard](./routing-lifecycle.md), so they also apply to direct entry and other links. Hiding a menu item does not enforce access. To send the user elsewhere, return a redirect instruction from the guard.
 
 ### Navigation with State Preservation
 
+Use query parameters for state that should survive copying or bookmarking the URL. Use the `state` navigation option for data associated with a particular browser history entry:
+
 ```typescript
-export class SearchComponent {
-  private readonly router = resolve(IRouter);
-  private searchTerm: string = '';
-  private currentPage: number = 1;
-
-  async search(term: string) {
-    this.searchTerm = term;
-    this.currentPage = 1;
-
-    // Preserve search state in URL
-    await this.router.load('search', {
-      queryParams: {
-        q: term,
-        page: this.currentPage.toString(),
-      },
-    });
-
-    // Persist per-entry UI state by extending the current history entry.
-    // Always merge with the existing state so the router-managed `au-nav-id` stays intact.
-    window.history.replaceState(
-      {
-        ...(window.history.state ?? {}),
-        searchTerm: term,
-        timestamp: Date.now(),
-      },
-      document.title,
-    );
-  }
-
-  async nextPage() {
-    this.currentPage++;
-    await this.router.load('search', {
-      queryParams: {
-        q: this.searchTerm,
-        page: this.currentPage.toString(),
-      },
-      historyStrategy: 'replace' // Don't create new history entry
-    });
-  }
-}
+await router.load('search', {
+  queryParams: { q: searchTerm, page: 1 },
+  state: { returnFocusTo: 'search-input' },
+  transitionPlan: 'invoke-lifecycles',
+});
 ```
+
+The router stores your state alongside its own history metadata. Choose `historyStrategy: 'replace'` to update the current entry without adding a Back-button step. For query-only pagination that preserves existing filters and sort order, see [application URL navigation](./application-url-navigation.md).
 
 ### Dynamic Navigation Menu
 
-```typescript
-import { IRouter, ICurrentRoute } from '@aurelia/router';
-import { resolve } from '@aurelia/kernel';
+Use the [navigation model](./navigation-model.md) when a menu should reflect configured routes, or bind an application-owned list to `load`. Read each link's active status from the attribute:
 
-interface NavigationItem {
-  label: string;
-  route: string;
-  permission?: string;
-  params?: Record<string, unknown>;
-}
-
-export class NavigationMenuComponent {
-  private readonly router = resolve(IRouter);
-  private readonly currentRoute = resolve(ICurrentRoute);
-
-  private menuItems: NavigationItem[] = [
-    { label: 'Dashboard', route: 'dashboard' },
-    { label: 'Users', route: 'users', permission: 'users.read' },
-    { label: 'Settings', route: 'settings', permission: 'admin' },
-  ];
-
-  get visibleMenuItems() {
-    return this.menuItems.filter(item =>
-      !item.permission || this.hasPermission(item.permission)
-    );
-  }
-
-  async navigateToItem(item: NavigationItem) {
-    // Skip if already on this route
-    if (this.currentRoute.path === item.route) {
-      return;
-    }
-
-    await this.router.load(item.route, {
-      queryParams: item.params,
-      title: item.label
-    });
-  }
-
-  isActive(route: string): boolean {
-    return this.currentRoute.path === route;
-  }
-
-  private hasPermission(permission: string): boolean {
-    // Your permission checking logic
-    return true;
-  }
-}
+```html
+<nav aria-label="Reports">
+  <a repeat.for="item of items"
+     load="route.bind: item.route; params.bind: item.params; active.bind: item.active"
+     active.class="item.active"
+     aria-current.bind="item.active ? 'page' : null">
+    ${item.label}
+  </a>
+</nav>
 ```
 
 ### Navigation with Loading States
 
-```typescript
-export class AppComponent {
-  private readonly router = resolve(IRouter);
-  private isNavigating = false;
-  private navigationError: string | null = null;
-
-  async navigateWithLoadingState(route: string) {
-    this.isNavigating = true;
-    this.navigationError = null;
-
-    try {
-      const success = await this.router.load(route);
-      if (!success) {
-        this.navigationError = 'Navigation was blocked';
-      }
-    } catch (error) {
-      this.navigationError = `Navigation failed: ${error.message}`;
-    } finally {
-      this.isNavigating = false;
-    }
-  }
-}
-```
+For feedback covering all navigation sources, subscribe to [router events](./router-events.md). A flag around one `load()` call covers only that operation, not links or browser Back/Forward. Dispose event subscriptions when the owning component is disposed.
 
 ### Bulk Navigation Operations
 
-For applications that need to perform multiple navigation operations:
+To update sibling viewports together, supply an array of instructions in one navigation:
 
 ```typescript
-export class NavigationBatchService {
-  private readonly router = resolve(IRouter);
-  private navigationQueue: Array<{ route: string; options?: any }> = [];
+await contextRouter.load([
+  { component: 'reports', viewport: 'list' },
+  { component: 'report', params: { id: reportId }, viewport: 'detail' },
+]);
+```
 
-  queueNavigation(route: string, options?: any) {
-    this.navigationQueue.push({ route, options });
-  }
+The router guards and completes the array as one transition. Separate `load()` calls start separate navigations, even when you add delays between them.
 
-  async processNavigationQueue() {
-    const operations = this.navigationQueue.splice(0); // Clear queue
+## Path generation
+Generate a path when another part of the application needs a string representation of a contextual instruction. For a template link, passing the instruction directly to `load` is usually clearer: the attribute retains its selected context and writes the browser href for you.
 
-    for (const operation of operations) {
-      try {
-        await this.router.load(operation.route, operation.options);
-        // Small delay to prevent overwhelming the router
-        await new Promise(resolve => setTimeout(resolve, 50));
-      } catch (error) {
-        console.error(`Failed to navigate to ${operation.route}:`, error);
-      }
-    }
+Generated routing paths and browser hrefs have different uses. `generatePath()` and the route-context helpers omit the deployment base. [`createHref()`](./application-url-navigation.md) takes an application URL reference and returns a browser-ready href.
+
+### Router API
+
+`IRouter.generatePath()` begins at the root by default. Pass a context as its second argument, or use `IContextRouter.generatePath()` to begin at the component's context:
+
+```typescript
+const path = await router.generatePath({
+  component: 'user',
+  params: { id: 42 },
+});
+
+const childPath = await contextRouter.generatePath({
+  component: 'report',
+  params: { id: reportId },
+});
+```
+
+Route IDs, configured component classes, hierarchical instructions, and sibling instruction arrays are supported. Promise-valued components and navigation strategies cannot be used for eager path generation.
+
+```typescript
+const path = await router.generatePath([
+  { component: 'reports', viewport: 'list' },
+  { component: 'report', params: { id: 42 }, viewport: 'detail' },
+]);
+```
+
+### RouteContext API
+
+`IRouteContext` offers `generateRelativePath()` and `generateRootedPath()`. Each result must be used in the appropriate context, as shown below. A leading `/` alone does not tell you which context to use.
+
+#### Generate relative path using `generateRelativePath`
+
+Leading instruction prefixes select the context before generation. A leading `../` is consumed; it is not retained in the result.
+
+Suppose the active route is `/parent/c1`, and the parent configures `{ id: 'c2', path: 'child/:id', component: ChildTwo }`. From `c1`:
+
+```typescript
+import { resolve } from '@aurelia/kernel';
+import { IContextRouter, IRouteContext } from '@aurelia/router';
+
+export class ChildOne {
+  private readonly router = resolve(IContextRouter);
+  private readonly context = resolve(IRouteContext);
+
+  async openSibling() {
+    const path = await this.context.generateRelativePath({
+      component: '../c2',
+      params: { id: 42 },
+    });
+    // path is 'child/42': relative to the selected parent context.
+    return this.router.load(path, { context: this.context.parent });
   }
 }
 ```
 
-## Path generation
-The router supports generating paths eagerly for a given route or navigation instruction. Paths can be generated using the router as well as the route context.
+`contextRouter.generatePath()` and `router.generatePath(instruction, context)` follow the same rule. Replaying `child/42` from the original `c1` context would search the wrong route table.
 
-### Router API
+When generation is unnecessary, retain the authored instruction instead:
 
-A simple example looks like as follows.
-
-```typescript
-const path = await router.generatePath('route-id');
-```
-
-This will generate the path for the route with the id `route-id`.
-
-If the route has parameters, then the parameters can be passed as an object.
-
-```typescript
-const path = await router.generatePath({ component: 'route-id', params: { id: 42 } });
-```
-
-Other than route id, one can also use the custom element class or the custom element definition.
-
-{% hint style="warning" %}
-Note that path generation does not support a component that is a promise (e.g. `import()`) or an instance of [navigation strategy](./configuring-routes.md#using-a-navigation-strategy), as those are inherently of lazy nature.
-{% endhint %}
-
-Path generation is supported for hierarchical routing configurations and sibling viewports.
-Following are few examples.
-
-```typescript
-const childRoutePath = await router.generatePath({
-  component: 'parent',
-  params: { id: 42 },
-  children: [{ component: 'child1' }]
-});
-const siblingRoutePath = await router.generatePath([
-  { component: 'sibling1', viewport: 'vp1' },
-  { component: 'sibling2', viewport: 'vp2' },
-]);
-```
-
-Note that all routes are resolved, when said otherwise from the root routing context.
-To generate path relative to a specific routing context, the `context` (the second argument) can be used.
-
-```typescript
-const path = await router.generatePath('child-route-id', this /* context */);
-```
-
-{% hint style="info" %}
-For more information on the `context` argument, please refer the other examples ([href](#navigate-in-current-and-ancestor-routing-context), [load](#customize-the-routing-context), [router API](#using-navigation-options)) in this documentation.
-{% endhint %}
-
-### RouteContext API
-
-Using the `RouteContext` API, you can generate paths relative to a given routing context as well as produce a rooted path (relative to root routing context).
-To this end, you can use the `generateRelativePath` and `generateRootedPath` methods respectively.
-
-#### Generate relative path using `generateRelativePath`
-
-This method generates a path relative to the current routing context.
-
-```typescript
-private readonly routeContext: IRouteContext = resolve(IRouteContext);
-
-//...
-
-const path = await this.routeContext.generateRelativePath({ component: 'child' });
-```
-
-This example generates a path to the `child` route, relative to the current context.
-
-Using the `../` prefix, one can also generate path to a sibling route.
-
-```typescript
-private readonly routeContext: IRouteContext = resolve(IRouteContext);
-
-//...
-
-const path = await this.routeContext.generateRelativePath({ component: '../sibling' });
+```html
+<a load="route: ../c2; params.bind: { id: 42 }">Open sibling</a>
 ```
 
 #### Generated rooted path using `generateRootedPath`
 
-This method generates a rooted path; that is a path relative to the root routing context.
+`generateRootedPath()` includes the ancestor route path. Consume its result from the routing root:
 
 ```typescript
-private readonly routeContext: IRouteContext = resolve(IRouteContext);
-
-//...
-
-const path = await this.routeContext.generateRootedPath({ component: 'child' });
+const path = await routeContext.generateRootedPath({
+  component: '../c2',
+  params: { id: 42 },
+});
+await router.load(path); // router is IRouter, using its default root context
 ```
 
-This example generates a path to the `child` route, relative to the root context; assuming that the current node is `/p1/p2/c1` and the `this` is `p2`, result would be `p1/p2/child`.
+For the preceding example, the result is `parent/child/42` in history mode and `/#/parent/child/42` in hash mode. The history form is not slash-prefixed, and neither form includes the deployment base. Do not pass these values to `navigate()` as if they were application URL references.
+
+For a rooted generated path in a nested template:
+
+```html
+<a load="route.bind: rootedPath; context.bind: null">Open sibling</a>
+```
 
 #### Thumb rule
 
-- The path generated by the `generateRelativePath` can be used with either the `href` or the `load` attribute. As both uses the current routing context by default, the generated path is always relative to the current routing context.
-- When using the rooted paths, generated by the `generateRootedPath`, at non-root descendant components (child, grandchild etc.), use the `load` attribute with [`context.bind: null` (indicates root context)](#customize-the-routing-context) to navigate to the path. If you use the `href` attribute, then the path is always treated relative to the current routing context, which may not always be the root context (for example, when the `href` is used within a nested child component).
-
-{% hint style="info" %}
-Note that using parameters and/or nested children for path generation instructions are also supported by the `RouteContext` API, similar to the [`generatePath` method](#router-api).
-Those examples are avoided here for brevity.
-{% endhint %}
+Replay a generated relative path from the context selected during generation. Replay a generated rooted path from the root context. For a link in the current component, pass the original instruction to `load` or router-managed `href`; the attribute keeps the instruction and its context together.
 
 #### Aggregate parameters with `getRouteParameters`
 
-When a deeply nested component needs the value of the route parameters that were captured by parent routes, call `getRouteParameters()` on the resolved `IRouteContext`. The helper walks up the active route hierarchy, returning a frozen object where the nearest definition wins for duplicate keys. Pass `{ includeQueryParams: true }` to merge in any query-string values as well.
+`getRouteParameters()` collects parameters from the current context and its ancestors into a frozen snapshot. By default, the nearest route wins when names collide. Use `mergeStrategy: 'parent-first'` when ancestors should win, and `includeQueryParams: true` to include query values.
 
-```ts
-import { resolve } from '@aurelia/kernel';
-import { IRouteContext } from '@aurelia/router';
-
-const ctx = resolve(IRouteContext);
-const allParams = ctx.getRouteParameters({ mergeStrategy: 'parent-first', includeQueryParams: true });
-```
-
-```ts
+```typescript
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext } from '@aurelia/router';
 
 export class DetailsView {
-  private readonly params = resolve(IRouteContext)
-    .getRouteParameters<{ companyId: string; projectId: string; userId: string; detailId: string }>({
-      includeQueryParams: true,
-    });
+  private readonly context = resolve(IRouteContext);
+
+  get parameters() {
+    return this.context.getRouteParameters({ includeQueryParams: true });
+  }
 }
 ```
 
-Use `mergeStrategy: 'parent-first'` if you'd rather let ancestor segments win when duplicate parameter names show up.
+Read a new snapshot when a reused component needs the current parameters. A snapshot cached in a field initializer keeps the values from that initial read.
 
-Need the full lineage instead of a single winning value? Switch to `mergeStrategy: 'append'` for ordered arrays or `mergeStrategy: 'by-route'` to keep a per-route map of values keyed by the configured route id (falling back to the component path when no id is present).
+Use `mergeStrategy: 'append'` for arrays in ancestor-to-descendant order, or `'by-route'` for values grouped by route identifier:
 
-```ts
+```typescript
 const allValues = routeContext.getRouteParameters({ mergeStrategy: 'append' });
 // allValues.id -> ['parent', 'child']
 
 const byRoute = routeContext.getRouteParameters({ mergeStrategy: 'by-route' });
-// perRoute.id -> { 'company-route': 'parent', 'details-route': 'child' }
+// byRoute.id -> { 'company-route': 'parent', 'details-route': 'child' }
 ```
 
-Because the returned object uses the same identity for the lifetime of the navigation, you can safely cache it on the instance (as above) or read it on demand inside lifecycle hooks.
+See [route parameters](./route-parameters.md) for lifecycle timing and merge options.
 
 ## Best Practices and Common Patterns
 
+Use the [reference-point table](#navigation-methods-overview) to choose a navigation method. The following checks help verify the resulting experience.
+
 ### When to Use Each Navigation Method
 
-**Use `href` custom attribute when:**
-- Creating simple navigation links
-- Navigation doesn't require complex logic
-- You want standard browser link behavior (right-click, etc.)
-- Building static navigation menus
-
-**Use `load` custom attribute when:**
-- You need to bind parameters from your view model
-- You want to leverage the `active` property for styling
-- You need structured parameter binding
-- Working with dynamic route data
-
-**Use `IRouter.load()` method when:**
-- Navigation depends on business logic
-- You need error handling
-- Working with complex navigation flows
-- Implementing programmatic redirects
+Use contextual `load` links for layout menus and bind their active-route output for styling. Use `navigate` or `url` for destinations written as application URL references, such as a relative URL for paging. Link to other documents with a native `href`.
 
 ### Navigation Error Handling
 
-Always handle navigation failures gracefully:
-
-```typescript
-export class NavigationService {
-  private readonly router = resolve(IRouter);
-
-  async safeNavigate(route: string, options?: any): Promise<boolean> {
-    try {
-      const result = await this.router.load(route, options);
-
-      if (!result) {
-        // Navigation was blocked by guards
-        this.handleNavigationBlocked(route);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      this.handleNavigationError(error, route);
-      return false;
-    }
-  }
-
-  private handleNavigationBlocked(route: string) {
-    console.warn(`Navigation to ${route} was blocked`);
-    // Show user-friendly message or redirect to appropriate page
-  }
-
-  private handleNavigationError(error: any, route: string) {
-    console.error(`Navigation to ${route} failed:`, error);
-    // Log error, show error page, or attempt recovery
-  }
-}
-```
+Handle cancellation and exceptions separately. To retry a navigation, save the original instruction and its options; a path alone may omit data needed to reach the same destination. See [error handling](./error-handling.md) for complete examples.
 
 ### Performance Considerations
 
-1. **Prefer `href` for simple links** - Less overhead than programmatic navigation
-2. **Cache generated paths** when generating many URLs:
-
-```typescript
-export class LinkGeneratorService {
-  private readonly router = resolve(IRouter);
-  private readonly pathCache = new Map<string, string>();
-
-  async getPath(route: string, params?: any): Promise<string> {
-    const cacheKey = `${route}:${JSON.stringify(params)}`;
-
-    if (this.pathCache.has(cacheKey)) {
-      return this.pathCache.get(cacheKey)!;
-    }
-
-    const path = await this.router.generatePath({ component: route, params });
-    this.pathCache.set(cacheKey, path);
-    return path;
-  }
-}
-```
-
-3. **Batch multiple navigation operations** when possible to avoid router overwhelm
+Choose the API that resolves the destination from the right starting point. Update sibling viewports with one instruction array. If profiling shows path generation is significant, include the routing context and parameters in any cache key; the same route ID can mean different routes in different contexts.
 
 ### Accessibility Considerations
 
-When implementing custom navigation, maintain accessibility:
-
-```typescript
-export class AccessibleNavigationComponent {
-  private readonly router = resolve(IRouter);
-
-  async navigateWithAccessibility(route: string, announcement?: string) {
-    const success = await this.router.load(route);
-
-    if (success && announcement) {
-      // Announce navigation to screen readers
-      this.announceToScreenReader(announcement);
-    }
-  }
-
-  private announceToScreenReader(message: string) {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'sr-only'; // Screen reader only class
-    announcement.textContent = message;
-
-    document.body.appendChild(announcement);
-    setTimeout(() => document.body.removeChild(announcement), 1000);
-  }
-}
-```
+Use anchors for destinations and meaningful link text. Let `load` write the browser href, and expose the current page with `aria-current` where appropriate. After navigation, manage focus and announce changes according to the application's interaction design. A route fragment alone does not move focus or scroll.
 
 ### Testing Navigation
 
-When testing components with navigation:
-
-```typescript
-import { IRouter } from '@aurelia/router';
-
-describe('NavigationComponent', () => {
-  let mockRouter: jasmine.SpyObj<IRouter>;
-  let component: NavigationComponent;
-
-  beforeEach(() => {
-    mockRouter = jasmine.createSpyObj('IRouter', ['load', 'generatePath']);
-    // Set up component with mock router
-  });
-
-  it('should navigate to user profile', async () => {
-    mockRouter.load.and.returnValue(Promise.resolve(true));
-
-    await component.navigateToUser('123');
-
-    expect(mockRouter.load).toHaveBeenCalledWith('user/123');
-  });
-
-  it('should handle navigation failure', async () => {
-    mockRouter.load.and.returnValue(Promise.resolve(false));
-    spyOn(component, 'showErrorMessage');
-
-    await component.navigateToUser('123');
-
-    expect(component.showErrorMessage).toHaveBeenCalled();
-  });
-});
-```
+Test the reference point as well as the destination: a nested layout link should keep its target when a deeper page is active. For URLs meant to be shared, verify direct entry or reload and opening the rendered link in a new tab. Include guard cancellation and Back/Forward when navigation changes query-driven state. See [testing the router](./testing-guide.md) for fixtures and integration examples.

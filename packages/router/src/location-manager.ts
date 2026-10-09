@@ -29,6 +29,7 @@ export class BrowserLocationManager {
   /** @internal */ private readonly _window: IWindow = resolve(IWindow);
   /** @internal */ private readonly _baseHref: URL = resolve(IBaseHref);
   /** @internal */ private readonly _useUrlFragmentHash: boolean = resolve(IRouterOptions).useUrlFragmentHash;
+  /** @internal */ private readonly _preserveHashDocument: boolean = this._useUrlFragmentHash && resolve(IRouterOptions).preserveHashDocument;
   /** @internal */ private readonly _event: 'hashchange' | 'popstate' = this._useUrlFragmentHash ? 'hashchange' : 'popstate';
 
   public constructor() {
@@ -52,7 +53,10 @@ export class BrowserLocationManager {
       ++this._eventId,
       this.getPath(),
       this._event,
-      'state' in event ? event.state : null,
+      // HashChangeEvent has no state field. Capture the visited entry now,
+      // before queued navigation can replace it or another history visit occurs.
+      'state' in event ? event.state : this._history.state,
+      this._getRoutePath(),
     ));
   }
 
@@ -89,7 +93,26 @@ export class BrowserLocationManager {
     return this.removeBaseHref(`${pathname}${normalizeQuery(search)}${hash}`);
   }
 
+  /** @internal */
+  public _getRoutePath(): string {
+    // Native hash URLs already separate the document from the application
+    // route. Retain that boundary instead of reparsing an ambiguous scalar.
+    // A preserved document without a hash starts at the default route; its
+    // filename and document query are not application navigation instructions.
+    return this._useUrlFragmentHash && (this._preserveHashDocument || this._location.hash !== '')
+      ? normalizePath(this._location.hash.slice(1))
+      : this.getPath();
+  }
+
   public addBaseHref(path: string): string {
+    if (this._preserveHashDocument) {
+      // All publication paths share this policy, including initial navigation
+      // and links opened outside this app. The document query belongs to the
+      // host; assigning only the hash keeps it separate from route parameters.
+      const url = new URL(this._location.href);
+      url.hash = path.startsWith('/#') ? path.slice(2) : path;
+      return url.href;
+    }
     let fullPath: string;
 
     let base = this._baseHref.href;
@@ -127,9 +150,9 @@ export class BrowserLocationManager {
 export function normalizePath(path: string): string {
   let start: string;
   let end: string;
-  let index: number;
+  const index = path.search(/[?#]/);
 
-  if ((index = path.indexOf('?')) >= 0 || (index = path.indexOf('#')) >= 0) {
+  if (index >= 0) {
     start = path.slice(0, index);
     end = path.slice(index);
   } else {
@@ -212,6 +235,13 @@ export class ServerLocationManager {
 
   public getPath(): string {
     return normalizePath(this._path);
+  }
+
+  /** @internal */
+  public _getRoutePath(): string {
+    // Keep getPath's exported request-path contract. Router intake consumes
+    // the deployment prefix once through this explicit application-path seam.
+    return this.removeBaseHref(this.getPath());
   }
 
   public addBaseHref(path: string): string {

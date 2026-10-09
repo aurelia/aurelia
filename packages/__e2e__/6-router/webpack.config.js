@@ -22,7 +22,11 @@ module.exports = function () {
     devtool: false,
     devServer: {
       port: process.env.APP_PORT ?? 9006,
-      historyApiFallback: true
+      historyApiFallback: {
+        // The hash-document fixture must be served for a real HTML request,
+        // including new tabs and reloads, rather than only in-memory navigation.
+        rewrites: [{ from: /^\/url-navigation\/[^/]+\.html$/, to: '/index.html' }],
+      },
     },
     resolve: {
       extensions: ['.ts', '.js'],

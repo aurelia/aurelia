@@ -858,50 +858,65 @@ await tasksSettled();
 ### Route Configuration
 
 ```typescript
-import { resolve } from '@aurelia/kernel';
-import { IRouter, route } from '@aurelia/router';
+import { route } from '@aurelia/router';
 
 @route({
   routes: [
     { path: '', component: () => import('./home'), title: 'Home' },
-    { path: '/products/:id', component: () => import('./product-detail'), title: 'Product' },
-    { path: '/about', component: () => import('./about'), title: 'About' },
+    { path: 'products', component: () => import('./products'), title: 'Products' },
+    { id: 'product-detail', path: 'products/:id', component: () => import('./product-detail'), title: 'Product' },
+    { path: 'about', component: () => import('./about'), title: 'About' },
   ]
 })
-export class AppRoot {
-  constructor(private router: IRouter = resolve(IRouter)) {}
-}
+export class AppRoot {}
 ```
 
 ### Navigation
 
+| Destination | Template | Code |
+| --- | --- | --- |
+| A route owned by the current layout or component | `load` | `IContextRouter.load()` |
+| An address relative to the current application URL or rooted at `/` | `url` | `IRouter.navigate()` |
+| Another document | Native `href`, with `external` when needed | Browser APIs |
+
+For the routes defined on `AppRoot` above, use `IRouter`:
+
 ```typescript
 import { resolve } from '@aurelia/kernel';
-import { IRouter, IRouteContext } from '@aurelia/router';
+import { IRouter } from '@aurelia/router';
 
-export class MyComponent {
+export class ProductNavigation {
   private readonly router = resolve(IRouter);
-  private readonly routeContext = resolve(IRouteContext);
 
-  // Navigate to a route
+  // Select a root-configured route by ID and supply its parameters.
   goToProduct(id: string) {
-    return this.router.load(`/products/${id}`);
+    return this.router.load(
+      { component: 'product-detail', params: { id } },
+      { queryParams: { tab: 'reviews' } },
+    );
   }
 
-  // Navigate with parameters
-  goToProductWithQuery(id: string) {
-    return this.router.load(`/products/${id}`, { queryParams: { tab: 'reviews' } });
+  // Resolve against the last completed application URL.
+  goToAddress(reference: string) {
+    return this.router.navigate(reference);
   }
 
-  // Check if a route is active relative to this component's context
-  isActive(path: string): boolean {
-    return this.router.isActive(path, this.routeContext);
+  isProductActive(id: string): boolean {
+    return this.router.isActive(
+      { component: 'product-detail', params: { id } },
+      this.router.routeTree.root.context,
+    );
   }
 }
 ```
 
-`IRouter.isActive` always needs a `RouteContextLike`. Inside routed components you can `resolve(IRouteContext)` as shown above; elsewhere pass the owning element/controller or an explicit `IRouteContext` so the router knows which viewport tree to compare against.
+`IRouter.load()` starts at the root by default. `isActive()` takes an explicit context; this example uses the root of the active route tree.
 
+For a routed feature's own child routes, use `IContextRouter`. In a `load` instruction, a leading `../` selects a parent routing context, which may span several URL segments. In the app root, resolve `IContextRouter` [lazily after the context is established](../router/navigating.md#use-icontextrouter-for-context-aware-navigation).
+
+`IRouter.navigate()` applies URL-segment rules to application references; omit the deployment prefix and outer hash-routing marker from its input.
+
+[Navigation guide](../router/navigating.md) · [Application URL navigation](../router/application-url-navigation.md)
 
 ### Router Viewports
 
@@ -920,17 +935,43 @@ export class MyComponent {
 ### Router Links in Templates
 
 ```html
-<!-- load triggers router navigation and keeps <a> hrefs in sync automatically -->
+<!-- Select a route owned by this layout -->
 <a load="products">Products</a>
 
-<!-- Supply route params via params.bind (object or array) -->
-<a load="products" params.bind="{ id: product.id }">View Product</a>
+<!-- params and active are bindables inside load's value -->
+<a load="route: product-detail; params.bind: { id: product.id }">View product</a>
 
-<!-- Highlight active routes by binding to the 'active' property provided by load -->
-<a load="products" active.class="active">Products</a>
+<!-- Read active state and use it for custom styling -->
+<a load="route: products; active.bind: productsActive" active.class="productsActive">Products</a>
+
+<!-- Preserve a document address and native navigation -->
+<a href="/downloads/catalog.pdf" external>Catalog</a>
 ```
-Configure `RouterConfiguration.customize({ activeClass: 'active' })` to have the `load` custom attribute toggle that class automatically, or bind `active.two-way`/`active.class` as above for fine-grained control. Because `load` resolves the element's `href` internally, these links continue to work even without JavaScript and honor the app's `base` URL.
 
+To style active links automatically, register `RouterConfiguration.customize({ activeClass: 'active' })`. This applies the class to each active link without a per-link binding. Once bound, `load` writes a browser href that includes the deployment base, so users can copy the link or open it in another tab. Aurelia must run before `load` can provide that href.
+
+For application-URL links, explicitly register the optional `UrlCustomAttribute`:
+
+```typescript
+import Aurelia from 'aurelia';
+import { RouterConfiguration, UrlCustomAttribute } from '@aurelia/router';
+import { AppRoot } from './app-root';
+
+Aurelia
+  .register(RouterConfiguration.customize({ activeClass: 'active' }), UrlCustomAttribute)
+  .app(AppRoot)
+  .start();
+```
+
+```html
+<!-- Fixed application-root destination -->
+<a url="/products">Products</a>
+
+<!-- At /products/42, resolves to /products/43 -->
+<a url="43">Next product</a>
+```
+
+Use one navigation attribute per anchor. Choose `load` when you need active-route state; `url` does not expose it. Router-managed `href` is shorthand for contextual instructions. With `useHref: false`, it generates hrefs and leaves the browser to handle clicks. Use `external` to keep the href as authored.
 
 ## Validation
 

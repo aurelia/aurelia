@@ -514,6 +514,18 @@ Components rendered by a repeat use their normal lifecycle hooks. When a row's a
 
 If a row hook rejects, Aurelia waits for row work already in progress and reports the original lifecycle error. That list update fails, and the affected `repeat` should be treated as terminal.
 
+### Hiding and Showing a List
+
+A `repeat` keeps its rows while it is deactivated, for example inside a cached `if` that is hidden, or after `au.stop(false)`. When it is activated again, a row is reused if its position still holds the identical item (`===`). Rows for any other item, and rows adopted from server-rendered HTML, are disposed and created again.
+
+```html
+<div if.bind="showList">
+  <todo-row repeat.for="todo of todos" todo.bind="todo"></todo-row>
+</div>
+```
+
+Hiding and showing this list reuses every `todo-row`, so local state in those components is kept, the same as for components directly under a cached `if`. If `todos` changed while the list was hidden, only rows whose position still holds the same object are reused. Rows are not matched by `key` here, so a reordered list or a replaced object gets a new row. Use `if="value.bind: showList; cache: false"` if every row should start fresh each time the list is shown.
+
 ### Complex Object Iteration
 
 Use value converters for non-standard collections:

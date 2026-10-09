@@ -1,4 +1,4 @@
-import { computed } from '@aurelia/runtime';
+import { computed, ISubscriberCollection } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/computed-method.spec.ts', function () {
@@ -176,7 +176,7 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
     assert.strictEqual(callCount, 2);
   });
 
-  for (const expression of ['model.format(item)', 'model[action](item)']) {
+  for (const expression of ['model.format(item)', 'model[action](item)', '(model?.format)(item)', '(model?.[action])(item)']) {
     for (const tracking of ['proxy', 'strings', 'function'] as const) {
       it(`preserves ${tracking} dependencies and receiver lifetime in ${expression}`, async function () {
         let callCount = 0;
@@ -196,7 +196,7 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
           }
         }
 
-        const { component, assertText, tearDown } = createFixture(
+        const { component, assertText, observerLocator, tearDown } = createFixture(
           `<div if.bind="show">\${${expression}}</div>`,
           class {
             show = true;
@@ -208,6 +208,11 @@ describe('3-runtime-html/computed-method.spec.ts', function () {
 
         assertText('summary: draft');
         assert.strictEqual(callCount, 1);
+
+        // Parentheses change the guard boundary, not dependency ownership. Only keyed calls
+        // observe the selected method property; both spellings still collect method dependencies.
+        const methodObserver = observerLocator.getObserver(component.model, 'format') as unknown as ISubscriberCollection;
+        assert.strictEqual(methodObserver.subs.count, expression.includes('[action]') ? 1 : 0);
 
         // Only proxy tracking follows reads inside parameter objects. Explicit dependencies
         // belong to the receiver and must keep the same contract for keyed calls.

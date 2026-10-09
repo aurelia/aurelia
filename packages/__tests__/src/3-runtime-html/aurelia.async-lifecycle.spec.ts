@@ -1,4 +1,4 @@
-import type { IContainer } from '@aurelia/kernel';
+import { Registration, type IContainer } from '@aurelia/kernel';
 import {
   Aurelia,
   AppTask,
@@ -6,6 +6,8 @@ import {
   type IAppRoot,
   IAppRoot as IAppRootKey,
   type IPlatform,
+  ISSRContext,
+  type ISSRScope,
   refs,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
@@ -480,6 +482,57 @@ describe('3-runtime-html/aurelia.async-lifecycle.spec.ts', function () {
       assert.strictEqual(au.isStopping, true);
       assert.strictEqual(host.textContent, 'app');
       assert.strictEqual(captureThrow(() => au.stop(true)), error);
+    });
+  });
+
+  // https://github.com/aurelia/aurelia/issues/2532
+  describe('hydrate', function () {
+    it('runs hydration through start() so stop(), $aurelia and au-started behave as for app()', async function () {
+      const AppElement = CustomElement.define({
+        name: 'hydrate-app',
+        template: '<span>${message}</span>',
+      }, class { public message = 'hello'; });
+
+      const serverCtx = TestContext.create();
+      serverCtx.container.register(Registration.instance(ISSRContext, { preserveMarkers: true }));
+      const serverHost = serverCtx.doc.body.appendChild(serverCtx.createElement('hydrate-app'));
+      const serverAu = new Aurelia(serverCtx.container).app({ host: serverHost, component: AppElement });
+      await serverAu.start();
+      const ssrMarkup = serverHost.innerHTML;
+      await serverAu.stop(true);
+      serverAu.dispose();
+      serverHost.remove();
+
+      const ctx = TestContext.create();
+      const host = ctx.doc.body.appendChild(ctx.createElement('hydrate-app'));
+      host.innerHTML = ssrMarkup;
+      const ssrSpan = host.querySelector('span');
+      const ssrScope: ISSRScope = { name: 'hydrate-app', children: [] };
+      const events: string[] = [];
+      host.addEventListener('au-started', () => events.push('au-started'));
+      host.addEventListener('au-stopped', () => events.push('au-stopped'));
+
+      const au = new Aurelia(ctx.container);
+      try {
+        const root = await au.hydrate({ host, component: AppElement, ssrScope });
+
+        assert.strictEqual(host.querySelector('span'), ssrSpan, 'the SSR node is adopted');
+        assert.strictEqual(host.textContent, 'hello');
+        assert.strictEqual(au.isRunning, true);
+        assert.strictEqual(au.root, root);
+        assert.strictEqual((host as HTMLElement & { $aurelia?: Aurelia }).$aurelia, au);
+        assert.deepStrictEqual(events, ['au-started']);
+
+        await au.stop(true);
+
+        assert.strictEqual(au.isRunning, false);
+        assert.strictEqual(root.controller.isActive, false, 'the hydrated root is deactivated');
+        assert.strictEqual('$aurelia' in host, false);
+        assert.deepStrictEqual(events, ['au-started', 'au-stopped']);
+      } finally {
+        au.dispose();
+        host.remove();
+      }
     });
   });
 });

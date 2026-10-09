@@ -1300,7 +1300,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._vm = null;
     this.host = null;
     this.shadowRoot = null;
-    this.container.disposeResolvers();
+    // Synthetic views borrow the owning element's container; disposing it here would drop the owner's scoped registrations.
+    if (this.vmKind !== vmkSynth) {
+      this.container.disposeResolvers();
+    }
   }
 
   public accept(visitor: ControllerVisitor): void | true {

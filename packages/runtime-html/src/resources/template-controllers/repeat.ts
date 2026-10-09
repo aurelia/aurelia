@@ -155,7 +155,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _oldViews: ISyntheticView[] = [];
   /** @internal */ private _scopes: Scope[] = [];
   /** @internal */ private _oldScopes: Scope[] = [];
-  /** @internal */ private _scopeMap: Map<unknown, Scope | Scope[]> = new Map();
+  /** @internal */ private _scopeMap: Map<unknown, Scope | Scope[]> | undefined = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
   /** @internal */ private _forOfBinding!: PropertyBinding;
@@ -335,7 +335,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _initiator: IHydratedController,
     _parent: IHydratedParentController,
   ): void | Promise<void> {
-    this._scopeMap.clear();
+    this._scopeMap?.clear();
   }
 
   // called by SetterObserver
@@ -434,8 +434,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _performReconcile(indexMap: IndexMap | undefined): void | Promise<void> {
+    const oldItems = this._normalizedItems;
     this._normalizeToArray();
-    this._createScopes(this.key === null ? indexMap : void 0);
+    this._createScopes(this.key === null ? indexMap : void 0, oldItems);
     return this._applyIndexMap(indexMap);
   }
 
@@ -599,7 +600,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   /** @internal */
-  private _createScopes(indexMap: IndexMap | undefined): void {
+  private _createScopes(indexMap: IndexMap | undefined, oldItems: unknown[] = emptyArray): void {
     const oldScopes = this._scopes;
     this._oldScopes = oldScopes.slice();
 
@@ -607,13 +608,21 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const len = items.length;
     const scopes = this._scopes = Array<Scope>(len);
 
-    const oldScopeMap = this._scopeMap;
-    const newScopeMap = new Map<unknown, Scope | Scope[]>();
+    let oldScopeMap = this._scopeMap;
     const parentScope = this.$controller.scope;
     const binding = this._forOfBinding;
     const declaration = this._declaration;
 
     if (indexMap === void 0) {
+      const newScopeMap = new Map<unknown, Scope | Scope[]>();
+      if (oldScopeMap === void 0) {
+        // Only rebuild after a mutation is followed by a replacement. Match the
+        // previous collection snapshot, not possibly edited row locals.
+        oldScopeMap = new Map();
+        for (let i = 0; i < oldItems.length; ++i) {
+          recordScope(oldScopeMap, oldItems[i], oldScopes[i]);
+        }
+      }
       const key = this.key;
       const hasKey = key !== null;
       if (hasKey) {
@@ -645,7 +654,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], items[i], declaration, parentScope, binding);
         }
       }
+      this._scopeMap = newScopeMap;
     } else {
+      this._scopeMap = void 0;
       const oldLen = oldScopes.length;
       for (let i = 0; i < len; ++i) {
         const src = indexMap[i];
@@ -659,8 +670,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    oldScopeMap.clear();
-    this._scopeMap = newScopeMap;
+    oldScopeMap?.clear();
   }
 
   /** @internal */
@@ -822,9 +832,17 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    for (let i = 0; i < deletedLen; ++i) {
-      views.splice(deleted[i] - i, 1);
+    // Keep the views array identity after all row teardowns have started.
+    let target = deleted[0];
+    let deletedIndex = 1;
+    for (let source = target + 1; source < views.length; ++source) {
+      if (source === deleted[deletedIndex]) {
+        ++deletedIndex;
+      } else {
+        views[target++] = views[source];
+      }
     }
+    views.length = target;
 
     return settleRowTransitions(transition);
   }
@@ -872,28 +890,26 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, _factory, _location, views, _scopes, _oldViews } = this;
     const newLen = indexMap.length;
+    // Count insertions separately so the length check remains meaningful during direct writes.
+    let length = views.length;
 
     for (; newLen > i; ++i) {
-      if (indexMap[i] === -2) {
-        view = _factory.create($controller);
+      const source = indexMap[i];
+      if (source === -2) {
+        view = views[i] = _factory.create($controller);
         if (this._declaration.kind === 'object-binding') {
           this._declaration.value.ensureViewBinding(view);
         }
-        views.splice(i, 0, view);
-      }
-    }
-
-    if (views.length !== newLen) {
-      throw createMappedError(ErrorNames.repeat_mismatch_length, [views.length, newLen]);
-    }
-
-    let source = 0;
-    i = 0;
-    for (; i < indexMap.length; ++i) {
-      if ((source = indexMap[i]) !== -2) {
+        ++length;
+      } else {
         views[i] = _oldViews[source];
       }
     }
+
+    if (length !== newLen) {
+      throw createMappedError(ErrorNames.repeat_mismatch_length, [length, newLen]);
+    }
+    views.length = newLen;
 
     // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
@@ -1307,18 +1323,20 @@ const getScope = (
     scope = scope.shift()!;
   }
 
-  if (newScopeMap.has(key)) {
-    const entry = newScopeMap.get(key)!;
-    if (entry instanceof Scope) {
-      newScopeMap.set(key, [entry, scope]);
-    } else {
-      entry.push(scope);
-    }
-  } else {
-    newScopeMap.set(key, scope);
-  }
+  recordScope(newScopeMap, key, scope);
   setItem(declaration, scope, binding, item);
   return scope;
+};
+
+const recordScope = (map: Map<unknown, Scope | Scope[]>, key: unknown, scope: Scope): void => {
+  const entry = map.get(key);
+  if (entry === void 0) {
+    map.set(key, scope);
+  } else if (entry instanceof Scope) {
+    map.set(key, [entry, scope]);
+  } else {
+    entry.push(scope);
+  }
 };
 
 const createScope = (

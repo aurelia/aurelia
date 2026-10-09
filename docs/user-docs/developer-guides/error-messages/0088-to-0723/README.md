@@ -31,4 +31,5 @@ Please see below a reference to each [@aurelia/template-compiler](https://github
 * [AUR0721](aur0721.md)
 * [AUR0722](aur0722.md)
 * [AUR0723](aur0723.md)
+* [AUR0724](aur0724.md)
 * [AUR9998](aur9998.md)

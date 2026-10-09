@@ -131,6 +131,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly dependencies: Key[],
     public readonly containerStrategy: 'reuse' | 'new',
     public readonly defaultProperty: string,
+    public readonly compileContent: 'default' | 'deferred',
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -165,6 +166,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
       firstDefined(getAttributeAnnotation(Type, 'containerStrategy'), def.containerStrategy, Type.containerStrategy, 'reuse'),
       firstDefined(getAttributeAnnotation(Type, 'defaultProperty'), def.defaultProperty, Type.defaultProperty, 'value'),
+      firstDefined(getAttributeAnnotation(Type, 'compileContent'), def.compileContent, Type.compileContent, 'default'),
     );
   }
 

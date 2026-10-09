@@ -240,6 +240,15 @@ export {
 } from './resources/template-controllers/promise';
 
 export {
+  Defer,
+  DeferPlaceholder,
+  DeferLoading,
+  DeferError,
+  DeferConfiguration,
+  type DeferState,
+} from './resources/template-controllers/defer';
+
+export {
   Focus,
 } from './resources/custom-attributes/focus';
 

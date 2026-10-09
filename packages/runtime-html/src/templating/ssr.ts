@@ -169,6 +169,79 @@ export function adoptSSRViews(
   return { views, viewScopes };
 }
 
+/**
+ * Make a server-rendered tree survive the HTML round trip with the node counts the manifest recorded.
+ *
+ * The HTML parser drops empty text nodes and merges adjacent ones, so each empty text node is replaced with an
+ * `<!--au-e-->` comment (same node count) and an `<!--au-t-->` separator goes between adjacent text nodes.
+ * An `<!--au-hm-->` comment is added as the first child of `root` so the client can tell prepared markup apart
+ * from markup that skipped this step or had its comments stripped.
+ * `restoreSSRTextNodes` reverses all of this on the client; `Aurelia.hydrate()` calls it before adoption.
+ *
+ * Call after the manifest is recorded, immediately before serializing.
+ */
+export function prepareSSRForSerialization(root: Node): void {
+  const doc = root.ownerDocument ?? root as Document;
+  // NodeFilter.SHOW_TEXT = 4
+  const walker = doc.createTreeWalker(root, 4);
+  const empty: Text[] = [];
+  const adjacent: Text[] = [];
+  let node: Text | null;
+  while ((node = walker.nextNode() as Text | null) !== null) {
+    // the parser reads the content of these elements as text, so a comment there would come back as literal text
+    if (rawTextParentRE.test(node.parentNode!.nodeName)) {
+      continue;
+    }
+    if (node.data === '') {
+      empty.push(node);
+    } else if (node.nextSibling?.nodeType === 3) {
+      adjacent.push(node);
+    }
+  }
+  for (const text of adjacent) {
+    text.after(doc.createComment('au-t'));
+  }
+  for (const text of empty) {
+    text.replaceWith(doc.createComment('au-e'));
+  }
+  root.insertBefore(doc.createComment('au-hm'), root.firstChild);
+}
+
+const rawTextParentRE = /^(?:SCRIPT|STYLE|TEXTAREA|TITLE|XMP|IFRAME|NOEMBED|NOFRAMES|NOSCRIPT|PLAINTEXT)$/;
+
+/**
+ * Reverse `prepareSSRForSerialization` on the client before adoption.
+ *
+ * @returns whether `host` starts with the `<!--au-hm-->` integrity marker, i.e. whether the markup was prepared
+ * and its comments survived delivery.
+ */
+export function restoreSSRTextNodes(host: Node): boolean {
+  const doc = host.ownerDocument ?? host as Document;
+  // Only the marker prepareSSRForSerialization() put on this root counts: a nested root prepared on its own says
+  // nothing about the markup around it.
+  const first = host.firstChild;
+  const prepared = first !== null && first.nodeType === 8 && (first as Comment).data === 'au-hm';
+  // NodeFilter.SHOW_COMMENT = 128
+  const walker = doc.createTreeWalker(host, 128);
+  const markers: Comment[] = [];
+  let node: Comment | null;
+  let data: string;
+  while ((node = walker.nextNode() as Comment | null) !== null) {
+    data = node.data;
+    if (data === 'au-e' || data === 'au-t' || data === 'au-hm') {
+      markers.push(node);
+    }
+  }
+  for (const marker of markers) {
+    if (marker.data === 'au-e') {
+      marker.replaceWith(doc.createTextNode(''));
+    } else {
+      marker.remove();
+    }
+  }
+  return prepared;
+}
+
 /* =============================================================================
  * SSR Definition Hydration
  *

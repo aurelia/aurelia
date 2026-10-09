@@ -2,6 +2,7 @@ import {
   Aurelia,
   CustomElement,
   ISSRContext,
+  prepareSSRForSerialization,
   customElement,
   type IHydratedController,
   type ISSRScope,
@@ -893,6 +894,7 @@ describe('3-runtime-html/repeat.async-lifecycle.spec.ts', function () {
       let serverMarkup: string;
       try {
         await serverAu.start();
+        prepareSSRForSerialization(serverHost);
         serverMarkup = serverHost.innerHTML;
       } finally {
         await serverAu.stop(true);

@@ -48,6 +48,10 @@ PR reporting currently supports same-repository PRs targeting `master`. The trus
 marker comment. It discards results when the PR base, head, or test merge changes while CircleCI is running. PR code
 never receives the GitHub write token.
 
+The reporter retries failed CircleCI metadata reads up to five times with bounded backoff. If publication still
+fails, the PR comment links directly to the reporting log, which records the failed API path and HTTP status when
+available. Completed measurements remain available in the CircleCI `benchmark_report` job's artifacts.
+
 ### Choose framework revisions
 
 Maintainers can use these commands on a same-repository PR targeting `master`:

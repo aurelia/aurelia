@@ -41,6 +41,7 @@ import { IViewFactory } from '../../templating/view';
 import { isSSRTemplateController, adoptSSRViews, type ISSRTemplateController } from '../../templating/ssr';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
+import { runReported } from '../../templating/error-handling';
 import { etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
 
@@ -375,7 +376,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     // Notification callbacks cannot return asynchronous settlement. The stable
     // drain remains on the operation record for owner teardown and diagnostics;
     // an otherwise unobserved rejection retains the existing host behavior.
-    void this._beginReconciliation(() => this._performReconcile(indexMap));
+    void runReported(this.$controller, () => this._beginReconciliation(() => this._performReconcile(indexMap)));
   }
 
   /** @internal */

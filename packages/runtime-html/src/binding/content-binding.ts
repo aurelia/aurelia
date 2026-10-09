@@ -21,6 +21,7 @@ import type { BindingMode, IBinding, IBindingController } from './interfaces-bin
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
 import { activated } from '../templating/controller';
+import { reportTaskError } from '../templating/error-handling';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -62,7 +63,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   private _value: unknown = '';
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
   /** @internal */
   private _needsRemoveNode: boolean = false;
   // see Listener binding for explanation
@@ -105,20 +106,25 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     this._isQueued = true;
 
     queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound || this._controller.state > activated) return;
+      try {
+        this._isQueued = false;
+        if (!this.isBound || this._controller.state > activated) return;
 
-      this.obs.version++;
-      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
-      this.obs.clear();
+        this.obs.version++;
+        const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+        this.obs.clear();
 
-      // Reconnect array results even when their identity is unchanged. This update also
-      // covers array mutations that arrived while the property change was queued.
-      if (newValue !== this._value || isArray(newValue)) {
-        if (isArray(newValue)) {
-          this.observeCollection(newValue);
+        // Reconnect array results even when their identity is unchanged. This update also
+        // covers array mutations that arrived while the property change was queued.
+        if (newValue !== this._value || isArray(newValue)) {
+          if (isArray(newValue)) {
+            this.observeCollection(newValue);
+          }
+          this.updateTarget(newValue);
         }
-        this.updateTarget(newValue);
+      } catch (err) {
+        reportTaskError(this.l, this._controller, err);
+        throw err;
       }
     });
   }
@@ -129,17 +135,22 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     this._isQueued = true;
 
     queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound || this._controller.state > activated) return;
+      try {
+        this._isQueued = false;
+        if (!this.isBound || this._controller.state > activated) return;
 
-      this.obs.version++;
-      const v = this._value = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
-      this.obs.clear();
+        this.obs.version++;
+        const v = this._value = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+        this.obs.clear();
 
-      if (isArray(v)) {
-        this.observeCollection(v);
+        if (isArray(v)) {
+          this.observeCollection(v);
+        }
+        this.updateTarget(v);
+      } catch (err) {
+        reportTaskError(this.l, this._controller, err);
+        throw err;
       }
-      this.updateTarget(v);
     });
   }
 

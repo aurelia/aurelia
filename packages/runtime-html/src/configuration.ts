@@ -72,6 +72,7 @@ import {
 } from './resources/template-controllers/promise';
 import { AuCompose } from './resources/custom-elements/au-compose';
 import { AuSlot } from './resources/custom-elements/au-slot';
+import { ErrorBoundary } from './resources/custom-elements/error-boundary';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { instanceRegistration } from './utilities-di';
@@ -137,7 +138,7 @@ export const DefaultBindingLanguage = [
 /**
  * Default HTML-specific (but environment-agnostic) resources:
  * - Binding Behaviors: `oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`, `attr`, `self`, `updateTrigger`
- * - Custom Elements: `au-compose`, `au-slot`
+ * - Custom Elements: `au-compose`, `au-slot`, `error-boundary`
  * - Custom Attributes: `focus`, `show`
  * - Template controllers: `if`/`else`, `repeat`, `with`, `switch`/`case`/`default-case`, `promise`, `portal`
  * - Value Converters: `sanitize`
@@ -173,6 +174,7 @@ export const DefaultResources = [
   Focus,
   Show,
   AuSlot,
+  ErrorBoundary,
 ];
 
 /**

@@ -9,6 +9,7 @@ import { Controller, HydrationContext, IController, ICustomElementController, IH
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
+import { runReported } from '../../templating/error-handling';
 import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
@@ -257,7 +258,21 @@ export class AuCompose {
   private _handleChangeInfo(info: ChangeInfo): void {
     // Bindable callbacks cannot return async settlement. `_composing` is the
     // stable, bindable-visible tail; the ignored return is the same Promise.
-    void this._enqueueComposition(() => this.queue(info, void 0));
+    // A recomposition failure reports to an enclosing error boundary; when
+    // nothing handles it the error keeps escaping the observer callback.
+    let operation: void | Promise<void>;
+    void runReported(
+      this.$controller,
+      () => operation = this._enqueueComposition(() => this.queue(info, void 0)),
+      () => {
+        // The boundary that took the failure over will tear this element
+        // down. A rejected tail would stop `detaching` before it disposes
+        // owned compositions, and hand the boundary the same error again.
+        if (this._composing === operation) {
+          this._composing = void 0;
+        }
+      },
+    );
   }
 
   /** @internal */

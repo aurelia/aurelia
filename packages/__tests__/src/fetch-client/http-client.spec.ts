@@ -501,6 +501,31 @@ describe('fetch-client/http-client.spec.ts', function () {
       });
     }
 
+    it('keeps the caller signal on a url-built replacement request once it is dispatched', async function () {
+      const nativeFetch = globalThis.fetch.bind(globalThis);
+      const controller = new AbortController();
+      const { client, requests } = createTestClient(async (request, record) => {
+        await record(request);
+        if (requests.length === 1) {
+          return new Response(null, { status: 503 });
+        }
+        // abort after the replacement is in flight; native Fetch rejects only if it carries the signal
+        controller.abort();
+        return nativeFetch(request);
+      });
+      client.configure(config => config.rejectErrorResponses().withRetry({
+        maxRetries: 1,
+        interval: 0,
+        beforeRetry: request => new Request(request.url, { headers: { 'x-token': 'refreshed' } }),
+      }));
+      const result = await client.fetch('data:text/plain,retried', { signal: controller.signal })
+        .then(response => ({ response, error: null }), error => ({ response: null, error }));
+      assert.strictEqual(result.response, null, 'the cancelled logical call must not succeed');
+      assert.strictEqual(result.error?.name, 'AbortError');
+      assert.strictEqual(requests[1].headers['x-token'], 'refreshed');
+      assert.strictEqual(client.isRequesting, false);
+    });
+
     it('settles cancellation during backoff without waiting for its timer or running the retry hook', async function () {
       let delayScheduled: () => void;
       let releaseDelay: () => void;

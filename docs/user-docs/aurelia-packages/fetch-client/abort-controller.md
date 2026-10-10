@@ -160,9 +160,9 @@ export class AbortAwareInterceptorService {
 
 ## AbortController and Retries
 
-The retry interceptor does not retry aborted requests. When a request fails because its signal was aborted or fetch threw an `AbortError`, the caller receives the `AbortError` — no retry is attempted, even when `doRetry` is configured.
+The retry interceptor does not retry aborted requests. When a request fails because its signal was aborted or fetch threw an `AbortError`, the call rejects with that error and no retry is attempted, even when `doRetry` is configured. The rejection is the signal's abort reason, so it is an `AbortError` only when `abort()` was called without a reason: `controller.abort(myReason)` rejects with `myReason`, and an `AbortSignal.timeout()` signal rejects with a `TimeoutError`.
 
-Retries reuse the original request's signal. Aborting while a retry is waiting for its delay, or while a retry attempt is in flight, cancels that attempt and ends the retry sequence. Create a new AbortController for each logical call rather than reusing one; a controller that has already fired would prevent the retries from running.
+Retries reuse the original request's signal. Aborting while a retry is waiting for its delay, while `beforeRetry` is running, or while a retry attempt is in flight settles the call straight away and ends the retry sequence; `beforeRetry` is not called once the call has been aborted. If `beforeRetry` returns a new `Request`, it is rebuilt on the original signal, so aborting still cancels it. Create a new AbortController for each logical call rather than reusing one; a controller that has already fired would prevent the retries from running.
 
 If you need each attempt to have its own timeout budget, wrap the calls yourself instead of relying on `withRetry` — a fresh controller per attempt is the key detail:
 

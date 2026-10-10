@@ -89,10 +89,11 @@ export class RetryInterceptor implements IFetchInterceptor {
       throw error;
     }
     const { requestClone } = retryConfig;
+    const signal = request.signal as AbortSignal | undefined;
     return Promise.resolve().then(() => {
       // aborted requests are never retried, and doRetry is not consulted for them
       if (retryConfig.counter >= retryConfig.maxRetries
-        || request.signal?.aborted === true
+        || signal?.aborted === true
         || (error as { name?: unknown } | null)?.name === 'AbortError') {
         delete request.retryConfig;
         throw error;
@@ -108,15 +109,41 @@ export class RetryInterceptor implements IFetchInterceptor {
         if (doRetry) {
           retryConfig.counter++;
           const delay = calculateDelay(retryConfig);
-          return new Promise(resolve => this.p.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+          let newRequest: IRetryableRequest;
+          return new Promise<void>((resolve, reject) => {
+            if (signal == null) {
+              this.p.setTimeout(resolve, !isNaN(delay) ? delay : 0);
+              return;
+            }
+            // settle as soon as the caller aborts instead of holding the call open until the delay elapses
+            const onAbort = () => {
+              this.p.clearTimeout(timer);
+              delete request.retryConfig;
+              reject(abortReason(signal));
+            };
+            const timer = this.p.setTimeout(() => {
+              signal.removeEventListener('abort', onAbort);
+              resolve();
+            }, !isNaN(delay) ? delay : 0);
+            signal.addEventListener('abort', onAbort, { once: true });
+          })
             .then(() => {
-              const newRequest = requestClone.clone() as IRetryableRequest;
+              newRequest = requestClone.clone() as IRetryableRequest;
               // attach before beforeRetry so user code can read the retry state
               newRequest.retryConfig = retryConfig;
               return retryConfig.beforeRetry?.(newRequest, httpClient) ?? newRequest;
             })
             .then(retryRequest => {
               delete request.retryConfig;
+              // the caller may have aborted while an async beforeRetry was pending
+              if (signal?.aborted === true) {
+                throw abortReason(signal);
+              }
+              // a replacement built from a url (new Request(request.url, ...)) drops the caller's signal,
+              // so rebuild it on that signal or a later abort would no longer reach the retry
+              if (signal != null && retryRequest !== newRequest) {
+                retryRequest = new Request(retryRequest, { signal });
+              }
               // beforeRetry may return a brand-new Request; the config must live on a real
               // Request - a spread would produce a plain object that buildRequest treats as a url
               (retryRequest as IRetryableRequest).retryConfig = retryConfig;
@@ -130,6 +157,11 @@ export class RetryInterceptor implements IFetchInterceptor {
       });
     });
   }
+}
+
+// fetch rejects with the signal's reason, which is not always an AbortError (custom reasons, AbortSignal.timeout)
+function abortReason(signal: AbortSignal): unknown {
+  return signal.reason ?? new DOMException('The operation was aborted.', 'AbortError');
 }
 
 function calculateDelay(retryConfig: IRetryConfiguration): number {

@@ -231,6 +231,12 @@ Use these callbacks in your template:
 ```
 {% endcode %}
 
+### Callbacks when the target or position changes
+
+When `target`, `position` or `renderContext` changes while the portal is active, the portal resolves the target again. If the content moves to a different element or position, the portal runs all four callbacks again. `deactivating` and `deactivated` receive the target the content is leaving, and `activating` and `activated` receive the target it moves to. If the change resolves to the element and position the content is already at, for example a new `renderContext` that finds the same element, nothing moves and no callbacks run.
+
+Changes are applied one at a time, in the order they were made. If a callback returns a promise, a later change waits for it, and so does deactivating the portal. A change made from inside a callback waits until the current move has finished. Content therefore never ends up in an outdated target, even when the target changes several times in a row.
+
 ## Strict mode
 
 By default, the portal attribute is forgiving - if a target cannot be found, it falls back to the document body. You can enable strict mode to throw errors when targets cannot be resolved:
@@ -248,6 +254,8 @@ The runtime surfaces three dedicated error types when strict mode is enabled:
 1. `portal_query_empty` when the selector string is empty
 2. `portal_no_target` when a selector or bound element cannot be found
 3. `portal_invalid_insert_position` when you provide a position outside of the valid `InsertPosition` union
+
+Regardless of strict mode, `position: beforebegin` and `position: afterend` throw [AUR0830](../developer-guides/error-messages/runtime-html/aur0830.md) when the target has no parent node. For a target or position change, the content stays where it was.
 
 ## Dynamic targeting
 
@@ -311,8 +319,9 @@ The portal attribute can encounter several error conditions:
 1. **Empty query string** - When using strict mode with an empty target string
 2. **Target not found** - When using strict mode and the target element doesn't exist  
 3. **Invalid position** - When specifying an invalid insertion position
+4. **Target without a parent** - When using `beforebegin` or `afterend` with a target that isn't attached to a parent node (AUR0830)
 
-These errors will be thrown during portal activation when strict mode is enabled.
+The first two are only thrown in strict mode. The others are always thrown.
 
 ## API Reference
 
@@ -336,7 +345,7 @@ The portal attribute supports the following bindable properties:
 
 ```typescript
 type PortalTarget = string | Element | null | undefined;
-type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
+type PortalLifecycleCallback = (target: Element, view: ISyntheticView) => void | Promise<void>;
 ```
 
 ### Usage Examples
